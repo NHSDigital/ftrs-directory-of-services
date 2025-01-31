@@ -13,16 +13,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Download Python Coverage Report
-      uses: actions/download-artifact@v4
-      with:
-        name: python-code-coverage-report
-      continue-on-error: true
-    - name: Download React Coverage Report
-      uses: actions/download-artifact@v4
-      with:
-        name: react-code-coverage-report
-      continue-on-error: true
     - name: "Check prerequisites for performing static analysis"
       shell: bash
       id: check
@@ -31,8 +21,8 @@ runs:
       shell: bash
       if: steps.check.outputs.secret_exist == 'true'
       run: |
-        export BRANCH_NAME=${{ github.ref }}
+        export BRANCH_NAME=${GITHUB_HEAD_REF:-$(echo $GITHUB_REF | sed 's#refs/heads/##')}
         export SONAR_ORGANISATION_KEY=${{ inputs.sonar_organisation_key }}
         export SONAR_PROJECT_KEY=${{ inputs.sonar_project_key }}
         export SONAR_TOKEN=${{ inputs.sonar_token }}
-        ./uec-dos-management/scripts/workflow/perform-static-analysis.sh
+        ./scripts/reports/perform-static-analysis.sh

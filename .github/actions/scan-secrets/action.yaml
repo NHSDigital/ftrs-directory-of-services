@@ -1,10 +1,13 @@
-name: "Scan secrets"
-description: "Scan secrets"
+name: "Scan code for secrets action"
+description: "Scan code in the repository for secrets"
+
 runs:
   using: "composite"
   steps:
-    - name: "Scan secrets"
+    - name: Checking code for secrets
+      id: scan_secrets
       shell: bash
       run: |
-        # Please do not change this `check=whole-history` setting, as new patterns may be added or history may be rewritten.
-        check=whole-history ./scripts/githooks/scan-secrets.sh
+        export ALL_FILES=true
+        ./scripts/githooks/secret-scan-pre-commit.sh
+
