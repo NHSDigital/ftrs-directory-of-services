@@ -1,0 +1,16 @@
+name: "Install python action"
+description: "Installs python"
+
+inputs:
+  python_version:
+    description: 'Version of python'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install python
+      id: install_python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python_version }}
+

@@ -1,0 +1,122 @@
+name: Deploy React App
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The name of the environment to deploy into"
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to deploy the application into"
+        required: true
+        type: string
+      artefact_sub_dir:
+        description: "If deploying a custom artefact, specify its S3 subdirectory here."
+        required: false
+        type: string
+      domain:
+        description: "The name of the code repository"
+        required: true
+        type: string
+      multi_domain:
+        description: "If true uses 'dos-management' github runner ; if false uses github runner for triggering repo"
+        required: false
+        default: 'false'
+        type: string
+      code_directory:
+        description: "The root directory for react code"
+        required: false
+        type: string
+        default: "src/frontend"
+      tag:
+        description: "The tag to build and deploy from"
+        required: false
+        default: ""
+        type: string
+      commit_hash:
+        description: "Git commit hash - to locate artefacts"
+        required: true
+        type: string
+      artefact_bucket_name:
+        description: "Name of s3 bucket holding domain artefacts"
+        required: true
+        type: string
+
+jobs:
+
+  derive-commit-hash:
+    name: Derive Commit Hash For React App
+    runs-on: ubuntu-latest
+    outputs:
+        commit_hash: ${{ steps.derive-commit-hash-react.outputs.commit_hash }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          repository: ${{ inputs.domain }}
+
+      - name: Derive Commit Hash For React App
+        id: derive-commit-hash-react
+        uses: NHSDigital/uec-dos-management/.github/actions/derive-commit-hash@latest
+        with:
+          commit_hash: ${{ inputs.commit_hash}}
+
+  deploy-react-app:
+    name: "Deploy react application"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    timeout-minutes: 5
+    needs:
+      [
+        derive-commit-hash
+      ]
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+          repository: ${{ inputs.domain }}
+
+      - name: Configure AWS Credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          multi_domain: ${{ inputs.multi_domain }}
+
+      - name: Derive spa bucket
+        id: derive_spa_bucket
+        uses: NHSDigital/uec-dos-management/.github/actions/derive-frontend-bucket@latest
+        with:
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          domain: ${{ inputs.domain }}
+
+      - name: Derive cloudfront dist id
+        id: derive_cloudfront_dist_id
+        uses: NHSDigital/uec-dos-management/.github/actions/derive-cloudfront-dist-id@latest
+        with:
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          domain: ${{ inputs.domain }}
+
+      - name: Deploy react application
+        uses: NHSDigital/uec-dos-management/.github/actions/react-app-deploy@latest
+        with:
+          code_directory: ${{ inputs.code_directory }}
+          spa_bucket_name: ${{ steps.derive_spa_bucket.outputs.spa_bucket_name }}
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          artefact_sub_dir: ${{ inputs.artefact_sub_dir }}
+          artefact_bucket_name: ${{ inputs.artefact_bucket_name }}
+          commit_hash: ${{ needs.derive-commit-hash.outputs.commit_hash }}
+
+      - name: Invalidate CloudFront Cache
+        uses: NHSDigital/uec-dos-management/.github/actions/react_clear_cloudfront_cache@latest
+        with:
+          code_directory: ${{ inputs.code_directory }}
+          distribution_id: ${{ steps.derive_cloudfront_dist_id.outputs.cloudfront_dist_id }}

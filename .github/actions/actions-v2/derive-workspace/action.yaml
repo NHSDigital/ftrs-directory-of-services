@@ -1,0 +1,24 @@
+name: "Derive Workspace action"
+description: "Derives the name of the workspace for subsequent actions to run against"
+
+outputs:
+    workspace:
+        description: "The derived workspace name"
+        value: ${{ steps.derive-workspace.outputs.workspace }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Derive workspace"
+      id: "derive-workspace"
+      shell: bash
+      run: |
+        export TRIGGER=${{ github.ref_type }}
+        export TRIGGER_ACTION=${{ github.event_name }}
+        export TRIGGER_REFERENCE=${{ github.ref_name }}
+        export TRIGGER_HEAD_REFERENCE=${{ github.head_ref }}
+        export TRIGGER_EVENT_REF=${{ github.event.ref}}
+        export PR_NUMBER=${{ github.event.number }}
+        . uec-dos-management/scripts/workflow/derive-workspace.sh
+        echo "Workspace Name: ${WORKSPACE}"
+        echo "workspace=${WORKSPACE}" >> $GITHUB_OUTPUT

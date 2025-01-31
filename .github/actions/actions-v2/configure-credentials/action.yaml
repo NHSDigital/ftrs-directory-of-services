@@ -1,0 +1,32 @@
+name: "Configure Credentials action"
+description: "Wrapper for the configure AWS credentials action"
+
+inputs:
+  aws_account_id:
+    description: "The account to retrieve credentials from"
+    required: true
+  aws_region:
+    description: "The AWS region where the account resides"
+    required: true
+  multi_domain:
+    description: "Multi domain"
+    required: true
+    default: 'false'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS Credentials
+      if: ${{ inputs.multi_domain == 'false' }}
+      uses: aws-actions/configure-aws-credentials@v4.0.2
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ github.event.repository.name }}-github-runner
+        role-session-name: github-pipeline-session
+        aws-region: ${{ inputs.aws_region }}
+    - name: Configure AWS Credentials for multi domain
+      if: ${{ inputs.multi_domain == 'true' }}
+      uses: aws-actions/configure-aws-credentials@v4.0.2
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/uec-dos-management-github-runner
+        role-session-name: github-pipeline-session
+        aws-region: ${{ inputs.aws_region }}

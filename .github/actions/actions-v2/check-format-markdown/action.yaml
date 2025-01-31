@@ -1,0 +1,13 @@
+name: "Check formatting of markdown files action"
+description: "Checks correct formatting of markdown files in the repository"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checking format of markdown files
+      id: format_markdown
+      shell: bash
+      run: |
+        export BRANCH_NAME=${{ github.ref }}
+        ./scripts/githooks/markdown-pre-commit.sh
+

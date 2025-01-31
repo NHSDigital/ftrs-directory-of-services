@@ -1,0 +1,13 @@
+name: "Check formatting of python code action"
+description: "Checks correct formatting of python code in the repository"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checking format of python code
+      id: format_python
+      shell: bash
+      run: |
+        export PRECOMMIT=false
+          ./scripts/githooks/python-black-pre-commit.sh
+

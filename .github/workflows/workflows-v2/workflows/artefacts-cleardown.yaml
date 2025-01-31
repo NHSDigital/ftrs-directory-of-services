@@ -1,0 +1,47 @@
+name: Cleardown Artefacts
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Defines the Github environment in which to pull environment variables from"
+        required: true
+        type: string
+      workspace:
+        description: "Name of the workspace"
+        required: true
+        type: string
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 10
+        type: number
+      artefact_bucket_name:
+        description: "The name of the s3 bucket holding domain artefacts"
+        required: true
+        type: string
+
+jobs:
+  cleardown-artefacts:
+    name: "Cleardown Redundant artefacts"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+      - name: Configure AWS Credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        with:
+            aws_account_id: ${{ secrets.ACCOUNT_ID }}
+            aws_region: ${{ vars.AWS_REGION }}
+      - name: "Cleardown redundant artefacts"
+        uses: NHSDigital/uec-dos-management/.github/actions/artefact-cleardown@latest
+        with:
+          workspace: ${{ inputs.workspace }}
+          artefact_bucket_name: ${{ inputs.artefact_bucket_name }}

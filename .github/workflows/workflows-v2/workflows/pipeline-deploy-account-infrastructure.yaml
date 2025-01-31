@@ -1,0 +1,52 @@
+name: Pipeline Deploy Account Level Infrastructure
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+    metadata:
+      name: "Get Metadata"
+      uses: NHSDigital/uec-dos-management/.github/workflows/metadata.yaml@latest
+
+    deploy-account-infrastructure-apply:
+        name: "Deploy mgmt account level infrastructure"
+        needs:
+          [
+            metadata,
+          ]
+        uses: NHSDigital/uec-dos-management/.github/workflows/deploy-infrastructure.yaml@latest
+        with:
+          environment: mgmt
+          domain: "uec-dos-management"
+          workspace: ${{ needs.metadata.outputs.workspace }}
+          stacks: "['terraform_management','github-runner','dos-artefacts','parameter_store','route-53']"
+          action: apply
+        secrets: inherit
+    deploy-int-account-infrastructure-apply:
+      name: "Deploy integration account level infrastructure"
+      needs:
+        [
+          metadata,
+        ]
+      uses: NHSDigital/uec-dos-management/.github/workflows/deploy-infrastructure.yaml@latest
+      with:
+        environment: int
+        domain: "uec-dos-management"
+        workspace: ${{ needs.metadata.outputs.workspace }}
+        stacks: "['terraform_management','github-runner']"
+        action: apply
+      secrets: inherit
+    slack-notifications:
+      needs: [
+        metadata,
+        deploy-account-infrastructure-apply,
+        deploy-int-account-infrastructure-apply,
+      ]
+      if: always()
+      uses: NHSDigital/uec-dos-management/.github/workflows/slack-notifications.yaml@latest
+      with:
+        env: mgmt
+      secrets: inherit
+
+

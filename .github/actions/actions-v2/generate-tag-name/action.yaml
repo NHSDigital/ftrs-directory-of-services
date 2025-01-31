@@ -1,0 +1,33 @@
+name: "Generate tag name action"
+description: "Generates a tag name."
+
+inputs:
+  workspace:
+    description: "The name of the workspace that is used to generate the name of the tag"
+    required: true
+  use_commit_hash:
+    description: "Option to configure the tag generator to include the commit hash in the tag name"
+    required: false
+    default: "yes"
+  commit_hash:
+    description: "The commit hash to use. Required if use commit hash is true"
+    required: true
+
+outputs:
+  tag_name:
+    description: "The generated tag name"
+    value: ${{ steps.generate-tag-name.outputs.tag_name }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate Tag Name
+      id: generate-tag-name
+      shell: bash
+      run: |
+        export WORKSPACE=${{ inputs.workspace }}
+        export USE_COMMIT_HASH=${{ inputs.use_commit_hash }}
+        export COMMIT_HASH=${{ inputs.commit_hash }}
+        . uec-dos-management/scripts/workflow/generate-tag-name.sh
+        echo "Tag name: ${TAG_NAME}"
+        echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT

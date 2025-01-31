@@ -1,0 +1,25 @@
+name: "User interface tests action"
+description: "Run ui tests of react code"
+
+inputs:
+    environment:
+      description: "The name of the environment to action the infrastructure"
+      required: true
+    workspace:
+      description: "The name of the workspace to action the infrastructure into."
+      required: true
+    aws_region:
+      description: "AWS region"
+      required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run ui tests of react code
+      id: run-ui-tests
+      shell: bash
+      run: |
+        export AWS_REGION=${{ inputs.aws_region }}
+        export WORKSPACE=${{ inputs.workspace }}
+        export ENVIRONMENT=${{ inputs.environment }}
+        ./uec-dos-management/scripts/workflow/ui-tests.sh

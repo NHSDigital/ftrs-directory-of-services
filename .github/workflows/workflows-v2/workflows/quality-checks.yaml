@@ -1,0 +1,163 @@
+name: Code quality checks workflow
+
+on:
+  workflow_call:
+
+    inputs:
+        environment:
+          description: The relevant github environment (for secrets and variables)
+          required: true
+          type: string
+        workspace:
+          description: "The name of the workspace to validate the infrastructure against."
+          required: true
+          type: string
+        tag:
+          description: "The git tag to checkout or, if not passed in, the current branch"
+          required: false
+          type: string
+        stacks:
+          description: The terraform stacks to be validated
+          required: true
+          type: string
+        code_directory:
+          description: 'Directory that holds package json for react app '
+          required: false
+          type: string
+          default: 'src/frontend'
+        workflow_timeout:
+          description: "Timeout duration in minutes"
+          required: false
+          default: 5
+          type: number
+jobs:
+  validate-terraform:
+    name: "Validate Terraform"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        stack: ${{ fromJson(inputs.stacks) }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+      - name: Configure AWS Credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+      - name: "Validate terraform stack"
+        uses: NHSDigital/uec-dos-management/.github/actions/action-infrastructure-stack@latest
+        with:
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          stack: ${{ matrix.stack }}
+          action: validate
+
+  check-terraform-format:
+    name: "Check Terraform Format"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+      - name: "Check format of terraform code"
+        uses: NHSDigital/uec-dos-management/.github/actions/check-format-terraform@latest
+
+  check-file-format:
+    name: "Check File Format"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+          fetch-depth: 0
+      - name: "Check general formatting"
+        uses: NHSDigital/uec-dos-management/.github/actions/check-format-general@latest
+
+  check-markdown-format:
+    name: "Check Markdown Format"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+          fetch-depth: 0
+      - name: "Check markdown file formatting"
+        uses: NHSDigital/uec-dos-management/.github/actions/check-format-markdown@latest
+
+  check-python-black-format:
+    name: "Check Python Format"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+          fetch-depth: 0
+      - name: "Check python formatting - black"
+        uses: NHSDigital/uec-dos-management/.github/actions/check-format-python@latest
+
+  check-python-flake-rules:
+    name: "Check Python Syntax"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+          fetch-depth: 0
+      - name: "Check python syntax - flake"
+        uses: NHSDigital/uec-dos-management/.github/actions/check-syntax-python@latest
+
+  scan-secrets:
+    name: "Scan secrets"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+          fetch-depth: 0
+      - name: "Scan code for secrets"
+        uses: NHSDigital/uec-dos-management/.github/actions/scan-secrets@latest
+
+  check-eslint:
+    name: "Check ESLint"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: NHSDigital/uec-dos-management/.github/actions/install-node@latest
+
+      - name: Install npm dependencies
+        uses: NHSDigital/uec-dos-management/.github/actions/install-npm-dependencies@latest
+        with:
+          code_directory: ${{ inputs.code_directory }}
+
+      - name: "Check Javascipt formating"
+        uses: NHSDigital/uec-dos-management/.github/actions/check-eslint@latest
+        with:
+          code_directory: ${{ inputs.code_directory }}
+

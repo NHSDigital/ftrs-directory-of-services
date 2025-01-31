@@ -1,0 +1,20 @@
+name: "Check terraform state cleardown action"
+description: "Check deletion of terraform state"
+inputs:
+  workspace:
+        description: "The name of the workspace to check."
+        required: true
+  environment:
+        description: "The name of the environment to action the infrastructure into."
+        required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Delete terraform state
+      id: delete_tf_state
+      shell: bash
+      run: |
+        export WORKSPACE=${{inputs.workspace}}
+        export ENVIRONMENT=${{inputs.environment}}
+        ./uec-dos-management/scripts/workflow/check-terraform-state.sh

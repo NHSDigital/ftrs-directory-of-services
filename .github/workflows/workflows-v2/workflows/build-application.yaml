@@ -1,0 +1,84 @@
+name: Build Application workflow
+
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: "The name of the directory to build into"
+        required: true
+        type: string
+      environment:
+        description: "The name of the environment to build into"
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to build the application into"
+        required: true
+        type: string
+      services:
+        description: "A list of the services to build"
+        required: false
+        default: ""
+        type: string
+      tag:
+        description: "The tag to build from"
+        required: false
+        default: ""
+        type: string
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 5
+        type: number
+      commit_hash:
+        description: "The unique commit hash"
+        required: true
+        type: string
+      artefact_bucket_name:
+        description: "The name of the s3 bucket holding domain artefacts"
+        required: true
+        type: string
+      python_version:
+        description: 'Version of python'
+        type: string
+        default: "3.12"
+        required: false
+
+jobs:
+  build-application:
+    name: "Build Application"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    strategy:
+      matrix:
+        service: ${{ fromJSON(inputs.services) }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+
+      - name: Configure AWS Credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+
+      - name: "Build service"
+        uses: NHSDigital/uec-dos-management/.github/actions/build-service@latest
+        with:
+          service: ${{ matrix.service }}
+          directory: ${{ inputs.directory }}
+
+      - name: "Upload service to S3 bucket"
+        uses: NHSDigital/uec-dos-management/.github/actions/push-artefact@latest
+        with:
+          service: ${{ matrix.service }}
+          directory: ${{ inputs.directory }}
+          workspace: ${{ inputs.workspace }}
+          commit_hash: ${{ inputs.commit_hash }}
+          artefact_bucket_name: ${{ inputs.artefact_bucket_name }}

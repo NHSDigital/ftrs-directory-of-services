@@ -1,0 +1,15 @@
+name: "Install Terraform action"
+description: "Wrapper for installing terraform"
+
+inputs:
+  terraform_version:
+        description: "The version of terraform to use"
+        required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform_version }}

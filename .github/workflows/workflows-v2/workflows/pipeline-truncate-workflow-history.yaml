@@ -1,0 +1,28 @@
+name: Test Truncate Workflow History
+
+on:
+  # Run daily, at 01:00.
+  schedule:
+    - cron: '0 1 * * *'
+
+jobs:
+  test_delete_past_runs:
+    name: "Truncate github workflow run history"
+    permissions:
+      actions: write
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/truncate-workflow-history.yaml
+    with:
+      domain: "uec-dos-management"
+    secrets: inherit
+
+  slack-notifications:
+    needs: [
+      test_delete_past_runs,
+    ]
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: mgmt
+    secrets: inherit

@@ -1,0 +1,13 @@
+name: "Check syntax of python code action"
+description: "Checks correct syntax of python code in the repository"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checking syntax of python code
+      id: syntax_python
+      shell: bash
+      run: |
+        export PRECOMMIT=false
+        ./scripts/githooks/python-flake-pre-commit.sh
+

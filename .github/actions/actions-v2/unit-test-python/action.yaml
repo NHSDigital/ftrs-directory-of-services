@@ -1,0 +1,25 @@
+name: "Python unit tests action"
+description: "Run unit tests of python code"
+
+inputs:
+  python_version:
+    description: 'Version of python to use'
+    required: true
+  aws_region:
+    description: "AWS region"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Install python"
+      id: unit_test_python_install
+      uses: NHSDigital/uec-dos-management/.github/actions/install-python@latest
+      with:
+        python_version: ${{ inputs.python_version }}
+    - name: Run unit tests of python code
+      id: run-unit-tests-python
+      shell: bash
+      run: |
+        export AWS_DEFAULT_REGION=${{ inputs.aws_region }}
+        ./uec-dos-management/scripts/workflow/run-test-coverage.sh

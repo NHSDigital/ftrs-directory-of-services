@@ -1,0 +1,16 @@
+name: "Derive Terraform Version action"
+description: "Derives the maximum version of terraform that the code base supports"
+
+outputs:
+  terraform_version:
+    description: "The maximum version of terraform supported by the code base"
+    value: ${{ steps.minMax.outputs.maxVersion }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Extract Terraform min/max versions
+      id: minMax
+      uses: clowdhaus/terraform-min-max@v1.3.1
+      with:
+        directory: ./infrastructure/remote

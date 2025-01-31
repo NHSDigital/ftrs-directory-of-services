@@ -1,0 +1,14 @@
+name: "Install allure action"
+description: "Install Allure command-line tool"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get allure package
+      id: run-allure
+      shell: bash
+      run: |
+          wget https://github.com/allure-framework/allure2/releases/download/2.25.0/allure_2.25.0-1_all.deb
+          sudo dpkg -i allure_2.25.0-1_all.deb
+          export PATH="$PATH:$(pwd)/allure_2.25.0-1/bin"
+          allure --version

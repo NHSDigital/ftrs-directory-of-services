@@ -1,0 +1,12 @@
+name: "Count line code action"
+description: "Counts lines of code in the repository"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Get code line count"
+      id: "code-line-count"
+      shell: bash
+      run: |
+        export FORMAT=default
+        ./uec-dos-management/scripts/workflow/cloc-repository.sh

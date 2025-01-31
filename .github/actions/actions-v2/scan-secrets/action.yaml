@@ -1,0 +1,13 @@
+name: "Scan code for secrets action"
+description: "Scan code in the repository for secrets"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checking code for secrets
+      id: scan_secrets
+      shell: bash
+      run: |
+        export ALL_FILES=true
+        ./scripts/githooks/secret-scan-pre-commit.sh
+

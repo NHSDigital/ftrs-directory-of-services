@@ -1,0 +1,145 @@
+name: Metadata workflow
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "The git tag to checkout, this defaults to the head of the triggering branch"
+        required: false
+        type: string
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 5
+        type: number
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'dev'
+        type: string
+    outputs:
+      reponame:
+        description: "The name of the code repo"
+        value: ${{ jobs.echo-metadata.outputs.reponame }}
+      workspace:
+        description: "The name of the workspace that we interacting with"
+        value: ${{ jobs.derive-workspace.outputs.workspace }}
+      artefact_bucket_name:
+        description: "The s3 bucket for domain artefacts"
+        value: ${{ jobs.echo-metadata.outputs.artefact_bucket_name }}
+      commit_hash:
+        description: "The unique commit hash"
+        value: ${{ jobs.echo-metadata.outputs.commit_hash }}
+      artefact_commit_hash:
+        description: "The unique commit hash for artefacts for flows triggered by a pull request"
+        value: ${{ jobs.echo-metadata.outputs.artefact_commit_hash }}
+      environment:
+        description: "Derived deployment environment"
+        value: ${{ jobs.set-environment.outputs.environment }}
+      build_datetime_london:
+        description: "The build date and time in London timezone"
+        value: ${{ jobs.echo-metadata.outputs.build_datetime_london }}
+      build_datetime:
+        description: "The build date and time in the repository's default timezone"
+        value: ${{ jobs.echo-metadata.outputs.build_datetime }}
+      build_timestamp:
+        description: "Timestamp of the build"
+        value: ${{ jobs.echo-metadata.outputs.build_timestamp }}
+      build_epoch:
+        description: "Epoch time of the build"
+        value: ${{ jobs.echo-metadata.outputs.build_epoch }}
+      nodejs_version:
+        description: "Version of Node.js used in the build"
+        value: ${{ jobs.echo-metadata.outputs.nodejs_version }}
+      python_version:
+        description: "Version of Python used in the build"
+        value: ${{ jobs.echo-metadata.outputs.python_version }}
+      terraform_version:
+        description: "Version of Terraform used in the build"
+        value: ${{ jobs.echo-metadata.outputs.terraform_version }}
+      version:
+        description: "Version of the repository or application"
+        value: ${{ jobs.echo-metadata.outputs.version }}
+
+jobs:
+  code-line-count:
+    name: "Code Line Count"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+      - name: "Code line count"
+        uses: NHSDigital/uec-dos-management/.github/actions/code-line-count@latest
+
+  echo-metadata:
+    name: "Get Metadata"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    outputs:
+      reponame: ${{ steps.get_metadata.outputs.reponame }}
+      commit_hash: ${{ steps.get_metadata.outputs.commit_hash }}
+      artefact_commit_hash: ${{ steps.get_metadata.outputs.artefact_commit_hash }}
+      artefact_bucket_name: ${{ steps.get_metadata.outputs.artefact_bucket_name }}
+      build_datetime_london: ${{ steps.get_metadata.outputs.build_datetime_london }}
+      build_datetime: ${{ steps.get_metadata.outputs.build_datetime }}
+      build_timestamp: ${{ steps.get_metadata.outputs.build_timestamp }}
+      build_epoch: ${{ steps.get_metadata.outputs.build_epoch }}
+      nodejs_version: ${{ steps.get_metadata.outputs.nodejs_version }}
+      python_version: ${{ steps.get_metadata.outputs.python_version }}
+      terraform_version: ${{ steps.get_metadata.outputs.terraform_version }}
+      version: ${{ steps.get_metadata.outputs.version }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+      - name: "Get metadata"
+        id: get_metadata
+        uses: NHSDigital/uec-dos-management/.github/actions/metadata@latest
+
+  derive-workspace:
+    name: "Derive Workspace"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    outputs:
+      workspace: ${{ steps.derive_workspace.outputs.workspace }}
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          tag: ${{ inputs.tag }}
+      - name: "Derive workspace"
+        id: derive_workspace
+        uses: NHSDigital/uec-dos-management/.github/actions/derive-workspace@latest
+
+  set-environment:
+    name: "Set Environment "
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - name: "Determine Environment"
+        id: set-env
+        run: |
+          if [[ "${{ github.event.inputs.environment }}" != "" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.label.name }}" == "Test Ready" ]]; then
+            echo "environment=test" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.label.name }}" == "Int Ready" ]]; then
+            echo "environment=int" >> $GITHUB_OUTPUT
+          else
+            # Handling pull request closed event
+            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.action }}" == "closed" ]]; then
+              echo "environment=[\"test\", \"int\"]" >> $GITHUB_OUTPUT
+            # Handling branch deletion event
+            elif [[ "${{ github.event_name }}" == "delete" && "${{ github.event.ref }}" =~ ^task/ ]]; then
+              echo "environment=[\"dev\"]" >> $GITHUB_OUTPUT
+            else
+              echo "environment=dev" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+          echo "The determined environment is: $(cat $GITHUB_OUTPUT | grep environment | cut -d '=' -f2)"

@@ -1,0 +1,36 @@
+name: Pipeline manage workflow run history
+
+on:
+  workflow_call:
+    inputs:
+      domain:
+        description: "The code repository to checkout"
+        required: true
+        type: string
+      retain_days:
+        description: "Workflow runs older than this number of days may be removed"
+        required: false
+        type: number
+        default: 5
+      minimum_history:
+        description: "The minimum number of previous runs to keep"
+        required: false
+        type: number
+        default: 5
+
+jobs:
+  delete_past_runs:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      id-token: write
+      contents: read
+    timeout-minutes: 15
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: '${{ github.token }}'
+          repository: "NHSDigital/${{ inputs.domain }}"
+          retain_days: ${{ inputs.retain_days }}
+          keep_minimum_runs: ${{ inputs.minimum_history }}

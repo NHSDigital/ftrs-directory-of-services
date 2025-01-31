@@ -1,0 +1,20 @@
+name: "Cleardown redundant artefacts action"
+description: "Delete the redundant artefacts"
+inputs:
+  workspace:
+    description: "The name of the workspace to action the infrastructure into."
+    required: true
+  artefact_bucket_name:
+    description: "The name of the s3 bucket holding domain artefacts"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Delete artefacts
+      id: delete_artefacts
+      shell: bash
+      run: |
+        export WORKSPACE=${{inputs.workspace}}
+        export ARTEFACT_BUCKET_NAME=${{inputs.artefact_bucket_name}}
+        ./uec-dos-management/scripts/workflow/cleardown-artefacts.sh
