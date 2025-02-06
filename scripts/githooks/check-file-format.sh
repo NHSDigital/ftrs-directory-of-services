@@ -92,13 +92,15 @@ function run-editorconfig-in-docker() {
 
   # shellcheck disable=SC1091
   source ./scripts/docker/docker.lib.sh
-
+  # establish if we are using docker or podman
+  DOCKER_CMD=$(_set_docker_cmd)
+  echo run in "$DOCKER_CMD"
   # shellcheck disable=SC2155
   local image=$(name=mstruebing/editorconfig-checker docker-get-image-version-and-pull)
   # We use /dev/null here as a backstop in case there are no files in the state
   # we choose. If the filter comes back empty, adding `/dev/null` onto it has
   # the effect of preventing `ec` from treating "no files" as "all the files".
-  docker run --rm --platform linux/amd64 \
+  $DOCKER_CMD run --rm --platform linux/amd64 \
     --volume "$PWD":/check \
     "$image" \
       sh -c "ec --exclude '.git/' $dry_run_opt \$($filter) /dev/null"
