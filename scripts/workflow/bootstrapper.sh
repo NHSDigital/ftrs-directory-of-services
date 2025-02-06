@@ -108,8 +108,8 @@ function terraform-initialise {
 }
 
 function github_runner_stack {
-    #  now do github runner stack
-  export STACK=github-runner
+    #  now do account_wide stack for github runner and for oidc provider
+  export STACK=account_wide
   # specific to stack
   STACK_TF_VARS_FILE="$STACK.tfvars"
   # the directory that holds the stack to terraform
@@ -156,17 +156,17 @@ function github_runner_stack {
 
   if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
     terraform plan \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE \
+    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
+    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
+    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
   fi
 
   if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
     terraform apply -auto-approve \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE \
+    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
+    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
+    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
   fi
   # cleardown temp files
@@ -187,7 +187,7 @@ PROJECT_TF_VARS_FILE="project.tfvars"
 ENV_TF_VARS_FILE="$ENVIRONMENT.tfvars"
 ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR"
 
-[ -d "$ROOT_DIR/$INFRASTRUCTURE_DIR/$ENVIRONMENTS_SUB_DIR" ]  && ENVIRONMENTS_DIR="$ENVIRONMENTS_DIR/$ENVIRONMENTS_SUB_DIR"
+[ -d "$ROOT_DIR/$INFRASTRUCTURE_DIR/$ENVIRONMENTS_SUB_DIR/$ENVIRONMENT" ]  && ENVIRONMENTS_DIR="$ENVIRONMENTS_DIR/$ENVIRONMENTS_SUB_DIR/$ENVIRONMENT"
 echo "Pulling environment variables from $ENVIRONMENTS_DIR"
 
 
@@ -228,23 +228,23 @@ terraform-initialise
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   terraform plan \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
   terraform apply -auto-approve \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
   terraform destroy -auto-approve \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE \
-  -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
+  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 # cleardown temp files
