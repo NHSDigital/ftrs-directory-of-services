@@ -2,7 +2,7 @@
 # the project as automated steps to be executed on locally and in the CD pipeline.
 
 include scripts/init.mk
-
+DOCKER_CMD:=$(shell type -p docker >/dev/null 2>&1 && echo docker || echo podman)
 # ==============================================================================
 
 # Example CI/CD targets are: dependencies, build, publish, deploy, clean, etc.

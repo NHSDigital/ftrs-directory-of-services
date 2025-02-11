@@ -24,13 +24,15 @@ set -euo pipefail
 function docker-build() {
 
   local dir=${dir:-$PWD}
+  # establish if we are using docker or podman
+  DOCKER_CMD=$(_set_docker_cmd)
 
   version-create-effective-file
   _create-effective-dockerfile
 
   tag=$(_get-effective-tag)
 
-  docker build \
+  $DOCKER_CMD build \
     --progress=plain \
     --platform linux/amd64 \
     --build-arg IMAGE="${DOCKER_IMAGE}" \
@@ -50,7 +52,7 @@ function docker-build() {
   # Tag the image with all the stated versions, see the documentation for more details
   for version in $(_get-all-effective-versions) latest; do
     if [ ! -z "$version" ]; then
-      docker tag "${tag}" "${DOCKER_IMAGE}:${version}"
+      $DOCKER_CMD tag "${tag}" "${DOCKER_IMAGE}:${version}"
     fi
   done
 }
@@ -85,7 +87,7 @@ function docker-check-test() {
   local dir=${dir:-$PWD}
 
   # shellcheck disable=SC2086,SC2154
-  docker run --rm --platform linux/amd64 \
+  $DOCKER_CMD run --rm --platform linux/amd64 \
     ${args:-} \
     "${DOCKER_IMAGE}:$(_get-effective-version)" 2>/dev/null \
     ${cmd:-} \
@@ -103,7 +105,7 @@ function docker-run() {
   local tag=$(dir="$dir" _get-effective-tag)
 
   # shellcheck disable=SC2086
-  docker run --rm --platform linux/amd64 \
+  $DOCKER_CMD run --rm --platform linux/amd64 \
     ${args:-} \
     "${tag}" \
     ${DOCKER_CMD:-}
@@ -118,7 +120,7 @@ function docker-push() {
 
   # Push all the image tags based on the stated versions, see the documentation for more details
   for version in $(dir="$dir" _get-all-effective-versions) latest; do
-    docker push "${DOCKER_IMAGE}:${version}"
+    $DOCKER_CMD push "${DOCKER_IMAGE}:${version}"
   done
 }
 
@@ -130,7 +132,7 @@ function docker-clean() {
   local dir=${dir:-$PWD}
 
   for version in $(dir="$dir" _get-all-effective-versions) latest; do
-    docker rmi "${DOCKER_IMAGE}:${version}" > /dev/null 2>&1 ||:
+    $DOCKER_CMD rmi "${DOCKER_IMAGE}:${version}" > /dev/null 2>&1 ||:
   done
   rm -f \
     .version \
@@ -198,17 +200,17 @@ function docker-get-image-version-and-pull() {
   local digest="$(echo "$version" | sed 's/^.*@//')"
 
   # Check if the image exists locally already
-  if ! docker images | awk '{ print $1 ":" $2 }' | grep -q "^${name}:${tag}$"; then
+  if ! $DOCKER_CMD images | awk '{ print $1 ":" $2 }' | grep -q "^${name}:${tag}$"; then
     if [ "$digest" != "latest" ]; then
       # Pull image by the digest sha256 and tag it
-      docker pull \
+      $DOCKER_CMD pull \
         --platform linux/amd64 \
         "${name}@${digest}" \
       > /dev/null 2>&1 || true
-      docker tag "${name}@${digest}" "${name}:${tag}"
+      $DOCKER_CMD tag "${name}@${digest}" "${name}:${tag}"
     else
       # Pull the latest image
-      docker pull \
+      $DOCKER_CMD pull \
         --platform linux/amd64 \
         "${name}:latest" \
       > /dev/null 2>&1 || true
@@ -342,4 +344,14 @@ function _get-git-branch-name() {
   fi
 
   echo "$branch_name"
+}
+
+function get-docker-version() {
+  DOCKER_CMD=$(_set_docker_cmd)
+  $DOCKER_CMD -v
+}
+
+function _set_docker_cmd() {
+  DOCKER_CMD=$(command -v docker >/dev/null 2>&1 && echo docker || echo podman)
+  echo "$DOCKER_CMD"
 }

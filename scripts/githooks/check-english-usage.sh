@@ -72,7 +72,9 @@ function run-vale-in-docker() {
 
   # shellcheck disable=SC1091
   source ./scripts/docker/docker.lib.sh
-
+  # establish if we are using docker or podman
+  DOCKER_CMD=$(_set_docker_cmd)
+  echo run in "$DOCKER_CMD"
   # shellcheck disable=SC2155
   local image=$(name=jdkato/vale docker-get-image-version-and-pull)
   # We use /dev/null here to stop `vale` from complaining that it's
@@ -80,7 +82,7 @@ function run-vale-in-docker() {
   # empty list. As long as there's a filename, even if it's one that
   # will be ignored, `vale` is happy.
   # shellcheck disable=SC2046,SC2086
-  docker run --rm --platform linux/amd64 \
+  $DOCKER_CMD run --rm --platform linux/amd64 \
     --volume "$PWD:/workdir" \
     --workdir /workdir \
     "$image" \

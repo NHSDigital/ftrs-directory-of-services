@@ -46,11 +46,12 @@ function run-shellcheck-in-docker() {
 
   # shellcheck disable=SC1091
   source ./scripts/docker/docker.lib.sh
-
+  DOCKER_CMD=$(_set_docker_cmd)
+  echo run in "$DOCKER_CMD"
   # shellcheck disable=SC2155
   local image=$(name=koalaman/shellcheck docker-get-image-version-and-pull)
   # shellcheck disable=SC2001
-  docker run --rm --platform linux/amd64 \
+  $DOCKER_CMD run --rm --platform linux/amd64 \
     --volume "$PWD:/workdir" \
     --workdir /workdir \
     "$image" \
