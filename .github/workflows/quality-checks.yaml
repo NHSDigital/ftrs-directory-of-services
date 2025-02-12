@@ -31,6 +31,98 @@ on:
           default: 5
           type: number
 jobs:
+  scan-secrets:
+    name: "Scan secrets"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "Scan secrets"
+        uses: ./.github/actions/scan-secrets
+  check-file-format:
+    name: "Check file format"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "Check file format"
+        uses: ./.github/actions/check-file-format
+  check-markdown-format:
+    name: "Check Markdown format"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "Check Markdown format"
+        uses: ./.github/actions/check-markdown-format
+  check-english-usage:
+    name: "Check English usage"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "Check English usage"
+        uses: ./.github/actions/check-english-usage
+  lint-terraform:
+    name: "Lint Terraform"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Lint Terraform"
+        uses: ./.github/actions/lint-terraform
+  count-lines-of-code:
+    name: "Count lines of code"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Count lines of code"
+        uses: ./.github/actions/create-lines-of-code-report
+        with:
+          build_datetime: "${{ inputs.build_datetime }}"
+          build_timestamp: "${{ inputs.build_timestamp }}"
+          idp_aws_report_upload_account_id: "${{ secrets.IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID }}"
+          idp_aws_report_upload_region: "${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}"
+          idp_aws_report_upload_role_name: "${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}"
+          idp_aws_report_upload_bucket_endpoint: "${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}"
+  scan-dependencies:
+    name: "Scan dependencies"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Scan dependencies"
+        uses: ./.github/actions/scan-dependencies
+        with:
+          build_datetime: "${{ inputs.build_datetime }}"
+          build_timestamp: "${{ inputs.build_timestamp }}"
+          idp_aws_report_upload_account_id: "${{ secrets.IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID }}"
+          idp_aws_report_upload_region: "${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}"
+          idp_aws_report_upload_role_name: "${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}"
+          idp_aws_report_upload_bucket_endpoint: "${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}"
+
   validate-terraform:
     name: "Validate Terraform"
     runs-on: ubuntu-latest
@@ -44,16 +136,16 @@ jobs:
         stack: ${{ fromJson(inputs.stacks) }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
       - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
       - name: "Validate terraform stack"
-        uses: NHSDigital/uec-dos-management/.github/actions/action-infrastructure-stack@latest
+        uses: ./.github/actions/action-infrastructure-stack
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
@@ -66,37 +158,35 @@ jobs:
     timeout-minutes: ${{ inputs.workflow_timeout }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
       - name: "Check format of terraform code"
-        uses: NHSDigital/uec-dos-management/.github/actions/check-format-terraform@latest
+        uses: ./.github/actions/check-format-terraform
 
-  check-file-format:
-    name: "Check File Format"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    steps:
-      - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
-        with:
-          tag: ${{ inputs.tag }}
-          fetch-depth: 0
-      - name: "Check general formatting"
-        uses: NHSDigital/uec-dos-management/.github/actions/check-format-general@latest
+  # check-file-format:
+  #   name: "Check File Format"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: ${{ inputs.workflow_timeout }}
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     - name: "Check general formatting"
+  #       uses: ./.github/actions/check-format-general
 
-  check-markdown-format:
-    name: "Check Markdown Format"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    steps:
-      - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
-        with:
-          tag: ${{ inputs.tag }}
-          fetch-depth: 0
-      - name: "Check markdown file formatting"
-        uses: NHSDigital/uec-dos-management/.github/actions/check-format-markdown@latest
+  # check-markdown-format:
+  #   name: "Check Markdown Format"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: ${{ inputs.workflow_timeout }}
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     - name: "Check markdown file formatting"
+  #       uses: ./.github/actions/check-format-markdown
 
   check-python-black-format:
     name: "Check Python Format"
@@ -104,12 +194,12 @@ jobs:
     timeout-minutes: ${{ inputs.workflow_timeout }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
           fetch-depth: 0
+          ref: ${{ inputs.tag }}
       - name: "Check python formatting - black"
-        uses: NHSDigital/uec-dos-management/.github/actions/check-format-python@latest
+        uses: ./.github/actions/check-format-python
 
   check-python-flake-rules:
     name: "Check Python Syntax"
@@ -117,25 +207,25 @@ jobs:
     timeout-minutes: ${{ inputs.workflow_timeout }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
           fetch-depth: 0
+          ref: ${{ inputs.tag }}
       - name: "Check python syntax - flake"
-        uses: NHSDigital/uec-dos-management/.github/actions/check-syntax-python@latest
+        uses: ./.github/actions/check-syntax-python
 
-  scan-secrets:
-    name: "Scan secrets"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    steps:
-      - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
-        with:
-          tag: ${{ inputs.tag }}
-          fetch-depth: 0
-      - name: "Scan code for secrets"
-        uses: NHSDigital/uec-dos-management/.github/actions/scan-secrets@latest
+  # scan-secrets:
+  #   name: "Scan secrets"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: ${{ inputs.workflow_timeout }}
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ inputs.tag }}
+  #         fetch-depth: 0
+  #     - name: "Scan code for secrets"
+  #       uses: ./.github/actions/scan-secrets
 
   check-eslint:
     name: "Check ESLint"
@@ -143,21 +233,21 @@ jobs:
     timeout-minutes: ${{ inputs.workflow_timeout }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: NHSDigital/uec-dos-management/.github/actions/install-node@latest
+        uses: ./.github/actions/install-node
 
       - name: Install npm dependencies
-        uses: NHSDigital/uec-dos-management/.github/actions/install-npm-dependencies@latest
+        uses: ./.github/actions/install-npm-dependencies
         with:
           code_directory: ${{ inputs.code_directory }}
 
       - name: "Check Javascipt formating"
-        uses: NHSDigital/uec-dos-management/.github/actions/check-eslint@latest
+        uses: ./.github/actions/check-eslint
         with:
           code_directory: ${{ inputs.code_directory }}
 

@@ -37,11 +37,11 @@ runs:
         fetch-depth: ${{ inputs.fetch-depth }}
         sparse-checkout: ${{ inputs.sparse-checkout }}
         path: ${{ inputs.path }}
-    - name: Checkout Management Repository
-      uses: actions/checkout@v4
-      with:
-        repository:  "NHSDigital/uec-dos-management"
-        ref: ${{ inputs.management-tag }}
-        sparse-checkout: |
-          scripts/workflow
-        path: 'uec-dos-management'
+    # - name: Checkout Management Repository
+    #   uses: actions/checkout@v4
+    #   with:
+    #     repository:  "NHSDigital/uec-dos-management"
+    #     ref: ${{ inputs.management-tag }}
+    #     sparse-checkout: |
+    #       scripts/workflow
+    #     path: 'uec-dos-management'
