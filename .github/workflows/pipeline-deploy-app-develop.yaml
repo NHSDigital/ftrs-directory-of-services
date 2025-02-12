@@ -55,7 +55,7 @@ jobs:
     with:
       environment: dev
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: '["account-wide", "terraform_management"]'
+      stacks: '["account_wide", "terraform_management"]'
     secrets: inherit
 
   # unit-tests:
