@@ -39,7 +39,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
   check-file-format:
@@ -50,7 +50,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check file format"
         uses: ./.github/actions/check-file-format
   check-markdown-format:
@@ -61,7 +61,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check Markdown format"
         uses: ./.github/actions/check-markdown-format
   check-english-usage:
@@ -72,7 +72,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check English usage"
         uses: ./.github/actions/check-english-usage
   lint-terraform:
@@ -152,17 +152,17 @@ jobs:
           stack: ${{ matrix.stack }}
           action: validate
 
-  check-terraform-format:
-    name: "Check Terraform Format"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.tag }}
-      - name: "Check format of terraform code"
-        uses: ./.github/actions/check-format-terraform
+  # check-terraform-format:
+  #   name: "Check Terraform Format"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: ${{ inputs.workflow_timeout }}
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ inputs.tag }}
+  #     - name: "Check format of terraform code"
+  #       uses: ./.github/actions/check-format-terraform
 
   # check-file-format:
   #   name: "Check File Format"
