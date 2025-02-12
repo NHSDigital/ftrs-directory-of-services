@@ -28,10 +28,10 @@ runs:
   steps:
       - name: "Derive TF Version"
         id: derive_tf_version
-        uses: NHSDigital/uec-dos-management/.github/actions/derive-tf-version@latest
+        uses: ./.github/actions/derive-tf-version
 
       - name: Install Terraform
-        uses: NHSDigital/uec-dos-management/.github/actions/install-terraform@latest
+        uses: ./.github/actions/install-terraform
         with:
           terraform_version: ${{ steps.derive_tf_version.outputs.terraform_version }}
 
@@ -46,4 +46,4 @@ runs:
           export WORKSPACE=${{ inputs.workspace }}
           export PROJECT=${{ inputs.project }}
           export APPLICATION_TAG=${{ inputs.application_tag }}
-          /bin/bash ./uec-dos-management/scripts/workflow/action-infra-stack.sh
+          /bin/bash ./scripts/workflow/action-infra-stack.sh

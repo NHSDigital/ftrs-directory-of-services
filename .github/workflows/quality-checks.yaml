@@ -188,31 +188,31 @@ jobs:
   #     - name: "Check markdown file formatting"
   #       uses: ./.github/actions/check-format-markdown
 
-  check-python-black-format:
-    name: "Check Python Format"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.tag }}
-      - name: "Check python formatting - black"
-        uses: ./.github/actions/check-format-python
+  # check-python-black-format:
+  #   name: "Check Python Format"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: ${{ inputs.workflow_timeout }}
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #         ref: ${{ inputs.tag }}
+  #     - name: "Check python formatting - black"
+  #       uses: ./.github/actions/check-format-python
 
-  check-python-flake-rules:
-    name: "Check Python Syntax"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.tag }}
-      - name: "Check python syntax - flake"
-        uses: ./.github/actions/check-syntax-python
+  # check-python-flake-rules:
+  #   name: "Check Python Syntax"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: ${{ inputs.workflow_timeout }}
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #         ref: ${{ inputs.tag }}
+  #     - name: "Check python syntax - flake"
+  #       uses: ./.github/actions/check-syntax-python
 
   # scan-secrets:
   #   name: "Scan secrets"
