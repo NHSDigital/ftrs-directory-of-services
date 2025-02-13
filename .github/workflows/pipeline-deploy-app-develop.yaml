@@ -17,33 +17,6 @@ jobs:
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
-  generate-tag-name:
-    name: "Generate Tag Name"
-    needs:
-      [
-        metadata,
-      ]
-    if: ${{ github.event.action == 'labeled' }}
-    uses: ./.github/workflows/generate-tag-name.yaml
-    with:
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      use_commit_hash: "yes"
-      commit_hash: ${{ needs.metadata.outputs.artefact_commit_hash }}
-
-  tag-repository:
-    name: "Tag Repository"
-    needs:
-      [
-        metadata,
-        generate-tag-name,
-      ]
-    if: ${{ github.event.action == 'labeled' }}
-    uses: ./.github/workflows/tag-repository.yaml
-    with:
-      tag_to_push: ${{ needs.generate-tag-name.outputs.tag_name }}
-      tag_overwrite: "yes"
-      repository_tag: ""
-
   quality-checks:
     name: "Quality Check"
     needs:
@@ -53,151 +26,19 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/quality-checks.yaml
     with:
-      environment: mgmt
+      environment: dev
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: '["github-runner", "terraform_management"]'
-    secrets: inherit
-
-  unit-tests:
-    if: ${{ github.event_name == 'push' }}
-    name: "Python Unit Tests"
-    needs:
-      [
-        metadata,
-        quality-checks,
-      ]
-    uses: NHSDigital/uec-dos-management/.github/workflows/unit-test.yaml@latest
-    with:
-      env: mgmt
-    secrets: inherit
-
-  build-python-application:
-    name: "Build Python Application"
-    needs:
-      [
-        metadata,
-        unit-tests,
-      ]
-    if: ${{ github.event_name == 'push' }}
-    uses: ./.github/workflows/build-application.yaml
-    with:
-      environment: mgmt
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      services: "['healthcare-services-data-manager']"
-      directory: 'application'
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      artefact_bucket_name: ${{ needs.metadata.outputs.artefact_bucket_name }}
-    secrets: inherit
-
-  build-react-application:
-    name: "Build React Application"
-    needs: [
-      metadata,
-      build-python-application,
-    ]
-    if: ${{ github.event_name == 'push' }}
-    uses: ./.github/workflows/build-react-app.yaml
-    with:
-      environment: mgmt
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.reponame }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      artefact_bucket_name: ${{ needs.metadata.outputs.artefact_bucket_name }}
-    secrets: inherit
-
-  deploy-infrastructure:
-    name: "Deploy Infrastructure to Mgmt Environment"
-    needs:
-      [
-        metadata,
-        build-python-application,
-        build-react-application,
-      ]
-    if: always() && !cancelled() &&
-      (
-        (needs.build-python-application.result == 'success' || needs.build-python-application.result == 'skipped') &&
-        (needs.build-react-application.result == 'success' || needs.build-react-application.result == 'skipped')
-      )
-    uses: ./.github/workflows/deploy-infrastructure.yaml
-    with:
-      environment: mgmt
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      domain: "uec-dos-management"
-      stacks: |
-          ${{ github.event_name == 'push' && '["lambda-stack","ui-test-stack"]' ||
-          github.event.action == 'labeled' && '["ui-test-stack","test-ready-for-test-stack"]' }}
-      action: apply
-      workflow_timeout: 8
-    secrets: inherit
-
-  deploy-python-application:
-    name: "Deploy Python Application to Mgmt Environment"
-    needs:
-      [
-        metadata,
-        build-python-application,
-        deploy-infrastructure,
-      ]
-    if: always() && !cancelled() && (needs.build-python-application.result == 'success' || needs.build-python-application.result == 'skipped')
-    uses: ./.github/workflows/deploy-lambda-code.yaml
-    with:
-      environment: mgmt
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      services: "['healthcare-services-data-manager']"
-      directory: 'application'
-      artefact_sub_dir: ${{ needs.metadata.outputs.workspace }}
-      domain: "uec-dos-management"
-      multi_domain: "false"
-      commit_hash: ${{ needs.metadata.outputs.artefact_commit_hash != '' && needs.metadata.outputs.artefact_commit_hash || needs.metadata.outputs.commit_hash }}
-      artefact_bucket_name: ${{ needs.metadata.outputs.artefact_bucket_name }}
-    secrets: inherit
-
-  deploy-react-application:
-    name: "Deploy React Application to Mgmt Environment"
-    needs: [
-      metadata,
-      build-react-application,
-      deploy-infrastructure,
-    ]
-    if: always() && !cancelled() && (needs.build-react-application.result == 'success' || needs.build-react-application.result == 'skipped')
-    uses: ./.github/workflows/deploy-react-app.yaml
-    with:
-      environment: mgmt
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.reponame }}
-      commit_hash: ${{ needs.metadata.outputs.artefact_commit_hash != '' && needs.metadata.outputs.artefact_commit_hash || needs.metadata.outputs.commit_hash }}
-      artefact_bucket_name: ${{ needs.metadata.outputs.artefact_bucket_name }}
-    secrets: inherit
-
-  react-ui-tests:
-    name: "Run UI Tests on Mgmt Environment"
-    needs: [
-      metadata,
-      deploy-react-application,
-    ]
-    uses: ./.github/workflows/ui-test.yaml
-    with:
-      environment: mgmt
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: '["account_wide", "terraform_management"]'
     secrets: inherit
 
   slack-notifications:
     name: "Send Notification to Slack"
     needs: [
       metadata,
-      generate-tag-name,
-      tag-repository,
       quality-checks,
-      unit-tests,
-      build-python-application,
-      build-react-application,
-      deploy-infrastructure,
-      deploy-python-application,
-      deploy-react-application,
-      react-ui-tests
     ]
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: mgmt
+      env: dev
     secrets: inherit

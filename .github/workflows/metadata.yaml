@@ -68,11 +68,12 @@ jobs:
     timeout-minutes: ${{ inputs.workflow_timeout }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
       - name: "Code line count"
-        uses: NHSDigital/uec-dos-management/.github/actions/code-line-count@latest
+        uses: ./.github/actions/code-line-count
 
   echo-metadata:
     name: "Get Metadata"
@@ -93,12 +94,12 @@ jobs:
       version: ${{ steps.get_metadata.outputs.version }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
       - name: "Get metadata"
         id: get_metadata
-        uses: NHSDigital/uec-dos-management/.github/actions/metadata@latest
+        uses: ./.github/actions/metadata
 
   derive-workspace:
     name: "Derive Workspace"
@@ -108,12 +109,12 @@ jobs:
       workspace: ${{ steps.derive_workspace.outputs.workspace }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
       - name: "Derive workspace"
         id: derive_workspace
-        uses: NHSDigital/uec-dos-management/.github/actions/derive-workspace@latest
+        uses: ./.github/actions/derive-workspace
 
   set-environment:
     name: "Set Environment "
