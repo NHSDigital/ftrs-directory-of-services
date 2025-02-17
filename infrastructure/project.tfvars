@@ -1,1 +1,1 @@
-project = "ftrs-directory-of-services"
+project = "ftrs"
