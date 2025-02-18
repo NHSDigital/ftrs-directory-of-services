@@ -64,7 +64,7 @@ jobs:
         stack: ${{ fromJSON(inputs.stacks) }}
     steps:
       - name: "Checkout code"
-        uses: ./.github/actions/checkout-repository
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
         with:
           repository: ${{ inputs.domain }}
           tag: ${{ inputs.tag }}
