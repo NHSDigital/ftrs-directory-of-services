@@ -3,50 +3,67 @@ on:
   push:
     branches:
       - 'main'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: false
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
 
 jobs:
-    metadata:
-      name: "Get Metadata"
-      uses: NHSDigital/uec-dos-management/.github/workflows/metadata.yaml@latest
+  metadata:
+    name: "Get Metadata"
+    uses: ./.github/workflows/metadata.yaml
 
-    deploy-account-infrastructure-apply:
-        name: "Deploy mgmt account level infrastructure"
-        needs:
-          [
-            metadata,
-          ]
-        uses: NHSDigital/uec-dos-management/.github/workflows/deploy-infrastructure.yaml@latest
-        with:
-          environment: mgmt
-          domain: "uec-dos-management"
-          workspace: ${{ needs.metadata.outputs.workspace }}
-          stacks: "['terraform_management','github-runner','dos-artefacts','parameter_store','route-53']"
-          action: apply
-        secrets: inherit
-    deploy-int-account-infrastructure-apply:
-      name: "Deploy integration account level infrastructure"
-      needs:
-        [
-          metadata,
-        ]
-      uses: NHSDigital/uec-dos-management/.github/workflows/deploy-infrastructure.yaml@latest
-      with:
-        environment: int
-        domain: "uec-dos-management"
-        workspace: ${{ needs.metadata.outputs.workspace }}
-        stacks: "['terraform_management','github-runner']"
-        action: apply
-      secrets: inherit
-    slack-notifications:
-      needs: [
+  deploy-account-infrastructure-plan:
+    name: "Plan account level infrastructure deployment"
+    needs:
+      [
         metadata,
-        deploy-account-infrastructure-apply,
-        deploy-int-account-infrastructure-apply,
       ]
-      if: always()
-      uses: NHSDigital/uec-dos-management/.github/workflows/slack-notifications.yaml@latest
-      with:
-        env: mgmt
-      secrets: inherit
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['terraform_management','account_wide']"
+      action: plan
+    secrets: inherit
 
+  manual-approval:
+    name: "Manual approval for account level infrastructure deployment"
+    needs:
+      [
+        metadata,
+        deploy-account-infrastructure-plan,
+      ]
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
 
+  deploy-account-infrastructure-apply:
+    name: "Deploy account level infrastructure"
+    needs:
+      [
+        metadata,
+        manual-approval,
+      ]
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['terraform_management','account_wide']"
+      action: apply
+    secrets: inherit

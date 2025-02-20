@@ -15,20 +15,18 @@ provider "aws" {
 
   default_tags {
     tags = {
-      owner               = var.project_owner
-      project             = var.project
-      environment         = "${var.environment}${local.workspace_suffix}"
-      workspace           = terraform.workspace
-      terraform-base-path = replace(path.cwd, "/^.*?(${var.repo_name}\\/)/", "$1")
-      TagVersion          = var.tag_version
-      service             = var.service
-      CostCentre          = var.cost_centre
-      data_classification = var.data_classification
-      DataType            = var.data_type
-      ProjectType         = var.project_type
-      PublicFacing        = var.public_facing
-      ServiceCategory     = var.service_category
-      OnOffPattern        = var.on_off_pattern
+      Owner              = var.project_owner
+      Project            = var.project
+      Environment        = "${var.environment}${local.workspace_suffix}"
+      Workspace          = terraform.workspace
+      TerraformPath      = replace(path.cwd, "/^.*?(${var.repo_name}\\/)/", "$1")
+      Service            = var.service
+      CostCentre         = var.cost_centre
+      DataClassification = var.data_classification
+      DataType           = var.data_type
+      ProjectType        = var.project_type
+      PublicFacing       = var.public_facing
+      ServiceCategory    = var.service_category
     }
   }
 }
