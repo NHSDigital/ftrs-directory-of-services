@@ -13,3 +13,7 @@
 # Please, add your custom content below!
 
 *terraform.lock.hcl
+.tmp/
+.venv/
+.ruff_cache/
+.DS_Store
