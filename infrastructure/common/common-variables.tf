@@ -14,11 +14,6 @@ variable "repo_name" {
   description = "The name of the GitHub repository associated with this project"
 }
 
-variable "tag_version" {
-  description = "The version of the tagging policy in use, enabling evolution of the tagging strategy and supporting automation"
-  type        = string
-}
-
 variable "service" {
   description = "The service or program that this project is associated with"
   type        = string
@@ -51,10 +46,5 @@ variable "public_facing" {
 
 variable "service_category" {
   description = "Identifies the service category to prioritize responses"
-  type        = string
-}
-
-variable "on_off_pattern" {
-  description = "Defines the automated schedule for turning resources on/off, applicable for non-production environments"
   type        = string
 }
