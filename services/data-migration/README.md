@@ -37,6 +37,26 @@ This container will persist data at `./.tmp/pg_data/`.
 podman compose up -d
 ```
 
+### Setting Database Schema
+
+To set the target database schema manually, run the following script to load the schema.
+
+```bash
+# Activate Python virtual environment
+poetry env activate
+
+# Run Schema Load Script
+python -m pipeline.schema \
+    --db-uri {target_database} \
+    --schema-path schema/target-state.sql
+```
+
+If you are making changes to this database schema during development, you can provide the `--drop` flag to drop the existing schema before loading the provided schema.
+
+If you are working with a schema with a different name, you can specify the `--drop-schema-name <name>` option to manually specify the schema to be dropped. This will default to `"Core"`.
+
+All options can be found by running `python -m pipeline.schema --help`.
+
 ### Running Pipeline Steps Locally
 
 ```bash

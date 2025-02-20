@@ -17,3 +17,7 @@
 .venv/
 .ruff_cache/
 .DS_Store
+*.pyc
+__pycache__/
+*.egg-info/
+
