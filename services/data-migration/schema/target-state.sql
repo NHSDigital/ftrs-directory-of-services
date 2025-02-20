@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS "Core"."HealthcareService"
     "active" boolean,
     "oldDOS_status" character varying(255),
     "name" character varying(255),
-    "ageElgibilityCriteria_DaysFrom" double precision,
-    "ageElgibilityCriteria_DaysTo" double precision,
+    "ageEligibilityCriteria_DaysFrom" double precision,
+    "ageEligibilityCriteria_DaysTo" double precision,
     "openAllHours" boolean,
     "publicInformation" character varying(255),
     "additionalServiceInformation" character varying(255),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS "Core"."Endpoint"
     "status" character varying(255), --https://build.fhir.org/valueset-endpoint-status.html
     "connectionType" character varying(255), -- https://build.fhir.org/valueset-endpoint-connection-type.html to review?
     "name" character varying(255),
-    "payload_Type" character varying(255), -- https://build.fhir.org/valueset-endpoint-payload-type.html  to review?
+    "payloadType" character varying(255), -- https://build.fhir.org/valueset-endpoint-payload-type.html  to review?
     "address" character varying(255), -- url/email etc
     "managedBy" uuid, -- organisation that manages this
     "service" uuid,
