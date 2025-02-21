@@ -21,6 +21,3 @@ variable "create_database_subnet_group" {
   description = "Whether to create a database subnet group for RDS"
   type        = bool
 }
-variable "migration_pipeline_store_bucket_name" {
-  description = "The name of the S3 bucket to use for the data migration pipeline"
-}
