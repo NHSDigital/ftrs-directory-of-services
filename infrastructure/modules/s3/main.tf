@@ -26,7 +26,7 @@ module "s3" {
   #  target_prefix = var.target_prefix
   #}
   versioning = {
-    enabled = true
+    enabled = var.versioning
   }
   website = var.website_map
 }
