@@ -18,5 +18,3 @@ vpc = {
 enable_nat_gateway           = true
 single_nat_gateway           = true
 create_database_subnet_group = true
-
-migration_pipeline_store_bucket_name = "ftrs-dos-data-migration-pipeline-store"
