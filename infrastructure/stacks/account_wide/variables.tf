@@ -21,3 +21,8 @@ variable "create_database_subnet_group" {
   description = "Whether to create a database subnet group for RDS"
   type        = bool
 }
+
+variable "create_database_route_table" {
+  description = "Whether to create a database route table for RDS"
+  type        = bool
+}
