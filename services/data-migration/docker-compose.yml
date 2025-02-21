@@ -1,0 +1,15 @@
+services:
+  postgres:
+    build:
+      context: ../../../infrastructure/images/postgres
+      dockerfile: ../../../infrastructure/images/postgres/Dockerfile.local
+    volumes:
+      - ./.tmp/pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+volumes:
+  pg_data:
+    driver: local
