@@ -48,3 +48,8 @@ variable "service_category" {
   description = "Identifies the service category to prioritize responses"
   type        = string
 }
+
+variable "data_migration_project" {
+  description = "The name of the data migration project"
+  type        = string
+}

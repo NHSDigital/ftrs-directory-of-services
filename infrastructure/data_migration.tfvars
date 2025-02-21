@@ -1,1 +1,2 @@
-migration_pipeline_store_bucket_name = "ftrs-dos-data-migration-pipeline-store"
+migration_pipeline_store_bucket_name = "pipeline-store"
+versioning                           = false
