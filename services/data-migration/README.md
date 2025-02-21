@@ -36,6 +36,7 @@ For local development, this project relies on a local Postgres instance running 
 This container will persist data at `./.tmp/pg_data/`.
 
 ```bash
+mkdir -p ./.tmp/pg_data
 podman compose up -d
 ```
 

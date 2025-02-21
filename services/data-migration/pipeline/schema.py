@@ -22,7 +22,7 @@ def load_schema(
     """
     schema_path = Path(schema_path).resolve()
     if not schema_path.is_file():
-        err_msg = "Schema file not found: {schema_path}"
+        err_msg = f"Schema file not found: {schema_path}"
         raise ValueError(err_msg)
 
     logging.info(f"Loading schema from {schema_path}")
