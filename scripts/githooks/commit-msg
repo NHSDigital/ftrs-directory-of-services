@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# Script to check the commit log message contains jira reference
+# at start and inserts if not
+# Called by "git commit" with one argument, the name of the file
+# that has the commit message.  The hook should exit with non-zero
+# status after issuing an appropriate message if it wants to stop the
+# commit.
+
+# This script is copied to the .git/hooks directory by the make config target
+
+scripts/githooks/check-commit-message.sh $*

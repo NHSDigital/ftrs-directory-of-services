@@ -3,9 +3,15 @@ Bitwarden
 bot
 Cyber
 Dependabot
+eg
+gitflow
+githook
 Gitleaks
 Grype
+(?i)hotfix
 idempotence
+ie
+(?i)Jira
 OAuth
 Octokit
 onboarding

@@ -27,6 +27,8 @@ Make use of this repository template to expedite your project setup and enhance 
     - [Diagrams](#diagrams)
     - [Modularity](#modularity)
   - [Contributing](#contributing)
+    - [Branch naming convention](#branch-naming-convention)
+    - [Commit message convention](#commit-message-convention)
   - [Contacts](#contacts)
   - [Licence](#licence)
 
@@ -116,6 +118,38 @@ Describe or link templates on how to raise an issue, feature request or make a c
 - Release process, versioning, changelog
 - Backlog, board, roadmap, ways of working
 - High-level requirements, guiding principles, decision records, etc.
+
+### Branch naming convention
+
+A valid branch name is made up of these elements - in this order
+
+- branch type - must be one of task, hotfix
+- jira ref    - the unique identifier of the Jira ticket prompting the change
+- separator   - either a hyphen or an underscore
+- description - Must start with an alphanumeric and contain only alphanumerics/hyphens/underscores with a min length of 10 characters and a max length of 45
+
+Examples of valid branch names
+
+- task/XXX-123_My_valid_branch_name - words of description separated by underscores
+- task/XXX-123-My-valid-branch-name - words of description separated by hyphens
+- task/XXX-123_MyValidBranchName    - camelcase description
+- task/XXX-123-My-valid_branch_name - description with mix of underscores and hyphens
+
+Examples of invalid branch names
+
+- XXX-123_My_Invalid_branch_name  - does not start with branch type of ie - task or hotfix
+- task/MyInvalidbranchName        - does not include JIRA reference
+- task/XXX-123MyInvalidBranchName - no separator after JIRA reference
+
+### Commit message convention
+
+A valid commit message must
+
+- start with a valid Jira reference (to aid traceability of changes eg when building a release) and
+- consist of at least three words (to prompt a meaningful description of the commit)
+- not exceed 100 characters (encouraging concise wording for readability essentially)
+
+If the contributor does not include the JIRA reference a githook will insert it at the start of the message, deriving it from the branch name
 
 ## Contacts
 

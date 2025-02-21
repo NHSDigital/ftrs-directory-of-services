@@ -34,6 +34,10 @@ githooks-config: # Trigger Git hooks on commit that are defined in this reposito
 	pre-commit install \
 		--config scripts/config/pre-commit.yaml \
 		--install-hooks
+	make githooks-commit-msg
+
+githooks-commit-msg: # Copy the commit-msg hook to the .git/hooks directory @Configuration
+	cp scripts/githooks/commit-msg .git/hooks/commit-msg
 
 githooks-run: # Run git hooks configured in this repository @Operations
 	pre-commit run \
@@ -62,6 +66,7 @@ clean:: # Remove all generated and temporary files (common) @Operations
 config:: # Configure development environment (common) @Configuration
 	make \
 		githooks-config
+
 
 help: # Print help @Others
 	printf "\nUsage: \033[3m\033[93m[arg1=val1] [arg2=val2] \033[0m\033[0m\033[32mmake\033[0m\033[34m <command>\033[0m\n\n"

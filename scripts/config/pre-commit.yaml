@@ -1,6 +1,13 @@
 repos:
 - repo: local
   hooks:
+  - id: check-branch-name
+    name: Check branch name
+    entry: ./scripts/githooks/check-branch-name.sh
+    language: script
+    pass_filenames: false
+- repo: local
+  hooks:
   - id: scan-secrets
     name: Scan secrets
     entry: ./scripts/githooks/scan-secrets.sh
