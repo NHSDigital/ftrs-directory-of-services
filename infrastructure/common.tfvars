@@ -1,3 +1,4 @@
+project          = "ftrs-directory-of-services"
 project_owner    = "nhs-uec"
 service          = "uec-ftrs"
 cost_centre      = "P0675"

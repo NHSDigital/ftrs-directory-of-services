@@ -103,7 +103,6 @@ function terraform-initialise {
 
 COMMON_TF_VARS_FILE="common.tfvars"
 STACK_TF_VARS_FILE="$STACK.tfvars"
-PROJECT_TF_VARS_FILE="project.tfvars"
 ENV_TF_VARS_FILE="$ENVIRONMENT.tfvars"
 ENVIRONMENTS_SUB_DIR="environments"
 
@@ -146,7 +145,6 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   PLAN_RESULT=$(terraform plan \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE")
 
   echo "$PLAN_RESULT"
@@ -164,17 +162,15 @@ fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
   terraform apply -auto-approve \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
   terraform destroy -auto-approve\
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE \
-    -var-file $ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 if [ -n "$ACTION" ] && [ "$ACTION" = 'validate' ] ; then
