@@ -152,7 +152,7 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   echo "$PLAN_RESULT"
 
   # Look for the "No changes" string in the output.
-  if echo "$PLAN_RESULT" | grep -q "No changes. Infrastructure is up-to-date."; then
+  if echo "$PLAN_RESULT" | grep -Fq "No changes."; then
     INFRA_CHANGES="false"
   else
     INFRA_CHANGES="true"
