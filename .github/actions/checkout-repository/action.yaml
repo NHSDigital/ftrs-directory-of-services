@@ -29,7 +29,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout Repository
+    - name: "Checkout repository"
       uses: actions/checkout@v4
       with:
         repository: "NHSDigital/${{ inputs.repository }}"

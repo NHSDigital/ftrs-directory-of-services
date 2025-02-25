@@ -1,4 +1,4 @@
-name: Metadata workflow
+name: Metadata Workflow
 
 on:
   workflow_call:
@@ -62,19 +62,6 @@ on:
         value: ${{ jobs.echo-metadata.outputs.version }}
 
 jobs:
-  code-line-count:
-    name: "Code Line Count"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.tag }}
-      - name: "Code line count"
-        uses: ./.github/actions/code-line-count
-
   echo-metadata:
     name: "Get Metadata"
     runs-on: ubuntu-latest
@@ -97,12 +84,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
+
       - name: "Get metadata"
         id: get_metadata
         uses: ./.github/actions/metadata
 
   derive-workspace:
-    name: "Derive Workspace"
+    name: "Derive workspace"
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     outputs:
@@ -112,17 +100,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
+
       - name: "Derive workspace"
         id: derive_workspace
         uses: ./.github/actions/derive-workspace
 
   set-environment:
-    name: "Set Environment "
+    name: "Set environment"
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
     steps:
-      - name: "Determine Environment"
+      - name: "Determine environment"
         id: set-env
         run: |
           if [[ "${{ github.event.inputs.environment }}" != "" ]]; then
