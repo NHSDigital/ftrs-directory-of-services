@@ -158,7 +158,6 @@ function github_runner_stack {
     terraform plan \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
-    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
   fi
 
@@ -166,7 +165,6 @@ function github_runner_stack {
     terraform apply -auto-approve \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
-    -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
   fi
   # cleardown temp files
@@ -183,7 +181,6 @@ function github_runner_stack {
 # These used by both stacks to be bootstrapped
 ROOT_DIR=$PWD
 COMMON_TF_VARS_FILE="common.tfvars"
-PROJECT_TF_VARS_FILE="project.tfvars"
 ENV_TF_VARS_FILE="$ENVIRONMENT.tfvars"
 ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR"
 
@@ -230,21 +227,18 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   terraform plan \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
-  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
   terraform apply -auto-approve \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
-  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
   terraform destroy -auto-approve \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
-  -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$PROJECT_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 # cleardown temp files
