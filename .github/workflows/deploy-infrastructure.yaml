@@ -1,4 +1,4 @@
-name: Deploy Infrastructure workflow
+name: Deploy Infrastructure Workflow
 
 on:
   workflow_call:
@@ -49,10 +49,14 @@ on:
         required: false
         default: 5
         type: number
+    outputs:
+      plan_result:
+        description: "The Terraform plan output"
+        value: ${{ jobs.deploy-infrastructure.outputs.plan_result }}
 
 jobs:
   deploy-infrastructure:
-    name: "Deploy Infrastructure"
+    name: "Deploy infrastructure"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
@@ -62,22 +66,24 @@ jobs:
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
+    outputs:
+      plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.domain }}
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
 
-      - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           multi_domain: ${{ inputs.multi_domain }}
 
       - name: "Deploy infrastructure stack"
-        uses: NHSDigital/uec-dos-management/.github/actions/action-infrastructure-stack@latest
+        id: deploy_stack
+        uses: ./.github/actions/action-infrastructure-stack
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}

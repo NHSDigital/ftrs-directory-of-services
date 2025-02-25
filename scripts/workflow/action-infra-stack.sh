@@ -143,11 +143,23 @@ terraform-initialise
 terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
-  terraform plan \
-  -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
-  -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-  -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE" \
-  -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
+  PLAN_RESULT=$(terraform plan \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$PROJECT_TF_VARS_FILE" \
+    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE")
+
+  echo "$PLAN_RESULT"
+
+  # Look for the "No changes" string in the output.
+  if echo "$PLAN_RESULT" | grep -q "No changes. Infrastructure is up-to-date."; then
+    INFRA_CHANGES="false"
+  else
+    INFRA_CHANGES="true"
+  fi
+
+  echo "Infra changes detected: ${INFRA_CHANGES}"
+  echo "plan_result=${INFRA_CHANGES}" >> $GITHUB_OUTPUT
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
@@ -178,5 +190,5 @@ if [ $TEMP_STACK_TF_VARS_FILE = 1 ] ; then
   rm -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
 fi
 
-echo "Completed terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for account type $ENVIRONMENT  and project $PROJECT"
+echo "Completed terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for account type $ENVIRONMENT and project $PROJECT"
 
