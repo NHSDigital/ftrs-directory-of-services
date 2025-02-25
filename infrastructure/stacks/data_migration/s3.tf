@@ -1,8 +1,7 @@
-
 module "migration_store_bucket" {
   source      = "../../modules/s3"
-  bucket_name = "${var.data_migration_project}-${var.migration_pipeline_store_bucket_name}-${var.environment}"
-  versioning  = var.versioning
+  bucket_name = "${var.project}-${var.migration_pipeline_store_bucket_name}-${var.environment}"
+  versioning  = var.s3_versioning
 }
 
 resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {
