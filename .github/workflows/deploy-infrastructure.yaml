@@ -70,14 +70,14 @@ jobs:
           tag: ${{ inputs.tag }}
 
       - name: Configure AWS Credentials
-        uses: ./.github/actions/configure-credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           multi_domain: ${{ inputs.multi_domain }}
 
       - name: "Deploy infrastructure stack"
-        uses: ./.github/actions/action-infrastructure-stack
+        uses: NHSDigital/uec-dos-management/.github/actions/action-infrastructure-stack@latest
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
