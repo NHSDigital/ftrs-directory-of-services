@@ -148,17 +148,19 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 
   PLAN_RESULT=$(terraform show -no-color $STACK.tfplan)
-  cp "$STACK.tfplan" "$GITHUB_WORKSPACE/$STACK.tfplan"
 
-  # Look for the "No changes" string in the output.
-  if echo "$PLAN_RESULT" | grep -Fq "No changes."; then
-    INFRA_CHANGES="false"
-  else
-    INFRA_CHANGES="true"
+  if [ -n "$GITHUB_WORKSPACE" ] ; then
+    cp "$STACK.tfplan" "$GITHUB_WORKSPACE/$STACK.tfplan"
+
+    # Look for the "No changes" string in the output for GitHub workflow.
+    if [ -n "$GITHUB_OUTPUT" ] && [ echo "$PLAN_RESULT" | grep -Fq "No changes." ] ; then
+      INFRA_CHANGES="false"
+    else
+      INFRA_CHANGES="true"
+      echo "plan_result=${INFRA_CHANGES}" >> "$GITHUB_OUTPUT"
+      echo "Infra changes detected: ${INFRA_CHANGES}"
+    fi
   fi
-
-  echo "Infra changes detected: ${INFRA_CHANGES}"
-  echo "plan_result=${INFRA_CHANGES}" >> $GITHUB_OUTPUT
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
@@ -169,14 +171,16 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
-  terraform destroy -auto-approve\
+  terraform destroy -auto-approve \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
+
 if [ -n "$ACTION" ] && [ "$ACTION" = 'validate' ] ; then
   terraform validate
 fi
+
 # remove temp files
 rm -f "$STACK_DIR"/locals.tf
 rm -f "$STACK_DIR"/provider.tf
