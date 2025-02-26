@@ -47,6 +47,36 @@ jobs:
       action: plan
     secrets: inherit
 
+  manual-approval:
+    name: "Manual approval for account level infrastructure deployment"
+    needs:
+      [
+        metadata,
+        deploy-dev-account-infrastructure-plan,
+      ]
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+
+  deploy-dev-account-infrastructure-apply:
+    name: "TFApply for Dev account infrastructure"
+    needs:
+      [
+        metadata,
+        manual-approval,
+      ]
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['gp_search']"
+      action: apply
+    secrets: inherit
+
   slack-notifications:
     name: "Send Notification to Slack"
     needs: [
