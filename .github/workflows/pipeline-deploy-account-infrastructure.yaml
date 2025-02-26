@@ -34,7 +34,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','account_wide','gp_search']"
+      stacks: "['terraform_management','account_wide']"
       action: plan
     secrets: inherit
 

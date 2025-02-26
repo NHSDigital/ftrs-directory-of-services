@@ -31,20 +31,21 @@ jobs:
       stacks: '["account_wide", "terraform_management"]'
     secrets: inherit
 
-  # deploy-dev-account-infrastructure-plan:
-  #     name: "TF Plan dev account level infrastructure"
-  #     needs:
-  #       [
-  #         metadata,
-  #       ]
-  #     uses: ./.github/workflows/deploy-infrastructure.yaml
-  #     with:
-  #       environment: dev
-  #       domain: "uec-dos-management"
-  #       workspace: ${{ needs.metadata.outputs.workspace }}
-  #       stacks: "['gp_search']"
-  #       action: plan
-  #     secrets: inherit
+  deploy-dev-account-infrastructure-plan:
+    name: "TF Plan dev account level infrastructure"
+    needs:
+      [
+        metadata,
+      ]
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['gp_search']"
+      action: plan
+    secrets: inherit
 
   slack-notifications:
     name: "Send Notification to Slack"
