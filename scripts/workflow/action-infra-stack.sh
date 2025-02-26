@@ -153,7 +153,7 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
     cp "$STACK.tfplan" "$GITHUB_WORKSPACE/$STACK.tfplan"
 
     # Look for the "No changes" string in the output for GitHub workflow.
-    if [ -n "$GITHUB_OUTPUT" ] && [ echo "$PLAN_RESULT" | grep -Fq "No changes." ] ; then
+    if [ echo "$PLAN_RESULT" | grep -Fq "No changes." ] ; then
       INFRA_CHANGES="false"
     else
       INFRA_CHANGES="true"
