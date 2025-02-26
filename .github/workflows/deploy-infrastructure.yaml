@@ -81,6 +81,13 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           multi_domain: ${{ inputs.multi_domain }}
 
+      - name: "Download Terraform Plan Artifact"
+        uses: actions/download-artifact@v4
+        if: ${{ inputs.action == 'apply' }}
+        with:
+          name: terraform-download-plan
+          path: ${{ matrix.stack }}.tfplan
+
       - name: "Deploy infrastructure stack"
         id: deploy_stack
         uses: ./.github/actions/action-infrastructure-stack
@@ -91,3 +98,10 @@ jobs:
           action: ${{ inputs.action }}
           project: ${{ inputs.project }}
           application_tag: ${{ inputs.application_tag }}
+
+      - name: "Upload Terraform Plan Artifact"
+        uses: actions/upload-artifact@v4
+        if: ${{ inputs.action == 'plan' }}
+        with:
+          name: terraform-upload-plan
+          path: ${{ matrix.stack }}.tfplan

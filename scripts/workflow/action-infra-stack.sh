@@ -142,12 +142,13 @@ terraform-initialise
 terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
-  PLAN_RESULT=$(terraform plan \
+  terraform plan -out $STACK.tfplan \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE")
+    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 
-  echo "$PLAN_RESULT"
+  PLAN_RESULT=$(terraform show -no-color $STACK.tfplan)
+  cp "$STACK.tfplan" "$GITHUB_WORKSPACE/$STACK.tfplan"
 
   # Look for the "No changes" string in the output.
   if echo "$PLAN_RESULT" | grep -Fq "No changes."; then
@@ -161,7 +162,7 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
-  terraform apply -auto-approve \
+  terraform apply -auto-approve $STACK.tfplan \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
@@ -187,4 +188,3 @@ if [ $TEMP_STACK_TF_VARS_FILE = 1 ] ; then
 fi
 
 echo "Completed terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for account type $ENVIRONMENT and project $PROJECT"
-
