@@ -36,7 +36,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['data_migration', 'data_test']"
+      stacks: "['data_migration']"
     secrets: inherit
 
   deploy-infrastructure-plan:
@@ -52,7 +52,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
-      stacks: "['data_migration', 'data_test']"
+      stacks: "['data_migration']"
       application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
       action: plan
     secrets: inherit
@@ -82,7 +82,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
-      stacks: "['data_migration', 'data_test']"
+      stacks: "['data_migration']"
       application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
       action: apply
       workflow_timeout: 30
