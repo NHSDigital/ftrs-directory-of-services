@@ -86,7 +86,7 @@ jobs:
         if: ${{ inputs.action == 'apply' }}
         with:
           name: ${{ matrix.stack }}_terraform_plan
-          path: ${{ matrix.stack }}.tfplan
+          path: ./
 
       - name: "Deploy infrastructure stack"
         id: deploy_stack
