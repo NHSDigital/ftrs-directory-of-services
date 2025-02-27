@@ -164,7 +164,7 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
-  terraform apply -auto-approve $STACK.tfplan 
+  terraform apply -auto-approve $STACK.tfplan
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
