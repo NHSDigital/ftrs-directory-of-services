@@ -217,5 +217,5 @@ views {
     '
     include *
     autoLayout LeftRight 70 77
-	}
+  }
 }
