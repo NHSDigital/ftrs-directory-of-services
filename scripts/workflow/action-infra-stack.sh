@@ -164,7 +164,11 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
-  terraform apply -auto-approve $STACK.tfplan
+  if [ -n "$GITHUB_WORKSPACE" ] ; then
+      terraform apply -auto-approve "$GITHUB_WORKSPACE/$STACK.tfplan"
+    else
+      terraform apply -auto-approve "$STACK.tfplan"
+  fi
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
