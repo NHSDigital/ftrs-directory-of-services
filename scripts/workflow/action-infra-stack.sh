@@ -164,10 +164,7 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
-  terraform apply -auto-approve $STACK.tfplan \
-    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
-    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
+  terraform apply -auto-approve $STACK.tfplan 
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
