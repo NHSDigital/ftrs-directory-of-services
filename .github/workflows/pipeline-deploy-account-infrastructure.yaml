@@ -40,6 +40,7 @@ jobs:
 
   manual-approval:
     name: "Manual approval for account level infrastructure deployment"
+    if: ${{ needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' }}
     needs:
       [
         metadata,

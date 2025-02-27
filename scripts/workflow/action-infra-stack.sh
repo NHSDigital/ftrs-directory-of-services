@@ -142,28 +142,46 @@ terraform-initialise
 terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
-  terraform plan \
-  -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
-  -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-  -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
+  terraform plan -out $STACK.tfplan \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
+    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
+    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
+
+  PLAN_RESULT=$(terraform show -no-color $STACK.tfplan)
+
+  if [ -n "$GITHUB_WORKSPACE" ] ; then
+    cp "$STACK.tfplan" "$GITHUB_WORKSPACE/$STACK.tfplan"
+
+    # Look for the "No changes" string in the output for GitHub workflow.
+    if echo "$PLAN_RESULT" | grep -Fq "No changes."; then
+      INFRA_CHANGES="false"
+    else
+      INFRA_CHANGES="true"
+      echo "plan_result=${INFRA_CHANGES}" >> "$GITHUB_OUTPUT"
+      echo "Infra changes detected: ${INFRA_CHANGES}"
+    fi
+  fi
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
-  terraform apply -auto-approve \
+  if [ -n "$GITHUB_WORKSPACE" ] ; then
+      terraform apply -auto-approve "$GITHUB_WORKSPACE/$STACK.tfplan"
+    else
+      terraform apply -auto-approve "$STACK.tfplan"
+  fi
+fi
+
+if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
+  terraform destroy -auto-approve \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
 
-if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
-  terraform destroy -auto-approve\
-    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
-    -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
-fi
 if [ -n "$ACTION" ] && [ "$ACTION" = 'validate' ] ; then
   terraform validate
 fi
+
 # remove temp files
 rm -f "$STACK_DIR"/locals.tf
 rm -f "$STACK_DIR"/provider.tf
@@ -174,5 +192,4 @@ if [ $TEMP_STACK_TF_VARS_FILE = 1 ] ; then
   rm -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
 fi
 
-echo "Completed terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for account type $ENVIRONMENT  and project $PROJECT"
-
+echo "Completed terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for account type $ENVIRONMENT and project $PROJECT"

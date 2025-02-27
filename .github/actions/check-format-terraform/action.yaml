@@ -9,5 +9,5 @@ runs:
       shell: bash
       run: |
         export CHECK_ONLY=true
-        ./scripts/githooks/terraform-pre-commit.sh
+        ./scripts/githooks/check-terraform-format.sh
 

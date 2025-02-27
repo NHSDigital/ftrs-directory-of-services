@@ -21,21 +21,25 @@ inputs:
     application_tag:
         description: "The application tag for deployment"
         required: false
+outputs:
+    plan_result:
+        description: "The Terraform plan output"
+        value: ${{ steps.action_stack.outputs.plan_result }}
 
 runs:
   using: "composite"
-
   steps:
       - name: "Derive TF Version"
-        id: derive_tf_version
+        id: "derive_tf_version"
         uses: ./.github/actions/derive-tf-version
 
-      - name: Install Terraform
+      - name: "Install Terraform"
         uses: ./.github/actions/install-terraform
         with:
           terraform_version: ${{ steps.derive_tf_version.outputs.terraform_version }}
 
-      - name: Action Infrastructure Stack
+      - name: "Action Infrastructure Stack"
+        id: "action_stack"
         shell: bash
         run: |
           export TF_VAR_dev_account_number=${{ inputs.dos_dev_account_id }}

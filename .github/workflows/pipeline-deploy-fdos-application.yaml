@@ -1,0 +1,89 @@
+name: Future DoS Application Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'task/FDOS*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: true
+        type: string
+      application_tag:
+        description: "Specify the application tag to be used for deployment"
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+
+jobs:
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+  quality-checks:
+    name: "Quality check"
+    needs:
+      - metadata
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.environment }}
+      stacks: "['data_migration']"
+    secrets: inherit
+
+  deploy-infrastructure-plan:
+    name: "Plan application infrastructure deployment"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-protected"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.environment }}
+      stacks: "['data_migration']"
+      application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
+      action: plan
+    secrets: inherit
+
+  manual-approval:
+    name: "Manual approval for deployment"
+    if: ${{ needs.deploy-infrastructure-plan.outputs.plan_result == 'true' }}
+    needs:
+      - metadata
+      - deploy-infrastructure-plan
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+
+  deploy-infrastructure-apply:
+    name: "Deploy application infrastructure"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-protected"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.environment }}
+      stacks: "['data_migration']"
+      application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
+      action: apply
+      workflow_timeout: 30
+    secrets: inherit
