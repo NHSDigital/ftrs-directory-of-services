@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
 
   manual-approval:
-    name: "Manual approval for account level infrastructure deployment"
+    name: "Manual approval for Dev account level infrastructure deployment"
     needs:
       [
         metadata,
@@ -82,6 +82,7 @@ jobs:
     needs: [
       metadata,
       quality-checks,
+      deploy-dev-account-infrastructure-apply,
     ]
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
