@@ -206,8 +206,8 @@ views {
       The actors and systems making use of FtRS
     '
     include *
-  	autoLayout TopBottom
-	}
+    autoLayout TopBottom
+  }
 
   view of ftrs {
     title "Container diagram for FtRS"
@@ -216,6 +216,6 @@ views {
       and their relationships to other systems
     '
     include *
-  	autoLayout LeftRight 70 77
+    autoLayout LeftRight 70 77
 	}
 }
