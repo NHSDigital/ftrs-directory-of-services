@@ -153,7 +153,7 @@ A valid commit message must
 - consist of at least three words (to prompt a meaningful description of the commit)
 - not exceed 100 characters (encouraging concise wording for readability essentially)
 
-If the contributor does not include the JIRA reference a githook will insert it at the start of the message, deriving it from the branch name
+If the contributor does not include the JIRA reference the commit-msg githook will insert it at the start of the message, deriving it from the branch name
 
 ### Release process
 
