@@ -134,6 +134,7 @@ A valid branch name is made up of these elements - in this order
 Examples of valid branch names
 
 - task/XXX-123_My_valid_branch_name - words of description separated by underscores
+- task/xxx-123_My_valid_branch_name - lower case jira ref words of description separated by underscores
 - task/XXX-123-My-valid-branch-name - words of description separated by hyphens
 - task/XXX-123_MyValidBranchName    - camelcase description
 - task/XXX-123-My-valid_branch_name - description with mix of underscores and hyphens
