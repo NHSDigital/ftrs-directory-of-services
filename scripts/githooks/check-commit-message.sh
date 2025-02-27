@@ -8,7 +8,7 @@ function check_jira_ref {
   HYPHENATED_BRANCH_NAME="${BRANCH_NAME//_/-}"
   IFS='/' read -r -a name_array <<< "$HYPHENATED_BRANCH_NAME"
   IFS='-' read -r -a ref <<< "${name_array[1]}"
-  JIRA_REF=$(echo "${ref[0]}"-"${ref[1]}")
+  JIRA_REF=$(echo "${ref[0]}"-"${ref[1]}" | tr '[:lower:]' '[:upper:]')
   # Add jira ref if missing
   if [[ $COMMIT_MESSAGE != $JIRA_REF* ]] ; then
     COMMIT_MESSAGE="$JIRA_REF $COMMIT_MESSAGE"

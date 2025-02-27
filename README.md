@@ -1,22 +1,44 @@
-# Repository Template
+# Find the right service
 
 [![CI/CD Pull Request](https://github.com/nhs-england-tools/repository-template/actions/workflows/cicd-1-pull-request.yaml/badge.svg)](https://github.com/nhs-england-tools/repository-template/actions/workflows/cicd-1-pull-request.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=repository-template&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=repository-template)
 
-Start with an overview or a brief description of what the project is about and what it does. For example -
+Find the right service (FTRS) helps direct patients to the most appropriate NHS service for their urgent care
 
-Welcome to our repository template designed to streamline your project setup! This robust template provides a reliable starting point for your new projects, covering an essential tech stack and encouraging best practices in documenting.
+The system is commissioned, developed and hosted by NHS England
 
-This repository template aims to foster a user-friendly development environment by ensuring that every included file is concise and adequately self-documented. By adhering to this standard, we can promote increased clarity and maintainability throughout your project's lifecycle. Bundled within this template are resources that pave the way for seamless repository creation. Currently supported technologies are:
+The service consists of a number of key components
+
+- a directory of services (DOS)
+- search APIs
+- data sourcing
+
+## The Directory of Services (DOS)
+
+The DOS holds data for Urgent and Emergency, Primary, Secondary and Tertiary Sector care services. The data held for each service includes its location, availability and treatment/care
+provided. The data is maintained via an admin user interface and some APIs
+
+## Search APIs
+
+Known collectively as search APIs there are a number of APIs that can be used to interrogate the DOS and find details of clinically appropriate service/services. The most important of these currently is the triage search used in support of 111 and 999 call handlers
+
+## Data sourcing
+
+Some data for certain types of service may be available from some third parties. The data sourcing sub-project looks to bring in this data where it is possible and clinically safe to do so.
+
+Currently supported technologies are:
 
 - Terraform
 - Docker
-
-Make use of this repository template to expedite your project setup and enhance your productivity right from the get-go. Enjoy the advantage of having a well-structured, self-documented project that reduces overhead and increases focus on what truly matters - coding!
+- Podman
+- Python
 
 ## Table of Contents
 
-- [Repository Template](#repository-template)
+- [Find the right service](#find-the-right-service)
+  - [The Directory of Services (DOS)](#the-directory-of-services-dos)
+  - [Search APIs](#search-apis)
+  - [Data sourcing](#data-sourcing)
   - [Table of Contents](#table-of-contents)
   - [Setup](#setup)
     - [Prerequisites](#prerequisites)
@@ -29,18 +51,16 @@ Make use of this repository template to expedite your project setup and enhance 
   - [Contributing](#contributing)
     - [Branch naming convention](#branch-naming-convention)
     - [Commit message convention](#commit-message-convention)
+    - [Release process](#release-process)
   - [Contacts](#contacts)
   - [Licence](#licence)
 
 ## Setup
 
-By including preferably a one-liner or if necessary a set of clear CLI instructions we improve user experience. This should be a frictionless installation process that works on various operating systems (macOS, Linux, Windows WSL) and handles all the dependencies.
-
 Clone the repository
 
 ```shell
-git clone https://github.com/nhs-england-tools/repository-template.git
-cd nhs-england-tools/repository-template
+git clone https://github.com/NHSDigital/ftrs-directory-of-services.git
 ```
 
 ### Prerequisites
@@ -49,6 +69,7 @@ The following software packages, or their equivalents, are expected to be instal
 
 - [Docker](https://www.docker.com/) container runtime or a compatible tool, e.g. [Podman](https://podman.io/),
 - [asdf](https://asdf-vm.com/) version manager,
+- [Homebrew](https://brew.sh/) (for macOS),
 - [GNU make](https://www.gnu.org/software/make/) 3.82 or later,
 
 > [!NOTE]<br>
@@ -71,7 +92,7 @@ The following software packages, or their equivalents, are expected to be instal
 
 ### Configuration
 
-Installation and configuration of the toolchain dependencies
+To install and configure the toolchain dependencies
 
 ```shell
 make config
@@ -79,45 +100,27 @@ make config
 
 ## Usage
 
-After a successful installation, provide an informative example of how this project can be used. Additional code snippets, screenshots and demos work well in this space. You may also link to the other documentation resources, e.g. the [User Guide](./docs/user-guide.md) to demonstrate more use cases and to show more features.
+To follow
 
 ### Testing
 
-There are `make` tasks for you to configure to run your tests.  Run `make test` to see how they work.  You should be able to use the same entry points for local development as in your CI pipeline.
+To follow
 
 ## Design
 
 ### Diagrams
 
-The [C4 model](https://c4model.com/) is a simple and intuitive way to create software architecture diagrams that are clear, consistent, scalable and most importantly collaborative. This should result in documenting all the system interfaces, external dependencies and integration points.
+[C4 model](https://c4model.com/) digrams documenting all the system interfaces, external dependencies and integration points will follow
 
-![Repository Template](./docs/diagrams/Repository_Template_GitHub_Generic.png)
-
-The source for diagrams should be in Git for change control and review purposes. Recommendations are [draw.io](https://app.diagrams.net/) (example above in [docs](.docs/diagrams/) folder) and [Mermaids](https://github.com/mermaid-js/mermaid). Here is an example Mermaids sequence diagram:
-
-```mermaid
-sequenceDiagram
-    User->>+Service: GET /users?params=...
-    Service->>Service: auth request
-    Service->>Database: get all users
-    Database-->>Service: list of users
-    Service->>Service: filter users
-    Service-->>-User: list[User]
-```
+The source for these diagrams will be in Git for change control and review purposes.
 
 ### Modularity
 
-Most of the projects are built with customisability and extendability in mind. At a minimum, this can be achieved by implementing service level configuration options and settings. The intention of this section is to show how this can be used. If the system processes data, you could mention here for example how the input is prepared for testing - anonymised, synthetic or live data.
+To follow
 
 ## Contributing
 
 Describe or link templates on how to raise an issue, feature request or make a contribution to the codebase. Reference the other documentation files, like
-
-- Environment setup for contribution, i.e. `CONTRIBUTING.md`
-- Coding standards, branching, linting, practices for development and testing
-- Release process, versioning, changelog
-- Backlog, board, roadmap, ways of working
-- High-level requirements, guiding principles, decision records, etc.
 
 ### Branch naming convention
 
@@ -131,6 +134,7 @@ A valid branch name is made up of these elements - in this order
 Examples of valid branch names
 
 - task/XXX-123_My_valid_branch_name - words of description separated by underscores
+- task/xxx-123_My_valid_branch_name - lower case jira ref words of description separated by underscores
 - task/XXX-123-My-valid-branch-name - words of description separated by hyphens
 - task/XXX-123_MyValidBranchName    - camelcase description
 - task/XXX-123-My-valid_branch_name - description with mix of underscores and hyphens
@@ -149,11 +153,15 @@ A valid commit message must
 - consist of at least three words (to prompt a meaningful description of the commit)
 - not exceed 100 characters (encouraging concise wording for readability essentially)
 
-If the contributor does not include the JIRA reference a githook will insert it at the start of the message, deriving it from the branch name
+If the contributor does not include the JIRA reference the commit-msg githook will insert it at the start of the message, deriving it from the branch name
+
+### Release process
+
+To follow
 
 ## Contacts
 
-Provide a way to contact the owners of this project. It can be a team, an individual or information on the means of getting in touch via active communication channels, e.g. opening a GitHub discussion, raising an issue, etc.
+To follow
 
 ## Licence
 
