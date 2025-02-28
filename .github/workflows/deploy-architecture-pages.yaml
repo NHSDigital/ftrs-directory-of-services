@@ -5,6 +5,8 @@ on:
   # Runs on pushes targeting the default branch and c4 files
   push:
     branches: ["main"]
+  repository_dispatch:
+    types: [redeploy]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_call:
@@ -15,6 +17,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+
+secrets: inherit
 
 # Allow only one concurrent deployment, skipping runs queued between the run in progress and the latest queued.
 # However, do NOT cancel in-progress runs, as we want to allow these production deployments to be completed.
