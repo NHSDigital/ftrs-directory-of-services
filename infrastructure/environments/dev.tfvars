@@ -17,3 +17,6 @@ vpc = {
   database_subnet_b = "10.170.202.0/24"
   database_subnet_c = "10.170.203.0/24"
 }
+
+rds_serverless_min_capacity = 2
+rds_serverless_max_capacity = 4
