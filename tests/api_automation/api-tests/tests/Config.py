@@ -3,14 +3,25 @@ import yaml
 
 class Config:
     def __init__(self):
-        # Fix the path: Ensure it points to the correct location
+        """Load YAML configuration file."""
         config_file = os.path.join(os.path.dirname(__file__), "Config.yaml")
 
-        # Load the YAML configuration
+        if not os.path.exists(config_file):
+            raise FileNotFoundError(f"Configuration file not found: {config_file}")
+
         with open(config_file, "r") as file:
             self.config = yaml.safe_load(file)
 
-    def get(self, key):
-        return self.config.get(key, None)
+        # Ensure 'environments' key exists
+        env = self.config.get("environment")
+        if not env or env not in self.config.get("environments", {}):
+            raise ValueError(f"Invalid environment: {env}")
 
+        self.env_config = self.config["environments"][env]
+
+    def get(self, key):
+        """Get a configuration value for the selected environment."""
+        return self.env_config.get(key, None)
+
+# Create a global config instance
 config = Config()
