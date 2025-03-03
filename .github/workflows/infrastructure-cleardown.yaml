@@ -47,35 +47,35 @@ jobs:
           action: destroy
         secrets: inherit
 
-  # delete-tf-state:
-  #   name: "Delete terraform state file"
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: ${{ inputs.workflow_timeout }}
-  #   environment: ${{ inputs.environment }}
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #   strategy:
-  #     matrix:
-  #       stack: ${{ fromJSON(inputs.stacks) }}
-  #   needs: [destroy-application-infrastructure]
-  #   steps:
-  #     - name: "Checkout code"
-  #       uses: actions/checkout@v4
-  #       with:
-  #         ref: ${{ inputs.tag }}
-  #     - name: Configure AWS Credentials
-  #       uses: ./.github/actions/configure-credentials
-  #       with:
-  #           aws_account_id: ${{ secrets.ACCOUNT_ID }}
-  #           aws_region: ${{ vars.AWS_REGION }}
-  #     - name: "Delete terraform state file"
-  #       id: delete_tf_state
-  #       uses: ./.github/actions/cleardown-tf-state
-  #       with:
-  #         workspace: ${{ inputs.workspace }}
-  #         environment: ${{ inputs.environment }}
-  #         stack: ${{ matrix.stack }}
+  delete-tf-state:
+    name: "Delete terraform state file"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        stack: ${{ fromJSON(inputs.stacks) }}
+    needs: [destroy-application-infrastructure]
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - name: Configure AWS Credentials
+        uses: ./.github/actions/configure-credentials
+        with:
+            aws_account_id: ${{ secrets.ACCOUNT_ID }}
+            aws_region: ${{ vars.AWS_REGION }}
+      - name: "Delete terraform state file"
+        id: delete_tf_state
+        uses: ./.github/actions/cleardown-tf-state
+        with:
+          workspace: ${{ inputs.workspace }}
+          environment: ${{ inputs.environment }}
+          stack: ${{ matrix.stack }}
 
   check-tf-state:
     name: "Check state files cleared down"
@@ -85,11 +85,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      # TODO revert
-    needs: [destroy-application-infrastructure]
-    # needs: [
-    #   delete-tf-state
-    # ]
+    needs: [
+      delete-tf-state
+    ]
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
