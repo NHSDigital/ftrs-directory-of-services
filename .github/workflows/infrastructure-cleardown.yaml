@@ -85,6 +85,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      # TODO revert
+    needs: [destroy-application-infrastructure]
     # needs: [
     #   delete-tf-state
     # ]
