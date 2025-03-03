@@ -34,7 +34,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
       stacks: "['temp']"
       application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
       action: plan
@@ -64,7 +64,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
       stacks: "['temp']"
       application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
       action: apply
@@ -119,5 +119,5 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: dev
+      env: ${{ needs.metadata.outputs.environment }}
     secrets: inherit

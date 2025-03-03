@@ -1,10 +1,10 @@
 name: Future DoS Application Deployment Pipeline
-
+# temp restore to task/FDOS
 on:
   push:
     branches:
       - main
-      - 'task/FDOS*'
+      - 'task/FDOSNO*'
   workflow_dispatch:
     inputs:
       tag:
