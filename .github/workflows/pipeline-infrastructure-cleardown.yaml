@@ -1,15 +1,20 @@
-name: Test Cleardown Workflow
+name: Cleardown Workflow
 # Intended to run if
 # actor is not the queue bot and
 # the branch deleted is either
 # a task branch or
 # a dependabot branch
 
+# TODO restore after testing
+# on:
+  # delete:
+  #   branches:
+  #     - 'task/*'
+  #     - dependabot/*
 on:
-  delete:
+  push:
     branches:
-      - 'task/*'
-      - dependabot/*
+      - 'task/FDOS-201_Fix_broken_cleardown'
 
 jobs:
   metadata:
@@ -17,39 +22,102 @@ jobs:
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
+# temp build to test destroy
+  deploy-infrastructure-plan:
+    name: "Plan application infrastructure deployment"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-protected"
+      cancel-in-progress: false
+    needs:
+      - metadata
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.environment }}
+      stacks: "['temp']"
+      application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
+      action: plan
+    secrets: inherit
+
+  manual-approval:
+    name: "Manual approval for deployment"
+    if: ${{ needs.deploy-infrastructure-plan.outputs.plan_result == 'true' }}
+    needs:
+      - metadata
+      - deploy-infrastructure-plan
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+
+  deploy-infrastructure-apply:
+    name: "Deploy application infrastructure"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-protected"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.environment }}
+      stacks: "['temp']"
+      application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
+      action: apply
+      workflow_timeout: 30
+    secrets: inherit
+# end temp test build
+
   cleardown-infrastructure:
     name: "Cleardown Infrastructure"
     needs:
       [
         metadata,
+        deploy-infrastructure-apply
       ]
     uses: ./.github/workflows/infrastructure-cleardown.yaml
     with:
-      environment: mgmt
+      environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      domain: "uec-dos-management"
+      domain: ${{ needs.metadata.outputs.reponame }}
       stacks:
         "[
-          'lambda-stack',
-          'ui-test-stack',
-          'test-ready-for-test-stack',
-          'github-runner',
-          'terraform_management'
+          'temp',
         ]"
       workflow_timeout: 10
     secrets: inherit
 
-  cleardown-artefacts:
-    name: "Cleardown Artefacts"
-    needs:
-      [
-        metadata,
-        cleardown-infrastructure,
+    # 'github-runner',
+    # 'terraform_management'
 
-      ]
-    uses: ./.github/workflows/artefacts-cleardown.yaml
+  # cleardown-artefacts:
+  #   name: "Cleardown Artefacts"
+  #   needs:
+  #     [
+  #       metadata,
+  #       cleardown-infrastructure,
+
+  #     ]
+  #   uses: ./.github/workflows/artefacts-cleardown.yaml
+  #   with:
+  #     environment: mgmt
+  #     workspace: ${{ needs.metadata.outputs.workspace }}
+  #     artefact_bucket_name: ${{needs.metadata.outputs.artefact_bucket_name}}
+  #   secrets: inherit
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs: [
+      metadata,
+      deploy-infrastructure-apply,
+      cleardown-infrastructure,
+    ]
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
     with:
-      environment: mgmt
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      artefact_bucket_name: ${{needs.metadata.outputs.artefact_bucket_name}}
+      env: dev
     secrets: inherit
