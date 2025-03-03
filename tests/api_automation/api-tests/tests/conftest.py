@@ -68,7 +68,7 @@ def pytest_runtest_makereport(item, call):
         })
         item.extra_info = extra_info
 
-        # ✅ Attach API logs to the HTML report
+        #  Attach API logs to the HTML report
         if hasattr(item.config, "_html") and hasattr(item.config._html, "extras"):
             item.config._html.extras.append(pytest_html.extras.text(f"Request: {request}"))
             item.config._html.extras.append(pytest_html.extras.text(f"Response Status: {response_status}"))
