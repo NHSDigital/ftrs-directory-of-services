@@ -93,7 +93,7 @@ jobs:
 
     # 'github-runner',
     # 'terraform_management'
-
+# TODO if/when we agree on artefact management
   # cleardown-artefacts:
   #   name: "Cleardown Artefacts"
   #   needs:
