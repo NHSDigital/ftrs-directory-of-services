@@ -18,7 +18,7 @@ Python code is linted and formatted using Ruff. The rules and arguments enabled 
 
 ```bash
 # Activate Python virtual environment
-poetry env activate
+eval $(poetry env activate)
 
 # Run the linter
 ruff check
@@ -46,7 +46,7 @@ To set the target database schema manually, run the following script to load the
 
 ```bash
 # Activate Python virtual environment
-poetry env activate
+eval $(poetry env activate)
 
 # Run Schema Load Script
 python -m pipeline.schema \
@@ -60,11 +60,27 @@ If you are working with a schema with a different name, you can specify the `--d
 
 All options can be found by running `python -m pipeline.schema --help`.
 
+### Loading the local data clone
+
+A sanitised clone of the source DoS data is available in S3.
+This can be loaded into your local instance of Postgres to enable easier development.
+
+```bash
+# Assume role within UEC DOS DEV AWS account
+# Copy source postgres dump
+aws s3 cp s3://ftrs-dos-data-migration/sanitised-clone/pathwaysdos-pgdump.sql .tmp/pathwaysdos-01-02-24.sql
+
+# Load the dump into the local DB
+psql -d postgres://<user>:<password>@<host>:<port>/postgres -f .tmp/pathwaysdos-01-02-24.sql
+```
+
+This will create a new schema named 'pathwaysdos' containing the tables and data.
+
 ### Running Pipeline Steps Locally
 
 ```bash
 # Activate Python virtual environment
-poetry env activate
+eval $(poetry env activate)
 
 # Run extraction step
 python -m pipeline.extract \
