@@ -38,33 +38,32 @@ echo "Terraform state lock DynamoDB table is --> $TERRAFORM_LOCK_TABLE"
 # Delete Terraform state and lock entries for each stack
 echo "Stack to have terraform state deleted is: $STACK"
 
-# TODO restore after test
-  #   # Delete terraform state for current terraform workspace & echo results following deletion
-  #   deletion_output=$(aws s3 rm s3://$TERRAFORM_BUCKET_NAME/env:/$WORKSPACE/$STACK/terraform.state 2>&1)
+    # Delete terraform state for current terraform workspace & echo results following deletion
+    deletion_output=$(aws s3 rm s3://$TERRAFORM_BUCKET_NAME/env:/$WORKSPACE/$STACK/terraform.state 2>&1)
 
-  #   if [ -n "$deletion_output" ]; then
-  #     echo "Successfully deleted Terraform State file for the following workspace --> $WORKSPACE"
+    if [ -n "$deletion_output" ]; then
+      echo "Successfully deleted Terraform State file for the following workspace --> $WORKSPACE"
 
-  #     existing_item=$(aws dynamodb get-item \
-  #         --table-name "$TERRAFORM_LOCK_TABLE" \
-  #         --key '{"LockID": {"S": "'${TERRAFORM_BUCKET_NAME}'/env:/'${WORKSPACE}'/'${STACK}'/terraform.state-md5"}}' \
-  #         2>&1)
+      existing_item=$(aws dynamodb get-item \
+          --table-name "$TERRAFORM_LOCK_TABLE" \
+          --key '{"LockID": {"S": "'${TERRAFORM_BUCKET_NAME}'/env:/'${WORKSPACE}'/'${STACK}'/terraform.state-md5"}}' \
+          2>&1)
 
-  #     aws dynamodb delete-item \
-  #         --table-name "$TERRAFORM_LOCK_TABLE" \
-  #         --key '{"LockID": {"S": "'${TERRAFORM_BUCKET_NAME}'/env:/'${WORKSPACE}'/'${STACK}'/terraform.state-md5"}}' \
+      aws dynamodb delete-item \
+          --table-name "$TERRAFORM_LOCK_TABLE" \
+          --key '{"LockID": {"S": "'${TERRAFORM_BUCKET_NAME}'/env:/'${WORKSPACE}'/'${STACK}'/terraform.state-md5"}}' \
 
-  #     after_deletion=$(aws dynamodb get-item \
-  #         --table-name "$TERRAFORM_LOCK_TABLE" \
-  #         --key '{"LockID": {"S": "'${TERRAFORM_BUCKET_NAME}'/env:/'${WORKSPACE}'/'${STACK}'/terraform.state-md5"}}' \
-  #         2>&1)
-  #     if [[ -n "$existing_item" && -z "$after_deletion" ]]; then
-  #         echo "Successfully deleted Terraform State Lock file for the following stack --> $STACK"
-  #     else
-  #         echo "Terraform state Lock file not found for deletion or deletion failed for the following stack --> $STACK"
-  #         exit 1
-  #     fi
-  # else
-  #   echo "Terraform State file not found for deletion or deletion failed for the following workspace --> $WORKSPACE"
-  # fi
+      after_deletion=$(aws dynamodb get-item \
+          --table-name "$TERRAFORM_LOCK_TABLE" \
+          --key '{"LockID": {"S": "'${TERRAFORM_BUCKET_NAME}'/env:/'${WORKSPACE}'/'${STACK}'/terraform.state-md5"}}' \
+          2>&1)
+      if [[ -n "$existing_item" && -z "$after_deletion" ]]; then
+          echo "Successfully deleted Terraform State Lock file for the following stack --> $STACK"
+      else
+          echo "Terraform state Lock file not found for deletion or deletion failed for the following stack --> $STACK"
+          exit 1
+      fi
+  else
+    echo "Terraform State file not found for deletion or deletion failed for the following workspace --> $WORKSPACE"
+  fi
 
