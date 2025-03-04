@@ -17,4 +17,4 @@ runs:
       run: |
         export WORKSPACE=${{inputs.workspace}}
         export ENVIRONMENT=${{inputs.environment}}
-        ./uec-dos-management/scripts/workflow/check-terraform-state.sh
+        ./scripts/workflow/check-terraform-state.sh
