@@ -8,7 +8,7 @@ name: Cleardown Workflow
 on:
   delete:
     branches:
-      - 'task/*'
+      - 'task/FDOS*'
       - dependabot/*
 
 jobs:
@@ -22,7 +22,6 @@ jobs:
     needs:
       [
         metadata,
-        deploy-infrastructure-apply
       ]
     uses: ./.github/workflows/infrastructure-cleardown.yaml
     with:
@@ -57,7 +56,6 @@ jobs:
     name: "Send Notification to Slack"
     needs: [
       metadata,
-      deploy-infrastructure-apply,
       cleardown-infrastructure,
     ]
     if: always()
