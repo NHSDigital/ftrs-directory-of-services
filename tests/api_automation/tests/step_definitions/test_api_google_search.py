@@ -2,7 +2,7 @@ import pytest
 import json
 from pytest_bdd import given, when, then, scenarios
 from playwright.sync_api import sync_playwright
-from config import config  # Ensure Config is correctly imported
+from Config import config  # Ensure Config is correctly imported
 
 # Load feature file
 scenarios("../features/test_api_google_search.feature")
@@ -23,7 +23,7 @@ def api_response():
 @given("I make GET request to the Google search API")
 def prepare_google_search_request(api_response):
     """Step to prepare Google API details from the config file and set the request parameters."""
-
+    
     # Retrieve API details directly from the config
     base_url = config.get("base_url")
     api_key = config.get("api_key")
@@ -44,7 +44,7 @@ def prepare_google_search_request(api_response):
 @when("I receive the response")
 def make_google_search_request(api_request_context, api_response):
     """Make the GET request using the parameters prepared in the @given step"""
-
+    
     # Use the parameters prepared in the @given step
     base_url = api_response.get("base_url")
     params = api_response.get("params")
@@ -79,7 +79,7 @@ def verify_response_and_search_results(api_response):
     # Ensure response is valid
     assert api_response["response_status"] == 200, \
         f"Unexpected status code: {api_response['response_status']}"
-
+    
     # Assert that 'title' matches the expected value
     assert response_json.get("queries", {}).get("request", [{}])[0].get("title") == "Google Custom Search - Playwright", \
         f"Expected 'title' to be 'Google Custom Search - Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('title')}"
