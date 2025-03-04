@@ -41,12 +41,12 @@ variable "rds_instance_class" {
   type        = string
 }
 
-variable "rds_serverless_min_capacity" {
+variable "data_migration_rds_min_capacity" {
   description = "The minimum capacity for the RDS instance"
   type        = number
 }
 
-variable "rds_serverless_max_capacity" {
+variable "data_migration_rds_max_capacity" {
   description = "The maximum capacity for the RDS instance"
   type        = number
 }

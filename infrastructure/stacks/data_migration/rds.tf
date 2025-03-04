@@ -28,12 +28,11 @@ module "rds" {
   instance_class = var.rds_instance_class
   instances = {
     one = {}
-    two = {}
   }
 
   serverlessv2_scaling_configuration = {
-    min_capacity = var.rds_serverless_min_capacity
-    max_capacity = var.rds_serverless_max_capacity
+    min_capacity = var.data_migration_rds_min_capacity
+    max_capacity = var.data_migration_rds_max_capacity
   }
 
   manage_master_user_password = false

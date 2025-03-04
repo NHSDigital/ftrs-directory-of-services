@@ -18,5 +18,5 @@ vpc = {
   database_subnet_c = "10.170.203.0/24"
 }
 
-rds_serverless_min_capacity = 2
-rds_serverless_max_capacity = 4
+data_migration_rds_min_capacity = 1
+data_migration_rds_max_capacity = 1
