@@ -30,7 +30,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       stacks:
         "[
-          'github-runner',
+          'account_wide',
           'terraform_management',
         ]"
       workflow_timeout: 10
