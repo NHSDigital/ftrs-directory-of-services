@@ -4,7 +4,7 @@ import yaml
 class Config:
     def __init__(self):
         """Load YAML configuration file."""
-        config_file = os.path.join(os.path.dirname(__file__), "config.yaml")
+        config_file = os.path.join(os.path.dirname(__file__), "Config.yaml")
 
         if not os.path.exists(config_file):
             raise FileNotFoundError(f"Configuration file not found: {config_file}")
