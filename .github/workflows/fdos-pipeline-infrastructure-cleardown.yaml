@@ -20,19 +20,13 @@ jobs:
   cleardown-infrastructure:
     name: "Cleardown Infrastructure"
     needs:
-      [
-        metadata,
-      ]
+      - metadata
     uses: ./.github/workflows/infrastructure-cleardown.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      stacks:
-        "[
-          'account_wide',
-          'terraform_management',
-        ]"
+      stacks: "[       ]"
       workflow_timeout: 10
     secrets: inherit
 
@@ -54,10 +48,9 @@ jobs:
 
   slack-notifications:
     name: "Send Notification to Slack"
-    needs: [
-      metadata,
-      cleardown-infrastructure,
-    ]
+    needs:
+      - metadata
+      - cleardown-infrastructure
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
