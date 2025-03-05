@@ -36,13 +36,12 @@ on:
 
 jobs:
   destroy-application-infrastructure:
-        uses: NHSDigital/uec-dos-management/.github/workflows/deploy-infrastructure.yaml@latest
+        uses: ./.github/workflows/deploy-infrastructure.yaml
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
           project: ${{ inputs.project }}
           stacks: ${{ inputs.stacks }}
-          domain: ${{ inputs.domain }}
           tag: ${{ inputs.tag }}
           workflow_timeout: ${{ inputs.workflow_timeout }}
           action: destroy
@@ -62,17 +61,17 @@ jobs:
     needs: [destroy-application-infrastructure]
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
       - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        uses: ./.github/actions/configure-credentials
         with:
             aws_account_id: ${{ secrets.ACCOUNT_ID }}
             aws_region: ${{ vars.AWS_REGION }}
       - name: "Delete terraform state file"
         id: delete_tf_state
-        uses: NHSDigital/uec-dos-management/.github/actions/cleardown-tf-state@latest
+        uses: ./.github/actions/cleardown-tf-state
         with:
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
@@ -91,17 +90,17 @@ jobs:
     ]
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
       - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        uses: ./.github/actions/configure-credentials
         with:
             aws_account_id: ${{ secrets.ACCOUNT_ID }}
             aws_region: ${{ vars.AWS_REGION }}
       - name: "Check terraform state file"
         id: check_tf_state
-        uses: NHSDigital/uec-dos-management/.github/actions/check-tf-state@latest
+        uses: ./.github/actions/check-tf-state
         with:
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}

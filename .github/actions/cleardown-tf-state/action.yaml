@@ -21,4 +21,4 @@ runs:
         export WORKSPACE=${{inputs.workspace}}
         export ENVIRONMENT=${{inputs.environment}}
         export STACK=${{inputs.stack}}
-        ./uec-dos-management/scripts/workflow/cleardown-terraform-state.sh
+        ./scripts/workflow/cleardown-terraform-state.sh

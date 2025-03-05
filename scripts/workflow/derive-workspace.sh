@@ -50,7 +50,7 @@ elif [[ "$BRANCH_NAME" == "develop" ]]; then
 else
   # Handle task branches
   IFS='/' read -r -a name_array <<< "$BRANCH_NAME"
-  IFS='_' read -r -a ref <<< "${name_array[1]}"
+  IFS='_-' read -r -a ref <<< "${name_array[1]}"
   WORKSPACE=$(echo "${ref[0]}-${ref[1]}" | tr "[:upper:]" "[:lower:]")
   echo "Workspace from feature branch: $WORKSPACE"
 fi
