@@ -76,3 +76,29 @@ resource "aws_secretsmanager_secret_version" "rds_password" {
   secret_id     = aws_secretsmanager_secret.rds_password[0].id
   secret_string = random_password.rds_password[0].result
 }
+
+resource "aws_ssm_parameter" "rds_database_uri" {
+  count = local.deploy_databases ? 1 : 0
+
+  name  = "/${var.project}/${var.environment}/rds-uri"
+  type  = "SecureString"
+  value = "postgres://${random_pet.rds_username[0].id}:${random_password.rds_password[0].result}@${module.rds[0].cluster_endpoint}:${module.rds[0].cluster_port}/${var.rds_database}"
+}
+
+resource "null_resource" "rds_schema_creation" {
+  depends_on = [module.rds]
+  count      = local.deploy_databases ? 1 : 0
+
+  # Use a trigger to force re-execution when the SQL file changes.
+  # triggers = {
+  #   schema_hash = filesha256("${path.module}/../../../services/data-migration/schema/target-state.sql")
+  # }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+    python -m pipeline.schema \
+      --db-uri "${aws_ssm_parameter.rds_database_uri[0].value}" \
+      --schema-path "${path.module}/../../../services/data-migration/schema/target-state.sql"
+  EOT
+  }
+}
