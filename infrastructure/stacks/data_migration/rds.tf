@@ -90,9 +90,9 @@ resource "null_resource" "rds_schema_creation" {
   count      = local.deploy_databases ? 1 : 0
 
   # Use a trigger to force re-execution when the SQL file changes.
-  # triggers = {
-  #   schema_hash = filesha256("${path.module}/../../../services/data-migration/schema/target-state.sql")
-  # }
+  triggers = {
+    schema_hash = filesha256("${path.module}/../../../services/data-migration/schema/target-state.sql")
+  }
 
   provisioner "local-exec" {
     command = <<-EOT
