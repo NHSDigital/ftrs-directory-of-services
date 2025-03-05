@@ -96,9 +96,11 @@ resource "null_resource" "rds_schema_creation" {
 
   provisioner "local-exec" {
     command = <<-EOT
+    cd "${path.module}/../../../services/data-migration" && \
+    poetry install && \
     python -m pipeline.schema \
       --db-uri "${aws_ssm_parameter.rds_database_uri[0].value}" \
-      --schema-path "${path.module}/../../../services/data-migration/schema/target-state.sql"
+      --schema-path "schema/target-state.sql"
   EOT
   }
 }
