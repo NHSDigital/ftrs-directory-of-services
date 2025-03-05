@@ -1,4 +1,4 @@
-CREATE SCHEMA if not exists "Core" AUTHORIZATION postgres;
+CREATE SCHEMA if not exists "Core" AUTHORIZATION CURRENT_USER;
 
 SET search_path TO "Core";
 
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS "Core"."HealthcareService"
 ALTER TABLE "Core"."HealthcareService" ALTER COLUMN "createdDateTime" SET DEFAULT now();
 
 ALTER TABLE IF EXISTS "Core"."HealthcareService"
-    OWNER to postgres;
+    OWNER to CURRENT_USER;
 
 -- "Core"."Endpoint"
 DROP TABLE IF EXISTS "Core"."Endpoint";
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS "Core"."Endpoint"
 ALTER TABLE "Core"."Endpoint" ALTER COLUMN "createdDateTime" SET DEFAULT now();
 
 ALTER TABLE IF EXISTS "Core"."Endpoint"
-    OWNER to postgres;
+    OWNER to CURRENT_USER;
 
 -- "Core"."Organisation"
 DROP TABLE IF EXISTS "Core"."Organisation";
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS "Core"."Organisation"
 ALTER TABLE "Core"."Organisation" ALTER COLUMN "createdDateTime" SET DEFAULT now();
 
 ALTER TABLE IF EXISTS "Core"."Organisation"
-    OWNER to postgres;
+    OWNER to CURRENT_USER;
 
 -- "Core"."OrganisationAffilation"
 DROP TABLE IF EXISTS "Core"."OrganisationAffilation";
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS "Core"."OrganisationAffilation"
 ALTER TABLE "Core"."OrganisationAffilation" ALTER COLUMN "createdDateTime" SET DEFAULT now();
 
 ALTER TABLE IF EXISTS "Core"."OrganisationAffilation"
-    OWNER to postgres;
+    OWNER to CURRENT_USER;
 
 -- "Core"."OrganisationAffilation"
 DROP TABLE IF EXISTS "Core"."Location";
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS "Core"."Location"
 ALTER TABLE "Core"."Location" ALTER COLUMN "createdDateTime" SET DEFAULT now();
 
 ALTER TABLE IF EXISTS "Core"."Location"
-    OWNER to postgres;
+    OWNER to CURRENT_USER;
 
 -- Add foreign keys for referential integrity, none are enforced required.
 ALTER TABLE "Core"."Endpoint" ADD FOREIGN KEY ("managedBy") REFERENCES "Organisation" ("id");
