@@ -1,7 +1,7 @@
 name: Integrated Search Application Deployment Pipeline
 # Intended to run if
 # - dependabot PR is labelled Test Ready
-# - changes pushed to task branch
+# - changes pushed to task/DOSIS branch
 # - changes pushed to main branch
 on:
   push:
