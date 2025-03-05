@@ -28,14 +28,15 @@ jobs:
     with:
       environment: dev
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: '["account_wide", "terraform_management"]'
+      stacks: "['gp_search']"
     secrets: inherit
 
-  deploy-dev-account-infrastructure-plan:
-    name: "TF Plan dev account level infrastructure"
+  deploy-infrastructure-plan:
+    name: "TF Plan IS level infrastructure"
     needs:
       [
         metadata,
+        quality-checks,
       ]
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
@@ -48,11 +49,12 @@ jobs:
     secrets: inherit
 
   manual-approval:
-    name: "Manual approval for Dev account level infrastructure deployment"
+    name: "Manual approval for IS level infrastructure deployment"
+    if: ${{ needs.deploy-infrastructure-plan.outputs.plan_result == 'true' }}
     needs:
       [
         metadata,
-        deploy-dev-account-infrastructure-plan,
+        deploy-infrastructure-plan,
       ]
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
@@ -60,8 +62,8 @@ jobs:
       - name: Approval required
         run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
 
-  deploy-dev-account-infrastructure-apply:
-    name: "TFApply for Dev account infrastructure"
+  deploy-is-account-infrastructure-apply:
+    name: "TFApply for IS  infrastructure"
     needs:
       [
         metadata,
@@ -82,10 +84,10 @@ jobs:
     needs: [
       metadata,
       quality-checks,
-      deploy-dev-account-infrastructure-apply,
+      deploy-is-account-infrastructure-apply,
     ]
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: dev
+      env: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
