@@ -1,0 +1,93 @@
+name: Integrated Search Application Deployment Pipeline
+# Intended to run if
+# - dependabot PR is labelled Test Ready
+# - changes pushed to task branch
+# - changes pushed to main branch
+on:
+  push:
+    branches:
+      - main
+      - 'task/DOSIS*'
+  pull_request:
+    types: [ labeled ]
+
+jobs:
+  metadata:
+    if: ( ${{ github.event.label.name == 'Test Ready' && startswith(github.head_ref, 'dependabot/') }} ) || ( ${{ github.event_name == 'push' }} && ( ${{ startswith(github.ref_name, 'task/') || startswith(github.ref_name, 'main') }} ) )
+    name: "Get Metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+  quality-checks:
+    name: "Quality Check"
+    needs:
+      [
+        metadata,
+      ]
+    if: ${{ github.event_name == 'push' }}
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['gp_search']"
+    secrets: inherit
+
+  deploy-infrastructure-plan:
+    name: "TF Plan IS level infrastructure"
+    needs:
+      [
+        metadata,
+        quality-checks,
+      ]
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['gp_search']"
+      action: plan
+    secrets: inherit
+
+  manual-approval:
+    name: "Manual approval for IS level infrastructure deployment"
+    if: ${{ needs.deploy-infrastructure-plan.outputs.plan_result == 'true' }}
+    needs:
+      [
+        metadata,
+        deploy-infrastructure-plan,
+      ]
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+
+  deploy-is-account-infrastructure-apply:
+    name: "TFApply for IS  infrastructure"
+    needs:
+      [
+        metadata,
+        manual-approval,
+      ]
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['gp_search']"
+      action: apply
+    secrets: inherit
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs: [
+      metadata,
+      quality-checks,
+      deploy-is-account-infrastructure-apply,
+    ]
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
