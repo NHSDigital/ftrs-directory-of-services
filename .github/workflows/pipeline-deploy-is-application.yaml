@@ -26,7 +26,7 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/quality-checks.yaml
     with:
-      environment: dev
+      environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       stacks: "['gp_search']"
     secrets: inherit
