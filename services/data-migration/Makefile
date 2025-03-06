@@ -27,4 +27,4 @@ unit-test:
 
 build: ensure-build-dir
 	poetry build -f wheel -o $(BUILD_DIR)
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt
+	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
