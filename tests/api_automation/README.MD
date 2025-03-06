@@ -73,7 +73,7 @@ CI/CD Integration
 
 To integrate with CI/CD pipelines, use:
 
-pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys;                    
+pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys;
 pytest --html=reports/report_$(date +%Y%m%d_%H%M%S).html --self-contained-html
 
 This ensures unique report generation per run.
