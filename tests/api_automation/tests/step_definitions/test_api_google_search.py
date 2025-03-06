@@ -2,7 +2,7 @@ import pytest
 import json
 from pytest_bdd import given, when, then, scenarios
 from playwright.sync_api import sync_playwright
-from Config import config  # Ensure Config is correctly imported
+from config import config  # Ensure Config is correctly imported
 
 # Load feature file
 scenarios("../features/test_api_google_search.feature")
