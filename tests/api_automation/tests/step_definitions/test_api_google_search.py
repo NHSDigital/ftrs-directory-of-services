@@ -91,4 +91,3 @@ def verify_response_and_search_results(api_response):
     # Assert that 'count' matches the expected value
     assert response_json.get("queries", {}).get("request", [{}])[0].get("count") == 10, \
         f"Expected 'count' to be 10, but got {response_json.get('queries', {}).get('request', [{}])[0].get('count')}"
-    
