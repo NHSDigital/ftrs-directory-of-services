@@ -6,7 +6,7 @@ This is an API Test Automation Framework using pytest-bdd and Playwright for val
 
 ## Project Structure
 
-```    
+```
     api_automation/
         │── tests/
         │   │── features/                # BDD feature files
@@ -28,12 +28,12 @@ Ensure you have Python 3.9+ installed. You also need pip and virtualenv for mana
 
 ### Clone the repository
 
-```    
+```
 git clone https://github.com/NHSDigital/ftrs-directory-of-services.git
 cd tests
 cd api_automation
 ```
-    
+
 ### Install dependencies
 
 ```
@@ -56,7 +56,7 @@ search_engine_id: "YOUR_SEARCH_ENGINE_ID"
 
 ## Create a virtual environment & activate it (optional)
 
-```        
+``` 
 python -m venv venv
 source venv/bin/activate   # On macOS/Linux
 venv\Scripts\activate      # On Windows
@@ -99,7 +99,7 @@ This ensures unique report generation per run.
 
 If ModuleNotFoundError: No module named 'playwright' occurs, ensure Playwright is installed using:
 
-```        
+```
 pip install playwright
 playwright install
 
