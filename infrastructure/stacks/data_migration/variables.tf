@@ -11,8 +11,13 @@ variable "s3_versioning" {
   type        = bool
 }
 
-variable "rds_database" {
-  description = "The name of the RDS database"
+variable "target_rds_database" {
+  description = "The name of the target RDS database"
+  type        = string
+}
+
+variable "source_rds_database" {
+  description = "The name of the source RDS database"
   type        = string
 }
 
