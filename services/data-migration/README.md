@@ -20,7 +20,7 @@ Python code is linted and formatted using Ruff. The rules and arguments enabled 
 make lint # Runs ruff check and ruff format
 ```
 
-To automatically format python code and fix some linting issues, you can use:
+To automatically format Python code and fix some linting issues, you can use:
 
 ```bash
 eval $(poetry env activate)
