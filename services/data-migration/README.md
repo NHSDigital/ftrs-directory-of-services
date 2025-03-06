@@ -81,7 +81,7 @@ This can be loaded into your local instance of Postgres to enable easier develop
 aws s3 cp s3://ftrs-dos-data-migration/sanitised-clone/01-02-24/dos-pgdump.sql .tmp/dos-01-02-24.sql
 
 # Load the dump into the local DB
-psql -d postgres://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-24.sql
+psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-24.sql
 ```
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
@@ -93,17 +93,17 @@ This will create a new schema named 'pathwaysdos' containing the tables and data
 eval $(poetry env activate)
 
 # Run extraction step
-python -m pipeline.extract \
+dos-etl-extract \
     --db-uri {source_database} \
     --output-path /tmp/out/extract/
 
 # Run transformation step
-python -m pipeline.transform \
+dos-etl-transform \
     --input-path /tmp/out/extract/ \
     --output-path /tmp/out/transform/
 
 # Run load step
-python -m pipeline.load \
+dos-etl-load \
     --db-uri {target_database} \
     --input-path /tmp/out/transform/
 ```
