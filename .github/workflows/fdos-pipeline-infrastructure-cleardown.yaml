@@ -1,0 +1,61 @@
+name: Cleardown Workflow
+# Intended to run if
+# actor is not the queue bot and
+# the branch deleted is either
+# a task branch or
+# a dependabot branch
+
+on:
+  delete:
+    branches:
+      - 'task/FDOS*'
+      - dependabot/*
+
+jobs:
+  metadata:
+    if: ( ${{ github.event.ref_type == 'branch' && github.actor != 'github-merge-queue[bot]' }} )
+    name: "Get Metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+  cleardown-infrastructure:
+    name: "Cleardown Infrastructure"
+    needs:
+      - metadata
+    uses: ./.github/workflows/infrastructure-cleardown.yaml
+    strategy:
+        matrix:
+          environment: ${{ fromJSON(needs.metadata.outputs.environment) }}
+    with:
+      environment:  ${{ matrix.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      stacks: "['data_migration']"
+      workflow_timeout: 10
+    secrets: inherit
+
+# TODO if/when we agree on artefact management
+  # cleardown-artefacts:
+  #   name: "Cleardown Artefacts"
+  #   needs:
+  #     [
+  #       metadata,
+  #       cleardown-infrastructure,
+
+  #     ]
+  #   uses: ./.github/workflows/artefacts-cleardown.yaml
+  #   with:
+  #     environment: mgmt
+  #     workspace: ${{ needs.metadata.outputs.workspace }}
+  #     artefact_bucket_name: ${{needs.metadata.outputs.artefact_bucket_name}}
+  #   secrets: inherit
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - metadata
+      - cleardown-infrastructure
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: dev
+    secrets: inherit

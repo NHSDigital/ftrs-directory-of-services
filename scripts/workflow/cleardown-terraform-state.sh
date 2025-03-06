@@ -42,7 +42,7 @@ echo "Stack to have terraform state deleted is: $STACK"
     deletion_output=$(aws s3 rm s3://$TERRAFORM_BUCKET_NAME/env:/$WORKSPACE/$STACK/terraform.state 2>&1)
 
     if [ -n "$deletion_output" ]; then
-      echo "Sucessfully deleted Terraform State file for the following workspace --> $WORKSPACE"
+      echo "Successfully deleted Terraform State file for the following workspace --> $WORKSPACE"
 
       existing_item=$(aws dynamodb get-item \
           --table-name "$TERRAFORM_LOCK_TABLE" \
@@ -58,7 +58,7 @@ echo "Stack to have terraform state deleted is: $STACK"
           --key '{"LockID": {"S": "'${TERRAFORM_BUCKET_NAME}'/env:/'${WORKSPACE}'/'${STACK}'/terraform.state-md5"}}' \
           2>&1)
       if [[ -n "$existing_item" && -z "$after_deletion" ]]; then
-          echo "Sucessfully deleted Terraform State Lock file for the following stack --> $STACK"
+          echo "Successfully deleted Terraform State Lock file for the following stack --> $STACK"
       else
           echo "Terraform state Lock file not found for deletion or deletion failed for the following stack --> $STACK"
           exit 1
