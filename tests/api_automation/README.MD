@@ -56,7 +56,7 @@ search_engine_id: "YOUR_SEARCH_ENGINE_ID"
 
 ## Create a virtual environment & activate it (optional)
 
-``` 
+```
 python -m venv venv
 source venv/bin/activate   # On macOS/Linux
 venv\Scripts\activate      # On Windows
