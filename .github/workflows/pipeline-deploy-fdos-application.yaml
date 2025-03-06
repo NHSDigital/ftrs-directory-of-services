@@ -40,7 +40,7 @@ jobs:
     secrets: inherit
 
   build-data-migration-service:
-    name: "Build Data Migration Service"
+    name: "Build data migration service"
     needs:
       - metadata
       - quality-checks

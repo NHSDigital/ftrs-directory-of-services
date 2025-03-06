@@ -1,5 +1,4 @@
-name: Build Service Workflow
-
+name: Build service workflow
 
 on:
   workflow_call:
@@ -11,7 +10,7 @@ on:
 
 jobs:
   build-service:
-    name: "Build Service - ${{ inputs.service_name }}"
+    name: "Build service - ${{ inputs.service_name }}"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
