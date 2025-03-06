@@ -1,10 +1,10 @@
 import os
 import yaml
 
-class Config:
+class config:
     def __init__(self):
         """Load YAML configuration file."""
-        config_file = os.path.join(os.path.dirname(__file__), "Config.yaml")
+        config_file = os.path.join(os.path.dirname(__file__), "config.yaml")
 
         if not os.path.exists(config_file):
             raise FileNotFoundError(f"Configuration file not found: {config_file}")
@@ -24,4 +24,4 @@ class Config:
         return self.env_config.get(key, None)
 
 # Create a global config instance
-config = Config()
+config = config()
