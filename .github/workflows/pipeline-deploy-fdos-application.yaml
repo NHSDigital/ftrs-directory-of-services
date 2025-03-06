@@ -41,6 +41,9 @@ jobs:
 
   build-data-migration-service:
     name: "Build Data Migration Service"
+    needs:
+      - metadata
+      - quality-checks
     uses: ./.github/workflows/build-service.yaml
     with:
       service_name: "data-migration"
@@ -52,7 +55,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - quality-checks
+      - build-data-migration-service
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
