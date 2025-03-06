@@ -26,21 +26,18 @@ def _load_schema_file(schema_path: str) -> str:
     return schema_path.read_text()
 
 
-def _drop_schema(
-    conn: Connection, schema_name: str, bypass_input: bool = False
-) -> None:
+def _drop_schema(conn: Connection, schema_name: str) -> None:
     """
     Drop the schema from the database
     """
     logging.info(f"Dropping the schema: {schema_name}")
-    if not bypass_input:
-        logging.info(
-            "Are you sure you want to do this? This will drop the existing schema and all the data it contains."
-        )
-        user_response = input("Type 'yes' to continue: ")
-        if user_response != "yes":
-            logging.warning("Aborting the schema load")
-            raise SystemExit(1)
+    logging.info(
+        "Are you sure you want to do this? This will drop the existing schema and all the data it contains."
+    )
+    user_response = input("Type 'yes' to continue: ")
+    if user_response != "yes":
+        logging.warning("Aborting the schema load")
+        raise SystemExit(1)
 
     conn.execute(text(f'DROP SCHEMA "{schema_name}" CASCADE'))
     conn.commit()

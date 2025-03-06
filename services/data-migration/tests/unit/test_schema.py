@@ -71,25 +71,6 @@ def test_drop_schema(mocker: MockerFixture) -> None:
     assert mock_conn.commit.called is True
 
 
-def test_drop_schema_bypass_input(mocker: MockerFixture) -> None:
-    """
-    Test that _drop_schema drops the schema from the database without asking for user input
-    """
-    mock_input = mocker.patch("pipeline.schema.input")
-
-    mock_conn = mocker.MagicMock()
-    mock_conn.execute.return_value = None
-    mock_conn.commit.return_value = None
-
-    _drop_schema(mock_conn, "test_schema", bypass_input=True)
-
-    mock_input.assert_not_called()
-
-    assert mock_conn.execute.called is True
-    assert mock_conn.execute.call_args[0][0].text == 'DROP SCHEMA "test_schema" CASCADE'
-    assert mock_conn.commit.called is True
-
-
 def test_drop_schema_not_yes(mocker: MockerFixture) -> None:
     """
     Test that _drop_schema raises a SystemExit when user input is not 'yes'
