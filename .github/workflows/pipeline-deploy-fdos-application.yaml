@@ -39,6 +39,12 @@ jobs:
       stacks: "['data_migration']"
     secrets: inherit
 
+  build-data-migration-service:
+    name: "Build Data Migration Service"
+    uses: ./.github/workflows/build-service.yaml
+    with:
+      service_name: "data-migration"
+
   deploy-infrastructure-plan:
     name: "Plan application infrastructure deployment"
     concurrency:

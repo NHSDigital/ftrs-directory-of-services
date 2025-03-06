@@ -7,14 +7,18 @@ def extract(db_uri: str, output_path: Path) -> None:
     logging.error("Not implemented yet")
 
 
-if __name__ == "__main__":
+def main(args: list[str] | None = None) -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Extract data from source")
-    parser.add_argument("--db-uri", type=str, help="URI to connect to the database")
     parser.add_argument(
-        "--output-path", type=Path, help="Path to save the extracted data"
+        "--db-uri", type=str, required=True, help="URI to connect to the database"
     )
-    args = parser.parse_args()
-
+    parser.add_argument(
+        "--output-path",
+        type=Path,
+        required=True,
+        help="Path to save the extracted data",
+    )
+    args = parser.parse_args(args)
     extract(args.db_uri, args.output_path)
