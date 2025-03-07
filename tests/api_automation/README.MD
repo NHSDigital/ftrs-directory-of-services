@@ -7,17 +7,17 @@ This is an API Test Automation Framework using pytest-bdd and Playwright for val
 ## Project Structure
 
 ```
-    api_automation/
-        │── tests/
-        │   │── features/                # BDD feature files
-        │   │   │── test_api_google_search.feature
-        │   │── step_definitions/        # Step definitions for BDD tests
-        │   │   │── test_api_google_search.py
-        │   │── config.py                # Python config loader
-        │   │── config.yaml              # YAML configuration file
-        │   │── conftest.py              # Pytest fixtures and setup
-        │   │── report_YYYYMMDD_HHMM.html # Stores test reports
-        │── README.md                    # Project documentation
+api_automation/
+    │── tests/
+    │   │── features/                # BDD feature files
+    │   │   │── test_api_google_search.feature
+    │   │── step_definitions/        # Step definitions for BDD tests
+    │   │   │── test_api_google_search.py
+    │   │── config.py                # Python config loader
+    │   │── config.yaml              # YAML configuration file
+    │   │── conftest.py              # Pytest fixtures and setup
+    │   │── report_YYYYMMDD_HHMM.html # Stores test reports
+    │── README.MD                    # Project documentation
 ```
 
 ## Prerequisites
@@ -38,16 +38,16 @@ cd api_automation
 
 ```
 pip install -r requirements.txt
-
+```
 Install Playwright browsers (required for API testing via Playwright)
 
+```
 playwright install
 ```
 
 ### Configuration
 
-Modify config.yaml to update API details:
-
+Make a copy of config-template.yaml and name it config.yaml, and update it with API details as explained below:
 ```
 base_url: "https://www.googleapis.com/customsearch/v1"
 api_key: "YOUR_GOOGLE_API_KEY"
@@ -64,10 +64,10 @@ venv\Scripts\activate      # On Windows
 
 ## Running Tests
 
-    Run all tests using:
-
-        pytest --bdd --html=reports/report.html --self-contained-html
-
+Run all tests using:
+```
+pytest --bdd --html=reports/report.html --self-contained-html
+```
 Run specific feature tests:
 
 ```
@@ -102,5 +102,5 @@ If ModuleNotFoundError: No module named 'playwright' occurs, ensure Playwright i
 ```
 pip install playwright
 playwright install
-
+```
 If HTML reports are blank, ensure you use --self-contained-html in pytest options.
