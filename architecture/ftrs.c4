@@ -1,0 +1,221 @@
+specification {
+  element actor
+  element system
+  element container
+  element controller
+  element component
+  element restapi
+}
+
+model {
+  dosLead = actor "DoS Admin" {
+    description "DoS Lead, DoS Dev Team or CM Admin"
+    style {
+      shape person
+      color muted
+    }
+  }
+
+  apim = actor "NHSE API Management" {
+    description "API Management Function"
+    style {
+      color muted
+    }
+  }
+
+  cis2 = system "CIS2" {
+    description "Identity and Authorisation"
+    style {
+      color muted
+    }
+  }
+
+  ps1 = system "Provider System" {
+    description '
+      External software system
+      Includes 111 Tel, 999 Tel, 111 Online, S&R
+    '
+    style {
+      color muted
+    }
+  }
+
+  ps2 = system "Provider System" {
+    description '
+      Non-Pathways provider systems
+      i.e. MiDoS or GP Systems and Service Finder
+    '
+    style {
+      color muted
+    }
+  }
+
+
+  du = system "Direct updates to DoS" {
+    description '
+      Part of NHS.UK updates profiles in DoS
+    '
+    style {
+      color muted
+    }
+  }
+
+  pm = system "Profile Manager" {
+    description '
+      Part of NHS.UK updates profiles in DoS
+    '
+    style {
+      color muted
+    }
+  }
+
+  externalDataServices = system "External Data Services" {
+    description '
+      Data extracts sent to NHS.UK, IDT, Arden & Gem
+    '
+    style {
+      color muted
+    }
+  }
+
+  ftrs = system "Find the Right Service" {
+    container ui {
+      description 'React application, deployed as a SPA'
+      style {
+        icon tech:react
+        shape browser
+      }
+    }
+
+    restapi queryAPI "FTRS Query API" {
+      description '
+        Implements query business logic
+        and exposes as REST API
+      '
+      style {
+        icon tech:python
+      }
+
+      controller orgController "Organisation Controller" {
+        description 'Processes any queries on FTRS data'
+        style {
+          icon tech:python
+        }
+        component orgByOdsCode "Get Organisation by ODS Code" {
+          description 'Retrieves organisation data by ODS code'
+          style {
+            icon tech:python
+          }
+        }
+      }
+
+      controller locationController "Location Controller" {
+        component locationByLocationAndTime "Get Location by Location and Time" {
+          description 'Retrieves location data by location and time'
+          style {
+            icon tech:python
+          }
+        }
+      }
+    }
+
+    restapi commandAPI "FTRS Command API" {
+      description '
+        Implements update business logic
+        and exposes as REST API
+      '
+      style {
+        icon tech:python
+      }
+
+      controller updateOrgController "Update Organisation Controller" {
+        description 'Processes any organisation updates on FTRS data'
+        style {
+          icon tech:python
+        }
+
+        component addOrg "Add new Organisation" {
+          description 'Adds a new organisation to the FTRS database'
+          style {
+            icon tech:python
+          }
+        }
+
+        component updateOrg "Update Organisation" {
+          description 'Updates an existing organisation in the FTRS database'
+          style {
+            icon tech:python
+          }
+        }
+
+        component deleteOrg "Delete Organisation" {
+          description 'Deletes an existing organisation from the FTRS database'
+          style {
+            icon tech:python
+          }
+        }
+
+      }
+    }
+
+    container exportServices "Export Services" {
+      description 'Produces data extracts'
+      style {
+        icon tech:python
+      }
+    }
+
+    component db "FTRS Database" {
+      description 'Stores FTRS data'
+      style {
+        icon tech:postgresql
+        shape storage
+      }
+    }
+  }
+
+  dosLead -> ui "opens in browser"
+  ui -> cis2 "Logs in with"
+  ui -> apim "API calls routed through via HTTPS"
+  apim -> addOrg "Proxies calls to"
+  apim -> updateOrg "Proxies calls to"
+  apim -> deleteOrg "Proxies calls to"
+  apim -> orgByOdsCode "Proxies calls to"
+  apim -> locationByLocationAndTime "Proxies calls to"
+  addOrg -> db "Stores data in"
+  updateOrg -> db "Updates data in"
+  deleteOrg -> db "Deletes data in"
+  exportServices -> db "Retrieves data from"
+  orgByOdsCode -> db "Retrieves data from"
+  locationByLocationAndTime -> db "Retrieves data from"
+
+  ps1 -> apim "Queries DoS"
+  ps2 -> apim "Queries DoS"
+  du -> apim "Updates DoS"
+  pm -> apim "Queries DoS"
+
+  exportServices -> externalDataServices "Automated data extracts"
+
+}
+
+views {
+
+  view index {
+    title 'System Context diagram'
+    description '
+      The actors and systems making use of FtRS
+    '
+    include *
+    autoLayout TopBottom
+  }
+
+  view of ftrs {
+    title "Container diagram for FtRS"
+    description '
+      A model showing the containers for FtRS
+      and their relationships to other systems
+    '
+    include *
+    autoLayout LeftRight 70 77
+  }
+}
