@@ -54,9 +54,7 @@ python -m pipeline.schema \
     --schema-path schema/target-state.sql
 ```
 
-If you are making changes to this database schema during development, you can provide the `--drop` flag to drop the existing schema before loading the provided schema.
-
-If you are working with a schema with a different name, you can specify the `--drop-schema-name <name>` option to manually specify the schema to be dropped. This will default to `"Core"`.
+The script will run a full refresh of the schemas, you will need to refresh your schema list on tools like pgAdmin.
 
 All options can be found by running `python -m pipeline.schema --help`.
 

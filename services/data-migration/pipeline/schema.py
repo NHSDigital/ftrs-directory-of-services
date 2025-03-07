@@ -14,8 +14,7 @@ from pipeline.common import get_db_connection
 def load_schema(
     schema_path: str,
     db_uri: str,
-    drop: bool = False,
-    drop_schema_name: str = "Core",
+
 ) -> None:
     """
     Load the schema from a file and execute it in the database
@@ -28,25 +27,8 @@ def load_schema(
     logging.info(f"Loading schema from {schema_path}")
     content = schema_path.read_text()
 
-    if drop:
-        logging.info(
-            f"Drop flag is set. The following schema will be dropped: {drop_schema_name}"
-        )
-        logging.info(
-            "Are you sure you want to do this? This will drop the existing schema and all the data it contains."
-        )
-        user_response = input("Type 'yes' to continue: ")
-        if user_response != "yes":
-            logging.warning("Aborting the schema load")
-            return
-
     conn = get_db_connection(db_uri)
     with conn.cursor() as cur:
-        if drop:
-            logging.info(f"Dropping the schema: {drop_schema_name}")
-            cur.execute(f'DROP SCHEMA "{drop_schema_name}" CASCADE')
-            conn.commit()
-
         logging.info("Executing the schema")
         cur.execute(content)
         conn.commit()
@@ -74,4 +56,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    load_schema(args.schema_path, args.db_uri, args.drop, args.drop_schema_name)
+    load_schema(args.schema_path, args.db_uri)
