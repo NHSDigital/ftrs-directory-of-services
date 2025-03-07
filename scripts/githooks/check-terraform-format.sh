@@ -13,6 +13,10 @@ set -euo pipefail
 
 # ==============================================================================
 
+versions=$(git rev-parse --show-toplevel)/.tool-versions
+terraform_version=$(grep -E '^terraform' $versions | awk '{print $2}')
+image_version=${terraform_version:-latest}
+
 function main() {
 
   cd "$(git rev-parse --show-toplevel)"
@@ -26,11 +30,16 @@ function main() {
 #   check_only=[do not format, run check only]
 function terraform-fmt() {
 
+  local opts=
   if is-arg-true "$check_only"; then
-    terraform fmt -recursive -check infrastructure
-  else
-    terraform fmt -recursive infrastructure
+    opts="-check"
   fi
+
+  # Run Terraform fmt in a Docker container
+  docker run --rm --platform linux/amd64 \
+    --volume=$PWD:/workdir \
+    hashicorp/terraform:$image_version \
+    fmt -recursive $opts
 }
 
 # ==============================================================================
