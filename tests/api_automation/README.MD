@@ -16,7 +16,7 @@ api_automation/
     │   │── config.py                # Python config loader
     │   │── config.yaml              # YAML configuration file
     │   │── conftest.py              # Pytest fixtures and setup
-    │   │── report_YYYYMMDD_HHMM.html # Stores test reports
+    │── report_YYYYMMDD_HHMM.html # Stores test reports
     │── README.MD                    # Project documentation
 ```
 
