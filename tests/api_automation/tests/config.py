@@ -1,7 +1,7 @@
 import os
 import yaml
 
-class config:
+class Config:
     def __init__(self):
         """Load YAML configuration file."""
         config_file = os.path.join(os.path.dirname(__file__), "config.yaml")
@@ -24,4 +24,4 @@ class config:
         return self.env_config.get(key, None)
 
 # Create a global config instance
-config = config()
+config = Config()
