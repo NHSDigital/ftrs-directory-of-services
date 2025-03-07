@@ -7,13 +7,15 @@ def load(db_uri: str, input_path: Path) -> None:
     logging.error("Not implemented yet")
 
 
-if __name__ == "__main__":
+def main(args: list[str] | None = None) -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Load data to destination")
     parser.add_argument(
-        "--input-path", type=Path, help="Path to load the extracted data"
+        "--input-path", type=Path, required=True, help="Path to load the extracted data"
     )
-    parser.add_argument("--db-uri", type=str, help="URI to connect to the database")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--db-uri", type=str, required=True, help="URI to connect to the database"
+    )
+    args = parser.parse_args(args)
     load(args.db_uri, args.input_path)

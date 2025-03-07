@@ -1,5 +1,8 @@
-import psycopg
+from functools import lru_cache
+
+from sqlalchemy import Engine, create_engine
 
 
-def get_db_connection(connection_uri: str) -> psycopg.Connection:
-    return psycopg.connect(connection_uri)
+@lru_cache
+def get_db_engine(connection_uri: str) -> Engine:
+    return create_engine(connection_uri)

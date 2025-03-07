@@ -17,17 +17,27 @@ poetry install
 Python code is linted and formatted using Ruff. The rules and arguments enabled can be found in the `pyproject.toml` file.
 
 ```bash
-# Activate Python virtual environment
+make lint # Runs ruff check and ruff format
+```
+
+To automatically format Python code and fix some linting issues, you can use:
+
+```bash
 eval $(poetry env activate)
 
-# Run the linter
-ruff check
+ruff check --fix  # Runs linting with fix mode enabled
+ruff format       # Runs the python code formatter
+```
 
-# Run the formatter
-ruff format
+### Running Tests
 
-# Run the formatter in check mode
-ruff format --check
+Unit tests are run using Pytest. You can use the make target to conveniently run these tests, or run them directly using pytest.
+
+```bash
+make unit-test
+# or
+eval $(poetry env activate)
+pytest tests/unit
 ```
 
 ### Start Database Container
@@ -68,10 +78,10 @@ This can be loaded into your local instance of Postgres to enable easier develop
 ```bash
 # Assume role within UEC DOS DEV AWS account
 # Copy source postgres dump
-aws s3 cp s3://ftrs-dos-data-migration/sanitised-clone/pathwaysdos-pgdump.sql .tmp/pathwaysdos-01-02-24.sql
+aws s3 cp s3://ftrs-dos-data-migration/sanitised-clone/01-02-24/dos-pgdump.sql .tmp/dos-01-02-24.sql
 
 # Load the dump into the local DB
-psql -d postgres://<user>:<password>@<host>:<port>/postgres -f .tmp/pathwaysdos-01-02-24.sql
+psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-24.sql
 ```
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
@@ -83,17 +93,17 @@ This will create a new schema named 'pathwaysdos' containing the tables and data
 eval $(poetry env activate)
 
 # Run extraction step
-python -m pipeline.extract \
+dos-etl-extract \
     --db-uri {source_database} \
     --output-path /tmp/out/extract/
 
 # Run transformation step
-python -m pipeline.transform \
+dos-etl-transform \
     --input-path /tmp/out/extract/ \
     --output-path /tmp/out/transform/
 
 # Run load step
-python -m pipeline.load \
+dos-etl-load \
     --db-uri {target_database} \
     --input-path /tmp/out/transform/
 ```

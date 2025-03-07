@@ -39,6 +39,15 @@ jobs:
       stacks: "['data_migration']"
     secrets: inherit
 
+  build-data-migration-service:
+    name: "Build data migration service"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/build-service.yaml
+    with:
+      service_name: "data-migration"
+
   deploy-infrastructure-plan:
     name: "Plan application infrastructure deployment"
     concurrency:
@@ -46,7 +55,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - quality-checks
+      - build-data-migration-service
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}

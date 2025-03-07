@@ -8,7 +8,41 @@ Local Usage:
 import logging
 from pathlib import Path
 
-from pipeline.common import get_db_connection
+from sqlalchemy import Connection, text
+
+from pipeline.common import get_db_engine
+
+
+def _load_schema_file(schema_path: str) -> str:
+    """
+    Load the schema file and return the content
+    """
+    schema_path = Path(schema_path).resolve()
+    if not schema_path.is_file():
+        err_msg = f"Schema file not found: {schema_path}"
+        raise ValueError(err_msg)
+
+    logging.info(f"Loading schema from {schema_path}")
+    return schema_path.read_text()
+
+
+def _drop_schema(conn: Connection, schema_name: str) -> None:
+    """
+    Drop the schema from the database
+    """
+    logging.info(f"Dropping the schema: {schema_name}")
+    logging.info(
+        "Are you sure you want to do this? This will drop the existing schema and all the data it contains."
+    )
+    user_response = input("Type 'yes' to continue: ")
+    if user_response != "yes":
+        logging.warning("Aborting the schema load")
+        raise SystemExit(1)
+
+    conn.execute(text(f'DROP SCHEMA "{schema_name}" CASCADE'))
+    conn.commit()
+
+    logging.info("Schema dropped successfully")
 
 
 def load_schema(
@@ -20,49 +54,32 @@ def load_schema(
     """
     Load the schema from a file and execute it in the database
     """
-    schema_path = Path(schema_path).resolve()
-    if not schema_path.is_file():
-        err_msg = f"Schema file not found: {schema_path}"
-        raise ValueError(err_msg)
+    content = _load_schema_file(schema_path)
+    engine = get_db_engine(db_uri)
 
-    logging.info(f"Loading schema from {schema_path}")
-    content = schema_path.read_text()
-
-    if drop:
-        logging.info(
-            f"Drop flag is set. The following schema will be dropped: {drop_schema_name}"
-        )
-        logging.info(
-            "Are you sure you want to do this? This will drop the existing schema and all the data it contains."
-        )
-        user_response = input("Type 'yes' to continue: ")
-        if user_response != "yes":
-            logging.warning("Aborting the schema load")
-            return
-
-    conn = get_db_connection(db_uri)
-    with conn.cursor() as cur:
+    with engine.connect() as conn:
         if drop:
-            logging.info(f"Dropping the schema: {drop_schema_name}")
-            cur.execute(f'DROP SCHEMA "{drop_schema_name}" CASCADE')
-            conn.commit()
+            _drop_schema(conn, schema_name=drop_schema_name)
 
         logging.info("Executing the schema")
-        cur.execute(content)
+        conn.execute(text(content))
         conn.commit()
 
-    conn.close()
     logging.info("Schema loaded successfully")
 
 
-if __name__ == "__main__":
+def main(args: list[str] | None = None) -> None:
     import argparse
 
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Load schema to the database")
-    parser.add_argument("--db-uri", type=str, help="URI to connect to the database")
-    parser.add_argument("--schema-path", type=str, help="Path to the schema file")
+    parser.add_argument(
+        "--db-uri", type=str, required=True, help="URI to connect to the database"
+    )
+    parser.add_argument(
+        "--schema-path", type=str, required=True, help="Path to the schema file"
+    )
     parser.add_argument(
         "--drop", action="store_true", help="Drop the existing schema before loading"
     )
@@ -73,5 +90,5 @@ if __name__ == "__main__":
         help="Name of the schema to drop",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     load_schema(args.schema_path, args.db_uri, args.drop, args.drop_schema_name)
