@@ -63,6 +63,18 @@ def get_gp_endpoints(db_uri: str) -> pd.DataFrame:
     return pd.read_sql(QUERY_GP_ENDPOINTS, db_uri)
 
 
+def get_services_size(db_uri: str) -> int:
+    return pd.read_sql(QUERY_SERVICES_SIZE, db_uri)["count"][0]
+
+
+def get_services_columns_count(db_uri: str) -> int:
+    return pd.read_sql(QUERY_SERVICES_COLUMNS, db_uri)["count"][0]
+
+
+def get_serviceendpoints_columns_count(db_uri: str) -> int:
+    return pd.read_sql(QUERY_SERVICEENDPOINTS_COLUMNS, db_uri)["count"][0]
+
+
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
     # combining all the endpoint columns into one column
     return (
@@ -101,24 +113,48 @@ def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def logging_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) -> None:
-    # % of service profiles
-    query_services_size = """
-    SELECT COUNT(*) FROM "pathwaysdos"."services";
-    """
-    services_size = pd.read_sql(query_services_size, db_uri)["count"][0]
-    gp_practice_extract_size = len(gp_practice_extract)
-    logging.info(
-        f"Percentage of service profiles: {gp_practice_extract_size / services_size * 100}%"
+def calculate_service_profiles_percentage(
+    gp_practice_extract_size: int, services_size: int
+) -> float:
+    return round(gp_practice_extract_size / services_size * 100, 2)
+
+
+def calculate_data_fields_percentage(
+    gp_practice_extract_column: int,
+    services_columns: int,
+    serviceendpoints_columns: int,
+) -> float:
+    return round(
+        gp_practice_extract_column
+        / (services_columns + serviceendpoints_columns)
+        * 100,
+        2,
     )
-    # % of all data fields
-    services_columns = pd.read_sql(QUERY_SERVICES_COLUMNS, db_uri)["count"][0]
-    serviceendpoints_columns = pd.read_sql(QUERY_SERVICEENDPOINTS_COLUMNS, db_uri)[
-        "count"
-    ][0]
+
+
+def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) -> None:
+    services_size = get_services_size(db_uri)
+    gp_practice_extract_size = len(gp_practice_extract)
+    service_profiles_percentage = calculate_service_profiles_percentage(
+        gp_practice_extract_size, services_size
+    )
+
+    services_columns = get_services_columns_count(db_uri)
+    serviceendpoints_columns = get_serviceendpoints_columns_count(db_uri)
     gp_practice_extract_column = gp_practice_extract.shape[1]
-    logging.info(
-        f"Percentage of all data fields: {gp_practice_extract_column / (services_columns + serviceendpoints_columns) * 100}%"
+    data_fields_percentage = calculate_data_fields_percentage(
+        gp_practice_extract_column, services_columns, serviceendpoints_columns
+    )
+
+    logging.info(f"Percentage of service profiles: {service_profiles_percentage}%")
+    logging.info(f"Percentage of all data fields: {data_fields_percentage}%")
+
+
+def merge_gp_practice_with_endpoints(
+    gp_practice_df: pd.DataFrame, grouped_endpoints: pd.DataFrame
+) -> pd.DataFrame:
+    return gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left").drop(
+        columns=["serviceid"]
     )
 
 
@@ -127,10 +163,10 @@ def extract_gp_practice(db_uri: str, output_path: Path, clone_timestamp: str) ->
     gp_practice_endpoints_df = get_gp_endpoints(db_uri)
 
     grouped_endpoints = format_endpoints(gp_practice_endpoints_df)
+    gp_practice_extract = merge_gp_practice_with_endpoints(
+        gp_practice_df, grouped_endpoints
+    )
 
-    gp_practice_extract = gp_practice_df.merge(
-        grouped_endpoints, on="serviceid", how="left"
-    ).drop(columns=["serviceid"])
     gp_practice_extract.to_parquet(
         output_path / f"dos-gp-practice-extract-{clone_timestamp}.parquet",
         engine="pyarrow",
@@ -138,7 +174,7 @@ def extract_gp_practice(db_uri: str, output_path: Path, clone_timestamp: str) ->
         compression="zstd",
     )
 
-    logging_metrics(gp_practice_extract, db_uri)
+    logging_gp_practice_metrics(gp_practice_extract, db_uri)
 
 
 def extract(db_uri: str, output_path: Path) -> None:
