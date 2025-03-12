@@ -1,18 +1,19 @@
 from datetime import datetime
 from uuid import UUID
+
 from pydantic import BaseModel
 
 
 class Organisation(BaseModel):
     id: UUID
-    identifier_ODS_ODSCode: str
+    identifier_ODS_ODSCode: str | None
     active: bool
     createdBy: str
     createdDateTime: datetime
     modifiedBy: str
     modifiedDateTime: datetime
     name: str
-    telecom: str
+    telecom: str | None
     type: str
 
 
@@ -32,10 +33,10 @@ class Location(BaseModel):
     positionGCS_longitude: float
     positionGCS_easting: float
     positionGCS_northing: float
-    positionReferenceNumber_UPRN: int
-    positionReferenceNumber_UBRN: int
+    positionReferenceNumber_UPRN: int | None
+    positionReferenceNumber_UBRN: int | None
     primaryAddress: bool
-    partOf: UUID
+    partOf: UUID | None
 
 
 class HealthcareService(BaseModel):
@@ -50,27 +51,27 @@ class HealthcareService(BaseModel):
     modifiedBy: str
     modifiedDateTime: datetime
     name: str
-    telecom_phone_public: str
-    telecom_phone_private: str
-    telecom_email: str
-    telecom_web: str
+    telecom_phone_public: str | None
+    telecom_phone_private: str | None
+    telecom_email: str | None
+    telecom_web: str | None
     type: str
 
 
 class Endpoints(BaseModel):
     id: UUID
-    identifier_oldDoS_id: int
+    identifier_oldDoS_id: int | None
     status: str
     connectionType: str
-    name: str
+    name: str | None
     description: str
-    payloadType: str
+    payloadType: str | None
     address: str
-    managedByOrganisation: str
-    service: str
+    managedByOrganisation: UUID
+    service: UUID | None
     order: int
     isCompressionEnabled: bool
-    format: str
+    format: str | None
     createdBy: str
     createdDateTime: datetime
     modifiedBy: str
