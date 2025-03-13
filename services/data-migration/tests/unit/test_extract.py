@@ -435,7 +435,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                     "type": ["GP"],
                     "odscode": ["A12345"],
                     "uid": ["uid123"],
-                    "endpoints": [pd.NA],
+                    "endpoints": None,
                 }
             ),
         ),
@@ -452,6 +452,12 @@ def test_merge_gp_practice_with_endpoints(
     Test the merge_gp_practice_with_endpoints function with mismatched service IDs
     """
     result = merge_gp_practice_with_endpoints(gp_practice_df, grouped_endpoints)
-    pd.testing.assert_frame_equal(result, expected_df)
-    # TODO: how to handle FutureWarning: Mismatched null-like values nan and None found.
-    # ^ in a future version, pandas equality-testing functions (e.g. assert_frame_equal) will consider these not-matching and raise.
+    # assertion for the third test scenario of mismatched service IDs
+    if "endpoints" in expected_df.columns and expected_df["endpoints"].iloc[0] is None:
+        assert pd.isna(result["endpoints"].iloc[0])
+        columns_to_compare = ["name", "type", "odscode", "uid"]
+        for column in columns_to_compare:
+            assert result[column].iloc[0] == expected_df[column].iloc[0]
+
+    else:
+        pd.testing.assert_frame_equal(result, expected_df)
