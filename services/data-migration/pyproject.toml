@@ -12,7 +12,6 @@ dependencies = [
     "psycopg2 (>=2.9.10,<3.0.0)",
     "pandas (>=2.2.2)",
     "pyarrow (>=17.0.0)",
-    "fastparquet (>=2024.5.0)",
 ]
 
 [build-system]
