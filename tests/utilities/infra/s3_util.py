@@ -6,7 +6,7 @@ class S3Utils:
         """Initialize AWS S3 client using credentials from the terminal (AWS CLI)"""
         try:
             # Use default AWS CLI profile and automatically detect region
-            session = boto3.Session()  
+            session = boto3.Session()
             self.s3_client = session.client("s3")
 
         except (NoCredentialsError, PartialCredentialsError) as e:

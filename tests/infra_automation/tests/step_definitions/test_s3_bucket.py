@@ -24,7 +24,7 @@ def fetch_s3_buckets(aws_s3_client):
 def check_aws_access():
     """Ensure AWS CLI authentication works"""
     result = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True)
-    
+
     assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
 
 @when("I fetch the list of S3 buckets")
