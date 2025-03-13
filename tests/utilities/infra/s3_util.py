@@ -1,6 +1,7 @@
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
+
 class S3Utils:
     def __init__(self):
         """Initialize AWS S3 client using credentials from the terminal (AWS CLI)"""
@@ -21,3 +22,21 @@ class S3Utils:
         except Exception as e:
             print(f"Error fetching bucket list: {e}")
             return []
+
+    def check_bucket_exists(self, bucket_name):
+        """
+        Determine whether the bucket exists and you have access to it.
+        :return: True when the bucket exists; otherwise, False.
+        """
+        try:
+            self.s3_client.head_bucket(Bucket=bucket_name)
+            print("Bucket %s exists.", bucket_name)
+            exists = True
+        except Exception as e:
+            error_code = int(e.response['Error']['Code'])
+            if error_code == 403:
+                print("Private Bucket. Forbidden Access! ", bucket_name)
+            elif error_code == 404:
+                print("Bucket Does Not Exist!", bucket_name)
+            exists = False
+        return exists

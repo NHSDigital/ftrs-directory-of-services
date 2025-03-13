@@ -1,6 +1,7 @@
 import pytest
 import subprocess
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import scenarios, given, when, then, parsers
+from config import config  # Ensure Config is correctly imported
 import sys
 import os
 
@@ -26,6 +27,16 @@ def check_aws_access():
     result = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True)
 
     assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
+
+
+@given(parsers.parse('The S3 bucket "{bucket_type}" exists'), target_fixture='fbucket_name')
+def confirm_s3_bucket_exists(aws_s3_client, workspace, env, bucket_type):
+    project = config.get("project")
+    bucket = config.get(bucket_type)
+    bucket_name = project + "-" + bucket + "-" + env + "-" + workspace
+    response = aws_s3_client.check_bucket_exists(bucket_name)
+    assert response == True
+    return bucket_name
 
 @when("I fetch the list of S3 buckets")
 def fetch_buckets(aws_s3_client):

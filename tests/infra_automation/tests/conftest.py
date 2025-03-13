@@ -1,5 +1,5 @@
 import pytest
-import json
+import os
 from playwright.sync_api import sync_playwright
 import pytest_html
 
@@ -22,6 +22,25 @@ def api_request_context(playwright):
 def api_response():
     """Fixture to store API response for logging in reports."""
     return {}
+
+
+def _get_env_var(varname: str) -> str:
+    value = os.getenv(varname)
+    assert value, f'{varname} is not set'
+    return value
+
+
+@pytest.fixture(scope='session')
+def workspace() -> str:
+    if _get_env_var('WORKSPACE') != "default":
+        workspace = _get_env_var('WORKSPACE')
+    else:
+        workspace = ""
+    return workspace
+
+@pytest.fixture(scope='session')
+def env() -> str:
+    return _get_env_var('ENV')
 
 
 def pytest_html_report_title(report):
