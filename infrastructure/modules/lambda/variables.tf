@@ -16,6 +16,9 @@ variable "policy_jsons" {
 # ==============================================================================
 # Default variables
 
+variable "source_path" {
+  default = "null"
+}
 variable "handler" {
   description = "Handler function entry point"
   default     = "app.lambda_handler"
@@ -45,7 +48,9 @@ variable "ignore_source_code_hash" {
   description = "Whether to ignore changes to the source code hash"
   default     = true
 }
-
+variable "attach_tracing_policy" {
+  default = false
+}
 variable "attach_policy_jsons" {
   description = "Whether to attach the provided JSON policies to the Lambda role"
   default     = true
