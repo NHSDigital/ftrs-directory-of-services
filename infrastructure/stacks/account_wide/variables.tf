@@ -26,3 +26,8 @@ variable "create_database_route_table" {
   description = "Whether to create a database route table for RDS"
   type        = bool
 }
+
+variable "log_group_retention_in_days" {
+  description = "Number of days to retain logs"
+  default     = 7
+}
