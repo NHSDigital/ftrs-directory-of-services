@@ -3,6 +3,7 @@ module "lambda" {
   version = "~> 6.0"
 
   function_name           = "${var.function_name}${local.workspace_suffix}"
+  source_path             = var.source_path
   handler                 = var.handler
   runtime                 = var.runtime
   publish                 = var.publish
