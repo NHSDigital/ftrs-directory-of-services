@@ -11,3 +11,5 @@ rds_engine          = "aurora-postgresql"
 rds_engine_version  = "16.4"
 rds_engine_mode     = "provisioned"
 rds_instance_class  = "db.serverless"
+
+lambda_runtime = "python3.12"

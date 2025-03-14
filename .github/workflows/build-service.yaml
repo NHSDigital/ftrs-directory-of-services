@@ -7,6 +7,14 @@ on:
         description: "The name of the service to build"
         required: true
         type: string
+      python_version:
+        description: 'The version of Python'
+        required: true
+        type: string
+      commit_hash:
+        description: "Commit hash, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
 
 jobs:
   build-service:
@@ -42,7 +50,13 @@ jobs:
         run: cd services/${{ inputs.service_name }} && make unit-test
 
       - name: "Build service"
-        run: cd services/${{ inputs.service_name }} && make build
+        run:  |
+          poetry self add poetry-plugin-export
+          cd services/${{ inputs.service_name }} && make build
+        env:
+          SERVICE: ${{ inputs.service_name }}
+          PYTHON_VERSION: ${{ inputs.python_version }}
+          COMMIT_HASH: ${{ inputs.commit_hash }}
 
       - name: "Publish artefacts"
         uses: actions/upload-artifact@v4.6.1
