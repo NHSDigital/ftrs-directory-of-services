@@ -47,6 +47,8 @@ jobs:
     uses: ./.github/workflows/build-service.yaml
     with:
       service_name: "data-migration"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
 
   deploy-infrastructure-plan:
     name: "Plan application infrastructure deployment"
