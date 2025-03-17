@@ -5,8 +5,8 @@ environments:
     base_url:
     api_key:
     search_engine_id:
-    gp-search-bucket: 
-    project: 
+    gp-search-bucket:
+    project:
 
   nonprod:
     base_url:
