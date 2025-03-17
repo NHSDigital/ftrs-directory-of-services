@@ -5,8 +5,8 @@ environments:
     base_url:
     api_key:
     search_engine_id:
-    gp-search-bucket: gp-search-s3
-    project: ftrs-dos-integrated-search
+    gp-search-bucket: 
+    project: 
 
   nonprod:
     base_url:

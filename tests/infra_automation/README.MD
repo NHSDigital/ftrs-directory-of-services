@@ -68,6 +68,8 @@ Make a copy of config-template.yaml and name it config.yaml, and update it with 
 base_url: "https://www.googleapis.com/customsearch/v1"
 api_key: "YOUR_GOOGLE_API_KEY"
 search_engine_id: "YOUR_SEARCH_ENGINE_ID"
+gp-search-bucket: "Bucket Name which need to locate"
+project: "aws project name"
 ```
 
 ## Create a virtual environment & activate it (optional)
@@ -88,6 +90,22 @@ Run specific feature tests:
 
 ```
 pytest tests/step_definitions/test_api_google_search.py --html=reports/report.html --self-contained-html
+```
+
+## Using the Variables Locally
+
+The pipeline script will define the workspace based on the branch name. If the branch has not been pushed and the dev pipeline successfully deployed the app then the script will fail as they will not be any infrastructure
+```
+workspace  = default when running against the main branch
+workspace = dr-xxx when running against task branch dr-xxx  
+```
+
+Project and Service-name should be set in the config file of the framework
+
+Set environment variables that are derived in the pipeline
+
+```export WORKSPACE=dr-999  (where dr-999 is the branch name)
+export ENVIRONMENT=dev
 ```
 
 ## Generating Reports
