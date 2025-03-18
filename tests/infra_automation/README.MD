@@ -9,13 +9,9 @@ This is an Infra Test Automation Framework using pytest-bdd and Playwright for v
 ```
 ├── infra_automation/
     ├── tests
-    │   │   ├── config.cpython-312.pyc
-    │   │   └── conftest.cpython-312-pytest-8.3.4.pyc
     │   ├── features
     │   │   └── test_s3_bucket.feature
     │   ├── step_definitions
-    │   │   ├── __pycache__
-    │   │   │   └── test_s3_bucket.cpython-312-pytest-8.3.4.pyc
     │   │   └── test_s3_bucket.py
     │   ├── config.py
     │   ├── conftest.py
