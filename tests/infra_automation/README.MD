@@ -82,7 +82,7 @@ pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys
 Run specific feature tests:
 
 ```
-pytest tests/step_definitions/test_api_google_search.py --html=reports/report.html --self-contained-html
+pytest tests/step_definitions/test_s3_bucket.py --html=reports/report.html --self-contained-html
 ```
 
 ## Using the Variables Locally
