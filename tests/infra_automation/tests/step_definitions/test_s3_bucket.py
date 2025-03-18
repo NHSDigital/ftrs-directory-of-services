@@ -1,7 +1,7 @@
 import pytest
 import subprocess
 from pytest_bdd import scenarios, given, when, then, parsers
-from config import config  
+from config import config
 import sys
 import os
 
