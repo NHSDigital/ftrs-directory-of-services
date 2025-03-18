@@ -1,5 +1,4 @@
 import pytest
-import json
 import os
 from playwright.sync_api import sync_playwright
 import pytest_html
@@ -11,7 +10,6 @@ def playwright():
     with sync_playwright() as p:
         yield p
 
-
 @pytest.fixture
 def api_request_context(playwright):
     """Create a new Playwright API request context."""
@@ -19,6 +17,9 @@ def api_request_context(playwright):
     yield request_context
     request_context.dispose()
 
+@pytest.fixture
+def bucket_type():
+    return 'standard'
 
 @pytest.fixture
 def api_response():
@@ -35,7 +36,7 @@ def _get_env_var(varname: str) -> str:
 @pytest.fixture(scope='session')
 def workspace() -> str:
     if _get_env_var('WORKSPACE') != "default":
-        workspace = "-" + _get_env_var('WORKSPACE')
+        workspace = _get_env_var('WORKSPACE')
     else:
         workspace = ""
     return workspace

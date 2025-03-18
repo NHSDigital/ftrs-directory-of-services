@@ -66,7 +66,7 @@ venv\Scripts\activate      # On Windows
 
 Run all tests using:
 ```
-ppytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys
+pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys
 ```
 Run specific feature tests:
 

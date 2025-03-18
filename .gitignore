@@ -24,3 +24,11 @@ __pycache__/
 .poetry/
 build/
 .coverage
+
+# Test specific
+
+tests/*/reports/*
+tests/*/allure-reports/*
+tests/*/allure-results/*
+tests/*/downloads/*
+tests/**/report.html
