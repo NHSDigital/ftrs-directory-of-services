@@ -1,0 +1,14 @@
+environment: "dev"
+
+environments:
+  dev:
+    bucket_type:
+    project:
+
+  nonprod:
+    bucket:
+    project:
+
+  prod:
+    bucket:
+    project:
