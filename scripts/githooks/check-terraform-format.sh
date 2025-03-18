@@ -35,11 +35,8 @@ function terraform-fmt() {
     opts="-check"
   fi
 
-  # Run Terraform fmt in a Docker container
-  docker run --rm --platform linux/amd64 \
-    --volume=$PWD:/workdir \
-    hashicorp/terraform:$image_version \
-    fmt -recursive $opts
+  opts=$opts dir=infrastructure make terraform-fmt
+  
 }
 
 # ==============================================================================
