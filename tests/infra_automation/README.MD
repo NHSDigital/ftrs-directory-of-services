@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is an Infra Test Automation Framework using pytest-bdd and Playwright for validating Google Custom Search API responses. It follows the BDD (Behavior Driven Development) approach using Gherkin syntax.
+This is an Infra Test Automation Framework using pytest-bdd and Playwright for validating AWS Infra Testing like Buckets etc. It follows the BDD (Behavior Driven Development) approach using Gherkin syntax.
 
 ## Project Structure
 
@@ -12,22 +12,18 @@ This is an Infra Test Automation Framework using pytest-bdd and Playwright for v
 │   ├── tests/
 │   │   ├── step_definitions/
 │   │   │   ├── test_s3_bucket.py
-├── features/
-│   ├── test_s3_bucket.feature
+        ├── features/
+        │   ├── test_s3_bucket.feature
+    │── README.md
 │── utilities/
 ├── infra/
 │   ├── s3_util.py
-│── README.md
+
 ```
 
 ## Prerequisites
 
 Ensure you have Python 3.12+ installed. You also need pip and virtualenv for managing dependencies.
-
-## Installation
-```
-pip install pytest pytest-bdd boto3
-```
 
 ### Clone the repository
 
@@ -63,11 +59,8 @@ aws sts get-caller-identity
 
 ### Configuration
 
-Make a copy of config-template.yaml and name it config.yaml, and update it with API details as explained below:
+Make a copy of config_template.yaml and name it config.yaml, and update it with API details as explained below:
 ```
-base_url: "https://www.googleapis.com/customsearch/v1"
-api_key: "YOUR_GOOGLE_API_KEY"
-search_engine_id: "YOUR_SEARCH_ENGINE_ID"
 gp-search-bucket: "Bucket Name which need to locate"
 project: "aws project name"
 ```
@@ -84,7 +77,7 @@ venv\Scripts\activate      # On Windows
 
 Run all tests using:
 ```
-ppytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys
+pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys
 ```
 Run specific feature tests:
 
@@ -95,6 +88,7 @@ pytest tests/step_definitions/test_api_google_search.py --html=reports/report.ht
 ## Using the Variables Locally
 
 The pipeline script will define the workspace based on the branch name. If the branch has not been pushed and the dev pipeline successfully deployed the app then the script will fail as they will not be any infrastructure
+
 ```
 workspace  = default when running against the main branch
 workspace = dr-xxx when running against task branch dr-xxx
@@ -103,8 +97,8 @@ workspace = dr-xxx when running against task branch dr-xxx
 Project and Service-name should be set in the config file of the framework
 
 Set environment variables that are derived in the pipeline
-
-```export WORKSPACE=dr-999  (where dr-999 is the branch name)
+```
+export WORKSPACE=dr-999  (where dr-999 is the branch name)
 export ENVIRONMENT=dev
 ```
 
@@ -131,3 +125,4 @@ This ensures unique report generation per run.
 
 ## Troubleshooting
 If HTML reports are blank, ensure you use --self-contained-html in pytest options.
+

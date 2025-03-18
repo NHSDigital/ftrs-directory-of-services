@@ -7,5 +7,6 @@ jsonschema==4.17.0              # JSON schema validation library (if needed for 
 pytest-html==4.1.1              # For generating HTML reports
 pytest-metadata==3.1.1         # Adds metadata to the test reports
 allure-pytest==2.13.5          # Allure integration for beautiful test reports
-pyyaml==6.0                   # For YAML-based configuration management
-loguru==0.6.0                 # For better logging management (optional)
+pyyaml==6.0.2                  # For YAML-based configuration management
+loguru==0.6.0                  # For better logging management (optional)
+boto3==1.34.49                 # AWS SDK for Python

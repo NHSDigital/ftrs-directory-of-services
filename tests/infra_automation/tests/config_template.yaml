@@ -1,19 +1,13 @@
-environment: "dev"
 
 environments:
   dev:
-    base_url:
-    api_key:
-    search_engine_id:
     gp-search-bucket:
     project:
 
   nonprod:
-    base_url:
-    api_key:
-    search_engine_id:
+    gp-search-bucket:
+    project:
 
   prod:
-    base_url:
-    api_key:
-    search_engine_id:
+    gp-search-bucket:
+    project:

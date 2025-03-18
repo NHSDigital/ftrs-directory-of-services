@@ -33,10 +33,5 @@ class S3Utils:
             print("Bucket %s exists.", bucket_name)
             exists = True
         except Exception as e:
-            error_code = int(e.response['Error']['Code'])
-            if error_code == 403:
-                print("Private Bucket. Forbidden Access! ", bucket_name)
-            elif error_code == 404:
-                print("Bucket Does Not Exist!", bucket_name)
-            exists = False
+            print(f"Error: bucket not found'.\n{e}")
         return exists
