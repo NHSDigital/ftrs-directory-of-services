@@ -36,7 +36,7 @@ function terraform-fmt() {
   fi
 
   opts=$opts dir=infrastructure make terraform-fmt
-  
+
 }
 
 # ==============================================================================
