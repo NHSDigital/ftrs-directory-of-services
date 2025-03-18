@@ -1,3 +1,4 @@
+environment: "dev"
 
 environments:
   dev:
@@ -5,9 +6,9 @@ environments:
     project:
 
   nonprod:
-    bucket_type:
+    bucket:
     project:
 
   prod:
-    bucket_type:
+    bucket:
     project:

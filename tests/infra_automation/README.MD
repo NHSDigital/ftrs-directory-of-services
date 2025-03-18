@@ -7,17 +7,23 @@ This is an Infra Test Automation Framework using pytest-bdd and Playwright for v
 ## Project Structure
 
 ```
-
 ├── infra_automation/
-│   ├── tests/
-│   │   ├── step_definitions/
-│   │   │   ├── test_s3_bucket.py
-        ├── features/
-        │   ├── test_s3_bucket.feature
-    │── README.md
-│── utilities/
-├── infra/
-│   ├── s3_util.py
+    ├── tests
+    │   ├── __pycache__
+    │   │   ├── config.cpython-312.pyc
+    │   │   └── conftest.cpython-312-pytest-8.3.4.pyc
+    │   ├── features
+    │   │   └── test_s3_bucket.feature
+    │   ├── step_definitions
+    │   │   ├── __pycache__
+    │   │   │   └── test_s3_bucket.cpython-312-pytest-8.3.4.pyc
+    │   │   └── test_s3_bucket.py
+    │   ├── config.py
+    │   ├── conftest.py
+    │   └── report.html
+    ├── README.MD
+    ├── pytest.ini
+    └── report.html
 
 ```
 
@@ -76,7 +82,7 @@ change aws config file with values listed in Service Teams - Set up SSO for AWS 
 
 Make a copy of config_template.yaml and name it config.yaml, and update it with API details as explained below:
 ```
-gp-search-bucket: "Bucket Name which need to locate"
+bucket_type: "Bucket Name which need to locate"
 project: "aws project name"
 ```
 

@@ -7,4 +7,5 @@ Feature: S3 Bucket Name Validation
 
 
   Scenario: Check that specific bucket exists
-    Given The S3 bucket exists
+    Given I am authenticated with AWS CLI
+    Then The S3 bucket exists

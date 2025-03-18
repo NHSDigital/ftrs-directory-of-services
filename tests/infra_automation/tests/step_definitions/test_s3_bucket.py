@@ -29,7 +29,7 @@ def check_aws_access():
     assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
 
 
-@given(parsers.parse('The S3 bucket exists'), target_fixture='fbucket_name')
+@then(parsers.parse('The S3 bucket exists'), target_fixture='fbucket_name')
 def confirm_s3_bucket_exists(aws_s3_client, workspace, env):
     project = config.get("project")
     bucket = config.get("bucket_type")
@@ -39,7 +39,6 @@ def confirm_s3_bucket_exists(aws_s3_client, workspace, env):
         bucket_name = project + "-" + bucket + "-" + env + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
     assert response == True
-    return bucket_name
 
 @when("I fetch the list of S3 buckets")
 def fetch_buckets(aws_s3_client):

@@ -34,4 +34,5 @@ class S3Utils:
             exists = True
         except Exception as e:
             print(f"Error: bucket not found'.\n{e}")
+            exists = False
         return exists
