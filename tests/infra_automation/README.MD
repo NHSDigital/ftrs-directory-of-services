@@ -56,6 +56,21 @@ Make sure your AWS CLI is configured and authenticated:
 aws configure
 aws sts get-caller-identity
 ```
+You'll be prompted to enter:
+```
+AWS Access Key ID:
+AWS Secret Access Key:
+Default region (e.g., us-east-1, us-west-2):
+Output format (json, table, text – default is json):
+Alternatively, configure manually by editing these files:
+```
+
+```
+Linux/macOS: ~/.aws/credentials and ~/.aws/config
+Windows: C:\Users\USERNAME\.aws\credentials and C:\Users\USERNAME\.aws\config
+```
+
+change aws config file with values listed in Service Teams - Set up SSO for AWS confluence page.
 
 ### Configuration
 
