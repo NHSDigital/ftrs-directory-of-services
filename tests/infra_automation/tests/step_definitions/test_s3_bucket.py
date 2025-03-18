@@ -30,10 +30,13 @@ def check_aws_access():
 
 
 @given(parsers.parse('The S3 bucket exists'), target_fixture='fbucket_name')
-def confirm_s3_bucket_exists(aws_s3_client, workspace, env, bucket_type):
+def confirm_s3_bucket_exists(aws_s3_client, workspace, env):
     project = config.get("project")
-    bucket = config.get(bucket_type)
-    bucket_name = project + "-" + bucket + "-" + env + "-" + workspace
+    bucket = config.get("bucket_type")
+    if workspace=="":
+        bucket_name = project + "-" + bucket + "-" + env
+    else:
+        bucket_name = project + "-" + bucket + "-" + env + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
     assert response == True
     return bucket_name

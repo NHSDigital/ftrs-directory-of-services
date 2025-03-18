@@ -7,4 +7,4 @@ Feature: S3 Bucket Name Validation
 
 
   Scenario: Check that specific bucket exists
-    Given the S3 bucket exists
+    Given The S3 bucket exists

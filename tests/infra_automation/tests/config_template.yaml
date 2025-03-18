@@ -1,13 +1,13 @@
 
 environments:
   dev:
-    gp-search-bucket:
+    bucket_type:
     project:
 
   nonprod:
-    gp-search-bucket:
+    bucket_type:
     project:
 
   prod:
-    gp-search-bucket:
+    bucket_type:
     project:

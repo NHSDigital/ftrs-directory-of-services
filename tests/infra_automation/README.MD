@@ -70,7 +70,7 @@ Linux/macOS: ~/.aws/credentials and ~/.aws/config
 Windows: C:\Users\USERNAME\.aws\credentials and C:\Users\USERNAME\.aws\config
 ```
 
-change aws config file with values listed in Service Teams - Set up SSO for AWS confluence page.
+change aws config file with values listed in Service Teams - Set up SSO for AWS confluence page. Also use Dos developer profile from your aws console for your CLI connection.
 
 ### Configuration
 

@@ -17,6 +17,9 @@ def api_request_context(playwright):
     yield request_context
     request_context.dispose()
 
+@pytest.fixture
+def bucket_type():
+    return 'standard'
 
 @pytest.fixture
 def api_response():
