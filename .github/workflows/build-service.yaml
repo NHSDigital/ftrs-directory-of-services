@@ -19,7 +19,7 @@ on:
         description: "The deployment environment"
         required: true
         type: string
-        
+
 jobs:
   build-service:
     name: "Build service - ${{ inputs.service_name }}"
