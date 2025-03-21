@@ -3,8 +3,8 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  lambda_layer_name   = "${local.prefix}-python-dependency-layer${local.workspace_suffix}"
-  lambda_layer_s3_key = "${var.main_project}-${var.environment}-${var.artefacts_bucket_name}/${var.project}-python-dependency-layer/${var.project}-python-dependency-layer-${var.application_tag}.zip"
+  s3_bucket = "${var.main_project}-${var.environment}-${var.artefacts_bucket_name}"
+  s3_key    = "${var.project}-python-dependency-layer/${var.project}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "extract_lambda" {
