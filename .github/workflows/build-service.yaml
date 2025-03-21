@@ -15,7 +15,11 @@ on:
         description: "Commit hash, set by the CI/CD pipeline workflow"
         required: true
         type: string
-
+      environment:
+        description: "The deployment environment"
+        required: true
+        type: string
+        
 jobs:
   build-service:
     name: "Build service - ${{ inputs.service_name }}"
