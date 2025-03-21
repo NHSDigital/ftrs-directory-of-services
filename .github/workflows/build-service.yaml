@@ -84,6 +84,8 @@ jobs:
         env:
           SERVICE: ${{ inputs.service_name }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
+          ENVIRNOMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v4.6.1
