@@ -1,11 +1,11 @@
 module "artefacts_bucket" {
   source      = "../../modules/s3"
-  bucket_name = "${local.prefix}-${var.artefacts_bucket_name}"
+  bucket_name = local.artefacts_bucket
 }
 
 resource "aws_s3_bucket_policy" "artefacts_bucket_policy" {
   depends_on = [module.artefacts_bucket]
-  bucket     = "${local.prefix}-${var.artefacts_bucket_name}"
+  bucket     = local.artefacts_bucket
   policy     = data.aws_iam_policy_document.artefacts_bucket_policy.json
 }
 

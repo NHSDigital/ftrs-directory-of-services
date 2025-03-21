@@ -20,6 +20,7 @@ jobs:
   build-service:
     name: "Build service - ${{ inputs.service_name }}"
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     permissions:
       id-token: write
       contents: read
