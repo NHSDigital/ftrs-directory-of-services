@@ -26,7 +26,7 @@ jobs:
         echo "Workflow Status: ${{ github.event.workflow_run.conclusion }}"
         echo "GitHub Actor: ${{ github.actor }}"
         echo "Pull Request URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
-    - uses: martialonline/workflow-status@v3
+    - uses: martialonline/workflow-status@v4
       id: check
     - name: Echo result of pipeline if success
       if: ${{ steps.check.outputs.status == 'success' }}
