@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 from config import config  # Ensure Config is correctly imported
 
 # Load feature file
-scenarios("../features/test_api_google_search.feature")
+scenarios("../is_api_features/test_api_google_search.feature")
 
 @pytest.fixture(scope="session")
 def api_request_context():

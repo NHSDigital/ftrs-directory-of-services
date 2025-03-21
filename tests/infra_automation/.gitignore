@@ -1,5 +1,0 @@
-# Ignore Config for secrets
-config.yaml
-test_logs.log
-allure-results
-allure-reports
