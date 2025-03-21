@@ -58,7 +58,20 @@ jobs:
           PYTHON_VERSION: ${{ inputs.python_version }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
 
-      - name: "Publish artefacts"
+      - name: "Configure AWS Credentials"
+        uses: .github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          multi_domain: false
+
+      - name: "Publish artefacts to S3"
+        run: cd services/${{ inputs.service_name }} && make publish
+        env:
+          SERVICE: ${{ inputs.service_name }}
+          COMMIT_HASH: ${{ inputs.commit_hash }}
+
+      - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ inputs.service_name }}-artefacts

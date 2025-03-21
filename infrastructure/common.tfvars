@@ -6,3 +6,5 @@ data_type        = "PCD"
 project_type     = "Pilot"
 public_facing    = "no"
 service_category = "bronze"
+
+artefacts_bucket_name = "artefacts-bucket"

@@ -48,3 +48,8 @@ variable "service_category" {
   description = "Identifies the service category to prioritize responses"
   type        = string
 }
+
+variable "artefacts_bucket_name" {
+  description = "Artefacts S3 bucket name"
+  type        = string
+}
