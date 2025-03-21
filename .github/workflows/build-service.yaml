@@ -23,7 +23,7 @@ on:
         description: "The name of the Git repo"
         required: true
         type: string
-        
+
 jobs:
   build-service:
     name: "Build service - ${{ inputs.service_name }}"
