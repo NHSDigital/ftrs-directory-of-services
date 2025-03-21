@@ -2,6 +2,11 @@ variable "main_project" {
   description = "The name of the main project"
 }
 
+variable "application_tag" {
+  description = "The version or tag of the data mirgation application"
+  type        = string
+}
+
 variable "migration_pipeline_store_bucket_name" {
   description = "The name of the S3 bucket to use for the data migration pipeline"
 }
@@ -54,4 +59,8 @@ variable "data_migration_rds_min_capacity" {
 variable "data_migration_rds_max_capacity" {
   description = "The maximum capacity for the RDS instance"
   type        = number
+}
+
+variable "lambda_runtime" {
+  description = "The runtime environment for the Lambda function"
 }
