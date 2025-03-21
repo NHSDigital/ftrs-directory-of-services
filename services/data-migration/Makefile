@@ -4,6 +4,9 @@ BUILD_DIR := ../../build/services/${SERVICE}
 DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
 PLATFORM ?= manylinux2014_x86_64
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
+LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
+POETRY_VERSION := $(shell poetry version -s)
+WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl 
 
 .PHONY: install lint test build
 
@@ -32,6 +35,7 @@ unit-test:
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)
+	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip 
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
 build-dependency-layer: clean
