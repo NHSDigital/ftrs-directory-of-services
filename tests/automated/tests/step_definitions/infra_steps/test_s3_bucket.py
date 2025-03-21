@@ -2,14 +2,10 @@ import pytest
 import subprocess
 from pytest_bdd import scenarios, given, when, then, parsers
 from config import config
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from utilities.infra.s3_util import S3Utils
 
 # Load feature file
-scenarios("../features/test_s3_bucket.feature")
+scenarios("../infra_features/test_s3_bucket.feature")
 
 @pytest.fixture(scope="module")
 def aws_s3_client():
