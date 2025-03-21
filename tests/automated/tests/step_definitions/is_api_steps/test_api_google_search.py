@@ -8,13 +8,13 @@ from config import config  # Ensure Config is correctly imported
 # Load feature file
 scenarios("./is_api_features/test_api_google_search.feature")
 
-@pytest.fixture(scope="session")
-def api_request_context():
-    """Initialize Playwright APIRequestContext"""
-    with sync_playwright() as p:
-        request_context = p.request.new_context()
-        yield request_context
-        request_context.dispose()
+# @pytest.fixture(scope="session")
+# def api_request_context():
+#     """Initialize Playwright APIRequestContext"""
+#     with sync_playwright() as p:
+#         request_context = p.request.new_context()
+#         yield request_context
+#         request_context.dispose()
 
 @pytest.fixture
 def api_response():
