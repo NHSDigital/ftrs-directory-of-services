@@ -6,7 +6,7 @@ from loguru import logger
 from utilities.infra.s3_util import S3Utils
 
 # Load feature file
-scenarios("../infra_features/test_s3_bucket.feature")
+scenarios("./infra_features/test_s3_bucket.feature")
 
 @pytest.fixture(scope="module")
 def aws_s3_client():
