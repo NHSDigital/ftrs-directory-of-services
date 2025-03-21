@@ -19,7 +19,11 @@ on:
         description: "The deployment environment"
         required: true
         type: string
-
+      repo_name:
+        description: "The name of the Git repo"
+        required: true
+        type: string
+        
 jobs:
   build-service:
     name: "Build service - ${{ inputs.service_name }}"
@@ -65,6 +69,8 @@ jobs:
           SERVICE: ${{ inputs.service_name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
+          ENVIRNOMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
