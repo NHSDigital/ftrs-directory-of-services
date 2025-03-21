@@ -1,10 +1,12 @@
 import pytest
 import os
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Page, APIRequestContext
+from pages.search import UserTestLoginPage
+from pages.result import UserTestMfaHelpPage
 import pytest_html
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def playwright():
     """Start Playwright session."""
     with sync_playwright() as p:
@@ -16,6 +18,25 @@ def api_request_context(playwright):
     request_context = playwright.request.new_context()
     yield request_context
     request_context.dispose()
+
+
+@pytest.fixture(scope='session')
+def chromium():
+    with sync_playwright() as p:
+        chromium = p.chromium.launch()
+        yield chromium
+        chromium.close()
+
+
+@pytest.fixture
+def result_page(page: Page) -> UserTestMfaHelpPage:
+    return UserTestMfaHelpPage(page)
+
+
+@pytest.fixture
+def search_page(page: Page) -> UserTestLoginPage:
+    return UserTestLoginPage(page)
+
 
 @pytest.fixture
 def bucket_type():
