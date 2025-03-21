@@ -27,6 +27,25 @@ def api_request_context(playwright):
     yield request_context
     request_context.dispose()
 
+
+@pytest.fixture(scope='session')
+def chromium():
+    with sync_playwright() as p:
+        chromium = p.chromium.launch()
+        yield chromium
+        chromium.close()
+
+
+@pytest.fixture
+def result_page(page: Page) -> UserTestMfaHelpPage:
+    return UserTestMfaHelpPage(page)
+
+
+@pytest.fixture
+def search_page(page: Page) -> UserTestLoginPage:
+    return UserTestLoginPage(page)
+
+
 @pytest.fixture
 def api_response():
     """Fixture to store API response for logging in reports."""
