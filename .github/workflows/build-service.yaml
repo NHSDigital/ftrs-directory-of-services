@@ -57,10 +57,9 @@ jobs:
           SERVICE: ${{ inputs.service_name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
-# TODO restore after testing
-      # - name: "Publish artefacts"
-      #   uses: actions/upload-artifact@v4.6.1
-      #   with:
-      #     name: ${{ inputs.service_name }}-artefacts
-      #     path: build/services/${{ inputs.service_name }}/
-      #     if-no-files-found: error
+      - name: "Publish artefacts"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: ${{ inputs.service_name }}-artefacts
+          path: build/services/${{ inputs.service_name }}/
+          if-no-files-found: error
