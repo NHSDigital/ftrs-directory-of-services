@@ -57,6 +57,7 @@ jobs:
           SERVICE: ${{ inputs.service_name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
+          
       - name: "Publish artefacts"
         uses: actions/upload-artifact@v4.6.1
         with:
