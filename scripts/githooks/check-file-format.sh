@@ -47,7 +47,7 @@ function main() {
   # shellcheck disable=SC2154
   is-arg-true "${dry_run:-false}" && dry_run_opt="--dry-run"
 
-  check=${check:-working-tree-changes}
+  check=${check:-staged-changes}
   case $check in
     "all")
       filter="git ls-files"
