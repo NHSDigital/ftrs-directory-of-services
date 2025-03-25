@@ -1,6 +1,6 @@
 """
-This module contains DuckDuckGoResultPage,
-the page object for the DuckDuckGo result page.
+This module contains DirectoryofServices,
+the page object for the MFA FAQ page.
 """
 
 from playwright.sync_api import Page
