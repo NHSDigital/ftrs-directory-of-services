@@ -115,7 +115,7 @@ Project and Service-name should be set in the config file of the framework
 Set environment variables that are derived in the pipeline
 ```
 export WORKSPACE=dr-999  (where dr-999 is the branch name)
-export ENVIRONMENT=dev
+export ENV=dev
 ```
 
 ## Generating Reports
