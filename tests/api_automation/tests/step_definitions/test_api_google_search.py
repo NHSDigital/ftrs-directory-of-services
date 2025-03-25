@@ -85,13 +85,16 @@ def verify_response_and_search_results(api_response):
     assert api_response["response_status"] == 200, \
         f"Unexpected status code: {api_response['response_status']}"
     # Assert that 'title' matches the expected value
-    assert response_json.get("queries", {}).get("request", [{}])[0].get("title") == "Google Custom Search - Playwright", \
-        f"Expected 'title' to be 'Google Custom Search - Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('title')}"
+    with allure.step(f"title:"):
+        assert response_json.get("queries", {}).get("request", [{}])[0].get("title") == "Google Custom Search - Playwright", \
+            f"Expected 'title' to be 'Google Custom Search - Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('title')}"
 
     # Assert that 'searchTerms' matches the expected value
-    assert response_json.get("queries", {}).get("request", [{}])[0].get("searchTerms") == "Playwright", \
-        f"Expected 'searchTerms' to be 'Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('searchTerms')}"
+    with allure.step(f"searchTerms:"):
+        assert response_json.get("queries", {}).get("request", [{}])[0].get("searchTerms") == "Playwright", \
+            f"Expected 'searchTerms' to be 'Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('searchTerms')}"
 
     # Assert that 'count' matches the expected value
-    assert response_json.get("queries", {}).get("request", [{}])[0].get("count") == 10, \
-        f"Expected 'count' to be 10, but got {response_json.get('queries', {}).get('request', [{}])[0].get('count')}"
+    with allure.step(f"count:"):
+        assert response_json.get("queries", {}).get("request", [{}])[0].get("count") == 10, \
+            f"Expected 'count' to be 10, but got {response_json.get('queries', {}).get('request', [{}])[0].get('count')}"
