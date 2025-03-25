@@ -35,7 +35,7 @@ jobs:
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: ${{ needs.metadata.outputs.environment == 'main' && needs.metadata.outputs.environment || needs.metadata.outputs.workspace }}
       stacks: "['data_migration']"
     secrets: inherit
 
@@ -65,7 +65,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: ${{ needs.metadata.outputs.environment == 'main' && needs.metadata.outputs.environment || needs.metadata.outputs.workspace }}
       stacks: "['data_migration']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       action: plan
@@ -95,7 +95,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: ${{ needs.metadata.outputs.environment == 'main' && needs.metadata.outputs.environment || needs.metadata.outputs.workspace }}
       stacks: "['data_migration']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       action: apply
