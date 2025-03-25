@@ -91,14 +91,18 @@ venv\Scripts\activate      # On Windows
 
 ## Running Tests
 
-Run all tests using:
-```
-pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys
-```
 Run specific feature tests:
 
 ```
-pytest tests/step_definitions/test_s3_bucket.py --html=reports/report.html --self-contained-html
+pytest tests/step_definitions/test_s3_bucket.py -p allure_pytest_bdd --alluredir=allure-results
+```
+To run the tests and save the report results to a folder called allure-results
+```
+pytest -p allure_pytest_bdd --alluredir=allure-results
+```
+To generate a single page report in the folder allure-report
+```
+allure generate --single-file -c -o allure-reports allure-results
 ```
 
 ## Using the Variables Locally
@@ -120,11 +124,9 @@ export ENV=dev
 
 ## Generating Reports
 
-After execution, open the generated report:
-
+To generate a single page report in the folder allure-report
 ```
-open reports/report.html  # macOS/Linux
-start reports\report.html  # Windows
+allure generate --single-file -c -o allure-reports allure-results
 ```
 
 ## CI/CD Integration
@@ -132,13 +134,10 @@ start reports\report.html  # Windows
 To integrate with CI/CD pipelines, use:
 
 ```
-pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys;
-
-pytest --html=reports/report_$(date +%Y%m%d_%H%M%S).html --self-contained-html
+pytest -p allure_pytest_bdd --alluredir=allure-results
 ```
 
 This ensures unique report generation per run.
 
 ## Troubleshooting
 If HTML reports are blank, ensure you use --self-contained-html in pytest options.
-

@@ -1,6 +1,5 @@
 import pytest
 import json
-import allure
 from loguru import logger
 from pytest_bdd import given, when, then, scenarios
 from playwright.sync_api import sync_playwright
@@ -42,8 +41,7 @@ def prepare_google_search_request(api_response):
     api_response["base_url"] = base_url
     api_response["params"] = params
     api_response["request"] = json.dumps(params, indent=2)
-    with allure.step(f"api response: {api_response}"):
-        logger.info("api response", api_response)
+    logger.info("api response", api_response)
 
 @when("I receive the response")
 def make_google_search_request(api_request_context, api_response):
@@ -53,13 +51,11 @@ def make_google_search_request(api_request_context, api_response):
     base_url = api_response.get("base_url")
     params = api_response.get("params")
 
-    with allure.step(f"base url: {base_url}"):
-        logger.info("base url:", base_url)
+    logger.info("base url:", base_url)
 
     # Make the GET request (using Playwright's APIRequestContext)
     response = api_request_context.get(base_url, params=params)
-    with allure.step(f"respose: {response}"):
-        logger.info("response:", response)
+    logger.info("response:", response)
 
 
     # Store response status and body for logging
@@ -67,21 +63,16 @@ def make_google_search_request(api_request_context, api_response):
     try:
         response_json = response.json()
         api_response["response_body"] = json.dumps(response_json, indent=2)
-        with allure.step(f"respose: {api_response["response_body"]}"):
-            logger.info("response:", api_response["response_body"])
+        logger.info("response:", api_response["response_body"])
     except Exception as e:
         pytest.fail(f"Invalid JSON response: {e}")
-        with allure.step(f"Invalid JSON: {e}"):
-            logger.info("Invalid JSON:", e)
+        logger.info("Invalid JSON:", e)
         return
 
     # Print request & response in log
-    with allure.step(f"--- API Request ---: {json.dumps(params, indent=2)}"):
-            logger.info(f"--- API Request ---: {json.dumps(params, indent=2)}")
-    with allure.step(f"Status Code: {response.status}"):
-            logger.info(f"Status Code: {response.status}")
-    with allure.step(f"--- API Response ---: {json.dumps(response_json, indent=2)}"):
-            logger.info(f"--- API Response ---: {json.dumps(response_json, indent=2)}")
+    logger.info(f"--- API Request ---: {json.dumps(params, indent=2)}")
+    logger.info(f"Status Code: {response.status}")
+    logger.info(f"--- API Response ---: {json.dumps(response_json, indent=2)}")
 
     # Store the response for validation in the @then step
     api_response["response_json"] = response_json
@@ -91,20 +82,16 @@ def verify_response_and_search_results(api_response):
     """Verify the response status and search results contain 'Playwright'"""
     response_json = api_response.get("response_json", {})
     # Ensure response is valid
-    with allure.step(f"Status Code:"):
-        assert api_response["response_status"] == 200, \
-            f"Unexpected status code: {api_response['response_status']}"
+    assert api_response["response_status"] == 200, \
+        f"Unexpected status code: {api_response['response_status']}"
     # Assert that 'title' matches the expected value
-    with allure.step(f"title:"):
-        assert response_json.get("queries", {}).get("request", [{}])[0].get("title") == "Google Custom Search - Playwright", \
-            f"Expected 'title' to be 'Google Custom Search - Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('title')}"
+    assert response_json.get("queries", {}).get("request", [{}])[0].get("title") == "Google Custom Search - Playwright", \
+        f"Expected 'title' to be 'Google Custom Search - Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('title')}"
 
     # Assert that 'searchTerms' matches the expected value
-    with allure.step(f"searchTerms:"):
-        assert response_json.get("queries", {}).get("request", [{}])[0].get("searchTerms") == "Playwright", \
-            f"Expected 'searchTerms' to be 'Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('searchTerms')}"
+    assert response_json.get("queries", {}).get("request", [{}])[0].get("searchTerms") == "Playwright", \
+        f"Expected 'searchTerms' to be 'Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('searchTerms')}"
 
     # Assert that 'count' matches the expected value
-    with allure.step(f"count:"):
-        assert response_json.get("queries", {}).get("request", [{}])[0].get("count") == 10, \
-            f"Expected 'count' to be 10, but got {response_json.get('queries', {}).get('request', [{}])[0].get('count')}"
+    assert response_json.get("queries", {}).get("request", [{}])[0].get("count") == 10, \
+        f"Expected 'count' to be 10, but got {response_json.get('queries', {}).get('request', [{}])[0].get('count')}"
