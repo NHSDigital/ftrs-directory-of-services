@@ -35,7 +35,7 @@ jobs:
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
       stacks: "['data_migration']"
     secrets: inherit
 
@@ -49,6 +49,9 @@ jobs:
       service_name: "data-migration"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+    secrets: inherit
 
   deploy-infrastructure-plan:
     name: "Plan application infrastructure deployment"
@@ -62,9 +65,9 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
       stacks: "['data_migration']"
-      application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
       action: plan
     secrets: inherit
 
@@ -92,9 +95,9 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
       stacks: "['data_migration']"
-      application_tag: ${{ inputs.application_tag || needs.metadata.outputs.commit_hash }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
       action: apply
       workflow_timeout: 30
     secrets: inherit

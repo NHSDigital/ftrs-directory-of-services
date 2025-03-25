@@ -64,3 +64,23 @@ variable "data_migration_rds_max_capacity" {
 variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
+
+variable "extract_name" {
+  description = "The extract name of the Lambda function"
+}
+
+variable "extract_lambda_connection_timeout" {
+  description = "The timeout for the extract Lambda function"
+  type        = number
+}
+
+variable "extract_lambda_memory_size" {
+  description = "The memory size for the extract Lambda function"
+  type        = number
+}
+
+variable "extract_lambda_handler" {
+  description = "The handler for the extract Lambda function"
+  type        = string
+}
+

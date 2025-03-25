@@ -29,6 +29,14 @@ ruff check --fix  # Runs linting with fix mode enabled
 ruff format       # Runs the python code formatter
 ```
 
+### Building the Lambda Package and Dependency Layers
+
+To package the Lambda function package and create the dependency layers, run:
+
+```bash
+make build
+```
+
 ### Running Tests
 
 Unit tests are run using Pytest. You can use the make target to conveniently run these tests, or run them directly using pytest.

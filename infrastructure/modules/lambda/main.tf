@@ -14,7 +14,20 @@ module "lambda" {
   description             = var.description
   policy_jsons            = var.policy_jsons
   timeout                 = var.timeout
+  memory_size             = var.memory_size
+
+  vpc_subnet_ids         = var.subnet_ids
+  vpc_security_group_ids = var.security_group_ids
 
   environment_variables = merge(var.environment_variables, { WORKSPACE = "${local.environment_workspace}" })
-  layers                = concat(local.common_layers, var.layers)
+  layers                = var.layers
+
+  depends_on = [
+    aws_cloudwatch_log_group.lambda_log_group
+  ]
+}
+
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = var.log_retention
 }
