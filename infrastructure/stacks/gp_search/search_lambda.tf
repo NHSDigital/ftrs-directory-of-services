@@ -8,7 +8,7 @@ module "lambda" {
   source_path            = "./lambda/functions/search_function.py"
   function_name          = "${var.project}-${var.gp_search_lambda_name}-${var.environment}"
   description            = "GP search Lambda"
-  handler                = "index.lambda_handler"
+  handler                = "search_function.lambda_handler"
   attach_policy_jsons    = false
   local_existing_package = "./lambda/functions_zip/search_function.zip"
   attach_tracing_policy  = true
