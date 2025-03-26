@@ -51,6 +51,9 @@ variable "ignore_source_code_hash" {
 variable "attach_tracing_policy" {
   default = false
 }
+variable "tracing_mode" {
+  default = null
+}
 variable "attach_policy_jsons" {
   description = "Whether to attach the provided JSON policies to the Lambda role"
   default     = true

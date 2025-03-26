@@ -12,5 +12,6 @@ module "lambda" {
   attach_policy_jsons    = false
   local_existing_package = "./lambda/functions_zip/search_function.zip"
   attach_tracing_policy  = true
+  tracing_mode           = "Active"
   policy_jsons           = []
 }
