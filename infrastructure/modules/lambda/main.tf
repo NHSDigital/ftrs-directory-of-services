@@ -27,13 +27,4 @@ module "lambda" {
 
   environment_variables = merge(var.environment_variables, { WORKSPACE = "${local.environment_workspace}" })
   layers                = var.layers
-
-  depends_on = [
-    aws_cloudwatch_log_group.lambda_log_group
-  ]
-}
-
-resource "aws_cloudwatch_log_group" "lambda_log_group" {
-  name              = "/aws/lambda/${var.function_name}-${local.workspace_suffix}"
-  retention_in_days = var.log_retention
 }
