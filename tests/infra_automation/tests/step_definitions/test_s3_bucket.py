@@ -4,9 +4,9 @@ from pytest_bdd import scenarios, given, when, then, parsers
 from config import config
 from loguru import logger
 import sys
-import os
+from pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+sys.path.append(str(Path(__file__).resolve().parents[3]))
 from utilities.infra.s3_util import S3Utils
 
 # Load feature file
