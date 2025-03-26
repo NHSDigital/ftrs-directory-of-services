@@ -31,7 +31,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambda" {
 }
 
 resource "aws_security_group" "extract_lambda_security_group" {
-  name        = "${local.prefix}-${var.extract_name}${local.workspace_suffix}-sg"
+  name        = "${local.prefix}-${var.extract_name}-${local.workspace_suffix}-sg"
   description = "Security group for extract lambda"
 
   vpc_id = data.aws_vpc.vpc.id

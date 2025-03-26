@@ -55,7 +55,7 @@ build-dependency-layer: clean
 	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip * --exclude "*__pycache__/*"
 
 publish:
-	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(LAMBDA_NAME)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(LAMBDA_NAME)/$(LAMBDA_NAME)-latest.zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(DEPENDENCY_LAYER_NAME)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(DEPENDENCY_LAYER_NAME)/$(DEPENDENCY_LAYER_NAME)-latest.zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(LAMBDA_NAME)-latest.zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(DEPENDENCY_LAYER_NAME)-latest.zip --region $(AWS_REGION)

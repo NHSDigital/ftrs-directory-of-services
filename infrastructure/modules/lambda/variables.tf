@@ -88,3 +88,11 @@ variable "subnet_ids" {
 variable "security_group_ids" {
   description = "List of security group IDs for the Lambda function VPC configuration"
 }
+
+variable "s3_bucket_name" {
+  description = "Name of the S3 bucket where the Lambda package is stored"
+}
+
+variable "s3_key" {
+  description = "S3 key (path) to the Lambda package inside the S3 bucket"
+}

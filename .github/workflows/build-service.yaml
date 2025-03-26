@@ -23,6 +23,10 @@ on:
         description: "The name of the Git repo"
         required: true
         type: string
+      workspace:
+          description: "The name of the workspace to deploy the infrastructure into"
+          required: true
+          type: string
 
 jobs:
   build-service:
@@ -86,6 +90,7 @@ jobs:
           COMMIT_HASH: ${{ inputs.commit_hash }}
           ENVIRNOMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
+          WORKSPACE: ${{ inputs.workspace }}
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v4.6.1

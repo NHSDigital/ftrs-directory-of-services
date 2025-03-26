@@ -1,25 +1,26 @@
 resource "aws_lambda_layer_version" "python_dependency_layer" {
-  layer_name          = "${local.prefix}-python-dependency-layer${local.workspace_suffix}"
+  layer_name          = "${local.prefix}-python-dependency-layer-${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket        = local.artefacts_bucket
-  s3_key           = "${var.project}-python-dependency-layer/${var.project}-python-dependency-layer-${var.application_tag}.zip"
+  s3_key           = "${local.workspace_suffix}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
   source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
 }
 
 data "aws_s3_object" "python_dependency_layer" {
   bucket = local.artefacts_bucket
-  key    = "${var.project}-python-dependency-layer/${var.project}-python-dependency-layer-${var.application_tag}.zip"
+  key    = "${local.workspace_suffix}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "extract_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.prefix}-${var.extract_name}${local.workspace_suffix}"
+  function_name           = "${local.prefix}-${var.extract_name}"
   description             = "Lambda to extract data for the DoS mirgration"
   handler                 = var.extract_lambda_handler
   runtime                 = var.lambda_runtime
-  local_existing_package  = "${path.module}/${var.project}-lambda-${var.application_tag}.zip"
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${local.workspace_suffix}/${var.project}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.extract_lambda_connection_timeout
   memory_size             = var.extract_lambda_memory_size
@@ -41,7 +42,8 @@ data "aws_iam_policy_document" "s3_access_policy" {
       "s3:PutObject"
     ]
     resources = [
-      "*"
+      "${module.migration_store_bucket.s3_bucket_arn}/",
+      "${module.migration_store_bucket.s3_bucket_arn}/*",
     ]
   }
 }
