@@ -37,8 +37,7 @@ unit-test:
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip
-	cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip $(BUILD_DIR)/$(LAMBDA_NAME)-latest.zip
+	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
 build-dependency-layer: clean
@@ -52,10 +51,8 @@ build-dependency-layer: clean
 	--no-deps \
 	--upgrade \
 	-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip * --exclude "*__pycache__/*"
+	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
 
 publish:
-	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(LAMBDA_NAME)-latest.zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(DEPENDENCY_LAYER_NAME)-latest.zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)

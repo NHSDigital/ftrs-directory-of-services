@@ -27,6 +27,10 @@ on:
           description: "The name of the workspace to deploy the infrastructure into"
           required: true
           type: string
+      application_tag:
+          description: "The application tag identifying the timeline in the repository to deploy from"
+          required: false
+          type: string
 
 jobs:
   build-service:
@@ -72,7 +76,7 @@ jobs:
         env:
           SERVICE: ${{ inputs.service_name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
+          APPLICATION_TAG: ${{ inputs.application_tag }}
           ENVIRNOMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
 
@@ -91,6 +95,7 @@ jobs:
           ENVIRNOMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
+          APPLICATION_TAG: ${{ inputs.application_tag }}
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v4.6.1

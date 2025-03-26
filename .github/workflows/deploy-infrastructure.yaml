@@ -49,6 +49,10 @@ on:
         required: false
         default: 5
         type: number
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -111,6 +115,7 @@ jobs:
           action: ${{ inputs.action }}
           project: ${{ inputs.project }}
           application_tag: ${{ inputs.application_tag }}
+          commit_hash: ${{ inputs.commit_hash }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v4
