@@ -82,3 +82,6 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
 
     assert exc.value.code == expected_exit_code
     assert load_mock.called is False
+
+
+# TODO: Add more tests for the load module
