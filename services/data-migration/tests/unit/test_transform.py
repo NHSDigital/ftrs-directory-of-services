@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -74,7 +75,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
 
 
 @pytest.mark.parametrize(
-    "input_data, expected_output",
+    "input_data, expected_output, expected_log_message",
     [
         (
             # Input data
@@ -141,6 +142,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                     ],
                 }
             ),
+            None,
         ),
         (
             # Input data with multiple endpoints and varied compression settings
@@ -236,6 +238,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                     ],
                 },
             ),
+            None,
         ),
         (
             # Input data with transport == telno
@@ -302,11 +305,55 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                     ],
                 }
             ),
+            None,
+        ),
+        (
+            # Input data where endpoints is none
+            pd.DataFrame(
+                {
+                    "odscode": ["A123"],
+                    "name": ["Test Org"],
+                    "type": ["GP Practice"],
+                    "endpoints": None,
+                }
+            ),
+            # Expected output
+            pd.DataFrame(
+                {
+                    "organisation": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "identifier_ODS_ODSCode": "A123",
+                            "active": True,
+                            "name": "Test Org",
+                            "telecom": None,
+                            "type": "GP Practice",
+                            "createdBy": "ROBOT",
+                            "createdDateTime": datetime(2025, 3, 27, 12, 0),
+                            "modifiedBy": "ROBOT",
+                            "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
+                        }
+                    ],
+                    "endpoints": None,
+                }
+            ),
+            "No endpoints found for the organisation",
+        ),
+        (
+            # Input data where dataframe is empty
+            pd.DataFrame(None),
+            # Expected output
+            pd.DataFrame([]),
+            "No data found",
         ),
     ],
 )
 def test_transform(
-    mocker: MockerFixture, input_data: pd.DataFrame, expected_output: pd.DataFrame
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+    input_data: pd.DataFrame,
+    expected_output: pd.DataFrame,
+    expected_log_message: str,
 ) -> None:
     """
     Test the transform function to ensure input data is transformed correctly.
@@ -316,6 +363,9 @@ def test_transform(
     output_path = Path("mock_output_path")
 
     mocker.patch("pandas.read_parquet", return_value=input_data)
+
+    logger = logging.getLogger("pipeline.transform")
+    mocker.patch("pipeline.transform.logging", logger)
 
     captured_df = None
 
@@ -333,7 +383,15 @@ def test_transform(
         **{"now.return_value.strftime.return_value": datetime(2025, 3, 27, 12, 0)},
     )
 
-    transform(input_path, output_path)
+    # Run the transform function
+    with caplog.at_level(logging.ERROR):
+        transform(input_path, output_path)
 
     assert captured_df is not None, "The DataFrame was not captured."
     pd.testing.assert_frame_equal(captured_df, expected_output)
+
+    # Check the log message if expected_log_message is provided
+    if expected_log_message:
+        assert any(
+            expected_log_message in record.message for record in caplog.records
+        ), f"Expected log message '{expected_log_message}' not found in logs."
