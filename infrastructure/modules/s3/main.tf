@@ -2,7 +2,7 @@ module "s3" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "3.13.0"
 
-  bucket         = "${var.bucket_name}-${local.workspace_suffix}"
+  bucket         = "${var.bucket_name}${local.workspace_suffix}"
   attach_policy  = var.attach_policy
   policy         = var.policy
   lifecycle_rule = var.lifecycle_rule_inputs
