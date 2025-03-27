@@ -101,13 +101,13 @@ def transform(input_path: Path, output_path: Path) -> None:
     logging.info(f"Transforming data from {input_path} to {output_path}")
 
     current_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    df = pd.read_parquet(input_path)
+    extract_dataframe = pd.read_parquet(input_path)
 
-    gp_practices = create_GP_practices_dict(df, current_timestamp)
+    gp_practices = create_GP_practices_dict(extract_dataframe, current_timestamp)
     gp_practices = convert_UUID_to_string(gp_practices)
-    gp_df = pd.DataFrame(gp_practices)
+    transform_gp_dataframe = pd.DataFrame(gp_practices)
 
-    gp_df.to_parquet(
+    transform_gp_dataframe.to_parquet(
         output_path / f"dos-gp-practice-transform-{current_timestamp}.parquet",
         engine="pyarrow",
         index=False,
