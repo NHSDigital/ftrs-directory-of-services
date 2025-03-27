@@ -160,9 +160,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                                 "endpointorder": 2,
                                 "iscompressionenabled": "compressed",
                                 "format": "XML",
-                            }
-                        ],
-                        [
+                            },
                             {
                                 "endpointid": "3",
                                 "transport": "fax",
@@ -172,7 +170,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                                 "endpointorder": 3,
                                 "iscompressionenabled": "uncompressed",
                                 "format": "TXT",
-                            }
+                            },
                         ],
                     ],
                 }
