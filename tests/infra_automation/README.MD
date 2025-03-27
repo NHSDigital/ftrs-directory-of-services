@@ -94,11 +94,12 @@ venv\Scripts\activate      # On Windows
 Run specific feature tests:
 
 ```
-pytest tests/step_definitions/test_s3_bucket.py -p allure_pytest_bdd --alluredir=allure-results
+pytest tests/step_definitions/test_s3_bucket.py
 ```
 To run the tests and save the report results to a folder called allure-results
 ```
-pytest -p allure_pytest_bdd --alluredir=allure-results
+pytest
+allure generate --single-file -c -o allure-reports allure-results
 ```
 To generate a single page report in the folder allure-report
 ```
@@ -120,6 +121,10 @@ Set environment variables that are derived in the pipeline
 ```
 export WORKSPACE=dr-999  (where dr-999 is the branch name)
 export ENV=dev
+```
+set PYTHONPATH to run test from tests folder from infra project and access utilities
+```
+export PYTHONPATH=$(pwd)../../../
 ```
 
 ## Generating Reports

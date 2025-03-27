@@ -65,11 +65,11 @@ venv\Scripts\activate      # On Windows
 ## Running Tests
 
 ```
-pytest tests/step_definitions/test_s3_bucket.py -p allure_pytest_bdd --alluredir=allure-results
+pytest
 ```
 To run the tests and save the report results to a folder called allure-results
 ```
-pytest -p allure_pytest_bdd --alluredir=allure-results
+allure generate --single-file -c -o allure-reports allure-results
 ```
 
 ## Generating Reports

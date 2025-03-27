@@ -1,6 +1,5 @@
 import pytest
 import os
-import allure
 from loguru import logger
 from playwright.sync_api import sync_playwright
 import pytest_html
