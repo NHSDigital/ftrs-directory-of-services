@@ -17,9 +17,9 @@ on:
         default: "dos"
         type: string
       domain:
-          description: "Name of the domain"
-          required: true
-          type: string
+        description: "Name of the domain"
+        required: true
+        type: string
       stacks:
         description: "Name of the stacks"
         required: true
@@ -33,19 +33,25 @@ on:
         required: false
         default: 10
         type: number
+      application_tag:
+        description: "The application tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
 
 jobs:
   destroy-application-infrastructure:
-        uses: ./.github/workflows/deploy-infrastructure.yaml
-        with:
-          environment: ${{ inputs.environment }}
-          workspace: ${{ inputs.workspace }}
-          project: ${{ inputs.project }}
-          stacks: ${{ inputs.stacks }}
-          tag: ${{ inputs.tag }}
-          workflow_timeout: ${{ inputs.workflow_timeout }}
-          action: destroy
-        secrets: inherit
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: ${{ inputs.workspace }}
+      project: ${{ inputs.project }}
+      stacks: ${{ inputs.stacks }}
+      tag: ${{ inputs.tag }}
+      workflow_timeout: ${{ inputs.workflow_timeout }}
+      application_tag: ${{ inputs.application_tag }}
+      commit_hash: ${{ inputs.commit_hash }}
+      action: destroy
+    secrets: inherit
 
   delete-tf-state:
     name: "Delete terraform state file"
@@ -104,4 +110,3 @@ jobs:
         with:
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
-
