@@ -4,46 +4,46 @@ on:
   workflow_call:
     inputs:
       environment:
-          description: "The name of the environment to deploy the infrastructure into"
-          required: true
-          type: string
+        description: "The name of the environment to deploy the infrastructure into"
+        required: true
+        type: string
       workspace:
-          description: "The name of the workspace to deploy the infrastructure into"
-          required: true
-          type: string
+        description: "The name of the workspace to deploy the infrastructure into"
+        required: true
+        type: string
       project:
         description: "The project - eg dos or cm."
         required: false
         default: "dos"
         type: string
       domain:
-          description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
-          required: false
-          default: ""
-          type: string
+        description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
+        required: false
+        default: ""
+        type: string
       multi_domain:
         description: "If true uses 'dos-management' github runner ; if false uses github runner for triggering repo"
         required: false
         default: 'false'
         type: string
       stacks:
-          description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
-          required: false
-          default: ""
-          type: string
+        description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
+        required: false
+        default: ""
+        type: string
       action:
         description: "The type of action to perform with the stack."
         required: false
         default: "plan"
         type: string
       tag:
-          description: "The git tag identifying the timeline in the repository to deploy from"
-          required: false
-          type: string
+        description: "The git tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
       application_tag:
-          description: "The application tag identifying the timeline in the repository to deploy from"
-          required: false
-          type: string
+        description: "The application tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
       workflow_timeout:
         description: "Timeout duration in minutes"
         required: false
@@ -51,7 +51,7 @@ on:
         type: number
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: true
+        required: false
         type: string
     outputs:
       plan_result:
