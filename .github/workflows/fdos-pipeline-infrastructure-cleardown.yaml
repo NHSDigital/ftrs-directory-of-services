@@ -13,7 +13,7 @@ on:
 
 jobs:
   metadata:
-    if: ( ${{ github.event.ref_type == 'branch' && github.actor != 'github-merge-queue[bot]' }} )
+    if: github.actor != 'github-merge-queue[bot]'
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
