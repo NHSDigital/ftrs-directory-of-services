@@ -7,12 +7,24 @@ This is an Infra Test Automation Framework using pytest-bdd and Playwright for v
 ## Project Structure
 
 ```
-├── infra_automation/
+├── service_automation/
     ├── tests
     │   ├── features
-    │   │   └── test_s3_bucket.feature
+    |   |   ├── is_api_features
+    │   |   |    └── test_api.feature
+    |   |   ├── is_infra_features
+    │   |   |    └── test_s3_bucket.feature
+    │   ├── pages
+    |   |   ├── ui_pages
+    │   |   |     └── search.py
     │   ├── step_definitions
-    │   │   └── test_s3_bucket.py
+    |   |   ├── is_api_steps
+    │   │   |     └──test_api.py
+    |   |   ├── is_infra_steps
+    │   │   |     └── test_s3_bucket.py
+        |   ├── ui_steps
+    │   │   |     └── test_ui_search.py
+    │   ├── utilities
     │   ├── config.py
     │   ├── conftest.py
     │   └── report.html
@@ -78,11 +90,20 @@ Windows: C:\Users\USERNAME\.aws\credentials and C:\Users\USERNAME\.aws\config
 
 change aws config file with values listed in Service Teams - Set up SSO for AWS confluence page. Also use Dos developer profile from your aws console for your CLI connection.
 
-### Configuration
+### Infra Test Configuration
 
 Make a copy of config_template.yaml and name it config.yaml, and update it with API details as explained below:
 ```
 project: "aws project name"
+```
+
+### API Test Configuration
+
+Make a copy of config-template.yaml and name it config.yaml, and update it with API details as explained below:
+```
+base_url: "https://www.googleapis.com/customsearch/v1"
+api_key: "YOUR_GOOGLE_API_KEY"
+search_engine_id: "YOUR_SEARCH_ENGINE_ID"
 ```
 
 ## Create a virtual environment & activate it (optional)
@@ -95,12 +116,16 @@ venv\Scripts\activate      # On Windows
 
 ## Running Tests
 
+To run the tests and save the report results to a folder called allure-results
+```
+pytest
+allure generate --single-file -c -o allure-reports allure-results
+```
 Run specific feature tests:
-
 ```
 pytest tests/step_definitions/test_s3_bucket.py
 ```
-To run the tests and save the report results to a folder called allure-results
+Run specific tagged tests, for example @is-api:
 ```
 pytest
 ```

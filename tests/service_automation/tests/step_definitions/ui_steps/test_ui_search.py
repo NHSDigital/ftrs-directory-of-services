@@ -2,8 +2,8 @@
 These tests cover DuckDuckGo searches.
 """
 import pytest
-from pages.result import UserTestMfaHelpPage
-from pages.search import UserTestLoginPage
+from pages.ui_pages.result import UserTestMfaHelpPage
+from pages.ui_pages.search import UserTestLoginPage
 from playwright.sync_api import sync_playwright, expect, Page
 
 @pytest.fixture(scope="session")
