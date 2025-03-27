@@ -3,7 +3,11 @@ PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
 DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
 PLATFORM ?= manylinux2014_x86_64
+S3_BUCKET := ${REPO_NAME}-$(ENVIRNOMENT)-artefacts-bucket
+POETRY_VERSION := $(shell poetry version -s)
+WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
+LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
 .PHONY: install lint test build
 
@@ -32,6 +36,8 @@ unit-test:
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)
+	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
+	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
 build-dependency-layer: clean
@@ -45,4 +51,8 @@ build-dependency-layer: clean
 	--no-deps \
 	--upgrade \
 	-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(COMMIT_HASH).zip * --exclude "*__pycache__/*"
+	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
+
+publish:
+	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)

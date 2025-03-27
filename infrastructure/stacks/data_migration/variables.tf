@@ -7,6 +7,11 @@ variable "application_tag" {
   type        = string
 }
 
+variable "commit_hash" {
+  description = "The commit hash of the data mirgation application"
+  type        = string
+}
+
 variable "migration_pipeline_store_bucket_name" {
   description = "The name of the S3 bucket to use for the data migration pipeline"
 }
@@ -64,3 +69,23 @@ variable "data_migration_rds_max_capacity" {
 variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
+
+variable "extract_name" {
+  description = "The extract name of the Lambda function"
+}
+
+variable "extract_lambda_connection_timeout" {
+  description = "The timeout for the extract Lambda function"
+  type        = number
+}
+
+variable "extract_lambda_memory_size" {
+  description = "The memory size for the extract Lambda function"
+  type        = number
+}
+
+variable "extract_lambda_handler" {
+  description = "The handler for the extract Lambda function"
+  type        = string
+}
+

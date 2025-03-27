@@ -12,14 +12,34 @@ on:
         required: true
         type: string
       commit_hash:
-        description: "Commit hash, set by the CI/CD pipeline workflow"
+        description: "The commit hash, set by the CI/CD pipeline workflow"
         required: true
         type: string
+      environment:
+        description: "The deployment environment"
+        required: true
+        type: string
+      repo_name:
+        description: "The name of the Git repo"
+        required: true
+        type: string
+      workspace:
+          description: "The name of the workspace to deploy the infrastructure into"
+          required: true
+          type: string
+      application_tag:
+          description: "The application tag identifying the timeline in the repository to deploy from"
+          required: false
+          type: string
 
 jobs:
   build-service:
     name: "Build service - ${{ inputs.service_name }}"
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -56,9 +76,28 @@ jobs:
         env:
           SERVICE: ${{ inputs.service_name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
+          APPLICATION_TAG: ${{ inputs.application_tag }}
+          ENVIRNOMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
 
-      - name: "Publish artefacts"
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          multi_domain: false
+
+      - name: "Publish artefacts to S3"
+        run: cd services/${{ inputs.service_name }} && make publish
+        env:
+          SERVICE: ${{ inputs.service_name }}
+          COMMIT_HASH: ${{ inputs.commit_hash }}
+          ENVIRNOMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
+          WORKSPACE: ${{ inputs.workspace }}
+          APPLICATION_TAG: ${{ inputs.application_tag }}
+
+      - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ inputs.service_name }}-artefacts

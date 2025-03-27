@@ -21,6 +21,9 @@ inputs:
     application_tag:
         description: "The application tag for deployment"
         required: false
+    commit_hash:
+      description: "The commit hash, set by the CI/CD pipeline workflow"
+      required: true
 outputs:
     plan_result:
         description: "The Terraform plan output"
@@ -50,4 +53,5 @@ runs:
           export WORKSPACE=${{ inputs.workspace }}
           export PROJECT=${{ inputs.project }}
           export APPLICATION_TAG=${{ inputs.application_tag }}
+          export COMMIT_HASH=${{ inputs.commit_hash }}
           /bin/bash ./scripts/workflow/action-infra-stack.sh
