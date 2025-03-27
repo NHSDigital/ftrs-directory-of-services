@@ -37,7 +37,7 @@ def confirm_s3_bucket_exists(bucket_type, aws_s3_client, workspace, env):
     else:
         bucket_name = project + "-" + bucket + "-" + env + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
-    logger.info("Bucket Exits: {}", response)
+    logger.info("Bucket Exists: {}", response)
     assert response == True
 
 @when("I fetch the list of S3 buckets")
@@ -52,7 +52,7 @@ def validate_bucket_names(fetch_s3_buckets):
     logger.info("Available Buckets: {}", bucket_names)
     assert bucket_names, "No buckets found!"
     for bucket in bucket_names:
-        logger.info("Valid Bucket Names: {}", bucket_names)
+        logger.info("Valid Bucket Names: {}", bucket)
         assert 3 <= len(bucket) <= 63, f"Invalid length for bucket {bucket}"
         assert bucket.islower(), f"Bucket {bucket} must be lowercase"
         assert bucket[0].isalnum() and bucket[-1].isalnum(), f"Bucket {bucket} must start & end with letter/number"
