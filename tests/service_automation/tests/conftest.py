@@ -7,7 +7,8 @@ from pages.ui_pages.result import UserTestMfaHelpPage
 
 
 # Configure Loguru to log into a file and console
-logger.add("test_logs.log", rotation="1 day", level="INFO", backtrace=True, diagnose=True)
+logger.add("test_logs.log", rotation="1 day", level="INFO", backtrace=True, diagnose=True, mode="w")
+logger.remove(0)
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_logging():

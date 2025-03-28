@@ -36,7 +36,7 @@ pip install -r "$APPLICATION_TEST_DIR"/requirements.txt
 
 echo "Now running $TEST_TAG automated tests under $APPLICATION_TEST_DIR for workspace $WORKSPACE and environment $ENVIRONMENT"
 cd "$APPLICATION_TEST_DIR" || exit
-pytest -m "$TEST_TAG"
+pytest -s -m "$TEST_TAG"
 
 TEST_RESULTS=$?
 
@@ -45,9 +45,9 @@ allure generate --single-file -c -o  allure-reports;
 
 
 if [ $TEST_RESULTS -ne 0 ] ; then
-  echo "domain Tests have failed"
+  echo "service automation tests have failed"
   exit $TEST_RESULTS
 else
-  echo "domain Tests have passed"
+  echo "service automation tests have passed"
   exit 0
 fi
