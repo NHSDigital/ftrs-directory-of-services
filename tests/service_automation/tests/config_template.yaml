@@ -2,21 +2,18 @@ environment: "dev"
 
 environments:
   dev:
-    bucket_type:
     project:
     base_url:
     api_key:
     search_engine_id:
 
   nonprod:
-    bucket_type:
     project:
     base_url:
     api_key:
     search_engine_id:
 
   prod:
-    bucket_type:
     project:
     base_url:
     api_key:
