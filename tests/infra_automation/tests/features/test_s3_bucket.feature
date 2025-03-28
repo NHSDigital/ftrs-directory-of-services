@@ -8,4 +8,4 @@ Feature: S3 Bucket Name Validation
 
   Scenario: Check that specific bucket exists
     Given I am authenticated with AWS CLI
-    Then The S3 bucket "gp-search-bucket" exists
+    Then The S3 bucket "gp-search-s3" exists
