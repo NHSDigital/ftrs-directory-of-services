@@ -150,11 +150,6 @@ Set environment variables that are derived in the pipeline
 export WORKSPACE=dr-999  (where dr-999 is the branch name)
 export ENV=dev
 ```
-set PYTHONPATH to run test from tests folder from infra project and access utilities
-```
-cd <repo>/tests/infra_automation/tests
-export PYTHONPATH=$(pwd)/../../
-```
 
 ## Generating Reports
 
