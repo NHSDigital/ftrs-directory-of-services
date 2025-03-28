@@ -77,7 +77,6 @@ change aws config file with values listed in Service Teams - Set up SSO for AWS 
 
 Make a copy of config_template.yaml and name it config.yaml, and update it with API details as explained below:
 ```
-bucket_type: "Bucket Name which need to locate"
 project: "aws project name"
 ```
 
