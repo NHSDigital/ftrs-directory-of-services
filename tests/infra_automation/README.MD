@@ -103,7 +103,6 @@ pytest tests/step_definitions/test_s3_bucket.py
 To run the tests and save the report results to a folder called allure-results
 ```
 pytest
-allure generate --single-file -c -o allure-reports allure-results
 ```
 To generate a single page report in the folder allure-report
 ```
