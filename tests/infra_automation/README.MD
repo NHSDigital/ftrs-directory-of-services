@@ -51,7 +51,7 @@ brew install awscli  # macOS
 sudo apt install awscli  # Linux
 ```
 
-instaal allure to generate report
+install allure to generate report
 ```
 brew install allure
 ```

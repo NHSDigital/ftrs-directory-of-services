@@ -45,7 +45,7 @@ Install Playwright browsers (required for API testing via Playwright)
 playwright install
 ```
 
-instaal allure to generate report
+install allure to generate report
 ```
 brew install allure
 ```
