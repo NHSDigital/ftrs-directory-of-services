@@ -51,6 +51,11 @@ brew install awscli  # macOS
 sudo apt install awscli  # Linux
 ```
 
+instaal allure to generate report
+```
+brew install allure
+```
+
 ### aws Configuration
 Make sure your AWS CLI is configured and authenticated:
 ```

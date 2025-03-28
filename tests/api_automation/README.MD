@@ -45,6 +45,12 @@ Install Playwright browsers (required for API testing via Playwright)
 playwright install
 ```
 
+instaal allure to generate report
+```
+brew install allure
+```
+
+
 ### Configuration
 
 Make a copy of config-template.yaml and name it config.yaml, and update it with API details as explained below:
