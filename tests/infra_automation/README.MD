@@ -51,6 +51,11 @@ brew install awscli  # macOS
 sudo apt install awscli  # Linux
 ```
 
+install allure to generate report
+```
+brew install allure
+```
+
 ### aws Configuration
 Make sure your AWS CLI is configured and authenticated:
 ```
@@ -77,7 +82,6 @@ change aws config file with values listed in Service Teams - Set up SSO for AWS 
 
 Make a copy of config_template.yaml and name it config.yaml, and update it with API details as explained below:
 ```
-bucket_type: "Bucket Name which need to locate"
 project: "aws project name"
 ```
 
@@ -91,14 +95,18 @@ venv\Scripts\activate      # On Windows
 
 ## Running Tests
 
-Run all tests using:
-```
-pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys
-```
 Run specific feature tests:
 
 ```
-pytest tests/step_definitions/test_s3_bucket.py --html=reports/report.html --self-contained-html
+pytest tests/step_definitions/test_s3_bucket.py
+```
+To run the tests and save the report results to a folder called allure-results
+```
+pytest
+```
+To generate a single page report in the folder allure-report
+```
+allure generate --single-file -c -o allure-reports allure-results
 ```
 
 ## Using the Variables Locally
@@ -115,16 +123,19 @@ Project and Service-name should be set in the config file of the framework
 Set environment variables that are derived in the pipeline
 ```
 export WORKSPACE=dr-999  (where dr-999 is the branch name)
-export ENVIRONMENT=dev
+export ENV=dev
+```
+set PYTHONPATH to run test from tests folder from infra project and access utilities
+```
+cd <repo>/tests/infra_automation/tests
+export PYTHONPATH=$(pwd)/../../
 ```
 
 ## Generating Reports
 
-After execution, open the generated report:
-
+To generate a single page report in the folder allure-report
 ```
-open reports/report.html  # macOS/Linux
-start reports\report.html  # Windows
+allure generate --single-file -c -o allure-reports allure-results
 ```
 
 ## CI/CD Integration
@@ -132,13 +143,10 @@ start reports\report.html  # Windows
 To integrate with CI/CD pipelines, use:
 
 ```
-pytest -v -s --html=report.html --self-contained-html --tb=short --capture=sys;
-
-pytest --html=reports/report_$(date +%Y%m%d_%H%M%S).html --self-contained-html
+pytest -p allure_pytest_bdd --alluredir=allure-results
 ```
 
 This ensures unique report generation per run.
 
 ## Troubleshooting
 If HTML reports are blank, ensure you use --self-contained-html in pytest options.
-

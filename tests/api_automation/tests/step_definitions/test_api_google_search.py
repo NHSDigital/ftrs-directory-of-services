@@ -1,5 +1,6 @@
 import pytest
 import json
+from loguru import logger
 from pytest_bdd import given, when, then, scenarios
 from playwright.sync_api import sync_playwright
 from config import config  # Ensure Config is correctly imported
@@ -40,6 +41,7 @@ def prepare_google_search_request(api_response):
     api_response["base_url"] = base_url
     api_response["params"] = params
     api_response["request"] = json.dumps(params, indent=2)
+    logger.info("api response", api_response)
 
 @when("I receive the response")
 def make_google_search_request(api_request_context, api_response):
@@ -49,24 +51,28 @@ def make_google_search_request(api_request_context, api_response):
     base_url = api_response.get("base_url")
     params = api_response.get("params")
 
+    logger.info("base url:", base_url)
+
     # Make the GET request (using Playwright's APIRequestContext)
     response = api_request_context.get(base_url, params=params)
+    logger.info("response:", response)
+
 
     # Store response status and body for logging
     api_response["response_status"] = response.status
     try:
         response_json = response.json()
         api_response["response_body"] = json.dumps(response_json, indent=2)
+        logger.info("response:", api_response["response_body"])
     except Exception as e:
         pytest.fail(f"Invalid JSON response: {e}")
+        logger.info("Invalid JSON:", e)
         return
 
-    # Print request & response in terminal
-    print("\n--- API Request ---")
-    print(json.dumps(params, indent=2))
-    print("\n--- API Response ---")
-    print(f"Status Code: {response.status}")
-    print(json.dumps(response_json, indent=2), flush=True)
+    # Print request & response in log
+    logger.info(f"--- API Request ---: {json.dumps(params, indent=2)}")
+    logger.info(f"Status Code: {response.status}")
+    logger.info(f"--- API Response ---: {json.dumps(response_json, indent=2)}")
 
     # Store the response for validation in the @then step
     api_response["response_json"] = response_json
@@ -75,11 +81,9 @@ def make_google_search_request(api_request_context, api_response):
 def verify_response_and_search_results(api_response):
     """Verify the response status and search results contain 'Playwright'"""
     response_json = api_response.get("response_json", {})
-
     # Ensure response is valid
     assert api_response["response_status"] == 200, \
         f"Unexpected status code: {api_response['response_status']}"
-
     # Assert that 'title' matches the expected value
     assert response_json.get("queries", {}).get("request", [{}])[0].get("title") == "Google Custom Search - Playwright", \
         f"Expected 'title' to be 'Google Custom Search - Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('title')}"

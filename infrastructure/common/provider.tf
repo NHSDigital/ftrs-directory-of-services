@@ -17,7 +17,7 @@ provider "aws" {
     tags = {
       Owner              = var.project_owner
       Project            = var.project
-      Environment        = "${var.environment}-${local.workspace_suffix}"
+      Environment        = "${var.environment}${local.workspace_suffix}"
       Workspace          = terraform.workspace
       TerraformPath      = replace(path.cwd, "/^.*?(${var.repo_name}\\/)/", "$1")
       Service            = var.service

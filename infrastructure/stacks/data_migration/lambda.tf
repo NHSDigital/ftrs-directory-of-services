@@ -1,16 +1,16 @@
 resource "aws_lambda_layer_version" "python_dependency_layer" {
-  layer_name          = "${local.prefix}-python-dependency-layer-${local.workspace_suffix}"
+  layer_name          = "${local.prefix}-python-dependency-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket        = local.artefacts_bucket
-  s3_key           = "${local.workspace_suffix}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
+  s3_key           = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
   source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
 }
 
 data "aws_s3_object" "python_dependency_layer" {
   bucket = local.artefacts_bucket
-  key    = "${local.workspace_suffix}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
+  key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "extract_lambda" {
@@ -20,7 +20,7 @@ module "extract_lambda" {
   handler                 = var.extract_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.workspace_suffix}/${var.commit_hash}/${var.project}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.extract_lambda_connection_timeout
   memory_size             = var.extract_lambda_memory_size
