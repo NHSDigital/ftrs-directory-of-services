@@ -32,3 +32,5 @@ tests/*/allure-reports/*
 tests/*/allure-results/*
 tests/*/downloads/*
 tests/**/report.html
+tests/**/config.yaml
+tests/**/*.log
