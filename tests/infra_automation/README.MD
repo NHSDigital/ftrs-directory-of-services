@@ -128,7 +128,7 @@ export ENV=dev
 ```
 set PYTHONPATH to run test from tests folder from infra project and access utilities
 ```
-ecd <repo>/tests/infra_automation/tests
+cd <repo>/tests/infra_automation/tests
 export PYTHONPATH=$(pwd)/../../
 ```
 
