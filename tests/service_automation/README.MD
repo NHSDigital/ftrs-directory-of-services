@@ -168,10 +168,11 @@ allure generate --single-file -c -o allure-reports allure-results
 To integrate with CI/CD pipelines, use:
 
 ```
-pytest -p allure_pytest_bdd --alluredir=allure-results
+/bin/bash ./scripts/workflow/service-automated-tests.sh
 ```
+This script expects the variables ENV, WORKSPACE, TEST_TAG to be set if running locally.
+TEST_TAG is the tag used to identify the tests that should be run, for example is-pipeline
 
-This ensures unique report generation per run.
 
 ## Troubleshooting
-If HTML reports are blank, ensure you use --self-contained-html in pytest options.
+If reports are blank, ensure that the command to generate the report has been run in the same directory as the allure-results directory
