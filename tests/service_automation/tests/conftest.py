@@ -49,10 +49,6 @@ def search_page(page: Page) -> UserTestLoginPage:
 
 
 @pytest.fixture
-def bucket_type():
-    return 'standard'
-
-@pytest.fixture
 def api_response():
     """Fixture to store API response for logging in reports."""
     return {}

@@ -1,3 +1,4 @@
+@is-infra @is-pipeline
 Feature: S3 Bucket Name Validation
 
   Scenario: Validate AWS S3 bucket names
