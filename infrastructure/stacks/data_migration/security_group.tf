@@ -23,10 +23,10 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" {
-  for_each = toset([
-    aws_security_group.extract_lambda_security_group.id,
-    aws_security_group.transform_lambda_security_group.id
-  ])
+  for_each = {
+    extract_lambda   = aws_security_group.extract_lambda_security_group.id
+    transform_lambda = aws_security_group.transform_lambda_security_group.id
+  }
 
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = each.value
