@@ -1,2 +1,5 @@
 # Ignore Config for secrets
 config.yaml
+tesy_logs.log
+allure-results
+allure-reports

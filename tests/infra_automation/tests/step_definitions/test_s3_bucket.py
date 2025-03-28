@@ -27,10 +27,10 @@ def check_aws_access():
     assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
 
 
-@then(parsers.parse('The S3 bucket "{bucket_type}" exists'), target_fixture='fbucket_type')
-def confirm_s3_bucket_exists(bucket_type, aws_s3_client, workspace, env):
+@then(parsers.parse('The S3 bucket "{bucket}" exists'))
+def confirm_s3_bucket_exists(bucket, aws_s3_client, workspace, env):
     project = config.get("project")
-    bucket = bucket_type
+    bucket = bucket
     logger.info(f"project: {project}, bucket: {bucket}, env: {env}, workspace: {workspace}")
     if workspace=="":
         bucket_name = project + "-" + bucket + "-" + env

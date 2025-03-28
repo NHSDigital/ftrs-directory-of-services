@@ -28,10 +28,6 @@ def api_request_context(playwright):
     request_context.dispose()
 
 @pytest.fixture
-def bucket_type():
-    return 'standard'
-
-@pytest.fixture
 def api_response():
     """Fixture to store API response for logging in reports."""
     return {}
