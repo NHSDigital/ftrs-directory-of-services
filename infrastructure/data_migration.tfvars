@@ -13,7 +13,7 @@ rds_engine_mode     = "provisioned"
 rds_instance_class  = "db.serverless"
 
 lambda_runtime                      = "python3.12"
-data_collectin_date                 = "05-03-25"
+data_collection_date                = "05-03-25"
 extract_name                        = "extract-lambda"
 extract_lambda_handler              = "extract.lambda_handler"
 extract_lambda_connection_timeout   = 900
