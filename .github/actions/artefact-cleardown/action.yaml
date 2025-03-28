@@ -17,4 +17,4 @@ runs:
       run: |
         export WORKSPACE=${{inputs.workspace}}
         export ARTEFACT_BUCKET_NAME=${{inputs.artefact_bucket_name}}
-        ./uec-dos-management/scripts/workflow/cleardown-artefacts.sh
+        ./scripts/workflow/cleardown-artefacts.sh

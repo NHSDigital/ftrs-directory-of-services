@@ -89,3 +89,8 @@ variable "extract_lambda_handler" {
   type        = string
 }
 
+variable "data_collection_date" {
+  description = "The date the data has been collected"
+  type        = string
+}
+

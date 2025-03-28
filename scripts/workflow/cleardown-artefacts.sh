@@ -25,7 +25,6 @@ if [ "$WORKSPACE" == "default" ] ; then
   exit 1
 fi
 
-
 echo "Clearing down artefacts at or below $ARTEFACT_BUCKET_NAME/$WORKSPACE"
 
 deletion_output=$(aws s3 rm --recursive s3://$ARTEFACT_BUCKET_NAME/$WORKSPACE/ 2>&1)
