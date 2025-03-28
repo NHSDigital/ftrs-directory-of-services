@@ -1,5 +1,6 @@
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+from loguru import logger
 
 
 class S3Utils:
@@ -10,8 +11,8 @@ class S3Utils:
             session = boto3.Session()
             self.s3_client = session.client("s3")
 
-        except (NoCredentialsError, PartialCredentialsError) as e:
-            print(f"Error: AWS credentials not found. Run 'aws configure'.\n{e}")
+        except (NoCredentialsError, PartialCredentialsError):
+            logger.debug("Error: AWS credentials not found.")
             raise
 
     def list_buckets(self):
@@ -19,8 +20,8 @@ class S3Utils:
         try:
             response = self.s3_client.list_buckets()
             return [bucket["Name"] for bucket in response["Buckets"]]
-        except Exception as e:
-            print(f"Error fetching bucket list: {e}")
+        except Exception:
+            logger.debug("Error fetching bucket list")
             return []
 
     def check_bucket_exists(self, bucket_name):
@@ -30,9 +31,8 @@ class S3Utils:
         """
         try:
             self.s3_client.head_bucket(Bucket=bucket_name)
-            print("Bucket %s exists.", bucket_name)
             exists = True
-        except Exception as e:
-            print(f"Error: bucket not found'.\n{e}")
+        except Exception:
+            logger.debug("Error: bucket not found")
             exists = False
         return exists
