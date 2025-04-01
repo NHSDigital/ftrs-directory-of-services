@@ -8,4 +8,5 @@ module "gp_search_rds" {
   engine_version      = var.rds_engine_version
   rds_db_subnet_group = var.rds_db_subnet_group
   rds_ingress_cidr    = var.rds_ingress_cidr
+  rds_port            = var.rds_port
 }

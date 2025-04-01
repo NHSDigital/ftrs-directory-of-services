@@ -31,3 +31,8 @@ variable "rds_db_subnet_group" {
 variable "rds_ingress_cidr" {
   description = "The RDS ingress CIDR blocks"
 }
+
+variable "rds_port" {
+  description = "The port RDS will listen on"
+  type        = string
+}

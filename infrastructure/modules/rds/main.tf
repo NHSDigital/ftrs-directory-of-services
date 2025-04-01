@@ -14,8 +14,8 @@ module "cluster" {
   }
 
   vpc_id                 = var.vpc_id
-  create_db_subnet_group = true
-  create_security_group  = true
+  create_db_subnet_group = false
+  create_security_group  = false
   db_subnet_group_name   = var.rds_db_subnet_group
   security_group_rules = {
     ex1_ingress = {
@@ -33,4 +33,19 @@ module "cluster" {
   tags = {
     Terraform = "true"
   }
+}
+
+resource "aws_security_group" "rds_security_group" {
+  name        = "var.rds_db_subnet_group"
+  description = "RDS Security Group"
+
+  vpc_id = data.aws_vpc.vpc.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
+  security_group_id            = aws_security_group.rds_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpn_security_group.id
+  from_port                    = var.rds_port
+  ip_protocol                  = data.aws_ec2_client_vpn_endpoint.client_vpn_endpoint.transport_protocol
+  to_port                      = var.rds_port
 }

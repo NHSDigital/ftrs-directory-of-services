@@ -44,10 +44,10 @@ variable "rds_ingress_cidr" {
 #   type        = string
 # }
 
-# variable "rds_port" {
-#   description = "The port RDS will listen on"
-#   type        = string
-# }
+variable "rds_port" {
+  description = "The port RDS will listen on"
+  type        = string
+}
 
 # variable "rds_engine_mode" {
 #   description = "The engine mode for the RDS instance"
