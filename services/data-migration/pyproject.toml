@@ -10,7 +10,6 @@ requires-python = ">=3.12"
 dependencies = [
     "sqlalchemy (>=2.0.38,<3.0.0)",
     "psycopg2 (>=2.9.10,<3.0.0)",
-    "pandas (>=2.2.2)",
     "pyarrow (>=17.0.0)",
     "pydantic (>=2.10.6,<3.0.0)",
 ]
@@ -24,6 +23,7 @@ ruff = "^0.9.6"
 pytest = "^8.3.5"
 pytest-cov = "^6.0.0"
 pytest-mock = "^3.14.0"
+pandas = "^2.2.2"
 
 [tool.poetry.scripts]
 dos-etl-extract = "pipeline.extract:main"
