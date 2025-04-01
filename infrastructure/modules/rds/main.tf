@@ -39,7 +39,7 @@ resource "aws_security_group" "rds_security_group" {
   name        = "var.rds_db_subnet_group"
   description = "RDS Security Group"
 
-  vpc_id = data.aws_vpc.vpc.id
+  vpc_id = var.vpc_id
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
