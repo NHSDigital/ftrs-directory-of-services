@@ -127,7 +127,7 @@ pytest tests/step_definitions/test_s3_bucket.py
 ```
 Run specific tagged tests, for example @is-api:
 ```
-pytest
+pytest -m "is-api"
 ```
 To generate a single page report in the folder allure-report
 ```
