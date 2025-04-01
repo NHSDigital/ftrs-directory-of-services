@@ -36,3 +36,10 @@ variable "rds_port" {
   description = "The port RDS will listen on"
   type        = string
 }
+variable "referenced_security_group_id" {
+  description = "Ref Security Group ID"
+}
+
+variable "ip_protocol" {
+  description = "ip protocol"
+}

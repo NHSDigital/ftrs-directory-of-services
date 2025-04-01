@@ -84,3 +84,11 @@ variable "rds_port" {
 variable "vpc_id" {
   description = "ID of the RDS vpc"
 }
+variable "referenced_security_group_id" {
+  description = "Ref Security Group ID"
+}
+
+variable "ip_protocol" {
+  description = "ip protocol"
+}
+
