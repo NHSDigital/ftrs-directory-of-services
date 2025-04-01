@@ -15,10 +15,6 @@ variable "policy_jsons" {
 
 # ==============================================================================
 # Default variables
-
-variable "source_path" {
-  default = "null"
-}
 variable "handler" {
   description = "Handler function entry point"
   default     = "app.lambda_handler"
