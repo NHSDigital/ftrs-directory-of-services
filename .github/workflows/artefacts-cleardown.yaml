@@ -32,16 +32,18 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: ./.github/actions/checkout-repository
         with:
           tag: ${{ inputs.tag }}
-      - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
         with:
             aws_account_id: ${{ secrets.ACCOUNT_ID }}
             aws_region: ${{ vars.AWS_REGION }}
+
       - name: "Cleardown redundant artefacts"
-        uses: NHSDigital/uec-dos-management/.github/actions/artefact-cleardown@latest
+        uses: ./.github/actions/artefact-cleardown
         with:
           workspace: ${{ inputs.workspace }}
           artefact_bucket_name: ${{ inputs.artefact_bucket_name }}
