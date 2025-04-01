@@ -13,8 +13,8 @@ module "cluster" {
     }
   }
 
-  vpc_id               = var.vpc_id
-  db_subnet_group_name = var.rds_db_subnet_group
+  vpc_id = var.vpc_id
+  #db_subnet_group_name = var.rds_db_subnet_group
   security_group_rules = {
     ex1_ingress = {
       cidr_blocks = var.rds_ingress_cidr
