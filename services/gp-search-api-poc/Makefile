@@ -1,5 +1,5 @@
-# This file is for you! Edit it to implement your own hooks (make targets) into
-# the project as automated steps to be executed on locally and in the CD pipeline.
+S3_BUCKET := ${REPO_NAME}-$(ENVIRNOMENT)-artefacts-bucket
+LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
 include scripts/init.mk
 
@@ -14,7 +14,7 @@ build: # Build the project artefact @Pipeline
 	# TODO: Implement the artefact build step
 
 publish: # Publish the project artefact @Pipeline
-	# TODO: Implement the artefact publishing step
+	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
 
 deploy: # Deploy the project artefact to the target environment @Pipeline
 	# TODO: Implement the artefact deployment step

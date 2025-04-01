@@ -4,14 +4,18 @@ data "archive_file" "lambda" {
   output_path = "./lambda/functions_zip/search_function.zip"
 }
 module "lambda" {
-  source                 = "../../modules/lambda"
-  source_path            = "./lambda/functions/search_function.py"
-  function_name          = "${var.project}-${var.gp_search_lambda_name}-${var.environment}"
-  description            = "GP search Lambda"
-  handler                = "search_function.lambda_handler"
-  attach_policy_jsons    = false
-  local_existing_package = "./lambda/functions_zip/search_function.zip"
-  attach_tracing_policy  = true
-  tracing_mode           = "Active"
-  policy_jsons           = []
+  source                = "../../modules/lambda"
+  function_name         = "${var.project}-${var.gp_search_lambda_name}-${var.environment}"
+  description           = "GP search Lambda"
+  handler               = "search_function.lambda_handler"
+  s3_bucket_name        = local.artefacts_bucket
+  s3_key                = "${terraform.workspace}/${var.project}-gp-search-lambda.zip"
+  attach_policy_jsons   = false
+  attach_tracing_policy = true
+  tracing_mode          = "Active"
+  policy_jsons          = []
+  layers                = ["arn:aws:lambda:eu-west-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"]
+
+  subnet_ids         = []
+  security_group_ids = []
 }
