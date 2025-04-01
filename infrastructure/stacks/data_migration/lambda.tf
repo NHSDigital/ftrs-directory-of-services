@@ -31,7 +31,10 @@ module "extract_lambda" {
   number_of_policy_jsons = "2"
   policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
 
-  layers = var.aws_lambda_layers
+  layers = concat(
+    [aws_lambda_layer_version.python_dependency_layer.arn],
+    var.aws_lambda_layers
+  )
 
   environment_variables = {
     "ENVIRONMENT"   = var.environment
@@ -58,7 +61,10 @@ module "transform_lambda" {
   number_of_policy_jsons = "2"
   policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
 
-  layers = var.aws_lambda_layers
+  layers = concat(
+    [aws_lambda_layer_version.python_dependency_layer.arn],
+    var.aws_lambda_layers
+  )
 
   environment_variables = {
     "ENVIRONMENT"   = var.environment
