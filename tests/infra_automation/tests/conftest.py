@@ -1,8 +1,18 @@
 import pytest
 import os
+from loguru import logger
 from playwright.sync_api import sync_playwright
 import pytest_html
 
+
+# Configure Loguru to log into a file and console
+logger.add("test_logs.log", rotation="1 day", level="INFO", backtrace=True, diagnose=True)
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_logging():
+    logger.info("Starting test session...")
+    yield
+    logger.info("Test session completed.")
 
 @pytest.fixture(scope="session")
 def playwright():
@@ -16,10 +26,6 @@ def api_request_context(playwright):
     request_context = playwright.request.new_context()
     yield request_context
     request_context.dispose()
-
-@pytest.fixture
-def bucket_type():
-    return 'standard'
 
 @pytest.fixture
 def api_response():
