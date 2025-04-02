@@ -16,8 +16,8 @@ module "gp_search_rds" {
   vpc_id                       = data.aws_vpc.vpc.id
   rds_instance_class           = var.rds_instance_class
   manage_master_user_password  = false
-  master_username              = random_pet.rds_username[0].id
-  master_password              = random_password.rds_password[0].result
+  master_username              = random_pet.rds_username.id
+  master_password              = random_password.rds_password.result
   rds_name                     = "${var.project}-${var.rds_name}-${var.environment}"
   engine                       = var.rds_engine
   engine_version               = var.rds_engine_version
