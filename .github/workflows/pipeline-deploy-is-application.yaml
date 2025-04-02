@@ -85,7 +85,7 @@ jobs:
       [ metadata,
         deploy-is-account-infrastructure-apply,
       ]
-    if: (needs.deploy-is-account-infrastructure-apply.result == 'success' || needs.manual-approval.result == 'skipped')
+    if: always() && !cancelled() && (needs.deploy-is-account-infrastructure-apply.result == 'success' || needs.manual-approval.result == 'skipped')
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
