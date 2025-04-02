@@ -77,7 +77,7 @@ jobs:
           SERVICE: ${{ inputs.service_name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
-          ENVIRNOMENT: ${{ inputs.environment }}
+          ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
 
       - name: "Configure AWS Credentials"
@@ -92,7 +92,7 @@ jobs:
         env:
           SERVICE: ${{ inputs.service_name }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
-          ENVIRNOMENT: ${{ inputs.environment }}
+          ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
