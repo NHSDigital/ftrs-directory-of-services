@@ -70,6 +70,11 @@ variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
 
+variable "aws_lambda_layers" {
+  description = "A list of Lambda layer ARNs to attach to the Lambda function"
+  type        = list(string)
+}
+
 variable "extract_name" {
   description = "The extract name of the Lambda function"
 }
@@ -89,3 +94,26 @@ variable "extract_lambda_handler" {
   type        = string
 }
 
+variable "transform_name" {
+  description = "The transform name of the Lambda function"
+}
+
+variable "transform_lambda_connection_timeout" {
+  description = "The timeout for the transform Lambda function"
+  type        = number
+}
+
+variable "transform_lambda_memory_size" {
+  description = "The memory size for the transform Lambda function"
+  type        = number
+}
+
+variable "transform_lambda_handler" {
+  description = "The handler for the transform Lambda function"
+  type        = string
+}
+
+variable "data_collection_date" {
+  description = "The date the data has been collected"
+  type        = string
+}

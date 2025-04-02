@@ -13,7 +13,7 @@ on:
 
 jobs:
   metadata:
-    if: ( ${{ github.event.ref_type == 'branch' && github.actor != 'github-merge-queue[bot]' }} )
+    if: github.actor != 'github-merge-queue[bot]'
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
@@ -35,21 +35,17 @@ jobs:
       workflow_timeout: 10
     secrets: inherit
 
-# TODO if/when we agree on artefact management
-  # cleardown-artefacts:
-  #   name: "Cleardown Artefacts"
-  #   needs:
-  #     [
-  #       metadata,
-  #       cleardown-infrastructure,
-
-  #     ]
-  #   uses: ./.github/workflows/artefacts-cleardown.yaml
-  #   with:
-  #     environment: mgmt
-  #     workspace: ${{ needs.metadata.outputs.workspace }}
-  #     artefact_bucket_name: ${{needs.metadata.outputs.artefact_bucket_name}}
-  #   secrets: inherit
+  cleardown-artefacts:
+    name: "Cleardown Artefacts"
+    needs:
+      - metadata
+      - cleardown-infrastructure
+    uses: ./.github/workflows/artefacts-cleardown.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.environment }}-artefacts-bucket"
+    secrets: inherit
 
   slack-notifications:
     name: "Send Notification to Slack"
