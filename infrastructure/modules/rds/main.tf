@@ -17,7 +17,7 @@ module "cluster" {
   create_db_subnet_group = var.create_subnet_group
   create_security_group  = var.create_security_group
   db_subnet_group_name   = var.rds_db_subnet_group
-  vpc_security_group_ids = aws_security_group.rds_security_group.id
+  vpc_security_group_ids = [aws_security_group.rds_security_group.id]
   security_group_rules = {
     ex1_ingress = {
       cidr_blocks = var.rds_ingress_cidr
