@@ -27,6 +27,11 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" 
     extract_lambda = aws_security_group.extract_lambda_security_group.id
   }
 
+resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" {
+  for_each = {
+    extract_lambda = aws_security_group.extract_lambda_security_group.id
+  }
+
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = each.value
   from_port                    = var.rds_port
@@ -62,11 +67,4 @@ resource "aws_vpc_security_group_egress_rule" "transform_lambda_allow_egress_to_
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
-}
-
-resource "aws_security_group" "load_lambda_security_group" {
-  name        = "${local.prefix}-${var.load_name}${local.workspace_suffix}-sg"
-  description = "Security group for load lambda"
-
-  vpc_id = data.aws_vpc.vpc.id
 }
