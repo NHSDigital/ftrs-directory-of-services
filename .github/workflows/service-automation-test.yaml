@@ -48,12 +48,11 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: "Configure AWS credentials"
+      - name: Configure AWS Credentials
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: ${{ inputs.multi_domain }}
 
       - name: Install Allure command-line tool
         id: install-allure
