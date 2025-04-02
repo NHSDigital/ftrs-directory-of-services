@@ -16,7 +16,7 @@ data "aws_s3_object" "python_dependency_layer" {
 module "extract_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.prefix}-${var.extract_name}"
-  description             = "Lambda to extract data for the DoS mirgration"
+  description             = "Lambda to extract data for the DoS migration"
   handler                 = var.extract_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
@@ -46,7 +46,7 @@ module "extract_lambda" {
 module "transform_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.prefix}-${var.transform_name}"
-  description             = "Lambda to transform data for the DoS mirgration"
+  description             = "Lambda to transform data for the DoS migration"
   handler                 = var.transform_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
@@ -77,7 +77,7 @@ module "transform_lambda" {
 module "load_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.prefix}-${var.load_name}"
-  description             = "Lambda to load data for the DoS mirgration"
+  description             = "Lambda to load data for the DoS migration"
   handler                 = var.load_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
