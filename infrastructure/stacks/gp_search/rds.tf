@@ -9,6 +9,7 @@ module "gp_search_rds" {
   rds_db_subnet_group          = var.rds_db_subnet_group
   rds_ingress_cidr             = var.rds_ingress_cidr
   rds_port                     = var.rds_port
-  referenced_security_group_id = data.aws_ec2_client_vpn_endpoint.client_vpn_endpoint.transport_protocol
-  ip_protocol                  = data.aws_security_group.vpn_security_group.id
+  referenced_security_group_id = data.aws_security_group.vpn_security_group.id
+  ip_protocol                  = data.aws_ec2_client_vpn_endpoint.client_vpn_endpoint.transport_protocol
+  create_subnet_group          = true
 }

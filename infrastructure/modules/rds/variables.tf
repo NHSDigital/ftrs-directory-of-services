@@ -92,3 +92,14 @@ variable "ip_protocol" {
   description = "ip protocol"
 }
 
+variable "create_subnet_group" {
+  description = "Bol value to create subnet group or not"
+  type        = bool
+  default     = false
+}
+
+variable "create_security_group" {
+  description = "Bol value to create security group or not"
+  type        = bool
+  default     = false
+}

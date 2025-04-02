@@ -14,8 +14,8 @@ module "cluster" {
   }
 
   vpc_id                 = var.vpc_id
-  create_db_subnet_group = false
-  create_security_group  = false
+  create_db_subnet_group = var.create_subnet_group
+  create_security_group  = var.create_security_group
   db_subnet_group_name   = var.rds_db_subnet_group
   security_group_rules = {
     ex1_ingress = {
