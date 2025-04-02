@@ -79,6 +79,21 @@ jobs:
       action: apply
     secrets: inherit
 
+  service-automation-tests:
+    name: Run service automation tests
+    needs:
+      [
+        deploy-is-account-infrastructure-apply,
+      ]
+    uses: ./.github/workflows/service-automation-test.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      test_tag: "is-pipeline"
+    secrets: inherit
+
+
   slack-notifications:
     name: "Send Notification to Slack"
     needs: [

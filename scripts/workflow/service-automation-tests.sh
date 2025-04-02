@@ -1,8 +1,9 @@
 #! /bin/bash
 
-# This script runs python domain tests
+# This script runs python service automation tests
 #
 export APPLICATION_TEST_DIR="${APPLICATION_TEST_DIR:-"tests/service_automation"}"
+export TEST_TAG="${TEST_TAG:-"is-pipeline"}"
 
 # check export has been done
 EXPORTS_SET=0
