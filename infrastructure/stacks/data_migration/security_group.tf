@@ -68,3 +68,10 @@ resource "aws_vpc_security_group_egress_rule" "transform_lambda_allow_egress_to_
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
 }
+
+resource "aws_security_group" "load_lambda_security_group" {
+  name        = "${local.prefix}-${var.load_name}${local.workspace_suffix}-sg"
+  description = "Security group for load lambda"
+
+  vpc_id = data.aws_vpc.vpc.id
+}

@@ -37,6 +37,10 @@ on:
         description: "The application tag identifying the timeline in the repository to deploy from"
         required: false
         type: string
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
 
 jobs:
   destroy-application-infrastructure:
