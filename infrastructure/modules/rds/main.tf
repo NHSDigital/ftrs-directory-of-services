@@ -22,9 +22,6 @@ module "cluster" {
     ex1_ingress = {
       cidr_blocks = var.rds_ingress_cidr
     }
-    ex1_ingress = {
-      source_security_group_id = [aws_security_group.rds_security_group.id]
-    }
   }
 
   storage_encrypted   = true
