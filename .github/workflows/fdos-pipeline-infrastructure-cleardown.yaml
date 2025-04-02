@@ -42,9 +42,9 @@ jobs:
       - cleardown-infrastructure
     uses: ./.github/workflows/artefacts-cleardown.yaml
     with:
-      environment: ${{ matrix.environment }}
+      environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ matrix.environment }}-artefacts-bucket"
+      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.environment }}-artefacts-bucket"
     secrets: inherit
 
   slack-notifications:
