@@ -11,5 +11,5 @@ rds_db_subnet_group = "gp-search-subnet-group"
 rds_port            = 5432
 rds_engine          = "aurora-postgresql"
 rds_engine_version  = "16.4"
-rds_instance_class  = "db.serverless"
+rds_instance_class  = "db.t3.small"
 rds_ingress_cidr    = ["10.20.0.0/20"]
