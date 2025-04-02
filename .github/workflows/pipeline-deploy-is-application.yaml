@@ -82,7 +82,7 @@ jobs:
   service-automation-tests:
     name: Run service automation tests
     needs:
-      [
+      [ metadata,
         deploy-is-account-infrastructure-apply,
       ]
     uses: ./.github/workflows/service-automation-test.yaml
