@@ -1,8 +1,23 @@
+resource "random_pet" "rds_username" {
+  length    = 2
+  separator = "_"
+}
+
+resource "random_password" "rds_password" {
+  length  = 16
+  special = false
+  upper   = true
+  lower   = true
+}
+
 module "gp_search_rds" {
   source                       = "../../modules/rds"
   main_project                 = var.main_project
   vpc_id                       = data.aws_vpc.vpc.id
   rds_instance_class           = var.rds_instance_class
+  manage_master_user_password  = false
+  master_username              = random_pet.rds_username[0].id
+  master_password              = random_password.rds_password[0].result
   rds_name                     = "${var.project}-${var.rds_name}-${var.environment}"
   engine                       = var.rds_engine
   engine_version               = var.rds_engine_version

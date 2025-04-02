@@ -103,7 +103,11 @@ variable "create_security_group" {
   type        = bool
   default     = false
 }
-
+variable "manage_master_user_password" {
+  description = "Manage maser user password"
+  type        = bool
+  default     = false
+}
 variable "master_username" {
   description = "Username for RDS"
   type        = string
