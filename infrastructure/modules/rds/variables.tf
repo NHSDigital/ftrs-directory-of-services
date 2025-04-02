@@ -118,3 +118,14 @@ variable "master_password" {
   type        = string
 }
 
+variable "rds_min_capacity" {
+  description = "Serverless RDS Scalability min capacity"
+  type        = number
+  default     = 1
+}
+variable "rds_max_capacity" {
+  description = "Serverless RDS Scalability max capacity"
+  type        = number
+  default     = 1
+}
+

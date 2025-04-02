@@ -36,3 +36,12 @@ variable "rds_port" {
   description = "The port RDS will listen on"
   type        = string
 }
+
+variable "rds_min_capacity" {
+  description = "Serverless RDS Scalability min capacity"
+  type        = number
+}
+variable "rds_max_capacity" {
+  description = "Serverless RDS Scalability max capacity"
+  type        = number
+}

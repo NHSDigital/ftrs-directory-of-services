@@ -27,4 +27,6 @@ module "gp_search_rds" {
   referenced_security_group_id = data.aws_security_group.vpn_security_group.id
   ip_protocol                  = data.aws_ec2_client_vpn_endpoint.client_vpn_endpoint.transport_protocol
   create_subnet_group          = false
+  rds_max_capacity             = var.rds_max_capacity
+  rds_min_capacity             = var.rds_min_capacity
 }

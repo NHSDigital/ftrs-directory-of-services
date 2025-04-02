@@ -13,6 +13,11 @@ module "cluster" {
     }
   }
 
+  serverlessv2_scaling_configuration = {
+    min_capacity = var.rds_min_capacity
+    max_capacity = var.rds_max_capacity
+  }
+
   vpc_id                 = var.vpc_id
   create_db_subnet_group = var.create_subnet_group
   create_security_group  = var.create_security_group
