@@ -1,8 +1,3 @@
-data "archive_file" "lambda" {
-  type        = "zip"
-  source_file = "./lambda/functions/search_function.py"
-  output_path = "./lambda/functions_zip/search_function.zip"
-}
 module "lambda" {
   source                = "../../modules/lambda"
   function_name         = "${var.project}-${var.gp_search_lambda_name}-${var.environment}"
