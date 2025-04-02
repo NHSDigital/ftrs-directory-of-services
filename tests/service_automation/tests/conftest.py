@@ -71,4 +71,5 @@ def workspace() -> str:
 
 @pytest.fixture(scope='session')
 def env() -> str:
-    return _get_env_var('ENV')
+    return _get_env_var('ENVIRONMENT')
+
