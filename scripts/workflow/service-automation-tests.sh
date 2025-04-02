@@ -2,7 +2,8 @@
 
 # This script runs python service automation tests
 #
-export APPLICATION_TEST_DIR="${APPLICATION_TEST_DIR:-"tests/service_automation"}"
+export APPLICATION_TEST_DIR="${APPLICATION_TEST_DIR:-"./tests/service_automation"}"
+# Test tag to be changed to be either blank or all_tests at a later stage
 export TEST_TAG="${TEST_TAG:-"is-pipeline"}"
 
 # check export has been done
