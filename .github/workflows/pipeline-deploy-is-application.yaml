@@ -31,6 +31,21 @@ jobs:
       stacks: "['gp_search']"
     secrets: inherit
 
+  build-gp-search-service:
+    name: "Build GP search service"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/build-service.yaml
+    with:
+      service_name: "gp-search-api-poc"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: $${{ needs.metadata.outputs.commit_hash }}
+      environment: $${{ needs.metadata.output.environment }}
+      workspace: $${{ needs.metadata.outputs.workspace }}
+      application_tag: $${{ inputs.application_tag || 'latest' }}
+    secrets: inherit
+
   deploy-infrastructure-plan:
     name: "TF Plan IS level infrastructure"
     needs:
@@ -45,6 +60,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
       stacks: "['gp_search']"
+      application_tag: $${{ inputs.application_tag || 'latest'}}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
     secrets: inherit
 
@@ -76,6 +93,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
       stacks: "['gp_search']"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
     secrets: inherit
 
