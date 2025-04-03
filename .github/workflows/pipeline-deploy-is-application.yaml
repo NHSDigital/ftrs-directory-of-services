@@ -31,7 +31,7 @@ jobs:
       stacks: "['gp_search']"
     secrets: inherit
 
-  build-data-migration-service:
+  build-gp-search-service:
     name: "Build GP Search API Service"
     needs:
       [
@@ -55,6 +55,7 @@ jobs:
       [
         metadata,
         quality-checks,
+        build-gp-search-service,
       ]
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
@@ -75,6 +76,7 @@ jobs:
       [
         metadata,
         deploy-infrastructure-plan,
+        build-gp-search-service,
       ]
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
