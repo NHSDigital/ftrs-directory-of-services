@@ -1,6 +1,6 @@
 module "lambda" {
   source                = "../../modules/lambda"
-  function_name         = "${var.project}-${var.gp_search_lambda_name}-${var.environment}"
+  function_name         = "${var.project}-lambda-${var.environment}"
   description           = "GP search Lambda"
   handler               = "search_function.lambda_handler"
   s3_bucket_name        = local.artefacts_bucket
