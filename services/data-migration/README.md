@@ -72,7 +72,7 @@ To set the target database schema manually, run the following script to load the
 eval $(poetry env activate)
 
 # Run Schema Load Script
-python -m pipeline.schema \
+dos-etl-schema \
     --db-uri {target_database} \
     --schema-path schema/target-state.sql
 ```
