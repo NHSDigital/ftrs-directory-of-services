@@ -9,4 +9,4 @@ allure-pytest-bdd==2.13.5          # Allure integration for beautiful test repor
 pyyaml==6.0.2                  # For YAML-based configuration management
 loguru==0.6.0                  # For better logging management (optional)
 boto3==1.37.6                # AWS SDK for Python
-botocore==1.37.6
+pytest-playwright==0.7.0  # Pytest Playwright for UI test
