@@ -55,7 +55,7 @@ jobs:
       ]
     uses: ./.github/workflows/is-build-service.yaml
     with:
-      service_name: "gp-search-api-poc"
+      service_name: "gp-search"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
