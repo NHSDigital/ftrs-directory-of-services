@@ -1,8 +1,8 @@
-# Infra Test Automation Framework
+# Service Test Automation Framework
 
 ## Overview
 
-This is an Infra Test Automation Framework using pytest-bdd and Playwright for validating AWS Infra Testing like Buckets etc. It follows the BDD (Behavior Driven Development) approach using Gherkin syntax.
+This is an Service Test Automation Framework using pytest-bdd and Playwright for validating API Testing, AWS Infra Testing like Buckets etc and UI Testing. It follows the BDD (Behavior Driven Development) approach using Gherkin syntax.
 
 ## Project Structure
 
@@ -43,7 +43,7 @@ Ensure you have Python 3.12+ installed. You also need pip and virtualenv for man
 ```
 git clone https://github.com/NHSDigital/ftrs-directory-of-services.git
 cd tests
-cd infra_automation
+cd service_automation
 ```
 
 ### Install dependencies
@@ -90,7 +90,7 @@ Windows: C:\Users\USERNAME\.aws\credentials and C:\Users\USERNAME\.aws\config
 
 change aws config file with values listed in Service Teams - Set up SSO for AWS confluence page. Also use Dos developer profile from your aws console for your CLI connection.
 
-### Infra Test Configuration
+### Service Test Configuration
 
 Make a copy of config_template.yaml and name it config.yaml, and update it with API details as explained below:
 ```
@@ -123,7 +123,7 @@ allure generate --single-file -c -o allure-reports allure-results
 ```
 Run specific feature tests:
 ```
-pytest tests/step_definitions/test_s3_bucket.py
+pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py
 ```
 Run specific tagged tests, for example @is-api:
 ```
