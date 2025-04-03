@@ -3,7 +3,7 @@ PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
 LOCAL_DIR := ../../services/${SERVICE}
 FUNC_DIR := functions/gp_search_function.py
-S3_BUCKET := ${REPO_NAME}-$(ENVIRNOMENT)-artefacts-bucket
+S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
 
