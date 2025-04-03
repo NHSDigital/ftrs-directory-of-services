@@ -31,8 +31,8 @@ jobs:
       stacks: "['gp_search']"
     secrets: inherit
 
-  build-gp-search-service:
-    name: "Build GP search service"
+  build-data-migration-service:
+    name: "Build GP Search API Service"
     needs:
       - metadata
       - quality-checks
@@ -41,9 +41,9 @@ jobs:
       service_name: "gp-search-api-poc"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.output.environment }}
+      environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: $${{ inputs.application_tag || 'latest' }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
     secrets: inherit
 
   deploy-infrastructure-plan:
