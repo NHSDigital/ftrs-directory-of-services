@@ -1,4 +1,4 @@
-SERVICE ?= gp-search-api-poc
+SERVICE ?= gp-search
 PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
 LOCAL_DIR := ../../services/${SERVICE}
