@@ -38,11 +38,9 @@ def chromium():
         yield chromium
         chromium.close()
 
-
 @pytest.fixture
 def result_page(page: Page) -> UserTestMfaHelpPage:
     return UserTestMfaHelpPage(page)
-
 
 @pytest.fixture
 def search_page(page: Page) -> UserTestLoginPage:
