@@ -38,7 +38,7 @@ jobs:
         metadata,
         quality-checks,
       ]
-    uses: ./.github/workflows/build-service.yaml
+    uses: ./.github/workflows/is-build-service.yaml
     with:
       service_name: "gp-search-api-poc"
       python_version: ${{ needs.metadata.outputs.python_version }}
