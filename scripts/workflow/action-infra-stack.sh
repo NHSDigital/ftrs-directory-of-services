@@ -131,15 +131,6 @@ echo "Pulling environment variables from $ENVIRONMENTS_DIR"
 terraform-initialise
 #
 terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
-echo "===============STATE===================="
-terraform state list
-echo "=================END_STATE==============="
-
-terraform state rm data.archive_file.lambda
-
-echo "===============STATE_AFTER===================="
-terraform state list
-echo "=================END_STATE==============="
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
 
