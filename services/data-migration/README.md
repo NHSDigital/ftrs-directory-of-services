@@ -54,9 +54,14 @@ For local development, this project relies on a local Postgres instance running 
 This container will persist data at `./.tmp/pg_data/`.
 
 ```bash
+cd services/data-migration
 mkdir -p ./.tmp/pg_data
 podman compose up -d
 ```
+
+Note it may be necessary on first run to edit the context defined in docker-compose.yml
+
+```context: ../../infrastructure/images/postgres```
 
 ### Setting Database Schema
 
@@ -84,11 +89,18 @@ A sanitised clone of the source DoS data is available in S3.
 This can be loaded into your local instance of Postgres to enable easier development.
 
 ```bash
+# install psql
+brew install libpq
+brew link --force libpq
+```
+
+```bash
 # Assume role within UEC DOS DEV AWS account
 # Copy source postgres dump
-aws s3 cp s3://ftrs-dos-data-migration/sanitised-clone/01-02-24/dos-pgdump.sql .tmp/dos-01-02-24.sql
+aws s3 cp s3://ftrs-dos-data-migration-pipeline-store-dev/sanitised-clone/01-02-24/dos-pgdump.sql .tmp/dos-01-02-24.sql
 
 # Load the dump into the local DB
+# Ask team for values to substitute here
 psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-24.sql
 ```
 
