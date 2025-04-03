@@ -61,7 +61,7 @@ jobs:
           multi_domain: false
 
       - name: "Publish artefacts to S3"
-        run: cd services/${{ inputs.service_name }} && make publish
+        run: make publish
         env:
           SERVICE: ${{ inputs.service_name }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
