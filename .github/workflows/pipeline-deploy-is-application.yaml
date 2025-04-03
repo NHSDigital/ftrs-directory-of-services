@@ -10,6 +10,23 @@ on:
       - 'task/DOSIS*'
   pull_request:
     types: [ labeled ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: true
+        type: string
+      application_tag:
+        description: "Specify the application tag to be used for deployment"
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
 
 jobs:
   metadata:
