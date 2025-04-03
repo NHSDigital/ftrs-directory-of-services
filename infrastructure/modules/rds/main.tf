@@ -8,9 +8,9 @@ module "cluster" {
   instance_class = var.rds_instance_class
   instances = {
     one = {}
-    2 = {
-      instance_class = var.rds_instance_class
-    }
+    # 2 = {
+    #   instance_class = var.rds_instance_class
+    # }
   }
 
   serverlessv2_scaling_configuration = {
