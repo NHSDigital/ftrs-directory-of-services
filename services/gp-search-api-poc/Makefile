@@ -2,8 +2,10 @@ SERVICE ?= gp-search-api-poc
 PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
 LOCAL_DIR := ../../services/${SERVICE}
+FUNC_DIR := functions/gp_search_function.py
 S3_BUCKET := ${REPO_NAME}-$(ENVIRNOMENT)-artefacts-bucket
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
+
 
 
 # ==============================================================================
@@ -18,7 +20,7 @@ dependencies: # Install dependencies needed to build and test the project @Pipel
 
 build: ensure-build-dir
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	mv $(LOCAL_DIR)/$(LOCAL_DIR) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
+	mv $(LOCAL_DIR)/$(FUNC_DIR) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
 
 publish: # Publish the project artefact @Pipeline
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
