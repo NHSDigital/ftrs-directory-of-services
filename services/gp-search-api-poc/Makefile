@@ -38,7 +38,6 @@ config:: # Configure development environment (main) @Configuration
 # ==============================================================================
 
 ${VERBOSE}.SILENT: \
-	build \
 	clean \
 	config \
 	dependencies \
