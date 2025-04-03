@@ -34,8 +34,10 @@ jobs:
   build-data-migration-service:
     name: "Build GP Search API Service"
     needs:
-      - metadata
-      - quality-checks
+      [
+        metadata,
+        quality-checks,
+      ]
     uses: ./.github/workflows/build-service.yaml
     with:
       service_name: "gp-search-api-poc"
