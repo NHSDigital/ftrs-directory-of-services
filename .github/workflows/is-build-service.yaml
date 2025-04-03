@@ -45,7 +45,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Build service"
-        run: make build
+        run:  |
+          cd services/${{ inputs.service_name }} && make build
         env:
           SERVICE: ${{ inputs.service_name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
@@ -61,7 +62,7 @@ jobs:
           multi_domain: false
 
       - name: "Publish artefacts to S3"
-        run: make publish
+        run: cd services/${{ inputs.service_name }} && make publish
         env:
           SERVICE: ${{ inputs.service_name }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
