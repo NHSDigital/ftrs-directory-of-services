@@ -1,5 +1,5 @@
 """
-These tests cover DuckDuckGo searches.
+These tests cover sample ui requests.
 """
 import pytest
 from pages.ui_pages.result import UserTestMfaHelpPage
