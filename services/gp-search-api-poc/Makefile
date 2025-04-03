@@ -4,7 +4,6 @@ BUILD_DIR := ../../build/services/${SERVICE}
 LOCAL_DIR := ../../services/${SERVICE}
 S3_BUCKET := ${REPO_NAME}-$(ENVIRNOMENT)-artefacts-bucket
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
-FUNCTION :=  functions/search_function.py
 
 
 # ==============================================================================
