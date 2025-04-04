@@ -18,8 +18,8 @@ build:
 	poetry build -o $(BUILD_DIR) -f wheel
 
 lint:
-	ruff check
-	ruff format --check
+	poetry run ruff check
+	poetry run ruff format --check
 
 unit-test:
 	poetry run pytest
