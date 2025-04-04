@@ -25,9 +25,7 @@ jobs:
   deploy-account-infrastructure-plan:
     name: "Plan account level infrastructure deployment"
     needs:
-      [
-        metadata,
-      ]
+      - metadata
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -42,10 +40,8 @@ jobs:
     name: "Manual approval for account level infrastructure deployment"
     if: ${{ needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' }}
     needs:
-      [
-        metadata,
-        deploy-account-infrastructure-plan,
-      ]
+      - metadata
+      - deploy-account-infrastructure-plan
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
@@ -55,10 +51,8 @@ jobs:
   deploy-account-infrastructure-apply:
     name: "Deploy account level infrastructure"
     needs:
-      [
-        metadata,
-        manual-approval,
-      ]
+      - metadata
+      - manual-approval
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
