@@ -1,19 +1,10 @@
 module "dynamodb_tables" {
   source     = "../../modules/dynamodb"
-  for_each   = toset(var.dynamodb_table_names)
+  for_each   = var.dynamodb_tables
   table_name = "${local.prefix}-${each.key}${local.workspace_suffix}"
 
-  hash_key  = "id"
-  range_key = "field"
+  hash_key  = each.value.hash_key
+  range_key = each.value.range_key
 
-  attributes = [
-    {
-      name = "id"
-      type = "S"
-    },
-    {
-      name = "field"
-      type = "S"
-    }
-  ]
+  attributes = each.value.attributes
 }

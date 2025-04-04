@@ -1,4 +1,11 @@
-variable "dynamodb_table_names" {
-  description = "List of DynamoDB table names"
-  type        = list(string)
+variable "dynamodb_tables" {
+  description = "List of DynamoDB tables"
+  type = map(object({
+    hash_key  = string
+    range_key = string
+    attributes = list(object({
+      name = string
+      type = string
+    }))
+  }))
 }
