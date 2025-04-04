@@ -13,11 +13,15 @@ class Config:
             self.config = yaml.safe_load(file)
 
         # Ensure 'environments' key exists
-        env = self.config.get("environment")
-        if not env or env not in self.config.get("environments", {}):
-            raise ValueError(f"Invalid environment: {env}")
+        self.env = self.config.get("environment")
+        if not self.env or self.env not in self.config.get("environments", {}):
+            raise ValueError(f"Invalid environment: {self.env}")
 
-        self.env_config = self.config["environments"][env]
+        self.env_config = self.config["environments"][self.env]
+
+    def get_environment(self):
+        """Get a environment value."""
+        return self.env
 
     def get(self, key):
         """Get a configuration value for the selected environment."""

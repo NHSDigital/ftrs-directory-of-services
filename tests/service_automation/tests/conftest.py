@@ -1,5 +1,6 @@
 import pytest
 import os
+from config import config
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
 from pages.ui_pages.search import UserTestLoginPage
@@ -58,15 +59,22 @@ def _get_env_var(varname: str) -> str:
     assert value, f'{varname} is not set'
     return value
 
-
 @pytest.fixture(scope='session')
 def workspace() -> str:
-    if _get_env_var('WORKSPACE') != "default":
-        workspace = _get_env_var('WORKSPACE')
+    if config.get("workspace") != "default":
+        workspace = config.get("workspace")
     else:
         workspace = ""
     return workspace
 
+
 @pytest.fixture(scope='session')
 def env() -> str:
-    return _get_env_var('ENV')
+    env = config.get_environment()
+    return env
+
+
+@pytest.fixture(scope='session')
+def project() -> str:
+    project = config.get("project")
+    return project
