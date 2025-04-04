@@ -2,7 +2,7 @@ PACKAGE ?= python
 BUILD_DIR := ../../../build/packages/$(PACKAGE)
 S3_BUCKET := ${REPO_NAME}-$(ENVIRNOMENT)-artefacts-bucket
 PACKAGE_VERSION := $(shell poetry version -s)
-WHEEL_NAME := ftrs_python_packages-$(POETRY_VERSION)-py3-none-any.whl
+WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)

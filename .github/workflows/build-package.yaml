@@ -1,4 +1,4 @@
-name: Build service workflow
+name: Build package workflow
 
 on:
   workflow_call:
@@ -33,7 +33,7 @@ on:
           type: string
 
 jobs:
-  build-service:
+  build-package:
     name: "Build package - ${{ inputs.package_name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
