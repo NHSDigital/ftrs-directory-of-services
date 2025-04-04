@@ -26,6 +26,12 @@ if [ -z "$TEST_TAG" ] ; then
   EXPORTS_SET=1
 fi
 
+if [ -z "$TEST_TYPE" ] ; then
+  echo Set TEST_TYPE
+  EXPORTS_SET=1
+fi
+
+
 if [ $EXPORTS_SET = 1 ] ; then
   echo One or more exports not set
   exit 1
@@ -34,9 +40,20 @@ fi
 echo "Installing requirements"
 pip install -r "$APPLICATION_TEST_DIR"/requirements.txt
 
-echo "Now running $TEST_TAG automated tests under $APPLICATION_TEST_DIR for workspace $WORKSPACE and environment $ENVIRONMENT"
+echo "----------------------------------------------------------------------------------------------------------------------------------------------------"
+echo "Now running $TEST_TAG automated tests under $APPLICATION_TEST_DIR for workspace $WORKSPACE and environment $ENVIRONMENT and tests of type $TEST_TYPE"
+
 cd "$APPLICATION_TEST_DIR" || exit
-pytest -s -m "$TEST_TAG"
+
+if [ $TEST_TYPE = "ui" ] ; then
+  pytest -s -m "$TEST_TAG" -p allure_pytest_bdd --alluredir=allure-results
+fi
+
+
+if [ $TEST_TYPE != "ui" ] ; then
+  pytest -s -m "$TEST_TAG" -p allure_pytest --alluredir=ui-allure-results
+fi
+
 
 TEST_RESULTS=$?
 

@@ -114,25 +114,61 @@ source venv/bin/activate   # On macOS/Linux
 venv\Scripts\activate      # On Windows
 ```
 
-## Running Tests
+## Allure reports
 
-To run the tests and save the report results to a folder called allure-results
+There are 2 different libraries used for the different test types:
+allure-pytest
+allure-pytest-bdd
+
+To ensure that the correct report is generated the report type needs to be passed at runtime
+The results from both report types can be combined and a single report generated if required
+
+# allure-pytest
+
+This generates a report based on the step definition file and will generate for all the tests
+
+# allure-pytest
+
+This generates a report based on the feature files and will only generate for these tests
+
+## Running Feature File BDD Tests
+
+To run the tests, save the report results to a folder called allure-results and then generate the report in the allure-reports folder
 ```
-pytest
+pytest -p allure_pytest --alluredir=ui-allure-results
 allure generate --single-file -c -o allure-reports allure-results
 ```
 Run specific feature tests:
 ```
-pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py
+pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py -p allure_pytest --alluredir=ui-allure-results
 ```
 Run specific tagged tests, for example @is-api:
 ```
-pytest -m "is-api"
+pytest -m "is-api"  -p allure_pytest --alluredir=ui-allure-results
 ```
 To generate a single page report in the folder allure-report
 ```
 allure generate --single-file -c -o allure-reports allure-results
 ```
+
+## Running Playwright UI Tests
+
+To run the tests, save the report results to a folder called allure-results and then generate the report in the allure-reports folder
+```
+pytest -p allure_pytest --alluredir=ui-allure-results
+allure generate --single-file -c -o allure-reports allure-results
+```
+Run specific feature tests:
+```
+pytest tests/step_definitions/ui_steps/test_ui_search.py  -p allure_pytest --alluredir=ui-allure-results
+```
+Run specific tagged tests, for example @is-api:
+```
+pytest -m "ui"  -p allure_pytest --alluredir=ui-allure-results
+```
+To generate a single page report in the folder allure-report
+```
+allure generate --single-file -c -o allure-reports allure-results
 
 ## Using the Variables Locally
 
@@ -146,8 +182,6 @@ The workspace is defined as
 workspace = default when running against the main branch
 workspace = dr-xxx when running against task branch dr-xxx
 ```
-
-
 
 ## Generating Reports
 
@@ -172,7 +206,8 @@ To set these if wanting to run the service-automated-tests script locally use:
 ```
 export WORKSPACE=dosis-xxx (replacing dosis-xxx with the relevant workspace)
 export ENVIRONMENT=dev
-export TEST_TAG=is-pipeline (replacing s-pipeline with the relevant tag)
+export TEST_TAG=is-pipeline (replacing is-pipeline with the relevant tag)
+export TEST_TYPE=api (replace with ui if want to run the playwright ui tests)
 ```
 
 
