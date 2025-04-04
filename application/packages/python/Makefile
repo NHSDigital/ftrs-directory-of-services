@@ -28,3 +28,5 @@ unit-test:
 publish:
 	aws s3 cp $(BUILD_DIR)/$(WHEEL_NAME) s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(WHEEL_NAME) --region $(AWS_REGION)
 
+test:
+	poetry run pytest --cov
