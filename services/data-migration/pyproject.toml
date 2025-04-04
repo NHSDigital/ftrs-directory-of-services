@@ -11,6 +11,9 @@ dependencies = [
     "sqlalchemy (>=2.0.38,<3.0.0)",
     "psycopg2 (>=2.9.10,<3.0.0)",
     "pydantic (>=2.10.6,<3.0.0)",
+    "pandas (>=2.2.2)",
+    "pyarrow (>=17.0.0)",
+    "boto3 (>=1.37.21,<2.0.0)",
 ]
 
 [build-system]
