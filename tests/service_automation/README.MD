@@ -136,20 +136,18 @@ allure generate --single-file -c -o allure-reports allure-results
 
 ## Using the Variables Locally
 
-The pipeline script will define the workspace based on the branch name. If the branch has not been pushed and the dev pipeline successfully deployed the app then the script will fail as they will not be any infrastructure
+The config file of the framework contains the variables that are required to be set when running locally.
+
+If the branch has not been pushed and the dev pipeline successfully deployed the app then the script will fail as there will not be any infrastructure built that relates to the branch
+
+The workspace is defined as
 
 ```
-workspace  = default when running against the main branch
+workspace = default when running against the main branch
 workspace = dr-xxx when running against task branch dr-xxx
 ```
 
-Project and Service-name should be set in the config file of the framework
 
-Set environment variables that are derived in the pipeline
-```
-export WORKSPACE=dr-999  (where dr-999 is the branch name)
-export ENV=dev
-```
 
 ## Generating Reports
 
@@ -165,8 +163,17 @@ To integrate with CI/CD pipelines, use:
 ```
 /bin/bash ./scripts/workflow/service-automated-tests.sh
 ```
-This script expects the variables ENV, WORKSPACE, TEST_TAG to be set if running locally.
+
+This script expects the variables ENVIRONMENT, WORKSPACE, TEST_TAG to be set if running locally. These variables as set in the pipeline and passed through to the script.
 TEST_TAG is the tag used to identify the tests that should be run, for example is-pipeline
+
+To set these if wanting to run the service-automated-tests script locally use:
+
+```
+export WORKSPACE=dosis-xxx (replacing dosis-xxx with the relevant workspace)
+export ENVIRONMENT=dev
+export TEST_TAG=is-pipeline (replacing s-pipeline with the relevant tag)
+```
 
 
 ## Troubleshooting
