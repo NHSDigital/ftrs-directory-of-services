@@ -32,9 +32,9 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
-        uses: ./.github/actions/checkout-repository
+        uses: actions/checkout@v4
         with:
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
