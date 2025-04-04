@@ -12,7 +12,6 @@ dependencies = [
 [tool.poetry]
 packages = [
   { include = "ftrs_data_layer", from = "." },
-  { include = "ftrs_common", from = "." },
 ]
 
 
@@ -31,7 +30,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-vv --cov=. --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = "-v --cov=. --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["**/ftrs_data_layer/tests/"]
 
 [tool.coverage.run]
