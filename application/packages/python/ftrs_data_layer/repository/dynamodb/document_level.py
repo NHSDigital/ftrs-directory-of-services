@@ -58,6 +58,9 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         )
 
     def _serialise_item(self, item: ModelType) -> dict:
+        """
+        Prepare the item for DynamoDB in a document-level format.
+        """
         return {
             "id": str(item.id),
             "field": "document",
