@@ -1,26 +1,32 @@
-name: Test Truncate Workflow History
+name: Truncate Workflow History
 
 on:
   # Run daily, at 01:00.
   schedule:
     - cron: '0 1 * * *'
+  workflow_dispatch:
 
 jobs:
-  test_delete_past_runs:
+  delete_past_runs:
     name: "Truncate github workflow run history"
     permissions:
       actions: write
       id-token: write
       contents: read
-    uses: ./.github/workflows/truncate-workflow-history.yaml
-    with:
-      domain: "uec-dos-management"
-    secrets: inherit
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Delete workflow runs"
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: "${{ github.token }}"
+          repository: "${{ github.repository }}"
+          retain_days: 5
+          keep_minimum_runs: 5
 
   slack-notifications:
-    needs: [
-      test_delete_past_runs,
-    ]
+    needs:
+      - delete_past_runs
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
