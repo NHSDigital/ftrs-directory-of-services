@@ -4,9 +4,6 @@ on:
   # Run daily, at 01:00.
   schedule:
     - cron: '0 1 * * *'
-  push:
-    branches:
-      - 'task/FDOS*'
 
 jobs:
   delete_past_runs:
