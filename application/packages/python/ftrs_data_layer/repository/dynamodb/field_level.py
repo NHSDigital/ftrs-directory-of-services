@@ -8,6 +8,9 @@ from ftrs_data_layer.repository.dynamodb.repository import (
 
 class FieldLevelRepository(DynamoDBRepository[ModelType]):
     def create(self, obj: ModelType) -> None:
+        """
+        Create a new document in DynamoDB.
+        """
         self._batch_write(put_items=self._serialise_item(obj))
 
     def get(self, obj_id: str | UUID) -> ModelType | None:
@@ -53,8 +56,7 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
 
     def _serialise_item(self, item: ModelType) -> list[dict]:
         """
-        Prepare the item for DynamoDB.
-        Can be extended to add custom index or serialisation logic by child classes.
+        Prepare the item for DynamoDB in a field-level format.
         """
         item_dict = item.model_dump(mode="json")
         item_id = item_dict.pop("id")
@@ -67,8 +69,7 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
 
     def _parse_item(self, item: list[dict]) -> ModelType:
         """
-        Prepare the item for DynamoDB.
-        Can be extended to add custom index or serialisation logic by child classes.
+        Parse the field-level items from DynamoDB into the model format.
         """
         item_dict = {
             "id": item[0]["id"],
