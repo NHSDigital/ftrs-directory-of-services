@@ -22,10 +22,6 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
   to_port                      = var.rds_port
 }
 
-resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" {
-  for_each = {
-    extract_lambda = aws_security_group.extract_lambda_security_group.id
-  }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" {
   for_each = {
