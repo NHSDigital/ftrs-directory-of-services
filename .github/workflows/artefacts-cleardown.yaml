@@ -23,7 +23,7 @@ on:
 
 jobs:
   cleardown-artefacts:
-    name: "Cleardown Redundant artefacts"
+    name: "Cleardown redundant artefacts"
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
