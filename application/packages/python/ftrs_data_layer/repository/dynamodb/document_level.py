@@ -20,7 +20,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         self._put_item(
             obj,
-            ConditionExpression="attribute_not_exists(id)",
+            ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(version)",
         )
 
     def get(self, id: str | UUID) -> ModelType | None:
@@ -58,9 +58,6 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         )
 
     def _serialise_item(self, item: ModelType) -> dict:
-        """
-        Prepare the item for DynamoDB in a document-level format.
-        """
         return {
             "id": str(item.id),
             "field": "document",
