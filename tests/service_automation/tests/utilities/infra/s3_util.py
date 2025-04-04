@@ -12,7 +12,7 @@ class S3Utils:
             self.s3_client = session.client("s3")
 
         except (NoCredentialsError, PartialCredentialsError):
-            logger.debug("Error: AWS credentials not found.")
+            logger.error("Error: AWS credentials not found.")
             raise
 
     def list_buckets(self):
@@ -21,7 +21,7 @@ class S3Utils:
             response = self.s3_client.list_buckets()
             return [bucket["Name"] for bucket in response["Buckets"]]
         except Exception:
-            logger.debug("Error fetching bucket list")
+            logger.error("Error fetching bucket list")
             return []
 
     def check_bucket_exists(self, bucket_name):
@@ -33,6 +33,6 @@ class S3Utils:
             self.s3_client.head_bucket(Bucket=bucket_name)
             exists = True
         except Exception:
-            logger.debug("Error: bucket not found")
+            logger.error("Error: bucket not found")
             exists = False
         return exists

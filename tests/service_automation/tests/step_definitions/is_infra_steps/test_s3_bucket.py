@@ -1,7 +1,6 @@
 import pytest
 import subprocess
 from pytest_bdd import scenarios, given, when, then, parsers
-from config import config
 from loguru import logger
 from utilities.infra.s3_util import S3Utils
 
@@ -28,8 +27,7 @@ def check_aws_access():
 
 
 @then(parsers.parse('The S3 bucket "{bucket}" exists'))
-def confirm_s3_bucket_exists(bucket, aws_s3_client, workspace, env):
-    project = config.get("project")
+def confirm_s3_bucket_exists(project, bucket, aws_s3_client, workspace, env):
     logger.info(f"project: {project}, bucket: {bucket}, env: {env}, workspace: {workspace}")
     if workspace=="":
         bucket_name = project + "-" + bucket + "-" + env
