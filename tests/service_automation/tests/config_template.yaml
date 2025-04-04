@@ -1,16 +1,20 @@
+environment: "dev"
 
 environments:
   dev:
+    project:
     base_url:
     api_key:
     search_engine_id:
 
   nonprod:
+    project:
     base_url:
     api_key:
     search_engine_id:
 
   prod:
+    project:
     base_url:
     api_key:
     search_engine_id:
