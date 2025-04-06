@@ -198,19 +198,6 @@ TEST_TYPE identifies the type of Allure report to generate
 ```
 ui or feature
 ```
-Sample list of exports
-```
-export ENVIRONMENT=dev
-export WORKSPACE=default
-export TEST_TYPE=feature
-export TEST_TAG=is-pipeline
-
-export ENVIRONMENT=dev
-export WORKSPACE=default
-export TEST_TYPE=ui
-export TEST_TAG=ui
-
-```
 
 To set these if wanting to run the service-automated-tests script locally use:
 
