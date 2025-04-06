@@ -3,7 +3,7 @@ import json
 from loguru import logger
 from pytest_bdd import given, when, then, scenarios
 from playwright.sync_api import sync_playwright
-from config import config  # Ensure Config is correctly imported
+from utilities.common.config import config
 
 # Load feature file
 scenarios("./is_api_features/test_api_google_search.feature")

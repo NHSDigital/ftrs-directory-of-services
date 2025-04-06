@@ -11,26 +11,18 @@ This is an Service Test Automation Framework using pytest-bdd and Playwright for
     ├── tests
     │   ├── features
     |   |   ├── is_api_features
-    │   |   |    └── test_api.feature
     |   |   ├── is_infra_features
-    │   |   |    └── test_s3_bucket.feature
     │   ├── pages
     |   |   ├── ui_pages
-    │   |   |     └── search.py
     │   ├── step_definitions
     |   |   ├── is_api_steps
-    │   │   |     └──test_api.py
     |   |   ├── is_infra_steps
-    │   │   |     └── test_s3_bucket.py
-        |   ├── ui_steps
-    │   │   |     └── test_ui_search.py
+    |   |   ├── ui_steps
     │   ├── utilities
-    │   ├── config.py
-    │   ├── conftest.py
-    │   └── report.html
+    |   |   ├── common
+    |   |   ├── infra
     ├── README.MD
     ├── pytest.ini
-    └── report.html
 
 ```
 
@@ -63,7 +55,7 @@ brew install awscli  # macOS
 sudo apt install awscli  # Linux
 ```
 
-install allure to generate report
+Install allure to generate report
 ```
 brew install allure
 ```
@@ -88,18 +80,25 @@ Linux/macOS: ~/.aws/credentials and ~/.aws/config
 Windows: C:\Users\USERNAME\.aws\credentials and C:\Users\USERNAME\.aws\config
 ```
 
-change aws config file with values listed in Service Teams - Set up SSO for AWS confluence page. Also use Dos developer profile from your aws console for your CLI connection.
+Change aws config file with values listed in Service Teams - Set up SSO for AWS confluence page. Also use Dos developer profile from your aws console for your CLI connection.
 
 ### Service Test Configuration
 
-Make a copy of config_template.yaml and name it config.yaml, and update it with API details as explained below:
+Make a copy of config_template.yaml and name it config.yaml, and update it with details as explained below:
 ```
 project: "aws project name"
+workspace: "workspace"
+```
+
+The workspace is defined as
+```
+workspace = default when running against the main branch
+workspace = dr-xxx when running against task branch dr-xxx
 ```
 
 ### API Test Configuration
 
-Make a copy of config-template.yaml and name it config.yaml, and update it with API details as explained below:
+Update config.yaml with API details as explained below:
 ```
 base_url: "https://www.googleapis.com/customsearch/v1"
 api_key: "YOUR_GOOGLE_API_KEY"
@@ -117,34 +116,34 @@ venv\Scripts\activate      # On Windows
 ## Allure reports
 
 There are 2 different libraries used for the different test types:
-allure-pytest
-allure-pytest-bdd
+- allure-pytest
+- allure-pytest-bdd
 
 To ensure that the correct report is generated the report type needs to be passed at runtime
-The results from both report types can be combined and a single report generated if required
+If generated in separate folders, the results from both report types can be combined and a single report generated if required
 
-# allure-pytest
+### allure-pytest
 
-This generates a report based on the step definition file and will generate for all the tests
+Generates a report based on the step definition file and will generate for all the tests
 
-# allure-pytest
+### allure-pytest
 
-This generates a report based on the feature files and will only generate for these tests
+Generates a report based on the feature files and will only generate for these tests
 
 ## Running Feature File BDD Tests
 
 To run the tests, save the report results to a folder called allure-results and then generate the report in the allure-reports folder
 ```
-pytest -p allure_pytest --alluredir=ui-allure-results
+pytest -p allure_pytest --alluredir=allure-results
 allure generate --single-file -c -o allure-reports allure-results
 ```
 Run specific feature tests:
 ```
-pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py -p allure_pytest --alluredir=ui-allure-results
+pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py -p allure_pytest --alluredir=allure-results
 ```
 Run specific tagged tests, for example @is-api:
 ```
-pytest -m "is-api"  -p allure_pytest --alluredir=ui-allure-results
+pytest -m "is-api"  -p allure_pytest --alluredir=allure-results
 ```
 To generate a single page report in the folder allure-report
 ```
@@ -160,15 +159,16 @@ allure generate --single-file -c -o allure-reports allure-results
 ```
 Run specific feature tests:
 ```
-pytest tests/step_definitions/ui_steps/test_ui_search.py  -p allure_pytest --alluredir=ui-allure-results
+pytest tests/step_definitions/ui_steps/test_ui_search.py  -p allure_pytest --alluredir=allure-results
 ```
-Run specific tagged tests, for example @is-api:
+Run specific tagged tests, for example @pytest.mark.ui:
 ```
-pytest -m "ui"  -p allure_pytest --alluredir=ui-allure-results
+pytest -m "ui"  -p allure_pytest --alluredir=allure-results
 ```
 To generate a single page report in the folder allure-report
 ```
 allure generate --single-file -c -o allure-reports allure-results
+```
 
 ## Using the Variables Locally
 
@@ -176,12 +176,6 @@ The config file of the framework contains the variables that are required to be 
 
 If the branch has not been pushed and the dev pipeline successfully deployed the app then the script will fail as there will not be any infrastructure built that relates to the branch
 
-The workspace is defined as
-
-```
-workspace = default when running against the main branch
-workspace = dr-xxx when running against task branch dr-xxx
-```
 
 ## Generating Reports
 
@@ -198,8 +192,25 @@ To integrate with CI/CD pipelines, use:
 /bin/bash ./scripts/workflow/service-automated-tests.sh
 ```
 
-This script expects the variables ENVIRONMENT, WORKSPACE, TEST_TAG to be set if running locally. These variables as set in the pipeline and passed through to the script.
+This script expects the variables ENVIRONMENT, WORKSPACE, TEST_TAG, TEST_TYPE to be set if running locally. These variables as set in the pipeline and passed through to the script.
 TEST_TAG is the tag used to identify the tests that should be run, for example is-pipeline
+TEST_TYPE identifies the type of Allure report to generate
+```
+ui or feature
+```
+Sample list of exports
+```
+export ENVIRONMENT=dev
+export WORKSPACE=default
+export TEST_TYPE=feature
+export TEST_TAG=is-pipeline
+
+export ENVIRONMENT=dev
+export WORKSPACE=default
+export TEST_TYPE=ui
+export TEST_TAG=ui
+
+```
 
 To set these if wanting to run the service-automated-tests script locally use:
 

@@ -1,6 +1,6 @@
 import pytest
 import os
-from config import config
+from utilities.common.config import config
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
 from pages.ui_pages.search import UserTestLoginPage
