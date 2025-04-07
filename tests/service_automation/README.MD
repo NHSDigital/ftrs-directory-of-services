@@ -134,16 +134,16 @@ Generates a report based on the feature files and will only generate for these t
 
 To run the tests, save the report results to a folder called allure-results and then generate the report in the allure-reports folder
 ```
-pytest -p allure_pytest --alluredir=allure-results
+pytest -p allure_pytest_bdd --alluredir=allure-results
 allure generate --single-file -c -o allure-reports allure-results
 ```
 Run specific feature tests:
 ```
-pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py -p allure_pytest --alluredir=allure-results
+pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py -p allure_pytest_bdd --alluredir=allure-results
 ```
 Run specific tagged tests, for example @is-api:
 ```
-pytest -m "is-api"  -p allure_pytest --alluredir=allure-results
+pytest -m "is-api"  -p allure_pytest_bdd --alluredir=allure-results
 ```
 To generate a single page report in the folder allure-report
 ```
