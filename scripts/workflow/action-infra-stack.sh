@@ -142,6 +142,9 @@ terraform-initialise
 terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
+  echo "=============IMPORT==============="
+  terraform import aws_rds_cluster_instance.ftrs-dos-integrated-search-gp-search-rds-dev-2 ftrs-dos-integrated-search-gp-search-rds-dev-2
+  echo "=============END IMPORT==============="
   terraform plan -out $STACK.tfplan \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
