@@ -33,8 +33,6 @@ jobs:
 
   deploy-infrastructure-plan:
     name: "TF Plan IS level infrastructure"
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
     needs:
       [
         metadata,
