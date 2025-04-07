@@ -154,7 +154,7 @@ allure generate --single-file -c -o allure-reports allure-results
 
 To run the tests, save the report results to a folder called allure-results and then generate the report in the allure-reports folder
 ```
-pytest -p allure_pytest --alluredir=ui-allure-results
+pytest -p allure_pytest --alluredir=allure-results
 allure generate --single-file -c -o allure-reports allure-results
 ```
 Run specific feature tests:
@@ -192,7 +192,7 @@ To integrate with CI/CD pipelines, use:
 /bin/bash ./scripts/workflow/service-automated-tests.sh
 ```
 
-This script expects the variables ENVIRONMENT, WORKSPACE, TEST_TAG, TEST_TYPE to be set if running locally. These variables as set in the pipeline and passed through to the script.
+This script expects the variables ENVIRONMENT, WORKSPACE, TEST_TAG, TEST_TYPE to be set if running locally. These variables are set in the pipeline and passed through to the script.
 TEST_TAG is the tag used to identify the tests that should be run, for example is-pipeline
 TEST_TYPE identifies the type of Allure report to generate
 ```
