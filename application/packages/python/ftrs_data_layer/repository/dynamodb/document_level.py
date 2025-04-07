@@ -20,7 +20,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         self._put_item(
             obj,
-            ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(version)",
+            ConditionExpression="attribute_not_exists(id)",
         )
 
     def get(self, id: str | UUID) -> ModelType | None:
