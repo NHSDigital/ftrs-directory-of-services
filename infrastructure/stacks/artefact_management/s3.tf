@@ -16,6 +16,7 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
       identifiers = [
         "arn:aws:iam::${data.aws_caller_identity.current.id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-PowerUser_f7f1ace556f4a062",
         "${data.aws_iam_role.github_runner_iam_role.arn}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-${var.github_runner_role_name}",
       ]
     }
     actions = [
@@ -31,7 +32,9 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
       type = "AWS"
       identifiers = [
         "arn:aws:iam::${data.aws_caller_identity.current.id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-PowerUser_f7f1ace556f4a062",
-      "${data.aws_iam_role.github_runner_iam_role.arn}", ]
+        "${data.aws_iam_role.github_runner_iam_role.arn}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-${var.github_runner_role_name}",
+      ]
     }
     actions = [
       "s3:GetObject",

@@ -55,7 +55,7 @@ resource "aws_iam_role_policy_attachment" "read_only_user_iam_role_policy_attach
 }
 
 resource "aws_iam_role" "github_runner_iam_role" {
-  name               = "${var.repo_name}-${github_runner_role_name}"
+  name               = "${var.repo_name}-${var.github_runner_role_name}"
   assume_role_policy = <<EOF
     {
       "Version":"2012-10-17",
