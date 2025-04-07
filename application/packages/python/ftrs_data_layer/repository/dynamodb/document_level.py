@@ -16,7 +16,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         self._put_item(
             obj,
-            ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(version)",
+            ConditionExpression="attribute_not_exists(id)",
         )
 
     def get(self, id: str) -> ModelType | None:
@@ -25,7 +25,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         response = self.table.get_item(
             Key={"id": id},
-            ProjectionExpression="id, version, value",
+            ProjectionExpression="id, value",
             ReturnConsumedCapacity="INDEXES",
         )
         item = response.get("Item")
@@ -57,7 +57,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         Prepare the item for DynamoDB in a document-level format.
         """
         return {
-            "id": item.id,
+            "id": str(item.id),
             "value": item.model_dump(mode="json"),
         }
 
