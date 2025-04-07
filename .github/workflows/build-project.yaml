@@ -64,6 +64,13 @@ jobs:
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@v3.0.2
 
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          multi_domain: false
+
       - name: "Get directories"
         id: get-directories
         run: |
@@ -100,13 +107,6 @@ jobs:
           APPLICATION_TAG: ${{ inputs.application_tag }}
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
-
-      - name: "Configure AWS Credentials"
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: false
 
       - name: "Publish artefacts to S3"
         run: make publish
