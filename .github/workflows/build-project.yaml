@@ -37,33 +37,10 @@ on:
           type: string
 
 jobs:
-  get-working-directory:
-    name: "Get working directory"
-    runs-on: ubuntu-latest
-    outputs:
-      working_directory: ${{ steps.get-working-directory.outputs.working_directory }}
-      build_directory: ${{ steps.get-working-directory.outputs.build_directory }}
-    steps:
-      - name: "Get working directory"
-        id: get-working-directory
-        run: |
-          if [[ "${{ inputs.build_type }}" == "service" ]]; then
-            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
-            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          else
-            echo "Invalid build type: ${{ inputs.build_type }}"
-            exit 1
-          fi
-
   build-project:
     name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    needs:
-      - get-working-directory
     permissions:
       id-token: write
       contents: read
@@ -87,21 +64,35 @@ jobs:
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@v3.0.2
 
+      - name: "Get directories"
+        id: get-directories
+        run: |
+          if [[ "${{ inputs.build_type }}" == "service" ]]; then
+            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
+            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid build type: ${{ inputs.build_type }}"
+            exit 1
+          fi
+
       - name: "Install project"
         run: make install
-        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Run linting"
         run: make lint
-        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Run unit tests"
         run: make unit-test
-        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Build project"
         run:  make build
-        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
@@ -162,7 +153,7 @@ jobs:
 
       - name: "Publish artefacts to S3"
         run: make publish
-        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
@@ -176,5 +167,5 @@ jobs:
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
-          path: ${{ needs.get-working-directory.outputs.build_directory }}
+          path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
