@@ -105,7 +105,7 @@ jobs:
           PACKAGE: ${{ inputs.name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
-          ENVIRONMENT: ${{ inputs.environment }}
+          # ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
 
       - name: "Publish artefacts to S3"
@@ -115,7 +115,6 @@ jobs:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
-          ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
