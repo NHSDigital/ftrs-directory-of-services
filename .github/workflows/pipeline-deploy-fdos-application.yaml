@@ -45,9 +45,10 @@ jobs:
     needs:
       - metadata
       - quality-checks
-    uses: ./.github/workflows/build-package.yaml
+    uses: ./.github/workflows/build-project.yaml
     with:
-      package_name: "python"
+      name: "python"
+      build_type: "package"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.mgmt_environment }}

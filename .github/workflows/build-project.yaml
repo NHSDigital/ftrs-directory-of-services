@@ -37,10 +37,33 @@ on:
           type: string
 
 jobs:
+  get-working-directory:
+    name: "Get working directory"
+    runs-on: ubuntu-latest
+    outputs:
+      working_directory: ${{ steps.get-working-directory.outputs.working_directory }}
+      build_directory: ${{ steps.get-working-directory.outputs.build_directory }}
+    steps:
+      - name: "Get working directory"
+        id: get-working-directory
+        run: |
+          if [[ "${{ inputs.build_type }}" == "service" ]]; then
+            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/service/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
+            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/package/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid build type: ${{ inputs.build_type }}"
+            exit 1
+          fi
+
   build-project:
     name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    needs:
+      - get-working-directory
     permissions:
       id-token: write
       contents: read
@@ -63,6 +86,29 @@ jobs:
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@v3.0.2
+
+      - name: "Install project"
+        run: make install
+        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+
+      - name: "Run linting"
+        run: make lint
+        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+
+      - name: "Run unit tests"
+        run: make unit-test
+        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+
+      - name: "Build project"
+        run:  make build
+        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
+        env:
+          SERVICE: ${{ inputs.name }}
+          PACKAGE: ${{ inputs.name }}
+          PYTHON_VERSION: ${{ inputs.python_version }}
+          APPLICATION_TAG: ${{ inputs.application_tag }}
+          ENVIRNOMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
@@ -116,12 +162,12 @@ jobs:
 
       - name: "Publish artefacts to S3"
         run: make publish
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        working-directory: ${{ needs.get-working-directory.outputs.working_directory }}
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
-          ENVIRONMENT: ${{ inputs.environment }}
+          ENVIRNOMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
@@ -130,5 +176,5 @@ jobs:
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
-          path: ${{ steps.get-directories.outputs.build_directory }}
+          path: ${{ needs.get-working-directory.outputs.build_directory }}
           if-no-files-found: error
