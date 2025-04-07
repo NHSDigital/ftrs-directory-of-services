@@ -63,7 +63,7 @@ jobs:
       id-token: write
       contents: read
     #timeout-minutes: ${{ inputs.workflow_timeout }}
-    timeout-minutes: 30
+    timeout-minutes: 120
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
