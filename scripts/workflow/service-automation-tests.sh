@@ -46,12 +46,12 @@ echo "Now running $TEST_TAG automated tests under $APPLICATION_TEST_DIR for work
 cd "$APPLICATION_TEST_DIR" || exit
 
 if [ $TEST_TYPE = "ui" ] ; then
-  pytest -s -m "$TEST_TAG" -p allure_pytest_bdd --alluredir=allure-results
+  pytest -s -m "$TEST_TAG" -p allure_pytest --alluredir=allure-results
 fi
 
 
 if [ $TEST_TYPE != "ui" ] ; then
-  pytest -s -m "$TEST_TAG" -p allure_pytest --alluredir=ui-allure-results
+  pytest -s -m "$TEST_TAG" -p allure_pytest_bdd --alluredir=allure-results
 fi
 
 

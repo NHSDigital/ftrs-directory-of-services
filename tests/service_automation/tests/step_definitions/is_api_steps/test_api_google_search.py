@@ -2,7 +2,6 @@ import pytest
 import json
 from loguru import logger
 from pytest_bdd import given, when, then, scenarios
-from playwright.sync_api import sync_playwright
 from utilities.common.config import config
 
 # Load feature file
