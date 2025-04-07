@@ -1,6 +1,6 @@
 PACKAGE ?= python
 BUILD_DIR := ../../../build/packages/$(PACKAGE)
-S3_BUCKET := ${REPO_NAME}-$(ENVIRNOMENT)-artefacts-bucket
+S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 PACKAGE_VERSION := $(shell poetry version -s)
 WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
 

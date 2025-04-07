@@ -24,6 +24,7 @@ install: install-dependencies
 install-dependencies:
 	asdf install
 	poetry install
+	poetry self add poetry-plugin-export
 
 lint:
 	poetry run ruff check
