@@ -1,14 +1,14 @@
-# resource "random_pet" "rds_username" {
-#   length    = 2
-#   separator = "_"
-# }
+resource "random_pet" "rds_username" {
+  length    = 2
+  separator = "_"
+}
 
-# resource "random_password" "rds_password" {
-#   length  = 16
-#   special = false
-#   upper   = true
-#   lower   = true
-# }
+resource "random_password" "rds_password" {
+  length  = 16
+  special = false
+  upper   = true
+  lower   = true
+}
 
 # module "gp_search_rds" {
 #   source                       = "../../modules/rds"
