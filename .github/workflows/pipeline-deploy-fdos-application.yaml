@@ -44,9 +44,10 @@ jobs:
     needs:
       - metadata
       - quality-checks
-    uses: ./.github/workflows/build-package.yaml
+    uses: ./.github/workflows/build-project.yaml
     with:
-      package_name: "python"
+      name: "python"
+      build_type: "package"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
@@ -60,9 +61,10 @@ jobs:
     needs:
       - metadata
       - quality-checks
-    uses: ./.github/workflows/build-service.yaml
+    uses: ./.github/workflows/build-project.yaml
     with:
-      service_name: "data-migration"
+      name: "data-migration"
+      build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
