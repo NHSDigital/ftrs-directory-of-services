@@ -53,3 +53,10 @@ variable "artefacts_bucket_name" {
   description = "Artefacts S3 bucket name"
   type        = string
 }
+
+variable "github_runner_role_name" {
+  description = "GitHub runner IAM role name"
+  type        = string
+  default     = "github-runner"
+
+}

@@ -55,7 +55,7 @@ resource "aws_iam_role_policy_attachment" "read_only_user_iam_role_policy_attach
 }
 
 resource "aws_iam_role" "github_runner_iam_role" {
-  name               = "${var.repo_name}-github-runner"
+  name               = "${var.repo_name}-${github_runner_role_name}"
   assume_role_policy = <<EOF
     {
       "Version":"2012-10-17",
@@ -79,6 +79,7 @@ resource "aws_iam_role" "github_runner_iam_role" {
 }
 
 # post creation
+# TODO review permissions generally to remove power user and replace with least privilege
 # resource "aws_iam_policy" "access_policy_s3" {
 #   name        = "${var.repo_name}-github-runner-s3-access"
 #   description = "Policies to access artefact bucket in mgmt account"
