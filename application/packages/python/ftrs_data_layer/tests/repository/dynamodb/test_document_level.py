@@ -37,7 +37,7 @@ def test_doc_create() -> None:
     repo.create(obj)
     repo.table.put_item.assert_called_once_with(
         Item={"id": "1", "value": {"id": "1", "name": "Test"}},
-        ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(version)",
+        ConditionExpression="attribute_not_exists(id)",
         ReturnConsumedCapacity="INDEXES",
     )
 
@@ -63,7 +63,7 @@ def test_doc_get() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1"},
-        ProjectionExpression="id, version, value",
+        ProjectionExpression="id, value",
         ReturnConsumedCapacity="INDEXES",
     )
 
@@ -86,7 +86,7 @@ def test_doc_get_no_result() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1"},
-        ProjectionExpression="id, version, value",
+        ProjectionExpression="id, value",
         ReturnConsumedCapacity="INDEXES",
     )
 
