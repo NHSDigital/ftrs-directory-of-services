@@ -25,6 +25,7 @@ module "cluster" {
   vpc_security_group_ids = [aws_security_group.rds_security_group.id]
   master_username        = var.master_username
   master_password        = var.master_password
+  skip_final_snapshot    = var.skip_final_snapshot
   security_group_rules = {
     ex1_ingress = {
       cidr_blocks = var.rds_ingress_cidr

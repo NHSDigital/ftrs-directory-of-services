@@ -15,3 +15,4 @@ rds_instance_class  = "db.serverless"
 rds_ingress_cidr    = ["10.20.0.0/20"]
 rds_min_capacity    = 1
 rds_max_capacity    = 1
+skip_final_snapshot = true

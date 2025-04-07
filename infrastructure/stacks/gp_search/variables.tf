@@ -45,3 +45,9 @@ variable "rds_max_capacity" {
   description = "Serverless RDS Scalability max capacity"
   type        = number
 }
+
+variable "skip_final_snapshot" {
+  description = "Determines whether a final snapshot is created before the cluster is deleted."
+  type        = bool
+  default     = false
+}

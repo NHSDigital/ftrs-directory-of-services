@@ -128,4 +128,8 @@ variable "rds_max_capacity" {
   type        = number
   default     = 1
 }
-
+variable "skip_final_snapshot" {
+  description = "Determines whether a final snapshot is created before the cluster is deleted."
+  type        = bool
+  default     = false
+}
