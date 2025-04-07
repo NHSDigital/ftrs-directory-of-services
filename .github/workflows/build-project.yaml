@@ -49,10 +49,10 @@ jobs:
         run: |
           if [[ "${{ inputs.build_type }}" == "service" ]]; then
             echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/service/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
           elif [[ "${{ inputs.build_type }}" == "package" ]]; then
             echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/package/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
           else
             echo "Invalid build type: ${{ inputs.build_type }}"
             exit 1
