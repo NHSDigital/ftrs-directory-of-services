@@ -2,16 +2,12 @@ SERVICE ?= gp-search
 PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
 LOCAL_DIR := ../../services/${SERVICE}
-FUNC_DIR := functions/gp_search_function.py
+FUNC_DIR := functions/$(FUNCTION_NAME)
 S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 FUNCTION_NAME := gp_search_function.py
 
-
-
 # ==============================================================================
-
-# Example CI/CD targets are: dependencies, build, publish, deploy, clean, etc.
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
