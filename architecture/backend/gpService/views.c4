@@ -1,0 +1,12 @@
+views {
+
+  view of ftrs.gpAPI {
+    title "Container diagram for FtRS GP API"
+    description '
+      A model showing the containers for FtRS GP API
+      and their relationships to other systems
+    '
+    include *
+    autoLayout LeftRight 70 77
+  }
+}

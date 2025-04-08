@@ -1,0 +1,12 @@
+specification {
+  element actor {
+    style {
+      shape person
+    }
+  }
+  element system
+  element container
+  element controller
+  element component
+  element restapi
+}

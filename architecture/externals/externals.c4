@@ -1,0 +1,75 @@
+model {
+  dosLead = actor "DoS Admin" {
+    description "DoS Lead, DoS Dev Team or CM Admin"
+    style {
+      color muted
+    }
+  }
+
+  apim = system "NHSE API Management" {
+    description "API Management Function"
+    style {
+      icon gcp:apigee-api-platform
+      color muted
+    }
+  }
+
+  cis2 = system "CIS2" {
+    description "Identity and Authorisation"
+    style {
+      color muted
+    }
+  }
+
+  ps1 = system "Provider System" {
+    description '
+      External software system
+      Includes 111 Tel, 999 Tel, 111 Online, S&R
+    '
+    style {
+      color muted
+    }
+  }
+
+  ps2 = system "Provider System" {
+    description '
+      Non-Pathways provider systems
+      i.e. MiDoS or GP Systems and Service Finder
+    '
+    style {
+      color muted
+    }
+  }
+
+  du = system "Direct updates to DoS" {
+    description '
+      Part of NHS.UK updates profiles in DoS
+    '
+    style {
+      color muted
+    }
+  }
+
+  pm = system "Profile Manager" {
+    description '
+      Part of NHS.UK updates profiles in DoS
+    '
+    style {
+      color muted
+    }
+  }
+
+  externalDataServices = system "External Data Services" {
+    description '
+      Data extracts sent to NHS.UK, IDT, Arden & Gem
+    '
+    style {
+      color muted
+    }
+  }
+
+  ps1 -> apim "Queries DoS"
+  ps2 -> apim "Queries DoS"
+  du -> apim "Updates DoS"
+  pm -> apim "Queries DoS"
+}
