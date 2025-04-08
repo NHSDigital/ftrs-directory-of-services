@@ -30,7 +30,19 @@ class MockLogger(Logger):
         """
         Store logs in a list instead of logging them.
         """
-        return lambda **kwargs: self.logs[level].append(kwargs)
+
+        def _store_log(**kwargs: dict) -> None:
+            assert level in self.logs, f"Invalid log level: {level}"
+            log_dict = {
+                "reference": kwargs.get("reference"),
+                "msg": kwargs.get("msg"),
+            }
+            if kwargs.get("detail"):
+                log_dict["detail"] = kwargs.get("detail")
+
+            self.logs[level].append(log_dict)
+
+        return _store_log
 
     def get_logs(self, level: str | None = None) -> list[dict]:
         """
@@ -77,14 +89,3 @@ class MockLogger(Logger):
         Check if a specific log reference was logged.
         """
         return bool(self.get_log(log_reference, level))
-
-
-@fixture
-def mock_logger() -> Generator[MockLogger, None, None]:
-    """
-    Fixture to provide a mock logger instance for testing.
-    """
-    with patch("ftrs_common.logger.Logger.get") as mock_get:
-        mock_logger_instance = MockLogger(service="mock_logger")
-        mock_get.return_value = mock_logger_instance
-        yield mock_logger_instance
