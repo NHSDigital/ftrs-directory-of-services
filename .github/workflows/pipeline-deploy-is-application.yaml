@@ -79,12 +79,30 @@ jobs:
       action: apply
     secrets: inherit
 
+  service-automation-tests:
+    name: Run service automation tests
+    needs:
+      [ metadata,
+        deploy-is-account-infrastructure-apply,
+      ]
+    if: always() && !cancelled() && (needs.deploy-is-account-infrastructure-apply.result == 'success' || needs.manual-approval.result == 'skipped')
+    uses: ./.github/workflows/service-automation-test.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      test_tag: "is-pipeline"
+      test_type: "api"
+    secrets: inherit
+
+
   slack-notifications:
     name: "Send Notification to Slack"
     needs: [
       metadata,
       quality-checks,
       deploy-is-account-infrastructure-apply,
+      service-automation-tests,
     ]
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
