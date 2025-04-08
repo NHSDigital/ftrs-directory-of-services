@@ -55,14 +55,14 @@ jobs:
     secrets: inherit
 
   mgmt-quality-checks:
-    name: "Quality check"
+    name: "Quality check for management specific stacks"
     needs:
       - metadata
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
       workspace: "default"
-      stacks: "['terraform_management','github_runner','artefact_management']"
+      stacks: "['artefact_management']"
     secrets: inherit
 
   mgmt-deploy-account-infrastructure-plan:
