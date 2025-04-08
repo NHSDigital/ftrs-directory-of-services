@@ -1,3 +1,6 @@
+variable "service" {
+  description = "The name of the gp search service"
+}
 variable "s3_bucket_name" {
   description = "The name of the gp search bucket"
 }
