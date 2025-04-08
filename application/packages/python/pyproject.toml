@@ -11,6 +11,7 @@ dependencies = [
 
 [tool.poetry]
 packages = [
+  { include = "ftrs_common", from = "." },
   { include = "ftrs_data_layer", from = "." },
 ]
 
@@ -33,7 +34,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-v --cov=. --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
-testpaths = ["**/ftrs_data_layer/tests/"]
 
 [tool.coverage.run]
 omit = ["*/tests/*"]
@@ -42,9 +42,13 @@ omit = ["*/tests/*"]
 line-length = 88
 indent-width = 4
 target-version = "py312"
+namespace-packages = ["ftrs_common", "ftrs_data_layer"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["ftrs_common.*", "ftrs_data_layer.*"]
 
 [tool.ruff.format]
 quote-style = "double"

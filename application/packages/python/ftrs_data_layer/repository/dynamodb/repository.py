@@ -1,12 +1,12 @@
 from typing import Any, Generator
 from uuid import UUID
 
-from mypy_boto3_dynamodb.type_defs import (
-    PutItemInputTablePutItemTypeDef,
-)
-
+from botocore.exceptions import ClientError
+from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_resource
+from ftrs_data_layer.logbase import DDBLogBase
 from ftrs_data_layer.repository.base import BaseRepository, ModelType
+from mypy_boto3_dynamodb.type_defs import PutItemInputTablePutItemTypeDef
 
 
 class DynamoDBRepository(BaseRepository[ModelType]):
@@ -20,10 +20,18 @@ class DynamoDBRepository(BaseRepository[ModelType]):
         table_name: str,
         model_cls: ModelType = None,
         endpoint_url: str | None = None,
+        logger: Logger | None = None,
     ) -> None:
-        super().__init__(model_cls)
+        super().__init__(model_cls, logger)
         self.resource = get_dynamodb_resource(endpoint_url)
         self.table = self.resource.Table(table_name)
+        self.logger.log(
+            DDBLogBase.DDB_CORE_001,
+            table_name=table_name,
+            endpoint_url=endpoint_url,
+            repository_cls=self.__class__.__name__,
+            model_cls=f"{model_cls.__module__}:{model_cls.__qualname__}",
+        )
 
     def _serialise_item(self, item: ModelType) -> dict:
         """
@@ -51,16 +59,62 @@ class DynamoDBRepository(BaseRepository[ModelType]):
             "ReturnConsumedCapacity": "INDEXES",
             **kwargs,
         }
+        self.logger.log(
+            DDBLogBase.DDB_CORE_002, request=ddb_request, table=self.table.name
+        )
 
-        return self.table.put_item(**ddb_request)
+        try:
+            result = self.table.put_item(**ddb_request)
+            self.logger.log(
+                DDBLogBase.DDB_CORE_003,
+                table=self.table.name,
+                consumed_capacity=result.get("ConsumedCapacity"),
+            )
+
+        except ClientError as client_error:
+            self.logger.log(
+                DDBLogBase.DDB_CORE_004,
+                table=self.table.name,
+                error=client_error.response["Error"],
+                request=ddb_request,
+            )
+            raise
+
+        return result
 
     def _get_item(self, **kwargs: dict) -> ModelType | None:
         """
         Gets an item from the DynamoDB table.
         """
-        response = self.table.get_item(**kwargs, ReturnConsumedCapacity="INDEXES")
+        ddb_request = {**kwargs, "ReturnConsumedCapacity": "INDEXES"}
+        self.logger.log(
+            DDBLogBase.DDB_CORE_005, request=ddb_request, table=self.table.name
+        )
+
+        try:
+            response = self.table.get_item(**ddb_request)
+            self.logger.log(
+                DDBLogBase.DDB_CORE_006,
+                table=self.table.name,
+                consumed_capacity=response.get("ConsumedCapacity"),
+            )
+
+        except ClientError as client_error:
+            self.logger.log(
+                DDBLogBase.DDB_CORE_007,
+                table=self.table.name,
+                error=client_error.response["Error"],
+                request=ddb_request,
+            )
+            raise
+
         item = response.get("Item")
         if item is None:
+            self.logger.log(
+                DDBLogBase.DDB_CORE_008,
+                table=self.table.name,
+                request=ddb_request,
+            )
             return None
 
         return self._parse_item(item)
@@ -69,13 +123,35 @@ class DynamoDBRepository(BaseRepository[ModelType]):
         """
         Queries the DynamoDB table.
         """
-        response = self.table.query(
-            KeyConditionExpression=f"{key} = :{key}",
-            ExpressionAttributeValues={f":{key}": str(value)},
-            ReturnConsumedCapacity="INDEXES",
+        ddb_request = {
+            "KeyConditionExpression": f"{key} = :{key}",
+            "ExpressionAttributeValues": {f":{key}": str(value)},
+            "ReturnConsumedCapacity": "INDEXES",
             **kwargs,
+        }
+        self.logger.log(
+            DDBLogBase.DDB_CORE_009, request=ddb_request, table=self.table.name
         )
-        items = response.get("Items", [])
+        try:
+            response = self.table.query(**ddb_request)
+            items = response.get("Items", [])
+
+            self.logger.log(
+                DDBLogBase.DDB_CORE_010,
+                item_count=len(items),
+                table=self.table.name,
+                consumed_capacity=response.get("ConsumedCapacity"),
+            )
+
+        except ClientError as client_error:
+            self.logger.log(
+                DDBLogBase.DDB_CORE_011,
+                table=self.table.name,
+                error=client_error.response["Error"],
+                request=ddb_request,
+            )
+            raise
+
         return [self._parse_item(item) for item in items]
 
     def _batch_write(
@@ -93,16 +169,50 @@ class DynamoDBRepository(BaseRepository[ModelType]):
         if not delete_items:
             delete_items = []
 
-        return self.resource.batch_write_item(
-            RequestItems={
+        ddb_request = {
+            "RequestItems": {
                 self.table.name: [
                     *[{"PutRequest": {"Item": item}} for item in put_items],
                     *[{"DeleteRequest": {"Key": item}} for item in delete_items],
                 ]
             },
-            ReturnConsumedCapacity="INDEXES",
+            "ReturnConsumedCapacity": "INDEXES",
             **kwargs,
+        }
+
+        self.logger.log(
+            DDBLogBase.DDB_CORE_012,
+            request=ddb_request,
+            table=self.table.name,
         )
+
+        try:
+            response = self.resource.batch_write_item(**ddb_request)
+            self.logger.log(
+                DDBLogBase.DDB_CORE_013,
+                table=self.table.name,
+                consumed_capacity=response.get("ConsumedCapacity"),
+            )
+
+        except ClientError as client_error:
+            self.logger.log(
+                DDBLogBase.DDB_CORE_014,
+                table=self.table.name,
+                error=client_error.response["Error"],
+                request=ddb_request,
+            )
+            raise
+
+        unprocessed_items = response.get("UnprocessedItems")
+        if unprocessed_items:
+            self.logger.log(
+                DDBLogBase.DDB_CORE_015,
+                table=self.table.name,
+                request=ddb_request,
+                unprocessed_items=unprocessed_items,
+            )
+            error_msg = f"Unprocessed items in batch write: {unprocessed_items}"
+            raise RuntimeError(error_msg)
 
     def _scan(self, **kwargs: dict) -> Generator[dict, None, None]:
         """
