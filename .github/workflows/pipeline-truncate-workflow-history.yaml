@@ -29,5 +29,5 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: mgmt
+      env: dev
     secrets: inherit
