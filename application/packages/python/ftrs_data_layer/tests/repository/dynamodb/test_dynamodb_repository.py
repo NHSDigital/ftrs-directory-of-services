@@ -2,10 +2,9 @@ from unittest.mock import Mock
 
 import pytest
 from botocore.exceptions import ClientError
-from pydantic import BaseModel
-
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.repository.dynamodb import DynamoDBRepository
+from pydantic import BaseModel
 
 
 class ExampleDDBRepository(DynamoDBRepository):
