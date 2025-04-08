@@ -1,16 +1,23 @@
+environment: "dev"
 
 environments:
   dev:
+    project:
     base_url:
     api_key:
     search_engine_id:
+    workspace:
 
   nonprod:
+    project:
     base_url:
     api_key:
     search_engine_id:
+    workspace:
 
   prod:
+    project:
     base_url:
     api_key:
     search_engine_id:
+    workspace:

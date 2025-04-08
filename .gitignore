@@ -24,11 +24,12 @@ __pycache__/
 .poetry/
 build/
 .coverage
+*.log
 
 # Test specific
 
 tests/*/reports/*
-tests/*/allure-reports/*
-tests/*/allure-results/*
-tests/*/downloads/*
-tests/**/report.html
+tests/*/*allure-reports/*
+tests/*/*allure-results/*
+tests/**/config.yaml
+tests/**/*.log

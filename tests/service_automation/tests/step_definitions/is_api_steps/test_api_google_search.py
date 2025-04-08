@@ -2,19 +2,10 @@ import pytest
 import json
 from loguru import logger
 from pytest_bdd import given, when, then, scenarios
-from playwright.sync_api import sync_playwright
-from config import config  # Ensure Config is correctly imported
+from utilities.common.config import config
 
 # Load feature file
-scenarios("../features/test_api_google_search.feature")
-
-@pytest.fixture(scope="session")
-def api_request_context():
-    """Initialize Playwright APIRequestContext"""
-    with sync_playwright() as p:
-        request_context = p.request.new_context()
-        yield request_context
-        request_context.dispose()
+scenarios("./is_api_features/test_api_google_search.feature")
 
 @pytest.fixture
 def api_response():
