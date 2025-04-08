@@ -1,3 +1,6 @@
+variable "main_project" {
+  description = "The name of the main project"
+}
 variable "gp_search_service_name" {
   description = "The name of the gp search service"
 }

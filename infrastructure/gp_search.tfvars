@@ -1,3 +1,4 @@
+main_project           = "ftrs-directory-of-services"
 project                = "ftrs-dos-integrated-search"
 gp_search_service_name = "ftrs-dos-gp-search"
 
