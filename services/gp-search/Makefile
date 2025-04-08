@@ -12,6 +12,12 @@ LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
 # Example CI/CD targets are: dependencies, build, publish, deploy, clean, etc.
 
+install: # TODO
+
+lint: #TODO
+
+unit-test: #TODO
+
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
 
