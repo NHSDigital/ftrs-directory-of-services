@@ -1,5 +1,5 @@
-project = "ftrs-dos-integrated-search"
-service = "ftrs-dos-gp-search"
+project                = "ftrs-dos-integrated-search"
+gp_search_service_name = "ftrs-dos-gp-search"
 
 # Resource names
 s3_bucket_name = "gp-search-s3"

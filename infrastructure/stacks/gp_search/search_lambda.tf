@@ -4,7 +4,7 @@ module "lambda" {
   description           = "GP search Lambda"
   handler               = "gp_search_function.lambda_handler"
   s3_bucket_name        = local.artefacts_bucket
-  s3_key                = "${terraform.workspace}/${var.commit_hash}/${var.service}-lambda-${var.application_tag}.zip"
+  s3_key                = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
   attach_policy_jsons   = false
   attach_tracing_policy = true
   tracing_mode          = "Active"
