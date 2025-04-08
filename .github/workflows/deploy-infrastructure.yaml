@@ -92,19 +92,6 @@ jobs:
           name: ${{ matrix.stack }}_terraform_plan
           path: ./
 
-      - name: "Replace underscores with hyphens"
-        run: |
-          STACK_NAME="${{ matrix.stack }}"
-          STACK_NAME_CLEANED=${STACK_NAME//_/-}
-          echo "STACK_NAME_CLEANED=$STACK_NAME_CLEANED" >> $GITHUB_ENV
-
-      - name: "Download Artifacts"
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: ${{ env.STACK_NAME_CLEANED }}-artefacts
-          path: ./infrastructure//stacks/${{ matrix.stack }}
-
       - name: "Deploy infrastructure stack"
         id: deploy_stack
         uses: ./.github/actions/action-infrastructure-stack

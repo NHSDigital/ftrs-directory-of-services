@@ -1,4 +1,4 @@
-name: Cleardown Workflow
+name: Future DOS Cleardown Workflow
 # Intended to run if
 # actor is not the queue bot and
 # the branch deleted is either
@@ -10,6 +10,24 @@ on:
     branches:
       - 'task/FDOS*'
       - 'dependabot/*'
+  workflow_dispatch:
+    inputs:
+      application_tag:
+        description: "Specify the application tag to cleardown"
+        required: true
+        default: 'latest'
+        type: string
+      environment:
+        description: "Specify the environment to cleardown"
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+      workspace:
+        description: "Specify the workspace to cleardown"
+        required: true
+        type: string
 
 jobs:
   metadata:
@@ -24,13 +42,13 @@ jobs:
     uses: ./.github/workflows/infrastructure-cleardown.yaml
     strategy:
         matrix:
-          environment: ${{ fromJSON(needs.metadata.outputs.environment) }}
+          environment: ${{ fromJSON(needs.metadata.outputs.environment) || inputs.environment }}
     with:
-      environment:  ${{ matrix.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: ${{ matrix.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace || inputs.workspace }}
       domain: ${{ needs.metadata.outputs.reponame }}
       stacks: "['database','data_migration']"
-      application_tag: "latest"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 10
     secrets: inherit
@@ -42,9 +60,9 @@ jobs:
       - cleardown-infrastructure
     uses: ./.github/workflows/artefacts-cleardown.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.environment }}-artefacts-bucket"
+      environment: ${{ needs.metadata.outputs.environment || inputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace || inputs.workspace }}
+      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.environment || inputs.environment }}-artefacts-bucket"
     secrets: inherit
 
   slack-notifications:
@@ -56,5 +74,5 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: dev
+      env: ${{ needs.metadata.outputs.environment || inputs.environment }}
     secrets: inherit

@@ -3,14 +3,8 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket        = local.artefacts_bucket
-  s3_key           = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
-  source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
-}
-
-data "aws_s3_object" "python_dependency_layer" {
-  bucket = local.artefacts_bucket
-  key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
+  s3_bucket = local.artefacts_bucket
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "extract_lambda" {
