@@ -124,3 +124,18 @@ jobs:
       action: apply
       workflow_timeout: 30
     secrets: inherit
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - metadata
+      - quality-checks
+      - build-data-migration-service
+      - deploy-infrastructure-plan
+      - manual-approval
+      - deploy-infrastructure-apply
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit

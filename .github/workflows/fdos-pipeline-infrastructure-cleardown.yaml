@@ -9,7 +9,7 @@ on:
   delete:
     branches:
       - 'task/FDOS*'
-      - dependabot/*
+      - 'dependabot/*'
   workflow_dispatch:
     inputs:
       application_tag:
@@ -47,7 +47,7 @@ jobs:
       environment: ${{ matrix.environment }}
       workspace: ${{ needs.metadata.outputs.workspace || inputs.workspace }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      stacks: "['data_migration']"
+      stacks: "['database','data_migration']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 10
@@ -69,6 +69,7 @@ jobs:
     name: "Send Notification to Slack"
     needs:
       - metadata
+      - cleardown-artefacts
       - cleardown-infrastructure
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml

@@ -75,11 +75,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
+
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
-            aws_account_id: ${{ secrets.ACCOUNT_ID }}
-            aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+
       - name: "Delete terraform state file"
         id: delete_tf_state
         uses: ./.github/actions/cleardown-tf-state
@@ -103,11 +105,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
+
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
-            aws_account_id: ${{ secrets.ACCOUNT_ID }}
-            aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+
       - name: "Check terraform state file"
         id: check_tf_state
         uses: ./.github/actions/check-tf-state
