@@ -1,0 +1,31 @@
+model {
+
+  extend ftrs {
+
+    restapi tasksAPI "FTRS Tasks API" {
+      description '
+        Implements query business logic
+        and exposes as REST API
+      '
+      style {
+        icon tech:python
+      }
+
+      controller tasksController "Tasks Controller" {
+        description 'Processes any queries on FTRS data'
+        style {
+          icon aws:lambda
+        }
+        component getTasks "Get Tasks for user or system" {
+          description 'Retrieves tasks for the calling user or system'
+          style {
+            icon aws:lambda
+          }
+        }
+      }
+    }
+  }
+
+  apim -> getTasks "Proxies calls to"
+  getTasks -> ftrs.db.tasksTable "Retrieves data from"
+}

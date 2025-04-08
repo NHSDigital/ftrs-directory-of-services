@@ -1,0 +1,29 @@
+model {
+
+  extend ftrs {
+
+    component assuranceQueue "Assurance Queue" {
+      description 'Queue for data quality checks'
+      style {
+        icon aws:simple-queue-service
+        shape: queue
+      }
+    }
+
+    component assuranceEngine "Assurance Engine" {
+      description '
+        Performs data quality checks.
+        Success updates data in the Organisations table, and possibly the tasks table
+        Failure updates the Tasks table
+      '
+      style {
+        icon aws:lambda
+      }
+    }
+  }
+
+  assuranceQueue -> assuranceEngine "Processes data from"
+
+  assuranceEngine -> ftrs.db.orgTable "Reads from and Updates data in"
+  assuranceEngine -> ftrs.db.tasksTable "Updates data in"
+}

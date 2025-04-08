@@ -1,0 +1,17 @@
+model {
+
+  extend ftrs {
+    container ui {
+      description 'React application, deployed as a SPA'
+      style {
+        icon tech:react
+        shape browser
+      }
+    }
+  }
+
+  dosLead -> ui "opens in browser"
+  ui -> cis2 "Logs in with"
+  ui -> apim "API calls routed through via HTTPS"
+
+}
