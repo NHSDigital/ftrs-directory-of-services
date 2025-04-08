@@ -12,5 +12,5 @@ module "lambda" {
   layers                = ["arn:aws:lambda:eu-west-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = []
+  security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
 }
