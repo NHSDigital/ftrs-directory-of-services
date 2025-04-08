@@ -55,10 +55,10 @@ model {
     }
   }
 
-  apim -> addOrg "Proxies calls to"
-  apim -> updateOrg "Proxies calls to"
-  apim -> deleteOrg "Proxies calls to"
-  apim -> orgByOdsCode "Proxies calls to"
+  apim.dosWriteProxy -> addOrg "Proxies calls to"
+  apim.dosWriteProxy -> updateOrg "Proxies calls to"
+  apim.dosWriteProxy -> deleteOrg "Proxies calls to"
+  apim.dosReadProxy -> orgByOdsCode "Proxies calls to"
 
   orgByOdsCode -> ftrs.db.orgTable "Queries"
 
