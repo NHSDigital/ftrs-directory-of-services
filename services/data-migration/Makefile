@@ -15,7 +15,7 @@ ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
 
 clean:
-	rm -rf .poetry .pytest_cache .ruff_cache .tmp .venv .build .coverage coverage.xml
+	rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DEPENDENCY_DIR)
 
@@ -23,7 +23,7 @@ install: install-dependencies
 
 install-dependencies:
 	asdf install
-	poetry install
+	poetry install --no-interaction
 
 lint:
 	poetry run ruff check

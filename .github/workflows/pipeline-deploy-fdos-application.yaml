@@ -39,14 +39,32 @@ jobs:
       stacks: "['database', 'data_migration']"
     secrets: inherit
 
+  build-python-package:
+    name: "Build python package"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: "python"
+      build_type: "package"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+    secrets: inherit
+
   build-data-migration-service:
     name: "Build data migration service"
     needs:
       - metadata
       - quality-checks
-    uses: ./.github/workflows/build-service.yaml
+    uses: ./.github/workflows/build-project.yaml
     with:
-      service_name: "data-migration"
+      name: "data-migration"
+      build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
@@ -63,6 +81,7 @@ jobs:
     needs:
       - metadata
       - build-data-migration-service
+      - build-python-package
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
