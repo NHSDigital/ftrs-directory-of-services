@@ -8,6 +8,7 @@ on:
     paths:
       - 'infrastructure/stacks/account_wide/**'
       - 'infrastructure/stacks/terraform_management/**'
+      - 'infrastructure/stacks/github_runner/**'
       - 'infrastructure/stacks/artefact_management/**'
   workflow_dispatch:
     inputs:
