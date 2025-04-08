@@ -1,8 +1,13 @@
 name: Pipeline Deploy Account Level Infrastructure
+
 on:
   push:
     branches:
       - 'main'
+      - 'task/**'
+    paths:
+      - 'infrastructure/stacks/account_wide/**'
+      - 'infrastructure/stacks/terraform_management/**'
   workflow_dispatch:
     inputs:
       tag:
@@ -10,7 +15,7 @@ on:
         required: false
         type: string
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: true
         default: 'dev'
         type: choice
@@ -22,17 +27,27 @@ jobs:
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
+  quality-checks:
+    name: "Quality check"
+    needs:
+      - metadata
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "default"
+      stacks: "['terraform_management','account_wide']"
+    secrets: inherit
+
   deploy-account-infrastructure-plan:
     name: "Plan account level infrastructure deployment"
     needs:
-      [
-        metadata,
-      ]
+      - metadata
+      - quality-checks
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: "default"
       tag: ${{ inputs.tag }}
       stacks: "['terraform_management','account_wide']"
       action: plan
@@ -40,12 +55,12 @@ jobs:
 
   manual-approval:
     name: "Manual approval for account level infrastructure deployment"
-    if: ${{ needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' }}
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true'
     needs:
-      [
-        metadata,
-        deploy-account-infrastructure-plan,
-      ]
+      - metadata
+      - deploy-account-infrastructure-plan
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
@@ -54,17 +69,30 @@ jobs:
 
   deploy-account-infrastructure-apply:
     name: "Deploy account level infrastructure"
+    if: github.ref == 'refs/heads/main'
     needs:
-      [
-        metadata,
-        manual-approval,
-      ]
+      - metadata
+      - manual-approval
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: "default"
       tag: ${{ inputs.tag }}
       stacks: "['terraform_management','account_wide']"
       action: apply
+    secrets: inherit
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - metadata
+      - quality-checks
+      - manual-approval
+      - deploy-account-infrastructure-plan
+      - deploy-account-infrastructure-apply
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
     secrets: inherit

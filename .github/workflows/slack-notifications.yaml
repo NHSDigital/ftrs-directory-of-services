@@ -4,21 +4,21 @@ on:
   workflow_call:
     inputs:
         env:
-          description: "Pass environment for slack notification channel "
+          description: "Pass environment for Slack notification channel"
           required: true
           type: string
-
         organisation:
-          description: "organisation name"
+          description: "Organisation name"
           type: string
-          default: NHSDigital
+          default: 'NHSDigital'
 
 jobs:
   slack-notifications:
+    name: "Slack Notification"
     runs-on: ubuntu-latest
-    environment: ${{inputs.env}}
+    environment: ${{ inputs.env }}
     steps:
-    - name: Debug
+    - name: "Debug Info"
       run: |
         echo "Job Status: ${{ job.status }}"
         echo "GitHub Event: ${{ github.event_name }}"
@@ -26,36 +26,39 @@ jobs:
         echo "Workflow Status: ${{ github.event.workflow_run.conclusion }}"
         echo "GitHub Actor: ${{ github.actor }}"
         echo "Pull Request URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+
     - uses: martialonline/workflow-status@v3
       id: check
-    - name: Echo result of pipeline if success
+
+    - name: "Echo result of pipeline if success"
       if: ${{ steps.check.outputs.status == 'success' }}
       run: |
         echo "Workflow concluded successfully."
         echo "Run ID: ${{ github.run_id }}"
-    - name: Echo result of pipeline if failure
+
+    - name: "Echo result of pipeline if failure"
       if: ${{ steps.check.outputs.status == 'failure' }}
       run: |
         echo "Workflow failed."
         echo "Run ID: ${{ github.run_id }}"
-    - name: Send custom JSON data to Slack workflow on failure
+
+    - name: "Send custom JSON data to Slack workflow on failure"
       uses: slackapi/slack-github-action@v1.27.0
       if: ${{ steps.check.outputs.status == 'failure' }}
       with:
         payload: |
             {
-            "text": "GitHub Action build result: ${{ steps.check.outputs.status }}\nhttps://github.com/${{ inputs.organisation }}/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }} \nPushed by: @${{ github.actor }}",
+            "text": "GitHub Action *${{ github.workflow }}* result: ${{ steps.check.outputs.status }}\nhttps://github.com/${{ inputs.organisation }}/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }} \nPushed by: @${{ github.actor }}",
             "blocks": [
                 {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "GitHub Action build result: ${{ steps.check.outputs.status }}\nhttps://github.com/${{ inputs.organisation }}/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }}\nPushed by: @${{ github.actor }}"
+                    "text": "GitHub Action *${{ github.workflow }}* result: ${{ steps.check.outputs.status }}\nhttps://github.com/${{ inputs.organisation }}/${{ github.event.repository.name }}/actions/runs/${{ github.run_id }}\nPushed by: @${{ github.actor }}"
                 }
                 }
             ]
             }
-    env:
+      env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-

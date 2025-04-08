@@ -68,17 +68,20 @@ jobs:
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
-    needs: [destroy-application-infrastructure]
+    needs:
+      - destroy-application-infrastructure
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-      - name: Configure AWS Credentials
+
+      - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
-            aws_account_id: ${{ secrets.ACCOUNT_ID }}
-            aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+
       - name: "Delete terraform state file"
         id: delete_tf_state
         uses: ./.github/actions/cleardown-tf-state
@@ -95,19 +98,20 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    needs: [
-      delete-tf-state
-    ]
+    needs:
+      - delete-tf-state
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-      - name: Configure AWS Credentials
+
+      - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
-            aws_account_id: ${{ secrets.ACCOUNT_ID }}
-            aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+
       - name: "Check terraform state file"
         id: check_tf_state
         uses: ./.github/actions/check-tf-state
