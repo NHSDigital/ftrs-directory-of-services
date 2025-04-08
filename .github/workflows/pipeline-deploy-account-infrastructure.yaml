@@ -36,7 +36,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide',]"
+      stacks: "['terraform_management','account_wide']"
     secrets: inherit
 
   deploy-account-infrastructure-plan:
