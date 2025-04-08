@@ -1,9 +1,8 @@
+from typing import Generator
 from unittest.mock import Mock, patch
 
-from pytest import fixture
-from typing import Generator
-
 from ftrs_common.logger import Logger
+from pytest import fixture
 
 
 class MockLogger(Logger):
