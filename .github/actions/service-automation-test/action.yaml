@@ -1,0 +1,78 @@
+name: service automation test workflow
+
+on:
+  workflow_call:
+
+    inputs:
+      environment:
+        description: The relevant github environment (for secrets and variables)
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to deploy the application into"
+        required: true
+        type: string
+      test_tag:
+        description: "The name of the feature tag that identifies the tests to run"
+        required: false
+        type: string
+      tag:
+        description: "The tag to build and deploy from"
+        required: true
+        default: ""
+        type: string
+      allure_report_retention:
+        description: "The number of days to retain allure reports (in github)"
+        required: false
+        default: 10
+        type: number
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 5
+        type: number
+
+jobs:
+  service-automation-tests:
+    name: "Run service automation tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Configure AWS Credentials
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+
+      - name: Install Allure command-line tool
+        id: install-allure
+        continue-on-error: true
+        uses: ./.github/actions/install-allure
+
+      - name: Run service automation test
+        id: run-service_automation-tests
+        uses: ./.github/actions/service-automation-test
+        with:
+          aws_region: ${{ vars.AWS_REGION }}
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          test_tag: ${{ inputs.test_tag }}
+
+      - name: Upload allure report
+        if: always()
+        id: upload_allure_report
+        uses: ./.github/actions/upload-artefact
+        with:
+          name: allure-report
+          path: tests/service_automation/allure-reports/index.html
+          retention-days: ${{ inputs.allure_report_retention }}
