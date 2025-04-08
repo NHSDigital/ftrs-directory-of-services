@@ -133,7 +133,6 @@ terraform-initialise
 terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
-
   terraform plan -out $STACK.tfplan \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
