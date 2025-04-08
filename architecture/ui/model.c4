@@ -12,6 +12,7 @@ model {
 
   dosLead -> ui "opens in browser"
   ui -> cis2 "Logs in with"
-  ui -> apim "API calls routed through via HTTPS"
+  ui -> apim.dosReadProxy "Queries DoS"
+  ui -> apim.dosWriteProxy "Updates DoS"
 
 }

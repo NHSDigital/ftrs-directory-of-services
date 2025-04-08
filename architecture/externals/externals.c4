@@ -6,14 +6,6 @@ model {
     }
   }
 
-  apim = system "NHSE API Management" {
-    description "API Management Function"
-    style {
-      icon gcp:apigee-api-platform
-      color muted
-    }
-  }
-
   cis2 = system "CIS2" {
     description "Identity and Authorisation"
     style {
@@ -68,8 +60,8 @@ model {
     }
   }
 
-  ps1 -> apim "Queries DoS"
-  ps2 -> apim "Queries DoS"
-  du -> apim "Updates DoS"
-  pm -> apim "Queries DoS"
+  ps1 -> apim.dosReadProxy "Queries DoS"
+  ps2 -> apim.dosReadProxy "Queries DoS"
+  du -> apim.dosWriteProxy "Updates DoS"
+  pm -> apim.dosReadProxy "Queries DoS"
 }
