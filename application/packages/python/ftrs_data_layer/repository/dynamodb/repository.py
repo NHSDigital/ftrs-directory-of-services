@@ -2,12 +2,11 @@ from typing import Any
 from uuid import UUID
 
 from botocore.exceptions import ClientError
-from mypy_boto3_dynamodb.type_defs import PutItemInputTablePutItemTypeDef
-
 from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_resource
 from ftrs_data_layer.logbase import DDBLogBase
 from ftrs_data_layer.repository.base import BaseRepository, ModelType
+from mypy_boto3_dynamodb.type_defs import PutItemInputTablePutItemTypeDef
 
 
 class DynamoDBRepository(BaseRepository[ModelType]):

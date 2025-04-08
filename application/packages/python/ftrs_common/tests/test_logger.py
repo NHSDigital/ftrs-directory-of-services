@@ -2,7 +2,6 @@ from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
 from unittest.mock import MagicMock
 
 import pytest
-
 from ftrs_common.logger import LogBase, Logger, LogReference
 
 
