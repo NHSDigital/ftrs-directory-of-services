@@ -51,6 +51,13 @@ model {
     }
   }
 
+  bsa = system "NHS BSA" {
+    description "NHS BSA"
+    style {
+      color muted
+    }
+  }
+
   externalDataServices = system "External Data Services" {
     description '
       Data extracts sent to NHS.UK, IDT, Arden & Gem
@@ -64,4 +71,5 @@ model {
   ps2 -> apim.dosReadProxy "Queries DoS"
   du -> apim.dosWriteProxy "Updates DoS"
   pm -> apim.dosReadProxy "Queries DoS"
+  bsa -> ftrs.etl "TBC how & what"
 }
