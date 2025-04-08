@@ -16,6 +16,10 @@ on:
         description: "The name of the feature tag that identifies the tests to run"
         required: false
         type: string
+      test_type:
+        description: "The name of the test type that identifies the type of report to run"
+        required: false
+        type: string
       tag:
         description: "The tag to build and deploy from"
         required: true
@@ -67,6 +71,7 @@ jobs:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
           test_tag: ${{ inputs.test_tag }}
+          test_type: ${{ inputs.test_type}}
 
       - name: Upload allure report
         if: always()
