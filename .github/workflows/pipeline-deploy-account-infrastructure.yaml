@@ -27,6 +27,20 @@ jobs:
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
+  mgmt-deploy-account-infrastructure-plan:
+    name: "Plan account level infrastructure deployment for management account"
+    needs:
+      - metadata,
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['terraform_management','github_runner', 'artefact_management']"
+      action: plan
+    secrets: inherit
+
   quality-checks:
     name: "Quality check"
     needs:
@@ -49,7 +63,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','account_wide']"
+      stacks: "['terraform_management','github_runner','account_wide']"
       action: plan
     secrets: inherit
 
@@ -57,15 +71,31 @@ jobs:
     name: "Manual approval for account level infrastructure deployment"
     if: |
       github.ref == 'refs/heads/main' &&
-      needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true'
+      needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' || ${{ needs.mgmt-deploy-account-infrastructure-plan.outputs.plan_result == 'true' }}
     needs:
       - metadata
       - deploy-account-infrastructure-plan
+      - mgmt-deploy-account-infrastructure-plan,
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
       - name: Approval required
         run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+
+  mgmt-deploy-account-infrastructure-apply:
+    name: "Apply account level infrastructure deployment for management account"
+    needs:
+      - metadata,
+      - manual-approval
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: "['terraform_management','github_runner', 'artefact_management']"
+      action: apply
+    secrets: inherit
 
   deploy-account-infrastructure-apply:
     name: "Deploy account level infrastructure"
@@ -79,7 +109,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','account_wide']"
+      stacks: "['terraform_management','github_runner','account_wide']"
       action: apply
     secrets: inherit
 

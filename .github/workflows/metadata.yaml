@@ -36,6 +36,9 @@ on:
       environment:
         description: "Derived deployment environment"
         value: ${{ jobs.set-environment.outputs.environment }}
+      mgmt_environment:
+        description: "Management environment"
+        value: "mgmt"
       build_datetime_london:
         description: "The build date and time in London timezone"
         value: ${{ jobs.echo-metadata.outputs.build_datetime_london }}
