@@ -23,14 +23,6 @@ model {
       }
     }
 
-    component etl "FTRS Sourcing ETL" {
-      description 'ETL for non API data sources'
-      style {
-        icon tech:python
-        shape queue
-      }
-    }
-
     container exportServices "Export Services" {
       description 'Produces data extracts'
       style {
@@ -40,5 +32,4 @@ model {
   }
 
   exportServices -> externalDataServices "Automated data extracts"
-  etl -> apim "Transformed requests sent to"
 }
