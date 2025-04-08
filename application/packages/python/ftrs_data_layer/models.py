@@ -45,12 +45,8 @@ class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
     category: str
-    createdBy: str
-    createdDateTime: datetime
     providedBy: UUID
     location: UUID
-    modifiedBy: str
-    modifiedDateTime: datetime
     name: str
     telecom_phone_public: str | None
     telecom_phone_private: str | None
