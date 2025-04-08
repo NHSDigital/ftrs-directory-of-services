@@ -133,6 +133,7 @@ jobs:
       metadata,
       quality-checks,
       deploy-is-account-infrastructure-apply,
+      service-automation-tests,
     ]
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
