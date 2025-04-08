@@ -68,13 +68,14 @@ jobs:
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
-    needs: [destroy-application-infrastructure]
+    needs:
+      - destroy-application-infrastructure
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-      - name: Configure AWS Credentials
+      - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
             aws_account_id: ${{ secrets.ACCOUNT_ID }}
@@ -95,15 +96,14 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    needs: [
-      delete-tf-state
-    ]
+    needs:
+      - delete-tf-state
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-      - name: Configure AWS Credentials
+      - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
             aws_account_id: ${{ secrets.ACCOUNT_ID }}
