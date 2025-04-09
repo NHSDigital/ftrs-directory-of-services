@@ -18,4 +18,12 @@ views {
     include *
     autoLayout LeftRight 70 77
   }
+
+  deployment view deploymentIndex {
+    title 'Production Deployment'
+
+    include gcp.**
+    include aws.**
+    autoLayout TopBottom 70 77
+  }
 }

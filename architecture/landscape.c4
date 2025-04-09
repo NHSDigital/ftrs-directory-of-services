@@ -1,35 +1,5 @@
 model {
   ftrs = system "Find the Right Service" {
 
-    container db "FTRS Database" {
-      description 'Stores FTRS data'
-      style {
-        icon aws:dynamo-db
-        shape storage
-      }
-
-      component orgTable "Organisations" {
-        description 'Organisation table'
-        style {
-          icon aws:dynamo-db
-        }
-      }
-
-      component tasksTable "Tasks" {
-        description 'Tasks table'
-        style {
-          icon aws:dynamo-db
-        }
-      }
-    }
-
-    container exportServices "Export Services" {
-      description 'Produces data extracts'
-      style {
-        icon aws:lambda
-      }
-    }
   }
-
-  exportServices -> externalDataServices "Automated data extracts"
 }

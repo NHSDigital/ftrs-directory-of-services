@@ -1,7 +1,7 @@
 views {
 
   view of ftrs.assuranceEngine {
-    title "Container diagram for FtRS GP API"
+    title "Container diagram for FtRS Assurance Engine"
     description '
       A model showing the containers for FtRS GP API
       and their relationships to other systems

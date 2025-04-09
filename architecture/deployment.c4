@@ -1,0 +1,55 @@
+deployment {
+
+  environment gcp "Google Cloud Platform" {
+    region europe-west2 "London" {
+
+      vpc proxyVpc "Proxy Service VPC" {
+        subnet publicSubnet "Public Subnet" {
+          apigateway gcpApiGateway "GCP API Gateway" {
+            description "Handles API requests and routes them to backend services"
+          }
+
+          cloudfunction readProxyFunction "DoS Read Proxy Function" {
+            description "Processes incoming requests and forwards them to the appropriate backend"
+            instanceOf apim.dosReadProxy
+          }
+
+          cloudfunction writeProxyFunction "DoS Read Proxy Function" {
+            description "Processes incoming requests and forwards them to the appropriate backend"
+            instanceOf apim.dosWriteProxy
+          }
+        }
+      }
+    }
+  }
+
+  environment aws "AWS Cloud" {
+    zone eu {
+      description "London"
+
+      vpc gpVpc "DoS VPC" {
+
+        subnet privateSubnet "Private Subnet" {
+          instanceOf ftrs.assuranceEngine
+
+          instanceOf ftrs.etl
+          instanceOf ftrs.sourcingEtlConsumer
+          instanceOf ftrs.gpAPI.gpDataCommands.addGp
+          instanceOf ftrs.gpAPI.gpDataCommands.updateGp
+          instanceOf ftrs.gpAPI.gpDataCommands.deleteGp
+          instanceOf ftrs.gpAPI.gpDataQueries.getGp
+          instanceOf ftrs.gpAPI.gpDataQueries.getGps
+          instanceOf ftrs.orgController.orgByOdsCode
+          instanceOf ftrs.updateOrgController.addOrg
+          instanceOf ftrs.updateOrgController.updateOrg
+          instanceOf ftrs.updateOrgController.deleteOrg
+          instanceOf ftrs.tasksAPI.tasksController.getTasks
+        }
+      }
+      instanceOf ftrs.apiGateway
+      instanceOf ftrs.db
+      instanceOf ftrs.assuranceQueue
+      instanceOf ftrs.sourcingEtlQueue
+    }
+  }
+}
