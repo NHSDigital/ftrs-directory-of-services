@@ -79,7 +79,7 @@ resource "aws_iam_role" "github_runner_iam_role" {
 }
 
 # dependency between stacks so add if needed post creation
-# TODO review permissions generally to remove power user and adopt with least privilege
+# TODO review permissions generally - remove power user and adopt with least privilege
 # resource "aws_iam_policy" "access_policy_s3" {
 #   name        = "${var.repo_name}-github-runner-s3-access"
 #   description = "Policies to access artefact bucket in mgmt account"

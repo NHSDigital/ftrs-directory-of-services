@@ -37,7 +37,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide']"
+      stacks: "['terraform_management','account_wide','github_runner','artefact_management']"
     secrets: inherit
 
   deploy-account-infrastructure-plan:
@@ -51,7 +51,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','account_wide','artefact_management']"
+      stacks: "['terraform_management','github_runner','account_wide']"
       action: plan
     secrets: inherit
 
