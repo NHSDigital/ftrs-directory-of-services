@@ -1,6 +1,7 @@
+ENVIRONMENT ?= mgmt
 PACKAGE ?= python
 BUILD_DIR := ../../../build/packages/$(PACKAGE)
-S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
+ARTEFACT_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 PACKAGE_VERSION := $(shell poetry version -s)
 WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
 
@@ -25,5 +26,5 @@ unit-test:
 	poetry run pytest
 
 publish:
-	aws s3 cp $(BUILD_DIR)/$(WHEEL_NAME) s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(WHEEL_NAME) --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(WHEEL_NAME) s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(WHEEL_NAME) --region $(AWS_REGION)
 

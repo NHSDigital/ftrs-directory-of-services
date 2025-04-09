@@ -89,7 +89,7 @@ jobs:
         uses: actions/download-artifact@v4
         if: ${{ inputs.action == 'apply' }}
         with:
-          name: ${{ matrix.stack }}_terraform_plan
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.environment }}
           path: ./
 
       - name: "Deploy infrastructure stack"
@@ -108,5 +108,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ inputs.action == 'plan' }}
         with:
-          name: ${{ matrix.stack }}_terraform_plan
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.environment }}
           path: ${{ matrix.stack }}.tfplan
