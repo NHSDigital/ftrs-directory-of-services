@@ -17,11 +17,13 @@ export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-t
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
 
 export WORKSPACE="${WORKSPACE:-"default"}"
+
+# These used by both stacks to be bootstrapped
+ROOT_DIR=$PWD
+COMMON_TF_VARS_FILE="common.tfvars"
 INFRASTRUCTURE_DIR="${INFRASTRUCTURE_DIR:-"infrastructure"}"
 TERRAFORM_DIR="${TERRAFORM_DIR:-"$INFRASTRUCTURE_DIR/stacks"}"
-ENVIRONMENTS_SUB_DIR="environments"
-
-
+ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR/environments"
 # Github org
 export TF_VAR_github_org="NHSDigital"
 # check exports have been done
@@ -60,6 +62,12 @@ fi
 if [ $EXPORTS_SET = 1 ] ; then
     echo One or more required exports not correctly set
     exit 1
+fi
+
+ENV_TF_VARS_FILE="$ENVIRONMENT.tfvars"
+if ! [ -f "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" ] ; then
+  echo "No environment variables defined for $ENVIRONMENT environment"
+  exit 1
 fi
 
 
@@ -109,7 +117,7 @@ function terraform-initialise {
 
 function github_runner_stack {
     #  now do account_wide stack for github runner and for oidc provider
-  export STACK=account_wide
+  export STACK=github_runner
   # specific to stack
   STACK_TF_VARS_FILE="$STACK.tfvars"
   # the directory that holds the stack to terraform
@@ -177,16 +185,6 @@ function github_runner_stack {
   fi
 
 }
-
-# These used by both stacks to be bootstrapped
-ROOT_DIR=$PWD
-COMMON_TF_VARS_FILE="common.tfvars"
-ENV_TF_VARS_FILE="$ENVIRONMENT.tfvars"
-ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR"
-
-[ -d "$ROOT_DIR/$INFRASTRUCTURE_DIR/$ENVIRONMENTS_SUB_DIR/$ENVIRONMENT" ]  && ENVIRONMENTS_DIR="$ENVIRONMENTS_DIR/$ENVIRONMENTS_SUB_DIR/$ENVIRONMENT"
-echo "Pulling environment variables from $ENVIRONMENTS_DIR"
-
 
 if [[ "$USE_REMOTE_STATE_STORE" =~ ^(false|no|n|off|0|FALSE|NO|N|OFF) ]]; then
   echo "Bootstrapping the $STACK stack (terraform $ACTION) to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
