@@ -1,0 +1,11 @@
+views {
+
+  view of apim {
+    title "Container diagram for FtRS API Management"
+    description '
+      A model showing the the proxies deployed to NHS APIM
+    '
+    include *
+    autoLayout LeftRight 70 77
+  }
+}
