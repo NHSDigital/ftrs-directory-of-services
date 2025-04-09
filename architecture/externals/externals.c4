@@ -71,5 +71,6 @@ model {
   ps2 -> apim.dosReadProxy "Queries DoS"
   du -> apim.dosWriteProxy "Updates DoS"
   pm -> apim.dosReadProxy "Queries DoS"
-  bsa -> ftrs.etl "TBC how & what"
+  ftrs.exportServices -> externalDataServices "Send data extracts to"
+
 }

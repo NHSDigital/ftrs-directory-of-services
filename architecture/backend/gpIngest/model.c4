@@ -25,6 +25,7 @@ model {
     }
   }
 
+  ftrs.etl -> bsa "Fetch data from"
   etl -> sourcingEtlQueue "Transformed messages sent"
   sourcingEtlQueue -> sourcingEtlConsumer "Dequeue messages"
   sourcingEtlConsumer -> ftrs.gpAPI.addGp "Makes calls to"

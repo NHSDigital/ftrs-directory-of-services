@@ -1,0 +1,13 @@
+model {
+  extend ftrs {
+
+    container exportServices "Export Services" {
+      description 'Produces automated data extracts'
+      style {
+        icon aws:lambda
+      }
+    }
+
+  }
+  exportServices -> ftrs.db.orgTable "Reads data from"
+}

@@ -55,10 +55,16 @@ model {
     }
   }
 
-  apim.dosWriteProxy -> addOrg "Proxies calls to"
-  apim.dosWriteProxy -> updateOrg "Proxies calls to"
-  apim.dosWriteProxy -> deleteOrg "Proxies calls to"
-  apim.dosReadProxy -> orgByOdsCode "Proxies calls to"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
+
+  ftrs.apiGateway -> addOrg "Proxies calls to"
+  ftrs.apiGateway -> updateOrg "Proxies calls to"
+  ftrs.apiGateway -> deleteOrg "Proxies calls to"
+
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies calls to"
+  ftrs.apiGateway -> orgByOdsCode "Proxies calls to"
 
   orgByOdsCode -> ftrs.db.orgTable "Queries"
 

@@ -60,11 +60,19 @@ model {
     }
   }
 
-  apim.dosWriteProxy -> addGp "Proxies calls to"
-  apim.dosWriteProxy -> updateGp "Proxies calls to"
-  apim.dosWriteProxy -> deleteGp "Proxies calls to"
-  apim.dosReadProxy -> getGp "Proxies calls to"
-  apim.dosReadProxy -> getGps "Proxies calls to"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
+
+  ftrs.apiGateway -> addGp "Proxies calls to"
+  ftrs.apiGateway -> updateGp "Proxies calls to"
+  ftrs.apiGateway -> deleteGp "Proxies calls to"
+
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies calls to"
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies calls to"
+
+  ftrs.apiGateway -> getGp "Proxies calls to"
+  ftrs.apiGateway -> getGps "Proxies calls to"
 
   addGp -> ftrs.assuranceQueue "Enqueues in"
   updateGp -> ftrs.assuranceQueue "Enqueues in"

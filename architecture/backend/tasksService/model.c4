@@ -26,6 +26,8 @@ model {
     }
   }
 
-  apim.dosReadProxy -> getTasks "Proxies calls to"
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies calls to"
+  ftrs.apiGateway -> getTasks "Proxies calls to"
+
   getTasks -> ftrs.db.tasksTable "Retrieves data from"
 }
