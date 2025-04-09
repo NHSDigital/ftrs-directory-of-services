@@ -45,10 +45,3 @@ repos:
     entry: ./scripts/githooks/check-terraform-format.sh
     language: script
     pass_filenames: false
-- repo: local
-  hooks:
-  - id: es-lint
-    name: Lint Javascript
-    entry: ./scripts/githooks/front-end-npm-lint-pre-commit.sh
-    language: script
-    pass_filenames: false

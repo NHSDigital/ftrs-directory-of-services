@@ -50,7 +50,7 @@ jobs:
       stacks: "['database','data_migration']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      workflow_timeout: 10
+      workflow_timeout: 30
     secrets: inherit
 
   cleardown-artefacts:
@@ -62,7 +62,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment || inputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace || inputs.workspace }}
-      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.environment || inputs.environment }}-artefacts-bucket"
+      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
     secrets: inherit
 
   slack-notifications:
