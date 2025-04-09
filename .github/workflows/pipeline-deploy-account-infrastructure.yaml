@@ -74,8 +74,7 @@ jobs:
 
   manual-approval:
     name: "Manual approval for account level infrastructure deployment"
-    if: |
-      ${{ github.ref == 'refs/heads/main' && (needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' || needs.mgmt-deploy-account-infrastructure-plan.outputs.plan_result == 'true') }}
+    if: ${{ github.ref == 'refs/heads/main' && (needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' || needs.mgmt-deploy-account-infrastructure-plan.outputs.plan_result == 'true') }}
     needs:
       - metadata
       - deploy-account-infrastructure-plan
