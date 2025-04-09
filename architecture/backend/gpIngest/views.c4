@@ -1,0 +1,13 @@
+views {
+
+  view of ftrs.etl {
+    title "Container diagram for an ETL process that pulls data"
+    description '
+      A model showing how data might be pulled from an external service
+    '
+    include *
+    include ftrs.sourcingEtlConsumer
+    include ftrs.gpAPI.**
+    autoLayout LeftRight 70 77
+  }
+}

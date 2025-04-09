@@ -1,0 +1,12 @@
+views {
+
+  view of ftrs.exportServices {
+    title "Container diagram for FtRS Export Services"
+    description '
+      A model showing how data might be exported from FtRS
+      and their relationships to other systems
+    '
+    include *
+    autoLayout LeftRight 70 77
+  }
+}
