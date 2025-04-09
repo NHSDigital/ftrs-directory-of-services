@@ -58,8 +58,6 @@ runs:
         echo "username of user triggering the workflow: ${{ github.actor }}"
         echo "repo name ${{ github.event.repository.name }}"
         echo "reponame=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
-        # echo artefact_bucket_name="nhse-mgmt-${{ github.event.repository.name }}-artefacts"
-        # echo "artefact_bucket_name=nhse-mgmt-${{ github.event.repository.name }}-artefacts" >> $GITHUB_OUTPUT
         echo "commit_hash $(git rev-parse --short $GITHUB_SHA)"
         echo "commit_hash=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
         echo "artefact_commit_hash=${{ github.event.pull_request.head.sha }}"
