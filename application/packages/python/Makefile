@@ -1,3 +1,4 @@
+ENVIRONMENT ?= mgmt
 PACKAGE ?= python
 BUILD_DIR := ../../../build/packages/$(PACKAGE)
 ARTEFACT_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket

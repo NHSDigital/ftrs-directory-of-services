@@ -10,6 +10,8 @@ on:
       - 'infrastructure/stacks/terraform_management/**'
       - 'infrastructure/stacks/github_runner/**'
       - 'infrastructure/stacks/artefact_management/**'
+      - 'infrastructure/modules/dynamodb/**'
+      - 'infrastructure/modules/s3/**'
   workflow_dispatch:
     inputs:
       tag:
@@ -56,7 +58,7 @@ jobs:
     secrets: inherit
 
   mgmt-deploy-account-infrastructure-plan:
-    name: "Plan account level infrastructure deployment for management account"
+    name: "Plan management account level infrastructure deployment"
     needs:
       - metadata
       - quality-checks
@@ -73,8 +75,7 @@ jobs:
   manual-approval:
     name: "Manual approval for account level infrastructure deployment"
     if: |
-      github.ref == 'refs/heads/main' &&
-      ${{ needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' || needs.mgmt-deploy-account-infrastructure-plan.outputs.plan_result == 'true' }}
+      ${{ github.ref == 'refs/heads/main' && needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' || needs.mgmt-deploy-account-infrastructure-plan.outputs.plan_result == 'true' }}
     needs:
       - metadata
       - deploy-account-infrastructure-plan
@@ -102,7 +103,8 @@ jobs:
     secrets: inherit
 
   mgmt-deploy-account-infrastructure-apply:
-    name: "Apply account level infrastructure deployment for management account"
+    name: "Apply management account level infrastructure deployment"
+    if: github.ref == 'refs/heads/main'
     needs:
       - metadata
       - manual-approval
@@ -124,6 +126,8 @@ jobs:
       - manual-approval
       - deploy-account-infrastructure-plan
       - deploy-account-infrastructure-apply
+      - mgmt-deploy-account-infrastructure-plan
+      - mgmt-deploy-account-infrastructure-apply
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
