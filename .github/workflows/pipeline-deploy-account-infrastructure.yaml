@@ -51,26 +51,15 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','account_wide']"
+      stacks: "['terraform_management','github_runner','account_wide','artefact_management']"
       action: plan
-    secrets: inherit
-
-  mgmt-quality-checks:
-    name: "Quality check for management specific stacks"
-    needs:
-      - metadata
-    uses: ./.github/workflows/quality-checks.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      workspace: "default"
-      stacks: "['artefact_management']"
     secrets: inherit
 
   mgmt-deploy-account-infrastructure-plan:
     name: "Plan account level infrastructure deployment for management account"
     needs:
       - metadata
-      - mgmt-quality-checks
+      - quality-checks
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
