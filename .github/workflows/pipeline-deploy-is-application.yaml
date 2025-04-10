@@ -8,8 +8,23 @@ on:
     branches:
       - main
       - 'task/DOSIS*'
-  pull_request:
-    types: [ labeled ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: true
+        type: string
+      application_tag:
+        description: "Specify the application tag to be used for deployment"
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
 
 jobs:
   metadata:
@@ -31,12 +46,32 @@ jobs:
       stacks: "['gp_search']"
     secrets: inherit
 
+  build-gp-search-service:
+    name: "Build GP Search API Service"
+    needs:
+      [
+        metadata,
+        quality-checks,
+      ]
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: "gp-search"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+    secrets: inherit
+
   deploy-infrastructure-plan:
     name: "TF Plan IS level infrastructure"
     needs:
       [
         metadata,
         quality-checks,
+        build-gp-search-service,
       ]
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
@@ -45,6 +80,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
       stacks: "['gp_search']"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
     secrets: inherit
 
@@ -55,6 +92,7 @@ jobs:
       [
         metadata,
         deploy-infrastructure-plan,
+        build-gp-search-service,
       ]
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
@@ -76,7 +114,10 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
       stacks: "['gp_search']"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
+      workflow_timeout: 30
     secrets: inherit
 
   slack-notifications:
