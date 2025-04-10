@@ -8,7 +8,7 @@ module "lambda" {
   attach_policy_jsons    = false
   attach_tracing_policy  = true
   tracing_mode           = "Active"
-  number_of_policy_jsons = "1"
+  number_of_policy_jsons = "2"
   policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json]
   layers                 = ["arn:aws:lambda:eu-west-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"]
 
