@@ -129,15 +129,6 @@ function github_runner_stack {
     echo "Preparing to run terraform $ACTION for $STACK stack to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
   fi
 
-  # ------------- Step three create  thumbprint for github actions -----------
-  export HOST=$(curl https://token.actions.githubusercontent.com/.well-known/openid-configuration)
-  export CERT_URL=$(jq -r '.jwks_uri | split("/")[2]' <<< $HOST)
-  export THUMBPRINT=$(echo | openssl s_client -servername "$CERT_URL" -showcerts -connect "$CERT_URL":443 2> /dev/null | tac | sed -n '/-----END CERTIFICATE-----/,/-----BEGIN CERTIFICATE-----/p; /-----BEGIN CERTIFICATE-----/q' | tac | openssl x509 -sha1 -fingerprint -noout | sed 's/://g' | awk -F= '{print tolower($2)}')
-  # ------------- Step four create oidc identity provider, github runner role and policies for that role -----------
-  export TF_VAR_oidc_provider_url="https://token.actions.githubusercontent.com"
-  export TF_VAR_oidc_thumbprint=$THUMBPRINT
-  export TF_VAR_oidc_client="sts.amazonaws.com"
-
   # remove any previous local backend for stack
   rm -rf "$STACK_DIR"/.terraform
   rm -f "$STACK_DIR"/.terraform.lock.hcl

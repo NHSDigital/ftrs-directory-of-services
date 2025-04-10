@@ -39,8 +39,8 @@ jobs:
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
-            aws_account_id: ${{ secrets.ACCOUNT_ID }}
-            aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
 
       - name: "Cleardown redundant artefacts"
         uses: ./.github/actions/artefact-cleardown
