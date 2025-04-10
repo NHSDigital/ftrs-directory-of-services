@@ -5,14 +5,12 @@ model {
       color muted
     }
   }
-
   cis2 = system "CIS2" {
     description "Identity and Authorisation"
     style {
       color muted
     }
   }
-
   ps1 = system "Provider System" {
     description '
       External software system
@@ -22,7 +20,6 @@ model {
       color muted
     }
   }
-
   ps2 = system "Provider System" {
     description '
       Non-Pathways provider systems
@@ -32,7 +29,6 @@ model {
       color muted
     }
   }
-
   du = system "Direct updates to DoS" {
     description '
       Part of NHS.UK updates profiles in DoS
@@ -41,7 +37,6 @@ model {
       color muted
     }
   }
-
   pm = system "Profile Manager" {
     description '
       Part of NHS.UK updates profiles in DoS
@@ -50,14 +45,15 @@ model {
       color muted
     }
   }
-
   bsa = system "NHS BSA" {
-    description "NHS BSA"
+    description '
+    NHS BSA is a data sourcing partner
+    (GP data)
+    '
     style {
       color muted
     }
   }
-
   externalDataServices = system "External Data Services" {
     description '
       Data extracts sent to NHS.UK, IDT, Arden & Gem
@@ -66,11 +62,9 @@ model {
       color muted
     }
   }
-
   ps1 -> apim.dosReadProxy "Queries DoS"
   ps2 -> apim.dosReadProxy "Queries DoS"
   du -> apim.dosWriteProxy "Updates DoS"
   pm -> apim.dosReadProxy "Queries DoS"
-  ftrs.exportServices -> externalDataServices "Send data extracts to"
-
+  bsa -> ftrs.sourcingEtlProcessor "Data pulled from"
 }

@@ -1,13 +1,13 @@
 views {
-
   view of ftrs.etl {
-    title "Container diagram for an ETL process that pulls data"
+    title "Container diagram for GP Ingestion ETL"
     description '
-      A model showing how data might be pulled from an external service
+      A model showing the containers for FtRS GP API
+      and their relationships to other systems
     '
     include *
-    include ftrs.sourcingEtlConsumer
-    include ftrs.gpAPI.**
+    include ftrs.sourcingEtlQueue
+
     autoLayout LeftRight 70 77
   }
 }

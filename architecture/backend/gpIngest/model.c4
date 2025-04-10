@@ -1,32 +1,32 @@
 model {
   extend ftrs {
-    component etl "FTRS Sourcing ETL" {
-      description 'ETL for non API data sources'
+    container etl "FTRS Sourcing ETL" {
+      description 'ETL for non API consumer data sources'
       style {
-        icon aws:lambda
+        multiple true
       }
-    }
-
-    component sourcingEtlQueue "Sourcing ETL Queue" {
-      description 'Queue for ETL Process'
-      style {
-        icon aws:simple-queue-service
-        shape: queue
+      component sourcingEtlProcessor "Sourcing ETL Processor" {
+        description 'Lambda as ETL Processor'
+        style {
+          icon aws:lambda
+        }
       }
-    }
-
-    component sourcingEtlConsumer "Sourcing ETL Consumer" {
-      description '
-        Dequeues requests and sends to API
-      '
-      style {
-        icon aws:lambda
+      component sourcingEtlQueue "Sourcing ETL Queue" {
+        description 'Queue for ETL Process'
+        style {
+          icon aws:simple-queue-service
+          shape: queue
+        }
+      }
+      component sourcingEtlConsumer "Sourcing ETL Consumer" {
+        description 'Dequeues requests and sends to API'
+        style {
+          icon aws:lambda
+        }
       }
     }
   }
-
-  ftrs.etl -> bsa "Fetch data from"
-  etl -> sourcingEtlQueue "Transformed messages sent"
+  sourcingEtlProcessor -> sourcingEtlQueue "Messages sent to"
   sourcingEtlQueue -> sourcingEtlConsumer "Dequeue messages"
   sourcingEtlConsumer -> ftrs.gpAPI.addGp "Makes calls to"
   sourcingEtlConsumer -> ftrs.gpAPI.updateGp "Makes calls to"
