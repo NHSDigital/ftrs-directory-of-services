@@ -10,6 +10,9 @@ on:
     branches:
       - 'task/FDOS*'
       - 'dependabot/*'
+  push:
+    branches:
+      - 'task/FDOS*'
   workflow_dispatch:
     inputs:
       application_tag:
@@ -40,11 +43,8 @@ jobs:
     needs:
       - metadata
     uses: ./.github/workflows/infrastructure-cleardown.yaml
-    strategy:
-        matrix:
-          environment: ${{ fromJSON(needs.metadata.outputs.environment) || inputs.environment }}
     with:
-      environment: ${{ matrix.environment }}
+      environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace || inputs.workspace }}
       domain: ${{ needs.metadata.outputs.reponame }}
       stacks: "['database','data_migration','terraform_management','account_wide','github_runner','artefact_management']"
