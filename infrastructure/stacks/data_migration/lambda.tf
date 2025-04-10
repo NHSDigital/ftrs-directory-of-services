@@ -1,5 +1,5 @@
 resource "aws_lambda_layer_version" "python_dependency_layer" {
-  layer_name          = "${local.prefix}-python-dependency-layer${local.workspace_suffix}"
+  layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
@@ -9,7 +9,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 
 module "extract_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.prefix}-${var.extract_name}"
+  function_name           = "${local.resource_prefix}-${var.extract_name}"
   description             = "Lambda to extract data for the DoS migration"
   handler                 = var.extract_lambda_handler
   runtime                 = var.lambda_runtime
@@ -39,7 +39,7 @@ module "extract_lambda" {
 
 module "transform_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.prefix}-${var.transform_name}"
+  function_name           = "${local.resource_prefix}-${var.transform_name}"
   description             = "Lambda to transform data for the DoS migration"
   handler                 = var.transform_lambda_handler
   runtime                 = var.lambda_runtime
@@ -70,7 +70,7 @@ module "transform_lambda" {
 
 module "load_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.prefix}-${var.load_name}"
+  function_name           = "${local.resource_prefix}-${var.load_name}"
   description             = "Lambda to load data for the DoS migration"
   handler                 = var.load_lambda_handler
   runtime                 = var.lambda_runtime

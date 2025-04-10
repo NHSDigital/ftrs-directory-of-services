@@ -1,4 +1,3 @@
-project = "ftrs-dos-db"
 
 dynamodb_tables = {
   "healthcare-service" = {

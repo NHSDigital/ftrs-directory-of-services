@@ -3,6 +3,8 @@ locals {
   workspace_suffix = "${terraform.workspace}" == "default" ? "" : "-${terraform.workspace}"
   prefix           = "${var.project}-${var.environment}"
   artefacts_bucket = "${var.repo_name}-mgmt-${var.artefacts_bucket_name}"
+  resource_prefix  = "${var.project}-${var.environment}-${var.stack_name}"
+  account_prefix   = "${var.repo_name}-${var.environment}"
 
   # Deploy databases only when the current environment matches the active Terraform workspace.
   # This ensures that database resources are provisioned only in the intended environment.

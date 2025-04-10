@@ -2,7 +2,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.18.0"
 
-  name               = "${local.prefix}-${var.vpc["name"]}"
+  name               = "${local.account_prefix}-${var.vpc["name"]}"
   cidr               = var.vpc["cidr"]
   enable_nat_gateway = var.enable_nat_gateway
   single_nat_gateway = var.single_nat_gateway

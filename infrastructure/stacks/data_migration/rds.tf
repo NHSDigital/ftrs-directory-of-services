@@ -19,7 +19,7 @@ module "rds" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "9.10.0"
 
-  name           = "${local.prefix}-rds"
+  name           = "${local.resource_prefix}-rds"
   engine         = var.rds_engine
   engine_version = var.rds_engine_version
   engine_mode    = var.rds_engine_mode
@@ -45,7 +45,7 @@ module "rds" {
   create_db_subnet_group = false
   create_security_group  = false
   vpc_id                 = data.aws_vpc.vpc.id
-  db_subnet_group_name   = "${var.main_project}-${var.environment}-database-subnet-group"
+  db_subnet_group_name   = "${var.resource_prefix}-database-subnet-group"
   vpc_security_group_ids = [aws_security_group.rds_security_group[0].id]
 
   final_snapshot_identifier = "${local.prefix}-rds"

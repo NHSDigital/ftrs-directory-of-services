@@ -58,5 +58,9 @@ variable "github_runner_role_name" {
   description = "GitHub runner IAM role name"
   type        = string
   default     = "github-runner"
+}
 
+variable "stack_name" {
+  description = "The hyphenated version of the stack name used in names of resources defined in that stack"
+  type        = string
 }

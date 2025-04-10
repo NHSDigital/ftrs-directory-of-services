@@ -9,8 +9,8 @@ resource "aws_security_group" "rds_security_group" {
 
 data "aws_security_group" "rds_security_group" {
   count = local.deploy_databases ? 0 : 1
-
-  name = "${local.prefix}-rds-sg"
+  # TODO
+  name = "ftrs-dos-data-migration-dev-rds-sg"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
