@@ -1,9 +1,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from pydantic import BaseModel
-
 from ftrs_data_layer.repository.dynamodb import FieldLevelRepository
+from pydantic import BaseModel
 
 
 class MockModel(BaseModel):
