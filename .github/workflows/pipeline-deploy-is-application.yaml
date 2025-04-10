@@ -56,7 +56,7 @@ jobs:
     uses: ./.github/workflows/build-project.yaml
     with:
       name: "gp-search"
-      build_type: "Service"
+      build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
