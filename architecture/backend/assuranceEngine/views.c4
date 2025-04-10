@@ -7,6 +7,12 @@ views {
       and their relationships to other systems
     '
     include *
+    include ftrs.gpAPI.gpDataCommands.addGp
+    include ftrs.gpAPI.gpDataCommands.updateGp
+    include ftrs.gpAPI.gpDataCommands.deleteGp
+    include ftrs.db.orgTable
+    include ftrs.db.tasksTable
+    include ftrs.reassureSelector
     autoLayout LeftRight 70 77
   }
 }
