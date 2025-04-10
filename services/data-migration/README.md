@@ -112,10 +112,15 @@ This will create a new schema named 'pathwaysdos' containing the tables and data
 # Activate Python virtual environment
 eval $(poetry env activate)
 
-# Run extraction step
+# Run extraction step - store output locally
 dos-etl-extract \
     --db-uri {source_database} \
     --output-path /tmp/out/extract/
+
+# Run extraction step - store output in s3
+dos-etl-extract \
+    --db-uri {source_database} \
+    --s3-output-uri s3://<s3_bucket_name>/<s3_bucket_path>
 
 # Run transformation step
 dos-etl-transform \
