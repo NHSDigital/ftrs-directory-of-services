@@ -129,8 +129,20 @@ echo "Pulling environment variables from $ENVIRONMENTS_DIR"
 
 # init terraform
 terraform-initialise
-#
-terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
+
+if terraform workspace list | grep -qE "^\s*\*?\s*$WORKSPACE\s*$"; then
+  echo "Workspace $WORKSPACE exists, selecting..."
+  terraform workspace select "$WORKSPACE"
+else
+  if [ "$ACTION" = "destroy" ]; then
+    echo "Workspace $WORKSPACE does not exist and action is destroy — nothing to destroy. Exiting gracefully."
+    exit 0
+  else
+    echo "Workspace $WORKSPACE does not exist, creating..."
+    terraform workspace new "$WORKSPACE"
+  fi
+fi
+
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   terraform plan -out $STACK.tfplan \
