@@ -27,16 +27,6 @@ export TF_VAR_commit_hash="${COMMIT_HASH:-""}"
 export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
 
-# needed only by github-runner stack
-export TF_VAR_github_org="NHSDigital"
-export HOST=$(curl https://token.actions.githubusercontent.com/.well-known/openid-configuration)
-export CERT_URL=$(jq -r '.jwks_uri | split("/")[2]' <<< $HOST)
-export THUMBPRINT=$(echo | openssl s_client -servername "$CERT_URL" -showcerts -connect "$CERT_URL":443 2> /dev/null | tac | sed -n '/-----END CERTIFICATE-----/,/-----BEGIN CERTIFICATE-----/p; /-----BEGIN CERTIFICATE-----/q' | tac | openssl x509 -sha1 -fingerprint -noout | sed 's/://g' | awk -F= '{print tolower($2)}')
-# ------------- Step four create oidc identity provider, github runner role and policies for that role -----------
-export TF_VAR_oidc_provider_url="https://token.actions.githubusercontent.com"
-export TF_VAR_oidc_thumbprint=$THUMBPRINT
-export TF_VAR_oidc_client="sts.amazonaws.com"
-
 # check exports have been done
 EXPORTS_SET=0
 # Check key variables have been exported - see above
