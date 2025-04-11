@@ -1,12 +1,63 @@
-from aws_lambda_powertools import Tracer
+import os
 import json
+import boto3
+import psycopg2
 
-tracer = Tracer()  # Sets service via POWERTOOLS_SERVICE_NAME env var
+from aws_lambda_powertools import Logger, Tracer, Metrics
+from aws_lambda_powertools.metrics import MetricUnit
+from aws_lambda_powertools.utilities.typing import LambdaContext
+from aws_xray_sdk.core import patch_all
+
+# X-Ray patching
+patch_all()
+
+# Powertools setup
+logger = Logger()
+tracer = Tracer()
+metrics = Metrics(namespace="DOSIS-421-ConnectionTest")
+
+# Environment variable
+SECRET_NAME = os.environ["/ftrs-dos-data-migration/dev/target-rds-credentials"]
+REGION_NAME = os.environ.get("AWS_REGION", "eu-west-2")
+
+@tracer.capture_method
+def get_db_credentials():
+    client = boto3.client("secretsmanager", region_name=REGION_NAME)
+    secret_value = client.get_secret_value(SecretId=SECRET_NAME)
+    return json.loads(secret_value["SecretString"])
+
+@tracer.capture_method
+def test_db_connection(secret):
+    conn = psycopg2.connect(
+        host=secret["host"],
+        port=secret["port"],
+        user=secret["username"],
+        password=secret["password"],
+        dbname=secret["dbname"]
+    )
+    conn.close()  # If no exception, connection worked
 
 @tracer.capture_lambda_handler
-def lambda_handler(event, context):
-    # TODO implement
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello world')
-    }
+@logger.inject_lambda_context
+@metrics.log_metrics
+def lambda_handler(event: dict, context: LambdaContext) -> dict:
+    try:
+        logger.info("Retrieving DB credentials")
+        secret = get_db_credentials()
+
+        logger.info("Testing DB connection")
+        test_db_connection(secret)
+
+        metrics.add_metric(name="ConnectionSuccess", unit=MetricUnit.Count, value=1)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"message": "Database connection successful"})
+        }
+
+    except Exception as e:
+        logger.error(f"Connection failed: {str(e)}")
+        metrics.add_metric(name="ConnectionFailure", unit=MetricUnit.Count, value=1)
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
