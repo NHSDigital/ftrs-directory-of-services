@@ -16,4 +16,61 @@ regexes = [
 ]
 
 [allowlist]
-paths = ['''.terraform.lock.hcl''', '''poetry.lock''', '''yarn.lock''', '''scripts/workflow/create-vpn-client-cert.sh''']
+paths = [
+  '''.terraform.lock.hcl''',
+  '''.poetry.lock''',
+  '''yarn.lock''',
+  '''scripts/workflow/create-vpn-client-cert.sh''',
+  '''services/data-migration/tests/unit/'''
+]
+regexes = [
+  '''=========================================''',
+  '''(.*)017000801446(.*)''', # Allow AWS account number for Lambda Layers
+  '''(.*)336392948345(.*)''',
+  '''(.*)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'''
+]
+
+[[rules]]
+description = "DynamoDB Endpoints"
+id = "dynamodb"
+regex = '''dynamodb\.[a-z]{2}[a-z-]*[1,2,3]\.amazonaws\.com'''
+
+[[rules]]
+description = "Generic ARN"
+id = "arn"
+regex = '''arn:aws:(.*):(.*):[0-9]{12}'''
+
+[[rules]]
+description = "S3 ARN"
+id = "arns3"
+regex = '''arn:aws:s3:::(.*)'''
+
+[[rules]]
+description = "Standard Certificate"
+id = "standardcertificate"
+regex = '''-----BEGIN(\s)CERTIFICATE-----\n'''
+
+[[rules]]
+description = "Private Keys"
+id = "privatekeys"
+regex = '''\s*(\bBEGIN\b).*(PRIVATE KEY\b)\s*'''
+
+[[rules]]
+id = "secretaccesskey"
+description = "AWS Secret Access Key"
+regex = '''(AWS|aws|Aws)?_?(SECRET|secret|Secret)?_?(ACCESS|access|Access)?_?(KEY|key|Key)?\s*(:|=>|=)\s*[A-Za-z0-9/\+=]{40}\n'''
+
+[[rules]]
+id = "genericawsacno"
+description = "Generic 12 digit AWS acccount number"
+regex = '''\b\d{12}\b'''
+
+[[rules]]
+id = "awsaccountid"
+description = "AWS Account ID"
+regex = '''(AWS|aws|Aws)?_?(ACCOUNT|account|Account)_?(ID|id|Id)?\s*(:|=>|=)\s*[0-9]{4}\-?[0-9]{4}\-?[0-9]{4}'''
+
+[[rules]]
+id = "apikey"
+description = "Generic API Key"
+regex = '''(?i)(api|apikey|key|token)[=:]['"]?[A-Za-z0-9-_]{20,}['"]?'''
