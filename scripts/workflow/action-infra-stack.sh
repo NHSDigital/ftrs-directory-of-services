@@ -130,13 +130,7 @@ echo "Pulling environment variables from $ENVIRONMENTS_DIR"
 # init terraform
 terraform-initialise
 
-if terraform workspace list | grep -qE "^\s*\*?\s*$WORKSPACE\s*$"; then
-  echo "Workspace $WORKSPACE exists, selecting..."
-  terraform workspace select "$WORKSPACE"
-else
-  echo "Workspace $WORKSPACE does not exist, creating..."
-  terraform workspace new "$WORKSPACE"
-fi
+terraform workspace select -or-create "$WORKSPACE"
 
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
