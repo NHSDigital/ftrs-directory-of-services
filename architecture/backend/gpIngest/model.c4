@@ -28,6 +28,6 @@ model {
   }
   sourcingEtlProcessor -> sourcingEtlQueue "Messages sent to"
   sourcingEtlQueue -> sourcingEtlConsumer "Dequeue messages"
-  sourcingEtlConsumer -> ftrs.gpAPI.addGp "Makes calls to"
-  sourcingEtlConsumer -> ftrs.gpAPI.updateGp "Makes calls to"
+  sourcingEtlConsumer -> ftrs.organisationAPI.addOrg "Makes calls to"
+  sourcingEtlConsumer -> ftrs.organisationAPI.updateOrg "Makes calls to"
 }

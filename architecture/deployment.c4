@@ -34,11 +34,6 @@ deployment {
 
           instanceOf ftrs.etl
           instanceOf ftrs.sourcingEtlConsumer
-          instanceOf ftrs.gpAPI.gpDataCommands.addGp
-          instanceOf ftrs.gpAPI.gpDataCommands.updateGp
-          instanceOf ftrs.gpAPI.gpDataCommands.deleteGp
-          instanceOf ftrs.gpAPI.gpDataQueries.getGp
-          instanceOf ftrs.gpAPI.gpDataQueries.getGps
           instanceOf ftrs.orgController.orgByOdsCode
           instanceOf ftrs.updateOrgController.addOrg
           instanceOf ftrs.updateOrgController.updateOrg
