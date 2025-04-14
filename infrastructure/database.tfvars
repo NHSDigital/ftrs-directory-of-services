@@ -26,4 +26,4 @@ dynamodb_tables = {
   }
 }
 
-team_owner = "fd"
+team_owner = "future-directory"

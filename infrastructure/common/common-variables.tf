@@ -8,7 +8,6 @@ variable "project_owner" {
 
 variable "team_owner" {
   description = "The sub-team responsible for the stack"
-
 }
 
 variable "environment" {

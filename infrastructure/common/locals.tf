@@ -5,6 +5,8 @@ locals {
   resource_prefix  = "${var.project}-${var.environment}-${var.stack_name}"
   account_prefix   = "${var.repo_name}-${var.environment}"
 
+  # TODO remove once no longer used - use resource_prefix instead
+  prefix = "${var.project}-${var.environment}"
   # Deploy databases only in default Terraform workspace.
   # This ensures that database resources are provisioned only in the intended environment.
   deploy_databases = "default" == "${terraform.workspace}"
