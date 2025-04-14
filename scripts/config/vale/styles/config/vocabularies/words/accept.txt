@@ -23,4 +23,5 @@ Syft
 Terraform
 toolchain
 Trufflehog
-vpc
+(?i)vpc
+(?i)vpn
