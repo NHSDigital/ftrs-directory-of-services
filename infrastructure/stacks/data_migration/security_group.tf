@@ -9,8 +9,7 @@ resource "aws_security_group" "rds_security_group" {
 
 data "aws_security_group" "rds_security_group" {
   count = local.deploy_databases ? 0 : 1
-  # TODO
-  name = "${local.resource_prefix}-rds-sg"
+  name  = "${local.resource_prefix}-rds-sg"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
