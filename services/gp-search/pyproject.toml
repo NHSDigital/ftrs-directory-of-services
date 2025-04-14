@@ -20,7 +20,7 @@ build-backend = "poetry.core.masonry.api"
 ruff = "^0.9.6"
 
 [tool.poetry.scripts]
-dos-etl-extract = "functions.gp_search_function:lambda_handler"
+dos-gp-search-function = "functions.gp_search_function:lambda_handler"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
