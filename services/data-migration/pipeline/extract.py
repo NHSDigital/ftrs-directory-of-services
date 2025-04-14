@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
+from typing import Dict, List
 
 import pandas as pd
 import pyarrow as pa
@@ -20,9 +21,30 @@ from pipeline.s3_utils.s3_operations import validate_s3_uri
 
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
-    # combining all the endpoint columns into one column
-    return (
-        gp_practice_endpoints.groupby(["serviceid"])[
+    """Format the endpoints DataFrame."""
+
+    def create_endpoint_dict(row: pd.Series) -> Dict[str, any]:
+        """Convert a row (Series) to an endpoint dictionary."""
+        return {
+            "endpointid": row["id"],
+            "endpointorder": row["endpointorder"],
+            "transport": row["transport"],
+            "format": row["format"],
+            "interaction": row["interaction"],
+            "businessscenario": row["businessscenario"],
+            "address": row["address"],
+            "comment": row["comment"],
+            "iscompressionenabled": row["iscompressionenabled"],
+            "serviceid": row["serviceid"],
+        }
+
+    def create_endpoint_list(group: pd.DataFrame) -> List[Dict[str, any]]:
+        """Convert a DataFrame group to a list of endpoint dictionaries."""
+        return group.apply(create_endpoint_dict, axis=1).tolist()
+
+    def group_and_format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.Series:
+        """Group the DataFrame by 'serviceid' and apply the transformation."""
+        return gp_practice_endpoints.groupby("serviceid")[
             [
                 "id",
                 "endpointorder",
@@ -35,26 +57,12 @@ def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
                 "iscompressionenabled",
                 "serviceid",
             ]
-        ]
-        .apply(
-            lambda x: x.apply(
-                lambda row: {
-                    "endpointid": row["id"],
-                    "endpointorder": row["endpointorder"],
-                    "transport": row["transport"],
-                    "format": row["format"],
-                    "interaction": row["interaction"],
-                    "businessscenario": row["businessscenario"],
-                    "address": row["address"],
-                    "comment": row["comment"],
-                    "iscompressionenabled": row["iscompressionenabled"],
-                    "serviceid": row["serviceid"],
-                },
-                axis=1,
-            ).tolist()
-        )
-        .reset_index(name="endpoints")
+        ].apply(create_endpoint_list)
+
+    grouped_gp_practice_endpoints: pd.Series = group_and_format_endpoints(
+        gp_practice_endpoints
     )
+    return grouped_gp_practice_endpoints.reset_index(name="endpoints")
 
 
 def calculate_service_profiles_percentage(
