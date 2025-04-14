@@ -1,10 +1,12 @@
-import pytest
-from pytest_mock import MockerFixture
-from pipeline.cleardown import cleardown, ClearableEntityTypes, _get_entity_cls
-from pipeline.common import TargetEnvironment
-from typer import Abort
-from ftrs_data_layer.models import Organisation, HealthcareService, Location
 from unittest.mock import MagicMock
+
+import pytest
+from ftrs_data_layer.models import HealthcareService, Location, Organisation
+from pytest_mock import MockerFixture
+from typer import Abort
+
+from pipeline.cleardown import ClearableEntityTypes, _get_entity_cls, cleardown
+from pipeline.common import TargetEnvironment
 
 
 def test_cleardown_invalid_environment() -> None:

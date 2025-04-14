@@ -1,5 +1,6 @@
 import logging
 from enum import StrEnum
+from typing import Annotated
 
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
@@ -8,7 +9,7 @@ from ftrs_data_layer.repository.dynamodb import (
 )
 from rich.progress import track
 from typer import Option, confirm
-from typing import Annotated
+
 from pipeline.common import TargetEnvironment, get_table_name
 
 
