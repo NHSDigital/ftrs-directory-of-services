@@ -23,10 +23,10 @@ We have introduced some naming conventions to
 Some infrastructure we expect to build once per AWS account/environment. Currently these account-wide resources are
 
 - the VPC/VPN,
-- terraform management resources and
+- Terraform management resources and
 - the github runner
 
-The names for these resources is linked to the name of the gihub repository (eg ftrs-directory-of-services)
+The names for these resources is linked to the name of the github repository (eg ftrs-directory-of-services)
 
 The convention for naming account wide infrastructure is
 
@@ -34,7 +34,7 @@ The convention for naming account wide infrastructure is
 - the environment for which they are built
 - the unique name of the resource
 
-For example a vpc built from this repo for the dev environment would be `ftrs-directory-of-services-dev-my-vpc`
+For example a vpc built from this repository for the dev environment would be `ftrs-directory-of-services-dev-my-vpc`
 
 The `account_prefix` variable has been created to simplify resource naming by concatenating the name of the repository and environment
 See ftrs-directory-of-services/infrastructure/common/locals.tf
@@ -45,9 +45,8 @@ The resources built specifically for business user cases are named slightly diff
 
 - the owning project - ie ftrs-dos
 - the environment for which they are built - eg dev/test/prod etc
-- the stack that holds the terraform code - eg database or data_migration
+- the stack that holds the Terraform code - eg database
 - the unique name of the resource - eg my_bucket
 - the terraform workspace (if not the default workspace)
 
-For example an S3 bucket called `demo-bucket` defined in the `my_bucket` stack and built in the dev environment for the default workspace would be named `ftrs-dos-dev-my-bucket-demo-bucket`. The corresponding bucket built in the `fdos-000` workspace would be `ftrs-dos-dev-my-bucket-demo-bucket-fdos-000`
-
+For example an S3 bucket called `example` defined in the `demo` stack and built in the dev environment for the default workspace would be named `ftrs-dos-dev-demo-example`. The corresponding bucket built in the `fdos-000` workspace would be `ftrs-dos-dev-demo-example-fdos-000`
