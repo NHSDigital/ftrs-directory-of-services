@@ -21,22 +21,25 @@ metrics = Metrics(namespace="DOSIS-423-ConnectionTest")
 SECRET_NAME = os.environ["DB_SECRET_NAME"]
 REGION_NAME = os.environ.get("AWS_REGION", "eu-west-2")
 
+
 @tracer.capture_method
 def get_db_credentials() -> json:
     client = boto3.client("secretsmanager", region_name=REGION_NAME)
     secret_value = client.get_secret_value(SecretId=SECRET_NAME)
     return json.loads(secret_value["SecretString"])
 
+
 @tracer.capture_method
-def test_db_connection(secret:json) -> None:
+def test_db_connection(secret: json) -> None:
     conn = psycopg2.connect(
         host=secret["host"],
         port=secret["port"],
         user=secret["username"],
         password=secret["password"],
-        dbname=secret["dbname"]
+        dbname=secret["dbname"],
     )
     conn.close()  # If no exception, connection worked
+
 
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context
@@ -52,13 +55,10 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
         metrics.add_metric(name="ConnectionSuccess", unit=MetricUnit.Count, value=1)
         return {
             "statusCode": 200,
-            "body": json.dumps({"message": "Database connection successful"})
+            "body": json.dumps({"message": "Database connection successful"}),
         }
 
     except Exception as e:
         logging.exception("Connection failed")
         metrics.add_metric(name="ConnectionFailure", unit=MetricUnit.Count, value=1)
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
-        }
+        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
