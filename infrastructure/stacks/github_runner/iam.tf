@@ -8,7 +8,7 @@ resource "aws_iam_role_policy_attachment" "power_user_iam_role_policy_attachment
 }
 
 resource "aws_iam_policy" "read_only_user_iam_policy" {
-  name        = "${local.account_prefix}-github-runner-iam-services"
+  name        = "${var.repo_name}-github-runner-iam-services"
   description = "Read-only policy for IAM permissions required by GitHub runner"
   policy      = <<-EOF
   {
@@ -55,7 +55,7 @@ resource "aws_iam_role_policy_attachment" "read_only_user_iam_role_policy_attach
 }
 
 resource "aws_iam_role" "github_runner_iam_role" {
-  name               = "${local.account_prefix}-${var.github_runner_role_name}"
+  name               = "${var.repo_name}-${var.github_runner_role_name}"
   assume_role_policy = <<EOF
     {
       "Version":"2012-10-17",

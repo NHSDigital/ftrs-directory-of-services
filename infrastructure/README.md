@@ -24,7 +24,6 @@ Some infrastructure we expect to build once per AWS account/environment. Current
 
 - the vpc, vpn
 - Terraform management resources and
-- the github runner
 
 The names for these resources is linked to the name of the github repository (eg ftrs-directory-of-services)
 
@@ -38,6 +37,13 @@ For example a vpc built from this repository for the develop environment would b
 
 The `account_prefix` variable has been created to simplify resource naming by concatenating the name of the repository and environment
 See ftrs-directory-of-services/infrastructure/common/locals.tf
+
+Note
+
+- the github runner stack is an exception to that rule and the name is based on the repository name (ie minus the environment)
+- the Terraform management stack is also an exception to the rule remaining unchanged
+
+Both these stacks could be brought into line later - but consideration would have to given to the configure-credentials action (passing an environment) and how to transfer state between buckets and lock tables etc
 
 ### Application resources
 
