@@ -1,9 +1,10 @@
-import os
 import json
+import logging
+import os
+
 import boto3
 import psycopg2
-
-from aws_lambda_powertools import Logger, Tracer, Metrics
+from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_xray_sdk.core import patch_all
@@ -14,20 +15,20 @@ patch_all()
 # Powertools setup
 logger = Logger()
 tracer = Tracer()
-metrics = Metrics(namespace="DOSIS-421-ConnectionTest")
+metrics = Metrics(namespace="DOSIS-423-ConnectionTest")
 
 # Environment variable
-SECRET_NAME = os.environ["/ftrs-dos-data-migration/dev/target-rds-credentials"]
+SECRET_NAME = os.environ["DB_SECRET_NAME"]
 REGION_NAME = os.environ.get("AWS_REGION", "eu-west-2")
 
 @tracer.capture_method
-def get_db_credentials():
+def get_db_credentials() -> json:
     client = boto3.client("secretsmanager", region_name=REGION_NAME)
     secret_value = client.get_secret_value(SecretId=SECRET_NAME)
     return json.loads(secret_value["SecretString"])
 
 @tracer.capture_method
-def test_db_connection(secret):
+def test_db_connection(secret:json) -> None:
     conn = psycopg2.connect(
         host=secret["host"],
         port=secret["port"],
@@ -55,7 +56,7 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
         }
 
     except Exception as e:
-        logger.error(f"Connection failed: {str(e)}")
+        logging.exception("Connection failed")
         metrics.add_metric(name="ConnectionFailure", unit=MetricUnit.Count, value=1)
         return {
             "statusCode": 500,
