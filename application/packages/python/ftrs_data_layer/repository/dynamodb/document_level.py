@@ -1,9 +1,10 @@
+from typing import Generator
+from uuid import UUID
+
 from ftrs_data_layer.repository.dynamodb.repository import (
     DynamoDBRepository,
     ModelType,
 )
-from typing import Any, Generator
-from uuid import UUID
 
 
 class DocumentLevelRepository(DynamoDBRepository[ModelType]):
@@ -75,7 +76,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             }
         )
 
-    def _iter_records(
+    def iter_records(
         self, max_results: int | None = 100
     ) -> Generator[ModelType, None, None]:
         """

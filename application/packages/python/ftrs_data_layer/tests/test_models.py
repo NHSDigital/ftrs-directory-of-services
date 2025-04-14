@@ -28,6 +28,7 @@ def test_organisation() -> None:
         "name": "Test Organisation",
         "telecom": "123456789",
         "type": "NHS",
+        "endpoints": [],
     }
 
 

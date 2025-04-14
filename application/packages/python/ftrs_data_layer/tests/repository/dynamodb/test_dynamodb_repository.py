@@ -19,6 +19,9 @@ class ExampleDDBRepository(DynamoDBRepository):
     def delete(self, id: str) -> None:
         return super().delete(id)
 
+    def iter_records(self, max_results: int | None = 100) -> list[BaseModel]:
+        return super().iter_records(max_results)
+
 
 def test_dynamodb_repository_not_init_by_default() -> None:
     """
@@ -34,7 +37,7 @@ def test_dynamodb_repository_not_init_by_default() -> None:
 
     assert (
         str(excinfo.value)
-        == "Can't instantiate abstract class DynamoDBRepository without an implementation for abstract methods 'create', 'delete', 'get', 'update'"
+        == "Can't instantiate abstract class DynamoDBRepository without an implementation for abstract methods 'create', 'delete', 'get', 'iter_records', 'update'"
     )
 
 
@@ -188,3 +191,35 @@ def test_dynamodb_batch_write() -> None:
         },
         ReturnConsumedCapacity="INDEXES",
     )
+
+
+def test_dynamodb_scan() -> None:
+    """
+    Test that the _scan method calls the DynamoDB resource
+    with the correct parameters
+    """
+
+    class MockModel(BaseModel):
+        id: str
+        name: str
+
+    ddb_repo = ExampleDDBRepository(table_name="test_table", model_cls=MockModel)
+
+    # Mock the scan method
+    ddb_repo.table.scan = Mock(
+        return_value={
+            "Items": [
+                {"id": "123", "name": "test_item"},
+                {"id": "456", "name": "another_item"},
+            ]
+        }
+    )
+
+    expected_result_count = 2
+    result = ddb_repo._scan()
+
+    assert len(result["Items"]) == expected_result_count
+    assert result["Items"][0] == {"id": "123", "name": "test_item"}
+    assert result["Items"][1] == {"id": "456", "name": "another_item"}
+
+    ddb_repo.table.scan.assert_called_once_with(ReturnConsumedCapacity="INDEXES")

@@ -81,7 +81,7 @@ def cleardown(
         )
 
         for item in track(
-            repository._iter_records(max_results=None),
+            repository.iter_records(max_results=None),
             description=f"Deleting items from {entity_name}",
         ):
             repository.delete(item.id)

@@ -1,11 +1,12 @@
+from typing import Generator
 from uuid import UUID
+
+from boto3.dynamodb.conditions import Attr
 
 from ftrs_data_layer.repository.dynamodb.repository import (
     DynamoDBRepository,
     ModelType,
 )
-from boto3.dynamodb.conditions import Key, Attr
-from typing import Generator
 
 
 class FieldLevelRepository(DynamoDBRepository[ModelType]):
@@ -112,38 +113,11 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
                 if max_results is not None and count >= max_results:
                     return
 
-    def _iter_records(
+    def iter_records(
         self, max_results: int | None = 100
     ) -> Generator[ModelType, None, None]:
         """
         Iterate over the records in the DynamoDB table.
         """
-        count = 0
-        response = self.table.scan(
-            ReturnConsumedCapacity="INDEXES",
-            ProjectionExpression="id",
-            FilterExpression=Attr("field").eq("createdDateTime"),
-            Limit=max_results or 100,
-        )
-
-        for record in response.get("Items", []):
-            yield self.get(record["id"])
-            count += 1
-
-            if max_results is not None and count >= max_results:
-                return
-
-        while "LastEvaluatedKey" in response:
-            response = self.table.scan(
-                ExclusiveStartKey=response["LastEvaluatedKey"],
-                ReturnConsumedCapacity="INDEXES",
-                ProjectionExpression="id",
-                FilterExpression=Attr("field").eq("createdDateTime"),
-                Limit=max_results or 100,
-            )
-            for record in response.get("Items", []):
-                yield self.get(record["id"])
-                count += 1
-
-                if max_results is not None and count >= max_results:
-                    return
+        for record_id, _ in self._iter_record_ids(max_results):
+            yield self.get(record_id)

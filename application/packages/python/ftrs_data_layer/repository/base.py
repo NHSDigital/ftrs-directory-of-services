@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Type, TypeVar
+from typing import Generator, Generic, Type, TypeVar
 from uuid import UUID
 
 from ftrs_data_layer.models import BaseModel
@@ -49,3 +49,12 @@ class BaseRepository(ABC, Generic[ModelType]):
         Delete an object from the database by ID.
         """
         raise NotImplementedError("Delete method not implemented.")
+
+    @abstractmethod
+    def iter_records(
+        self, max_results: int | None = 100
+    ) -> Generator[ModelType, None, None]:
+        """
+        Iterates over records in the table.
+        """
+        raise NotImplementedError("Iterate records method not implemented.")
