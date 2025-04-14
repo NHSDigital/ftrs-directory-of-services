@@ -129,8 +129,9 @@ echo "Pulling environment variables from $ENVIRONMENTS_DIR"
 
 # init terraform
 terraform-initialise
-#
-terraform workspace select "$WORKSPACE" || terraform workspace new "$WORKSPACE"
+
+terraform workspace select -or-create "$WORKSPACE"
+
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   terraform plan -out $STACK.tfplan \
