@@ -3,7 +3,6 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-import boto3
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -15,7 +14,9 @@ from pipeline.db_utils import (
     get_services_columns_count,
     get_services_size,
 )
-from pipeline.exceptions import ExtractArgsError, InvalidS3URI, S3BucketAccessError
+from pipeline.exceptions import ExtractArgsError
+from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
+from pipeline.s3_utils.s3_operations import validate_s3_uri
 
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
@@ -134,25 +135,11 @@ def convert_to_parquet_buffer(gp_practice_extract: pd.DataFrame) -> BytesIO:
     return buffer
 
 
-def extract_s3_details(s3_output_uri: str) -> tuple[str, str]:
-    bucket_name = s3_output_uri.split("/")[2]
-    path = s3_output_uri.split("/")[3:]
-    path = "/".join(path).removesuffix("/")
-    return bucket_name, path
-
-
-def upload_to_s3(buffer: BytesIO, bucket_name: str, path: str) -> None:
-    s3 = boto3.client("s3")
-    file_name = "dos-gp-practice-extract.parquet"
-    key_name = f"{path}/{file_name}"
-    s3.put_object(Bucket=bucket_name, Key=key_name, Body=buffer.getvalue())
-    s3.close()
-
-
 def store_s3(gp_practice_extract: pd.DataFrame, s3_output_uri: str) -> None:
     buffer = convert_to_parquet_buffer(gp_practice_extract)
-    bucket_name, path = extract_s3_details(s3_output_uri)
-    upload_to_s3(buffer, bucket_name, path)
+    buffer.seek(0)  # Reset buffer position
+    bucket_wrapper = BucketWrapper(s3_output_uri)
+    bucket_wrapper.s3_upload_file(buffer, "dos-gp-practice-extract.parquet")
 
 
 def extract(db_uri: str, output_path: Path = None, s3_output_uri: str = None) -> None:
@@ -170,24 +157,6 @@ def extract(db_uri: str, output_path: Path = None, s3_output_uri: str = None) ->
     if s3_output_uri:
         logging.info(f"Extracting data to {s3_output_uri}")
         store_s3(extract_gp_practice_df, s3_output_uri)
-
-
-def validate_s3_uri(uri: str) -> str:
-    if not uri.startswith("s3://"):
-        raise InvalidS3URI(uri)
-
-    try:
-        s3 = boto3.client("s3")
-        bucket_name = uri.split("/")[2]
-        response = s3.head_bucket(Bucket=bucket_name)
-        logging.info(
-            f"Bucket {bucket_name} has status {response['ResponseMetadata']['HTTPStatusCode']}"
-        )
-        s3.close()
-    except Exception:
-        raise S3BucketAccessError()
-
-    return uri
 
 
 def main(args: list[str] | None = None) -> None:

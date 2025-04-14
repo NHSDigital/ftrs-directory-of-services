@@ -7,19 +7,16 @@ import pyarrow.parquet as pq
 import pytest
 from pytest_mock import MockerFixture
 
-from pipeline.exceptions import ExtractArgsError, InvalidS3URI, S3BucketAccessError
+from pipeline.exceptions import ExtractArgsError
 from pipeline.extract import (
     convert_to_parquet_buffer,
     extract,
     extract_gp_practice,
-    extract_s3_details,
     format_endpoints,
     main,
     merge_gp_practice_with_endpoints,
     store_local,
     store_s3,
-    upload_to_s3,
-    validate_s3_uri,
 )
 
 mock_gp_practices_df = pd.DataFrame(
@@ -174,9 +171,8 @@ def test_main_parses_args(
     extract_mock = mocker.patch("pipeline.extract.extract")
 
     if "--s3-output-uri" in args:
-        mock_s3_client = mocker.patch("boto3.client")
-        mock_head_bucket = mock_s3_client.return_value.head_bucket
-        mock_head_bucket.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
+        mock_validate_s3_uri = mocker.patch("pipeline.extract.validate_s3_uri")
+        mock_validate_s3_uri.return_value = expected_s3_output_uri
 
     main(args)
 
@@ -211,27 +207,6 @@ def test_main_throws_error_on_invalid_args(
     assert extract_mock.called is False
 
 
-def test_validate_s3_uri_raises_s3bucketaccesserror(mocker: MockerFixture) -> None:
-    """
-    Test that validate_s3_uri raises S3BucketAccessError when the S3 bucket is inaccessible.
-    """
-    mock_s3_client = mocker.patch("boto3.client")
-    mock_head_bucket = mock_s3_client.return_value.head_bucket
-    mock_head_bucket.side_effect = Exception("Access Denied")
-
-    with pytest.raises(S3BucketAccessError):
-        validate_s3_uri("s3://inaccessible-bucket/path")
-
-
-def test_validate_s3_uri_raises_invalids3uri() -> None:
-    """
-    Test that validate_s3_uri raises InvalidS3URI when the URI is invalid.
-    """
-
-    with pytest.raises(InvalidS3URI):
-        validate_s3_uri("https://invalid-bucket/path")
-
-
 @pytest.mark.parametrize(
     "args",
     [
@@ -253,9 +228,8 @@ def test_main_raises_extractargserror(mocker: MockerFixture, args: list[str]) ->
     mocker.patch("pipeline.extract.extract")
 
     if "--s3-output-uri" in args:
-        mock_s3_client = mocker.patch("boto3.client")
-        mock_head_bucket = mock_s3_client.return_value.head_bucket
-        mock_head_bucket.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
+        mock_validate_s3_uri = mocker.patch("pipeline.extract.validate_s3_uri")
+        mock_validate_s3_uri.return_value = "s3://bucket/path"
 
     with pytest.raises(ExtractArgsError):
         main(args)
@@ -606,58 +580,21 @@ def test_convert_to_parquet_buffer() -> None:
     pd.testing.assert_frame_equal(result_df, mock_gp_practice_extract_df)
 
 
-def test_extract_s3_details() -> None:
-    """
-    Test that extract_s3_details extracts the bucket name and path from an S3 URI.
-    """
-    s3_uri = "s3://my-bucket-name/my-folder/sub-folder/"
-
-    bucket_name, path = extract_s3_details(s3_uri)
-
-    assert bucket_name == "my-bucket-name", "Bucket name should match."
-    assert path == "my-folder/sub-folder", "Path should match."
-
-
-def test_upload_to_s3(mocker: MockerFixture) -> None:
-    """
-    Test that upload_to_s3 uploads a file to S3 with the correct parameters.
-    """
-    mock_s3_client = mocker.patch("boto3.client")
-    buffer = BytesIO(b"test data")
-    bucket_name = "my-bucket-name"
-    path = "my-folder"
-    file_name = "dos-gp-practice-extract.parquet"
-    key_name = f"{path}/{file_name}"
-
-    upload_to_s3(buffer, bucket_name, path)
-
-    mock_s3_client.assert_called_once_with("s3")
-    mock_s3_client.return_value.put_object.assert_called_once_with(
-        Bucket=bucket_name, Key=key_name, Body=buffer.getvalue()
-    )
-    mock_s3_client.return_value.close.assert_called_once()
-
-
 def test_store_s3(mocker: MockerFixture) -> None:
-    """
-    Test that store_s3 calls the appropriate functions to store a DataFrame in S3.
-    """
     mock_convert_to_parquet_buffer = mocker.patch(
         "pipeline.extract.convert_to_parquet_buffer"
     )
-    mock_extract_s3_details = mocker.patch("pipeline.extract.extract_s3_details")
-    mock_upload_to_s3 = mocker.patch("pipeline.extract.upload_to_s3")
+    mock_bucket_wrapper = mocker.patch("pipeline.extract.BucketWrapper")
+    mock_buffer = BytesIO(b"test data")
+    mock_convert_to_parquet_buffer.return_value = mock_buffer
+    mock_instance = mock_bucket_wrapper.return_value
+    mock_instance.s3_upload_file = mocker.patch(
+        "pipeline.extract.BucketWrapper.s3_upload_file"
+    )
 
-    s3_output_uri = "s3://my-bucket-name/my-folder/"
-    buffer = BytesIO(b"test data")
-    bucket_name = "my-bucket-name"
-    path = "my-folder"
-
-    mock_convert_to_parquet_buffer.return_value = buffer
-    mock_extract_s3_details.return_value = (bucket_name, path)
-
-    store_s3(mock_gp_practice_extract_df, s3_output_uri)
+    store_s3(mock_gp_practice_extract_df, "s3://your-bucket-name/path/to/object")
 
     mock_convert_to_parquet_buffer.assert_called_once_with(mock_gp_practice_extract_df)
-    mock_extract_s3_details.assert_called_once_with(s3_output_uri)
-    mock_upload_to_s3.assert_called_once_with(buffer, bucket_name, path)
+    mock_instance.s3_upload_file.assert_called_once_with(
+        mock_buffer, "dos-gp-practice-extract.parquet"
+    )
