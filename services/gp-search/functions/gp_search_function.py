@@ -23,11 +23,13 @@ tracer = Tracer()
 metrics = Metrics(namespace=NAMESPACE)
 
 
+
 @tracer.capture_method
 def get_db_credentials() -> json:
     client = boto3.client("secretsmanager", region_name=REGION_NAME)
     db_secret_value = client.get_secret_value(SecretId=DB_SECRET_NAME)
     return json.loads(db_secret_value["SecretString"])
+
 
 
 @tracer.capture_method
