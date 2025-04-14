@@ -1,9 +1,9 @@
 SERVICE ?= gp-search
 PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
-LOCAL_DIR := ../../services/${SERVICE}
 FUNCTION_NAME := gp_search_function.py
-FUNC_DIR := functions/$(FUNCTION_NAME)
+POETRY_VERSION := $(shell poetry version -s)
+WHEEL_NAME := functions-$(POETRY_VERSION)-py3-none-any.whl
 S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
@@ -12,9 +12,15 @@ LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
 # Example CI/CD targets are: dependencies, build, publish, deploy, clean, etc.
 
-install: # TODO
+install: install-dependencies
 
-lint: #TODO
+install-dependencies:
+	asdf install
+	poetry install --no-interaction
+
+lint:
+	poetry run ruff check
+	poetry run ruff format --check
 
 unit-test: #TODO
 
@@ -25,9 +31,9 @@ dependencies: # Install dependencies needed to build and test the project @Pipel
 	# TODO: Implement installation of your project dependencies
 
 build: ensure-build-dir
+	poetry build -f wheel -o $(BUILD_DIR)
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	cp $(LOCAL_DIR)/$(FUNC_DIR) $(BUILD_DIR)/
-	cd $(BUILD_DIR) && zip -r -q $(LAMBDA_NAME)-$(APPLICATION_TAG).zip $(FUNCTION_NAME)
+	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
 
 publish: # Publish the project artefact @Pipeline
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
