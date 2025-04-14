@@ -126,8 +126,6 @@ def test_load_organisations(
 
 
 def test_load(mocker: MockerFixture) -> None:
-    """"""
-
     with TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         input_df = pd.DataFrame(

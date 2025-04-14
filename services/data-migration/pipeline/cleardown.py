@@ -8,7 +8,7 @@ from ftrs_data_layer.repository.dynamodb import (
 )
 from rich.progress import track
 from typer import Option, confirm
-
+from typing import Annotated
 from pipeline.common import TargetEnvironment, get_table_name
 
 
@@ -42,39 +42,49 @@ def _get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
         case ClearableEntityTypes.location:
             return Location
         case _:
-            err_msg = f"Unsupported entity type: {type}"
+            err_msg = f"Unsupported entity type: {entity_type}"
             raise ValueError(err_msg)
 
 
 def cleardown(
-    env: TargetEnvironment = Option(..., help="Environment to clear the data from"),
-    workspace: str | None = Option(None, help="Workspace to clear the data from"),
-    endpoint_url: str | None = Option(None, help="URL to connect to local DynamoDB"),
-    entity_type: list[ClearableEntityTypes] = Option(
-        DEFAULT_CLEARABLE_ENTITY_TYPES,
-        help="Types of entities to clear from the database",
-    ),
+    env: Annotated[
+        TargetEnvironment, Option(..., help="Environment to clear the data from")
+    ],
+    workspace: Annotated[
+        str | None, Option(..., help="Workspace to clear the data from")
+    ] = None,
+    endpoint_url: Annotated[
+        str | None, Option(..., help="URL to connect to local DynamoDB")
+    ] = None,
+    entity_type: Annotated[
+        list[ClearableEntityTypes] | None,
+        Option(
+            None,
+            help="Types of entities to clear from the database",
+        ),
+    ] = None,
 ) -> None:
     """
     Reset the database by deleting all items in the specified table(s).
     This function is intended for use in development and local environments only.
     """
+    if entity_type is None:
+        entity_type = DEFAULT_CLEARABLE_ENTITY_TYPES
+
     if env not in [TargetEnvironment.dev, TargetEnvironment.local]:
         error_msg = f"Invalid environment: {env}. Only 'dev' and 'local' are allowed."
         logging.error(error_msg)
         raise ValueError(error_msg)
 
-    if not confirm(
+    confirm(
         f"Are you sure you want to clear the {env} environment? This action cannot be undone.",
         abort=True,
-    ):
-        logging.info("Cleardown operation aborted by user.")
-        return
+    )
 
     for entity_name in entity_type:
         entity_cls = _get_entity_cls(entity_name)
 
-        repository = DocumentLevelRepository[entity_cls](
+        repository = DocumentLevelRepository(
             table_name=get_table_name(entity_name, env.value, workspace),
             model_cls=entity_cls,
             endpoint_url=endpoint_url,

@@ -76,7 +76,7 @@ def transform_gp_practices(
         organisation = create_organisation(row, current_timestamp)
 
         endpoints_data = row.get("endpoints", [])
-        if endpoints_data is None:
+        if not endpoints_data:
             logging.info(f"No endpoints found for organisation {organisation.id}")
             endpoints_data = []
 
