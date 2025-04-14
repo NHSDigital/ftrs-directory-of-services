@@ -29,10 +29,10 @@ def check_aws_access():
 @then(parsers.parse('The S3 bucket "{bucket}" exists'))
 def confirm_s3_bucket_exists(project, bucket, aws_s3_client, workspace, env):
     logger.info(f"project: {project}, bucket: {bucket}, env: {env}, workspace: {workspace}")
-    if workspace=="":
-        bucket_name = project + "-" + bucket + "-" + env
+    if workspace == "":
+        bucket_name = project + "-" + env + "-" + bucket
     else:
-        bucket_name = project + "-" + bucket + "-" + env + "-" + workspace
+        bucket_name = project + "-" + env + "-" + bucket + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
     logger.info("Bucket Exists: {}", response)
     assert response == True
