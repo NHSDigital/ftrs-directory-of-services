@@ -1,7 +1,10 @@
 from functools import cache
+from typing import TYPE_CHECKING
 
 import boto3
-from mypy_boto3_dynamodb import DynamoDBClient, DynamoDBServiceResource
+
+if TYPE_CHECKING:
+    from mypy_boto3_dynamodb import DynamoDBClient, DynamoDBServiceResource
 
 
 @cache
