@@ -1,81 +1,18 @@
 import logging
-from datetime import datetime
 from pathlib import Path
+from unittest.mock import Mock
 
 import pandas as pd
 import pytest
+from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
-from pipeline.transform import main, transform
+from pipeline.transform import transform
 
 
-def test_main_parses_args(mocker: MockerFixture) -> None:
-    """
-    Test that main parses command line arguments and calls transform with the correct arguments
-    """
-    transform_mock = mocker.patch("pipeline.transform.transform")
-    args = ["--input-path", "test_input_path", "--output-path", "test_output_path"]
-
-    main(args)
-
-    assert transform_mock.called is True
-    assert transform_mock.call_args[0][0] == Path("test_input_path")
-    assert transform_mock.call_args[0][1] == Path("test_output_path")
-
-
-def test_main_throws_error_on_no_args(mocker: MockerFixture) -> None:
-    """
-    Test that main throws an error when no arguments are provided
-    """
-    expected_exit_code = 2
-
-    transform_mock = mocker.patch("pipeline.transform.transform")
-    args = [""]
-    with pytest.raises(SystemExit) as exc:
-        main(args)
-
-    assert exc.value.code == expected_exit_code
-    assert transform_mock.called is False
-
-
-def test_main_throws_error_on_missing_args(mocker: MockerFixture) -> None:
-    """
-    Test that main throws an error when required arguments are missing
-    """
-    expected_exit_code = 2
-
-    transform_mock = mocker.patch("pipeline.transform.transform")
-    args = ["--output-path", "test_output_path"]
-    with pytest.raises(SystemExit) as exc:
-        main(args)
-
-    assert exc.value.code == expected_exit_code
-    assert transform_mock.called is False
-
-
-def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
-    """
-    Test that main throws an error when invalid arguments are
-    """
-    expected_exit_code = 2
-
-    transform_mock = mocker.patch("pipeline.transform.transform")
-    args = [
-        "--input-path",
-        "test_input_path",
-        "--output-path",
-        "test_output_path",
-        "--invalid-arg",
-    ]
-    with pytest.raises(SystemExit) as exc:
-        main(args)
-
-    assert exc.value.code == expected_exit_code
-    assert transform_mock.called is False
-
-
+@freeze_time("2025-03-27 12:00:00")
 @pytest.mark.parametrize(
-    "input_data, expected_output, expected_log_message",
+    "input_data, expected_output",
     [
         (
             # Input data
@@ -87,7 +24,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                     "endpoints": [
                         [
                             {
-                                "endpointid": "1",
+                                "id": "1",
                                 "transport": "email",
                                 "businessscenario": "scenario1",
                                 "interaction": "interaction1",
@@ -112,37 +49,98 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                             "telecom": None,
                             "type": "GP Practice",
                             "createdBy": "ROBOT",
-                            "createdDateTime": datetime(2025, 3, 27, 12, 0),
+                            "createdDateTime": "2025-03-27T12:00:00",
                             "modifiedBy": "ROBOT",
-                            "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
+                            "modifiedDateTime": "2025-03-27T12:00:00",
+                            "endpoints": [
+                                {
+                                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                                    "identifier_oldDoS_id": 1,
+                                    "status": "active",
+                                    "connectionType": "email",
+                                    "name": None,
+                                    "description": "scenario1",
+                                    "format": "PDF",
+                                    "payloadType": "interaction1",
+                                    "address": "address1",
+                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
+                                    "service": None,
+                                    "order": 1,
+                                    "isCompressionEnabled": False,
+                                    "createdBy": "ROBOT",
+                                    "createdDateTime": "2025-03-27T12:00:00",
+                                    "modifiedBy": "ROBOT",
+                                    "modifiedDateTime": "2025-03-27T12:00:00",
+                                }
+                            ],
                         }
                     ],
+                }
+            ),
+        ),
+        (
+            # Input data
+            pd.DataFrame(
+                {
+                    "odscode": ["A123"],
+                    "name": ["Test Org"],
+                    "type": ["GP Practice"],
                     "endpoints": [
                         [
                             {
-                                "id": "123e4567-e89b-12d3-a456-426614174000",
-                                "identifier_oldDoS_id": 1,
-                                "status": "active",
-                                "connectionType": "email",
-                                "name": None,
-                                "description": "scenario1",
-                                "payloadType": "interaction1",
+                                "id": "1",
+                                "transport": "email",
+                                "businessscenario": "scenario1",
+                                "interaction": "interaction1",
                                 "address": "address1",
-                                "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                "service": None,
-                                "order": 1,
-                                "isCompressionEnabled": False,
+                                "endpointorder": 1,
+                                "iscompressionenabled": "uncompressed",
                                 "format": "PDF",
-                                "createdBy": "ROBOT",
-                                "createdDateTime": datetime(2025, 3, 27, 12, 0),
-                                "modifiedBy": "ROBOT",
-                                "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
                             }
                         ]
                     ],
                 }
             ),
-            None,
+            # Expected output
+            pd.DataFrame(
+                {
+                    "organisation": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "identifier_ODS_ODSCode": "A123",
+                            "active": True,
+                            "name": "Test Org",
+                            "telecom": None,
+                            "type": "GP Practice",
+                            "createdBy": "ROBOT",
+                            "createdDateTime": "2025-03-27T12:00:00",
+                            "modifiedBy": "ROBOT",
+                            "modifiedDateTime": "2025-03-27T12:00:00",
+                            "endpoints": [
+                                {
+                                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                                    "identifier_oldDoS_id": 1,
+                                    "status": "active",
+                                    "connectionType": "email",
+                                    "name": None,
+                                    "description": "scenario1",
+                                    "payloadType": "interaction1",
+                                    "address": "address1",
+                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
+                                    "service": None,
+                                    "order": 1,
+                                    "isCompressionEnabled": False,
+                                    "format": "PDF",
+                                    "createdBy": "ROBOT",
+                                    "createdDateTime": "2025-03-27T12:00:00",
+                                    "modifiedBy": "ROBOT",
+                                    "modifiedDateTime": "2025-03-27T12:00:00",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ),
         ),
         (
             # Input data with multiple endpoints and varied compression settings
@@ -154,7 +152,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                     "endpoints": [
                         [
                             {
-                                "endpointid": "2",
+                                "id": "2",
                                 "transport": "sms",
                                 "businessscenario": "scenario2",
                                 "interaction": "interaction2",
@@ -164,7 +162,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                                 "format": "XML",
                             },
                             {
-                                "endpointid": "3",
+                                "id": "3",
                                 "transport": "fax",
                                 "businessscenario": "scenario3",
                                 "interaction": "interaction3",
@@ -189,56 +187,53 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                             "telecom": None,
                             "type": "GP Practice",
                             "createdBy": "ROBOT",
-                            "createdDateTime": datetime(2025, 3, 27, 12, 0),
+                            "createdDateTime": "2025-03-27T12:00:00",
                             "modifiedBy": "ROBOT",
-                            "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
+                            "modifiedDateTime": "2025-03-27T12:00:00",
+                            "endpoints": [
+                                {
+                                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                                    "identifier_oldDoS_id": 2,
+                                    "status": "active",
+                                    "connectionType": "sms",
+                                    "name": None,
+                                    "description": "scenario2",
+                                    "payloadType": "interaction2",
+                                    "address": "address2",
+                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
+                                    "service": None,
+                                    "order": 2,
+                                    "isCompressionEnabled": True,
+                                    "format": "XML",
+                                    "createdBy": "ROBOT",
+                                    "createdDateTime": "2025-03-27T12:00:00",
+                                    "modifiedBy": "ROBOT",
+                                    "modifiedDateTime": "2025-03-27T12:00:00",
+                                },
+                                {
+                                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                                    "identifier_oldDoS_id": 3,
+                                    "status": "active",
+                                    "connectionType": "fax",
+                                    "name": None,
+                                    "description": "scenario3",
+                                    "payloadType": "interaction3",
+                                    "address": "address3",
+                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
+                                    "service": None,
+                                    "order": 3,
+                                    "isCompressionEnabled": False,
+                                    "format": "TXT",
+                                    "createdBy": "ROBOT",
+                                    "createdDateTime": "2025-03-27T12:00:00",
+                                    "modifiedBy": "ROBOT",
+                                    "modifiedDateTime": "2025-03-27T12:00:00",
+                                },
+                            ],
                         },
-                    ],
-                    "endpoints": [
-                        [
-                            {
-                                "id": "123e4567-e89b-12d3-a456-426614174000",
-                                "identifier_oldDoS_id": 2,
-                                "status": "active",
-                                "connectionType": "sms",
-                                "name": None,
-                                "description": "scenario2",
-                                "payloadType": "interaction2",
-                                "address": "address2",
-                                "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                "service": None,
-                                "order": 2,
-                                "isCompressionEnabled": True,
-                                "format": "XML",
-                                "createdBy": "ROBOT",
-                                "createdDateTime": datetime(2025, 3, 27, 12, 0),
-                                "modifiedBy": "ROBOT",
-                                "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
-                            },
-                            {
-                                "id": "123e4567-e89b-12d3-a456-426614174000",
-                                "identifier_oldDoS_id": 3,
-                                "status": "active",
-                                "connectionType": "fax",
-                                "name": None,
-                                "description": "scenario3",
-                                "payloadType": "interaction3",
-                                "address": "address3",
-                                "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                "service": None,
-                                "order": 3,
-                                "isCompressionEnabled": False,
-                                "format": "TXT",
-                                "createdBy": "ROBOT",
-                                "createdDateTime": datetime(2025, 3, 27, 12, 0),
-                                "modifiedBy": "ROBOT",
-                                "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
-                            },
-                        ],
                     ],
                 },
             ),
-            None,
         ),
         (
             # Input data with transport == telno
@@ -250,7 +245,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                     "endpoints": [
                         [
                             {
-                                "endpointid": "1",
+                                "id": "1",
                                 "transport": "telno",
                                 "businessscenario": "scenario1",
                                 "interaction": "interaction1",
@@ -275,37 +270,34 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                             "telecom": None,
                             "type": "GP Practice",
                             "createdBy": "ROBOT",
-                            "createdDateTime": datetime(2025, 3, 27, 12, 0),
+                            "createdDateTime": "2025-03-27T12:00:00",
                             "modifiedBy": "ROBOT",
-                            "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
+                            "modifiedDateTime": "2025-03-27T12:00:00",
+                            "endpoints": [
+                                {
+                                    "id": "123e4567-e89b-12d3-a456-426614174000",
+                                    "identifier_oldDoS_id": 1,
+                                    "status": "active",
+                                    "connectionType": "telno",
+                                    "name": None,
+                                    "description": "scenario1",
+                                    "payloadType": None,
+                                    "address": "address1",
+                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
+                                    "service": None,
+                                    "order": 1,
+                                    "isCompressionEnabled": False,
+                                    "format": None,
+                                    "createdBy": "ROBOT",
+                                    "createdDateTime": "2025-03-27T12:00:00",
+                                    "modifiedBy": "ROBOT",
+                                    "modifiedDateTime": "2025-03-27T12:00:00",
+                                }
+                            ],
                         }
-                    ],
-                    "endpoints": [
-                        [
-                            {
-                                "id": "123e4567-e89b-12d3-a456-426614174000",
-                                "identifier_oldDoS_id": 1,
-                                "status": "active",
-                                "connectionType": "telno",
-                                "name": None,
-                                "description": "scenario1",
-                                "payloadType": "",
-                                "address": "address1",
-                                "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                "service": None,
-                                "order": 1,
-                                "isCompressionEnabled": False,
-                                "format": "",
-                                "createdBy": "ROBOT",
-                                "createdDateTime": datetime(2025, 3, 27, 12, 0),
-                                "modifiedBy": "ROBOT",
-                                "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
-                            }
-                        ]
                     ],
                 }
             ),
-            None,
         ),
         (
             # Input data where endpoints is none
@@ -314,7 +306,7 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                     "odscode": ["A123"],
                     "name": ["Test Org"],
                     "type": ["GP Practice"],
-                    "endpoints": None,
+                    "endpoints": [[]],
                 }
             ),
             # Expected output
@@ -329,22 +321,14 @@ def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
                             "telecom": None,
                             "type": "GP Practice",
                             "createdBy": "ROBOT",
-                            "createdDateTime": datetime(2025, 3, 27, 12, 0),
+                            "createdDateTime": "2025-03-27T12:00:00",
                             "modifiedBy": "ROBOT",
-                            "modifiedDateTime": datetime(2025, 3, 27, 12, 0),
+                            "modifiedDateTime": "2025-03-27T12:00:00",
+                            "endpoints": [],
                         }
                     ],
-                    "endpoints": None,
                 }
             ),
-            "No endpoints found for the organisation",
-        ),
-        (
-            # Input data where dataframe is empty
-            pd.DataFrame(None),
-            # Expected output
-            pd.DataFrame([]),
-            "No data found",
         ),
     ],
 )
@@ -353,7 +337,7 @@ def test_transform(
     caplog: pytest.LogCaptureFixture,
     input_data: pd.DataFrame,
     expected_output: pd.DataFrame,
-    expected_log_message: str,
+    mock_pd_to_parquet: Mock,
 ) -> None:
     """
     Test the transform function to ensure input data is transformed correctly.
@@ -363,35 +347,46 @@ def test_transform(
     output_path = Path("mock_output_path")
 
     mocker.patch("pandas.read_parquet", return_value=input_data)
-
-    logger = logging.getLogger("pipeline.transform")
-    mocker.patch("pipeline.transform.logging", logger)
-
-    captured_df = None
-
-    def capture_to_parquet(self: pd.DataFrame, *args: tuple, **kwargs: dict) -> None:
-        nonlocal captured_df
-        captured_df = self
-
-    mocker.patch.object(pd.DataFrame, "to_parquet", new=capture_to_parquet)
-
     mocker.patch(
         "pipeline.transform.uuid4", return_value="123e4567-e89b-12d3-a456-426614174000"
     )
-    mocker.patch(
-        "pipeline.transform.datetime",
-        **{"now.return_value.strftime.return_value": datetime(2025, 3, 27, 12, 0)},
-    )
 
-    # Run the transform function
-    with caplog.at_level(logging.ERROR):
+    # with freeze_time("2025-03-27 12:00:00"):
+    with caplog.at_level(logging.INFO):
+        result = transform(input_path, output_path)
+
+    assert mock_pd_to_parquet.called, "pd.to_parquet was not called."
+
+    gp_practice_df = result["dos-gp-practice-transform"]
+
+    assert gp_practice_df is not None
+    assert not gp_practice_df.empty
+    assert gp_practice_df.shape[0] == expected_output.shape[0], "Row count mismatch"
+
+    for idx, row in gp_practice_df.iterrows():
+        row_dict = row.to_dict()
+        expected_row_dict = expected_output.iloc[idx].to_dict()
+
+        assert row_dict == expected_row_dict, (
+            f"Row {idx} mismatch: {row_dict} != {expected_row_dict}"
+        )
+
+
+def test_transform_empty_dataframe(
+    mocker: MockerFixture,
+    mock_pd_to_parquet: Mock,
+) -> None:
+    """
+    Test the transform function with an empty DataFrame.
+    """
+
+    input_path = Path("mock_input_path")
+    output_path = Path("mock_output_path")
+
+    mocker.patch("pandas.read_parquet", return_value=pd.DataFrame())
+
+    with pytest.raises(ValueError) as excinfo:
         transform(input_path, output_path)
 
-    assert captured_df is not None, "The DataFrame was not captured."
-    pd.testing.assert_frame_equal(captured_df, expected_output)
-
-    # Check the log message if expected_log_message is provided
-    if expected_log_message:
-        assert any(
-            expected_log_message in record.message for record in caplog.records
-        ), f"Expected log message '{expected_log_message}' not found in logs."
+    assert not mock_pd_to_parquet.called
+    assert str(excinfo.value) == "No data found in the input DataFrame"

@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DBModel(BaseModel):
@@ -17,11 +17,12 @@ class DBModel(BaseModel):
 
 
 class Organisation(DBModel):
-    identifier_ODS_ODSCode: str | None
+    identifier_ODS_ODSCode: str | None = None
     active: bool
     name: str
-    telecom: str | None
+    telecom: str | None = None
     type: str
+    endpoints: list["Endpoint"] = Field(default_factory=list)
 
 
 class Location(DBModel):
@@ -35,8 +36,8 @@ class Location(DBModel):
     positionGCS_longitude: float
     positionGCS_easting: float
     positionGCS_northing: float
-    positionReferenceNumber_UPRN: int | None
-    positionReferenceNumber_UBRN: int | None
+    positionReferenceNumber_UPRN: int | None = None
+    positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
     partOf: UUID | None
 
@@ -55,11 +56,12 @@ class HealthcareService(DBModel):
     type: str
 
 
-class Endpoints(DBModel):
+class Endpoint(DBModel):
     identifier_oldDoS_id: int | None
     status: str
     connectionType: str
     name: str | None
+    format: str | None
     description: str
     payloadType: str | None
     address: str

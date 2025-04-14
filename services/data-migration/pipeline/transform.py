@@ -1,17 +1,21 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
-from uuid import uuid4
+from typing import Dict
+from uuid import UUID, uuid4
 
 import pandas as pd
+from ftrs_data_layer.models import Endpoint, Organisation
+from typer import Option
 
-from packages.data_models import Endpoints, Organisation
+from pipeline.common import Constants
 
 
-def create_organisation(row: pd.Series, current_timestamp: str) -> Organisation:
+def create_organisation(row: pd.Series, current_timestamp: datetime) -> Organisation:
+    organisation_id = uuid4()
+
     return Organisation(
-        id=uuid4(),
+        id=organisation_id,
         identifier_ODS_ODSCode=row["odscode"],
         active=True,
         name=row["name"],
@@ -21,30 +25,38 @@ def create_organisation(row: pd.Series, current_timestamp: str) -> Organisation:
         createdDateTime=current_timestamp,
         modifiedBy="ROBOT",
         modifiedDateTime=current_timestamp,
+        endpoints=[],
     )
 
 
 def create_endpoint(
-    endpoint_data: Dict[str, str], organisation_id: uuid4, current_timestamp: str
-) -> Endpoints:
-    return Endpoints(
+    endpoint_data: Dict[str, str], organisation_id: UUID, current_timestamp: str
+) -> Endpoint:
+    payload_type = (
+        None
+        if endpoint_data.get("transport") == "telno"
+        else endpoint_data.get("interaction")
+    )
+    format = (
+        None
+        if endpoint_data.get("transport") == "telno"
+        else endpoint_data.get("format")
+    )
+
+    return Endpoint(
         id=uuid4(),
-        identifier_oldDoS_id=endpoint_data.get("endpointid"),
+        identifier_oldDoS_id=endpoint_data.get("id"),
         status="active",
         connectionType=endpoint_data.get("transport"),
         name=None,
         description=endpoint_data.get("businessscenario"),
-        payloadType=""
-        if endpoint_data.get("transport") == "telno"
-        else endpoint_data.get("interaction"),
+        payloadType=payload_type,
         address=endpoint_data.get("address"),
         managedByOrganisation=organisation_id,
         service=None,
         order=endpoint_data.get("endpointorder"),
         isCompressionEnabled=endpoint_data.get("iscompressionenabled") == "compressed",
-        format=""
-        if endpoint_data.get("transport") == "telno"
-        else endpoint_data.get("format"),
+        format=format,
         createdBy="ROBOT",
         createdDateTime=current_timestamp,
         modifiedBy="ROBOT",
@@ -52,83 +64,51 @@ def create_endpoint(
     )
 
 
-def convert_UUID_to_string(gp_dicts: dict) -> Dict[str, Any]:
-    for gp_dict in gp_dicts:
-        gp_dict["organisation"]["id"] = str(gp_dict["organisation"]["id"])
-        if gp_dict["endpoints"]:
-            for endpoint in gp_dict["endpoints"]:
-                endpoint["id"] = str(endpoint["id"])
-                endpoint["managedByOrganisation"] = str(
-                    endpoint["managedByOrganisation"]
-                )
-
-    return gp_dicts
-
-
-def create_GP_practices_dict(
-    df: pd.DataFrame, current_timestamp: str
-) -> List[Dict[str, Any]]:
+def transform_gp_practices(
+    df: pd.DataFrame, current_timestamp: datetime
+) -> pd.DataFrame:
     if df.empty:
-        logging.error("No data found")
-        return []
+        err_msg = "No data found in the input DataFrame"
+        raise ValueError(err_msg)
 
     gp_practices = []
     for _, row in df.iterrows():
         organisation = create_organisation(row, current_timestamp)
+
         endpoints_data = row.get("endpoints", [])
         if endpoints_data is None:
-            logging.error("No endpoints found for the organisation")
-            gp_practices.append(
-                {"organisation": organisation.model_dump(), "endpoints": None}
-            )
-            continue
+            logging.info(f"No endpoints found for organisation {organisation.id}")
+            endpoints_data = []
 
-        endpoints = [
-            create_endpoint(ed, organisation.id, current_timestamp)
-            for ed in endpoints_data
+        organisation.endpoints = [
+            create_endpoint(ep, organisation.id, current_timestamp)
+            for ep in endpoints_data
         ]
-        gp_practices.append(
-            {
-                "organisation": organisation.model_dump(),
-                "endpoints": [ep.model_dump() for ep in endpoints],
-            }
-        )
+        gp_practices.append({"organisation": organisation.model_dump(mode="json")})
 
-    return gp_practices
+    return pd.DataFrame(gp_practices)
 
 
-def transform(input_path: Path, output_path: Path) -> None:
+def transform(
+    input_path: Path = Option(..., help="Path to read the extracted data"),
+    output_path: Path = Option(..., help="Path to save the transformed data"),
+) -> None:
+    """
+    Transform the GP practice data from the input path and save it to the output path.
+    """
+    output_path.mkdir(parents=True, exist_ok=True)
+
     logging.info(f"Transforming data from {input_path} to {output_path}")
 
-    current_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    extract_dataframe = pd.read_parquet(input_path)
+    current_timestamp = datetime.now()
+    extract_dataframe = pd.read_parquet(input_path / Constants.GP_PRACTICE_EXTRACT_FILE)
+    gp_practices_df = transform_gp_practices(extract_dataframe, current_timestamp)
 
-    gp_practices = create_GP_practices_dict(extract_dataframe, current_timestamp)
-    gp_practices = convert_UUID_to_string(gp_practices)
-    transform_gp_dataframe = pd.DataFrame(gp_practices)
-
-    transform_gp_dataframe.to_parquet(
-        output_path / f"dos-gp-practice-transform-{current_timestamp}.parquet",
+    gp_practices_df.to_parquet(
+        output_path / Constants.GP_PRACTICE_TRANSFORM_FILE,
         engine="pyarrow",
         index=False,
         compression="zstd",
     )
 
-
-def main(args: list[str] | None = None) -> None:
-    import argparse
-
-    logging.basicConfig(level=logging.INFO)
-
-    parser = argparse.ArgumentParser(description="Extract data from source")
-    parser.add_argument(
-        "--input-path", type=Path, required=True, help="Path to read the extracted data"
-    )
-    parser.add_argument(
-        "--output-path",
-        type=Path,
-        required=True,
-        help="Path to save the extracted data",
-    )
-    args = parser.parse_args(args)
-    transform(args.input_path, args.output_path)
+    return {Constants.GP_PRACTICE_TRANSFORM: gp_practices_df}

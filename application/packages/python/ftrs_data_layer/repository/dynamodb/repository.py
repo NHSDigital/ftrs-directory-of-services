@@ -1,10 +1,14 @@
-from typing import Any
+from typing import Any, Generator
 from uuid import UUID
 
-from mypy_boto3_dynamodb.type_defs import PutItemInputTablePutItemTypeDef
+from mypy_boto3_dynamodb.type_defs import (
+    PutItemInputTablePutItemTypeDef,
+    ScanOutputTableTypeDef,
+)
 
 from ftrs_data_layer.client import get_dynamodb_resource
 from ftrs_data_layer.repository.base import BaseRepository, ModelType
+from abc import abstractmethod
 
 
 class DynamoDBRepository(BaseRepository[ModelType]):
@@ -101,3 +105,28 @@ class DynamoDBRepository(BaseRepository[ModelType]):
             ReturnConsumedCapacity="INDEXES",
             **kwargs,
         )
+
+    def _scan(self, **kwargs: dict) -> ScanOutputTableTypeDef:
+        """
+        Scans the DynamoDB table.
+        """
+        response = self.table.scan(**kwargs, ReturnConsumedCapacity="INDEXES")
+
+        return response
+
+    def _iter_record_ids(
+        self, max_results: int | None = 100
+    ) -> Generator[str, None, None]:
+        """
+        Iterates over record IDs in the DynamoDB table.
+        """
+        raise NotImplementedError("Iterate IDs method not implemented.")
+
+    @abstractmethod
+    def _iter_records(
+        self, max_results: int | None = 100
+    ) -> Generator[ModelType, None, None]:
+        """
+        Iterates over records in the DynamoDB table.
+        """
+        raise NotImplementedError("Iterate records method not implemented.")

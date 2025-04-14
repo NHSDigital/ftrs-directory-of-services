@@ -63,26 +63,6 @@ Note it may be necessary on first run to edit the context defined in docker-comp
 
 ```context: ../../infrastructure/images/postgres```
 
-### Setting Database Schema
-
-To set the target database schema manually, run the following script to load the schema.
-
-```bash
-# Activate Python virtual environment
-eval $(poetry env activate)
-
-# Run Schema Load Script
-dos-etl-schema \
-    --db-uri {target_database} \
-    --schema-path schema/target-state.sql
-```
-
-If you are making changes to this database schema during development, you can provide the `--drop` flag to drop the existing schema before loading the provided schema.
-
-If you are working with a schema with a different name, you can specify the `--drop-schema-name <name>` option to manually specify the schema to be dropped. This will default to `"Core"`.
-
-All options can be found by running `python -m pipeline.schema --help`.
-
 ### Loading the local data clone
 
 A sanitised clone of the source DoS data is available in S3.

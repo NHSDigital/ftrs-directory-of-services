@@ -1,84 +1,182 @@
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import Mock, call
 
+import pandas as pd
 import pytest
+from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from pytest_mock import MockerFixture
 
-from pipeline.load import load, main
+from pipeline.common import TargetEnvironment
+from pipeline.load import (
+    _load_organisations,
+    _retrieve_gp_practice_data,
+    load,
+)
+
+
+def test_retrieve_gp_practice_data(mocker: MockerFixture) -> None:
+    with TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        test_file = temp_path / "dos-gp-practice-transform.parquet"
+        test_file.touch()
+
+        mocker.patch(
+            "pipeline.load.pd.read_parquet", return_value=pd.DataFrame(["Test Data"])
+        )
+
+        result = _retrieve_gp_practice_data(temp_path)
+
+    assert result == [{0: "Test Data"}]
+
+
+def test_retrieve_gp_practice_data_no_file() -> None:
+    """
+    Test _retrieve_gp_practice_data function when file does not exist.
+    """
+    with TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+
+        with pytest.raises(FileNotFoundError) as excinfo:
+            _retrieve_gp_practice_data(temp_path)
+
+    assert (
+        str(excinfo.value)
+        == f"File not found: {temp_path}/dos-gp-practice-transform.parquet"
+    )
+
+
+def test_load_organisations(
+    mock_logging: Mock,
+) -> None:
+    """
+    Test _load_organisations function.
+    """
+
+    mock_repository = DocumentLevelRepository
+    mock_repository.create = Mock()
+
+    input_df = [
+        pd.Series(
+            {
+                "organisation": {
+                    "id": "d5a852ef-12c7-4014-b398-661716a63027",
+                    "name": "Test Org",
+                    "active": True,
+                    "type": "GP Practice",
+                    "createdBy": "ROBOT",
+                    "createdDateTime": "2023-10-01T00:00:00Z",
+                    "modifiedBy": "ROBOT",
+                    "modifiedDateTime": "2023-10-01T00:00:00Z",
+                }
+            }
+        ),
+        pd.Series(
+            {
+                "organisation": {
+                    "id": "4e7084db-e987-4241-a737-252bedfcc09c",
+                    "name": "Another Org",
+                    "active": True,
+                    "type": "GP Practice",
+                    "createdBy": "ROBOT",
+                    "createdDateTime": "2023-10-01T00:00:00Z",
+                    "modifiedBy": "ROBOT",
+                    "modifiedDateTime": "2023-10-01T00:00:00Z",
+                }
+            }
+        ),
+    ]
+    table_name = "test-table"
+
+    _load_organisations(
+        input_df=input_df,
+        table_name=table_name,
+        endpoint_url=None,
+        repository_cls=mock_repository,
+    )
+
+    expected_create_calls = [
+        Organisation(
+            id="d5a852ef-12c7-4014-b398-661716a63027",
+            name="Test Org",
+            active=True,
+            type="GP Practice",
+            createdBy="ROBOT",
+            createdDateTime="2023-10-01T00:00:00Z",
+            modifiedBy="ROBOT",
+            modifiedDateTime="2023-10-01T00:00:00Z",
+        ),
+        Organisation(
+            id="4e7084db-e987-4241-a737-252bedfcc09c",
+            name="Another Org",
+            active=True,
+            type="GP Practice",
+            createdBy="ROBOT",
+            createdDateTime="2023-10-01T00:00:00Z",
+            modifiedBy="ROBOT",
+            modifiedDateTime="2023-10-01T00:00:00Z",
+        ),
+    ]
+    assert mock_repository.create.call_count == len(expected_create_calls)
+    mock_repository.create.assert_has_calls(
+        [call(org) for org in expected_create_calls],
+        any_order=True,
+    )
 
 
 def test_load(mocker: MockerFixture) -> None:
-    """
-    Test that load logs the input path and an error message
-    """
-    mock_logging_info = mocker.patch("pipeline.load.logging.info")
-    mock_logging_error = mocker.patch("pipeline.load.logging.error")
+    """"""
 
-    load("test_db_uri", Path("test_input_path"))
+    with TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        input_df = pd.DataFrame(
+            [
+                {
+                    "organisation": {
+                        "id": "d5a852ef-12c7-4014-b398-661716a63027",
+                        "name": "Test Org",
+                        "active": True,
+                        "type": "GP Practice",
+                        "createdBy": "ROBOT",
+                        "createdDateTime": "2023-10-01T00:00:00Z",
+                        "modifiedBy": "ROBOT",
+                        "modifiedDateTime": "2023-10-01T00:00:00Z",
+                    }
+                },
+            ]
+        )
+        input_path = temp_path / "dos-gp-practice-transform.parquet"
+        input_df.to_parquet(input_path, index=False)
 
-    mock_logging_info.assert_called_once_with("Loading data from test_input_path")
-    mock_logging_error.assert_called_once_with("Not implemented yet")
+        create_mock = mocker.patch(
+            "pipeline.load.DocumentLevelRepository.create",
+            return_value=None,
+        )
 
+        result = load(
+            env=TargetEnvironment.local,
+            workspace="test",
+            input_path=temp_path,
+            endpoint_url="http://localhost:8000",
+        )
 
-def test_main_parses_args(mocker: MockerFixture) -> None:
-    """
-    Test that main parses command line arguments and calls load with the correct arguments
-    """
-    load_mock = mocker.patch("pipeline.load.load")
-    args = ["--input-path", "test_input_path", "--db-uri", "test_db_uri"]
+        assert result is None
 
-    main(args)
-
-    assert load_mock.called is True
-    assert load_mock.call_args[0][0] == "test_db_uri"
-    assert load_mock.call_args[0][1] == Path("test_input_path")
-
-
-def test_main_throws_error_on_no_args(mocker: MockerFixture) -> None:
-    """
-    Test that main throws an error when no arguments are provided
-    """
-    expected_exit_code = 2
-
-    load_mock = mocker.patch("pipeline.load.load")
-    args = [""]
-    with pytest.raises(SystemExit) as exc:
-        main(args)
-
-    assert exc.value.code == expected_exit_code
-    assert load_mock.called is False
-
-
-def test_main_throws_error_on_missing_args(mocker: MockerFixture) -> None:
-    """
-    Test that main throws an error when required arguments are missing
-    """
-    expected_exit_code = 2
-
-    load_mock = mocker.patch("pipeline.load.load")
-    args = ["--db-uri", "test_db_uri"]
-    with pytest.raises(SystemExit) as exc:
-        main(args)
-
-    assert exc.value.code == expected_exit_code
-    assert load_mock.called is False
-
-
-def test_main_throws_error_on_invalid_args(mocker: MockerFixture) -> None:
-    """
-    Test that main throws an error when invalid arguments are provided
-    """
-    expected_exit_code = 2
-
-    load_mock = mocker.patch("pipeline.load.load")
-    args = [
-        "--input-path",
-        "test_input_path",
-        "--db-uri",
-        "test_db_uri",
-        "--invalid-arg",
-    ]
-    with pytest.raises(SystemExit) as exc:
-        main(args)
-
-    assert exc.value.code == expected_exit_code
-    assert load_mock.called is False
+        expected_create_calls = [
+            Organisation(
+                id="d5a852ef-12c7-4014-b398-661716a63027",
+                name="Test Org",
+                active=True,
+                type="GP Practice",
+                createdBy="ROBOT",
+                createdDateTime="2023-10-01T00:00:00Z",
+                modifiedBy="ROBOT",
+                modifiedDateTime="2023-10-01T00:00:00Z",
+            ),
+        ]
+        assert create_mock.call_count == len(expected_create_calls)
+        create_mock.assert_has_calls(
+            [call(org) for org in expected_create_calls],
+            any_order=True,
+        )

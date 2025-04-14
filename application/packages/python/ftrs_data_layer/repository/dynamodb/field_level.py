@@ -4,6 +4,8 @@ from ftrs_data_layer.repository.dynamodb.repository import (
     DynamoDBRepository,
     ModelType,
 )
+from boto3.dynamodb.conditions import Key, Attr
+from typing import Generator
 
 
 class FieldLevelRepository(DynamoDBRepository[ModelType]):
@@ -20,7 +22,6 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
         response = self.table.query(
             KeyConditionExpression="id = :id",
             ExpressionAttributeValues={":id": str(obj_id)},
-            ProjectionExpression="id, field, value",
             ReturnConsumedCapacity="INDEXES",
         )
         items = response.get("Items")
@@ -42,7 +43,6 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
         response = self.table.query(
             KeyConditionExpression="id = :id",
             ExpressionAttributeValues={":id": str(id)},
-            ProjectionExpression="id, field, value",
             ReturnConsumedCapacity="INDEXES",
         )
         items = response.get("Items")
@@ -76,3 +76,74 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
             **{item["field"]: item["value"] for item in item},
         }
         return self.model_cls.model_validate(item_dict)
+
+    def _iter_record_ids(
+        self, max_results: int | None = 100
+    ) -> Generator[tuple[str, str], None, None]:
+        """
+        Iterate over the record IDs in the DynamoDB table.
+        Generates tuples of (id, field).
+        """
+        count = 0
+        response = self._scan(
+            ProjectionExpression="id, field",
+            FilterExpression=Attr("field").eq("createdDateTime"),
+            Limit=max_results or 100,
+        )
+
+        for record in response.get("Items", []):
+            yield record["id"], record["field"]
+            count += 1
+
+            if max_results is not None and count >= max_results:
+                return
+
+        while "LastEvaluatedKey" in response:
+            response = self._scan(
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+                ProjectionExpression="id, field",
+                FilterExpression=Attr("field").eq("createdDateTime"),
+                Limit=max_results or 100,
+            )
+            for record in response.get("Items", []):
+                yield record["id"], record["field"]
+                count += 1
+
+                if max_results is not None and count >= max_results:
+                    return
+
+    def _iter_records(
+        self, max_results: int | None = 100
+    ) -> Generator[ModelType, None, None]:
+        """
+        Iterate over the records in the DynamoDB table.
+        """
+        count = 0
+        response = self.table.scan(
+            ReturnConsumedCapacity="INDEXES",
+            ProjectionExpression="id",
+            FilterExpression=Attr("field").eq("createdDateTime"),
+            Limit=max_results or 100,
+        )
+
+        for record in response.get("Items", []):
+            yield self.get(record["id"])
+            count += 1
+
+            if max_results is not None and count >= max_results:
+                return
+
+        while "LastEvaluatedKey" in response:
+            response = self.table.scan(
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+                ReturnConsumedCapacity="INDEXES",
+                ProjectionExpression="id",
+                FilterExpression=Attr("field").eq("createdDateTime"),
+                Limit=max_results or 100,
+            )
+            for record in response.get("Items", []):
+                yield self.get(record["id"])
+                count += 1
+
+                if max_results is not None and count >= max_results:
+                    return
