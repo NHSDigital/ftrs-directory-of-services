@@ -1,11 +1,10 @@
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from uuid import UUID
 
-if TYPE_CHECKING:
-    from mypy_boto3_dynamodb.type_defs import (
-        PutItemInputTablePutItemTypeDef,
-        ScanOutputTableTypeDef,
-    )
+from mypy_boto3_dynamodb.type_defs import (
+    PutItemInputTablePutItemTypeDef,
+    ScanOutputTableTypeDef,
+)
 
 from ftrs_data_layer.client import get_dynamodb_resource
 from ftrs_data_layer.repository.base import BaseRepository, ModelType
