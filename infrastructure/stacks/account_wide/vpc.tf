@@ -9,7 +9,7 @@ module "vpc" {
 
   create_database_subnet_group       = var.create_database_subnet_group
   create_database_subnet_route_table = var.create_database_route_table
-  database_subnet_group_name         = "${local.prefix}-database-subnet-group"
+  database_subnet_group_name         = "${local.account_prefix}-database-subnet-group"
 
   azs              = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
   public_subnets   = [var.vpc["public_subnet_a"], var.vpc["public_subnet_b"], var.vpc["public_subnet_c"]]

@@ -1,19 +1,19 @@
 data "aws_vpc" "vpc" {
   filter {
     name   = "tag:Name"
-    values = ["${var.main_project}-${var.environment}-vpc"]
+    values = ["${local.account_prefix}-vpc"]
   }
 }
 
 data "aws_ec2_client_vpn_endpoint" "client_vpn_endpoint" {
   filter {
     name   = "tag:Project"
-    values = ["${var.main_project}"]
+    values = ["${var.repo_name}"]
   }
 }
 
 data "aws_security_group" "vpn_security_group" {
-  name = "${var.main_project}-${var.environment}-vpn-sg"
+  name = "${local.account_prefix}-vpn-sg"
 }
 
 data "aws_subnets" "private_subnets" {
@@ -24,7 +24,7 @@ data "aws_subnets" "private_subnets" {
 
   filter {
     name   = "tag:Name"
-    values = ["${var.main_project}-${var.environment}-vpc-private-*"]
+    values = ["${local.account_prefix}-vpc-private-*"]
   }
 }
 

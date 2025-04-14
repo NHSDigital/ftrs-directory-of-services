@@ -45,10 +45,10 @@ module "rds" {
   create_db_subnet_group = false
   create_security_group  = false
   vpc_id                 = data.aws_vpc.vpc.id
-  db_subnet_group_name   = "${var.resource_prefix}-database-subnet-group"
+  db_subnet_group_name   = "${local.resource_prefix}-database-subnet-group"
   vpc_security_group_ids = [aws_security_group.rds_security_group[0].id]
 
-  final_snapshot_identifier = "${local.prefix}-rds"
+  final_snapshot_identifier = "${local.resource_prefix}-rds"
 }
 
 resource "aws_secretsmanager_secret" "rds_username" {

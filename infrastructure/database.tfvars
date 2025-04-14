@@ -25,3 +25,5 @@ dynamodb_tables = {
     ]
   }
 }
+
+team_owner = "fd"

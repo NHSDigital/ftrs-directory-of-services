@@ -6,6 +6,11 @@ variable "project_owner" {
   description = "The owner of the project, based on organisation and department codes"
 }
 
+variable "team_owner" {
+  description = "The sub-team responsible for the stack"
+
+}
+
 variable "environment" {
   description = "The deployment environment e.g. dev, test, pre-prod, or prod"
 }
