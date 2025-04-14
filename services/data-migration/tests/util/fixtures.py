@@ -56,13 +56,6 @@ class StubData:
         err_msg = f"Query '{query}' not found in stub data."
         raise KeyError(err_msg)
 
-    # def __getattribute__(self, name: str) -> pd.DataFrame | None:
-    #     if name in self._store:
-    #         return self._store[name].copy()
-
-    #     err_msg = f"Query '{name}' not found in stub data."
-    #     raise KeyError(err_msg)
-
 
 @pytest.fixture()
 def mock_sql_data() -> Generator[Mock, None, None]:
