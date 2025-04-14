@@ -1,7 +1,3 @@
-# variable "github_org" {
-#   description = "The name of the GitHub organization e.g. NHSDigital"
-# }
-
 variable "vpc" {
   description = "A map of VPC configuration, including VPC ID, CIDR block, and other networking details"
   type        = map(any)
