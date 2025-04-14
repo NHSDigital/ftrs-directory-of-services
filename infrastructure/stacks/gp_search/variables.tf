@@ -10,6 +10,13 @@ variable "s3_bucket_name" {
 variable "lambda_name" {
   description = "The name of the gp search lambda"
 }
+variable "lambda_runtime" {
+  description = "The runtime environment for the Lambda function"
+}
+variable "aws_lambda_layers" {
+  description = "A list of Lambda layer ARNs to attach to the Lambda function"
+  type        = list(string)
+}
 variable "application_tag" {
   description = "The version or tag of the gp search application"
   type        = string

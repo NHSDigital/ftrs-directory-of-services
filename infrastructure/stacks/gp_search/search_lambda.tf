@@ -1,14 +1,26 @@
+resource "aws_lambda_layer_version" "python_dependency_layer" {
+  layer_name          = "${local.prefix}-python-dependency-layer${local.workspace_suffix}"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common Python dependencies for Lambda functions"
+
+  s3_bucket = local.artefacts_bucket
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-python-dependency-layer-${var.application_tag}.zip"
+}
 module "lambda" {
   source                = "../../modules/lambda"
   function_name         = "${var.project}-${var.environment}-${var.lambda_name}"
   description           = "GP search Lambda"
   handler               = "functions/gp_search_function.lambda_handler"
+  runtime               = var.lambda_runtime
   s3_bucket_name        = local.artefacts_bucket
   s3_key                = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
   attach_tracing_policy = true
   tracing_mode          = "Active"
   policy_jsons          = [data.aws_iam_policy_document.vpc_access_policy.json]
-  layers                = ["arn:aws:lambda:eu-west-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"]
+  layers = concat(
+    [aws_lambda_layer_version.python_dependency_layer.arn],
+    var.aws_lambda_layers
+  )
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
