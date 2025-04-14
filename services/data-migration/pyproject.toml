@@ -30,7 +30,7 @@ pyarrow = "^17.0.0"
 typer = "^0.15.2"
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 freezegun = "^1.5.1"
-boto3-stubs = {extras = ["dynamo"], version = "^1.37.33"}
+boto3-stubs = {extras = ["dynamodb"], version = "^1.37.33"}
 
 [tool.poetry.scripts]
 dos-etl = "pipeline.cli:typer_app"
