@@ -1,3 +1,5 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Generator
 from unittest.mock import Mock, patch
 
@@ -92,3 +94,14 @@ def mock_logging(mocker: MockerFixture) -> Generator[Mock, None, None]:
     mocker.patch("logging.exception", side_effect=mock_log.exception)
 
     yield mock_log
+
+
+@pytest.fixture()
+def mock_tmp_directory() -> Generator[Path, None, None]:
+    """
+    Mock the temporary directory creation to avoid actual file system changes.
+    """
+    with TemporaryDirectory() as tmpdir:
+        mock_tmpdir = Path(tmpdir)
+        mock_tmpdir.mkdir(parents=True, exist_ok=True)
+        yield mock_tmpdir

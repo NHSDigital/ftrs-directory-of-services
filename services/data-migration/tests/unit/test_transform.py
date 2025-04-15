@@ -1,5 +1,4 @@
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from unittest.mock import Mock
 
 import pandas as pd
@@ -337,6 +336,7 @@ def test_transform(
     input_data: pd.DataFrame,
     expected_output: pd.DataFrame,
     mock_pd_to_parquet: Mock,
+    mock_tmp_directory: Path,
 ) -> None:
     """
     Test the transform function to ensure input data is transformed correctly.
@@ -347,11 +347,10 @@ def test_transform(
         "pipeline.transform.uuid4", return_value="123e4567-e89b-12d3-a456-426614174000"
     )
 
-    with TemporaryDirectory() as temp_dir:
-        input_path = Path(temp_dir) / "input.parquet"
-        output_path = Path(temp_dir) / "output.parquet"
+    input_path = mock_tmp_directory / "input.parquet"
+    output_path = mock_tmp_directory / "output.parquet"
 
-        result = transform(input_path, output_path)
+    result = transform(input_path, output_path)
 
     assert mock_pd_to_parquet.called, "pd.to_parquet was not called."
 
