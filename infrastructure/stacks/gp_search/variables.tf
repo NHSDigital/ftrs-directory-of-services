@@ -11,10 +11,18 @@ variable "lambda_name" {
   description = "The name of the gp search lambda"
 }
 variable "lambda_runtime" {
-  description = "The runtime environment for the Lambda function"
+  description = "The runtime environment for the lambda function"
+}
+variable "lambda_memory_size" {
+  description = "The memory size of the lambda function"
+  type        = number
+}
+variable "lambda_timeout" {
+  description = "The connection timeout of the lambda function"
+  type        = number
 }
 variable "aws_lambda_layers" {
-  description = "A list of Lambda layer ARNs to attach to the Lambda function"
+  description = "A list of Lambda layer ARNs to attach to the lambda function"
   type        = list(string)
 }
 variable "db_secret_name" {

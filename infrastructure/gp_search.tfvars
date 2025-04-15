@@ -7,8 +7,10 @@ s3_bucket_name = "gp-search-s3"
 lambda_name    = "gp-search-lambda"
 
 #Lambda
-lambda_runtime = "python3.12"
-db_secret_name = "/ftrs-dos-data-migration/dev/target-rds-credentials"
+lambda_runtime     = "python3.12"
+lambda_timeout     = 900
+lambda_memory_size = 512
+db_secret_name     = "/ftrs-dos-data-migration/dev/target-rds-credentials"
 
 #RDS
 rds_port = 5432
