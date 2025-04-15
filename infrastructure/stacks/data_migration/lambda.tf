@@ -4,7 +4,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-dependency-layer-${var.application_tag}.zip"
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "extract_lambda" {
@@ -14,7 +14,7 @@ module "extract_lambda" {
   handler                 = var.extract_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.extract_lambda_connection_timeout
   memory_size             = var.extract_lambda_memory_size
@@ -44,7 +44,7 @@ module "transform_lambda" {
   handler                 = var.transform_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.transform_lambda_connection_timeout
   memory_size             = var.transform_lambda_memory_size
@@ -75,7 +75,7 @@ module "load_lambda" {
   handler                 = var.load_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.load_lambda_connection_timeout
   memory_size             = var.load_lambda_memory_size
