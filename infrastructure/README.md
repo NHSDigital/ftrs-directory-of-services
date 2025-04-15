@@ -56,3 +56,6 @@ The resources built specifically for business user cases are named slightly diff
 - the Terraform workspace (if not the default workspace)
 
 For example an S3 bucket called `example` defined in the `demo` stack and built in the test environment for the default workspace would be named `ftrs-dos-test-demo-example`. The corresponding bucket built in the `fdos-000` workspace would be `ftrs-dos-test-demo-example-fdos-000`
+
+The `resource_prefix` variable has been created to simplify resource naming by concatenating the name of the project, the environment and the stack
+See ftrs-directory-of-services/infrastructure/common/locals.tf
