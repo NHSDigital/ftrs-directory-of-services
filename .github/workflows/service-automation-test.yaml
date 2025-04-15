@@ -76,7 +76,7 @@ jobs:
       - name: Upload allure report
         if: always()
         id: upload_allure_report
-        uses: ./.github/actions/upload-artefact
+        uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: tests/service_automation/allure-reports/index.html
