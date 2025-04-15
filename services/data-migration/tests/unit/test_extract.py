@@ -6,8 +6,8 @@ import pandas as pd
 import pyarrow.parquet as pq
 import pytest
 from freezegun import freeze_time
+from pytest_mock import MockerFixture
 
-from pipeline.exceptions import ExtractArgsError
 from pipeline.db_utils import (
     QUERY_GP_ENDPOINTS,
     QUERY_GP_PRACTICE,
@@ -28,9 +28,7 @@ from tests.util.stub_data import (
     mock_gp_endpoints_formatted_df,
     mock_gp_practice_extract_df,
     mock_gp_practices_df,
-    mock_gp_endpoints_df,
 )
-from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize(

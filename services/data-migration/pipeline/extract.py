@@ -1,8 +1,7 @@
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 import pyarrow as pa
@@ -19,7 +18,6 @@ from pipeline.db_utils import (
 )
 from pipeline.exceptions import ExtractArgsError
 from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
-from pipeline.s3_utils.s3_operations import validate_s3_uri
 
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
