@@ -1,6 +1,6 @@
 import logging
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, List
 
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
@@ -49,20 +49,17 @@ def _get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
 
 def cleardown(
     env: Annotated[
-        TargetEnvironment, Option(..., help="Environment to clear the data from")
+        TargetEnvironment, Option(help="Environment to clear the data from")
     ],
     workspace: Annotated[
-        str | None, Option(..., help="Workspace to clear the data from")
+        str | None, Option(help="Workspace to clear the data from")
     ] = None,
     endpoint_url: Annotated[
-        str | None, Option(..., help="URL to connect to local DynamoDB")
+        str | None, Option(help="URL to connect to local DynamoDB")
     ] = None,
     entity_type: Annotated[
-        list[ClearableEntityTypes] | None,
-        Option(
-            None,
-            help="Types of entities to clear from the database",
-        ),
+        List[ClearableEntityTypes] | None,
+        Option(help="Types of entities to clear from the database"),
     ] = None,
 ) -> None:
     """
