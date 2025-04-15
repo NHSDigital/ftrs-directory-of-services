@@ -8,7 +8,7 @@ data "aws_vpc" "vpc" {
 data "aws_ec2_client_vpn_endpoint" "client_vpn_endpoint" {
   filter {
     name   = "tag:Project"
-    values = ["${var.repo_name}"]
+    values = ["${var.project}"]
   }
 }
 
