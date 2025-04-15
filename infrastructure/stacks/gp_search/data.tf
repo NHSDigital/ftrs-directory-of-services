@@ -21,3 +21,7 @@ data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
 }
+
+data "aws_security_group" "rds_security_group" {
+  name = "ftrs-dos-data-migration-dev-rds-sg"
+}
