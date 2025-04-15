@@ -17,6 +17,13 @@ variable "aws_lambda_layers" {
   description = "A list of Lambda layer ARNs to attach to the Lambda function"
   type        = list(string)
 }
+variable "db_secret_name" {
+  description = "The name of the secret store for database secrets"
+}
+variable "rds_port" {
+  description = "The port RDS will listen on"
+  type        = string
+}
 variable "application_tag" {
   description = "The version or tag of the gp search application"
   type        = string

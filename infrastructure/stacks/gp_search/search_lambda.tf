@@ -24,6 +24,21 @@ module "lambda" {
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
+
+  environment_variables = {
+    "ENVIRONMENT"    = var.environment
+    "PROJECT_NAME"   = var.project
+    "DB_SECRET_NAME" = var.db_secret_name
+    "NAMESPACE"      = "${var.gp_search_service_name}-${local.workspace_suffix}"
+  }
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambda_allow_egress_to_rds" {
+  security_group_id            = aws_security_group.gp_search_lambda_security_group.id
+  referenced_security_group_id = data.aws_security_group.rds_security_group.id
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
 }
 
 data "aws_iam_policy_document" "vpc_access_policy" {

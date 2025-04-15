@@ -8,7 +8,12 @@ lambda_name    = "gp-search-lambda"
 
 #Lambda
 lambda_runtime = "python3.12"
+db_secret_name = "/ftrs-dos-data-migration/dev/target-rds-credentials"
 
+#RDS
+rds_port = 5432
+
+# Dependency layers
 aws_lambda_layers = [
   "arn:aws:lambda:eu-west-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"
 ]

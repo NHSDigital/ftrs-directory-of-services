@@ -12,14 +12,15 @@ from aws_xray_sdk.core import patch_all
 # X-Ray patching
 patch_all()
 
+# Environment variable
+NAMESPACE = os.environ["NAMESPACE"]
+SECRET_NAME = os.environ["DB_SECRET_NAME"]
+REGION_NAME = os.environ.get("AWS_REGION", "eu-west-2")
+
 # Powertools setup
 logger = Logger()
 tracer = Tracer()
-metrics = Metrics(namespace="DOSIS-423-ConnectionTest")
-
-# Environment variable
-SECRET_NAME = os.environ["DB_SECRET_NAME"]
-REGION_NAME = os.environ.get("AWS_REGION", "eu-west-2")
+metrics = Metrics(namespace=NAMESPACE)
 
 
 @tracer.capture_method
