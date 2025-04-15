@@ -21,10 +21,10 @@ def test_cleardown_user_aborts(mocker: MockerFixture) -> None:
     mock_confirm = mocker.patch("pipeline.cleardown.confirm", side_effect=Abort)
 
     with pytest.raises(Abort):
-        cleardown(env=TargetEnvironment.dev)
+        cleardown(env=TargetEnvironment.dev, workspace="test-workspace")
 
     mock_confirm.assert_called_once_with(
-        "Are you sure you want to clear the dev environment? This action cannot be undone.",
+        "Are you sure you want to clear the dev environment (workspace: test-workspace)? This action cannot be undone.",
         abort=True,
     )
 
@@ -38,7 +38,7 @@ def test_cleardown_user_aborts_with_exception(mocker: MockerFixture) -> None:
 
 def test_cleardown_success(mocker: MockerFixture) -> None:
     mock_confirm = mocker.patch("pipeline.cleardown.confirm", return_value=True)
-    mocker.patch("pipeline.cleardown.track", side_effect=lambda x, description: x)
+    mocker.patch("pipeline.cleardown.track", side_effect=lambda *args, **_: args[0])
     mock_repository = mocker.patch("pipeline.cleardown.DocumentLevelRepository")
 
     mock_records: list[MagicMock] = [

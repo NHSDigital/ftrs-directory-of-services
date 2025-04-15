@@ -75,21 +75,27 @@ def cleardown(
         raise ValueError(error_msg)
 
     confirm(
-        f"Are you sure you want to clear the {env} environment? This action cannot be undone.",
+        f"Are you sure you want to clear the {env} environment (workspace: {workspace or 'default'})? This action cannot be undone.",
         abort=True,
     )
 
     for entity_name in entity_type:
         entity_cls = _get_entity_cls(entity_name)
+        table_name = get_table_name(entity_name, env.value, workspace)
 
         repository = DocumentLevelRepository(
-            table_name=get_table_name(entity_name, env.value, workspace),
+            table_name=table_name,
             model_cls=entity_cls,
             endpoint_url=endpoint_url,
         )
 
+        count = 0
         for item in track(
             repository.iter_records(max_results=None),
             description=f"Deleting items from {entity_name}",
+            transient=True,
         ):
             repository.delete(item.id)
+            count += 1
+
+        logging.info(f"Deleted {count} items from {table_name}")

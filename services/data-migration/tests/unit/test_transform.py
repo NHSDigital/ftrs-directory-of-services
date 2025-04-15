@@ -1,5 +1,5 @@
-import logging
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import Mock
 
 import pandas as pd
@@ -334,7 +334,6 @@ from pipeline.transform import transform
 )
 def test_transform(
     mocker: MockerFixture,
-    caplog: pytest.LogCaptureFixture,
     input_data: pd.DataFrame,
     expected_output: pd.DataFrame,
     mock_pd_to_parquet: Mock,
@@ -343,16 +342,15 @@ def test_transform(
     Test the transform function to ensure input data is transformed correctly.
     """
 
-    input_path = Path("mock_input_path")
-    output_path = Path("mock_output_path")
-
     mocker.patch("pandas.read_parquet", return_value=input_data)
     mocker.patch(
         "pipeline.transform.uuid4", return_value="123e4567-e89b-12d3-a456-426614174000"
     )
 
-    # with freeze_time("2025-03-27 12:00:00"):
-    with caplog.at_level(logging.INFO):
+    with TemporaryDirectory() as temp_dir:
+        input_path = Path(temp_dir) / "input.parquet"
+        output_path = Path(temp_dir) / "output.parquet"
+
         result = transform(input_path, output_path)
 
     assert mock_pd_to_parquet.called, "pd.to_parquet was not called."

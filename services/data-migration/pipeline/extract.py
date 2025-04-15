@@ -9,6 +9,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from typer import Option
 
+from pipeline.common import Constants
 from pipeline.db_utils import (
     get_gp_endpoints,
     get_gp_practices,
@@ -111,7 +112,7 @@ def store_local(
     file_name: str,
 ) -> None:
     gp_practice_extract.to_parquet(
-        output_path / "dos-gp-practice-extract.parquet",
+        output_path / Constants.GP_PRACTICE_EXTRACT_FILE,
         engine="pyarrow",
         index=False,
         compression="zstd",
