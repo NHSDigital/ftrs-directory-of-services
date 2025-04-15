@@ -16,6 +16,7 @@ provider "aws" {
   default_tags {
     tags = {
       Owner              = var.project_owner
+      TeamOwner          = var.team_owner
       Project            = var.project
       Environment        = "${var.environment}${local.workspace_suffix}"
       Workspace          = terraform.workspace

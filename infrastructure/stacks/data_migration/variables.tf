@@ -1,7 +1,3 @@
-variable "main_project" {
-  description = "The name of the main project"
-}
-
 variable "application_tag" {
   description = "The version or tag of the data mirgation application"
   type        = string

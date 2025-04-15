@@ -1,5 +1,5 @@
 resource "aws_ec2_client_vpn_endpoint" "vpn" {
-  description            = "${local.prefix}-vpn"
+  description            = "${local.account_prefix}-vpn"
   vpc_id                 = module.vpc.vpc_id
   client_cidr_block      = var.vpc["vpn_subnet"]
   server_certificate_arn = data.aws_acm_certificate.vpn_cert.arn
@@ -37,7 +37,7 @@ resource "aws_ec2_client_vpn_authorization_rule" "vpn_authorization_rule" {
 }
 
 resource "aws_security_group" "vpn_security_group" {
-  name        = "${local.prefix}-vpn-sg"
+  name        = "${local.account_prefix}-vpn-sg"
   description = "Security Group for Client VPN Endpoint"
   vpc_id      = module.vpc.vpc_id
 
@@ -57,19 +57,19 @@ resource "aws_security_group" "vpn_security_group" {
 }
 
 resource "aws_cloudwatch_log_group" "vpn_log_group" {
-  name              = "${local.prefix}-vpn-log-group"
+  name              = "${local.account_prefix}-vpn-log-group"
   retention_in_days = var.log_group_retention_in_days
 }
 
 resource "aws_cloudwatch_log_stream" "vpn_log_stream" {
-  name           = "${local.prefix}-vpn-log-stream"
+  name           = "${local.account_prefix}-vpn-log-stream"
   log_group_name = aws_cloudwatch_log_group.vpn_log_group.name
 }
 
 resource "aws_secretsmanager_secret" "vpn_ca_cert_secret" {
-  name = "/${var.project}/${var.environment}/vpn-ca-cert"
+  name = "/${var.repo_name}/${var.environment}/vpn-ca-cert"
 }
 
 resource "aws_secretsmanager_secret" "vpn_ca_pk_secret" {
-  name = "/${var.project}/${var.environment}/vpn-ca-pk"
+  name = "/${var.repo_name}/${var.environment}/vpn-ca-pk"
 }

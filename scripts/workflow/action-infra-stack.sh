@@ -2,7 +2,7 @@
 # You will need to export
 # ACTION - The terraform action to perform, e.g. plan, apply, destroy, validate
 # STACK - The infrastructure stack to action
-# ENVIRONEMNT - The name of the environment to run the terraform action on, e.g. dev, test
+# ENVIRONMENT - The name of the environment to run the terraform action on, e.g. dev, test
 # WORKSPACE - The name of the workspace to action the terraform into, e.g. DR-123
 # REPOSITORY - The name of the repository to action the terraform on e.g. uec-dos-service-management
 
@@ -22,6 +22,8 @@ export PROJECT="${PROJECT:-"dos"}"
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
 export TF_VAR_application_tag="${APPLICATION_TAG:-""}"
 export TF_VAR_commit_hash="${COMMIT_HASH:-""}"
+TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
+export TF_VAR_stack_name
 
 # needed for terraform management stack
 export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name

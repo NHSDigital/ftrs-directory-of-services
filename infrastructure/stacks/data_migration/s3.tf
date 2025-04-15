@@ -1,6 +1,6 @@
 module "migration_store_bucket" {
   source      = "../../modules/s3"
-  bucket_name = "${var.project}-${var.migration_pipeline_store_bucket_name}-${var.environment}"
+  bucket_name = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
   versioning  = var.s3_versioning
 }
 

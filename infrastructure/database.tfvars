@@ -1,4 +1,3 @@
-project = "ftrs-dos-db"
 
 dynamodb_tables = {
   "healthcare-service" = {
@@ -26,3 +25,5 @@ dynamodb_tables = {
     ]
   }
 }
+
+team_owner = "future-directory"

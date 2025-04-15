@@ -1,7 +1,7 @@
 resource "aws_security_group" "rds_security_group" {
   count = local.deploy_databases ? 1 : 0
 
-  name        = "${local.prefix}-rds-sg"
+  name        = "${local.resource_prefix}-rds-sg"
   description = "RDS Security Group"
 
   vpc_id = data.aws_vpc.vpc.id
@@ -9,8 +9,7 @@ resource "aws_security_group" "rds_security_group" {
 
 data "aws_security_group" "rds_security_group" {
   count = local.deploy_databases ? 0 : 1
-
-  name = "${local.prefix}-rds-sg"
+  name  = "${local.resource_prefix}-rds-sg"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
@@ -35,7 +34,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" 
 }
 
 resource "aws_security_group" "extract_lambda_security_group" {
-  name        = "${local.prefix}-${var.extract_name}${local.workspace_suffix}-sg"
+  name        = "${local.resource_prefix}-${var.extract_name}${local.workspace_suffix}-sg"
   description = "Security group for extract lambda"
 
   vpc_id = data.aws_vpc.vpc.id
@@ -50,7 +49,7 @@ resource "aws_vpc_security_group_egress_rule" "extract_lambda_allow_egress_to_rd
 }
 
 resource "aws_security_group" "transform_lambda_security_group" {
-  name        = "${local.prefix}-${var.transform_name}${local.workspace_suffix}-sg"
+  name        = "${local.resource_prefix}-${var.transform_name}${local.workspace_suffix}-sg"
   description = "Security group for transform lambda"
 
   vpc_id = data.aws_vpc.vpc.id
@@ -65,7 +64,7 @@ resource "aws_vpc_security_group_egress_rule" "transform_lambda_allow_egress_to_
 }
 
 resource "aws_security_group" "load_lambda_security_group" {
-  name        = "${local.prefix}-${var.load_name}${local.workspace_suffix}-sg"
+  name        = "${local.resource_prefix}-${var.load_name}${local.workspace_suffix}-sg"
   description = "Security group for load lambda"
 
   vpc_id = data.aws_vpc.vpc.id

@@ -4,6 +4,7 @@ bot
 Cyber
 Dependabot
 eg
+(?i)Github
 gitflow
 githook
 Gitleaks
@@ -22,3 +23,5 @@ Syft
 Terraform
 toolchain
 Trufflehog
+(?i)vpc
+(?i)vpn
