@@ -1,0 +1,7 @@
+# Core testing libraries
+pytest
+pytest-bdd
+playwright
+allure-pytest
+requests
+lxml

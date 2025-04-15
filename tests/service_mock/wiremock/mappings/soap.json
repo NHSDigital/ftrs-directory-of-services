@@ -1,0 +1,16 @@
+{
+    "request": {
+      "method": "POST",
+      "url": "/soap/sayHello",
+      "bodyPatterns": [
+        { "contains": "<name>SOAP User</name>" }
+      ]
+    },
+    "response": {
+      "status": 200,
+      "body": "<soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/'><soap:Body><SayHelloResponse>Hello SOAP User</SayHelloResponse></soap:Body></soap:Envelope>",
+      "headers": {
+        "Content-Type": "text/xml"
+      }
+    }
+}
