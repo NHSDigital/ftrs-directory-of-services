@@ -17,6 +17,9 @@ module "lambda" {
   attach_tracing_policy = true
   tracing_mode          = "Active"
   policy_jsons          = [data.aws_iam_policy_document.vpc_access_policy.json]
+  timeout               = var.lambda_timeout
+  memory_size           = var.lambda_memory_size
+
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
     var.aws_lambda_layers
