@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from boto3.dynamodb.conditions import Attr
 from pydantic import BaseModel
 
 from ftrs_data_layer.repository.dynamodb import FieldLevelRepository
@@ -306,7 +305,7 @@ def test_iter_record_ids_single_page() -> None:
     )
 
     # Mock the _scan method
-    repo._scan = MagicMock(
+    repo.table.scan = MagicMock(
         return_value={
             "Items": [
                 {"id": "1", "field": "createdDateTime"},
@@ -320,9 +319,11 @@ def test_iter_record_ids_single_page() -> None:
 
     assert result == [("1", "createdDateTime"), ("2", "createdDateTime")]
 
-    repo._scan.assert_called_once_with(
+    repo.table.scan.assert_called_once_with(
         ProjectionExpression="id, field",
-        FilterExpression=Attr("field").eq("createdDateTime"),
+        FilterExpression="field = :field",
+        ExpressionAttributeValues={":field": "createdDateTime"},
+        ReturnConsumedCapacity="INDEXES",
         Limit=10,
     )
 
@@ -337,7 +338,7 @@ def test_iter_record_ids_multiple_pages() -> None:
     )
 
     # Mock the _scan method to simulate paginated results
-    repo._scan = MagicMock(
+    repo.table.scan = MagicMock(
         side_effect=[
             {
                 "Items": [
@@ -366,16 +367,20 @@ def test_iter_record_ids_multiple_pages() -> None:
     ]
 
     expected_call_count = 2
-    assert repo._scan.call_count == expected_call_count
-    repo._scan.assert_any_call(
+    assert repo.table.scan.call_count == expected_call_count
+    repo.table.scan.assert_any_call(
         ProjectionExpression="id, field",
-        FilterExpression=Attr("field").eq("createdDateTime"),
+        FilterExpression="field = :field",
+        ExpressionAttributeValues={":field": "createdDateTime"},
+        ReturnConsumedCapacity="INDEXES",
         Limit=10,
     )
-    repo._scan.assert_any_call(
+    repo.table.scan.assert_any_call(
         ExclusiveStartKey={"id": "2", "field": "createdDateTime"},
         ProjectionExpression="id, field",
-        FilterExpression=Attr("field").eq("createdDateTime"),
+        FilterExpression="field = :field",
+        ExpressionAttributeValues={":field": "createdDateTime"},
+        ReturnConsumedCapacity="INDEXES",
         Limit=10,
     )
 
@@ -390,7 +395,7 @@ def test_iter_record_ids_max_results() -> None:
     )
 
     # Mock the _scan method
-    repo._scan = MagicMock(
+    repo.table.scan = MagicMock(
         return_value={
             "Items": [
                 {"id": "1", "field": "createdDateTime"},
@@ -405,9 +410,11 @@ def test_iter_record_ids_max_results() -> None:
 
     assert result == [("1", "createdDateTime"), ("2", "createdDateTime")]
 
-    repo._scan.assert_called_once_with(
+    repo.table.scan.assert_called_once_with(
         ProjectionExpression="id, field",
-        FilterExpression=Attr("field").eq("createdDateTime"),
+        FilterExpression="field = :field",
+        ExpressionAttributeValues={":field": "createdDateTime"},
+        ReturnConsumedCapacity="INDEXES",
         Limit=2,
     )
 
@@ -422,16 +429,18 @@ def test_iter_record_ids_no_results() -> None:
     )
 
     # Mock the _scan method to return no items
-    repo._scan = MagicMock(return_value={"Items": []})
+    repo.table.scan = MagicMock(return_value={"Items": []})
 
     # Call the _iter_record_ids method
     result = list(repo._iter_record_ids(max_results=10))
 
     assert result == []
 
-    repo._scan.assert_called_once_with(
+    repo.table.scan.assert_called_once_with(
         ProjectionExpression="id, field",
-        FilterExpression=Attr("field").eq("createdDateTime"),
+        FilterExpression="field = :field",
+        ExpressionAttributeValues={":field": "createdDateTime"},
+        ReturnConsumedCapacity="INDEXES",
         Limit=10,
     )
 

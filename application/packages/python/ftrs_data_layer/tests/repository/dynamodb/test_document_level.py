@@ -198,7 +198,7 @@ def test_iter_records_single_page() -> None:
     )
 
     # Mock the _scan method
-    repo._scan = MagicMock(
+    repo.table.scan = MagicMock(
         return_value={
             "Items": [
                 {"id": "1", "field": "document", "value": {"id": "1", "name": "Test1"}},
@@ -215,7 +215,7 @@ def test_iter_records_single_page() -> None:
         MockModel(id="2", name="Test2"),
     ]
 
-    repo._scan.assert_called_once_with(Limit=100)
+    repo.table.scan.assert_called_once_with(Limit=100, ReturnConsumedCapacity="INDEXES")
 
 
 def test_iter_records_multiple_pages() -> None:
@@ -228,7 +228,7 @@ def test_iter_records_multiple_pages() -> None:
     )
 
     # Mock the _scan method for multiple pages
-    repo._scan = MagicMock(
+    repo.table.scan = MagicMock(
         side_effect=[
             {
                 "Items": [
@@ -261,10 +261,12 @@ def test_iter_records_multiple_pages() -> None:
     ]
 
     expected_call_count = 2
-    assert repo._scan.call_count == expected_call_count
-    repo._scan.assert_any_call(Limit=100)
-    repo._scan.assert_any_call(
-        ExclusiveStartKey={"id": "1", "field": "document"}, Limit=100
+    assert repo.table.scan.call_count == expected_call_count
+    repo.table.scan.assert_any_call(Limit=100, ReturnConsumedCapacity="INDEXES")
+    repo.table.scan.assert_any_call(
+        ExclusiveStartKey={"id": "1", "field": "document"},
+        Limit=100,
+        ReturnConsumedCapacity="INDEXES",
     )
 
 
@@ -278,7 +280,7 @@ def test_iter_records_with_max_results() -> None:
     )
 
     # Mock the _scan method
-    repo._scan = MagicMock(
+    repo.table.scan = MagicMock(
         return_value={
             "Items": [
                 {"id": "1", "field": "document", "value": {"id": "1", "name": "Test1"}},
@@ -294,7 +296,7 @@ def test_iter_records_with_max_results() -> None:
         MockModel(id="1", name="Test1"),
     ]
 
-    repo._scan.assert_called_once_with(Limit=1)
+    repo.table.scan.assert_called_once_with(Limit=1, ReturnConsumedCapacity="INDEXES")
 
 
 def test_iter_records_no_results() -> None:
@@ -307,11 +309,11 @@ def test_iter_records_no_results() -> None:
     )
 
     # Mock the _scan method
-    repo._scan = MagicMock(return_value={"Items": []})
+    repo.table.scan = MagicMock(return_value={"Items": []})
 
     # Call the iter_records method
     results = list(repo.iter_records())
 
     assert results == []
 
-    repo._scan.assert_called_once_with(Limit=100)
+    repo.table.scan.assert_called_once_with(Limit=100, ReturnConsumedCapacity="INDEXES")

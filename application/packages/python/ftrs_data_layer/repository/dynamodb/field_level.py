@@ -1,7 +1,6 @@
+from itertools import islice
 from typing import Generator
 from uuid import UUID
-
-from boto3.dynamodb.conditions import Attr
 
 from ftrs_data_layer.repository.dynamodb.repository import (
     DynamoDBRepository,
@@ -85,33 +84,17 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
         Iterate over the record IDs in the DynamoDB table.
         Generates tuples of (id, field).
         """
-        count = 0
-        response = self._scan(
+        item_iterator = self._scan(
             ProjectionExpression="id, field",
-            FilterExpression=Attr("field").eq("createdDateTime"),
+            FilterExpression="field = :field",
+            ExpressionAttributeValues={":field": "createdDateTime"},
             Limit=max_results or 100,
         )
 
-        for record in response.get("Items", []):
-            yield record["id"], record["field"]
-            count += 1
-
-            if max_results is not None and count >= max_results:
-                return
-
-        while "LastEvaluatedKey" in response:
-            response = self._scan(
-                ExclusiveStartKey=response["LastEvaluatedKey"],
-                ProjectionExpression="id, field",
-                FilterExpression=Attr("field").eq("createdDateTime"),
-                Limit=max_results or 100,
-            )
-            for record in response.get("Items", []):
-                yield record["id"], record["field"]
-                count += 1
-
-                if max_results is not None and count >= max_results:
-                    return
+        return islice(
+            map(lambda item: (item["id"], item["field"]), item_iterator),
+            max_results,
+        )
 
     def iter_records(
         self, max_results: int | None = 100

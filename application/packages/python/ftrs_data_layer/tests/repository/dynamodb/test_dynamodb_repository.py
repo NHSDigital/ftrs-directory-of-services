@@ -216,10 +216,12 @@ def test_dynamodb_scan() -> None:
     )
 
     expected_result_count = 2
-    result = ddb_repo._scan()
+    result = list(ddb_repo._scan())
 
-    assert len(result["Items"]) == expected_result_count
-    assert result["Items"][0] == {"id": "123", "name": "test_item"}
-    assert result["Items"][1] == {"id": "456", "name": "another_item"}
+    assert len(result) == expected_result_count
+    assert result[0] == {"id": "123", "name": "test_item"}
+    assert result[1] == {"id": "456", "name": "another_item"}
 
-    ddb_repo.table.scan.assert_called_once_with(ReturnConsumedCapacity="INDEXES")
+    ddb_repo.table.scan.assert_called_once_with(
+        Limit=100, ReturnConsumedCapacity="INDEXES"
+    )

@@ -1,3 +1,4 @@
+from itertools import islice
 from typing import Generator
 from uuid import UUID
 
@@ -82,26 +83,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         Iterate across all items in the table.
         """
-        count = 0
-        response = self._scan(
-            Limit=max_results or 100,
+        return islice(
+            map(self._parse_item, self._scan(Limit=max_results)),
+            max_results,
         )
-
-        for record in response.get("Items", []):
-            yield self._parse_item(record)
-            count += 1
-
-            if max_results is not None and count >= max_results:
-                return
-
-        while "LastEvaluatedKey" in response:
-            response = self._scan(
-                ExclusiveStartKey=response["LastEvaluatedKey"],
-                Limit=max_results or 100,
-            )
-            for record in response.get("Items", []):
-                yield self._parse_item(record)
-                count += 1
-
-                if max_results is not None and count >= max_results:
-                    return
