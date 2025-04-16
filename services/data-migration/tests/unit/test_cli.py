@@ -15,6 +15,6 @@ def test_typer_app_init() -> None:
     assert len(typer_app.registered_commands) == expected_command_count
 
     assert all(
-        command.name in ["load", "transform", "extract", "cleardown"]
+        command.name in ["load", "transform", "extract", "reset"]
         for command in typer_app.registered_commands
     )

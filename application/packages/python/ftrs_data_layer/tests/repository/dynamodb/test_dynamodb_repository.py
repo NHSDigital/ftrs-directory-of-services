@@ -223,5 +223,5 @@ def test_dynamodb_scan() -> None:
     assert result[1] == {"id": "456", "name": "another_item"}
 
     ddb_repo.table.scan.assert_called_once_with(
-        Limit=100, ReturnConsumedCapacity="INDEXES"
+        Limit=1000, ReturnConsumedCapacity="INDEXES"
     )

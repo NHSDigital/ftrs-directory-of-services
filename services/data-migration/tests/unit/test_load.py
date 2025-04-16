@@ -9,9 +9,9 @@ from pytest_mock import MockerFixture
 
 from pipeline.common import TargetEnvironment
 from pipeline.load import (
-    _load_organisations,
-    _retrieve_gp_practice_data,
     load,
+    load_organisations,
+    retrieve_gp_practice_data,
 )
 
 
@@ -25,7 +25,7 @@ def test_retrieve_gp_practice_data(
         "pipeline.load.pd.read_parquet", return_value=pd.DataFrame(["Test Data"])
     )
 
-    result = _retrieve_gp_practice_data(mock_tmp_directory)
+    result = retrieve_gp_practice_data(mock_tmp_directory)
     assert result == [{0: "Test Data"}]
 
 
@@ -35,7 +35,7 @@ def test_retrieve_gp_practice_data_no_file(mock_tmp_directory: Path) -> None:
     """
 
     with pytest.raises(FileNotFoundError) as excinfo:
-        _retrieve_gp_practice_data(mock_tmp_directory)
+        retrieve_gp_practice_data(mock_tmp_directory)
 
     assert (
         str(excinfo.value)
@@ -85,7 +85,7 @@ def test_load_organisations(
     ]
     table_name = "test-table"
 
-    _load_organisations(
+    load_organisations(
         input_df=input_df,
         table_name=table_name,
         endpoint_url=None,

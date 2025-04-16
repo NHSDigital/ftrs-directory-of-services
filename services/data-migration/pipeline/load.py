@@ -13,7 +13,7 @@ from typer import Option
 from pipeline.common import Constants, TargetEnvironment, get_table_name
 
 
-def _retrieve_gp_practice_data(
+def retrieve_gp_practice_data(
     input_path: Path,
 ) -> None:
     """
@@ -28,7 +28,7 @@ def _retrieve_gp_practice_data(
     return pd.read_parquet(file_path).to_dict(orient="records")
 
 
-def _load_organisations(
+def load_organisations(
     input_df: list[pd.Series],
     table_name: str,
     endpoint_url: str | None = None,
@@ -63,8 +63,8 @@ def load(
     """
     Load the extracted data into the database.
     """
-    gp_data = _retrieve_gp_practice_data(input_path)
-    _load_organisations(
+    gp_data = retrieve_gp_practice_data(input_path)
+    load_organisations(
         input_df=gp_data,
         table_name=get_table_name("organisation", env.value, workspace),
         endpoint_url=endpoint_url,

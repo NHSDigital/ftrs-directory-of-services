@@ -344,7 +344,8 @@ def test_transform(
 
     mocker.patch("pandas.read_parquet", return_value=input_data)
     mocker.patch(
-        "pipeline.transform.uuid4", return_value="123e4567-e89b-12d3-a456-426614174000"
+        "ftrs_data_layer.models.uuid4",
+        return_value="123e4567-e89b-12d3-a456-426614174000",
     )
 
     input_path = mock_tmp_directory / "input.parquet"

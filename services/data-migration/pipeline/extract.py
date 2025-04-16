@@ -88,9 +88,14 @@ def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) 
 def merge_gp_practice_with_endpoints(
     gp_practice_df: pd.DataFrame, grouped_endpoints: pd.DataFrame
 ) -> pd.DataFrame:
-    return gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left").drop(
+    result = gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left").drop(
         columns=["serviceid"]
     )
+    # Force all null values in the endpoints column to be empty lists
+    for row in result.loc[result.endpoints.isnull(), "endpoints"].index:
+        result.at[row, "endpoints"] = []
+
+    return result
 
 
 def extract_gp_practices(db_uri: str) -> pd.DataFrame:
