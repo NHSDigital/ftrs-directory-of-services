@@ -23,5 +23,5 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_security_group" "rds_security_group" {
-  name = "ftrs-dos-data-migration-dev-rds-sg"
+  name = "ftrs-dos-dev-data-migration-rds-sg"
 }
