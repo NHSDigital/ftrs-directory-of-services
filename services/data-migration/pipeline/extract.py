@@ -19,6 +19,15 @@ from pipeline.exceptions import ExtractArgsError
 from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
 from pipeline.s3_utils.s3_operations import validate_s3_uri
 
+# TODO for FDOS-183:
+# 1) add function lambda_handler, which calls the pre-defined extract function with required args
+# - ^ the lambda is manually invoked via AWS console or command line
+# so e.g. via AWS Lambda console OR aws lambda invoke --function-name MyLambdaFunction --payload '{"key1": "value1"}' response.json
+#
+# 2) update functionality in common.py (for retrieving details of source database)
+#
+# 3) add unit tests
+
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
     """Format the endpoints DataFrame."""
@@ -165,6 +174,36 @@ def extract(db_uri: str, output_path: Path = None, s3_output_uri: str = None) ->
     if s3_output_uri:
         logging.info(f"Extracting data to {s3_output_uri}")
         store_s3(extract_gp_practice_df, s3_output_uri)
+
+
+# adapting https://docs.aws.amazon.com/lambda/latest/dg/python-handler.html
+# TODO: update receipt --> extract
+# def lambda_handler(event: dict, context: dict) -> Dict[str, any]:
+#     """
+#     Main Lambda handler function
+#     Parameters:
+#         event: Dict containing the Lambda function event data
+#         context: Lambda runtime context
+#     Returns:
+#         Dict containing status message
+#     """
+#     try:
+#         # Initialize the S3 client outside of the handler --> use bucket wrapper class
+#         # Parse the input event --> see main
+#         # Access environment variables
+#         # Create the extract parquet content and key destination --> extract_gp_practice
+#         # Upload the extract parquet to S3 --> store_s3
+
+#         logger.info(f"Successfully processed order {order_id} and stored receipt in S3 bucket {bucket_name}")
+
+#         return {
+#             "statusCode": 200,
+#             "message": "Receipt processed successfully"
+#         }
+
+#     except Exception as e:
+#         logger.exception(f"Error processing order: {str(e)}")
+#         raise
 
 
 def main(args: list[str] | None = None) -> None:
