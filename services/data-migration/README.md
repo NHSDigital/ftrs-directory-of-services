@@ -120,7 +120,6 @@ dos-etl reset --env dev
 dos-etl reset --env dev --workspace my-workspace
 ```
 
-
 ### Running Pipeline Steps Locally
 
 ```bash
