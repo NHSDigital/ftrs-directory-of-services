@@ -93,22 +93,22 @@ This will create a new schema named 'pathwaysdos' containing the tables and data
 eval $(poetry env activate)
 
 # Run extraction step - store output locally
-dos-etl-extract \
+dos-etl extract \
     --db-uri {source_database} \
     --output-path /tmp/out/extract/
 
 # Run extraction step - store output in s3
-dos-etl-extract \
+dos-etl extract \
     --db-uri {source_database} \
     --s3-output-uri s3://<s3_bucket_name>/<s3_bucket_path>
 
 # Run transformation step
-dos-etl-transform \
+dos-etl transform \
     --input-path /tmp/out/extract/ \
     --output-path /tmp/out/transform/
 
 # Run load step
-dos-etl-load \
+dos-etl load \
     --db-uri {target_database} \
     --input-path /tmp/out/transform/
 ```
