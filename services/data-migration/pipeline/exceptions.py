@@ -8,8 +8,3 @@ class InvalidS3URI(Exception):
 
 class ExtractArgsError(Exception):
     """Extract arguments error exception"""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Invalid number of arguments or insufficient access permissions detected."
-        )

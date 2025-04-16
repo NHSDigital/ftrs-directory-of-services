@@ -2,6 +2,7 @@ import logging
 from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
+from typing import Annotated
 
 import pandas as pd
 import pyarrow as pa
@@ -18,6 +19,7 @@ from pipeline.db_utils import (
 )
 from pipeline.exceptions import ExtractArgsError
 from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
+from pipeline.s3_utils.s3_operations import validate_s3_uri
 
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
@@ -132,22 +134,37 @@ def store_s3(gp_practice_extract: pd.DataFrame, s3_output_uri: str) -> None:
 
 
 def extract(
-    db_uri: str = Option(..., help="URI to connect to the source database"),
-    output_path: Path | None = Option(..., help="Path to save the extracted data"),
-    s3_output_uri: str | None = Option(
-        None,
-        help="Path to save the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
-    ),
+    db_uri: Annotated[str, Option(..., help="URI to connect to the source database")],
+    output_path: Annotated[
+        Path | None, Option(..., help="Path to save the extracted data")
+    ] = None,
+    s3_output_uri: Annotated[
+        str | None,
+        Option(
+            ...,
+            help="Path to save the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
+        ),
+    ] = None,
 ) -> None:
     """
     Extract GP practice data from the source database and save it to the specified path.
     """
-    if not db_uri or not (bool(output_path) ^ bool(s3_output_uri)):
-        raise ExtractArgsError()
+    if any(
+        [
+            output_path is None and s3_output_uri is None,
+            output_path is not None and s3_output_uri is not None,
+        ]
+    ):
+        err_msg = "Either output_path or s3_output_uri must be provided."
+        raise ExtractArgsError(err_msg)
 
     if output_path is not None:
         output_path = output_path / datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
         output_path.mkdir(parents=True, exist_ok=True)
+
+    if s3_output_uri is not None and not validate_s3_uri(uri=s3_output_uri):
+        err_msg = f"Invalid S3 URI: {s3_output_uri}. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
+        raise ExtractArgsError(err_msg)
 
     logging.info(f"Extracting data to {output_path}")
     extract_gp_practice_df = extract_gp_practices(db_uri)

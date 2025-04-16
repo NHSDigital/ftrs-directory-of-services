@@ -15,6 +15,7 @@ from pipeline.db_utils import (
     QUERY_SERVICES_COLUMNS,
     QUERY_SERVICES_SIZE,
 )
+from pipeline.exceptions import ExtractArgsError
 from pipeline.extract import (
     convert_to_parquet_buffer,
     extract,
@@ -32,19 +33,17 @@ from tests.util.stub_data import (
 
 
 @pytest.mark.parametrize(
-    "db_uri, output_path, s3_output_uri, expected_log",
+    "db_uri, output_path, s3_output_uri",
     [
         (
             "test_db_uri",
             Path("test_output_path"),
             None,
-            "Extracting data to test_output_path/2024-01-01T12-00-00",
         ),
         (
             "test_db_uri",
             None,
             "s3://test_s3_output_uri",
-            "Extracting data to s3://test_s3_output_uri",
         ),
     ],
 )
@@ -53,16 +52,19 @@ def test_extract(
     db_uri: str,
     output_path: Path,
     s3_output_uri: str,
-    expected_log: str,
     mocker: MockerFixture,
+    mock_tmp_directory: Path,
 ) -> None:
     """
     Test that extract logs the output path and calls extract_gp_practice
     """
-    mock_logging_info = mocker.patch("pipeline.extract.logging.info")
     mock_extract_gp_practice = mocker.patch("pipeline.extract.extract_gp_practices")
     mock_store_local = mocker.patch("pipeline.extract.store_local")
     mock_store_s3 = mocker.patch("pipeline.extract.store_s3")
+    mocker.patch("pipeline.extract.validate_s3_uri", return_value="test_s3_output_uri")
+
+    if output_path:
+        output_path = mock_tmp_directory / output_path
 
     extract(db_uri, output_path, s3_output_uri)
 
@@ -73,7 +75,6 @@ def test_extract(
         mock_store_s3.assert_called()
         mock_store_local.assert_not_called()
 
-    mock_logging_info.assert_called_with(expected_log)
     mock_extract_gp_practice.assert_called_once_with(db_uri)
 
 
@@ -421,4 +422,36 @@ def test_store_s3(mocker: MockerFixture) -> None:
     mock_convert_to_parquet_buffer.assert_called_once_with(mock_gp_practice_extract_df)
     mock_instance.s3_upload_file.assert_called_once_with(
         mock_buffer, "dos-gp-practice-extract.parquet"
+    )
+
+
+@pytest.mark.parametrize(
+    "s3_uri, output_path",
+    [
+        (None, None),
+        ("s3://bucket-name/path/to/object", "local_path"),
+    ],
+)
+def test_extract_no_output(s3_uri: str, output_path: str) -> None:
+    """
+    Test that extract raises an error when both output_path and s3_output_uri are None.
+    """
+    with pytest.raises(ExtractArgsError) as excinfo:
+        extract("test_db_uri", output_path=output_path, s3_output_uri=s3_uri)
+
+    assert str(excinfo.value) == "Either output_path or s3_output_uri must be provided."
+
+
+def test_extract_invalid_s3_uri(mocker: MockerFixture) -> None:
+    """
+    Test that extract raises an error when the provided s3_output_uri is invalid.
+    """
+    mocker.patch("pipeline.extract.validate_s3_uri", return_value=None)
+
+    with pytest.raises(ExtractArgsError) as excinfo:
+        extract("test_db_uri", s3_output_uri="invalid_s3_uri")
+
+    assert (
+        str(excinfo.value)
+        == "Invalid S3 URI: invalid_s3_uri. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
     )

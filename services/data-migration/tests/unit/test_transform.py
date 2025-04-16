@@ -370,15 +370,14 @@ def test_transform(
 
 
 def test_transform_empty_dataframe(
-    mocker: MockerFixture,
-    mock_pd_to_parquet: Mock,
+    mocker: MockerFixture, mock_pd_to_parquet: Mock, mock_tmp_directory: Path
 ) -> None:
     """
     Test the transform function with an empty DataFrame.
     """
 
-    input_path = Path("mock_input_path")
-    output_path = Path("mock_output_path")
+    input_path = mock_tmp_directory / "mock_input_path"
+    output_path = mock_tmp_directory / "mock_output_path"
 
     mocker.patch("pandas.read_parquet", return_value=pd.DataFrame())
 
