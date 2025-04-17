@@ -1,20 +1,32 @@
 SERVICE ?= gp-search
 PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
-LOCAL_DIR := ../../services/${SERVICE}
-FUNCTION_NAME := gp_search_function.py
-FUNC_DIR := functions/$(FUNCTION_NAME)
+DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
+PLATFORM ?= manylinux2014_x86_64
 S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
+POETRY_VERSION := $(shell poetry version -s)
+WHEEL_NAME := functions-$(POETRY_VERSION)-py3-none-any.whl
+DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
 
 # ==============================================================================
 
 # Example CI/CD targets are: dependencies, build, publish, deploy, clean, etc.
+clean:
+	rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml
+	rm -rf $(BUILD_DIR)
+	rm -rf $(DEPENDENCY_DIR)
 
-install: # TODO
+install: install-dependencies
 
-lint: #TODO
+install-dependencies:
+	asdf install
+	poetry install --no-interaction
+
+lint:
+	poetry run ruff check
+	poetry run ruff format --check
 
 unit-test: #TODO
 
@@ -24,23 +36,28 @@ ensure-build-dir:
 dependencies: # Install dependencies needed to build and test the project @Pipeline
 	# TODO: Implement installation of your project dependencies
 
-build: ensure-build-dir
+build: ensure-build-dir build-dependency-layer
+	poetry build -f wheel -o $(BUILD_DIR)
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	cp $(LOCAL_DIR)/$(FUNC_DIR) $(BUILD_DIR)/
-	cd $(BUILD_DIR) && zip -r -q $(LAMBDA_NAME)-$(APPLICATION_TAG).zip $(FUNCTION_NAME)
+	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
 
-publish: # Publish the project artefact @Pipeline
+build-dependency-layer: clean
+	mkdir -p $(DEPENDENCY_DIR)/python
+	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
+	pip install \
+	--platform $(PLATFORM) \
+	--target $(DEPENDENCY_DIR)/python \
+	--implementation cp \
+	--python-version $(PYTHON_VERSION) \
+	--no-deps \
+	--upgrade \
+	-r $(DEPENDENCY_DIR)/requirements.txt
+	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
+
+publish:
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
 
-deploy: # Deploy the project artefact to the target environment @Pipeline
-	# TODO: Implement the artefact deployment step
-
-clean:: # Clean-up project resources (main) @Operations
-	# TODO: Implement project resources clean-up step
-
-config:: # Configure development environment (main) @Configuration
-	# TODO: Use only 'make' targets that are specific to this project, e.g. you may not need to install Node.js
-	make _install-dependencies
 
 # ==============================================================================
 
