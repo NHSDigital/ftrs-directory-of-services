@@ -38,7 +38,9 @@ def transform(
     output_path.mkdir(parents=True, exist_ok=True)
 
     logging.info(f"Transforming data from {input_path} to {output_path}")
-
+if not (output_path or s3_output_uri) or (output_path and s3_output_uri):
+    logging.error("Provide only one valid argument: either output path or s3 uri.")
+    raise InvalidArgumentsError()
     current_timestamp = datetime.now()
     extract_dataframe = pd.read_parquet(input_path / Constants.GP_PRACTICE_EXTRACT_FILE)
     gp_practices_df = transform_gp_practices(extract_dataframe, current_timestamp)
