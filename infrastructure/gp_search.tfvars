@@ -10,7 +10,7 @@ lambda_name    = "gp-search-lambda"
 lambda_runtime     = "python3.12"
 lambda_timeout     = 900
 lambda_memory_size = 512
-db_secret_name     = "/ftrs-dos/dev/source-rds-credentials,ftrs-dos/dev/rds-username,ftrs-dos/dev/rds-password"
+db_secret_name     = "/ftrs-dos/dev/source-rds-credentials"
 
 #RDS
 rds_port = 5432

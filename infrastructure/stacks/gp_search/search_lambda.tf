@@ -16,7 +16,7 @@ module "lambda" {
   s3_key                = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
   attach_tracing_policy = true
   tracing_mode          = "Active"
-  policy_jsons          = [data.aws_iam_policy_document.vpc_access_policy.json]
+  policy_jsons          = [data.aws_iam_policy.uec_secret_services.policy]
   timeout               = var.lambda_timeout
   memory_size           = var.lambda_memory_size
 
@@ -36,7 +36,7 @@ module "lambda" {
   }
 }
 
-resource "aws_vpc_security_group_egress_rule" "lambda_allow_egress_to_rds" {
+resource "aws_vpc_security_group_ingress_rule" "lambda_allow_ingress_to_rds" {
   security_group_id            = data.aws_security_group.rds_security_group.id
   referenced_security_group_id = aws_security_group.gp_search_lambda_security_group.id
   from_port                    = var.rds_port
@@ -53,16 +53,6 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_egress_to_anywhere" 
   description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
 }
 
-data "aws_iam_policy_document" "vpc_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
-    ]
-    resources = [
-      "*"
-    ]
-  }
+data "aws_iam_policy" "uec_secret_services" {
+  name = "uec-ro-secret-services"
 }
