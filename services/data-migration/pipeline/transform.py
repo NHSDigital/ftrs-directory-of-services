@@ -1,3 +1,4 @@
+import io
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -6,7 +7,9 @@ from uuid import uuid4
 
 import pandas as pd
 
+from errors.errors import InvalidArgumentsError, S3BucketAccessError
 from packages.data_models import Endpoints, Organisation
+from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
 
 
 def create_organisation(row: pd.Series, current_timestamp: str) -> Organisation:
@@ -97,22 +100,52 @@ def create_GP_practices_dict(
     return gp_practices
 
 
-def transform(input_path: Path, output_path: Path) -> None:
-    logging.info(f"Transforming data from {input_path} to {output_path}")
+def transform(
+    input_path: Path, output_path: Path = None, s3_output_uri: str = None
+) -> None:
+    if not (output_path or s3_output_uri) or (output_path and s3_output_uri):
+        logging.error("Provide only one valid argument: either output path or s3 uri.")
+        raise InvalidArgumentsError()
 
+    if input_path and str(input_path) != "":
+        logging.info(f"Reading data from {input_path}")
     current_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     extract_dataframe = pd.read_parquet(input_path)
-
     gp_practices = create_GP_practices_dict(extract_dataframe, current_timestamp)
     gp_practices = convert_UUID_to_string(gp_practices)
     transform_gp_dataframe = pd.DataFrame(gp_practices)
 
-    transform_gp_dataframe.to_parquet(
-        output_path / f"dos-gp-practice-transform-{current_timestamp}.parquet",
-        engine="pyarrow",
-        index=False,
-        compression="zstd",
-    )
+    if s3_output_uri and (s3_output_uri != "" or s3_output_uri != "None"):
+        s3bucketObject = BucketWrapper(s3_output_uri)
+        if s3bucketObject.s3_bucket_exists():
+            logging.info(
+                f"Transforming data from {input_path} to S3 bucket {s3_output_uri}"
+            )
+            gpBuffer = io.BytesIO()
+            transform_gp_dataframe.to_parquet(
+                gpBuffer, engine="pyarrow", index=False, compression="zstd"
+            )
+            gpBuffer.seek(0)
+            s3bucketObject.s3_upload_file(
+                gpBuffer, f"dos-gp-practice-transform-{current_timestamp}.parquet"
+            )
+            logging.info(f"Data transformed and uploaded to S3 bucket {s3_output_uri}")
+        else:
+            logging.error(
+                f"Bucket {s3_output_uri} does not exist or you don't have access to it."
+            )
+            raise S3BucketAccessError()
+
+    else:
+        logging.info(f"Transforming data from {input_path} to {output_path}")
+        output_path.mkdir(parents=True, exist_ok=True)
+        transform_gp_dataframe.to_parquet(
+            output_path / f"dos-gp-practice-transform-{current_timestamp}.parquet",
+            engine="pyarrow",
+            index=False,
+            compression="zstd",
+        )
+        logging.info(f"Data transformed and saved to {output_path}")
 
 
 def main(args: list[str] | None = None) -> None:
@@ -120,15 +153,20 @@ def main(args: list[str] | None = None) -> None:
 
     logging.basicConfig(level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description="Extract data from source")
+    parser = argparse.ArgumentParser(description="Transform data from source")
     parser.add_argument(
         "--input-path", type=Path, required=True, help="Path to read the extracted data"
     )
     parser.add_argument(
         "--output-path",
         type=Path,
-        required=True,
-        help="Path to save the extracted data",
+        help="Path to save the transformed data into local directory eg: /path/to/",
+    )
+    parser.add_argument(
+        "--s3-output-uri",
+        type=str,
+        default=None,
+        help="S3 URI to save the transformed data into s3 bucket eg: s3://bucket-name/pathto/",
     )
     args = parser.parse_args(args)
-    transform(args.input_path, args.output_path)
+    transform(args.input_path, args.output_path, args.s3_output_uri)
