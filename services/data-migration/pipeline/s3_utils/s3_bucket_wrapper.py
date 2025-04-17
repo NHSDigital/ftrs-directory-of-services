@@ -33,9 +33,7 @@ class BucketWrapper:
             )
             return False
         else:
-            logging.info(
-                "Bucket %s exists and  have access to it.", self.bucket_name
-            )
+            logging.info("Bucket %s exists and  have access to it.", self.bucket_name)
             return True
 
     def s3_put_object(self, data_buffer: bytes) -> None:

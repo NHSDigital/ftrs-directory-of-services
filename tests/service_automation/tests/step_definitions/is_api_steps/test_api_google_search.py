@@ -7,12 +7,10 @@ from utilities.common.config import config
 # Load feature file
 scenarios("./is_api_features/test_api_google_search.feature")
 
-
 @pytest.fixture
 def api_response():
     """Fixture to store API response for logging in reports."""
     return {}
-
 
 @given("I make GET request to the Google search API")
 def prepare_google_search_request(api_response):
@@ -24,14 +22,17 @@ def prepare_google_search_request(api_response):
     search_engine_id = config.get("search_engine_id")
 
     # Prepare params for the API request
-    params = {"key": api_key, "cx": search_engine_id, "q": "Playwright"}
+    params = {
+        "key": api_key,
+        "cx": search_engine_id,
+        "q": "Playwright"
+    }
 
     # Store request for logging
     api_response["base_url"] = base_url
     api_response["params"] = params
     api_response["request"] = json.dumps(params, indent=2)
     logger.info("api response", api_response)
-
 
 @when("I receive the response")
 def make_google_search_request(api_request_context, api_response):
@@ -46,6 +47,7 @@ def make_google_search_request(api_request_context, api_response):
     # Make the GET request (using Playwright's APIRequestContext)
     response = api_request_context.get(base_url, params=params)
     logger.info("response:", response)
+
 
     # Store response status and body for logging
     api_response["response_status"] = response.status
@@ -66,34 +68,21 @@ def make_google_search_request(api_request_context, api_response):
     # Store the response for validation in the @then step
     api_response["response_json"] = response_json
 
-
 @then("I should see search results")
 def verify_response_and_search_results(api_response):
     """Verify the response status and search results contain 'Playwright'"""
     response_json = api_response.get("response_json", {})
     # Ensure response is valid
-    assert api_response["response_status"] == 200, (
+    assert api_response["response_status"] == 200, \
         f"Unexpected status code: {api_response['response_status']}"
-    )
     # Assert that 'title' matches the expected value
-    assert (
-        response_json.get("queries", {}).get("request", [{}])[0].get("title")
-        == "Google Custom Search - Playwright"
-    ), (
+    assert response_json.get("queries", {}).get("request", [{}])[0].get("title") == "Google Custom Search - Playwright", \
         f"Expected 'title' to be 'Google Custom Search - Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('title')}"
-    )
 
     # Assert that 'searchTerms' matches the expected value
-    assert (
-        response_json.get("queries", {}).get("request", [{}])[0].get("searchTerms")
-        == "Playwright"
-    ), (
+    assert response_json.get("queries", {}).get("request", [{}])[0].get("searchTerms") == "Playwright", \
         f"Expected 'searchTerms' to be 'Playwright', but got {response_json.get('queries', {}).get('request', [{}])[0].get('searchTerms')}"
-    )
 
     # Assert that 'count' matches the expected value
-    assert (
-        response_json.get("queries", {}).get("request", [{}])[0].get("count") == 10
-    ), (
+    assert response_json.get("queries", {}).get("request", [{}])[0].get("count") == 10, \
         f"Expected 'count' to be 10, but got {response_json.get('queries', {}).get('request', [{}])[0].get('count')}"
-    )
