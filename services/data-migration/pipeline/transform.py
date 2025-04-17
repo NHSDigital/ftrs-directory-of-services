@@ -45,7 +45,7 @@ def transform(
             help="Path to save the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
         ),
     ] = None,
-) -> None:
+) -> dict[str, pd.DataFrame]:
     """
     Transform the GP practice data from the input path and save it to the output path.
     """
