@@ -1,7 +1,9 @@
-from typing import Any
+from typing import Any, Generator
 from uuid import UUID
 
-from mypy_boto3_dynamodb.type_defs import PutItemInputTablePutItemTypeDef
+from mypy_boto3_dynamodb.type_defs import (
+    PutItemInputTablePutItemTypeDef,
+)
 
 from ftrs_data_layer.client import get_dynamodb_resource
 from ftrs_data_layer.repository.base import BaseRepository, ModelType
@@ -101,3 +103,28 @@ class DynamoDBRepository(BaseRepository[ModelType]):
             ReturnConsumedCapacity="INDEXES",
             **kwargs,
         )
+
+    def _scan(self, **kwargs: dict) -> Generator[dict, None, None]:
+        """
+        Scans the DynamoDB table.
+        """
+        limit = min(kwargs.pop("Limit", None) or 1000, 1000)
+        response = self.table.scan(
+            ReturnConsumedCapacity="INDEXES",
+            Limit=limit,
+            **kwargs,
+        )
+
+        while True:
+            for record in response.get("Items", []):
+                yield record
+
+            if "LastEvaluatedKey" not in response:
+                break
+
+            response = self.table.scan(
+                ExclusiveStartKey=response["LastEvaluatedKey"],
+                Limit=limit,
+                ReturnConsumedCapacity="INDEXES",
+                **kwargs,
+            )

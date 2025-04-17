@@ -1,13 +1,15 @@
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, List
+from typing import Annotated
 
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+from typer import Option
 
+from pipeline.common import Constants
 from pipeline.db_utils import (
     get_gp_endpoints,
     get_gp_practices,
@@ -22,47 +24,28 @@ from pipeline.s3_utils.s3_operations import validate_s3_uri
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
     """Format the endpoints DataFrame."""
-
-    def create_endpoint_dict(row: pd.Series) -> Dict[str, any]:
-        """Convert a row (Series) to an endpoint dictionary."""
-        return {
-            "endpointid": row["id"],
-            "endpointorder": row["endpointorder"],
-            "transport": row["transport"],
-            "format": row["format"],
-            "interaction": row["interaction"],
-            "businessscenario": row["businessscenario"],
-            "address": row["address"],
-            "comment": row["comment"],
-            "iscompressionenabled": row["iscompressionenabled"],
-            "serviceid": row["serviceid"],
-        }
-
-    def create_endpoint_list(group: pd.DataFrame) -> List[Dict[str, any]]:
-        """Convert a DataFrame group to a list of endpoint dictionaries."""
-        return group.apply(create_endpoint_dict, axis=1).tolist()
-
-    def group_and_format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.Series:
-        """Group the DataFrame by 'serviceid' and apply the transformation."""
-        return gp_practice_endpoints.groupby("serviceid")[
-            [
-                "id",
-                "endpointorder",
-                "transport",
-                "format",
-                "interaction",
-                "businessscenario",
-                "address",
-                "comment",
-                "iscompressionenabled",
-                "serviceid",
-            ]
-        ].apply(create_endpoint_list)
-
-    grouped_gp_practice_endpoints: pd.Series = group_and_format_endpoints(
-        gp_practice_endpoints
+    endpoint_columns = [
+        "id",
+        "endpointorder",
+        "transport",
+        "format",
+        "interaction",
+        "businessscenario",
+        "address",
+        "comment",
+        "iscompressionenabled",
+    ]
+    grouped_endpoints = gp_practice_endpoints.groupby("serviceid")[endpoint_columns]
+    endpoint_data = (
+        grouped_endpoints.apply(lambda group: group.to_dict(orient="records"))
+        .reset_index()
+        .rename(columns={0: "endpoints"})
     )
-    return grouped_gp_practice_endpoints.reset_index(name="endpoints")
+
+    return pd.DataFrame(
+        data=endpoint_data,
+        columns=["serviceid", "endpoints"],
+    )
 
 
 def calculate_service_profiles_percentage(
@@ -105,12 +88,17 @@ def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) 
 def merge_gp_practice_with_endpoints(
     gp_practice_df: pd.DataFrame, grouped_endpoints: pd.DataFrame
 ) -> pd.DataFrame:
-    return gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left").drop(
+    result = gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left").drop(
         columns=["serviceid"]
     )
+    # Force all null values in the endpoints column to be empty lists
+    for row in result.loc[result.endpoints.isnull(), "endpoints"].index:
+        result.at[row, "endpoints"] = []
+
+    return result
 
 
-def extract_gp_practice(db_uri: str) -> pd.DataFrame:
+def extract_gp_practices(db_uri: str) -> pd.DataFrame:
     gp_practice_df = get_gp_practices(db_uri)
     gp_practice_endpoints_df = get_gp_endpoints(db_uri)
 
@@ -126,10 +114,10 @@ def store_local(
     gp_practice_extract: pd.DataFrame,
     output_path: Path,
     clone_timestamp: str,
-    extract_name: str,
+    file_name: str,
 ) -> None:
     gp_practice_extract.to_parquet(
-        output_path / f"{extract_name}-{clone_timestamp}.parquet",
+        output_path / Constants.GP_PRACTICE_EXTRACT_FILE,
         engine="pyarrow",
         index=False,
         compression="zstd",
@@ -150,9 +138,43 @@ def store_s3(gp_practice_extract: pd.DataFrame, s3_output_uri: str) -> None:
     bucket_wrapper.s3_upload_file(buffer, "dos-gp-practice-extract.parquet")
 
 
-def extract(db_uri: str, output_path: Path = None, s3_output_uri: str = None) -> None:
-    extract_gp_practice_df = extract_gp_practice(db_uri)
+def extract(
+    db_uri: Annotated[str, Option(..., help="URI to connect to the source database")],
+    output_path: Annotated[
+        Path | None, Option(..., help="Path to save the extracted data")
+    ] = None,
+    s3_output_uri: Annotated[
+        str | None,
+        Option(
+            ...,
+            help="Path to save the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
+        ),
+    ] = None,
+) -> None:
+    """
+    Extract GP practice data from the source database and save it to the specified path.
+    """
+    if any(
+        [
+            output_path is None and s3_output_uri is None,
+            output_path is not None and s3_output_uri is not None,
+        ]
+    ):
+        err_msg = "Either output_path or s3_output_uri must be provided."
+        raise ExtractArgsError(err_msg)
+
+    if output_path is not None:
+        output_path = output_path / datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
+        output_path.mkdir(parents=True, exist_ok=True)
+
+    if s3_output_uri is not None and not validate_s3_uri(uri=s3_output_uri):
+        err_msg = f"Invalid S3 URI: {s3_output_uri}. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
+        raise ExtractArgsError(err_msg)
+
+    logging.info(f"Extracting data to {output_path}")
+    extract_gp_practice_df = extract_gp_practices(db_uri)
     clone_timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+
     if output_path:
         logging.info(f"Extracting data to {output_path}")
         output_path.mkdir(parents=True, exist_ok=True)
@@ -162,38 +184,7 @@ def extract(db_uri: str, output_path: Path = None, s3_output_uri: str = None) ->
             clone_timestamp,
             "dos-gp-practice-extract",
         )
+
     if s3_output_uri:
         logging.info(f"Extracting data to {s3_output_uri}")
         store_s3(extract_gp_practice_df, s3_output_uri)
-
-
-def main(args: list[str] | None = None) -> None:
-    import argparse
-
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-
-    parser = argparse.ArgumentParser(description="Extract data from source")
-    parser.add_argument(
-        "--db-uri", type=str, required=True, help="URI to connect to the database"
-    )
-    parser.add_argument(
-        "--output-path",
-        type=Path,
-        required=False,
-        help="Path to save the extracted data locally",
-    )
-    parser.add_argument(
-        "--s3-output-uri",
-        type=validate_s3_uri,
-        required=False,
-        help="Path to save the extracted data in s3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
-    )
-
-    args = parser.parse_args(args)
-
-    if args.db_uri and (bool(args.output_path) ^ bool(args.s3_output_uri)):
-        extract(args.db_uri, args.output_path, args.s3_output_uri)
-    else:
-        raise ExtractArgsError()

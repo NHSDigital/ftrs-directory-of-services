@@ -10,6 +10,14 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
 
+  ddb-local:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /data"
+    volumes:
+      - ./.tmp/dynamodb:/data
+
 volumes:
   pg_data:
     driver: local

@@ -1,3 +1,5 @@
+from itertools import islice
+from typing import Generator
 from uuid import UUID
 
 from ftrs_data_layer.repository.dynamodb.repository import (
@@ -20,7 +22,6 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
         response = self.table.query(
             KeyConditionExpression="id = :id",
             ExpressionAttributeValues={":id": str(obj_id)},
-            ProjectionExpression="id, field, value",
             ReturnConsumedCapacity="INDEXES",
         )
         items = response.get("Items")
@@ -42,7 +43,6 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
         response = self.table.query(
             KeyConditionExpression="id = :id",
             ExpressionAttributeValues={":id": str(id)},
-            ProjectionExpression="id, field, value",
             ReturnConsumedCapacity="INDEXES",
         )
         items = response.get("Items")
@@ -76,3 +76,31 @@ class FieldLevelRepository(DynamoDBRepository[ModelType]):
             **{item["field"]: item["value"] for item in item},
         }
         return self.model_cls.model_validate(item_dict)
+
+    def _iter_record_ids(
+        self, max_results: int | None = 100
+    ) -> Generator[tuple[str, str], None, None]:
+        """
+        Iterate over the record IDs in the DynamoDB table.
+        Generates tuples of (id, field).
+        """
+        item_iterator = self._scan(
+            ProjectionExpression="id, field",
+            FilterExpression="field = :field",
+            ExpressionAttributeValues={":field": "createdDateTime"},
+            Limit=max_results or 100,
+        )
+
+        return islice(
+            map(lambda item: (item["id"], item["field"]), item_iterator),
+            max_results,
+        )
+
+    def iter_records(
+        self, max_results: int | None = 100
+    ) -> Generator[ModelType, None, None]:
+        """
+        Iterate over the records in the DynamoDB table.
+        """
+        for record_id, _ in self._iter_record_ids(max_results):
+            yield self.get(record_id)

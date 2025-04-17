@@ -22,6 +22,9 @@ class ExampleRepository(BaseRepository[ExampleModel]):
     def delete(self, id: str) -> None:
         return super().delete(id)
 
+    def iter_records(self, max_results: int | None = 100) -> list[ExampleModel]:
+        return super().iter_records(max_results)
+
 
 def test_repository_initialisation() -> None:
     """
@@ -93,3 +96,13 @@ def test_delete_method() -> None:
 
     with pytest.raises(NotImplementedError):
         repo.delete("1")
+
+
+def test_iter_records_method() -> None:
+    """
+    Test the iter_records method of the repository.
+    """
+    repo = ExampleRepository(model_cls=ExampleModel)
+
+    with pytest.raises(NotImplementedError):
+        repo.iter_records()

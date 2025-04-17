@@ -1,3 +1,7 @@
+from itertools import islice
+from typing import Generator
+from uuid import UUID
+
 from ftrs_data_layer.repository.dynamodb.repository import (
     DynamoDBRepository,
     ModelType,
@@ -19,12 +23,12 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             ConditionExpression="attribute_not_exists(id)",
         )
 
-    def get(self, id: str) -> ModelType | None:
+    def get(self, id: str | UUID) -> ModelType | None:
         """
         Get a document from DynamoDB by ID.
         """
         response = self.table.get_item(
-            Key={"id": id},
+            Key={"id": str(id), "field": "document"},
             ProjectionExpression="id, value",
             ReturnConsumedCapacity="INDEXES",
         )
@@ -34,7 +38,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
 
         return self._parse_item(item)
 
-    def update(self, id: str, obj: ModelType) -> None:
+    def update(self, id: str | UUID, obj: ModelType) -> None:
         """
         Update an existing document in DynamoDB.
         """
@@ -43,12 +47,12 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             ConditionExpression="attribute_exists(id)",
         )
 
-    def delete(self, id: str) -> None:
+    def delete(self, id: str | UUID) -> None:
         """
         Delete a document from DynamoDB by ID.
         """
         self.table.delete_item(
-            Key={"id": id},
+            Key={"id": str(id), "field": "document"},
             ConditionExpression="attribute_exists(id)",
         )
 
@@ -58,6 +62,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         return {
             "id": str(item.id),
+            "field": "document",
             "value": item.model_dump(mode="json"),
         }
 
@@ -65,9 +70,20 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         Parse the item from DynamoDB into the model format.
         """
-        return self.model_cls.model_validate(
-            {
+        return self.model_cls.model_construct(
+            **{
                 "id": item["id"],
                 **item["value"],
             }
+        )
+
+    def iter_records(
+        self, max_results: int | None = 100
+    ) -> Generator[ModelType, None, None]:
+        """
+        Iterate across all items in the table.
+        """
+        return islice(
+            map(self._parse_item, self._scan(Limit=max_results)),
+            max_results,
         )
