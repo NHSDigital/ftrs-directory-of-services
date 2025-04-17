@@ -28,14 +28,12 @@ class BucketWrapper:
             self.s3_client.head_bucket(Bucket=self.bucket_name)
         except ClientError:
             logging.warning(
-                "Bucket %s doesn't exist or you don't have access to it.",
+                "Bucket %s doesn't exist or  don't have access to it.",
                 self.bucket_name,
             )
             return False
         else:
-            logging.info(
-                "Bucket %s exists and you have access to it.", self.bucket_name
-            )
+            logging.info("Bucket %s exists and  have access to it.", self.bucket_name)
             return True
 
     def s3_put_object(self, data_buffer: bytes) -> None:
