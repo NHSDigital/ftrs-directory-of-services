@@ -1,12 +1,15 @@
+import io
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch, MagicMock
 
 import pandas as pd
 import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
-from pipeline.transform import transform
+from pipeline.common import Constants
+from pipeline.exceptions import InvalidArgumentsError, S3BucketAccessError
+from pipeline.transform import transform, put_object_to_s3
 
 
 @freeze_time("2025-03-27 12:00:00")
@@ -387,3 +390,64 @@ def test_transform_empty_dataframe(
 
     assert not mock_pd_to_parquet.called
     assert str(excinfo.value) == "No data found in the input DataFrame"
+
+def test_transform_invalid_arguments():
+    input_path = Path("/path/to/input")
+    output_path = None
+    s3_output_uri = None
+
+    with pytest.raises(InvalidArgumentsError):
+        transform(input_path=input_path, output_path=output_path, s3_output_uri=s3_output_uri)
+
+def test_transform_both_output_and_s3_uri():
+    input_path = Path("/path/to/input")
+    output_path = Path("/path/to/output")
+    s3_output_uri = "s3://bucket/path"
+    # Mock the function to raise InvalidArgumentsError
+    with pytest.raises(InvalidArgumentsError):
+        transform(input_path=input_path, output_path=output_path, s3_output_uri=s3_output_uri)
+
+@pytest.fixture
+def mock_dataframe():
+    return pd.DataFrame({"column1": [1, 2], "column2": ["value1", "value2"]})
+
+@freeze_time("2025-03-27 12:00:00")
+@patch("pipeline.transform.BucketWrapper")
+@patch("pipeline.transform.io.BytesIO", wraps=io.BytesIO)  # Use a real BytesIO object
+def test_put_object_to_s3_success(mock_bytes_io, mock_bucket_wrapper):
+    # Arrange
+    mock_s3_bucket = MagicMock()
+    mock_bucket_wrapper.return_value = mock_s3_bucket
+    mock_s3_bucket.s3_bucket_exists.return_value = True
+
+    s3_output_uri = "s3://test-bucket/test-path"
+    input_path = Path("/dummy/path")
+    Constants.GP_PRACTICE_TRANSFORM_FILE = "transformed_file.parquet"
+
+    mock_dataframe = MagicMock()
+    mock_dataframe.to_parquet = MagicMock()
+
+    # Act
+    put_object_to_s3(s3_output_uri, input_path, mock_dataframe)
+
+    # Assert
+    mock_s3_bucket.s3_bucket_exists.assert_called_once()
+    mock_dataframe.to_parquet.assert_called_once()
+    mock_s3_bucket.s3_upload_file.assert_called_once()
+
+@patch("pipeline.transform.BucketWrapper")
+def test_put_object_to_s3_bucket_not_exists(mock_bucket_wrapper):
+    # Arrange
+    mock_s3_bucket = MagicMock()
+    mock_bucket_wrapper.return_value = mock_s3_bucket
+    mock_s3_bucket.s3_bucket_exists.return_value = False
+
+    s3_output_uri = "s3://test-bucket/test-path"
+    input_path = Path("/dummy/path")
+
+    # Act & Assert
+    with pytest.raises(S3BucketAccessError, match="Bucket URI does not exist or you don't have access to it."):
+        put_object_to_s3(s3_output_uri, input_path, MagicMock())
+
+    mock_s3_bucket.s3_bucket_exists.assert_called_once()
+

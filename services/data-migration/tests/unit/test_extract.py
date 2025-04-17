@@ -15,7 +15,7 @@ from pipeline.db_utils import (
     QUERY_SERVICES_COLUMNS,
     QUERY_SERVICES_SIZE,
 )
-from pipeline.exceptions import ExtractArgsError
+from pipeline.exceptions import InvalidArgumentsError
 from pipeline.extract import (
     convert_to_parquet_buffer,
     extract,
@@ -428,7 +428,7 @@ def test_extract_no_output(s3_uri: str, output_path: str) -> None:
     """
     Test that extract raises an error when both output_path and s3_output_uri are None.
     """
-    with pytest.raises(ExtractArgsError) as excinfo:
+    with pytest.raises(InvalidArgumentsError) as excinfo:
         extract("test_db_uri", output_path=output_path, s3_output_uri=s3_uri)
 
     assert str(excinfo.value) == "Either output_path or s3_output_uri must be provided."
@@ -440,7 +440,7 @@ def test_extract_invalid_s3_uri(mocker: MockerFixture) -> None:
     """
     mocker.patch("pipeline.extract.validate_s3_uri", return_value=None)
 
-    with pytest.raises(ExtractArgsError) as excinfo:
+    with pytest.raises(InvalidArgumentsError) as excinfo:
         extract("test_db_uri", s3_output_uri="invalid_s3_uri")
 
     assert (

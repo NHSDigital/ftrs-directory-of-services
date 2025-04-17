@@ -137,9 +137,16 @@ dos-etl extract \
     --s3-output-uri s3://<s3_bucket_name>/<s3_bucket_path>
 
 # Run transformation step
+
+## Run transformation step - store output locally
 dos-etl transform \
     --input-path /tmp/out/extract/ \
     --output-path /tmp/out/transform/
+
+## Run transformation step - store output in s3
+dos-etl transform \
+    --input-path /tmp/out/extract/ \
+    --s3-output-uri s3://<s3_bucket_name>/<s3_bucket_path>
 
 # Run load step
 dos-etl load \

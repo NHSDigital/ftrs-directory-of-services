@@ -17,7 +17,7 @@ from pipeline.db_utils import (
     get_services_columns_count,
     get_services_size,
 )
-from pipeline.exceptions import ExtractArgsError
+from pipeline.exceptions import InvalidArgumentsError
 from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
 from pipeline.s3_utils.s3_operations import validate_s3_uri
 
@@ -161,7 +161,7 @@ def extract(
         ]
     ):
         err_msg = "Either output_path or s3_output_uri must be provided."
-        raise ExtractArgsError(err_msg)
+        raise InvalidArgumentsError(err_msg)
 
     if output_path is not None:
         output_path = output_path / datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
@@ -169,7 +169,7 @@ def extract(
 
     if s3_output_uri is not None and not validate_s3_uri(uri=s3_output_uri):
         err_msg = f"Invalid S3 URI: {s3_output_uri}. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
-        raise ExtractArgsError(err_msg)
+        raise InvalidArgumentsError(err_msg)
 
     logging.info(f"Extracting data to {output_path}")
     extract_gp_practice_df = extract_gp_practices(db_uri)
