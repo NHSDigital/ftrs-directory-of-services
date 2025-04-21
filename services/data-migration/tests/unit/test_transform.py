@@ -6,6 +6,7 @@ import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
+from pipeline.common import Constants
 from pipeline.transform import transform
 
 
@@ -347,11 +348,18 @@ def test_transform(
         "ftrs_data_layer.models.uuid4",
         return_value="123e4567-e89b-12d3-a456-426614174000",
     )
+    mock_validator = mocker.patch(
+        "pipeline.transform.validate_paths", return_value=None
+    )
 
     input_path = mock_tmp_directory / "input.parquet"
     output_path = mock_tmp_directory / "output.parquet"
 
-    result = transform(input_path, output_path)
+    result = transform(input_path=input_path, output_path=output_path)
+
+    mock_validator.assert_called_once_with(
+        input_path, None, "input_path", "s3_input_uri"
+    )
 
     assert mock_pd_to_parquet.called, "pd.to_parquet was not called."
 
@@ -376,14 +384,36 @@ def test_transform_empty_dataframe(
     """
     Test the transform function with an empty DataFrame.
     """
-
     input_path = mock_tmp_directory / "mock_input_path"
     output_path = mock_tmp_directory / "mock_output_path"
 
     mocker.patch("pandas.read_parquet", return_value=pd.DataFrame())
 
     with pytest.raises(ValueError) as excinfo:
-        transform(input_path, output_path)
+        transform(input_path=input_path, output_path=output_path)
 
     assert not mock_pd_to_parquet.called
     assert str(excinfo.value) == "No data found in the input DataFrame"
+
+
+def test_read_s3(
+    mocker: MockerFixture,
+    mock_tmp_directory: Path,
+) -> None:
+    mock_validator = mocker.patch(
+        "pipeline.transform.validate_paths", return_value=None
+    )
+    mock_read = mocker.patch("pandas.read_parquet", return_value=pd.DataFrame())
+    mocker.patch("pipeline.transform.transform_gp_practices")
+
+    output_path = mock_tmp_directory / "output.parquet"
+    bucket_name = "s3://your-bucket-name/path/to/object"
+
+    transform(s3_input_uri=bucket_name, output_path=output_path)
+
+    mock_validator.assert_called_once_with(
+        None, "s3://your-bucket-name/path/to/object", "input_path", "s3_input_uri"
+    )
+    mock_read.assert_called_once_with(
+        f"{bucket_name}/{Constants.GP_PRACTICE_EXTRACT_FILE}"
+    )

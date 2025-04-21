@@ -88,15 +88,15 @@ def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) 
 def merge_gp_practice_with_endpoints(
     gp_practice_df: pd.DataFrame, grouped_endpoints: pd.DataFrame
 ) -> pd.DataFrame:
-    result = (
-        gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left")
-        .drop(columns=["serviceid"])
-        .fillna(np.nan)
-        .replace([np.nan], [None])
-    )
-    # @marksp: The fillna, and replace are to fix my pandas default to NaN
-    #   You can't just default to None despite checking a number of places,
-    #   so I needed to default to soemthing else first
+    # We use the no_silent_downcasting option, with replace and infer objects to ensure that all possible
+    #   nullables are outputted as NoneTypes, and not NaN etc
+    with pd.option_context("future.no_silent_downcasting", True):
+        result = (
+            gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left")
+            .drop(columns=["serviceid"])
+            .replace([np.nan], [None])
+            .infer_objects(copy=False)
+        )
 
     # Force all null values in the endpoints column to be empty lists
     for row in result.loc[result.endpoints.isnull(), "endpoints"].index:

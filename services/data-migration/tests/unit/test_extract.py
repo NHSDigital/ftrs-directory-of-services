@@ -61,12 +61,16 @@ def test_extract(
     mock_extract_gp_practice = mocker.patch("pipeline.extract.extract_gp_practices")
     mock_store_local = mocker.patch("pipeline.extract.store_local")
     mock_store_s3 = mocker.patch("pipeline.extract.store_s3")
-    mocker.patch("pipeline.extract.validate_s3_uri", return_value="test_s3_output_uri")
+    mock_validator = mocker.patch("pipeline.extract.validate_paths", return_value=None)
 
     if output_path:
         output_path = mock_tmp_directory / output_path
 
     extract(db_uri, output_path, s3_output_uri)
+
+    mock_validator.assert_called_once_with(
+        output_path, s3_output_uri, "output_path", "s3_output_uri"
+    )
 
     if output_path:
         mock_store_local.assert_called()
@@ -432,18 +436,3 @@ def test_extract_no_output(s3_uri: str, output_path: str) -> None:
         extract("test_db_uri", output_path=output_path, s3_output_uri=s3_uri)
 
     assert str(excinfo.value) == "Either output_path or s3_output_uri must be provided."
-
-
-def test_extract_invalid_s3_uri(mocker: MockerFixture) -> None:
-    """
-    Test that extract raises an error when the provided s3_output_uri is invalid.
-    """
-    mocker.patch("pipeline.extract.validate_s3_uri", return_value=None)
-
-    with pytest.raises(ExtractArgsError) as excinfo:
-        extract("test_db_uri", s3_output_uri="invalid_s3_uri")
-
-    assert (
-        str(excinfo.value)
-        == "Invalid S3 URI: invalid_s3_uri. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
-    )

@@ -4,7 +4,8 @@ from pipeline.exceptions import ExtractArgsError
 from pipeline.s3_utils.s3_operations import validate_s3_uri
 
 
-# TODO: consider using kwargs, and dynamically checking based on common names, this could tidy up the function inputs
+# TODO: consider using kwargs, and dynamically checking based on common names,
+#   this could tidy up the function inputs, and make code to call nicer
 def validate_paths(
     local_path: Path, s3_uri: str, local_path_name: str, s3_uri_name: str
 ) -> None:
@@ -18,5 +19,5 @@ def validate_paths(
         raise ExtractArgsError(err_msg)
 
     if s3_uri is not None and not validate_s3_uri(uri=s3_uri):
-        err_msg = f"Invalid S3 URI: {s3_uri_name}. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
+        err_msg = f"Invalid S3 URI: {s3_uri}. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
         raise ExtractArgsError(err_msg)
