@@ -6,7 +6,6 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
-from pipeline.validators import validate_paths
 import pyarrow as pa
 import pyarrow.parquet as pq
 from typer import Option
@@ -20,6 +19,7 @@ from pipeline.db_utils import (
     get_services_size,
 )
 from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
+from pipeline.validators import validate_paths
 
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
@@ -88,11 +88,14 @@ def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) 
 def merge_gp_practice_with_endpoints(
     gp_practice_df: pd.DataFrame, grouped_endpoints: pd.DataFrame
 ) -> pd.DataFrame:
-    result = gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left").drop(
-        columns=["serviceid"]
-    ).fillna(np.nan).replace([np.nan], [None])
-    # @marksp: The fillna, and replace are to fix my pandas default to NaN 
-    #   You can't just default to None despite checking a number of places, 
+    result = (
+        gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left")
+        .drop(columns=["serviceid"])
+        .fillna(np.nan)
+        .replace([np.nan], [None])
+    )
+    # @marksp: The fillna, and replace are to fix my pandas default to NaN
+    #   You can't just default to None despite checking a number of places,
     #   so I needed to default to soemthing else first
 
     # Force all null values in the endpoints column to be empty lists
@@ -159,7 +162,7 @@ def extract(
     Extract GP practice data from the source database and save it to the specified path.
     """
     # Validate output path is correct, would use decarator but Typer is blocking it
-    validate_paths(output_path, s3_output_uri, 'output_path', 's3_output_uri')
+    validate_paths(output_path, s3_output_uri, "output_path", "s3_output_uri")
 
     if output_path is not None:
         output_path = output_path / datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
