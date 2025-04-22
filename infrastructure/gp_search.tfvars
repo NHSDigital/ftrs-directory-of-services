@@ -1,6 +1,7 @@
-main_project           = "ftrs-directory-of-services"
-project                = "ftrs-dos-intsearch"
-gp_search_service_name = "ftrs-dos-gp-search"
+gp_search_service_name      = "ftrs-dos-gp-search"
+
+# Stacks that we lookup resources from
+data_migration_stack     = "data-migration"
 
 # Resource names
 s3_bucket_name = "gp-search-s3"

@@ -1,5 +1,5 @@
-variable "main_project" {
-  description = "The name of the main project"
+variable "data_migration_stack" {
+  description = "The name of the data migration stack"
 }
 variable "gp_search_service_name" {
   description = "The name of the gp search service"
