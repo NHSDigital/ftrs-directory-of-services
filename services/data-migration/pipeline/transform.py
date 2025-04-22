@@ -30,9 +30,6 @@ def transform_gp_practices(
     return pd.DataFrame(gp_practices)
 
 
-
-
-
 def transform(
     input_path: Annotated[
         Path | None, Option(..., help="Path to read the extracted data")

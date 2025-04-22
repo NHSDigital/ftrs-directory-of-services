@@ -7,6 +7,7 @@ import pyarrow.parquet as pq
 import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
+from typer import BadParameter
 
 from pipeline.db_utils import (
     QUERY_GP_ENDPOINTS,
@@ -15,7 +16,6 @@ from pipeline.db_utils import (
     QUERY_SERVICES_COLUMNS,
     QUERY_SERVICES_SIZE,
 )
-from pipeline.exceptions import ExtractArgsError
 from pipeline.extract import (
     convert_to_parquet_buffer,
     extract,
@@ -30,7 +30,6 @@ from tests.util.stub_data import (
     mock_gp_practice_extract_df,
     mock_gp_practices_df,
 )
-import typer
 
 
 @pytest.mark.parametrize(
@@ -69,9 +68,7 @@ def test_extract(
 
     extract(db_uri, output_path, s3_output_uri)
 
-    mock_validator.assert_called_once_with(
-        output_path, s3_output_uri
-    )
+    mock_validator.assert_called_once_with(output_path, s3_output_uri)
 
     if output_path:
         mock_store_local.assert_called()
@@ -433,7 +430,7 @@ def test_extract_no_output(s3_uri: str, output_path: str) -> None:
     """
     Test that extract raises an error when both output_path and s3_output_uri are None.
     """
-    with pytest.raises(typer.BadParameter) as excinfo:
+    with pytest.raises(BadParameter) as excinfo:
         extract("test_db_uri", output_path=output_path, s3_output_uri=s3_uri)
 
     assert str(excinfo.value) == "Either a local_path or s3_uri must be provided."

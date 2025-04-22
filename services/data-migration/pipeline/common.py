@@ -24,7 +24,7 @@ def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> 
 def get_parquet_path(input_path: Path | None, s3_uri: str | None) -> str:
     if input_path is not None:
         return (input_path / Constants.GP_PRACTICE_EXTRACT_FILE).resolve()
-        
+
     return f"{s3_uri}/{Constants.GP_PRACTICE_EXTRACT_FILE}"
 
 
