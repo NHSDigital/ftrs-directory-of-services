@@ -1,0 +1,70 @@
+model {
+  dosLead = actor "DoS Admin" {
+    description "DoS Lead, DoS Dev Team or CM Admin"
+    style {
+      color muted
+    }
+  }
+  cis2 = system "CIS2" {
+    description "Identity and Authorisation"
+    style {
+      color muted
+    }
+  }
+  ps1 = system "Provider System" {
+    description '
+      External software system
+      Includes 111 Tel, 999 Tel, 111 Online, S&R
+    '
+    style {
+      color muted
+    }
+  }
+  ps2 = system "Provider System" {
+    description '
+      Non-Pathways provider systems
+      i.e. MiDoS or GP Systems and Service Finder
+    '
+    style {
+      color muted
+    }
+  }
+  du = system "Direct updates to DoS" {
+    description '
+      Part of NHS.UK updates profiles in DoS
+    '
+    style {
+      color muted
+    }
+  }
+  pm = system "Profile Manager" {
+    description '
+      Part of NHS.UK updates profiles in DoS
+    '
+    style {
+      color muted
+    }
+  }
+  bsa = system "NHS BSA" {
+    description '
+    NHS BSA is a data sourcing partner
+    (GP data)
+    '
+    style {
+      color muted
+    }
+  }
+  externalDataServices = system "External Data Services" {
+    description '
+      Data extracts sent to NHS.UK, IDT, Arden & Gem
+    '
+    style {
+      color muted
+    }
+  }
+  ps1 -> apim.dosReadProxy "Queries DoS"
+  ps2 -> apim.dosReadProxy "Queries DoS"
+  du -> apim.dosWriteProxy "Updates DoS"
+  pm -> apim.dosReadProxy "Queries DoS"
+  bsa -> ftrs.sourcingEtlProcessor "Data pulled from"
+}
