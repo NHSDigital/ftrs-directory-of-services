@@ -1,5 +1,5 @@
 main_project           = "ftrs-directory-of-services"
-project                = "ftrs-dos-integrated-search"
+project                = "ftrs-dos-intsearch"
 gp_search_service_name = "ftrs-dos-gp-search"
 
 # Resource names

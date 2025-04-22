@@ -23,5 +23,5 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_security_group" "rds_security_group" {
-  name = "${var.main_project}-${var.environment}-data-migration-rds-sg"
+  name = "${var.project}-${var.environment}-data-migration-rds-sg"
 }
