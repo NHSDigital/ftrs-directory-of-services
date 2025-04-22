@@ -1,0 +1,9 @@
+{
+  "short_name": "Read Only Viewer",
+  "name": "Find the Right Service - Read Only Viewer",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
