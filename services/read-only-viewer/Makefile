@@ -21,8 +21,7 @@ format:
 	npm run lint -- --fix
 
 lint:
-	npm run format
-	npm run lint
+	npm run check
 
 unit-test:
 	npm run test -- --passWithNoTests

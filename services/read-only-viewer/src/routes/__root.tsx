@@ -1,7 +1,7 @@
 import { HeadContent, Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Container, Footer, Header } from "nhsuk-react-components";
-import appStylesUrl from "../App.scss?url";
+import appStylesUrl from "../styles/App.scss?url";
 
 export const Route = createRootRoute({
   head: () => ({
