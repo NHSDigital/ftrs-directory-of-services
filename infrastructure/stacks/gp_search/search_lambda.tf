@@ -1,5 +1,5 @@
 resource "aws_lambda_layer_version" "python_dependency_layer" {
-  layer_name          = "${local.prefix}-python-dependency-layer${local.workspace_suffix}"
+  layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
@@ -8,7 +8,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 }
 module "lambda" {
   source                = "../../modules/lambda"
-  function_name         = "${var.project}-${var.environment}-${var.lambda_name}"
+  function_name         = "${local.resource_prefix}-${var.lambda_name}"
   description           = "GP search Lambda"
   handler               = "functions/gp_search_function.lambda_handler"
   runtime               = var.lambda_runtime
@@ -32,7 +32,7 @@ module "lambda" {
     "ENVIRONMENT"    = var.environment
     "PROJECT_NAME"   = var.project
     "DB_SECRET_NAME" = var.db_secret_name
-    "NAMESPACE"      = "${var.gp_search_service_name}-${local.workspace_suffix}"
+    "NAMESPACE"      = "${var.gp_search_service_name}${local.workspace_suffix}"
   }
 }
 
