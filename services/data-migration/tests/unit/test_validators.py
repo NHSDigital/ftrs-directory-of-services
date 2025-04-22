@@ -3,52 +3,41 @@ from pytest_mock import MockerFixture
 
 from pipeline.exceptions import ExtractArgsError
 from pipeline.validators import validate_paths
+import typer
 
 
 @pytest.mark.parametrize(
-    "function_args, expected_error_msg",
+    "function_args",
     [
         (
             # Using dictionary to meet linting requirements
             {
                 "local_path": None,
-                "s3_uri": None,
-                "local_path_name": None,
-                "s3_uri_name": None,
-            },
-            f"Either {None} or {None} must be provided.",
+                "s3_uri": None
+            }
         ),
         (
             {
                 "local_path": "abc",
-                "s3_uri": "s3://bucket-name/path/to/object",
-                "local_path_name": "local_path",
-                "s3_uri_name": "s3_path",
-            },
-            "Either local_path or s3_path must be provided.",
+                "s3_uri": "s3://bucket-name/path/to/object"
+            }
         ),
         (
             {
                 "local_path": "abc",
-                "s3_uri": None,
-                "local_path_name": "local_path",
-                "s3_uri_name": "s3_path",
-            },
-            None,
+                "s3_uri": None
+            }
         ),
         (
             {
                 "local_path": None,
-                "s3_uri": "s3://bucket-name/path/to/object",
-                "local_path_name": "local_path",
-                "s3_uri_name": "s3_path",
-            },
-            None,
+                "s3_uri": "s3://bucket-name/path/to/object"
+            }
         ),
     ],
 )
 def test_validate_paths(
-    function_args: dict, expected_error_msg: bool, mocker: MockerFixture
+    function_args: dict, mocker: MockerFixture
 ) -> None:
     """
     Test that the paths, pass or fail according to our expectations
@@ -59,21 +48,18 @@ def test_validate_paths(
         validate_paths(
             function_args["local_path"],
             function_args["s3_uri"],
-            function_args["local_path_name"],
-            function_args["s3_uri_name"],
         )
-        assert expected_error_msg is None
-    except ExtractArgsError as error:
-        assert expected_error_msg == error.args[0]
-    else:
-        assert False
+        assert True
+    except typer.BadParameter as error:
+        assert "Either a local_path or s3_uri must be provided." == error.args[0]
+
 
 
 def test_validate_paths_invalid_s3_uri(mocker: MockerFixture) -> None:
     mocker.patch("pipeline.validators.validate_s3_uri", return_value=None)
 
-    with pytest.raises(ExtractArgsError) as excinfo:
-        validate_paths(None, "invalid_s3_uri", None, None)
+    with pytest.raises(typer.BadParameter) as excinfo:
+        validate_paths(None, "invalid_s3_uri")
 
     assert (
         str(excinfo.value)

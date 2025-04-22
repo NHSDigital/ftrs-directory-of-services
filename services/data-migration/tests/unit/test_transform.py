@@ -358,7 +358,7 @@ def test_transform(
     result = transform(input_path=input_path, output_path=output_path)
 
     mock_validator.assert_called_once_with(
-        input_path, None, "input_path", "s3_input_uri"
+        input_path, None
     )
 
     assert mock_pd_to_parquet.called, "pd.to_parquet was not called."
@@ -412,7 +412,7 @@ def test_read_s3(
     transform(s3_input_uri=bucket_name, output_path=output_path)
 
     mock_validator.assert_called_once_with(
-        None, "s3://your-bucket-name/path/to/object", "input_path", "s3_input_uri"
+        None, "s3://your-bucket-name/path/to/object"
     )
     mock_read.assert_called_once_with(
         f"{bucket_name}/{Constants.GP_PRACTICE_EXTRACT_FILE}"

@@ -162,7 +162,7 @@ def extract(
     Extract GP practice data from the source database and save it to the specified path.
     """
     # Validate output path is correct, would use decarator but Typer is blocking it
-    validate_paths(output_path, s3_output_uri, "output_path", "s3_output_uri")
+    validate_paths(output_path, s3_output_uri)
 
     if output_path is not None:
         output_path = output_path / datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
