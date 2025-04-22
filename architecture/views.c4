@@ -1,0 +1,29 @@
+views {
+
+  view index {
+    title 'System Context diagram'
+    description '
+      The actors and systems making use of FtRS
+    '
+    include *
+    autoLayout LeftRight 70 77
+  }
+
+  view of ftrs {
+    title "Container diagram for FtRS"
+    description '
+      A model showing the containers for FtRS
+      and their relationships to other systems
+    '
+    include *
+    autoLayout LeftRight 70 77
+  }
+
+  deployment view deploymentIndex {
+    title 'Production Deployment'
+
+    include gcp.**
+    include aws.**
+    autoLayout TopBottom 70 77
+  }
+}

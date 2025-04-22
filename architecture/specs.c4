@@ -1,0 +1,47 @@
+specification {
+  element actor {
+    style {
+      shape person
+    }
+  }
+  element system
+  element container
+  element controller
+  element component
+  element restapi
+
+  deploymentNode environment {
+    technology "AWS"
+    style {
+      color: blue
+    }
+  }
+  deploymentNode zone
+  deploymentNode vpc
+  deploymentNode region
+  deploymentNode cloudfunction
+  deploymentNode subnet
+  deploymentNode apigateway
+  deploymentNode lambda {
+    // Nodes have same styling options
+    style {
+      color blue
+      icon aws:lambda
+      multiple true
+    }
+  }
+  deploymentNode dynamodb {
+    // Common properties for the kind
+    notation 'DynamoDb'
+    technology 'DynamoDB'
+  }
+  deploymentNode sqs {
+    // Common properties for the kind
+    notation 'SQS'
+    style {
+      icon aws:simple-queue-service
+      shape queue
+    }
+    technology 'SQS'
+  }
+}

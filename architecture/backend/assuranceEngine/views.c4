@@ -1,0 +1,15 @@
+views {
+
+  view of ftrs.assuranceEngine {
+    title "Container diagram for FtRS Assurance Engine"
+    description '
+      A model showing the containers for FtRS GP API
+      and their relationships to other systems
+    '
+    include *
+    include ftrs.db.orgTable
+    include ftrs.db.tasksTable
+    include ftrs.reassureSelector
+    autoLayout LeftRight 70 77
+  }
+}
