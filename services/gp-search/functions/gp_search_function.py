@@ -30,7 +30,6 @@ def get_db_credentials() -> json:
     return json.loads(db_secret_value["SecretString"])
 
 
-
 @tracer.capture_method
 def test_db_connection(secret: json) -> None:
     conn = psycopg2.connect(
