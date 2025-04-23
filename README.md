@@ -104,7 +104,7 @@ To follow
 
 ### Testing
 
-To follow
+Details to follow
 
 ## Design
 
