@@ -61,7 +61,7 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_postgres_egress_to_r
   from_port         = var.rds_port
   to_port           = var.rds_port
   ip_protocol       = "tcp"
-  description       = "A rule to allow outgoing connections to the postgres ports"
+  description       = "A rule to allow outgoing connections to the postgres port"
 }
 
 data "aws_iam_policy" "uec_secret_services" {
