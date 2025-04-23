@@ -1,12 +1,14 @@
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Annotated
 
 import pandas as pd
 from ftrs_data_layer.models import Organisation
 from typer import Option
 
-from pipeline.common import Constants
+from pipeline.common import Constants, get_parquet_path
+from pipeline.validators import validate_paths
 
 
 def transform_gp_practices(
@@ -29,18 +31,31 @@ def transform_gp_practices(
 
 
 def transform(
-    input_path: Path = Option(..., help="Path to read the extracted data"),
+    input_path: Annotated[
+        Path | None, Option(..., help="Path to read the extracted data")
+    ] = None,
+    s3_input_uri: Annotated[
+        str | None,
+        Option(
+            ...,
+            help="Path to save the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
+        ),
+    ] = None,
     output_path: Path = Option(..., help="Path to save the transformed data"),
 ) -> None:
     """
     Transform the GP practice data from the input path and save it to the output path.
     """
+    # Validate input path is correct, would use decarator but Typer is blocking it
+    validate_paths(input_path, s3_input_uri)
+
     output_path.mkdir(parents=True, exist_ok=True)
-
-    logging.info(f"Transforming data from {input_path} to {output_path}")
-
     current_timestamp = datetime.now()
-    extract_dataframe = pd.read_parquet(input_path / Constants.GP_PRACTICE_EXTRACT_FILE)
+
+    parquet_path = get_parquet_path(input_path, s3_input_uri)
+    logging.info(f"Transforming data from {parquet_path} to {output_path}")
+    extract_dataframe = pd.read_parquet(parquet_path)
+
     gp_practices_df = transform_gp_practices(extract_dataframe, current_timestamp)
 
     gp_practices_df.to_parquet(
