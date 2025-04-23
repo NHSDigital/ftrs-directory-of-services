@@ -6,7 +6,7 @@ environments:
     base_url:
     api_key:
     search_engine_id:
-    project:  ftrs-dos-integrated-search
+    project:  ftrs-dos
     workspace:
 
 

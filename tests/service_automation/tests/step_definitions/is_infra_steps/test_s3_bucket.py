@@ -26,13 +26,13 @@ def check_aws_access():
     assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
 
 
-@then(parsers.parse('The S3 bucket "{bucket}" exists'))
-def confirm_s3_bucket_exists(project, bucket, aws_s3_client, workspace, env):
-    logger.info(f"project: {project}, bucket: {bucket}, env: {env}, workspace: {workspace}")
+@then(parsers.parse('The S3 bucket "{bucket}" exists for stack "{stack}"'))
+def confirm_s3_bucket_exists(project, bucket, stack, aws_s3_client, workspace, env):
+    logger.info(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
     if workspace == "":
-        bucket_name = project + "-" + env + "-" + bucket
+        bucket_name = project + "-" + env + "-" + stack + "-" + bucket
     else:
-        bucket_name = project + "-" + env + "-" + bucket + "-" + workspace
+        bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
     logger.info("Bucket Exists: {}", response)
     assert response == True
