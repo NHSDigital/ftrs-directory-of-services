@@ -29,13 +29,14 @@ def test_retrieve_gp_practice_data(
     assert result == [{0: "Test Data"}]
 
 
-def test_retrieve_gp_practice_data_no_file(mock_tmp_directory: Path) -> None:
+def test_load_file_not_found(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     """
     Test _retrieve_gp_practice_data function when file does not exist.
     """
+    mocker.patch("pipeline.transform.validate_paths", return_value=None)
 
     with pytest.raises(FileNotFoundError) as excinfo:
-        retrieve_gp_practice_data(mock_tmp_directory)
+        load(env="abc", input_path=mock_tmp_directory, endpoint_url="def")
 
     assert (
         str(excinfo.value)

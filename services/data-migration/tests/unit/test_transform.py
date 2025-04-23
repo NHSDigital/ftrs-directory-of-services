@@ -348,6 +348,7 @@ def test_transform(
         "ftrs_data_layer.models.uuid4",
         return_value="123e4567-e89b-12d3-a456-426614174000",
     )
+    mocker.patch("pipeline.transform.get_parquet_path", return_value="abc")
     mock_validator = mocker.patch(
         "pipeline.transform.validate_paths", return_value=None
     )
@@ -386,6 +387,7 @@ def test_transform_empty_dataframe(
     output_path = mock_tmp_directory / "mock_output_path"
 
     mocker.patch("pandas.read_parquet", return_value=pd.DataFrame())
+    mocker.patch("pipeline.transform.get_parquet_path", return_value="abc")
 
     with pytest.raises(ValueError) as excinfo:
         transform(input_path=input_path, output_path=output_path)

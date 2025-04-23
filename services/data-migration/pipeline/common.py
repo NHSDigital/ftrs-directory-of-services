@@ -21,11 +21,19 @@ def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> 
     return table_name
 
 
-def get_parquet_path(input_path: Path | None, s3_uri: str | None) -> str:
+def get_parquet_path(
+    input_path: Path | None, s3_uri: str | None, file_name: str
+) -> str:
     if input_path is not None:
-        return (input_path / Constants.GP_PRACTICE_EXTRACT_FILE).resolve()
+        file_path = input_path / Constants.GP_PRACTICE_TRANSFORM_FILE
 
-    return f"{s3_uri}/{Constants.GP_PRACTICE_EXTRACT_FILE}"
+        if not file_path.exists() or not file_path.is_file():
+            error_msg = f"File not found: {file_path}"
+            raise FileNotFoundError(error_msg)
+
+        return file_path.resolve()
+
+    return f"{s3_uri}/{file_name}"
 
 
 class Constants:
