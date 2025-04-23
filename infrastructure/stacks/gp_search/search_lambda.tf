@@ -7,18 +7,19 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 module "lambda" {
-  source                = "../../modules/lambda"
-  function_name         = "${local.resource_prefix}-${var.lambda_name}"
-  description           = "GP search Lambda"
-  handler               = "functions/gp_search_function.lambda_handler"
-  runtime               = var.lambda_runtime
-  s3_bucket_name        = local.artefacts_bucket
-  s3_key                = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
-  attach_tracing_policy = true
-  tracing_mode          = "Active"
-  policy_jsons          = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy.uec_secret_services.policy]
-  timeout               = var.lambda_timeout
-  memory_size           = var.lambda_memory_size
+  source                 = "../../modules/lambda"
+  function_name          = "${local.resource_prefix}-${var.lambda_name}"
+  description            = "GP search Lambda"
+  handler                = "functions/gp_search_function.lambda_handler"
+  runtime                = var.lambda_runtime
+  s3_bucket_name         = local.artefacts_bucket
+  s3_key                 = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
+  attach_tracing_policy  = true
+  tracing_mode           = "Active"
+  number_of_policy_jsons = "2"
+  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy.uec_secret_services.policy]
+  timeout                = var.lambda_timeout
+  memory_size            = var.lambda_memory_size
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
