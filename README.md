@@ -104,13 +104,13 @@ To follow
 
 ### Testing
 
-Details to follow
+To follow
 
 ## Design
 
 ### Diagrams
 
-[C4 model](https://c4model.com/) digrams documenting all the system interfaces, external dependencies and integration points will follow
+[C4 model](https://c4model.com/) diagrams documenting all the system interfaces, external dependencies and integration points will follow
 
 The source for these diagrams will be in Git for change control and review purposes.
 
