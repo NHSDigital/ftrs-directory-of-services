@@ -125,6 +125,21 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
+  status-check:
+    name: "Check status of the deployment"
+    needs:
+      - metadata
+      - deploy-infrastructure-apply
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deployment status
+        run: |
+          if [ "${{ needs.deploy-infrastructure-apply.outputs.apply_result }}" != "true" ]; then
+            echo "Deployment failed. Please check the logs."
+            exit 1
+          else
+            echo "Deployment succeeded."
+          fi
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
@@ -134,6 +149,7 @@ jobs:
       - deploy-infrastructure-plan
       - manual-approval
       - deploy-infrastructure-apply
+      - status-check
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:

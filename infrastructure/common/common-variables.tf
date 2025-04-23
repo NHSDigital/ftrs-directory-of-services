@@ -3,7 +3,7 @@ variable "project" {
 }
 
 variable "project_owner" {
-  description = "The owner of project, based on organisation and department codes"
+  description = "The owner of the project, based on organisation and department codes"
 }
 
 variable "team_owner" {
