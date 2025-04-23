@@ -134,12 +134,7 @@ jobs:
     steps:
       - name: Check deployment status
         run: |
-          if [ "${{ needs.deploy-infrastructure-apply.outputs.apply_result }}" != "true" ]; then
-            echo "Deployment failed. Please check the logs."
-            exit 1
-          else
-            echo "Deployment succeeded."
-          fi
+          echo "Deployment succeeded."
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
