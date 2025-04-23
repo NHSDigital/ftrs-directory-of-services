@@ -43,15 +43,25 @@ resource "aws_vpc_security_group_ingress_rule" "lambda_allow_ingress_to_rds" {
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
+  description                  = "Allow inbound connection from GP Search Lambda"
 }
 
-resource "aws_vpc_security_group_egress_rule" "lambda_allow_egress_to_anywhere" {
+resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
   security_group_id = aws_security_group.gp_search_lambda_security_group.id
   from_port         = "443"
   to_port           = "443"
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
   description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambda_allow_postgres_egress_to_rds" {
+  security_group_id = aws_security_group.gp_search_lambda_security_group.id
+  from_port         = var.rds_port
+  to_port           = var.rds_port
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+  description       = "A rule to allow outgoing connections to the postgres ports"
 }
 
 data "aws_iam_policy" "uec_secret_services" {
