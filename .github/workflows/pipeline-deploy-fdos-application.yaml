@@ -141,7 +141,6 @@ jobs:
     needs:
       - deploy-infrastructure-apply
       - run-tests
-    if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
   slack-notifications:
