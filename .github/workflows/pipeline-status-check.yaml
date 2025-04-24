@@ -22,9 +22,9 @@ jobs:
       id: check
 
     - name: "Check status"
-      if: ${{ steps.check.outputs.status == 'success' }}
+      if: ${{ !steps.check.outputs.status == 'success' }}
       run: |
-        echo "Workflow completed successfully."
+        echo "Workflow not completed successfully."
         echo "Run ID: ${{ github.run_id }}"
         exit 1
 
