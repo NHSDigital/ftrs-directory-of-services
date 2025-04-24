@@ -44,27 +44,8 @@ make build
 # Activate Python virtual environment
 eval $(poetry env activate)
 
-# Run extraction step - store output locally
-dos-etl extract \
-    --db-uri {source_database} \
-    --output-path /tmp/out/extract/
+# Run extraction
 
-# Run extraction step - store output in s3
-dos-etl extract \
-    --db-uri {source_database} \
-    --s3-output-uri s3://<s3_bucket_name>/<s3_bucket_path>
+dos-etl extract --date "2025-04-24"
 
-dos-etl extract \
-    --ods-uri "https://digital.nhs.uk/services/organisation-data-service/organisation-data-service-apis/technical-guidance-ord/sync-endpoint"
-
-# Run transformation step
-dos-etl transform \
-    --input-path /tmp/out/extract/ \
-    --output-path /tmp/out/transform/
-
-# Run load step
-dos-etl load \
-    --env {env} \ # use 'local' for local testing
-    --endpoint-uri {ddb_endpoint} \
-    --input-path /tmp/out/transform/
 ```
