@@ -125,6 +125,18 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    needs:
+      - metadata
+      - quality-checks
+      - build-data-migration-service
+      - deploy-infrastructure-plan
+      - manual-approval
+      - deploy-infrastructure-apply
+    if: always()
+    uses: ./.github/workflows/pipeline-status-checks.yaml
+
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
@@ -134,6 +146,7 @@ jobs:
       - deploy-infrastructure-plan
       - manual-approval
       - deploy-infrastructure-apply
+      - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
