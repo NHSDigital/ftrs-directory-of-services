@@ -36,7 +36,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration']"
+      stacks: "['database', 'data_migration','read_only_viewer']"
     secrets: inherit
 
   build-python-package:
@@ -73,6 +73,23 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
     secrets: inherit
 
+  build-read-only-viewer-service:
+    name: "Build read only viewer service"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: "read-only-viewer"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+    secrets: inherit
+
   deploy-infrastructure-plan:
     name: "Plan application infrastructure deployment"
     concurrency:
@@ -82,12 +99,13 @@ jobs:
       - metadata
       - build-data-migration-service
       - build-python-package
+      - build-read-only-viewer-service
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration']"
+      stacks: "['database', 'data_migration','read_only_viewer']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
@@ -118,7 +136,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration']"
+      stacks: "['database', 'data_migration','read_only_viewer']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
@@ -132,16 +150,40 @@ jobs:
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
+  deploy-read-only-viewer-service:
+    name: "Deploy read only viewer service"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-protected"
+      cancel-in-progress: false
+    needs:
+      - deploy-infrastructure-apply
+      - build-read-only-viewer-service
+      - check-pipeline-status
+    uses: ./.github/workflows/deploy-project.yaml
+    with:
+      name: "read-only-viewer"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+    secrets: inherit
+
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
       - metadata
       - quality-checks
       - build-data-migration-service
+      - build-python-package
+      - build-read-only-viewer-service
       - deploy-infrastructure-plan
       - manual-approval
       - deploy-infrastructure-apply
       - check-pipeline-status
+      - deploy-read-only-viewer-service
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:

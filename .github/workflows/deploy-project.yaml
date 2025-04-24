@@ -1,0 +1,110 @@
+name: Build project workflow
+run-name: Build ${{ inputs.type }} - ${{ inputs.name }}
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        description: "The type of project to build (service, package)"
+        required: true
+        type: string
+      name:
+        description: "The name of the package to build"
+        required: true
+        type: string
+      python_version:
+        description: 'The version of Python'
+        required: true
+        type: string
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      environment:
+        description: "The deployment environment"
+        required: true
+        type: string
+      repo_name:
+        description: "The name of the Git repo"
+        required: true
+        type: string
+      workspace:
+          description: "The name of the workspace to deploy the infrastructure into"
+          required: true
+          type: string
+      application_tag:
+          description: "The application tag identifying the timeline in the repository to deploy from"
+          required: false
+          type: string
+
+jobs:
+  build-project:
+    name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v3.0.2
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v3.0.2
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          multi_domain: false
+
+      - name: "Get directories"
+        id: get-directories
+        run: |
+          if [[ "${{ inputs.build_type }}" == "service" ]]; then
+            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
+            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid build type: ${{ inputs.build_type }}"
+            exit 1
+          fi
+
+      - name: "Deploy Project"
+        run: make deploy
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          SERVICE: ${{ inputs.name }}
+          PACKAGE: ${{ inputs.name }}
+          COMMIT_HASH: ${{ inputs.commit_hash }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
+          WORKSPACE: ${{ inputs.workspace }}
+          APPLICATION_TAG: ${{ inputs.application_tag }}
+
+      - name: "Invalidate CloudFront Cache"
+        run: make invlidate-cloudfront-cache
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          SERVICE: ${{ inputs.name }}
+          PACKAGE: ${{ inputs.name }}
+          COMMIT_HASH: ${{ inputs.commit_hash }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
+          WORKSPACE: ${{ inputs.workspace }}
+          APPLICATION_TAG: ${{ inputs.application_tag }}
