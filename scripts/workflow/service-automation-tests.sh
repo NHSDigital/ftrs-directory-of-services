@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# This script runs python domain tests
+# This script runs service automation tests
 #
 export APPLICATION_TEST_DIR="${APPLICATION_TEST_DIR:-"tests/service_automation"}"
 
