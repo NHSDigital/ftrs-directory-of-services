@@ -118,7 +118,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migrationNo']"
+      stacks: "['database', 'data_migration']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
@@ -129,6 +129,7 @@ jobs:
     name: "Check Pipeline Status"
     needs:
       - deploy-infrastructure-apply
+    if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
   slack-notifications:
