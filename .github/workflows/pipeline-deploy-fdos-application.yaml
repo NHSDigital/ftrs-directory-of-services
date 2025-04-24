@@ -135,7 +135,7 @@ jobs:
       - manual-approval
       - deploy-infrastructure-apply
     if: always()
-    uses: ./.github/workflows/pipeline-status-checks.yaml
+    uses: ./.github/workflows/pipeline-status-check.yaml
 
   slack-notifications:
     name: "Send Notification to Slack"
