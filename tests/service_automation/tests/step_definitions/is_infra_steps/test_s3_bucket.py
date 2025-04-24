@@ -4,8 +4,10 @@ from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.s3_util import S3Utils
 
+
 # Load feature file
 scenarios("./is_infra_features/test_s3_bucket.feature")
+
 
 @pytest.fixture(scope="module")
 def aws_s3_client():
@@ -22,7 +24,7 @@ def fetch_s3_buckets(aws_s3_client):
 def check_aws_access():
     """Ensure AWS CLI authentication works"""
     result = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True)
-    logger.info("AWS CLI Authenticate", result.returncode)
+    logger.debug("AWS CLI Authenticate", result.returncode)
     assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
 
 
@@ -34,7 +36,7 @@ def confirm_s3_bucket_exists(project, bucket, stack, aws_s3_client, workspace, e
     else:
         bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
-    logger.info("Bucket Exists: {}", response)
+    logger.debug("Bucket Exists: {}", response)
     assert response == True
 
 @when("I fetch the list of S3 buckets")
@@ -46,10 +48,10 @@ def fetch_buckets(aws_s3_client):
 def validate_bucket_names(fetch_s3_buckets):
     """Validate AWS S3 bucket naming rules"""
     bucket_names = fetch_s3_buckets
-    logger.info("Available Buckets: {}", bucket_names)
+    logger.debug("Available Buckets: {}", bucket_names)
     assert bucket_names, "No buckets found!"
     for bucket in bucket_names:
-        logger.info("Valid Bucket Names: {}", bucket)
+        logger.debug("Valid Bucket Names: {}", bucket)
         assert 3 <= len(bucket) <= 63, f"Invalid length for bucket {bucket}"
         assert bucket.islower(), f"Bucket {bucket} must be lowercase"
         assert bucket[0].isalnum() and bucket[-1].isalnum(), f"Bucket {bucket} must start & end with letter/number"
