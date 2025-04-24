@@ -57,6 +57,9 @@ on:
       plan_result:
         description: "The Terraform plan output"
         value: ${{ jobs.deploy-infrastructure.outputs.plan_result }}
+      apply_result:
+        description: "The Terraform apply result"
+        value: ${{ jobs.deploy-infrastructure.outputs.apply_result }}
 
 jobs:
   deploy-infrastructure:
