@@ -125,10 +125,22 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
+  run-tests:
+    name: "Run tests"
+    needs:
+      - deploy-infrastructure-apply
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Run tests"
+        run: |
+          echo "Running tests..."
+          exit 1 # Simulate a test failure for demonstration purposes
+
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
       - deploy-infrastructure-apply
+      - run-tests
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
