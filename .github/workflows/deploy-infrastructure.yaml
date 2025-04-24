@@ -72,6 +72,7 @@ jobs:
         stack: ${{ fromJSON(inputs.stacks) }}
     outputs:
       plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
+      apply_result: ${{ steps.deploy_stack.outputs.apply_result }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4

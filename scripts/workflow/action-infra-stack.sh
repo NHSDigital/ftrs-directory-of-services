@@ -158,12 +158,31 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
+  APPLY_OUTCOME=''
   if [ -n "$GITHUB_WORKSPACE" ] ; then
-      terraform apply -auto-approve "$GITHUB_WORKSPACE/$STACK.tfplan"
-    else
-      terraform apply -auto-approve "$STACK.tfplan"
+    APPLY_OUTCOME=$(terraform apply -auto-approve "$GITHUB_WORKSPACE/$STACK.tfplan")
+    if echo "$APPLY_OUTCOME" | grep -Fq "Apply complete"; then
+        APPLY_RESULT="true"
+        echo "apply_result=${APPLY_RESULT}" >> "$GITHUB_OUTPUT"
+        echo "Apply successful: ${APPLY_RESULT}"
+      else
+        APPLY_RESULT="false"
+        echo "apply_result=${APPLY_RESULT}" >> "$GITHUB_OUTPUT"
+        echo "Apply failed: ${APPLY_RESULT}"
+      fi
+  else
+    APPLY_OUTCOME=$(terraform apply -auto-approve "$STACK.tfplan")
+    echo "$APPLY_OUTCOME"
   fi
+
 fi
+# if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
+#   if [ -n "$GITHUB_WORKSPACE" ] ; then
+#       terraform apply -auto-approve "$GITHUB_WORKSPACE/$STACK.tfplan"
+#     else
+#       terraform apply -auto-approve "$STACK.tfplan"
+#   fi
+# fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
   terraform destroy -auto-approve \
