@@ -21,7 +21,14 @@ jobs:
     - uses: martialonline/workflow-status@v3
       id: check
 
-    - name: "Check status"
+    - name: "Echo status of pipeline"
+      run: |
+        echo "Workflow concluded successfully."
+        echo "Run ID: ${{ github.run_id }}"
+        echo "Status: ${{ steps.check.outputs.status }}"
+        echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
+
+    - name: "Fail if workflow not completed successfully"
       if: ${{ !steps.check.outputs.status == 'success' }}
       run: |
         echo "Workflow not completed successfully."
