@@ -25,7 +25,7 @@ def get_parquet_path(
     input_path: Path | None, s3_uri: str | None, file_name: str
 ) -> str:
     if input_path is not None:
-        file_path = input_path / Constants.GP_PRACTICE_TRANSFORM_FILE
+        file_path = input_path / file_name
 
         if not file_path.exists() or not file_path.is_file():
             error_msg = f"File not found: {file_path}"

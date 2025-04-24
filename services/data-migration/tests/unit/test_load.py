@@ -7,7 +7,7 @@ from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from pytest_mock import MockerFixture
 
-from pipeline.common import TargetEnvironment
+from pipeline.common import Constants, TargetEnvironment
 from pipeline.load import (
     load,
     load_organisations,
@@ -172,4 +172,26 @@ def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     create_mock.assert_has_calls(
         [call(org) for org in expected_create_calls],
         any_order=True,
+    )
+
+
+def test_load_s3(
+    mocker: MockerFixture,
+) -> None:
+    mock_validator = mocker.patch("pipeline.load.validate_paths", return_value=None)
+    mock_read = mocker.patch("pandas.read_parquet", return_value=pd.DataFrame())
+    mocker.patch("pipeline.load.load_organisations")
+
+    bucket_name = "s3://your-bucket-name/path/to/object"
+
+    load(
+        env=TargetEnvironment.local,
+        workspace="test",
+        s3_input_uri=bucket_name,
+        endpoint_url="http://localhost:8000",
+    )
+
+    mock_validator.assert_called_once_with(None, "s3://your-bucket-name/path/to/object")
+    mock_read.assert_called_once_with(
+        f"{bucket_name}/{Constants.GP_PRACTICE_TRANSFORM_FILE}"
     )
