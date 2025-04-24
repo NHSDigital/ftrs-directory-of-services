@@ -9,6 +9,9 @@ jobs:
     name: "Check Pipeline Status"
     runs-on: ubuntu-latest
     steps:
+    - uses: martialonline/workflow-status@v3
+      id: check
+
     - name: "Debug Info"
       run: |
         echo "Job Status: ${{ job.status }}"
@@ -17,15 +20,7 @@ jobs:
         echo "Workflow Status: ${{ github.event.workflow_run.conclusion }}"
         echo "GitHub Actor: ${{ github.actor }}"
         echo "Pull Request URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
-
-    - uses: martialonline/workflow-status@v3
-      id: check
-
-    - name: "Echo status of pipeline"
-      run: |
-        echo "Run ID: ${{ github.run_id }}"
         echo "Status: ${{ steps.check.outputs.status }}"
-        echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
 
     - name: "Fail if workflow not completed successfully"
       if: ${{ steps.check.outputs.status != 'success' }}
