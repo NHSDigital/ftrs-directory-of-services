@@ -50,13 +50,13 @@ def extract(
     }
     try:
         response = requests.get(ods_uri, params=params)
-        logging.info(f"Extracted data: {response.text}")
         if response.status_code == 200:
             response_json = response.json()
             for organisation in response_json["Organisations"]:
                     url = organisation.get("OrgLink", "")
                     #will need to change if sync endpoint changes schema
-                    ods_code_reponse = make_request_with_retry("https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/"+url.split("organisations/")[1]+"?")
+                    org_url = "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/"+url.split("organisations/")[1]+"?"
+                    ods_code_reponse = make_request_with_retry(org_url)
                     logging.info(f"Extracted data: {ods_code_reponse.text}")
     
     except requests.exceptions.RequestException as e:

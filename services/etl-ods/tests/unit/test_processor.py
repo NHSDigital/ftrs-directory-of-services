@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from pipeline.extract import extract, make_request_with_retry
+from processor import extract, make_request_with_retry
 
 STATUS_SUCCESSFUL = 200
 
@@ -41,7 +41,6 @@ def test_extract_successful_request(mock_responses: MagicMock, caplog: any) -> N
         second_call_args = mock_get.call_args_list[1]
         assert second_call_args[0][0] == "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123?"
         assert "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?" in caplog.text
-        assert f"Extracted data: {first_response.text}" in caplog.text
         assert f"Extracted data: {second_response.text}" in caplog.text
 
 
