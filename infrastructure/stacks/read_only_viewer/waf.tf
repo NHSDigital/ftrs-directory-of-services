@@ -4,7 +4,7 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
   scope       = var.read_only_viewer_waf_scope
 
   default_action {
-    block {}
+    allow {}
   }
 
   rule {
@@ -19,12 +19,6 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
         vendor_name = "AWS"
-
-        scope_down_statement {
-          geo_match_statement {
-            country_codes = ["GB"]
-          }
-        }
       }
     }
 
@@ -47,12 +41,6 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesKnownBadInputsRuleSet"
         vendor_name = "AWS"
-
-        scope_down_statement {
-          geo_match_statement {
-            country_codes = ["GB"]
-          }
-        }
       }
     }
 
@@ -75,12 +63,6 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesAmazonIpReputationList"
         vendor_name = "AWS"
-
-        scope_down_statement {
-          geo_match_statement {
-            country_codes = ["GB"]
-          }
-        }
       }
     }
 
@@ -103,12 +85,6 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesAnonymousIpList"
         vendor_name = "AWS"
-
-        scope_down_statement {
-          geo_match_statement {
-            country_codes = ["GB"]
-          }
-        }
       }
     }
 
@@ -131,12 +107,6 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesAdminProtectionRuleSet"
         vendor_name = "AWS"
-
-        scope_down_statement {
-          geo_match_statement {
-            country_codes = ["GB"]
-          }
-        }
       }
     }
 
@@ -164,12 +134,6 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
           fallback_behavior = "NO_MATCH"
           header_name       = "X-Forwarded-For"
         }
-
-        scope_down_statement {
-          geo_match_statement {
-            country_codes = ["GB"]
-          }
-        }
       }
     }
 
@@ -190,7 +154,7 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
       not_statement {
         statement {
           geo_match_statement {
-            country_codes = ["GB"]
+            country_codes = ["GB", "JE", "IM"]
           }
         }
       }

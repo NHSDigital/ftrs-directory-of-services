@@ -46,14 +46,14 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
-      values   = [module.read_only_viewer_clodufront.cloudfront_distribution_arn]
+      values   = [module.read_only_viewer_cloudfront.cloudfront_distribution_arn]
     }
   }
 
   statement {
     principals {
       type        = "AWS"
-      identifiers = [aws_iam_role.github_runner_iam_role.arn]
+      identifiers = [data.aws_iam_role.github_runner_iam_role.arn]
     }
 
     actions = [
