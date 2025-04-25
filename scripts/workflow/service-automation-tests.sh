@@ -51,7 +51,7 @@ fi
 
 
 if [ $TEST_TYPE != "ui" ] ; then
-  pytest -s -m "$TEST_TAG" -p allure_pytest_bdd --alluredir=allure-results
+  pytest -q -s -m "$TEST_TAG" -p allure_pytest_bdd --alluredir=allure-results
 fi
 
 
