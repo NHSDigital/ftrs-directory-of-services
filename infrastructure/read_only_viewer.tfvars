@@ -1,4 +1,7 @@
-s3_versioning                     = true
+s3_versioning = {
+  status     = true
+  mfa_delete = false
+}
 read_only_viewer_bucket_name      = "read-only-viewer-bucket"
 read_only_viewer_cloud_front_name = "read-only-viewer-cf"
 read_only_viewer_waf_name         = "read-only-viewer-waf-web-acl"
