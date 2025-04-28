@@ -8,5 +8,4 @@ runs:
       id: format_terraform
       shell: bash
       run: |
-        export CHECK_ONLY=true
-        ./scripts/githooks/check-terraform-format.sh
+        check_only=true ./scripts/githooks/check-terraform-format.sh
