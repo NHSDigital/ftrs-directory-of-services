@@ -1,6 +1,5 @@
 # ETL ODS Pipeline
 
-
 ## Installation
 
 This project requires Python and Poetry as core dependencies.
@@ -37,7 +36,6 @@ To package the Lambda function package and create the dependency layers, run:
 ```bash
 make build
 ```
-
 
 ### Running Pipeline Steps Locally
 
