@@ -143,13 +143,6 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
-  check-pipeline-status:
-    name: "Check Pipeline Status"
-    needs:
-      - deploy-infrastructure-apply
-    if: always()
-    uses: ./.github/workflows/pipeline-status-check.yaml
-
   deploy-read-only-viewer-service:
     name: "Deploy read only viewer service"
     concurrency:
@@ -158,7 +151,7 @@ jobs:
     needs:
       - deploy-infrastructure-apply
       - build-read-only-viewer-service
-      - check-pipeline-status
+      - metadata
     uses: ./.github/workflows/deploy-project.yaml
     with:
       name: "read-only-viewer"
@@ -170,6 +163,14 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
     secrets: inherit
+
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    needs:
+      - deploy-infrastructure-apply
+      - deploy-read-only-viewer-service
+    if: always()
+    uses: ./.github/workflows/pipeline-status-check.yaml
 
   slack-notifications:
     name: "Send Notification to Slack"
