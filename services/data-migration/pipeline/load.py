@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import Annotated, Type
 
 import pandas as pd
@@ -10,10 +9,9 @@ from ftrs_data_layer.repository.dynamodb import (
 )
 from typer import Option
 
-
-from pipeline.constants import Constants, TargetEnvironment
-from pipeline.utils.validators import validate_path
+from pipeline.constants import TargetEnvironment
 from pipeline.utils.file_io import read_parquet_file
+from pipeline.utils.validators import validate_path
 
 
 def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> str:

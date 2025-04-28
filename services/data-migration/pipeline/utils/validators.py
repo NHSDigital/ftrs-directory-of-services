@@ -1,14 +1,14 @@
+import logging
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlparse
 
+import boto3
+from botocore.exceptions import ClientError
 from pydantic import BaseModel
 from typer import BadParameter
 
 from pipeline.utils.file_io import PathType
-import boto3
-from botocore.exceptions import ClientError
-import logging
-from typing import Literal
 
 
 class S3Path(BaseModel):
@@ -29,7 +29,7 @@ def check_bucket_access(bucket_name: str) -> bool:
         s3_client.head_bucket(Bucket=bucket_name)
         logging.info(f"Bucket {bucket_name} exists and is accessible.")
     except ClientError as e:
-        logging.error(f"Error checking bucket {bucket_name}: {e}")
+        logging.warning(f"Error checking bucket {bucket_name}: {e}")
         return False
 
     return True
@@ -71,8 +71,5 @@ def validate_path(
     if path := validate_s3_uri(s3_or_local_path):
         return PathType.S3, path
 
-    if path := validate_local_path(s3_or_local_path):
-        return PathType.FILE, path
-
-    err_msg = f"Invalid path: {s3_or_local_path}. Please provide a valid S3 URI or a local file path."
-    raise BadParameter(err_msg)
+    path = validate_local_path(s3_or_local_path)
+    return PathType.FILE, path

@@ -6,7 +6,7 @@ from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from pytest_mock import MockerFixture
 from typer import Abort
 
-from pipeline.common import TargetEnvironment
+from pipeline.constants import TargetEnvironment
 from pipeline.reset import (
     DEFAULT_CLEARABLE_ENTITY_TYPES,
     ClearableEntityTypes,

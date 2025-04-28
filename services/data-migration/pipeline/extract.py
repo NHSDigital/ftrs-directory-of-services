@@ -5,15 +5,15 @@ import numpy as np
 import pandas as pd
 from typer import Option
 
-from pipeline.utils.file_io import (
-    write_parquet_file,
-)
 from pipeline.utils.dos_db import (
     get_gp_endpoints,
     get_gp_practices,
     get_serviceendpoints_columns_count,
     get_services_columns_count,
     get_services_size,
+)
+from pipeline.utils.file_io import (
+    write_parquet_file,
 )
 from pipeline.utils.validators import validate_path
 

@@ -1,30 +1,25 @@
-from io import BytesIO
 from pathlib import Path
 from unittest.mock import Mock, call
 
 import pandas as pd
-import pyarrow.parquet as pq
 import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
-from typer import BadParameter
 
-from pipeline.db_utils import (
+from pipeline.extract import (
+    extract,
+    extract_gp_practices,
+    format_endpoints,
+    merge_gp_practice_with_endpoints,
+)
+from pipeline.utils.dos_db import (
     QUERY_GP_ENDPOINTS,
     QUERY_GP_PRACTICE,
     QUERY_SERVICEENDPOINTS_COLUMNS,
     QUERY_SERVICES_COLUMNS,
     QUERY_SERVICES_SIZE,
 )
-from pipeline.extract import (
-    convert_to_parquet_buffer,
-    extract,
-    extract_gp_practices,
-    format_endpoints,
-    merge_gp_practice_with_endpoints,
-    store_file,
-    store_s3,
-)
+from pipeline.utils.file_io import PathType
 from tests.util.stub_data import (
     mock_gp_endpoints_formatted_df,
     mock_gp_practice_extract_df,
@@ -33,51 +28,45 @@ from tests.util.stub_data import (
 
 
 @pytest.mark.parametrize(
-    "db_uri, output_path, s3_output_uri",
+    "db_uri, output_path, expected_path_type",
     [
-        (
-            "test_db_uri",
-            Path("test_output_path"),
-            None,
-        ),
-        (
-            "test_db_uri",
-            None,
-            "s3://test_s3_output_uri",
-        ),
+        ("test_db_uri", "input-file.parquet", PathType.FILE),
+        ("test_db_uri", "s3://test_s3_output_uri/input-file.parquet", PathType.S3),
     ],
 )
 @freeze_time("2024-01-01 12:00:00")
 def test_extract(
     db_uri: str,
-    output_path: Path,
-    s3_output_uri: str,
+    output_path: str,
+    expected_path_type: PathType,
     mocker: MockerFixture,
     mock_tmp_directory: Path,
 ) -> None:
     """
     Test that extract logs the output path and calls extract_gp_practice
     """
-    mock_extract_gp_practice = mocker.patch("pipeline.extract.extract_gp_practices")
-    mock_store_local = mocker.patch("pipeline.extract.store_local")
-    mock_store_s3 = mocker.patch("pipeline.extract.store_s3")
-    mock_validator = mocker.patch("pipeline.extract.validate_paths", return_value=None)
+    mock_extract_gp_practice = mocker.patch(
+        "pipeline.extract.extract_gp_practices", return_value=mock_gp_practices_df
+    )
+    mock_write_parquet = mocker.patch("pipeline.extract.write_parquet_file")
+    mock_check_bucket = mocker.patch(
+        "pipeline.utils.validators.check_bucket_access", return_value=True
+    )
 
-    if output_path:
+    if expected_path_type == PathType.FILE:
         output_path = mock_tmp_directory / output_path
 
-    extract(db_uri, output_path, s3_output_uri)
-
-    mock_validator.assert_called_once_with(output_path, s3_output_uri)
-
-    if output_path:
-        mock_store_local.assert_called()
-        mock_store_s3.assert_not_called()
-    if s3_output_uri:
-        mock_store_s3.assert_called()
-        mock_store_local.assert_not_called()
+    extract(db_uri, str(output_path))
 
     mock_extract_gp_practice.assert_called_once_with(db_uri)
+    mock_write_parquet.assert_called_once_with(
+        expected_path_type,
+        output_path,
+        mock_gp_practices_df,
+    )
+
+    if expected_path_type == PathType.S3:
+        mock_check_bucket.assert_called_once_with(output_path.split("/")[2])
 
 
 @freeze_time("2024-01-01 12:00:00")
@@ -368,69 +357,3 @@ def test_merge_gp_practice_with_endpoints(
     """
     result = merge_gp_practice_with_endpoints(gp_practice_df, grouped_endpoints)
     pd.testing.assert_frame_equal(result, expected_df)
-
-
-def test_store_local(mocker: MockerFixture) -> None:
-    mock_to_parquet = mocker.patch("pandas.DataFrame.to_parquet")
-    mock_path = mocker.MagicMock(spec=Path)
-    mock_path.__truediv__.return_value = mock_path / "test.parquet"
-
-    # TODO: use something like freezegun to freeze time to mock the timestamp - instead of mocker.ANY ?
-    store_file(mock_gp_practice_extract_df, mock_path, "20230402", "test_extract")
-
-    mock_to_parquet.assert_called_once_with(
-        mock_path / "test_extract-20230402.parquet",
-        engine="pyarrow",
-        index=False,
-        compression="zstd",
-    )
-
-
-def test_convert_to_parquet_buffer() -> None:
-    """
-    Test that convert_to_parquet_buffer converts a DataFrame to a Parquet buffer.
-    """
-    buffer = convert_to_parquet_buffer(mock_gp_practice_extract_df)
-
-    assert isinstance(buffer, BytesIO), "The result should be a BytesIO object."
-    buffer.seek(0)  # Reset buffer position to the beginning
-    table = pq.read_table(buffer)
-    result_df = table.to_pandas()
-    pd.testing.assert_frame_equal(result_df, mock_gp_practice_extract_df)
-
-
-def test_store_s3(mocker: MockerFixture) -> None:
-    mock_convert_to_parquet_buffer = mocker.patch(
-        "pipeline.extract.convert_to_parquet_buffer"
-    )
-    mock_bucket_wrapper = mocker.patch("pipeline.extract.BucketWrapper")
-    mock_buffer = BytesIO(b"test data")
-    mock_convert_to_parquet_buffer.return_value = mock_buffer
-    mock_instance = mock_bucket_wrapper.return_value
-    mock_instance.s3_upload_file = mocker.patch(
-        "pipeline.extract.BucketWrapper.s3_upload_file"
-    )
-
-    store_s3(mock_gp_practice_extract_df, "s3://your-bucket-name/path/to/object")
-
-    mock_convert_to_parquet_buffer.assert_called_once_with(mock_gp_practice_extract_df)
-    mock_instance.s3_upload_file.assert_called_once_with(
-        mock_buffer, "dos-gp-practice-extract.parquet"
-    )
-
-
-@pytest.mark.parametrize(
-    "s3_uri, output_path",
-    [
-        (None, None),
-        ("s3://bucket-name/path/to/object", "local_path"),
-    ],
-)
-def test_extract_no_output(s3_uri: str, output_path: str) -> None:
-    """
-    Test that extract raises an error when both output_path and s3_output_uri are None.
-    """
-    with pytest.raises(BadParameter) as excinfo:
-        extract("test_db_uri", output_path=output_path, s3_output_uri=s3_uri)
-
-    assert str(excinfo.value) == "Either a local_path or s3_uri must be provided."

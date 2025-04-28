@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 
-from pipeline.db_utils import (
+from pipeline.utils.dos_db import (
     QUERY_GP_ENDPOINTS,
     QUERY_GP_PRACTICE,
     QUERY_SERVICEENDPOINTS_COLUMNS,
@@ -66,7 +66,7 @@ def mock_sql_data() -> Generator[Mock, None, None]:
     """
     data_stub = StubData()
 
-    with patch("pipeline.db_utils.pd.read_sql") as mock_read_sql:
+    with patch("pipeline.utils.dos_db.pd.read_sql") as mock_read_sql:
         mock_read_sql.side_effect = lambda query, conn: data_stub[query]
         yield mock_read_sql
 

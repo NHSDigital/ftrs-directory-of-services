@@ -1,7 +1,8 @@
+import logging
 from enum import StrEnum
+
 import awswrangler as wr
 import pandas as pd
-import logging
 
 
 class PathType(StrEnum):
