@@ -8,7 +8,7 @@ The current versions of these can be found in the `.tool-versions` file, and can
 ### Install Python Dependencies
 
 ```bash
-cd services/data-migration
+cd services/etl-ods
 poetry install
 ```
 

@@ -5,6 +5,8 @@ from typing import Annotated
 import requests
 from typer import Option
 
+STATUS_SUCCESSFUL = 200
+STATUS_RATE_LIMITED = 429
 
 def make_request_with_retry(url: str, max_retries: int = 3) -> requests.Response:
     """
@@ -17,7 +19,7 @@ def make_request_with_retry(url: str, max_retries: int = 3) -> requests.Response
         try:
             response = requests.get(url)
 
-            if response.status_code == 429:
+            if response.status_code == STATUS_RATE_LIMITED:
                 if retries == max_retries:
                     response.raise_for_status()
 
@@ -29,8 +31,8 @@ def make_request_with_retry(url: str, max_retries: int = 3) -> requests.Response
             else:
                 return response
 
-        except requests.exceptions.RequestException as e:
-            logging.exception(f"Error fetching data: {e}")
+        except requests.exceptions.RequestException:
+            logging.exception("Error fetching data")
             return None
 
     return None
@@ -50,7 +52,7 @@ def extract(
     }
     try:
         response = requests.get(ods_uri, params=params)
-        if response.status_code == 200:
+        if response.status_code == STATUS_SUCCESSFUL:
             response_json = response.json()
             for organisation in response_json["Organisations"]:
                     url = organisation.get("OrgLink", "")
@@ -59,5 +61,5 @@ def extract(
                     ods_code_reponse = make_request_with_retry(org_url)
                     logging.info(f"Extracted data: {ods_code_reponse.text}")
 
-    except requests.exceptions.RequestException as e:
-        logging.exception(f"Error fetching data: {e}")
+    except requests.exceptions.RequestException:
+        logging.exception("Error fetching data")

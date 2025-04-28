@@ -1,5 +1,6 @@
 import logging
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 import pytest
 import requests
@@ -27,6 +28,7 @@ def test_extract_successful_request(mock_responses: MagicMock, caplog: any) -> N
     """Test successful data extraction"""
 
     first_response, second_response = mock_responses
+    GET_COUNT = 2
 
     with patch('requests.get') as mock_get:
         mock_get.side_effect = [first_response, second_response]
@@ -35,7 +37,7 @@ def test_extract_successful_request(mock_responses: MagicMock, caplog: any) -> N
 
         extract(date="2023-01-01")
 
-        assert mock_get.call_count == 2
+        assert mock_get.call_count == GET_COUNT
         first_call_args = mock_get.call_args_list[0]
         assert first_call_args[0][0] == "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?"
         assert first_call_args[1]['params'] == {"LastChangeDate": "2023-01-01"}
@@ -120,7 +122,7 @@ def test_max_retries_exceeded() -> None:
                 rate_limit_response.status_code = STATUS_RATE_LIMIT
 
                 def side_effect_func() -> None:
-                    raise requests.exceptions.HTTPError("Rate Limited")
+                    raise HTTPError("Rate Limited")
 
                 rate_limit_response.raise_for_status = MagicMock(side_effect=side_effect_func)
                 mock_get.return_value = rate_limit_response
