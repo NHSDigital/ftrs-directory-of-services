@@ -1,44 +1,10 @@
 import logging
-import time
 from typing import Annotated
 
 import requests
 from typer import Option
 
 STATUS_SUCCESSFUL = 200
-STATUS_RATE_LIMITED = 429
-
-
-def make_request_with_retry(url: str, max_retries: int = 3) -> requests.Response:
-    """
-    Make a request with exponential backoff retry logic for rate limits.
-    """
-    retries = 0
-    backoff_time = 1
-
-    while retries <= max_retries:
-        try:
-            response = requests.get(url)
-
-            if response.status_code == STATUS_RATE_LIMITED:
-                if retries == max_retries:
-                    response.raise_for_status()
-
-                wait_time = backoff_time
-                logging.warning(
-                    f"Rate limit hit ({response.status_code}). Retrying in {wait_time} seconds."
-                )
-                time.sleep(wait_time)
-                backoff_time *= 2
-                retries += 1
-            else:
-                return response
-
-        except requests.exceptions.RequestException:
-            logging.exception("Error fetching data")
-            return None
-
-    return None
 
 
 def extract(
@@ -63,7 +29,7 @@ def extract(
                     + url.split("organisations/")[1]
                     + "?"
                 )
-                ods_code_reponse = make_request_with_retry(org_url)
+                ods_code_reponse = requests.get(org_url)
                 logging.info(f"Extracted data: {ods_code_reponse.text}")
 
     except requests.exceptions.RequestException:
