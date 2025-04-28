@@ -7,6 +7,7 @@ import requests
 from processor import extract
 
 STATUS_SUCCESSFUL = 200
+STATUS_RATE_LIMIT = 429
 
 
 @pytest.fixture
