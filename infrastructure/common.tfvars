@@ -9,4 +9,3 @@ service_category = "bronze"
 team_owner       = "ftrs"
 
 artefacts_bucket_name = "artefacts-bucket"
-delete_me_test_only = "no"
