@@ -15,10 +15,10 @@ def mock_responses() -> MagicMock:
     first_response.text = '{"Organisations": [{"OrgLink": "https://example.com/organisations/ABC123"}]}'
     first_response.status_code = 200
     first_response.json.return_value = {"Organisations": [{"OrgLink": "https://example.com/organisations/ABC123"}]}
-    
+
     second_response = MagicMock()
     second_response.text = '{"name": "Test Organization", "id": "ABC123"}'
-    
+
     return first_response, second_response
 
 
@@ -29,11 +29,11 @@ def test_extract_successful_request(mock_responses: MagicMock, caplog: any) -> N
 
     with patch('requests.get') as mock_get:
         mock_get.side_effect = [first_response, second_response]
-        
+
         caplog.set_level(logging.INFO)
-        
+
         extract(date="2023-01-01")
-        
+
         assert mock_get.call_count == 2
         first_call_args = mock_get.call_args_list[0]
         assert first_call_args[0][0] == "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?"
@@ -65,7 +65,7 @@ def test_successful_request_first_try() -> None:
             mock_response.text = '{"data": "abc"}'
             mock_get.return_value = mock_response
             result = make_request_with_retry('https://example.com')
-        
+
             mock_get.assert_called_once_with('https://example.com')
             mock_sleep.assert_not_called()
             assert result.status_code == STATUS_SUCCESSFUL
@@ -82,10 +82,10 @@ def test_rate_limit_with_retry_then_success() -> None:
                 success_response.text = '{"data": "success after retry"}'
                 mock_get.side_effect = [rate_limit_response, success_response]
                 result = make_request_with_retry('https://example.com')
-                
+
                 assert mock_get.call_count == 2
                 mock_sleep.assert_called_once_with(1)
-                mock_warning.assert_called_once() 
+                mock_warning.assert_called_once()
                 assert result.status_code == STATUS_SUCCESSFUL
                 assert result.text == '{"data": "success after retry"}'
 
@@ -112,15 +112,15 @@ def test_max_retries_exceeded() -> None:
             with patch('logging.exception') as mock_exception:
                 rate_limit_response = MagicMock()
                 rate_limit_response.status_code = 429
-                    
+
                 def side_effect_func():
                     raise requests.exceptions.HTTPError("429 Rate Limited")
-                    
+
                 rate_limit_response.raise_for_status = MagicMock(side_effect=side_effect_func)
                 mock_get.return_value = rate_limit_response
                 result = make_request_with_retry('https://example.com', max_retries=2)
-                    
+
                 assert mock_get.call_count == 3
-                assert mock_warning.call_count == 2 
+                assert mock_warning.call_count == 2
                 mock_exception.assert_called_once()
                 assert result is None

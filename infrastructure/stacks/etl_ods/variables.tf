@@ -1,5 +1,5 @@
 variable "application_tag" {
-  description = "The version or tag of the data mirgation application"
+  description = "The version or tag of the etl_ode_code application"
   type        = string
 }
 
