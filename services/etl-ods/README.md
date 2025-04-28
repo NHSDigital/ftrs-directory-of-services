@@ -1,6 +1,5 @@
 # ETL ODS Pipeline
 
-
 ## Installation
 
 This project requires Python and Poetry as core dependencies.
