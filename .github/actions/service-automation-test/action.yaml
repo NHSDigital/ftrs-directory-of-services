@@ -15,7 +15,7 @@ inputs:
       description: "feature tag that identifies tests to be run"
       required: true
     test_type:
-      description: "feature tag that identifies tests to be run"
+      description: "tag that identifies types of test and reports to be run"
       required: true
 
 
