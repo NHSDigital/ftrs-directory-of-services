@@ -22,7 +22,7 @@ from pipeline.extract import (
     extract_gp_practices,
     format_endpoints,
     merge_gp_practice_with_endpoints,
-    store_local,
+    store_file,
     store_s3,
 )
 from tests.util.stub_data import (
@@ -376,7 +376,7 @@ def test_store_local(mocker: MockerFixture) -> None:
     mock_path.__truediv__.return_value = mock_path / "test.parquet"
 
     # TODO: use something like freezegun to freeze time to mock the timestamp - instead of mocker.ANY ?
-    store_local(mock_gp_practice_extract_df, mock_path, "20230402", "test_extract")
+    store_file(mock_gp_practice_extract_df, mock_path, "20230402", "test_extract")
 
     mock_to_parquet.assert_called_once_with(
         mock_path / "test_extract-20230402.parquet",
