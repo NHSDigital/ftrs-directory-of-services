@@ -56,12 +56,12 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhe
 }
 
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_postgres_egress_to_rds" {
-  security_group_id = aws_security_group.gp_search_lambda_security_group.id
+  security_group_id            = aws_security_group.gp_search_lambda_security_group.id
   referenced_security_group_id = data.aws_security_group.rds_security_group.id
-  from_port         = var.rds_port
-  to_port           = var.rds_port
-  ip_protocol       = "tcp"
-  description       = "A rule to allow outgoing connections to the postgres port"
+  from_port                    = var.rds_port
+  to_port                      = var.rds_port
+  ip_protocol                  = "tcp"
+  description                  = "A rule to allow outgoing connections to the postgres port"
 }
 
 data "aws_iam_policy" "uec_secret_services" {

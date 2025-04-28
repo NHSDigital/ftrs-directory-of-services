@@ -77,6 +77,8 @@ def test_get_parquet_path_success(
 ) -> None:
     """
     test that for the given inputs we get out the expected outputs
+    test 1 is for input_path being provided.
+    test 2 is for s3 path being provided.
     """
     mocker.patch("pathlib.Path.exists", return_value=True)
     mocker.patch("pathlib.Path.is_file", return_value=True)
@@ -93,11 +95,11 @@ def test_get_parquet_path_success(
         (Path("./abc/def"), "test2.parquet", False, True),
     ],
 )
-def test_get_parquet_failures(
+def test_get_local_parquet_failures(
     mocker: MockerFixture, input_path: Path, file_name: str, exists: bool, is_file: bool
 ) -> None:
     """
-    test that for the given inputs we get out the expected outputs
+    Test that each failure condition possible for a local parquet works as expected.
     """
     mock_exists = mocker.patch("pathlib.Path.exists", return_value=exists)
     mock_is_file = mocker.patch("pathlib.Path.is_file", return_value=is_file)
