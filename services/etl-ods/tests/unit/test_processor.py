@@ -1,6 +1,5 @@
 import logging
 from unittest.mock import MagicMock, patch
-from urllib.error import HTTPError
 
 import pytest
 import requests
