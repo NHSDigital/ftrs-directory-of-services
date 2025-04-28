@@ -162,6 +162,7 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
+      deployment_environment : ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
   check-pipeline-status:
