@@ -1,0 +1,31 @@
+name: Pipeline outcome check
+
+on:
+  workflow_call:
+
+
+jobs:
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: martialonline/workflow-status@v3
+      id: check
+
+    - name: "Debug Info"
+      run: |
+        echo "Job Status: ${{ job.status }}"
+        echo "GitHub Event: ${{ github.event_name }}"
+        echo "Workflow Run: ${{ toJson(github.event.workflow_run) }}"
+        echo "Workflow Status: ${{ github.event.workflow_run.conclusion }}"
+        echo "GitHub Actor: ${{ github.actor }}"
+        echo "Pull Request URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+        echo "Status: ${{ steps.check.outputs.status }}"
+
+    - name: "Fail if workflow not completed successfully"
+      if: ${{ steps.check.outputs.status != 'success' }}
+      run: |
+        echo "Workflow not completed successfully."
+        echo "Run ID: ${{ github.run_id }}"
+        exit 1
+
