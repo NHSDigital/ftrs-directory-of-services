@@ -38,7 +38,7 @@ def transform(
         str | None,
         Option(
             ...,
-            help="Path to save the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
+            help="Path to load the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
         ),
     ] = None,
     output_path: Path = Option(..., help="Path to save the transformed data"),
@@ -52,7 +52,9 @@ def transform(
     output_path.mkdir(parents=True, exist_ok=True)
     current_timestamp = datetime.now()
 
-    parquet_path = get_parquet_path(input_path, s3_input_uri)
+    parquet_path = get_parquet_path(
+        input_path, s3_input_uri, Constants.GP_PRACTICE_EXTRACT_FILE
+    )
     logging.info(f"Transforming data from {parquet_path} to {output_path}")
     extract_dataframe = pd.read_parquet(parquet_path)
 

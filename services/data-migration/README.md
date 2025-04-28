@@ -139,11 +139,15 @@ dos-etl extract \
 # Run transformation step
 dos-etl transform \
     --input-path /tmp/out/extract/ \
+    --s3-input-uri s3://<s3_bucket_name>/<s3_bucket_path> \
     --output-path /tmp/out/transform/
+# Where either input-path or s3-input-uri is provided
 
 # Run load step
 dos-etl load \
     --env {env} \ # use 'local' for local testing
     --endpoint-uri {ddb_endpoint} \
-    --input-path /tmp/out/transform/
+    --input-path /tmp/out/transform/ \
+    --s3-input-uri s3://<s3_bucket_name>/<s3_bucket_path>
+# Where either input-path or s3-input-uri is provided
 ```

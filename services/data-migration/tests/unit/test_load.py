@@ -7,7 +7,7 @@ from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from pytest_mock import MockerFixture
 
-from pipeline.common import TargetEnvironment
+from pipeline.common import Constants, TargetEnvironment
 from pipeline.load import (
     load,
     load_organisations,
@@ -29,13 +29,14 @@ def test_retrieve_gp_practice_data(
     assert result == [{0: "Test Data"}]
 
 
-def test_retrieve_gp_practice_data_no_file(mock_tmp_directory: Path) -> None:
+def test_load_file_not_found(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     """
     Test _retrieve_gp_practice_data function when file does not exist.
     """
+    mocker.patch("pipeline.transform.validate_paths", return_value=None)
 
     with pytest.raises(FileNotFoundError) as excinfo:
-        retrieve_gp_practice_data(mock_tmp_directory)
+        load(env="abc", input_path=mock_tmp_directory, endpoint_url="def")
 
     assert (
         str(excinfo.value)
@@ -171,4 +172,26 @@ def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     create_mock.assert_has_calls(
         [call(org) for org in expected_create_calls],
         any_order=True,
+    )
+
+
+def test_load_s3(
+    mocker: MockerFixture,
+) -> None:
+    mock_validator = mocker.patch("pipeline.load.validate_paths", return_value=None)
+    mock_read = mocker.patch("pandas.read_parquet", return_value=pd.DataFrame())
+    mocker.patch("pipeline.load.load_organisations")
+
+    bucket_name = "s3://your-bucket-name/path/to/object"
+
+    load(
+        env=TargetEnvironment.local,
+        workspace="test",
+        s3_input_uri=bucket_name,
+        endpoint_url="http://localhost:8000",
+    )
+
+    mock_validator.assert_called_once_with(None, "s3://your-bucket-name/path/to/object")
+    mock_read.assert_called_once_with(
+        f"{bucket_name}/{Constants.GP_PRACTICE_TRANSFORM_FILE}"
     )
