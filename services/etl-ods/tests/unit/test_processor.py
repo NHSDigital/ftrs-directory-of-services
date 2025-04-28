@@ -7,6 +7,7 @@ import requests
 from processor import extract, make_request_with_retry
 
 STATUS_SUCCESSFUL = 200
+STATUS_RATE_LIMIT = 429
 
 @pytest.fixture
 def mock_responses() -> MagicMock:
@@ -72,18 +73,19 @@ def test_successful_request_first_try() -> None:
             assert result.text == '{"data": "abc"}'
 
 def test_rate_limit_with_retry_then_success() -> None:
+    GET_COUNT = 2
     with patch('requests.get') as mock_get:
         with patch('time.sleep') as mock_sleep:
             with patch('logging.warning') as mock_warning:
                 rate_limit_response = MagicMock()
-                rate_limit_response.status_code = 429
+                rate_limit_response.status_code = STATUS_RATE_LIMIT
                 success_response = MagicMock()
                 success_response.status_code = STATUS_SUCCESSFUL
                 success_response.text = '{"data": "success after retry"}'
                 mock_get.side_effect = [rate_limit_response, success_response]
                 result = make_request_with_retry('https://example.com')
 
-                assert mock_get.call_count == 2
+                assert mock_get.call_count == GET_COUNT
                 mock_sleep.assert_called_once_with(1)
                 mock_warning.assert_called_once()
                 assert result.status_code == STATUS_SUCCESSFUL
@@ -91,36 +93,40 @@ def test_rate_limit_with_retry_then_success() -> None:
 
 
 def test_multiple_rate_limits_with_exponential_backoff_then_success() -> None:
+    GET_COUNT = 4
+    WARN_COUNT = 3
     with patch('requests.get') as mock_get:
         with patch('logging.warning') as mock_warning:
             rate_limit_response = MagicMock()
-            rate_limit_response.status_code = 429
+            rate_limit_response.status_code = STATUS_RATE_LIMIT
             success_response = MagicMock()
             success_response.status_code = STATUS_SUCCESSFUL
             success_response.text = '{"data": "finally succeeded"}'
             mock_get.side_effect = [rate_limit_response, rate_limit_response, rate_limit_response, success_response]
             result = make_request_with_retry('https://example.com')
 
-            assert mock_get.call_count == 4
-            assert mock_warning.call_count == 3
+            assert mock_get.call_count == GET_COUNT
+            assert mock_warning.call_count == WARN_COUNT
             assert result.status_code == STATUS_SUCCESSFUL
 
 
 def test_max_retries_exceeded() -> None:
+    GET_COUNT = 3
+    WARN_COUNT = 2
     with patch('requests.get') as mock_get:
         with patch('logging.warning') as mock_warning:
             with patch('logging.exception') as mock_exception:
                 rate_limit_response = MagicMock()
-                rate_limit_response.status_code = 429
+                rate_limit_response.status_code = STATUS_RATE_LIMIT
 
-                def side_effect_func():
-                    raise requests.exceptions.HTTPError("429 Rate Limited")
+                def side_effect_func() -> None:
+                    raise requests.exceptions.HTTPError("Rate Limited")
 
                 rate_limit_response.raise_for_status = MagicMock(side_effect=side_effect_func)
                 mock_get.return_value = rate_limit_response
                 result = make_request_with_retry('https://example.com', max_retries=2)
 
-                assert mock_get.call_count == 3
-                assert mock_warning.call_count == 2
+                assert mock_get.call_count == GET_COUNT
+                assert mock_warning.call_count == WARN_COUNT
                 mock_exception.assert_called_once()
                 assert result is None
