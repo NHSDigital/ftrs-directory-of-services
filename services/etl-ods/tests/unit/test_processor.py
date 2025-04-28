@@ -122,7 +122,7 @@ def test_max_retries_exceeded() -> None:
                 rate_limit_response.status_code = STATUS_RATE_LIMIT
 
                 def side_effect_func() -> None:
-                    raise HTTPError("Rate Limited")
+                    raise("Rate Limited")
 
                 rate_limit_response.raise_for_status = MagicMock(side_effect=side_effect_func)
                 mock_get.return_value = rate_limit_response
