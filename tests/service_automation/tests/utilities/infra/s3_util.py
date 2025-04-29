@@ -37,7 +37,7 @@ class S3Utils:
             exists = False
         return exists
 
-    def get_bucket(project, bucket, stack, workspace, env):
+    def get_bucket(self, project, workspace, env, stack, bucket):
         if workspace == "":
             bucket_name = project + "-" + env + "-" + stack + "-" + bucket
         else:
