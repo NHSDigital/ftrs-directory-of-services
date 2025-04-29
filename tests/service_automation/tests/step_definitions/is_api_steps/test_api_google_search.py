@@ -32,7 +32,7 @@ def prepare_google_search_request(api_response):
     api_response["base_url"] = base_url
     api_response["params"] = params
     api_response["request"] = json.dumps(params, indent=2)
-    logger.info("api response", api_response)
+    logger.debug("api response", api_response)
 
 @when("I receive the response")
 def make_google_search_request(api_request_context, api_response):
@@ -42,11 +42,11 @@ def make_google_search_request(api_request_context, api_response):
     base_url = api_response.get("base_url")
     params = api_response.get("params")
 
-    logger.info("base url:", base_url)
+    logger.debug("base url:", base_url)
 
     # Make the GET request (using Playwright's APIRequestContext)
     response = api_request_context.get(base_url, params=params)
-    logger.info("response:", response)
+    logger.debug("response:", response)
 
 
     # Store response status and body for logging
@@ -61,9 +61,9 @@ def make_google_search_request(api_request_context, api_response):
         return
 
     # Print request & response in log
-    logger.info(f"--- API Request ---: {json.dumps(params, indent=2)}")
-    logger.info(f"Status Code: {response.status}")
-    logger.info(f"--- API Response ---: {json.dumps(response_json, indent=2)}")
+    logger.debug(f"--- API Request ---: {json.dumps(params, indent=2)}")
+    logger.debug(f"Status Code: {response.status}")
+    logger.debug(f"--- API Response ---: {json.dumps(response_json, indent=2)}")
 
     # Store the response for validation in the @then step
     api_response["response_json"] = response_json

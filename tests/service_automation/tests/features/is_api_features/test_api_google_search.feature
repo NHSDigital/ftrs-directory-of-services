@@ -1,4 +1,4 @@
-@is-api @is-pipeline
+@is-api
 Feature: API Search Playwright in Google
 
 Scenario: API Search for Playwright in Google
