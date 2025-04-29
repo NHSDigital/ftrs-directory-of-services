@@ -6,9 +6,6 @@ import pandas as pd
 from ftrs_data_layer.models import Organisation
 from typer import Option
 
-from pipeline.constants import (
-    Constants,
-)
 from pipeline.utils.file_io import (
     read_parquet_file,
     write_parquet_file,
@@ -60,4 +57,3 @@ def transform(
     write_parquet_file(output_type, output_path, gp_practices_df)
 
     logging.info("Transform completed successfully.")
-    return {Constants.GP_PRACTICE_TRANSFORM: gp_practices_df}
