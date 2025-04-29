@@ -33,3 +33,24 @@ variable "force_destroy" {
   type        = bool
   default     = true
 }
+
+variable "read_only_viewer_log_group" {
+  description = "Name for the WAF Web ACL log group"
+  type        = string
+}
+
+variable "read_only_viewer_log_group_retention_days" {
+  description = "The retention period for the Read only viewer Web ACL Log group"
+  type        = number
+  default     = 365
+}
+
+variable "read_only_viewer_log_group_class" {
+  description = "The log group class to use"
+  type        = string
+}
+
+variable "read_only_viewer_waf_web_acl_log_group_policy_name" {
+  description = "The log group policy name"
+  type        = string
+}

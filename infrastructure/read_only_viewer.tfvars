@@ -1,6 +1,9 @@
-s3_versioning                     = true
-read_only_viewer_bucket_name      = "frontend-bucket"
-read_only_viewer_cloud_front_name = "frontend-cf"
-read_only_viewer_waf_name         = "frontend-waf-web-acl"
-read_only_viewer_ip_set_name      = "frontend-waf-ip-set"
-read_only_viewer_waf_scope        = "CLOUDFRONT"
+s3_versioning                                      = true
+read_only_viewer_bucket_name                       = "frontend-bucket"
+read_only_viewer_cloud_front_name                  = "frontend-cf"
+read_only_viewer_waf_name                          = "frontend-waf-web-acl"
+read_only_viewer_ip_set_name                       = "frontend-waf-ip-set"
+read_only_viewer_waf_scope                         = "CLOUDFRONT"
+read_only_viewer_log_group                         = "waf-web-acl-log-group"
+read_only_viewer_log_group_class                   = "STANDARD"
+read_only_viewer_waf_web_acl_log_group_policy_name = "waf_web_acl_log_group_policy"
