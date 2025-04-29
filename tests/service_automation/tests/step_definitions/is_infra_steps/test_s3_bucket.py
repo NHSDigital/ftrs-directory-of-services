@@ -29,12 +29,14 @@ def check_aws_access():
 
 
 @then(parsers.parse('The S3 bucket "{bucket}" exists for stack "{stack}"'))
-def confirm_s3_bucket_exists(project, bucket, stack, aws_s3_client, workspace, env):
+def confirm_s3_bucket_exists(project, bucket, stack, workspace, env):
     logger.info(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
-    if workspace == "":
-        bucket_name = project + "-" + env + "-" + stack + "-" + bucket
-    else:
-        bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
+    bucket_name = aws_s3_client.get_bucket(bucket, stack, workspace, env)
+    # aws_s3_client.get_bucket()
+    # if workspace == "":
+    #     bucket_name = project + "-" + env + "-" + stack + "-" + bucket
+    # else:
+    #     bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
     logger.debug("Bucket Exists: {}", response)
     assert response == True

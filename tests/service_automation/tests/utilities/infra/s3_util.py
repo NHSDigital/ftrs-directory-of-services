@@ -36,3 +36,10 @@ class S3Utils:
             logger.error("Error: bucket not found")
             exists = False
         return exists
+
+    def get_bucket(project, bucket, stack, workspace, env):
+        if workspace == "":
+            bucket_name = project + "-" + env + "-" + stack + "-" + bucket
+        else:
+            bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
+        return bucket_name
