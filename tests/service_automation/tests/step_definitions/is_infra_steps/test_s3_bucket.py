@@ -21,6 +21,22 @@ def fetch_s3_buckets(aws_s3_client):
     logger.info("Fetching list of S3 buckets...")
     return aws_s3_client.list_buckets()
 
+
+@given(parsers.parse('I can see the S3 bucket "{bucket}" for stack "{stack}"'), target_fixture='fbucket_name')
+def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, env):
+    bucket_name = aws_s3_client.get_bucket(project, workspace, env, stack, bucket)
+    response = aws_s3_client.check_bucket_exists(bucket_name)
+    assert response == True
+    return bucket_name
+
+@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='file_name')
+def put_s3_file(aws_s3_client, fbucket_name, file_name):
+    file_name = file_name + ".csv"
+    filepath = "tests/csv_files/"+file_name
+    bucket_name = fbucket_name
+    aws_s3_client.put_object(bucket_name, filepath, file_name)
+    return file_name
+
 @given("I am authenticated with AWS CLI")
 def check_aws_access():
     """Ensure AWS CLI authentication works"""
