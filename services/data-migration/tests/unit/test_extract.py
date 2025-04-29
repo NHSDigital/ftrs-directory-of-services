@@ -1,4 +1,6 @@
+import json
 from pathlib import Path
+from unittest import mock
 from unittest.mock import Mock, call
 
 import pandas as pd
@@ -10,6 +12,7 @@ from pipeline.extract import (
     extract,
     extract_gp_practices,
     format_endpoints,
+    lambda_handler,
     merge_gp_practice_with_endpoints,
 )
 from pipeline.utils.dos_db import (
@@ -243,3 +246,80 @@ def test_merge_gp_practice_with_endpoints(
     """
     result = merge_gp_practice_with_endpoints(gp_practice_df, grouped_endpoints)
     pd.testing.assert_frame_equal(result, expected_df)
+
+
+def test_lambda_handler_successful_execution(mocker: MockerFixture) -> None:
+    """
+    Test that the lambda handler executes successfully
+    """
+    event = {"s3_output_uri": "s3://bucket/output"}
+    context = mock.Mock()
+
+    mock_client = mock.Mock()
+    mock_wrapper_instance = mock.Mock()
+    mock_wrapper_instance.get_secret.return_value = json.dumps(
+        {
+            "host": "localhost",
+            "port": 5432,
+            "username": "user",
+            "password": "pass",
+            "dbname": "db",
+        }
+    )
+
+    mocker.patch("pipeline.extract.boto3.client", return_value=mock_client)
+    mocker.patch(
+        "pipeline.extract.GetSecretWrapper", return_value=mock_wrapper_instance
+    )
+    mock_extract = mocker.patch("pipeline.extract.extract")
+
+    response = lambda_handler(event, context)
+
+    mock_extract.assert_called_once_with(
+        "postgresql://user:pass@localhost:5432/db", s3_output_uri="s3://bucket/output"
+    )
+    assert response is None
+
+
+def test_lambda_handler_missing_secret(mocker: MockerFixture) -> None:
+    """
+    Test that the lambda handler handles exception for missing secret
+    """
+    event = {"s3_output_uri": "s3://bucket/output"}
+    context = mock.Mock()
+
+    mock_client = mock.Mock()
+    mock_wrapper_instance = mock.Mock()
+    mock_wrapper_instance.get_secret.side_effect = Exception("Secret not found")
+
+    mocker.patch("pipeline.extract.boto3.client", return_value=mock_client)
+    mocker.patch(
+        "pipeline.extract.GetSecretWrapper", return_value=mock_wrapper_instance
+    )
+    mocker.patch("pipeline.extract.extract")
+
+    response = lambda_handler(event, context)
+
+    assert response == {
+        "statusCode": 500,
+        "body": json.dumps({"error": "Internal Server Error"}),
+    }
+
+
+def test_lambda_handler_missing_s3_output_uri(mocker: MockerFixture) -> None:
+    """
+    Test that the lambda handler handles exception for missing s3 output uri
+    """
+    event = {}
+    context = mock.Mock()
+
+    mocker.patch("pipeline.extract.boto3.client")
+    mocker.patch("pipeline.extract.GetSecretWrapper")
+    mocker.patch("pipeline.extract.extract")
+
+    response = lambda_handler(event, context)
+
+    assert response == {
+        "statusCode": 500,
+        "body": json.dumps({"error": "Internal Server Error"}),
+    }
