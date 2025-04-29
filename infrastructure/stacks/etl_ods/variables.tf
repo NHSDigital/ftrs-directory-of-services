@@ -4,7 +4,7 @@ variable "application_tag" {
 }
 
 variable "commit_hash" {
-  description = "The commit hash of the data mirgation application"
+  description = "The commit hash of the etl ods application"
   type        = string
 }
 
@@ -18,25 +18,21 @@ variable "aws_lambda_layers" {
 }
 
 variable "extract_name" {
-  description = "The extract name of the Lambda function"
+  description = "The name of the ETL ODS Extract Lambda function"
 }
 
 variable "extract_lambda_connection_timeout" {
-  description = "The timeout for the extract Lambda function"
+  description = "The timeout for the ETL ODS Extract Lambda function"
   type        = number
 }
 
 variable "extract_lambda_memory_size" {
-  description = "The memory size for the extract Lambda function"
+  description = "The memory size for the ETL ODS Extract Lambda function"
   type        = number
 }
 
 variable "extract_lambda_handler" {
-  description = "The handler for the extract Lambda function"
+  description = "The handler for the ETL ODS Extract Lambda function"
   type        = string
 }
 
-variable "load_lambda_handler" {
-  description = "The handler for the load Lambda function"
-  type        = string
-}
