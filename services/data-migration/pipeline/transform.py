@@ -1,59 +1,87 @@
 import logging
-from datetime import UTC, datetime
+from datetime import datetime
+from pathlib import Path
 from typing import Annotated
 
 import pandas as pd
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.models import HealthcareService, Organisation
 from typer import Option
 
-from pipeline.utils.file_io import (
-    read_parquet_file,
-    write_parquet_file,
-)
-from pipeline.utils.validators import validate_path
+from pipeline.common import Constants, get_parquet_path
+from pipeline.validators import validate_paths
 
 
 def transform_gp_practices(
     df: pd.DataFrame, current_timestamp: datetime
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     if df.empty:
         err_msg = "No data found in the input DataFrame"
         raise ValueError(err_msg)
 
-    gp_practices = []
+    gp_practices_orgs = []
+    gp_practices_services = []
     for _, row in df.iterrows():
         organisation = Organisation.from_dos(
             data=row,
             created_datetime=current_timestamp,
             updated_datetime=current_timestamp,
         )
-        gp_practices.append({"organisation": organisation.model_dump(mode="json")})
+        gp_practices_orgs.append({"organisation": organisation.model_dump(mode="json")})
 
-    return pd.DataFrame(gp_practices)
+        healthcareService = HealthcareService.from_dos(
+            data=row,
+            created_datetime=current_timestamp,
+            updated_datetime=current_timestamp,
+        )
+        gp_practices_services.append(
+            {"service": healthcareService.model_dump(mode="json")}
+        )
+
+    return pd.DataFrame(gp_practices_orgs), pd.DataFrame(gp_practices_services)
 
 
 def transform(
-    input: Annotated[
-        str,
-        Option(help="File or S3 path to read the extracted data"),
-    ],
-    output: Annotated[
-        str,
-        Option(..., help="File or S3 path to save the transformed data"),
-    ],
+    input_path: Annotated[
+        Path | None, Option(..., help="Path to read the extracted data")
+    ] = None,
+    s3_input_uri: Annotated[
+        str | None,
+        Option(
+            ...,
+            help="Path to load the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
+        ),
+    ] = None,
+    output_path: Path = Option(..., help="Path to save the transformed data"),
 ) -> None:
     """
     Transform the GP practice data from the input path and save it to the output path.
     """
-    input_type, input_path = validate_path(input, should_file_exist=True)
-    output_type, output_path = validate_path(output, should_file_exist=False)
+    # Validate input path is correct, would use decarator but Typer is blocking it
+    validate_paths(input_path, s3_input_uri)
 
-    logging.info(f"Transforming data from {input_path} to {output_path}")
+    output_path.mkdir(parents=True, exist_ok=True)
+    current_timestamp = datetime.now()
 
-    extract_df = read_parquet_file(input_type, input_path)
-    current_timestamp = datetime.now(UTC)
-    gp_practices_df = transform_gp_practices(extract_df, current_timestamp)
+    parquet_path = get_parquet_path(
+        input_path, s3_input_uri, Constants.GP_PRACTICE_EXTRACT_FILE
+    )
+    logging.info(f"Transforming data from {parquet_path} to {output_path}")
+    extract_dataframe = pd.read_parquet(parquet_path)
 
-    write_parquet_file(output_type, output_path, gp_practices_df)
+    gp_practices_org_df, gp_practices_service_df = transform_gp_practices(
+        extract_dataframe, current_timestamp
+    )
 
-    logging.info("Transform completed successfully.")
+    gp_practices_org_df.to_parquet(
+        output_path / "transformed_organisations.parquet",
+        engine="pyarrow",
+        index=False,
+        compression="zstd",
+    )
+
+    gp_practices_service_df.to_parquet(
+        output_path / "transformed_services.parquet",
+        engine="pyarrow",
+        index=False,
+        compression="zstd",
+    )
