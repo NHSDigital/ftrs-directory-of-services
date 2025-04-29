@@ -72,14 +72,6 @@ def mock_sql_data() -> Generator[Mock, None, None]:
 
 
 @pytest.fixture()
-def mock_pd_to_parquet(mocker: MockerFixture) -> Generator[Mock, None, None]:
-    """
-    Mock the pd.to_parquet function to avoid writing to disk.
-    """
-    yield mocker.patch("pandas.DataFrame.to_parquet")
-
-
-@pytest.fixture()
 def mock_logging(mocker: MockerFixture) -> Generator[Mock, None, None]:
     """
     Mock the logging module to avoid actual logging.

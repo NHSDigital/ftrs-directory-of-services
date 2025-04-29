@@ -1,5 +1,4 @@
 from pathlib import Path
-from unittest.mock import Mock
 
 import pandas as pd
 import pytest
@@ -336,7 +335,6 @@ def test_transform(
     mocker: MockerFixture,
     input_data: pd.DataFrame,
     expected_output: pd.DataFrame,
-    mock_pd_to_parquet: Mock,
     mock_tmp_directory: Path,
 ) -> None:
     """
@@ -345,19 +343,25 @@ def test_transform(
     input_path = mock_tmp_directory / "input.parquet"
     output_path = mock_tmp_directory / "output.parquet"
 
-    mocker.patch("pipeline.transform.read_parquet_file", return_value=input_data)
+    read_mock = mocker.patch(
+        "pipeline.transform.read_parquet_file", return_value=input_data
+    )
     mocker.patch(
         "ftrs_data_layer.models.uuid4",
         return_value="123e4567-e89b-12d3-a456-426614174000",
     )
+    write_mock = mocker.patch("pipeline.transform.write_parquet_file")
 
-    result = transform(input=str(input_path), output=str(output_path))
+    transform(input=str(input_path), output=str(output_path))
 
-    assert mock_pd_to_parquet.called, "pd.to_parquet was not called."
+    read_mock.assert_called_once_with(PathType.FILE, input_path)
+    write_mock.assert_called_once()
 
-    gp_practice_df = result["dos-gp-practice-transform"]
+    file_type, file_path, gp_practice_df = write_mock.call_args[0]
 
-    assert gp_practice_df is not None
+    assert file_type == PathType.FILE
+    assert file_path == output_path
+    assert isinstance(gp_practice_df, pd.DataFrame)
     assert not gp_practice_df.empty
     assert gp_practice_df.shape[0] == expected_output.shape[0], "Row count mismatch"
 
@@ -371,7 +375,7 @@ def test_transform(
 
 
 def test_transform_empty_dataframe(
-    mocker: MockerFixture, mock_pd_to_parquet: Mock, mock_tmp_directory: Path
+    mocker: MockerFixture, mock_tmp_directory: Path
 ) -> None:
     """
     Test the transform function with an empty DataFrame.
@@ -384,7 +388,6 @@ def test_transform_empty_dataframe(
     with pytest.raises(ValueError) as excinfo:
         transform(input=str(input_path), output=str(output_path))
 
-    assert not mock_pd_to_parquet.called
     assert str(excinfo.value) == "No data found in the input DataFrame"
 
 
