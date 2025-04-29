@@ -36,7 +36,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration']"
+      stacks: "['etl_ods']"
     secrets: inherit
 
   build-python-package:
@@ -56,8 +56,8 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
     secrets: inherit
 
-  build-data-migration-service:
-    name: "Build data migration service"
+  build-etl-ods-service:
+    name: "Build etl ods service"
     needs:
       - metadata
       - quality-checks
@@ -80,14 +80,14 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - build-data-migration-service
+      - build-etl-ods-service
       - build-python-package
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration']"
+      stacks: "['etl_ods']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
@@ -118,7 +118,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration']"
+      stacks: "['etl_ods']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
@@ -130,7 +130,7 @@ jobs:
     needs:
       - metadata
       - quality-checks
-      - build-data-migration-service
+      - build-etl-ods-service
       - deploy-infrastructure-plan
       - manual-approval
       - deploy-infrastructure-apply
