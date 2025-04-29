@@ -4,7 +4,9 @@ name: Deploy Pages
 on:
   # Runs on pushes targeting the default branch and c4 files
   push:
-    branches: ["main"]
+    branches:
+      - main
+      - 'task/FDOS*'
   repository_dispatch:
     types: [redeploy]
 
@@ -38,30 +40,30 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
 
-      - name: Build
-        uses: likec4/actions@v1
-        with:
-          action: build
-          output: dist
-          # required if you don't set a custom domain for the repository
-          # https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages#types-of-github-pages-sites
-          base: ${{ steps.pages.outputs.base_path }}
-          # (optional) by default, the bundled version is used, which is faster due to skipping the installation
-          likec4-version: latest
+      # - name: Build
+      #   uses: likec4/actions@v1
+      #   with:
+      #     action: build
+      #     output: dist
+      #     # required if you don't set a custom domain for the repository
+      #     # https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages#types-of-github-pages-sites
+      #     base: ${{ steps.pages.outputs.base_path }}
+      #     # (optional) by default, the bundled version is used, which is faster due to skipping the installation
+      #     likec4-version: latest
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
+      # - name: Upload artifact
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: ./dist
 
   # Deployment job
-  deploy-pages:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build-pages
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  # deploy-pages:
+  #   environment:
+  #     name: github-pages
+  #     url: ${{ steps.deployment.outputs.page_url }}
+  #   runs-on: ubuntu-latest
+  #   needs: build-pages
+  #   steps:
+  #     - name: Deploy to GitHub Pages
+  #       id: deployment
+  #       uses: actions/deploy-pages@v4
