@@ -1,16 +1,16 @@
 import logging
 from pathlib import Path
-from typing import Annotated, Type
+from typing import Annotated
 
 import pandas as pd
 from ftrs_data_layer.models import HealthcareService, Organisation
 from ftrs_data_layer.repository.dynamodb import (
     DocumentLevelRepository,
-    DynamoDBRepository,
 )
 from typer import Option
 
 from pipeline.common import (
+    TABLE,
     TargetEnvironment,
     get_parquet_path,
     get_table_name,
@@ -28,56 +28,39 @@ def retrieve_gp_practice_data(
     return pd.read_parquet(input_path).to_dict(orient="records")
 
 
-def load_organisations(
+def load_table(
     input_df: list[pd.Series],
+    table: TABLE,
     table_name: str,
     endpoint_url: str | None = None,
-    repository_cls: Type[DynamoDBRepository] = DocumentLevelRepository,
 ) -> None:
     """
-    Load the organisations into the specified table.
+    Load the items into the specified table.
     """
-    org_repository = repository_cls[Organisation](
+    match table:
+        case TABLE.ORGANISATION:
+            model = Organisation
+        case TABLE.SERVICE:
+            model = HealthcareService
+
+    repository = DocumentLevelRepository[model](
         table_name=table_name,
-        model_cls=Organisation,
+        model_cls=model,
         endpoint_url=endpoint_url,
     )
 
-    logging.info(f"Loading {len(input_df)} organisations into {table_name}")
+    # Not all records will contain all tables (e.g. As a service may share the org or location with another service)
+    input_df = [item for item in input_df if table in item.keys()]
+
+    logging.info(f"Loading {len(input_df)} {table}s into {table}")
 
     count = 0
     for row in input_df:
-        organisation = Organisation.model_validate(row["organisation"])
-        org_repository.create(organisation)
+        item = model.model_validate(row[table])
+        repository.create(item)
         count += 1
 
-    logging.info(f"Loaded {count} organisations into the database.")
-
-
-def load_services(
-    input_df: list[pd.Series],
-    table_name: str,
-    endpoint_url: str | None = None,
-    repository_cls: Type[DynamoDBRepository] = DocumentLevelRepository,
-) -> None:
-    """
-    Load the services into the specified table.
-    """
-    service_repository = repository_cls[HealthcareService](
-        table_name=table_name,
-        model_cls=HealthcareService,
-        endpoint_url=endpoint_url,
-    )
-
-    logging.info(f"Loading {len(input_df)} services into {table_name}")
-
-    count = 0
-    for row in input_df:
-        service = HealthcareService.model_validate(row["service"])
-        service_repository.create(service)
-        count += 1
-
-    logging.info(f"Loaded {count} services into the database.")
+    logging.info(f"Loaded {count} {table}s into the database.")
 
 
 def load(
@@ -100,23 +83,14 @@ def load(
     """
     validate_paths(input_path, s3_input_uri)
 
-    org_path = get_parquet_path(
-        input_path, s3_input_uri, "transformed_organisations.parquet"
-    )
-    service_path = get_parquet_path(
-        input_path, s3_input_uri, "transformed_services.parquet"
-    )
+    path = get_parquet_path(input_path, s3_input_uri, "gp_practices.parquet")
 
-    org_data = retrieve_gp_practice_data(org_path)
-    service_data = retrieve_gp_practice_data(service_path)
-    load_organisations(
-        input_df=org_data,
-        table_name=get_table_name("organisation", env.value, workspace),
-        endpoint_url=endpoint_url,
-    )
+    org_data = retrieve_gp_practice_data(path)
 
-    load_services(
-        input_df=service_data,
-        table_name=get_table_name("healthcare-service", env.value, workspace),
-        endpoint_url=endpoint_url,
-    )
+    for table in [TABLE.ORGANISATION, TABLE.SERVICE]:
+        load_table(
+            input_df=org_data,
+            table=table,
+            table_name=get_table_name(table, env.value, workspace),
+            endpoint_url=endpoint_url,
+        )

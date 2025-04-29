@@ -47,3 +47,8 @@ class Constants:
 class TargetEnvironment(StrEnum):
     local = "local"
     dev = "dev"
+
+
+class TABLE(StrEnum):
+    ORGANISATION = "organisation"
+    SERVICE = "healthcare-service"
