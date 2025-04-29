@@ -2,7 +2,7 @@ import pytest
 import subprocess
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
-from utilities.infra.s3_util import S3Utils
+from utilities.infra.s3 import S3Utils
 from utilities.common import directories, csv_reader
 
 
