@@ -59,7 +59,7 @@ def load(
     """
     Load the extracted data into the database.
     """
-    path_type, input_path = validate_path(input)
+    path_type, input_path = validate_path(input, should_file_exist=True)
     gp_practice_df = read_parquet_file(path_type, input_path)
 
     load_organisations(

@@ -116,7 +116,7 @@ def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     result = load(
         env=TargetEnvironment.local,
         workspace="test",
-        input=str(mock_tmp_directory),
+        input=str(input_path),
         endpoint_url="http://localhost:8000",
     )
 
@@ -148,6 +148,10 @@ def test_load_s3(
         "pipeline.utils.validators.check_bucket_access",
         return_value=True,
     )
+    mock_check_object = mocker.patch(
+        "pipeline.utils.validators.check_object_exists",
+        return_value=True,
+    )
     mock_read = mocker.patch(
         "pipeline.load.read_parquet_file", return_value=pd.DataFrame()
     )
@@ -162,8 +166,10 @@ def test_load_s3(
         endpoint_url="http://localhost:8000",
     )
 
-    mock_check_bucket.assert_called_once_with(
+    mock_check_bucket.assert_called_once_with("your-bucket-name")
+    mock_check_object.assert_called_once_with(
         "your-bucket-name",
+        "path/to/object.parquet",
     )
     mock_read.assert_called_once_with(
         PathType.S3,

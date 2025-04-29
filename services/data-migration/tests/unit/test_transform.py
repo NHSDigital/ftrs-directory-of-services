@@ -343,6 +343,11 @@ def test_transform(
     input_path = mock_tmp_directory / "input.parquet"
     output_path = mock_tmp_directory / "output.parquet"
 
+    input_path.touch()
+
+    assert input_path.exists()
+    assert not output_path.exists()
+
     read_mock = mocker.patch(
         "pipeline.transform.read_parquet_file", return_value=input_data
     )
@@ -382,6 +387,7 @@ def test_transform_empty_dataframe(
     """
     input_path = mock_tmp_directory / "mock_input_path"
     output_path = mock_tmp_directory / "mock_output_path"
+    input_path.touch()
 
     mocker.patch("pipeline.transform.read_parquet_file", return_value=pd.DataFrame())
 
@@ -395,8 +401,11 @@ def test_read_s3(
     mocker: MockerFixture,
     mock_tmp_directory: Path,
 ) -> None:
-    mock_validator = mocker.patch(
+    mock_bucket_access = mocker.patch(
         "pipeline.utils.validators.check_bucket_access", return_value=True
+    )
+    mock_check_object = mocker.patch(
+        "pipeline.utils.validators.check_object_exists", return_value=True
     )
     mock_read = mocker.patch(
         "pipeline.transform.read_parquet_file", return_value=pd.DataFrame()
@@ -409,4 +418,41 @@ def test_read_s3(
     transform(input=str(s3_uri), output=str(output_path))
 
     mock_read.assert_called_once_with(PathType.S3, s3_uri)
-    mock_validator.assert_called_once_with("your-bucket-name")
+
+    mock_bucket_access.assert_called_once_with("your-bucket-name")
+    mock_check_object.assert_called_once_with(
+        "your-bucket-name", "path/to/object/input.parquet"
+    )
+
+
+def test_write_s3(
+    mocker: MockerFixture,
+    mock_tmp_directory: Path,
+) -> None:
+    mock_bucket_access = mocker.patch(
+        "pipeline.utils.validators.check_bucket_access", return_value=True
+    )
+    mock_check_object = mocker.patch(
+        "pipeline.utils.validators.check_object_exists", return_value=False
+    )
+
+    mock_read = mocker.patch(
+        "pipeline.transform.read_parquet_file", return_value=pd.DataFrame()
+    )
+    mock_write = mocker.patch("pipeline.transform.write_parquet_file")
+    mocker.patch("pipeline.transform.transform_gp_practices", return_value="TestOutput")
+
+    input_path = mock_tmp_directory / "input.parquet"
+    input_path.touch()
+
+    s3_uri = "s3://your-bucket-name/path/to/object/output.parquet"
+
+    transform(input=str(input_path), output=str(s3_uri))
+
+    mock_bucket_access.assert_called_once_with("your-bucket-name")
+    mock_check_object.assert_called_once_with(
+        "your-bucket-name", "path/to/object/output.parquet"
+    )
+
+    mock_read.assert_called_once_with(PathType.FILE, input_path)
+    mock_write.assert_called_once_with(PathType.S3, s3_uri, "TestOutput")

@@ -45,8 +45,8 @@ def transform(
     """
     Transform the GP practice data from the input path and save it to the output path.
     """
-    input_type, input_path = validate_path(input)
-    output_type, output_path = validate_path(output)
+    input_type, input_path = validate_path(input, should_file_exist=True)
+    output_type, output_path = validate_path(output, should_file_exist=False)
 
     logging.info(f"Transforming data from {input_path} to {output_path}")
 

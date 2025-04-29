@@ -123,7 +123,7 @@ def extract(
     """
     Extract GP practice data from the source database and save it to the specified path.
     """
-    path_type, output_path = validate_path(output)
+    path_type, output_path = validate_path(output, should_file_exist=False)
 
     logging.info(f"Extracting data to {output_path}")
     extract_gp_practice_df = extract_gp_practices(db_uri)
