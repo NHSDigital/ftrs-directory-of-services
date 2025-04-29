@@ -6,6 +6,7 @@ TEMP_DIRECTORY ?= ./temp
 DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),-$(WORKSPACE))
 DEPLOYMENT_BUCKET ?= ftrs-dos-${DEPLOYMENT_ENVIRONMENT}-${SERVICE}-frontend-bucket${DEPLOYMENT_WORKSPACE}
 READ_ONLY_VIEWER_DOMAIN_NAME = ${DEPLOYMENT_BUCKET}.s3.${AWS_REGION}.amazonaws.com
+CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(READ_ONLY_VIEWER_DOMAIN_NAME)')].Id" --output text)
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -45,7 +46,4 @@ deploy:
 	aws s3 cp $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/ --recursive
 
 invalidate-cloudfront-cache:
-	echo $(READ_ONLY_VIEWER_DOMAIN_NAME)
-	CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$READ_ONLY_VIEWER_DOMAIN_NAME')].Id" --output text)
-	echo $(CLOUDFRONT_DISTRIBUTION_ID)
 	aws cloudfront create-invalidation --distribution-id $(CLOUDFRONT_DISTRIBUTION_ID) --paths "/*"
