@@ -3,10 +3,9 @@ SERVICE ?= read-only-viewer
 BUILD_DIR := ../../build/services/${SERVICE}
 ARTEFACT_BUCKET := ${REPO_NAME}-${ENVIRONMENT}-artefacts-bucket
 TEMP_DIRECTORY ?= ./temp
-DEPLOYMENT_WORKSPACE = -${WORKSPACE}
+DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),-$(WORKSPACE))
 DEPLOYMENT_BUCKET ?= ftrs-dos-${DEPLOYMENT_ENVIRONMENT}-${SERVICE}-frontend-bucket${DEPLOYMENT_WORKSPACE}
-READ_ONLY_VIEWER_DOMIAN_NAME = ${DEPLOYMENT_BUCKET}.s3.${AWS_REGION}.amazonaws.com
-CLOUDFRONT_DISTRIBUTION_ID =
+READ_ONLY_VIEWER_DOMAIN_NAME = ${DEPLOYMENT_BUCKET}.s3.${AWS_REGION}.amazonaws.com
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -45,6 +44,8 @@ deploy:
 	unzip $(SERVICE)-$(APPLICATION_TAG).zip -d ${TEMP_DIRECTORY}
 	aws s3 cp $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/ --recursive
 
-invlidate-cloudfront-cache:
-	CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$READ_ONLY_VIEWER_DOMIAN_NAME')].Id" --output text)
+invalidate-cloudfront-cache:
+	echo $(READ_ONLY_VIEWER_DOMAIN_NAME)
+	CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$READ_ONLY_VIEWER_DOMAIN_NAME')].Id" --output text)
+	echo $(CLOUDFRONT_DISTRIBUTION_ID)
 	aws cloudfront create-invalidation --distribution-id $(CLOUDFRONT_DISTRIBUTION_ID) --paths "/*"

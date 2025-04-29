@@ -104,7 +104,7 @@ jobs:
           DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
 
       - name: "Invalidate CloudFront Cache"
-        run: make invlidate-cloudfront-cache
+        run: make invalidate-cloudfront-cache
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           SERVICE: ${{ inputs.name }}
@@ -114,3 +114,4 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
+          DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
