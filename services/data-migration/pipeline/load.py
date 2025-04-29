@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Annotated, Type
 
 import pandas as pd
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.models import HealthcareService, Organisation
 from ftrs_data_layer.repository.dynamodb import (
     DocumentLevelRepository,
     DynamoDBRepository,
@@ -11,7 +11,6 @@ from ftrs_data_layer.repository.dynamodb import (
 from typer import Option
 
 from pipeline.common import (
-    Constants,
     TargetEnvironment,
     get_parquet_path,
     get_table_name,
@@ -55,6 +54,32 @@ def load_organisations(
     logging.info(f"Loaded {count} organisations into the database.")
 
 
+def load_services(
+    input_df: list[pd.Series],
+    table_name: str,
+    endpoint_url: str | None = None,
+    repository_cls: Type[DynamoDBRepository] = DocumentLevelRepository,
+) -> None:
+    """
+    Load the services into the specified table.
+    """
+    service_repository = repository_cls[HealthcareService](
+        table_name=table_name,
+        model_cls=HealthcareService,
+        endpoint_url=endpoint_url,
+    )
+
+    logging.info(f"Loading {len(input_df)} services into {table_name}")
+
+    count = 0
+    for row in input_df:
+        service = HealthcareService.model_validate(row["service"])
+        service_repository.create(service)
+        count += 1
+
+    logging.info(f"Loaded {count} services into the database.")
+
+
 def load(
     env: TargetEnvironment = Option(help="Environment to load the data into"),
     workspace: str | None = Option(None, help="Workspace to load the data into"),
@@ -75,13 +100,23 @@ def load(
     """
     validate_paths(input_path, s3_input_uri)
 
-    parquet_path = get_parquet_path(
-        input_path, s3_input_uri, Constants.GP_PRACTICE_TRANSFORM_FILE
+    org_path = get_parquet_path(
+        input_path, s3_input_uri, "transformed_organisations.parquet"
+    )
+    service_path = get_parquet_path(
+        input_path, s3_input_uri, "transformed_services.parquet"
     )
 
-    gp_data = retrieve_gp_practice_data(parquet_path)
+    org_data = retrieve_gp_practice_data(org_path)
+    service_data = retrieve_gp_practice_data(service_path)
     load_organisations(
-        input_df=gp_data,
+        input_df=org_data,
         table_name=get_table_name("organisation", env.value, workspace),
+        endpoint_url=endpoint_url,
+    )
+
+    load_services(
+        input_df=service_data,
+        table_name=get_table_name("healthcare-service", env.value, workspace),
         endpoint_url=endpoint_url,
     )

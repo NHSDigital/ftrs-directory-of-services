@@ -103,14 +103,50 @@ class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
     category: str
-    providedBy: UUID
-    location: UUID
+    providedBy: UUID | None
+    location: UUID | None
     name: str
-    telecom_phone_public: str | None
-    telecom_phone_private: str | None
-    telecom_email: str | None
-    telecom_web: str | None
+    telecom: dict | None
     type: str
+
+    @classmethod
+    def from_dos(
+        cls,
+        data: dict,
+        existing_identifier: UUID | str | None = None,
+        created_datetime: datetime | None = None,
+        updated_datetime: datetime | None = None,
+        org_id: UUID | str | None = None
+    ) -> "Organisation":
+        """
+        Create an Organisation instance from source DoS data.
+
+        :param data: The source data dictionary from the 'services' DoS table.
+        :param created_datetime: The datetime when the organisation was created.
+        :param updated_datetime: The datetime when the organisation was last updated.
+        :return: An Organisation instance.
+        """
+        service_id = uuid4() or existing_identifier
+        return HealthcareService(
+            id=service_id,
+            identifier_oldDoS_uid=data["uid"],
+            active=True,
+            category="unknown", # TODO: in future ticket we will map type to category
+            providedBy=org_id,
+            location=None,
+            name=data["name"],
+            telecom={
+                "phone_public": data["publicphone"],
+                "phone_private": data["nonpublicphone"],
+                "email": data["email"],
+                "web": data["web"]
+            },
+            type=data["type"],
+            createdBy="ROBOT",
+            createdDateTime=created_datetime or datetime.now(UTC),
+            modifiedBy="ROBOT",
+            modifiedDateTime=updated_datetime or datetime.now(UTC)
+        )
 
 
 class Endpoint(DBModel):

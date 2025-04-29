@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Annotated
 
 import pandas as pd
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.models import HealthcareService, Organisation
 from typer import Option
 
 from pipeline.common import Constants, get_parquet_path
@@ -13,21 +13,31 @@ from pipeline.validators import validate_paths
 
 def transform_gp_practices(
     df: pd.DataFrame, current_timestamp: datetime
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     if df.empty:
         err_msg = "No data found in the input DataFrame"
         raise ValueError(err_msg)
 
-    gp_practices = []
+    gp_practices_orgs = []
+    gp_practices_services = []
     for _, row in df.iterrows():
         organisation = Organisation.from_dos(
             data=row,
             created_datetime=current_timestamp,
             updated_datetime=current_timestamp,
         )
-        gp_practices.append({"organisation": organisation.model_dump(mode="json")})
+        gp_practices_orgs.append({"organisation": organisation.model_dump(mode="json")})
 
-    return pd.DataFrame(gp_practices)
+        healthcareService = HealthcareService.from_dos(
+            data=row,
+            created_datetime=current_timestamp,
+            updated_datetime=current_timestamp,
+        )
+        gp_practices_services.append(
+            {"service": healthcareService.model_dump(mode="json")}
+        )
+
+    return pd.DataFrame(gp_practices_orgs), pd.DataFrame(gp_practices_services)
 
 
 def transform(
@@ -58,13 +68,20 @@ def transform(
     logging.info(f"Transforming data from {parquet_path} to {output_path}")
     extract_dataframe = pd.read_parquet(parquet_path)
 
-    gp_practices_df = transform_gp_practices(extract_dataframe, current_timestamp)
+    gp_practices_org_df, gp_practices_service_df = transform_gp_practices(
+        extract_dataframe, current_timestamp
+    )
 
-    gp_practices_df.to_parquet(
-        output_path / Constants.GP_PRACTICE_TRANSFORM_FILE,
+    gp_practices_org_df.to_parquet(
+        output_path / "transformed_organisations.parquet",
         engine="pyarrow",
         index=False,
         compression="zstd",
     )
 
-    return {Constants.GP_PRACTICE_TRANSFORM: gp_practices_df}
+    gp_practices_service_df.to_parquet(
+        output_path / "transformed_services.parquet",
+        engine="pyarrow",
+        index=False,
+        compression="zstd",
+    )
