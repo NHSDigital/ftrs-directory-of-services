@@ -43,3 +43,24 @@ class S3Utils:
         else:
             bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
         return bucket_name
+
+    def get_object(bucket_name, filename):
+        # bucket = get_bucket(context)
+        response = s3_client.get_object(
+            Bucket=bucket_name,
+            Key=filename,
+        )
+        file_data = response["Body"].read().decode("utf-8")
+        return file_data
+
+    def download_object(bucket_name, filepath, filename):
+        # bucket = get_bucket(bucket_name)
+        s3_client.download_file(Bucket=bucket_name, Key=filename, Filename=filepath)
+
+    def put_object(bucket_name, filepath, file_name):
+        # bucket = get_bucket(bucket_name)
+        s3_client.upload_file(Filename=filepath, Bucket=bucket_name, Key=file_name)
+
+    def delete_object(bucket_name, filename):
+        # bucket = get_bucket(bucket_name)
+        s3_client.delete_object(Bucket=bucket_name, Key=filename)
