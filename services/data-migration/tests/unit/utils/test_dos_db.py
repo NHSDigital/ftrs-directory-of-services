@@ -1,7 +1,7 @@
 import pandas as pd
 from pytest_mock import MockerFixture
 
-from pipeline.db_utils import (
+from pipeline.utils.dos_db import (
     get_gp_endpoints,
     get_gp_practices,
     get_serviceendpoints_columns_count,

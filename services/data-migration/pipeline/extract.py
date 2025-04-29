@@ -1,25 +1,21 @@
 import logging
-from datetime import UTC, datetime
-from io import BytesIO
-from pathlib import Path
 from typing import Annotated
 
 import numpy as np
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 from typer import Option
 
-from pipeline.common import Constants
-from pipeline.db_utils import (
+from pipeline.utils.dos_db import (
     get_gp_endpoints,
     get_gp_practices,
     get_serviceendpoints_columns_count,
     get_services_columns_count,
     get_services_size,
 )
-from pipeline.s3_utils.s3_bucket_wrapper import BucketWrapper
-from pipeline.validators import validate_paths
+from pipeline.utils.file_io import (
+    write_parquet_file,
+)
+from pipeline.utils.validators import validate_path
 
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
@@ -117,71 +113,20 @@ def extract_gp_practices(db_uri: str) -> pd.DataFrame:
     return gp_practice_extract
 
 
-def store_local(
-    gp_practice_extract: pd.DataFrame,
-    output_path: Path,
-    clone_timestamp: str,
-    file_name: str,
-) -> None:
-    gp_practice_extract.to_parquet(
-        output_path / Constants.GP_PRACTICE_EXTRACT_FILE,
-        engine="pyarrow",
-        index=False,
-        compression="zstd",
-    )
-
-
-def convert_to_parquet_buffer(gp_practice_extract: pd.DataFrame) -> BytesIO:
-    buffer = BytesIO()
-    table = pa.Table.from_pandas(gp_practice_extract)
-    pq.write_table(table, buffer)
-    return buffer
-
-
-def store_s3(gp_practice_extract: pd.DataFrame, s3_output_uri: str) -> None:
-    buffer = convert_to_parquet_buffer(gp_practice_extract)
-    buffer.seek(0)  # Reset buffer position
-    bucket_wrapper = BucketWrapper(s3_output_uri)
-    bucket_wrapper.s3_upload_file(buffer, "dos-gp-practice-extract.parquet")
-
-
 def extract(
     db_uri: Annotated[str, Option(..., help="URI to connect to the source database")],
-    output_path: Annotated[
-        Path | None, Option(..., help="Path to save the extracted data")
-    ] = None,
-    s3_output_uri: Annotated[
-        str | None,
-        Option(
-            ...,
-            help="Path to save the extracted data in S3, in the format s3://<s3_bucket_name>/<s3_bucket_path>",
-        ),
-    ] = None,
+    output: Annotated[
+        str,
+        Option(..., help="S3 URI or file path to save the extracted data"),
+    ],
 ) -> None:
     """
     Extract GP practice data from the source database and save it to the specified path.
     """
-    # Validate output path is correct, would use decarator but Typer is blocking it
-    validate_paths(output_path, s3_output_uri)
-
-    if output_path is not None:
-        output_path = output_path / datetime.now(UTC).strftime("%Y-%m-%dT%H-%M-%S")
-        output_path.mkdir(parents=True, exist_ok=True)
+    path_type, output_path = validate_path(output, should_file_exist=False)
 
     logging.info(f"Extracting data to {output_path}")
     extract_gp_practice_df = extract_gp_practices(db_uri)
-    clone_timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
 
-    if output_path:
-        logging.info(f"Extracting data to {output_path}")
-        output_path.mkdir(parents=True, exist_ok=True)
-        store_local(
-            extract_gp_practice_df,
-            output_path,
-            clone_timestamp,
-            "dos-gp-practice-extract",
-        )
-
-    if s3_output_uri:
-        logging.info(f"Extracting data to {s3_output_uri}")
-        store_s3(extract_gp_practice_df, s3_output_uri)
+    write_parquet_file(path_type, output_path, extract_gp_practice_df)
+    logging.info("Data extraction completed successfully.")

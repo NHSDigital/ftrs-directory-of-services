@@ -11,7 +11,8 @@ from ftrs_data_layer.repository.dynamodb import (
 from rich.progress import track
 from typer import Option, confirm
 
-from pipeline.common import TargetEnvironment, get_table_name
+from pipeline.constants import TargetEnvironment
+from pipeline.load import get_table_name
 
 
 class ClearableEntityTypes(StrEnum):
