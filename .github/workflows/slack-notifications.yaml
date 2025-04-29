@@ -27,7 +27,7 @@ jobs:
         echo "GitHub Actor: ${{ github.actor }}"
         echo "Pull Request URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
 
-    - uses: martialonline/workflow-status@v3
+    - uses: martialonline/workflow-status@v4
       id: check
 
     - name: "Echo result of pipeline if success"
@@ -43,7 +43,7 @@ jobs:
         echo "Run ID: ${{ github.run_id }}"
 
     - name: "Send custom JSON data to Slack workflow on failure"
-      uses: slackapi/slack-github-action@v1.27.0
+      uses: slackapi/slack-github-action@v2.0.0
       if: ${{ steps.check.outputs.status == 'failure' }}
       with:
         payload: |
@@ -59,6 +59,5 @@ jobs:
                 }
             ]
             }
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook-type: incoming-webhook
