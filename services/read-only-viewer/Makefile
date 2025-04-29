@@ -46,5 +46,5 @@ deploy:
 	aws s3 cp $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/ --recursive
 
 invlidate-cloudfront-cache:
-	CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[0].DomainName=='$READ_ONLY_VIEWER_DOMIAN_NAME'].Id" --output text)
+	CLOUDFRONT_DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$READ_ONLY_VIEWER_DOMIAN_NAME')].Id" --output text)
 	aws cloudfront create-invalidation --distribution-id $(CLOUDFRONT_DISTRIBUTION_ID) --paths "/*"

@@ -33,8 +33,3 @@ variable "force_destroy" {
   type        = bool
   default     = true
 }
-
-variable "vpc" {
-  description = "The VPN IP address range"
-  type        = map(string)
-}

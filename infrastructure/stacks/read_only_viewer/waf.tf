@@ -166,29 +166,6 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
     }
   }
 
-  rule {
-    name     = "ip-restriction-rule"
-    priority = 8
-    action {
-      block {}
-    }
-    statement {
-      not_statement {
-        statement {
-          ip_set_reference_statement {
-            arn = aws_wafv2_ip_set.read_only_viewer_ip_set.arn
-          }
-        }
-      }
-    }
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "ip-restriction-rule"
-      sampled_requests_enabled   = true
-    }
-  }
-
-
   visibility_config {
     cloudwatch_metrics_enabled = true
     metric_name                = "friendly-metric-name"
@@ -196,12 +173,4 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
   }
 
   provider = aws.waf-cf
-}
-
-resource "aws_wafv2_ip_set" "read_only_viewer_ip_set" {
-  name               = var.read_only_viewer_ip_set_name
-  scope              = var.read_only_viewer_waf_scope
-  ip_address_version = "IPV4"
-  addresses          = [var.vpc["vpn_subnet"]]
-  provider           = aws.waf-cf
 }
