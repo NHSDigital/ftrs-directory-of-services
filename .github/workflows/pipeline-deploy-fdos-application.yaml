@@ -152,7 +152,7 @@ jobs:
       - deploy-infrastructure-apply
       - build-read-only-viewer-service
       - metadata
-    uses: ./.github/workflows/deploy-project.yaml
+    uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
       name: "read-only-viewer"
       build_type: "service"
@@ -168,7 +168,6 @@ jobs:
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
-      - deploy-infrastructure-apply
       - deploy-read-only-viewer-service
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml

@@ -34,7 +34,7 @@ provider "aws" {
 
 provider "aws" {
   region = "us-east-1"
-  alias  = "waf-cf"
+  alias  = "us-east-1"
 
   skip_metadata_api_check     = true
   skip_region_validation      = true

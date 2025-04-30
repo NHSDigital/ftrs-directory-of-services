@@ -1,4 +1,4 @@
-name: Deploy project workflow
+name: Deploy frontend project workflow
 run-name: Deploy ${{ inputs.build_type }} - ${{ inputs.name }}
 on:
   workflow_call:
