@@ -70,3 +70,16 @@ def transform(
     write_parquet_file(output_type, output_path, gp_practices_df)
 
     logging.info("Transform completed successfully.")
+
+
+def lambda_handler(event: any, context: any) -> None:
+    try:
+        return transform(
+            s3_input_uri=event["s3_input_uri"], s3_output_uri=event["s3_output_uri"]
+        )
+    except KeyError as e:
+        logging.info(f"Missing key in event: {e}")
+        return {"statusCode": 400, "body": f"Missing key in event: {e}"}
+    except Exception as e:
+        logging.info(f"Unexpected error: {e}")
+        return {"statusCode": 500, "body": f"Unexpected error: {e}"}

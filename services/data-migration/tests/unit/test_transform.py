@@ -5,7 +5,7 @@ import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
-from pipeline.transform import transform
+from pipeline.transform import lambda_handler, transform
 from pipeline.utils.file_io import PathType
 from tests.util.stub_data import (
     extracted_GP_Practice,
@@ -223,3 +223,12 @@ def test_write_s3(
 
     mock_read.assert_called_once_with(PathType.FILE, input_path)
     mock_write.assert_called_once_with(PathType.S3, s3_uri, "TestOutput")
+
+
+def test_lambda_handler_missing_key() -> None:
+    STATUS_400 = 400
+    event = {"s3_input_uri": "s3://bucket/input"}
+    context = {}
+    response = lambda_handler(event, context)
+    assert response["statusCode"] == STATUS_400
+    assert "Missing key in event" in response["body"]
