@@ -1,5 +1,5 @@
-name: Build project workflow
-run-name: Build ${{ inputs.type }} - ${{ inputs.name }}
+name: Deploy project workflow
+run-name: Deploy ${{ inputs.build_type }} - ${{ inputs.name }}
 on:
   workflow_call:
     inputs:
@@ -40,10 +40,9 @@ on:
         required: true
         type: string
 
-
 jobs:
-  build-project:
-    name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
+  deploy-project:
+    name: "Deploy step for ${{ inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
@@ -88,11 +87,11 @@ jobs:
           DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
 
   clear-cache:
-    name: "Clear cache ${{ inputs.build_type }} - ${{ inputs.name }}"
+    name: "Clear cache for ${{ inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.deployment_environment }}
     needs:
-      - build-project
+      - deploy-project
     permissions:
       id-token: write
       contents: read
