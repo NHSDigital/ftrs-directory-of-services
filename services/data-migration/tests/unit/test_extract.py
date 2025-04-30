@@ -6,7 +6,6 @@ import pandas as pd
 import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
-from typer import BadParameter
 
 from pipeline.extract import (
     extract,

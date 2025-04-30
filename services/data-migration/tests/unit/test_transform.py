@@ -5,7 +5,6 @@ import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
-from pipeline.common import Constants
 from pipeline.transform import transform
 from pipeline.utils.file_io import PathType
 from tests.util.stub_data import (
