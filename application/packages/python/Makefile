@@ -4,6 +4,8 @@ BUILD_DIR := ../../../build/packages/$(PACKAGE)
 ARTEFACT_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 PACKAGE_VERSION := $(shell poetry version -s)
 WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
+PYTHON_VERSION ?= 3.12
+PLATFORM ?= manylinux2014_x86_64
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -15,8 +17,23 @@ clean:
 install:
 	poetry install
 
-build:
+build: build-package build-layer
+
+build-package: ensure-build-dir
 	poetry build -o $(BUILD_DIR) -f wheel
+
+build-layer:
+	mkdir -p $(BUILD_DIR)/layer/python
+	pip install \
+		--target $(BUILD_DIR)/layer/python \
+		--platform $(PLATFORM) \
+		--implementation cp \
+		--python-version $(PYTHON_VERSION) \
+		--only-binary=:all: \
+		--upgrade \
+		$(BUILD_DIR)/$(WHEEL_NAME)
+	cd $(BUILD_DIR)/layer && zip -r -q ../$(PACKAGE)-layer-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
+	rm -rf $(BUILD_DIR)/layer/
 
 lint:
 	poetry run ruff check
@@ -26,5 +43,4 @@ unit-test:
 	poetry run pytest
 
 publish:
-	aws s3 cp $(BUILD_DIR)/$(WHEEL_NAME) s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(WHEEL_NAME) --region $(AWS_REGION)
-
+	aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION)

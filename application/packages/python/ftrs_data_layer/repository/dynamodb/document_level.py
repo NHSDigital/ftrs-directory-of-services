@@ -29,7 +29,8 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         response = self.table.get_item(
             Key={"id": str(id), "field": "document"},
-            ProjectionExpression="id, value",
+            ProjectionExpression="id, #val",
+            ExpressionAttributeNames={"#val": "value"},
             ReturnConsumedCapacity="INDEXES",
         )
         item = response.get("Item")
