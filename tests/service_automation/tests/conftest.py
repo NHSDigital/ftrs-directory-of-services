@@ -1,5 +1,6 @@
 import pytest
 import os
+import boto3
 from utilities.common.config import config
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
@@ -13,6 +14,7 @@ logger.remove(0)
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_logging():
+    boto3.set_stream_logger(name='botocore.credentials', level="ERROR")
     logger.info("Starting test session...")
     yield
     logger.info("Test session completed.")
@@ -61,7 +63,9 @@ def _get_env_var(varname: str) -> str:
 
 @pytest.fixture(scope='session')
 def workspace() -> str:
-    if config.get("workspace") != "default":
+    if _get_env_var("WORKSPACE") is not None:
+        workspace = _get_env_var("WORKSPACE")
+    elif config.get("workspace") != "default":
         workspace = config.get("workspace")
     else:
         workspace = ""

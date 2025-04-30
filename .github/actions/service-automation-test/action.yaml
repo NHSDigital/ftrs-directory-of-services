@@ -1,0 +1,34 @@
+name: "service automation tests action"
+description: "Run service automation tests"
+
+inputs:
+    environment:
+      description: "The name of the environment to action the infrastructure"
+      required: true
+    workspace:
+      description: "The name of the workspace to action the infrastructure into."
+      required: true
+    aws_region:
+      description: "AWS region"
+      required: true
+    test_tag:
+      description: "feature tag that identifies tests to be run"
+      required: true
+    test_type:
+      description: "tag that identifies types of test and reports to be run"
+      required: true
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run service automation tests script
+      id: run-service-automation-tests-script
+      shell: bash
+      run: |
+        export AWS_REGION=${{ inputs.aws_region }}
+        export WORKSPACE=${{ inputs.workspace }}
+        export ENVIRONMENT=${{ inputs.environment }}
+        export TEST_TAG=${{ inputs.test_tag }}
+        export TEST_TYPE=${{ inputs.test_type }}
+        /bin/bash ./scripts/workflow/service-automation-tests.sh

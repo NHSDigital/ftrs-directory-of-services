@@ -1,0 +1,23 @@
+
+environment: "dev"
+
+environments:
+  dev:
+    base_url:
+    api_key:
+    search_engine_id:
+    project:  ftrs-dos
+    workspace:
+
+
+  nonprod:
+    project:
+    base_url:
+    api_key:
+    search_engine_id:
+
+  prod:
+    project:
+    base_url:
+    api_key:
+    search_engine_id:
