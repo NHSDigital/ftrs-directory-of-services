@@ -20,6 +20,12 @@ from pipeline.utils.file_io import PathType
                     "odscode": ["A123"],
                     "name": ["Test Org"],
                     "type": ["GP Practice"],
+                    "uid": "00000000-0000-0000-0000-000000000000",
+                    "serviceid": 192040,
+                    "publicphone": "0000 8888",
+                    "nonpublicphone": "12345678901",
+                    "email": "test@nhs.net",
+                    "web": "www.test.co.uk",
                     "endpoints": [
                         [
                             {
@@ -72,6 +78,28 @@ from pipeline.utils.file_io import PathType
                                     "modifiedDateTime": "2025-03-27T12:00:00Z",
                                 }
                             ],
+                        },
+                    ],
+                    "healthcare-service": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "createdBy": "ROBOT",
+                            "createdDateTime": "2025-03-27T12:00:00Z",
+                            "modifiedBy": "ROBOT",
+                            "modifiedDateTime": "2025-03-27T12:00:00Z",
+                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
+                            "active": True,
+                            "category": "unknown",
+                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
+                            "location": None,
+                            "name": "Test Org",
+                            "telecom": {
+                                "phone_public": "0000 8888",
+                                "phone_private": "12345678901",
+                                "email": "test@nhs.net",
+                                "web": "www.test.co.uk",
+                            },
+                            "type": "GP Practice",
                         }
                     ],
                 }
@@ -84,6 +112,12 @@ from pipeline.utils.file_io import PathType
                     "odscode": ["A123"],
                     "name": ["Test Org"],
                     "type": ["GP Practice"],
+                    "uid": "00000000-0000-0000-0000-000000000000",
+                    "serviceid": 192040,
+                    "publicphone": "0000 8888",
+                    "nonpublicphone": "12345678901",
+                    "email": "test@nhs.net",
+                    "web": "www.test.co.uk",
                     "endpoints": [
                         [
                             {
@@ -138,6 +172,28 @@ from pipeline.utils.file_io import PathType
                             ],
                         }
                     ],
+                    "healthcare-service": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "createdBy": "ROBOT",
+                            "createdDateTime": "2025-03-27T12:00:00Z",
+                            "modifiedBy": "ROBOT",
+                            "modifiedDateTime": "2025-03-27T12:00:00Z",
+                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
+                            "active": True,
+                            "category": "unknown",
+                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
+                            "location": None,
+                            "name": "Test Org",
+                            "telecom": {
+                                "phone_public": "0000 8888",
+                                "phone_private": "12345678901",
+                                "email": "test@nhs.net",
+                                "web": "www.test.co.uk",
+                            },
+                            "type": "GP Practice",
+                        }
+                    ],
                 }
             ),
         ),
@@ -148,6 +204,12 @@ from pipeline.utils.file_io import PathType
                     "odscode": "B456",
                     "name": "Org 1",
                     "type": "GP Practice",
+                    "uid": "00000000-0000-0000-0000-000000000000",
+                    "serviceid": 192040,
+                    "publicphone": "0000 8888",
+                    "nonpublicphone": "12345678901",
+                    "email": "test@nhs.net",
+                    "web": "www.test.co.uk",
                     "endpoints": [
                         [
                             {
@@ -231,6 +293,28 @@ from pipeline.utils.file_io import PathType
                             ],
                         },
                     ],
+                    "healthcare-service": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "createdBy": "ROBOT",
+                            "createdDateTime": "2025-03-27T12:00:00Z",
+                            "modifiedBy": "ROBOT",
+                            "modifiedDateTime": "2025-03-27T12:00:00Z",
+                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
+                            "active": True,
+                            "category": "unknown",
+                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
+                            "location": None,
+                            "name": "Org 1",
+                            "telecom": {
+                                "phone_public": "0000 8888",
+                                "phone_private": "12345678901",
+                                "email": "test@nhs.net",
+                                "web": "www.test.co.uk",
+                            },
+                            "type": "GP Practice",
+                        }
+                    ],
                 },
             ),
         ),
@@ -241,6 +325,12 @@ from pipeline.utils.file_io import PathType
                     "odscode": ["C789"],
                     "name": ["Test Org"],
                     "type": ["GP Practice"],
+                    "uid": "00000000-0000-0000-0000-000000000000",
+                    "serviceid": 192040,
+                    "publicphone": "0000 8888",
+                    "nonpublicphone": "12345678901",
+                    "email": "test@nhs.net",
+                    "web": "www.test.co.uk",
                     "endpoints": [
                         [
                             {
@@ -295,6 +385,28 @@ from pipeline.utils.file_io import PathType
                             ],
                         }
                     ],
+                    "healthcare-service": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "createdBy": "ROBOT",
+                            "createdDateTime": "2025-03-27T12:00:00Z",
+                            "modifiedBy": "ROBOT",
+                            "modifiedDateTime": "2025-03-27T12:00:00Z",
+                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
+                            "active": True,
+                            "category": "unknown",
+                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
+                            "location": None,
+                            "name": "Test Org",
+                            "telecom": {
+                                "phone_public": "0000 8888",
+                                "phone_private": "12345678901",
+                                "email": "test@nhs.net",
+                                "web": "www.test.co.uk",
+                            },
+                            "type": "GP Practice",
+                        }
+                    ],
                 }
             ),
         ),
@@ -305,6 +417,12 @@ from pipeline.utils.file_io import PathType
                     "odscode": ["A123"],
                     "name": ["Test Org"],
                     "type": ["GP Practice"],
+                    "uid": "00000000-0000-0000-0000-000000000000",
+                    "serviceid": 192040,
+                    "publicphone": "0000 8888",
+                    "nonpublicphone": "12345678901",
+                    "email": "test@nhs.net",
+                    "web": "www.test.co.uk",
                     "endpoints": [[]],
                 }
             ),
@@ -324,6 +442,28 @@ from pipeline.utils.file_io import PathType
                             "modifiedBy": "ROBOT",
                             "modifiedDateTime": "2025-03-27T12:00:00Z",
                             "endpoints": [],
+                        }
+                    ],
+                    "healthcare-service": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "createdBy": "ROBOT",
+                            "createdDateTime": "2025-03-27T12:00:00Z",
+                            "modifiedBy": "ROBOT",
+                            "modifiedDateTime": "2025-03-27T12:00:00Z",
+                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
+                            "active": True,
+                            "category": "unknown",
+                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
+                            "location": None,
+                            "name": "Test Org",
+                            "telecom": {
+                                "phone_public": "0000 8888",
+                                "phone_private": "12345678901",
+                                "email": "test@nhs.net",
+                                "web": "www.test.co.uk",
+                            },
+                            "type": "GP Practice",
                         }
                     ],
                 }
