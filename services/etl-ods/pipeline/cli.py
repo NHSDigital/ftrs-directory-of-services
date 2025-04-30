@@ -1,8 +1,7 @@
 import logging
 
-from typer import Typer
-
 from processor import extract
+from typer import Typer
 
 logging.basicConfig(
     level=logging.INFO,
