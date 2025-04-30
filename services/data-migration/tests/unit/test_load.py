@@ -1,26 +1,26 @@
 from pathlib import Path
-from unittest.mock import Mock, call
+from unittest.mock import call
 
 import pandas as pd
 import pytest
 from ftrs_data_layer.models import Organisation
-from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from pytest_mock import MockerFixture
 
 from pipeline.constants import TargetEnvironment
-from pipeline.load import get_table_name, load, load_organisations
+from pipeline.load import TABLE, get_table_name, load, save_to_table
 from pipeline.utils.file_io import PathType
 
 
-def test_load_organisations(
-    mock_logging: Mock,
+def test_save_to_table_organisations(
+    mocker: MockerFixture,
 ) -> None:
     """
     Test _load_organisations function.
     """
 
-    mock_repository = DocumentLevelRepository
-    mock_repository.create = Mock()
+    mock_repository_create = mocker.patch(
+        "pipeline.load.DocumentLevelRepository.create"
+    )
 
     input_df = pd.DataFrame(
         [
@@ -52,11 +52,11 @@ def test_load_organisations(
     )
     table_name = "test-table"
 
-    load_organisations(
+    save_to_table(
         input_df=input_df,
+        table=TABLE.ORGANISATION,
         table_name=table_name,
         endpoint_url=None,
-        repository_cls=mock_repository,
     )
 
     expected_create_calls = [
@@ -81,8 +81,8 @@ def test_load_organisations(
             modifiedDateTime="2023-10-01T00:00:00Z",
         ),
     ]
-    assert mock_repository.create.call_count == len(expected_create_calls)
-    mock_repository.create.assert_has_calls(
+    assert mock_repository_create.call_count == len(expected_create_calls)
+    mock_repository_create.assert_has_calls(
         [call(org) for org in expected_create_calls],
         any_order=True,
     )
@@ -155,7 +155,7 @@ def test_load_s3(
     mock_read = mocker.patch(
         "pipeline.load.read_parquet_file", return_value=pd.DataFrame()
     )
-    mocker.patch("pipeline.load.load_organisations")
+    mocker.patch("pipeline.load.save_to_table")
 
     s3_uri = "s3://your-bucket-name/path/to/object.parquet"
 

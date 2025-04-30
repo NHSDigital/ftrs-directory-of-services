@@ -4,9 +4,7 @@ from typing import Annotated
 
 import pandas as pd
 from ftrs_data_layer.models import DBModel, HealthcareService, Organisation
-from ftrs_data_layer.repository.dynamodb import (
-    DocumentLevelRepository,
-)
+from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from typer import Option
 
 from pipeline.constants import TargetEnvironment
@@ -47,7 +45,7 @@ def save_to_table(
     """
     Load the organisations into the specified table.
     """
-    repository = DocumentLevelRepository[Organisation](
+    repository = DocumentLevelRepository[table.value](
         table_name=table_name,
         model_cls=Organisation,
         endpoint_url=endpoint_url,
@@ -55,14 +53,16 @@ def save_to_table(
 
     model = get_model(table)
 
-    logging.info(f"Loading {len(input_df)} {table}s into {table}")
+    logging.info(f"Loading {len(input_df)} {table.value}s into {table.value}")
     count = 0
+    print(input_df)
     for row in input_df.to_dict(orient="records"):
-        item = model.model_validate(row[table.value])
-        repository.create(item)
-        count += 1
+        if table.value in row:
+            item = model.model_validate(row[table.value])
+            repository.create(item)
+            count += 1
 
-    logging.info(f"Loaded {count} {table}s into the database.")
+    logging.info(f"Loaded {count} {table.value}s into the database.")
 
 
 def load(
