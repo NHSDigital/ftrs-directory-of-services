@@ -21,17 +21,17 @@ variable "extract_name" {
   description = "The name of the ETL ODS Extract Lambda function"
 }
 
-variable "extract_lambda_connection_timeout" {
+variable "processor_lambda_connection_timeout" {
   description = "The timeout for the ETL ODS Extract Lambda function"
   type        = number
 }
 
-variable "extract_lambda_memory_size" {
+variable "processor_lambda_memory_size" {
   description = "The memory size for the ETL ODS Extract Lambda function"
   type        = number
 }
 
-variable "extract_lambda_handler" {
+variable "processor_lambda_handler" {
   description = "The handler for the ETL ODS Extract Lambda function"
   type        = string
 }
@@ -46,3 +46,11 @@ variable "data_migration_rds_max_capacity" {
   type        = number
 }
 
+variable "etl_ods_pipeline_store_bucket_name" {
+  description = "The name of the S3 bucket to use for the etl ods pipeline"
+}
+
+variable "s3_versioning" {
+  description = "Whether to enable versioning on the S3 bucket"
+  type        = bool
+}
