@@ -7,6 +7,10 @@ mock_gp_practices_df = pd.DataFrame(
         "odscode": ["A12345"],
         "uid": ["uid123"],
         "serviceid": [1],
+        "publicphone": ["0000 8888"],
+        "nonpublicphone": ["1111 2222"],
+        "email": ["test@nhs.net"],
+        "web": ["www.fakeweb.co.uk"],
     }
 )
 
@@ -59,6 +63,10 @@ mock_gp_practice_extract_df = pd.DataFrame(
         "type": ["GP"],
         "odscode": ["A12345"],
         "uid": ["uid123"],
+        "publicphone": ["0000 8888"],
+        "nonpublicphone": ["1111 2222"],
+        "email": ["test@nhs.net"],
+        "web": ["www.fakeweb.co.uk"],
         "endpoints": [
             [
                 {

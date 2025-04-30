@@ -89,7 +89,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
     mock_logging.info.assert_has_calls(
         [
             call("Percentage of service profiles: 1.0%"),
-            call("Percentage of all data fields: 11.9%"),
+            call("Percentage of all data fields: 21.43%"),
         ]
     )
 
@@ -215,6 +215,9 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
     pd.testing.assert_frame_equal(result, expected_df)
 
 
+# TODO @marksp: update following
+
+
 @pytest.mark.parametrize(
     "gp_practice_df, grouped_endpoints, expected_df",
     [
@@ -231,6 +234,10 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                     "odscode": ["A12345", "B67890"],
                     "uid": ["uid123", "uid456"],
                     "serviceid": [1, 2],
+                    "publicphone": ["0000 8888", "12345678901"],
+                    "nonpublicphone": ["1111 2222", "09876543210#EXT0123"],
+                    "email": ["test@nhs.net", None],
+                    "web": ["www.fakeweb.co.uk", None],
                 }
             ),
             pd.DataFrame(
@@ -272,6 +279,10 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                     "type": ["GP", "GP"],
                     "odscode": ["A12345", "B67890"],
                     "uid": ["uid123", "uid456"],
+                    "publicphone": ["0000 8888", "12345678901"],
+                    "nonpublicphone": ["1111 2222", "09876543210#EXT0123"],
+                    "email": ["test@nhs.net", None],
+                    "web": ["www.fakeweb.co.uk", None],
                     "endpoints": [
                         [
                             {
@@ -311,6 +322,10 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                     "odscode": ["A12345"],
                     "uid": ["uid123"],
                     "serviceid": [1],
+                    "publicphone": [None],
+                    "nonpublicphone": [None],
+                    "email": [None],
+                    "web": [None],
                 }
             ),
             pd.DataFrame(
@@ -339,6 +354,10 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                     "type": ["GP"],
                     "odscode": ["A12345"],
                     "uid": ["uid123"],
+                    "publicphone": [None],
+                    "nonpublicphone": [None],
+                    "email": [None],
+                    "web": [None],
                     "endpoints": [[]],
                 }
             ),
