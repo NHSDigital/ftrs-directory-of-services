@@ -29,7 +29,7 @@ def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, e
     assert response == True
     return bucket_name
 
-@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='file_name')
+@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='ffile_name')
 def put_s3_file(aws_s3_client, fbucket_name, file_name):
     file_name = file_name + ".csv"
     filepath = "tests/csv_files/"+file_name
