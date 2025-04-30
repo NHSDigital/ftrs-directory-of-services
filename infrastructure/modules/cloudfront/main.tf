@@ -57,4 +57,6 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     response_page_path    = "/index.html"
     error_caching_min_ttl = 5
   }
+
+  web_acl_id = var.web_acl_id
 }
