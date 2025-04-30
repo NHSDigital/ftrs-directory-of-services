@@ -20,7 +20,7 @@ module "extract_lambda" {
   memory_size             = var.processor_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.extract_lambda_security_group.id]
+  security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
   number_of_policy_jsons = "2"
   policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
@@ -44,8 +44,8 @@ data "aws_iam_policy_document" "s3_access_policy" {
       "s3:PutObject"
     ]
     resources = [
-      "${module.migration_store_bucket.s3_bucket_arn}/",
-      "${module.migration_store_bucket.s3_bucket_arn}/*",
+      "${module.etl_ods_store_bucket.s3_bucket_arn}/",
+      "${module.etl_ods_store_bucket.s3_bucket_arn}/*",
     ]
   }
 }
