@@ -25,6 +25,7 @@ __pycache__/
 build/
 .coverage
 *.log
+.env
 
 # Test specific
 
