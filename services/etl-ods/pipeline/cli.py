@@ -1,7 +1,8 @@
 import logging
 
-from processor import extract
 from typer import Typer
+
+from pipeline.processor import extract
 
 logging.basicConfig(
     level=logging.INFO,
