@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from processor import extract
+from pipeline.processor import extract
 
 STATUS_SUCCESSFUL = 200
 
