@@ -1,4 +1,4 @@
-@is-infra @is-pipeline
+@is-infra
 Feature: S3 Bucket Name Validation
 
 Background: Check bucket exists

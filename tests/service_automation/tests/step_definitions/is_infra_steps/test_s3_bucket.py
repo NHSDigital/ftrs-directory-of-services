@@ -29,7 +29,7 @@ def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, e
     assert response == True
     return bucket_name
 
-@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='file_name')
+@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='ffile_name')
 def put_s3_file(aws_s3_client, fbucket_name, file_name):
     file_name = file_name + ".csv"
     filepath = "tests/csv_files/"+file_name
@@ -58,7 +58,7 @@ def fetch_buckets(aws_s3_client):
     """Retrieve list of S3 buckets"""
     return aws_s3_client.list_buckets()
 
-@then(parsers.parse('I can download the file "{file_name}" from the s3 bucket'), target_fixture='file_name')
+@then(parsers.parse('I can download the file "{file_name}" from the s3 bucket'), target_fixture='ffile_name')
 def download_s3_file(aws_s3_client, fbucket_name, file_name):
     downloadfile = file_name + ".csv"
     directories.create_folder("downloads")
@@ -75,8 +75,8 @@ def delete_s3_file(aws_s3_client, fbucket_name, file_name):
     aws_s3_client.delete_object(bucket_name, file_name)
 
 @then(parsers.parse("the file contains {rowcount} rows"))
-def count_csv_rows(file_name, rowcount):
-    file_name =  file_name
+def count_csv_rows(ffile_name, rowcount):
+    file_name =  ffile_name
     row_count = str(csv_reader.csv_row_count(file_name))
     assert row_count == rowcount
 
