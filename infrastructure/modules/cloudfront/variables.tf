@@ -49,3 +49,13 @@ variable "web_acl_id" {
   description = "The Web ACL id or arn"
   default     = null
 }
+
+variable "lambda_function_association" {
+  description = "Lambda function association"
+  default     = []
+  type = list(object({
+    event_type   = string
+    lambda_arn   = string
+    include_body = optional(bool)
+  }))
+}
