@@ -18,10 +18,8 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DEPENDENCY_DIR)
 
-install: install-dependencies
-
-install-dependencies:
-	asdf install
+install:
+	make _install-dependencies
 	poetry install --no-interaction
 
 lint:
