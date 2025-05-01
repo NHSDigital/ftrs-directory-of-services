@@ -5,7 +5,13 @@ import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
-from ftrs_data_layer.models import Endpoint, HealthcareService, Location, Organisation, Telecom
+from ftrs_data_layer.models import (
+    Endpoint,
+    HealthcareService,
+    Location,
+    Organisation,
+    Telecom,
+)
 
 
 def test_organisation() -> None:
@@ -194,11 +200,11 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
             "nonpublicphone": "12345678901",
             "email": "test@nhs.net",
             "web": "abc.co.uk",
-            "type": "GP Practice"
+            "type": "GP Practice",
         },
         created_datetime=expected_created_datetime,
         updated_datetime=expected_modified_datetime,
-        organisation_id=organisation_id
+        organisation_id=organisation_id,
     )
 
     assert hs.model_dump(mode="json") == {
@@ -217,7 +223,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
             "phone_public": "09876543210",
             "phone_private": "12345678901",
             "email": "test@nhs.net",
-            "web": "abc.co.uk"
+            "web": "abc.co.uk",
         },
         "type": "GP Practice",
     }
@@ -393,17 +399,18 @@ def test_endpoint_from_dos_telno_transport() -> None:
         "order": 1,
     }
 
+
 def test_telecom() -> None:
     telecom = Telecom(
         phone_public="00000000000",
         phone_private="12345678901#EXT0123",
         email="test@nhs.net",
-        web="ww.test.co.u"
+        web="ww.test.co.u",
     )
 
     assert telecom.model_dump(mode="json") == {
         "phone_public": "00000000000",
         "phone_private": "12345678901#EXT0123",
         "email": "test@nhs.net",
-        "web": "ww.test.co.u"
+        "web": "ww.test.co.u",
     }

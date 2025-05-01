@@ -105,6 +105,7 @@ class Telecom(BaseModel):
     email: str | None
     web: str | None
 
+
 class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
@@ -122,7 +123,7 @@ class HealthcareService(DBModel):
         existing_identifier: UUID | str | None = None,
         created_datetime: datetime | None = None,
         updated_datetime: datetime | None = None,
-        organisation_id: UUID | str | None = None
+        organisation_id: UUID | str | None = None,
     ) -> "Organisation":
         """
         Create an HealthcareService instance from source DoS data.
@@ -138,7 +139,7 @@ class HealthcareService(DBModel):
             id=service_id,
             identifier_oldDoS_uid=data["uid"],
             active=True,
-            category="unknown", # TODO: in future ticket we will map type to category
+            category="unknown",  # TODO: in future ticket we will map type to category
             providedBy=organisation_id,
             location=None,
             name=data["name"],
@@ -146,13 +147,13 @@ class HealthcareService(DBModel):
                 phone_public=data["publicphone"],
                 phone_private=data["nonpublicphone"],
                 email=data["email"],
-                web=data["web"]
+                web=data["web"],
             ),
             type=data["type"],
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
             modifiedBy="ROBOT",
-            modifiedDateTime=updated_datetime or datetime.now(UTC)
+            modifiedDateTime=updated_datetime or datetime.now(UTC),
         )
 
 
