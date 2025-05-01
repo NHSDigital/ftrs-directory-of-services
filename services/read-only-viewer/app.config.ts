@@ -11,11 +11,12 @@ export default defineConfig({
         projects: ['./tsconfig.json'],
       })
     ],
+
   },
   server: {
     preset: "aws-lambda",
     awsLambda: {
       streaming: false,
-    }
+    },
   }
 });
