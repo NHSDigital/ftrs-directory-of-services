@@ -21,7 +21,7 @@ from pipeline.utils.dos_db import (
 )
 from pipeline.utils.file_io import PathType
 from tests.util.stub_data import (
-    mock_gp_endpoints,
+    mock_gp_endpoints_A,
     mock_gp_endpoints_B,
     mock_gp_endpoints_C,
     mock_gp_endpoints_formatted,
@@ -108,8 +108,8 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
             pd.DataFrame(
                 dict(
                     {
-                        key: [mock_gp_endpoints[key], mock_gp_endpoints_B[key]]
-                        for key in mock_gp_endpoints.keys()
+                        key: [mock_gp_endpoints_A[key], mock_gp_endpoints_B[key]]
+                        for key in mock_gp_endpoints_A.keys()
                         if key != "serviceid"
                     },
                     serviceid=[1, 1],  # both endpoints use same service id for test
@@ -132,11 +132,11 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
                 dict(
                     {
                         key: [
-                            mock_gp_endpoints[key],
+                            mock_gp_endpoints_A[key],
                             mock_gp_endpoints_B[key],
                             mock_gp_endpoints_C[key],
                         ]
-                        for key in mock_gp_endpoints.keys()
+                        for key in mock_gp_endpoints_A.keys()
                         if key != "serviceid"
                     },
                     serviceid=[1, 2, 2],  # test we get single and double
