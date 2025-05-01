@@ -2,7 +2,6 @@ import json
 import logging
 from typing import Annotated
 
-import boto3
 import numpy as np
 import pandas as pd
 from typer import Option
@@ -18,7 +17,7 @@ from pipeline.utils.dos_db import (
 from pipeline.utils.file_io import (
     write_parquet_file,
 )
-from pipeline.utils.secret_wrapper import GetSecretWrapper
+from pipeline.utils.secret_utils import get_secret
 from pipeline.utils.validators import validate_path
 
 
@@ -147,10 +146,7 @@ def lambda_handler(event: dict, context: object) -> dict[str, any] | None:
     """
     print("Received event:", json.dumps(event))
 
-    client = boto3.client("secretsmanager")
-    wrapper = GetSecretWrapper(client)
-    db_credentials = wrapper.get_secret(DatabaseConfig.source_db_credentials)
-
+    db_credentials = get_secret(DatabaseConfig.source_db_credentials, transform="json")
     db_config = DatabaseConfig(**db_credentials)
 
     extract(

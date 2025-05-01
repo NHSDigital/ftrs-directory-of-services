@@ -254,19 +254,15 @@ def test_lambda_handler_successful_execution(mocker: MockerFixture) -> None:
     event = {"s3_output_uri": "s3://bucket/output"}
     context = mock.Mock()
 
-    mock_client = mock.Mock()
-    mock_wrapper_instance = mock.Mock()
-    mock_wrapper_instance.get_secret.return_value = {
-        "host": "localhost",
-        "port": 5432,
-        "user": "user",
-        "password": "password",
-        "dbname": "db",
-    }
-
-    mocker.patch("pipeline.extract.boto3.client", return_value=mock_client)
     mocker.patch(
-        "pipeline.extract.GetSecretWrapper", return_value=mock_wrapper_instance
+        "pipeline.extract.get_secret",
+        return_value={
+            "host": "localhost",
+            "port": 5432,
+            "user": "user",
+            "password": "password",
+            "dbname": "db",
+        },
     )
     mock_extract = mocker.patch("pipeline.extract.extract")
 
