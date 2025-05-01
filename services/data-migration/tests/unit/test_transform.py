@@ -7,6 +7,15 @@ from pytest_mock import MockerFixture
 
 from pipeline.transform import transform
 from pipeline.utils.file_io import PathType
+from tests.util.stub_data import (
+    extracted_GP_Practice,
+    mock_gp_endpoint_json_dump_B,
+    mock_gp_endpoint_json_dump_C,
+    mock_gp_endpoints_formatted_B,
+    mock_gp_endpoints_formatted_C,
+    transformed_GP_Practice_HS,
+    transformed_GP_Practice_Org,
+)
 
 
 @freeze_time("2025-03-27 12:00:00")
@@ -15,457 +24,75 @@ from pipeline.utils.file_io import PathType
     [
         (
             # Input data
-            pd.DataFrame(
-                {
-                    "odscode": ["A123"],
-                    "name": ["Test Org"],
-                    "type": ["GP Practice"],
-                    "uid": "00000000-0000-0000-0000-000000000000",
-                    "serviceid": 192040,
-                    "publicphone": "0000 8888",
-                    "nonpublicphone": "12345678901",
-                    "email": "test@nhs.net",
-                    "web": "www.test.co.uk",
-                    "endpoints": [
-                        [
-                            {
-                                "id": "1",
-                                "transport": "email",
-                                "businessscenario": "scenario1",
-                                "interaction": "interaction1",
-                                "address": "address1",
-                                "endpointorder": 1,
-                                "iscompressionenabled": "uncompressed",
-                                "format": "PDF",
-                            }
-                        ]
-                    ],
-                }
-            ),
+            pd.DataFrame(extracted_GP_Practice),
             # Expected output
             pd.DataFrame(
                 {
-                    "organisation": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "identifier_ODS_ODSCode": "A123",
-                            "active": True,
-                            "name": "Test Org",
-                            "telecom": None,
-                            "type": "GP Practice",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "endpoints": [
-                                {
-                                    "id": "123e4567-e89b-12d3-a456-426614174000",
-                                    "identifier_oldDoS_id": 1,
-                                    "status": "active",
-                                    "connectionType": "email",
-                                    "name": None,
-                                    "description": "scenario1",
-                                    "format": "PDF",
-                                    "payloadType": "interaction1",
-                                    "address": "address1",
-                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                    "service": None,
-                                    "order": 1,
-                                    "isCompressionEnabled": False,
-                                    "createdBy": "ROBOT",
-                                    "createdDateTime": "2025-03-27T12:00:00Z",
-                                    "modifiedBy": "ROBOT",
-                                    "modifiedDateTime": "2025-03-27T12:00:00Z",
-                                }
-                            ],
-                        },
-                    ],
-                    "healthcare-service": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
-                            "active": True,
-                            "category": "unknown",
-                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
-                            "location": None,
-                            "name": "Test Org",
-                            "telecom": {
-                                "phone_public": "0000 8888",
-                                "phone_private": "12345678901",
-                                "email": "test@nhs.net",
-                                "web": "www.test.co.uk",
-                            },
-                            "type": "GP Practice",
-                        }
-                    ],
-                }
-            ),
-        ),
-        (
-            # Input data
-            pd.DataFrame(
-                {
-                    "odscode": ["A123"],
-                    "name": ["Test Org"],
-                    "type": ["GP Practice"],
-                    "uid": "00000000-0000-0000-0000-000000000000",
-                    "serviceid": 192040,
-                    "publicphone": "0000 8888",
-                    "nonpublicphone": "12345678901",
-                    "email": "test@nhs.net",
-                    "web": "www.test.co.uk",
-                    "endpoints": [
-                        [
-                            {
-                                "id": "1",
-                                "transport": "email",
-                                "businessscenario": "scenario1",
-                                "interaction": "interaction1",
-                                "address": "address1",
-                                "endpointorder": 1,
-                                "iscompressionenabled": "uncompressed",
-                                "format": "PDF",
-                            }
-                        ]
-                    ],
-                }
-            ),
-            # Expected output
-            pd.DataFrame(
-                {
-                    "organisation": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "identifier_ODS_ODSCode": "A123",
-                            "active": True,
-                            "name": "Test Org",
-                            "telecom": None,
-                            "type": "GP Practice",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "endpoints": [
-                                {
-                                    "id": "123e4567-e89b-12d3-a456-426614174000",
-                                    "identifier_oldDoS_id": 1,
-                                    "status": "active",
-                                    "connectionType": "email",
-                                    "name": None,
-                                    "description": "scenario1",
-                                    "payloadType": "interaction1",
-                                    "address": "address1",
-                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                    "service": None,
-                                    "order": 1,
-                                    "isCompressionEnabled": False,
-                                    "format": "PDF",
-                                    "createdBy": "ROBOT",
-                                    "createdDateTime": "2025-03-27T12:00:00Z",
-                                    "modifiedBy": "ROBOT",
-                                    "modifiedDateTime": "2025-03-27T12:00:00Z",
-                                }
-                            ],
-                        }
-                    ],
-                    "healthcare-service": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
-                            "active": True,
-                            "category": "unknown",
-                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
-                            "location": None,
-                            "name": "Test Org",
-                            "telecom": {
-                                "phone_public": "0000 8888",
-                                "phone_private": "12345678901",
-                                "email": "test@nhs.net",
-                                "web": "www.test.co.uk",
-                            },
-                            "type": "GP Practice",
-                        }
-                    ],
+                    "organisation": [transformed_GP_Practice_Org],
+                    "healthcare-service": [transformed_GP_Practice_HS],
                 }
             ),
         ),
         (
             # Input data with multiple endpoints and varied compression settings
             pd.DataFrame(
-                {
-                    "odscode": "B456",
-                    "name": "Org 1",
-                    "type": "GP Practice",
-                    "uid": "00000000-0000-0000-0000-000000000000",
-                    "serviceid": 192040,
-                    "publicphone": "0000 8888",
-                    "nonpublicphone": "12345678901",
-                    "email": "test@nhs.net",
-                    "web": "www.test.co.uk",
-                    "endpoints": [
-                        [
-                            {
-                                "id": "2",
-                                "transport": "sms",
-                                "businessscenario": "scenario2",
-                                "interaction": "interaction2",
-                                "address": "address2",
-                                "endpointorder": 2,
-                                "iscompressionenabled": "compressed",
-                                "format": "XML",
-                            },
-                            {
-                                "id": "3",
-                                "transport": "fax",
-                                "businessscenario": "scenario3",
-                                "interaction": "interaction3",
-                                "address": "address3",
-                                "endpointorder": 3,
-                                "iscompressionenabled": "uncompressed",
-                                "format": "TXT",
-                            },
-                        ],
+                dict(
+                    {
+                        k: [v]
+                        for k, v in extracted_GP_Practice.items()
+                        if k != "endpoints"
+                    },
+                    endpoints=[
+                        [mock_gp_endpoints_formatted_B, mock_gp_endpoints_formatted_C]
                     ],
-                }
+                ),
             ),
             # Expected output
             pd.DataFrame(
                 {
                     "organisation": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "identifier_ODS_ODSCode": "B456",
-                            "active": True,
-                            "name": "Org 1",
-                            "telecom": None,
-                            "type": "GP Practice",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "endpoints": [
-                                {
-                                    "id": "123e4567-e89b-12d3-a456-426614174000",
-                                    "identifier_oldDoS_id": 2,
-                                    "status": "active",
-                                    "connectionType": "sms",
-                                    "name": None,
-                                    "description": "scenario2",
-                                    "payloadType": "interaction2",
-                                    "address": "address2",
-                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                    "service": None,
-                                    "order": 2,
-                                    "isCompressionEnabled": True,
-                                    "format": "XML",
-                                    "createdBy": "ROBOT",
-                                    "createdDateTime": "2025-03-27T12:00:00Z",
-                                    "modifiedBy": "ROBOT",
-                                    "modifiedDateTime": "2025-03-27T12:00:00Z",
-                                },
-                                {
-                                    "id": "123e4567-e89b-12d3-a456-426614174000",
-                                    "identifier_oldDoS_id": 3,
-                                    "status": "active",
-                                    "connectionType": "fax",
-                                    "name": None,
-                                    "description": "scenario3",
-                                    "payloadType": "interaction3",
-                                    "address": "address3",
-                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                    "service": None,
-                                    "order": 3,
-                                    "isCompressionEnabled": False,
-                                    "format": "TXT",
-                                    "createdBy": "ROBOT",
-                                    "createdDateTime": "2025-03-27T12:00:00Z",
-                                    "modifiedBy": "ROBOT",
-                                    "modifiedDateTime": "2025-03-27T12:00:00Z",
-                                },
-                            ],
-                        },
-                    ],
-                    "healthcare-service": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
-                            "active": True,
-                            "category": "unknown",
-                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
-                            "location": None,
-                            "name": "Org 1",
-                            "telecom": {
-                                "phone_public": "0000 8888",
-                                "phone_private": "12345678901",
-                                "email": "test@nhs.net",
-                                "web": "www.test.co.uk",
+                        dict(
+                            {
+                                k: v
+                                for k, v in transformed_GP_Practice_Org.items()
+                                if k != "endpoints"
                             },
-                            "type": "GP Practice",
-                        }
+                            endpoints=[
+                                mock_gp_endpoint_json_dump_B,
+                                mock_gp_endpoint_json_dump_C,
+                            ],
+                        )
                     ],
+                    "healthcare-service": [transformed_GP_Practice_HS],
                 },
-            ),
-        ),
-        (
-            # Input data with transport == telno
-            pd.DataFrame(
-                {
-                    "odscode": ["C789"],
-                    "name": ["Test Org"],
-                    "type": ["GP Practice"],
-                    "uid": "00000000-0000-0000-0000-000000000000",
-                    "serviceid": 192040,
-                    "publicphone": "0000 8888",
-                    "nonpublicphone": "12345678901",
-                    "email": "test@nhs.net",
-                    "web": "www.test.co.uk",
-                    "endpoints": [
-                        [
-                            {
-                                "id": "1",
-                                "transport": "telno",
-                                "businessscenario": "scenario1",
-                                "interaction": "interaction1",
-                                "address": "address1",
-                                "endpointorder": 1,
-                                "iscompressionenabled": "uncompressed",
-                                "format": "PDF",
-                            }
-                        ]
-                    ],
-                }
-            ),
-            # Expected output
-            pd.DataFrame(
-                {
-                    "organisation": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "identifier_ODS_ODSCode": "C789",
-                            "active": True,
-                            "name": "Test Org",
-                            "telecom": None,
-                            "type": "GP Practice",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "endpoints": [
-                                {
-                                    "id": "123e4567-e89b-12d3-a456-426614174000",
-                                    "identifier_oldDoS_id": 1,
-                                    "status": "active",
-                                    "connectionType": "telno",
-                                    "name": None,
-                                    "description": "scenario1",
-                                    "payloadType": None,
-                                    "address": "address1",
-                                    "managedByOrganisation": "123e4567-e89b-12d3-a456-426614174000",
-                                    "service": None,
-                                    "order": 1,
-                                    "isCompressionEnabled": False,
-                                    "format": None,
-                                    "createdBy": "ROBOT",
-                                    "createdDateTime": "2025-03-27T12:00:00Z",
-                                    "modifiedBy": "ROBOT",
-                                    "modifiedDateTime": "2025-03-27T12:00:00Z",
-                                }
-                            ],
-                        }
-                    ],
-                    "healthcare-service": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
-                            "active": True,
-                            "category": "unknown",
-                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
-                            "location": None,
-                            "name": "Test Org",
-                            "telecom": {
-                                "phone_public": "0000 8888",
-                                "phone_private": "12345678901",
-                                "email": "test@nhs.net",
-                                "web": "www.test.co.uk",
-                            },
-                            "type": "GP Practice",
-                        }
-                    ],
-                }
             ),
         ),
         (
             # Input data where endpoints is none
             pd.DataFrame(
-                {
-                    "odscode": ["A123"],
-                    "name": ["Test Org"],
-                    "type": ["GP Practice"],
-                    "uid": "00000000-0000-0000-0000-000000000000",
-                    "serviceid": 192040,
-                    "publicphone": "0000 8888",
-                    "nonpublicphone": "12345678901",
-                    "email": "test@nhs.net",
-                    "web": "www.test.co.uk",
-                    "endpoints": [[]],
-                }
+                dict(
+                    {
+                        k: [v]
+                        for k, v in extracted_GP_Practice.items()
+                        if k != "endpoints"
+                    },
+                    endpoints=[[]],
+                ),
             ),
             # Expected output
             pd.DataFrame(
                 {
                     "organisation": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "identifier_ODS_ODSCode": "A123",
-                            "active": True,
-                            "name": "Test Org",
-                            "telecom": None,
-                            "type": "GP Practice",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "endpoints": [],
-                        }
-                    ],
-                    "healthcare-service": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "createdBy": "ROBOT",
-                            "createdDateTime": "2025-03-27T12:00:00Z",
-                            "modifiedBy": "ROBOT",
-                            "modifiedDateTime": "2025-03-27T12:00:00Z",
-                            "identifier_oldDoS_uid": "00000000-0000-0000-0000-000000000000",
-                            "active": True,
-                            "category": "unknown",
-                            "providedBy": "123e4567-e89b-12d3-a456-426614174000",
-                            "location": None,
-                            "name": "Test Org",
-                            "telecom": {
-                                "phone_public": "0000 8888",
-                                "phone_private": "12345678901",
-                                "email": "test@nhs.net",
-                                "web": "www.test.co.uk",
+                        dict(
+                            {
+                                k: v
+                                for k, v in transformed_GP_Practice_Org.items()
+                                if k != "endpoints"
                             },
-                            "type": "GP Practice",
-                        }
+                            endpoints=[],
+                        )
                     ],
+                    "healthcare-service": [transformed_GP_Practice_HS],
                 }
             ),
         ),
@@ -493,7 +120,7 @@ def test_transform(
     )
     mocker.patch(
         "ftrs_data_layer.models.uuid4",
-        return_value="123e4567-e89b-12d3-a456-426614174000",
+        return_value="123e4567-e89b-12d3-a456-42661417400a",
     )
     write_mock = mocker.patch("pipeline.transform.write_parquet_file")
 
