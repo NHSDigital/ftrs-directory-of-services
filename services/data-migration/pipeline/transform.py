@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 import pandas as pd
-from ftrs_data_layer.models import HealthcareService, Organisation
+from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from typer import Option
 
 from pipeline.utils.file_io import (
@@ -28,6 +28,13 @@ def transform_gp_practices(
             updated_datetime=current_timestamp,
         )
 
+        location = Location.from_dos(
+            data=row,
+            created_datetime=current_timestamp,
+            updated_datetime=current_timestamp,
+            organisation_id=organisation.id,
+        )
+
         service = HealthcareService.from_dos(
             data=row,
             created_datetime=current_timestamp,
@@ -39,6 +46,7 @@ def transform_gp_practices(
             {
                 "organisation": organisation.model_dump(mode="json"),
                 "healthcare-service": service.model_dump(mode="json"),
+                "location": location.model_dumo(mode="json"),
             }
         )
 

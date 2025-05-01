@@ -88,7 +88,7 @@ class Location(DBModel):
     address_postcode: str
     address_town: str
     managingOrganisation: UUID
-    name: str
+    name: str | None = None
     positionGCS_latitude: float
     positionGCS_longitude: float
     positionGCS_easting: float
@@ -97,6 +97,45 @@ class Location(DBModel):
     positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
     partOf: UUID | None
+
+    @classmethod
+    def from_dos(
+        cls,
+        data: dict,
+        existing_identifier: UUID | str | None = None,
+        created_datetime: datetime | None = None,
+        updated_datetime: datetime | None = None,
+        organisation_id: UUID | None = None,
+    ) -> "Location":
+        """
+        Create an Location instance from source DoS data.
+
+        :param data: The source data dictionary from the 'services' DoS table.
+        :param created_datetime: The datetime when the location was created.
+        :param updated_datetime: The datetime when the location was last updated.
+        :param organisation_id: The managing organisation of the location.
+        :return: An Organisation instance.
+        """
+        location_id = uuid4() or existing_identifier
+        return Location(
+            id=location_id,
+            active=True,
+            managingOrganisation=organisation_id,
+            address={
+                "street": data["address"],
+                "town": data["town"],
+                "postcode": data["postcode"],
+            },
+            name=None,
+            positionGCS={"latitude": data["latitude"], "longitude": data["longitude"]},
+            # TODO: defaulting will consider how to define for Fhir schema in future.
+            #   but since this has the main ODSCode happy with this being set as True
+            primaryAddress=True,
+            createdBy="ROBOT",
+            createdDateTime=created_datetime or datetime.now(UTC),
+            modifiedBy="ROBOT",
+            modifiedDateTime=updated_datetime or datetime.now(UTC),
+        )
 
 
 class Telecom(BaseModel):
