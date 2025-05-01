@@ -1,17 +1,28 @@
 import logging
-from typing import Annotated, Type
+from enum import Enum
+from typing import Annotated
 
 import pandas as pd
-from ftrs_data_layer.models import Organisation
-from ftrs_data_layer.repository.dynamodb import (
-    DocumentLevelRepository,
-    DynamoDBRepository,
-)
+from ftrs_data_layer.models import DBModel, HealthcareService, Organisation
+from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from typer import Option
 
 from pipeline.constants import TargetEnvironment
 from pipeline.utils.file_io import read_parquet_file
 from pipeline.utils.validators import validate_path
+
+
+class TABLE(Enum):
+    ORGANISATION = "organisation"
+    SERVICE = "healthcare-service"
+
+
+def get_model(table: TABLE) -> DBModel:
+    match table:
+        case TABLE.ORGANISATION:
+            return Organisation
+        case TABLE.SERVICE:
+            return HealthcareService
 
 
 def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> str:
@@ -25,25 +36,32 @@ def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> 
     return table_name
 
 
-def load_organisations(
+def save_to_table(
     input_df: pd.DataFrame,
+    table: TABLE,
     table_name: str,
     endpoint_url: str | None = None,
-    repository_cls: Type[DynamoDBRepository] = DocumentLevelRepository,
 ) -> None:
     """
     Load the organisations into the specified table.
     """
-    org_repository = repository_cls[Organisation](
+    repository = DocumentLevelRepository[table.value](
         table_name=table_name,
         model_cls=Organisation,
         endpoint_url=endpoint_url,
     )
 
-    logging.info(f"Loading {len(input_df)} organisations into {table_name}")
+    model = get_model(table)
+
+    logging.info(f"Loading {len(input_df)} {table.value}s into {table.value}")
+    count = 0
     for row in input_df.to_dict(orient="records"):
-        organisation = Organisation.model_validate(row["organisation"])
-        org_repository.create(organisation)
+        if table.value in row:
+            item = model.model_validate(row[table.value])
+            repository.create(item)
+            count += 1
+
+    logging.info(f"Loaded {count} {table.value}s into the database.")
 
 
 def load(
@@ -62,11 +80,13 @@ def load(
     path_type, input_path = validate_path(input, should_file_exist=True)
     gp_practice_df = read_parquet_file(path_type, input_path)
 
-    load_organisations(
-        input_df=gp_practice_df,
-        table_name=get_table_name("organisation", env.value, workspace),
-        endpoint_url=endpoint_url,
-    )
+    for table in [TABLE.ORGANISATION, TABLE.SERVICE]:
+        save_to_table(
+            input_df=gp_practice_df,
+            table=table,
+            table_name=get_table_name(table.value, env.value, workspace),
+            endpoint_url=endpoint_url,
+        )
 
     logging.info(
         f"Data loaded successfully into {env.value} environment (workspace: {workspace or 'default'})"
