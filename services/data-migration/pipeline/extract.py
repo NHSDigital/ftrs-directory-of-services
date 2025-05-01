@@ -145,30 +145,15 @@ def lambda_handler(event: dict, context: object) -> dict[str, any] | None:
     Returns:
     - dict: Response object with status code and body.
     """
-    try:
-        print("Received event:", json.dumps(event))
+    print("Received event:", json.dumps(event))
 
-        client = boto3.client("secretsmanager")
-        wrapper = GetSecretWrapper(client)
-        db_credentials = wrapper.get_secret(DatabaseConfig.SOURCE_DB_CREDENTIALS)
-        db_credentials_dict = json.loads(db_credentials)
+    client = boto3.client("secretsmanager")
+    wrapper = GetSecretWrapper(client)
+    db_credentials = wrapper.get_secret(DatabaseConfig.source_db_credentials)
 
-        db_config = DatabaseConfig(
-            host=db_credentials_dict["host"],
-            port=db_credentials_dict["port"],
-            user=db_credentials_dict["username"],
-            password=db_credentials_dict["password"],
-            db_name=db_credentials_dict["dbname"],
-        )
+    db_config = DatabaseConfig(**db_credentials)
 
-        extract(
-            db_config.get_db_uri(),
-            s3_output_uri=event["s3_output_uri"],
-        )
-
-    except Exception as e:
-        print("Error:", str(e))
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": "Internal Server Error"}),
-        }
+    extract(
+        db_config.connection_string,
+        s3_output_uri=event["s3_output_uri"],
+    )

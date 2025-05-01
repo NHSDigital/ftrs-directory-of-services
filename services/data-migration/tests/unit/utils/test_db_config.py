@@ -9,33 +9,17 @@ def test_db_config_successful() -> None:
     """
     db_config = DatabaseConfig(
         host="host",
-        port="port",
-        user="username",
+        port=5432,
+        user="user",
         password="password",
-        db_name="dbname",
+        dbname="dbname",
     )
 
-    # Test initialise_config
-    assert (
-        db_config.connection_string == "postgresql://username:password@host:port/dbname"
-    )
+    assert db_config.connection_string == "postgresql://user:password@host:5432/dbname"
 
-    # Test get_db_details
-    db_details = db_config.get_db_details()
-    assert db_details == {
-        "host": "host",
-        "port": "port",
-        "user": "username",
-        "password": "password",
-        "db_name": "dbname",
-    }
-
-    # Test get_db_uri
-    db_uri = db_config.get_db_uri()
-    assert db_uri == "postgresql://username:password@host:port/dbname"
-
-    # Test db_config_to_string
     assert (
         str(db_config)
-        == "DatabaseConfig(host=host, port=port, user=username, password=****, db_name=dbname)"
+        == "DatabaseConfig(host=host, port=5432, user=user, password=****, dbname=dbname)"
     )
+
+    assert db_config.source_db_credentials == "source-rds-credentials"
