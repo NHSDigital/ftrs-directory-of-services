@@ -3,7 +3,9 @@ import sys
 
 from pipeline.processor import extract
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 CORRECT_LENGTH = 2
 
 if len(sys.argv) != CORRECT_LENGTH:
