@@ -86,40 +86,6 @@ jobs:
           APPLICATION_TAG: ${{ inputs.application_tag }}
           DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
 
-  clear-cache:
-    name: "Clear cache for ${{ inputs.build_type }} - ${{ inputs.name }}"
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.deployment_environment }}
-    needs:
-      - deploy-project
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-
-      - name: "Configure AWS Credentials"
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: false
-
-      - name: "Get directories"
-        id: get-directories
-        run: |
-          if [[ "${{ inputs.build_type }}" == "service" ]]; then
-            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
-            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          else
-            echo "Invalid build type: ${{ inputs.build_type }}"
-            exit 1
-          fi
-
       - name: "Invalidate CloudFront Cache"
         run: make invalidate-cloudfront-cache
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
