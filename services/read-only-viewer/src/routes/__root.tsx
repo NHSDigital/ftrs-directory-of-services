@@ -1,8 +1,8 @@
 import { HeadContent, Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Container, Footer, Header } from "nhsuk-react-components";
-import appStylesUrl from "../styles/App.scss?url";
 import type { PropsWithChildren } from "react";
+import appStylesUrl from "../styles/App.scss?url";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -41,14 +41,10 @@ const RootDocument: React.FC<PropsWithChildren> = ({ children }) => (
     <Header transactional>
       <Header.Container>
         <Header.Logo href="/" />
-        <Header.ServiceName href="/">
-          FtRS Read-Only Viewer
-        </Header.ServiceName>
+        <Header.ServiceName href="/">FtRS Read-Only Viewer</Header.ServiceName>
       </Header.Container>
     </Header>
-    <Container className="ftrs-page-container">
-      {children}
-    </Container>
+    <Container className="ftrs-page-container">{children}</Container>
     <Footer>
       <Footer.List>
         <Footer.ListItem href="/">Home</Footer.ListItem>
@@ -58,4 +54,4 @@ const RootDocument: React.FC<PropsWithChildren> = ({ children }) => (
       </Footer.Copyright>
     </Footer>
   </>
-)
+);
