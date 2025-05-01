@@ -6,7 +6,7 @@ authors = [
     {name = "NHS England"}
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<4.0.0"
 dependencies = []
 
 [build-system]
@@ -15,6 +15,10 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.6"
+
+[tool.poetry.group.aws-lambda.dependencies]
+aws-lambda-powertools = ">=3.11.0,<4.0.0"
+aws-xray-sdk = ">=2.14.0,<3.0.0"
 
 [tool.poetry.scripts]
 dos-gp-search-function = "functions.gp_search_function:lambda_handler"
