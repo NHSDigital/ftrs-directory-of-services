@@ -60,3 +60,20 @@ variable "read_only_viewer_log_group_name_prefix" {
   type        = string
   default     = "aws-waf-logs-"
 }
+
+variable "frontend_lambda_connection_timeout" {
+  description = "The connection timeout for the frontend lambda"
+  type        = number
+  default     = 30
+}
+
+variable "frontend_lambda_memory_size" {
+  description = "The memory size for the frontend lambda"
+  type        = number
+  default     = 256
+}
+
+variable "frontend_lambda_name" {
+  description = "The name of the frontend lambda"
+  type        = string
+}
