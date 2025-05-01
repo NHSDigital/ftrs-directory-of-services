@@ -116,15 +116,16 @@ class HealthcareService(DBModel):
         existing_identifier: UUID | str | None = None,
         created_datetime: datetime | None = None,
         updated_datetime: datetime | None = None,
-        org_id: UUID | str | None = None
+        organisation_id: UUID | str | None = None
     ) -> "Organisation":
         """
-        Create an Organisation instance from source DoS data.
+        Create an HealthcareService instance from source DoS data.
 
         :param data: The source data dictionary from the 'services' DoS table.
-        :param created_datetime: The datetime when the organisation was created.
-        :param updated_datetime: The datetime when the organisation was last updated.
-        :return: An Organisation instance.
+        :param created_datetime: The datetime when the service was created.
+        :param updated_datetime: The datetime when the service was last updated.
+        :param organisation_id: The organisation managing the service.
+        :return: An Service instance.
         """
         service_id = uuid4() or existing_identifier
         return HealthcareService(
@@ -132,7 +133,7 @@ class HealthcareService(DBModel):
             identifier_oldDoS_uid=data["uid"],
             active=True,
             category="unknown", # TODO: in future ticket we will map type to category
-            providedBy=org_id,
+            providedBy=organisation_id,
             location=None,
             name=data["name"],
             telecom={
