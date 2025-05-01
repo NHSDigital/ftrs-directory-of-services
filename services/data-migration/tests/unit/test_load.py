@@ -11,7 +11,6 @@ from pipeline.load import TABLE, get_table_name, load, save_to_table
 from pipeline.utils.file_io import PathType
 
 
-# TODO @marksp: same but for healthcare service
 def test_save_to_table_organisations(
     mocker: MockerFixture,
 ) -> None:

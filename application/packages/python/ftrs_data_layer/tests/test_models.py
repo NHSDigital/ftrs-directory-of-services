@@ -5,7 +5,7 @@ import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
-from ftrs_data_layer.models import Endpoint, HealthcareService, Location, Organisation
+from ftrs_data_layer.models import Endpoint, HealthcareService, Location, Organisation, Telecom
 
 
 def test_organisation() -> None:
@@ -391,4 +391,19 @@ def test_endpoint_from_dos_telno_transport() -> None:
         "service": None,
         "address": "01234567890",
         "order": 1,
+    }
+
+def test_telecom() -> None:
+    telecom = Telecom(
+        phone_public="00000000000",
+        phone_private="12345678901#EXT0123",
+        email="test@nhs.net",
+        web="ww.test.co.u"
+    )
+
+    assert telecom.model_dump(mode="json") == {
+        "phone_public": "00000000000",
+        "phone_private": "12345678901#EXT0123",
+        "email": "test@nhs.net",
+        "web": "ww.test.co.u"
     }
