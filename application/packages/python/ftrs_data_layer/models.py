@@ -84,19 +84,14 @@ class Organisation(DBModel):
 
 class Location(DBModel):
     active: bool
-    address_street: str
-    address_postcode: str
-    address_town: str
+    address: dict
     managingOrganisation: UUID
     name: str | None = None
-    positionGCS_latitude: float
-    positionGCS_longitude: float
-    positionGCS_easting: float
-    positionGCS_northing: float
+    positionGCS: dict | None = None
     positionReferenceNumber_UPRN: int | None = None
     positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
-    partOf: UUID | None
+    partOf: UUID | None = None
 
     @classmethod
     def from_dos(
@@ -127,7 +122,10 @@ class Location(DBModel):
                 "postcode": data["postcode"],
             },
             name=None,
-            positionGCS={"latitude": data["latitude"], "longitude": data["longitude"]},
+            positionGCS={
+                "latitude": str(data["latitude"]),
+                "longitude": str(data["longitude"])
+            },
             # TODO: defaulting will consider how to define for Fhir schema in future.
             #   but since this has the main ODSCode happy with this being set as True
             primaryAddress=True,

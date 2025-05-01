@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Annotated
 
 import pandas as pd
-from ftrs_data_layer.models import DBModel, HealthcareService, Organisation
+from ftrs_data_layer.models import DBModel, HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from typer import Option
 
@@ -15,6 +15,7 @@ from pipeline.utils.validators import validate_path
 class TABLE(Enum):
     ORGANISATION = "organisation"
     SERVICE = "healthcare-service"
+    LOCATION = "location"
 
 
 def get_model(table: TABLE) -> DBModel:
@@ -23,6 +24,8 @@ def get_model(table: TABLE) -> DBModel:
             return Organisation
         case TABLE.SERVICE:
             return HealthcareService
+        case TABLE.LOCATION:
+            return Location
 
 
 def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> str:
@@ -80,7 +83,7 @@ def load(
     path_type, input_path = validate_path(input, should_file_exist=True)
     gp_practice_df = read_parquet_file(path_type, input_path)
 
-    for table in [TABLE.ORGANISATION, TABLE.SERVICE]:
+    for table in [TABLE.ORGANISATION, TABLE.LOCATION, TABLE.SERVICE]:
         save_to_table(
             input_df=gp_practice_df,
             table=table,
