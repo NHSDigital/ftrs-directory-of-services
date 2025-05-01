@@ -7,10 +7,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "sqlalchemy (>=2.0.38,<3.0.0)",
-    "psycopg2-binary (>=2.9.10,<3.0.0)",
-]
+dependencies = []
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
