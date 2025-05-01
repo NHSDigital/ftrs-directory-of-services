@@ -159,7 +159,7 @@ def test_healthcare_service() -> None:
             phone_private="987654321",
             email="example@mail.com",
             web="www.example.com",
-        )
+        ),
     )
 
     assert hs.model_dump(mode="json") == {
@@ -180,7 +180,7 @@ def test_healthcare_service() -> None:
             "phone_private": "987654321",
             "email": "example@mail.com",
             "web": "www.example.com",
-        }
+        },
     }
 
 
