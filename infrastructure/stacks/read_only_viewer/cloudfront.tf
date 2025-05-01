@@ -5,4 +5,11 @@ module "read_only_viewer_cloudfront" {
   s3_bucket_id                   = module.read_only_viewer_bucket.s3_bucket_id
   comment                        = "CloudFront distribution for read-only viewer bucket"
   web_acl_id                     = aws_wafv2_web_acl.read_only_viewer_waf_web_acl.arn
+  lambda_function_association = [
+    {
+      event_type   = "origin-request"
+      lambda_arn   = module.frontend_lambda.lambda_arn
+      include_body = false
+    }
+  ]
 }

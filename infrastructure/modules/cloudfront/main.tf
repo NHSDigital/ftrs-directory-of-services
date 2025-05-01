@@ -41,6 +41,30 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     max_ttl                = var.max_ttl
   }
 
+  dynamic "ordered_cache_behavior" {
+    for_each = var.lambda_function_association
+
+    content {
+      target_origin_id       = "LambdaOrigin"
+      allowed_methods        = var.allowed_methods
+      cached_methods         = var.cached_methods
+      viewer_protocol_policy = "redirect-to-https"
+      min_ttl                = var.min_ttl
+      default_ttl            = var.default_ttl
+      max_ttl                = var.max_ttl
+      compress               = true
+      path_pattern           = "/"
+
+
+      lambda_function_association {
+        event_type   = ordered_cache_behavior.value.event_type
+        lambda_arn   = ordered_cache_behavior.value.lambda_arn
+        include_body = ordered_cache_behavior.value.include_body
+      }
+    }
+  }
+
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
