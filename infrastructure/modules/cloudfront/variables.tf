@@ -50,12 +50,7 @@ variable "web_acl_id" {
   default     = null
 }
 
-variable "lambda_function_association" {
-  description = "Lambda function association"
-  default     = []
-  type = list(object({
-    event_type   = string
-    lambda_arn   = string
-    include_body = optional(bool)
-  }))
+variable "frontend_function_url" {
+  description = "The function URL for the frontend"
+  default     = null
 }
