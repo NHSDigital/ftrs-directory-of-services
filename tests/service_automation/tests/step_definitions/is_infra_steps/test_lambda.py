@@ -1,6 +1,7 @@
 import pytest
 import boto3
 import subprocess
+import json
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper, invoke_function, get_lambda_name, check_function_exists
@@ -27,11 +28,15 @@ def confirm_lambda_exists(aws_lambda_client, project, lambda_function, stack, wo
     return lambda_name
 
 
-@when('I invoke the lambda')
+@when(('I invoke the lambda'), target_fixture='fLambda_payload')
 def invoke_lambda(aws_lambda_client, flambda_name, lambda_params = ""):
-    lambda_params = "test"
-    lambda_response = invoke_function(aws_lambda_client, flambda_name, lambda_params)
-    logger.debug("Lambda response: {}", lambda_response)
-    return lambda_response
+    lambda_payload = invoke_function(aws_lambda_client, flambda_name, lambda_params)
+    logger.debug("Lambda response: {}", lambda_payload)
+    return lambda_payload
 
-
+@then(parsers.parse('the lambda response contains the message "{message}"'))
+def lambda_response_message(fLambda_payload, message):
+    response_message = json.loads(fLambda_payload['body'])
+    response_message = response_message['message']
+    logger.debug("Lambda response_message: {}", response_message)
+    assert message == response_message

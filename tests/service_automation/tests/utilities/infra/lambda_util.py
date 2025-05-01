@@ -45,19 +45,16 @@ def invoke_function(self, function_name, function_params, get_log=False):
     try:
         response = self.lambda_client.invoke(
             FunctionName=function_name,
-            Payload=json.dumps(function_params),
+            Payload=json.dumps(function_params).encode('utf-8'),
             LogType="Tail" if get_log else "None",
         )
         logger.debug("Invoked function {}.", function_name)
-        payload = json.loads(response['Payload'].read())
-        statusCode = payload.get('statusCode')
-        message = payload.get('message')
-        results = payload.get('results')
+        payload = json.loads(response['Payload'].read().decode())
+        logger.debug("Payload {}.", payload)
     except ClientError:
         logger.debug("Couldn't invoke function {}.", function_name)
         raise
-    logger.debug("Response {}.", payload)
-    return results
+    return payload
 
 
 def get_lambda_name(self, project, workspace, env, stack, lambda_function):
