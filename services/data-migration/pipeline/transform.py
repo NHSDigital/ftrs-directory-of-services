@@ -32,7 +32,7 @@ def transform_gp_practices(
             data=row,
             created_datetime=current_timestamp,
             updated_datetime=current_timestamp,
-            org_id=organisation.id,
+            organisation_id=organisation.id,
         )
 
         gp_practices.append(

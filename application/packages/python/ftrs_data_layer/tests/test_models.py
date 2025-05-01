@@ -174,12 +174,53 @@ def test_healthcare_service() -> None:
     }
 
 
-def test_healthcare_service_from_dos() -> None:
-    with pytest.raises(
-        NotImplementedError,
-        match="HealthcareService.from_dos method is not implemented.",
-    ):
-        HealthcareService.from_dos(data={})
+@freeze_time("2023-10-01T00:00:00Z")
+def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
+    expected_created_datetime = datetime(2023, 10, 1, 0, 0, 0, tzinfo=UTC)
+    expected_modified_datetime = datetime(2023, 11, 1, 0, 0, 0, tzinfo=UTC)
+
+    mocker.patch(
+        "ftrs_data_layer.models.uuid4",
+        return_value="d5a852ef-12c7-4014-b398-661716a63027",
+    )
+
+    organisation_id = "9bb0f952-ab23-4398-a9b8-e2a6b3896107"
+
+    hs = HealthcareService.from_dos(
+        data={
+            "uid": "12345",
+            "name": "test GP consulting service",
+            "publicphone": "09876543210",
+            "nonpublicphone": "12345678901",
+            "email": "test@nhs.net",
+            "web": "abc.co.uk",
+            "type": "GP Practice"
+        },
+        created_datetime=expected_created_datetime,
+        updated_datetime=expected_modified_datetime,
+        organisation_id=organisation_id
+    )
+
+    assert hs.model_dump(mode="json") == {
+        "id": "d5a852ef-12c7-4014-b398-661716a63027",
+        "identifier_oldDoS_uid": "12345",
+        "active": True,
+        "category": "unknown",
+        "providedBy": organisation_id,
+        "location": None,
+        "createdBy": "ROBOT",
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "modifiedBy": "ROBOT",
+        "modifiedDateTime": "2023-11-01T00:00:00Z",
+        "name": "test GP consulting service",
+        "telecom": {
+            "phone_public": "09876543210",
+            "phone_private": "12345678901",
+            "email": "test@nhs.net",
+            "web": "abc.co.uk"
+        },
+        "type": "GP Practice",
+    }
 
 
 def test_location() -> None:
