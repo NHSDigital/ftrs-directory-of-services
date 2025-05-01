@@ -1,5 +1,5 @@
 resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
-  name        = var.read_only_viewer_waf_name
+  name        = "${local.resource_prefix}-${var.read_only_viewer_waf_name}${local.workspace_suffix}"
   description = "WAF Web ACL for read only viewer"
   scope       = var.read_only_viewer_waf_scope
 
