@@ -1,15 +1,13 @@
 import logging
 import re
-from typing import Annotated
 
 import requests
-from typer import Option
 
 STATUS_SUCCESSFUL = 200
 
 
 def extract(
-    date: Annotated[str, Option(..., help="last changed date format YYYY-MM-DD")],
+    date: str,
 ) -> None:
     """
     Extract GP practice data from the source and log it out.
