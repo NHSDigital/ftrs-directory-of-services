@@ -55,7 +55,6 @@ def save_to_table(
 
     logging.info(f"Loading {len(input_df)} {table.value}s into {table.value}")
     count = 0
-    print(input_df)
     for row in input_df.to_dict(orient="records"):
         if table.value in row:
             item = model.model_validate(row[table.value])
