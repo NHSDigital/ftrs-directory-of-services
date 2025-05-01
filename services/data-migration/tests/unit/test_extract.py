@@ -24,7 +24,7 @@ from tests.util.stub_data import (
     mock_gp_endpoints_A,
     mock_gp_endpoints_B,
     mock_gp_endpoints_C,
-    mock_gp_endpoints_formatted,
+    mock_gp_endpoints_formatted_A,
     mock_gp_endpoints_formatted_B,
     mock_gp_endpoints_formatted_C,
     mock_gp_practices_A,
@@ -120,7 +120,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
                     "serviceid": [1],
                     "endpoints": [
                         [
-                            mock_gp_endpoints_formatted,
+                            mock_gp_endpoints_formatted_A,
                             mock_gp_endpoints_formatted_B,
                         ]
                     ],
@@ -146,7 +146,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
                 {
                     "serviceid": [1, 2],
                     "endpoints": [
-                        [mock_gp_endpoints_formatted],
+                        [mock_gp_endpoints_formatted_A],
                         [mock_gp_endpoints_formatted_B, mock_gp_endpoints_formatted_C],
                     ],
                 }
@@ -171,7 +171,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
             pd.DataFrame(
                 {
                     "serviceid": [1],
-                    "endpoints": [[mock_gp_endpoints_formatted]],
+                    "endpoints": [[mock_gp_endpoints_formatted_A]],
                 }
             ),
             pd.DataFrame(
@@ -181,7 +181,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                         for k, v in mock_gp_practices_A.items()
                         if k != "serviceid"
                     },
-                    endpoints=[[mock_gp_endpoints_formatted]],
+                    endpoints=[[mock_gp_endpoints_formatted_A]],
                 )
             ),
         ),
@@ -191,7 +191,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                 {
                     "serviceid": [1, 2],
                     "endpoints": [
-                        [mock_gp_endpoints_formatted],
+                        [mock_gp_endpoints_formatted_A],
                         [mock_gp_endpoints_formatted_B],
                     ],
                 }
@@ -204,7 +204,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                         if key != "serviceid"
                     },  # Remove service id
                     endpoints=[
-                        [mock_gp_endpoints_formatted],
+                        [mock_gp_endpoints_formatted_A],
                         [mock_gp_endpoints_formatted_B],
                     ],  # add on endpoints column
                 )
@@ -215,7 +215,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
             pd.DataFrame(
                 {
                     "serviceid": [2],
-                    "endpoints": [[mock_gp_endpoints_formatted]],
+                    "endpoints": [[mock_gp_endpoints_formatted_A]],
                 }
             ),
             pd.DataFrame(

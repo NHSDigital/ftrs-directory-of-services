@@ -72,7 +72,7 @@ mock_gp_endpoints_C = {
     "serviceid": 2,
 }
 
-mock_gp_endpoints_formatted = {
+mock_gp_endpoints_formatted_A = {
     "id": 1,
     "endpointorder": 1,
     "transport": "email",
@@ -164,7 +164,7 @@ extracted_GP_Practice = {
     "nonpublicphone": "12345678901",
     "email": "test@nhs.net",
     "web": "www.test.co.uk",
-    "endpoints": [[mock_gp_endpoints_formatted]],
+    "endpoints": [[mock_gp_endpoints_formatted_A]],
 }
 
 transformed_GP_Practice_Org = {
