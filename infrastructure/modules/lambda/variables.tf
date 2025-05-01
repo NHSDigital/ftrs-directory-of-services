@@ -100,3 +100,8 @@ variable "s3_bucket_name" {
 variable "s3_key" {
   description = "S3 key (path) to the Lambda package inside the S3 bucket"
 }
+
+variable "lambda_at_edge" {
+  description = "Whether the Lambda function is a Lambda@Edge function"
+  default     = false
+}
