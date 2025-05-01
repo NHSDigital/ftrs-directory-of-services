@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Annotated
 
 import requests
@@ -31,6 +32,23 @@ def extract(
                 )
                 ods_code_reponse = requests.get(org_url)
                 logging.info(f"Extracted data: {ods_code_reponse.text}")
+        else:
+            logging.exception(f"Unexpected error: {response}")
 
     except requests.exceptions.RequestException:
         logging.exception("Error fetching data")
+
+
+def lambda_handler(event: any, context: any) -> None:
+    try:
+        date = event.get("date")
+        if not date:
+            return {"statusCode": 400, "body": ("Date parameter is required")}
+        date_pattern = r"^\d{4}-\d{2}-\d{2}$"
+        if not re.match(date_pattern, date):
+            return {"statusCode": 400, "body": "Date must be in YYYY-MM-DD format"}
+
+        extract(date=event["date"])
+    except Exception as e:
+        logging.info(f"Unexpected error: {e}")
+        return {"statusCode": 500, "body": f"Unexpected error: {e}"}

@@ -4,9 +4,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from pipeline.processor import extract
+from pipeline.processor import extract, lambda_handler
 
 STATUS_SUCCESSFUL = 200
+STATUS_UNEXPECTED_ERROR = 500
 
 
 @pytest.fixture
@@ -67,3 +68,30 @@ def test_extract_request_exception(caplog: any) -> None:
 
         mock_get.assert_called_once()
         assert "Error fetching data" in caplog.text
+
+
+def test_lambda_handler_success() -> None:
+    """Test lambda_handler with valid date parameter"""
+    with patch("pipeline.processor.extract") as mock_extract:
+        event = {"date": "2025-02-02"}
+        context = {}
+        result = lambda_handler(event, context)
+
+        mock_extract.assert_called_once_with(date="2025-02-02")
+        assert result is None
+
+
+def test_lambda_handler_exception() -> None:
+    """Test lambda_handler when extract raises an exception"""
+    with patch("pipeline.processor.extract") as mock_extract:
+        with patch("logging.info") as mock_logging:
+            mock_extract.side_effect = Exception("Test error")
+            event = {"date": "2025-02-02"}
+            context = {}
+            result = lambda_handler(event, context)
+
+            mock_extract.assert_called_once_with(date="2025-02-02")
+            mock_logging.assert_called_once()
+            assert "Unexpected error" in mock_logging.call_args[0][0]
+            assert result["statusCode"] == STATUS_UNEXPECTED_ERROR
+            assert "Unexpected error: Test error" in result["body"]
