@@ -99,6 +99,12 @@ class Location(DBModel):
     partOf: UUID | None
 
 
+class Telecom(BaseModel):
+    phone_public: str | None
+    phone_private: str | None
+    email: str | None
+    web: str | None
+
 class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
@@ -106,7 +112,7 @@ class HealthcareService(DBModel):
     providedBy: UUID | None
     location: UUID | None
     name: str
-    telecom: dict | None
+    telecom: Telecom | None
     type: str
 
     @classmethod
@@ -136,12 +142,12 @@ class HealthcareService(DBModel):
             providedBy=organisation_id,
             location=None,
             name=data["name"],
-            telecom={
-                "phone_public": data["publicphone"],
-                "phone_private": data["nonpublicphone"],
-                "email": data["email"],
-                "web": data["web"]
-            },
+            telecom=Telecom(
+                phone_public=data["publicphone"],
+                phone_private=data["nonpublicphone"],
+                email=data["email"],
+                web=data["web"]
+            ),
             type=data["type"],
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
