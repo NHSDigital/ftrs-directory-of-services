@@ -12,8 +12,6 @@ module "frontend_lambda" {
   ignore_source_code_hash = false
   timeout                 = var.frontend_lambda_connection_timeout
   memory_size             = var.frontend_lambda_memory_size
-  publish                 = true
-  lambda_at_edge          = true
 
   number_of_policy_jsons = "0"
   policy_jsons           = []
@@ -21,4 +19,10 @@ module "frontend_lambda" {
   subnet_ids             = null
   layers                 = []
   environment_variables  = {}
+}
+
+
+resource "aws_lambda_function_url" "frontend_lambda_url" {
+  function_name      = module.frontend_lambda.lambda_name
+  authorization_type = "NONE"
 }

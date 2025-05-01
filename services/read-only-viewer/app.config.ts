@@ -1,5 +1,7 @@
 import { defineConfig } from '@tanstack/react-start/config'
 import tsConfigPaths from 'vite-tsconfig-paths'
+import { type CustomFunction, Logger } from 'sass';
+
 
 export default defineConfig({
   tsr: {
@@ -11,7 +13,14 @@ export default defineConfig({
         projects: ['./tsconfig.json'],
       })
     ],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          logger: Logger.silent
+        }
 
+      }
+    }
   },
   server: {
     preset: "aws-lambda",
