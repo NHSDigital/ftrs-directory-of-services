@@ -17,53 +17,62 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     origin_id                = "S3Origin"
   }
 
+  origin {
+    domain_name = replace(replace(var.frontend_function_url, "https://", ""), "/", "")
+    origin_id   = "LambdaOrigin"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "https-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
   enabled             = true
   is_ipv6_enabled     = true
   comment             = var.comment
   default_root_object = var.default_root_object
 
   default_cache_behavior {
-    allowed_methods  = var.allowed_methods
-    cached_methods   = var.cached_methods
-    target_origin_id = "S3Origin"
+    allowed_methods        = var.allowed_methods
+    cached_methods         = var.cached_methods
+    target_origin_id       = "LambdaOrigin"
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = var.min_ttl
+    default_ttl            = var.default_ttl
+    max_ttl                = var.max_ttl
+    compress               = true
+
 
     forwarded_values {
-      query_string = false
+      query_string = true
+
+      cookies {
+        forward = "all"
+      }
+    }
+  }
+
+  ordered_cache_behavior {
+    path_pattern           = "/_build/*"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "S3Origin"
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = var.min_ttl
+    default_ttl            = var.default_ttl
+    max_ttl                = var.max_ttl
+    compress               = true
+
+    forwarded_values {
+      query_string = true
 
       cookies {
         forward = "none"
       }
     }
-
-    viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = var.min_ttl
-    default_ttl            = var.default_ttl
-    max_ttl                = var.max_ttl
   }
-
-  dynamic "ordered_cache_behavior" {
-    for_each = var.lambda_function_association
-
-    content {
-      target_origin_id       = "LambdaOrigin"
-      allowed_methods        = var.allowed_methods
-      cached_methods         = var.cached_methods
-      viewer_protocol_policy = "redirect-to-https"
-      min_ttl                = var.min_ttl
-      default_ttl            = var.default_ttl
-      max_ttl                = var.max_ttl
-      compress               = true
-      path_pattern           = "/"
-
-
-      lambda_function_association {
-        event_type   = ordered_cache_behavior.value.event_type
-        lambda_arn   = ordered_cache_behavior.value.lambda_arn
-        include_body = ordered_cache_behavior.value.include_body
-      }
-    }
-  }
-
 
   restrictions {
     geo_restriction {

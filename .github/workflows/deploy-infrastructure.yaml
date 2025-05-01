@@ -70,6 +70,7 @@ jobs:
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
+
     outputs:
       plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
     steps:

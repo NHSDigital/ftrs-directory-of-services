@@ -40,9 +40,9 @@ publish:
 	aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION)
 
 deploy:
-	aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-$(APPLICATION_TAG).zip .
+	aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
 	unzip $(SERVICE)-$(APPLICATION_TAG).zip -d ${TEMP_DIRECTORY}
-	aws s3 cp $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/ --recursive
+	aws s3 sync $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/
 
 invalidate-cloudfront-cache:
 	@echo "CLOUDFRONT_DISTRIBUTION_ID: $(CLOUDFRONT_DISTRIBUTION_ID)"
