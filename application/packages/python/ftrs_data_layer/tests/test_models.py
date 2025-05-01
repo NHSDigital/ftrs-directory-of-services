@@ -154,10 +154,12 @@ def test_healthcare_service() -> None:
         modifiedBy="test_user",
         modifiedDateTime="2023-10-01T00:00:00Z",
         name="Test Healthcare Service",
-        telecom_phone_public="123456789",
-        telecom_phone_private="987654321",
-        telecom_email="example@mail.com",
-        telecom_web="www.example.com",
+        telecom=Telecom(
+            phone_public="123456789",
+            phone_private="987654321",
+            email="example@mail.com",
+            web="www.example.com",
+        )
     )
 
     assert hs.model_dump(mode="json") == {
@@ -173,10 +175,12 @@ def test_healthcare_service() -> None:
         "modifiedBy": "test_user",
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "name": "Test Healthcare Service",
-        "telecom_phone_public": "123456789",
-        "telecom_phone_private": "987654321",
-        "telecom_email": "example@mail.com",
-        "telecom_web": "www.example.com",
+        "telecom": {
+            "phone_public": "123456789",
+            "phone_private": "987654321",
+            "email": "example@mail.com",
+            "web": "www.example.com",
+        }
     }
 
 
