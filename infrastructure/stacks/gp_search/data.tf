@@ -22,6 +22,6 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
-data "aws_security_group" "rds_security_group" {
-  name = "${var.project}-${var.environment}-${var.data_migration_stack}-rds-sg"
+data "aws_dynamodb_table" "gp_search_dynamodb_table" {
+  name = var.dynamodb_table_name
 }
