@@ -1,10 +1,11 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
-export const createRouter = (options?: { scrollRestoration?: boolean }) => {
+export const createRouter = () => {
   const router = createTanStackRouter({
     routeTree,
-    ...options,
+    defaultPreload: "intent",
+    scrollRestoration: true,
   });
 
   return router;
