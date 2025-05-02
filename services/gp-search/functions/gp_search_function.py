@@ -1,8 +1,8 @@
-import json
 import logging
 import os
 
 import boto3
+from boto3.dynamodb.conditions import Key
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_xray_sdk.core import patch_all, xray_recorder
 
@@ -20,30 +20,30 @@ table = dynamodb.Table(table_name)
 
 
 @xray_recorder.capture("lambda_handler")
-@logger.inject_lambda_context
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
     logger.info("Received event: %s", event)
 
-    xray_recorder.put_annotation("Operation", "ScanTable")
+    xray_recorder.put_annotation("Operation", "QueryTable")
     xray_recorder.put_metadata("TableName", table_name)
 
     try:
         with xray_recorder.in_subsegment("DynamoDBScan"):
-            response = table.scan()
+            response = table.query(
+                IndexName = 'ods-code-index',
+                KeyConditionExpression = Key('ods-code').eq('P83010')
+                )
             items = response.get("Items", [])
 
         logger.info("Fetched %d items from table %s.", len(items), table_name)
 
         return {
             "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(items),
+            "body": items
         }
     except Exception as e:
         logging.exception("Failed to gather items from table")
         xray_recorder.put_annotation("Error", str(e))
         return {
             "statusCode": 500,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"error": str(e)}),
+            "body": str(e)
         }
