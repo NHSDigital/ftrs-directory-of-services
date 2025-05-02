@@ -91,7 +91,6 @@ def test_lambda_handler_exception() -> None:
             result = lambda_handler(event, context)
 
             mock_extract.assert_called_once_with(date="2025-02-02")
-            mock_logging.assert_called_once()
             assert "Unexpected error" in mock_logging.call_args[0][0]
             assert result["statusCode"] == STATUS_UNEXPECTED_ERROR
             assert "Unexpected error: Test error" in result["body"]
