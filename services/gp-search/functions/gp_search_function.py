@@ -27,7 +27,7 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
     xray_recorder.put_metadata("TableName", table_name)
 
     try:
-        with xray_recorder.in_subsegment("DynamoDBScan"):
+        with xray_recorder.in_subsegment("DynamoDBQuery"):
             response = table.query(
                 IndexName="ods-code-index",
                 KeyConditionExpression=Key("ods-code").eq("P83010"),
