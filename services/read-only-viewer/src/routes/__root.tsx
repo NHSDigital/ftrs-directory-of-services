@@ -1,4 +1,9 @@
-import { HeadContent, Outlet, createRootRoute } from "@tanstack/react-router";
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRoute,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Container, Footer, Header } from "nhsuk-react-components";
 import type { PropsWithChildren } from "react";
@@ -6,6 +11,12 @@ import appStylesUrl from "../styles/App.scss?url";
 
 export const Route = createRootRoute({
   head: () => ({
+    meta: [
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1.0",
+      },
+    ],
     links: [
       {
         rel: "stylesheet",
@@ -15,13 +26,18 @@ export const Route = createRootRoute({
     ],
   }),
   component: () => (
-    <>
-      <HeadContent />
-      <RootDocument>
-        <Outlet />
-      </RootDocument>
-      <TanStackRouterDevtools />
-    </>
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <RootDocument>
+          <Outlet />
+        </RootDocument>
+        <TanStackRouterDevtools />
+        <Scripts />
+      </body>
+    </html>
   ),
   notFoundComponent: () => (
     <>
@@ -34,22 +50,26 @@ export const Route = createRootRoute({
   ),
 });
 
-const RootDocument: React.FC<PropsWithChildren> = ({ children }) => (
-  <>
-    <Header transactional>
-      <Header.Container>
-        <Header.Logo href="/" />
-        <Header.ServiceName href="/">FtRS Read-Only Viewer</Header.ServiceName>
-      </Header.Container>
-    </Header>
-    <Container className="ftrs-page-container">{children}</Container>
-    <Footer>
-      <Footer.List>
-        <Footer.ListItem href="/">Home</Footer.ListItem>
-      </Footer.List>
-      <Footer.Copyright>
-        &copy; {new Date().getFullYear()} NHS England
-      </Footer.Copyright>
-    </Footer>
-  </>
-);
+const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <>
+      <Header transactional>
+        <Header.Container>
+          <Header.Logo href="/" />
+          <Header.ServiceName href="/">
+            FtRS Read-Only Viewer
+          </Header.ServiceName>
+        </Header.Container>
+      </Header>
+      <Container className="ftrs-page-container">{children}</Container>
+      <Footer>
+        <Footer.List>
+          <Footer.ListItem href="/">Home</Footer.ListItem>
+        </Footer.List>
+        <Footer.Copyright>
+          &copy; {new Date().getFullYear()} NHS England
+        </Footer.Copyright>
+      </Footer>
+    </>
+  );
+};

@@ -1,7 +1,6 @@
 import { defineConfig } from '@tanstack/react-start/config'
 import tsConfigPaths from 'vite-tsconfig-paths'
-import { type CustomFunction, Logger } from 'sass';
-
+import { Logger } from 'sass';
 
 export default defineConfig({
   tsr: {
