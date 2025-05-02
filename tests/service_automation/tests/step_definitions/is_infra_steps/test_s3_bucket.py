@@ -21,6 +21,12 @@ def fetch_s3_buckets(aws_s3_client):
     logger.info("Fetching list of S3 buckets...")
     return aws_s3_client.list_buckets()
 
+@given("I am authenticated with AWS CLI")
+def check_aws_access():
+    """Ensure AWS CLI authentication works"""
+    result = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True)
+    logger.debug("AWS CLI Authenticate", result.returncode)
+    assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
 
 @given(parsers.parse('I can see the S3 bucket "{bucket}" for stack "{stack}"'), target_fixture='fbucket_name')
 def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, env):
