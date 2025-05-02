@@ -9,7 +9,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 module "lambda" {
   source                 = "github.com/NHSDigital/ftrs-directory-of-services/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
-  description            = "GP search Lambda"
+  description            = "This lambda provides search logic to returns an organisation and its endpoints"
   handler                = "functions/gp_search_function.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
@@ -33,7 +33,7 @@ module "lambda" {
     "ENVIRONMENT"         = var.environment
     "PROJECT_NAME"        = var.project
     "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
-    "DYNAMODB_TABLE_NAME" = var.dynamodb_table_name
+    "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
   }
 }
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {

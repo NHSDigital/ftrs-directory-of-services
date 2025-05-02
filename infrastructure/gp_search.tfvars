@@ -10,7 +10,7 @@ lambda_timeout     = 900
 lambda_memory_size = 512
 
 #DynamoDB
-dynamodb_table_name = "ftrs-dos-dev-database-organisation-is"
+dynamodb_organisation_table_name = "ftrs-dos-dev-database-organisation-is"
 
 # Dependency layers
 aws_lambda_layers = [
