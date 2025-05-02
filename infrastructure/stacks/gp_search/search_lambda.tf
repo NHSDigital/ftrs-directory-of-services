@@ -7,7 +7,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 module "lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services/infrastructure/modules/lambda"
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ebe96e5/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
   description            = "This lambda provides search logic to returns an organisation and its endpoints"
   handler                = "functions/gp_search_function.lambda_handler"
