@@ -3,8 +3,6 @@ from uuid import uuid4
 
 import pytest
 from freezegun import freeze_time
-from pytest_mock import MockerFixture
-
 from ftrs_data_layer.models import (
     Endpoint,
     HealthcareService,
@@ -12,6 +10,7 @@ from ftrs_data_layer.models import (
     Organisation,
     Telecom,
 )
+from pytest_mock import MockerFixture
 
 
 def test_organisation() -> None:
