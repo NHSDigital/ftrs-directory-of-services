@@ -1,7 +1,7 @@
 ENVIRONMENT ?= mgmt
 SERVICE ?= read-only-viewer
 BUILD_DIR := ../../build/services/${SERVICE}
-ARTEFACT_BUCKET := ${REPO_NAME}-${ENVIRONMENT}-artefacts-bucket
+ARTEFACT_BUCKET := ${REPO_NAME}-mgmt-artefacts-bucket
 TEMP_DIRECTORY ?= ./temp
 DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),$(if $(filter default,$(WORKSPACE)),,-$(WORKSPACE)),)
 DEPLOYMENT_BUCKET ?= ftrs-dos-${DEPLOYMENT_ENVIRONMENT}-${SERVICE}-frontend-bucket${DEPLOYMENT_WORKSPACE}
