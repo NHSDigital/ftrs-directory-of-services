@@ -29,19 +29,17 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
     try:
         with xray_recorder.in_subsegment("DynamoDBScan"):
             response = table.query(
-                IndexName = 'ods-code-index',
-                KeyConditionExpression = Key('ods-code').eq('P83010')
+                IndexName="ods-code-index",
+                KeyConditionExpression=Key("ods-code").eq("P83010"),
             )
 
-        logger.info("Fetched %d items from table %s.", len(response.get("Items", [])), table_name)
-        return {
-            "statusCode": 200,
-            "body": response.get("Items", [])
-        }
+        logger.info(
+            "Fetched %d items from table %s.",
+            len(response.get("Items", [])),
+            table_name,
+        )
+        return {"statusCode": 200, "body": response.get("Items", [])}
     except Exception as e:
         logging.exception("Failed to gather items from table")
         xray_recorder.put_annotation("Error", str(e))
-        return {
-            "statusCode": 500,
-            "body": str(e)
-        }
+        return {"statusCode": 500, "body": str(e)}
