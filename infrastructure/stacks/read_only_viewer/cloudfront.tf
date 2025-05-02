@@ -36,7 +36,7 @@ module "read_only_viewer_cloudfront" {
 
   default_cache_behavior = {
     target_origin_id       = "lambda_function"
-    allowed_methods        = ["GET", "HEAD", "POST", "OPTIONS"]
+    allowed_methods        = ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
     compress               = true
     query_string           = true
