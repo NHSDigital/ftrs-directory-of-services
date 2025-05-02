@@ -32,6 +32,11 @@ class S3Utils:
         return exists
 
     def get_bucket(self, project, workspace, env, stack, bucket):
+        """
+        Structures the full s3 bucket name based on the project, workspace, environment, stack
+        and bucket.
+        :return: The full bucket name.
+        """
         logger.debug(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
         if workspace == "":
             bucket_name = project + "-" + env + "-" + stack + "-" + bucket

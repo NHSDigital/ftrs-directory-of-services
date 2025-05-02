@@ -41,6 +41,11 @@ def invoke_function(self, function_name, function_params, get_log=False):
 
 
 def get_lambda_name(self, project, workspace, env, stack, lambda_function):
+    """
+    Structures the lambda function name based on the project, workspace, environment, stack
+    and lambda function name.
+    :return: The lambda function name.
+    """
     logger.debug(f"project: {project},  lambda_function: {lambda_function}, stack: {stack}, env: {env}, workspace: {workspace}")
     if workspace == "":
         lambda_name = project + "-" + env + "-" + stack + "-" + lambda_function
