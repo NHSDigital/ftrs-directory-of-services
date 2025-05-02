@@ -623,7 +623,6 @@ def test_dynamodb_batch_write_unprocessed_items(
     ]
 
 
-
 def test_dynamodb_scan() -> None:
     """
     Test that the _scan method calls the DynamoDB resource
