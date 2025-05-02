@@ -45,12 +45,14 @@ def invoke_function(self, function_name, function_params, get_log=False):
     try:
         response = self.lambda_client.invoke(
             FunctionName=function_name,
-            Payload=json.dumps(function_params).encode('utf-8'),
+            Payload=json.dumps(function_params).encode("utf-8"),
             LogType="Tail" if get_log else "None",
         )
         logger.debug("Invoked function {}.", function_name)
         payload = json.loads(response['Payload'].read().decode())
-        logger.debug("Payload {}.", payload)
+        # payload = response["Payload"].read().decode()
+        status_code = payload["body"]
+        logger.debug("payload {}.", status_code)
     except ClientError:
         logger.debug("Couldn't invoke function {}.", function_name)
         raise
