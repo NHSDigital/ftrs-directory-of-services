@@ -6,4 +6,4 @@ Background: Check lambda function exists
 
   Scenario: Invoke lambda
   When I invoke the lambda
-  Then the lambda response contains the odscode "P83010"
+  Then the lambda response contains the ods code "P83010"

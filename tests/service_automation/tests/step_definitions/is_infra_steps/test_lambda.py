@@ -1,14 +1,12 @@
 import pytest
 import boto3
-import subprocess
-import json
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper, invoke_function, get_lambda_name, check_function_exists
 from utilities.infra.s3 import S3Utils
 
 # Load feature file
-scenarios("./is_infra_features/test_lambda.feature")
+scenarios("./is_infra_features/lambda.feature")
 
 
 @pytest.fixture(scope="module")
@@ -31,14 +29,13 @@ def confirm_lambda_exists(aws_lambda_client, project, lambda_function, stack, wo
 @when(('I invoke the lambda'), target_fixture='fLambda_payload')
 def invoke_lambda(aws_lambda_client, flambda_name, lambda_params = ""):
     lambda_payload = invoke_function(aws_lambda_client, flambda_name, lambda_params)
-    # logger.debug("Lambda response: {}", lambda_payload)
     return lambda_payload
 
-@then(parsers.parse('the lambda response contains the odscode "{odscode}"'))
+
+@then(parsers.parse('the lambda response contains the ods code "{odscode}"'))
 def lambda_response_message(fLambda_payload, odscode):
-    # response_message = json.loads(fLambda_payload['ods-code'])
     response_status = fLambda_payload['statusCode']
-    response_odscode= fLambda_payload['body'][0]['ods-code']
+    response_odscode = fLambda_payload['body'][0]['ods-code']
     logger.debug("Lambda response_message: {}", response_odscode)
     assert response_status == 200
     assert response_odscode == odscode

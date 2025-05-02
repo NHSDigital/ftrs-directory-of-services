@@ -38,6 +38,11 @@ class S3Utils:
         return exists
 
     def get_bucket(self, project, workspace, env, stack, bucket):
+        """
+        Structures the full s3 bucket name based on the project, workspace, environment, stack
+        and bucket.
+        :return: The full bucket name.
+        """
         logger.debug(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
         if workspace == "":
             bucket_name = project + "-" + env + "-" + stack + "-" + bucket
@@ -46,18 +51,43 @@ class S3Utils:
         return bucket_name
 
     def get_object(self, bucket_name, filename):
-        response = self.s3_client.get_object(
-            Bucket=bucket_name,
-            Key=filename,
-        )
-        file_data = response["Body"].read().decode("utf-8")
+        """
+        Connects to the S3 bucket, retrieves the file and returns the file data
+        :return: The csv file data.
+        """
+        try:
+            response = self.s3_client.get_object(
+                Bucket=bucket_name,
+                Key=filename,
+            )
+            file_data = response["Body"].read().decode("utf-8")
+        except Exception:
+            logger.error("Error: file not found")
         return file_data
 
     def download_object(self, bucket_name, filepath, filename):
-        self.s3_client.download_file(Bucket=bucket_name, Key=filename, Filename=filepath)
+        """
+        Connects to the S3 bucket and downloads the file
+        """
+        try:
+            self.s3_client.download_file(Bucket=bucket_name, Key=filename, Filename=filepath)
+        except Exception:
+            logger.error("Error: file could not be downloaded")
 
     def put_object(self, bucket_name, filepath, file_name):
-        self.s3_client.upload_file(Filename=filepath, Bucket=bucket_name, Key=file_name)
+        """
+        Connects to the S3 bucket and uploads the file
+        """
+        try:
+            self.s3_client.upload_file(Filename=filepath, Bucket=bucket_name, Key=file_name)
+        except Exception:
+            logger.error("Error: file could not be uploaded")
 
     def delete_object(self, bucket_name, filename):
-        self.s3_client.delete_object(Bucket=bucket_name, Key=filename)
+        """"
+        Connects to the S3 bucket and uploads the file
+        """
+        try:
+            self.s3_client.delete_object(Bucket=bucket_name, Key=filename)
+        except Exception:
+            logger.error("Error: file could not be deleted")

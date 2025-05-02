@@ -20,7 +20,6 @@ def get_function(self, function_name):
             response = self.lambda_client.get_function(FunctionName=function_name)
         except ClientError as err:
             if err.response["Error"]["Code"] == "ResourceNotFoundException":
-                print("Function {} does not exist.", function_name)
                 logger.debug("Function{} does not exist.", function_name)
             else:
                 logger.debug("Couldn't get function {} Here's why: {}: {}",
@@ -38,20 +37,15 @@ def invoke_function(self, function_name, function_params, get_log=False):
     :param function_name: The name of the function to invoke.
     :param function_params: The parameters of the function as a dict. This dict
                             is serialized to JSON before it is sent to Lambda.
-    :param get_log: When true, the last 4 KB of the execution log are included in
-                    the response.
     :return: The response from the function invocation.
     """
     try:
         response = self.lambda_client.invoke(
             FunctionName=function_name,
-            Payload=json.dumps(function_params).encode("utf-8"),
-            LogType="Tail" if get_log else "None",
+            Payload=json.dumps(function_params).encode("utf-8")
         )
         logger.debug("Invoked function {}.", function_name)
         payload = json.loads(response['Payload'].read().decode())
-        status_code = payload["body"][0]["ods-code"]
-        logger.debug("status_code {}.", status_code)
     except ClientError:
         logger.debug("Couldn't invoke function {}.", function_name)
         raise
@@ -59,6 +53,11 @@ def invoke_function(self, function_name, function_params, get_log=False):
 
 
 def get_lambda_name(self, project, workspace, env, stack, lambda_function):
+    """
+    Structures the lambda function name based on the project, workspace, environment, stack
+    and lambda function name.
+    :return: The lambda function name.
+    """
     logger.debug(f"project: {project},  lambda_function: {lambda_function}, stack: {stack}, env: {env}, workspace: {workspace}")
     if workspace == "":
         lambda_name = project + "-" + env + "-" + stack + "-" + lambda_function
@@ -77,6 +76,6 @@ def check_function_exists(self, lambda_name):
         get_function(self, lambda_name)
         exists = True
     except Exception:
-        logger.error("Error: bucket not found")
+        logger.error("Error: function not found")
         exists = False
     return exists
