@@ -3,6 +3,9 @@ import re
 
 import requests
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 STATUS_SUCCESSFUL = 200
 
 
@@ -28,7 +31,7 @@ def extract(
                     + url.split("organisations/")[1]
                     + "?"
                 )
-                ods_code_reponse = requests.get(org_url)
+                ods_code_reponse = requests.get(org_url, timeout=20)
                 logging.info(f"Extracted data: {ods_code_reponse.text}")
         else:
             logging.exception(f"Unexpected error: {response}")
@@ -38,6 +41,7 @@ def extract(
 
 
 def lambda_handler(event: any, context: any) -> None:
+    logging.info("Executing lambda handler")
     try:
         date = event.get("date")
         if not date:
