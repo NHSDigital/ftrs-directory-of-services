@@ -2,6 +2,7 @@ import logging
 import os
 
 import boto3
+from boto3.dynamodb.conditions import Key
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_xray_sdk.core import patch_all, xray_recorder
 from boto3.dynamodb.conditions import Key
