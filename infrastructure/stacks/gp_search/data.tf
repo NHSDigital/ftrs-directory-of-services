@@ -23,5 +23,5 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_dynamodb_table" "gp_search_dynamodb_table" {
-  name = var.dynamodb_table_name
+  name = var.dynamodb_organisation_table_name
 }
