@@ -6,4 +6,4 @@ Background: Check lambda function exists
 
   Scenario: Invoke lambda
   When I invoke the lambda
-  Then the lambda response contains the message "Database connection successful"
+  Then the lambda response contains the odscode "P83010"

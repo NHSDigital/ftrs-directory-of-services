@@ -50,9 +50,8 @@ def invoke_function(self, function_name, function_params, get_log=False):
         )
         logger.debug("Invoked function {}.", function_name)
         payload = json.loads(response['Payload'].read().decode())
-        # payload = response["Payload"].read().decode()
-        status_code = payload["body"]
-        logger.debug("payload {}.", status_code)
+        status_code = payload["body"][0]["ods-code"]
+        logger.debug("status_code {}.", status_code)
     except ClientError:
         logger.debug("Couldn't invoke function {}.", function_name)
         raise

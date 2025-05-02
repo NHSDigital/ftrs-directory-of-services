@@ -34,11 +34,11 @@ def invoke_lambda(aws_lambda_client, flambda_name, lambda_params = ""):
     # logger.debug("Lambda response: {}", lambda_payload)
     return lambda_payload
 
-@then(parsers.parse('the lambda response contains the message "{message}"'))
-def lambda_response_message(fLambda_payload, message):
-    # response_status = json.loads(fLambda_payload['statusCode'])
+@then(parsers.parse('the lambda response contains the odscode "{odscode}"'))
+def lambda_response_message(fLambda_payload, odscode):
+    # response_message = json.loads(fLambda_payload['ods-code'])
     response_status = fLambda_payload['statusCode']
-    response_message = fLambda_payload['body']
-    logger.debug("Lambda response_message: {}", response_status)
+    response_odscode= fLambda_payload['body'][0]['ods-code']
+    logger.debug("Lambda response_message: {}", response_odscode)
     assert response_status == 200
-    # assert message == response_message
+    assert response_odscode == odscode
