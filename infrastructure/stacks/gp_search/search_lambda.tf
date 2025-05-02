@@ -67,7 +67,8 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:Query"
     ]
     resources = [
-      "${data.aws_dynamodb_table.gp_search_dynamodb_table.arn}/*"
+      "${data.aws_dynamodb_table.dynamodb_organisation_table.arn}/",
+      "${data.aws_dynamodb_table.dynamodb_organisation_table.arn}/*"
     ]
   }
 }
