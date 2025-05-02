@@ -18,7 +18,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DEPENDENCY_DIR)
 
-install:
+config:
 	make _install-dependencies
 	poetry install --no-interaction
 
@@ -56,6 +56,17 @@ publish:
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
 
+# ==============================================================================
+
+_install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
+	echo ${name}
+	asdf plugin add ${name} ||:
+	asdf install ${name} $(or ${version},)
+
+_install-dependencies: # Install all the dependencies listed in .tool-versions
+	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
+		make _install-dependency name="$${plugin}"; \
+	done
 
 # ==============================================================================
 
