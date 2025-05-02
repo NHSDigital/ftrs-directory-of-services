@@ -7,7 +7,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 module "lambda" {
-  source                 = "../../modules/lambda"
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
   description            = "GP search Lambda"
   handler                = "functions/gp_search_function.lambda_handler"
@@ -63,14 +63,11 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
     effect = "Allow"
     actions = [
       "dynamodb:GetItem",
-      "dynamodb:PutItem",
-      "dynamodb:UpdateItem",
-      "dynamodb:DeleteItem",
       "dynamodb:Scan",
       "dynamodb:Query"
     ]
     resources = [
-      "${data.aws_dynamodb_table.gp_search_dynamodb_table.arn}"
+      "${data.aws_dynamodb_table.gp_search_dynamodb_table.arn}/*"
     ]
   }
 }
