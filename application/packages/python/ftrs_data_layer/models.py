@@ -165,7 +165,7 @@ class HealthcareService(DBModel):
     type: str
 
     @classmethod
-    def from_dos(
+    def from_dos(  # noqa: PLR0913
         cls,
         data: dict,
         existing_identifier: UUID | str | None = None,
