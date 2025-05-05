@@ -3,16 +3,29 @@ from unittest.mock import call
 
 import pandas as pd
 import pytest
-from ftrs_data_layer.models import HealthcareService, Organisation
+from ftrs_data_layer.models import DBModel, HealthcareService, Location, Organisation
 from pytest_mock import MockerFixture
 
 from pipeline.constants import TargetEnvironment
 from pipeline.load import TABLE, get_table_name, load, save_to_table
 from pipeline.utils.file_io import PathType
+from tests.unit.test_transform import (
+    transformed_GP_Practice_HS,
+    transformed_GP_Practice_Loc,
+    transformed_GP_Practice_Org,
+)
 
 
-def test_save_to_table_organisations(
-    mocker: MockerFixture,
+@pytest.mark.parametrize(
+    "table_to_save, expected_output",
+    [
+        (TABLE.ORGANISATION, Organisation(**transformed_GP_Practice_Org)),
+        (TABLE.LOCATION, Location(**transformed_GP_Practice_Loc)),
+        (TABLE.SERVICE, HealthcareService(**transformed_GP_Practice_HS)),
+    ],
+)
+def test_save_to_table_organisation(
+    mocker: MockerFixture, table_to_save: TABLE, expected_output: DBModel
 ) -> None:
     """
     Test save_to_table function with organisations
@@ -23,64 +36,22 @@ def test_save_to_table_organisations(
     )
 
     input_df = pd.DataFrame(
-        [
-            {
-                "organisation": {
-                    "id": "d5a852ef-12c7-4014-b398-661716a63027",
-                    "name": "Test Org",
-                    "active": True,
-                    "type": "GP Practice",
-                    "createdBy": "ROBOT",
-                    "createdDateTime": "2023-10-01T00:00:00Z",
-                    "modifiedBy": "ROBOT",
-                    "modifiedDateTime": "2023-10-01T00:00:00Z",
-                }
-            },
-            {
-                "organisation": {
-                    "id": "4e7084db-e987-4241-a737-252bedfcc09c",
-                    "name": "Another Org",
-                    "active": True,
-                    "type": "GP Practice",
-                    "createdBy": "ROBOT",
-                    "createdDateTime": "2023-10-01T00:00:00Z",
-                    "modifiedBy": "ROBOT",
-                    "modifiedDateTime": "2023-10-01T00:00:00Z",
-                }
-            },
-        ]
+        {
+            "organisation": [transformed_GP_Practice_Org],
+            "location": [transformed_GP_Practice_Loc],
+            "healthcare-service": [transformed_GP_Practice_HS],
+        }
     )
     table_name = "test-table"
 
     save_to_table(
         input_df=input_df,
-        table=TABLE.ORGANISATION,
+        table=table_to_save,
         table_name=table_name,
         endpoint_url=None,
     )
 
-    expected_create_calls = [
-        Organisation(
-            id="d5a852ef-12c7-4014-b398-661716a63027",
-            name="Test Org",
-            active=True,
-            type="GP Practice",
-            createdBy="ROBOT",
-            createdDateTime="2023-10-01T00:00:00Z",
-            modifiedBy="ROBOT",
-            modifiedDateTime="2023-10-01T00:00:00Z",
-        ),
-        Organisation(
-            id="4e7084db-e987-4241-a737-252bedfcc09c",
-            name="Another Org",
-            active=True,
-            type="GP Practice",
-            createdBy="ROBOT",
-            createdDateTime="2023-10-01T00:00:00Z",
-            modifiedBy="ROBOT",
-            modifiedDateTime="2023-10-01T00:00:00Z",
-        ),
-    ]
+    expected_create_calls = [expected_output]
     assert mock_repository_create.call_count == len(expected_create_calls)
     mock_repository_create.assert_has_calls(
         [call(org) for org in expected_create_calls],
@@ -88,139 +59,13 @@ def test_save_to_table_organisations(
     )
 
 
-def test_save_to_table_services(
-    mocker: MockerFixture,
-) -> None:
-    """
-    Test save_to_table function with healthcare services
-    """
-
-    mock_repository_create = mocker.patch(
-        "pipeline.load.DocumentLevelRepository.create"
-    )
-
-    input_df = pd.DataFrame(
-        [
-            {
-                "healthcare-service": {
-                    "providedBy": "a5881923-0ed8-4c46-aa18-3adb4651cfc2",
-                    "createdDateTime": "2023-10-01T00:00:00Z",
-                    "active": True,
-                    "type": "GP Practice",
-                    "createdBy": "ROBOT",
-                    "name": "service1",
-                    "modifiedBy": "ROBOT",
-                    "modifiedDateTime": "2023-10-01T00:00:00Z",
-                    "location": None,
-                    "telecom": {
-                        "phone_private": "00000 888888",
-                        "web": "https://www.fakewebsite.nhs.uk/",
-                        "email": None,
-                        "phone_public": "0124 456 7890",
-                    },
-                    "id": "e4682742-09e4-42f8-b9fa-75d9a85cbf76",
-                    "identifier_oldDoS_uid": "139767",
-                    "category": "unknown",
-                }
-            },
-            {
-                "healthcare-service": {
-                    "providedBy": "bb89529e-61b4-4c0e-8012-656d221d2306",
-                    "createdDateTime": "2023-10-01T00:00:00Z",
-                    "active": True,
-                    "type": "GP Practice",
-                    "createdBy": "ROBOT",
-                    "name": "service2",
-                    "modifiedBy": "ROBOT",
-                    "modifiedDateTime": "2023-10-01T00:00:00Z",
-                    "location": None,
-                    "telecom": {
-                        "phone_private": "00000 888888",
-                        "web": "https://www.fakewebsite.nhs.uk/",
-                        "email": None,
-                        "phone_public": "0124 456 7890",
-                    },
-                    "id": "5847df8b-921a-44e8-b0b2-85bcc1565233",
-                    "identifier_oldDoS_uid": "158670",
-                    "category": "unknown",
-                }
-            },
-        ]
-    )
-    table_name = "test-table"
-
-    save_to_table(
-        input_df=input_df,
-        table=TABLE.SERVICE,
-        table_name=table_name,
-        endpoint_url=None,
-    )
-
-    expected_create_calls = [
-        HealthcareService(
-            id="e4682742-09e4-42f8-b9fa-75d9a85cbf76",
-            identifier_oldDoS_uid="139767",
-            category="unknown",
-            type="GP Practice",
-            name="service1",
-            active=True,
-            providedBy="a5881923-0ed8-4c46-aa18-3adb4651cfc2",
-            location=None,
-            telecom={
-                "phone_private": "00000 888888",
-                "web": "https://www.fakewebsite.nhs.uk/",
-                "email": None,
-                "phone_public": "0124 456 7890",
-            },
-            createdBy="ROBOT",
-            createdDateTime="2023-10-01T00:00:00Z",
-            modifiedBy="ROBOT",
-            modifiedDateTime="2023-10-01T00:00:00Z",
-        ),
-        HealthcareService(
-            id="5847df8b-921a-44e8-b0b2-85bcc1565233",
-            identifier_oldDoS_uid="158670",
-            category="unknown",
-            type="GP Practice",
-            name="service2",
-            active=True,
-            providedBy="bb89529e-61b4-4c0e-8012-656d221d2306",
-            location=None,
-            telecom={
-                "phone_private": "00000 888888",
-                "web": "https://www.fakewebsite.nhs.uk/",
-                "email": None,
-                "phone_public": "0124 456 7890",
-            },
-            createdBy="ROBOT",
-            createdDateTime="2023-10-01T00:00:00Z",
-            modifiedBy="ROBOT",
-            modifiedDateTime="2023-10-01T00:00:00Z",
-        ),
-    ]
-    assert mock_repository_create.call_count == len(expected_create_calls)
-    mock_repository_create.assert_has_calls(
-        [call(service) for service in expected_create_calls],
-        any_order=True,
-    )
-
-
 def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     input_df = pd.DataFrame(
-        [
-            {
-                "organisation": {
-                    "id": "d5a852ef-12c7-4014-b398-661716a63027",
-                    "name": "Test Org",
-                    "active": True,
-                    "type": "GP Practice",
-                    "createdBy": "ROBOT",
-                    "createdDateTime": "2023-10-01T00:00:00Z",
-                    "modifiedBy": "ROBOT",
-                    "modifiedDateTime": "2023-10-01T00:00:00Z",
-                }
-            },
-        ]
+        {
+            "organisation": [transformed_GP_Practice_Org],
+            "location": [transformed_GP_Practice_Loc],
+            "healthcare-service": [transformed_GP_Practice_HS],
+        }
     )
     input_path = mock_tmp_directory / "dos-gp-practice-transform.parquet"
     input_df.to_parquet(input_path, index=False)
@@ -240,16 +85,9 @@ def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     assert result is None
 
     expected_create_calls = [
-        Organisation(
-            id="d5a852ef-12c7-4014-b398-661716a63027",
-            name="Test Org",
-            active=True,
-            type="GP Practice",
-            createdBy="ROBOT",
-            createdDateTime="2023-10-01T00:00:00Z",
-            modifiedBy="ROBOT",
-            modifiedDateTime="2023-10-01T00:00:00Z",
-        ),
+        Organisation(**transformed_GP_Practice_Org),
+        Location(**transformed_GP_Practice_Loc),
+        HealthcareService(**transformed_GP_Practice_HS),
     ]
     assert create_mock.call_count == len(expected_create_calls)
     create_mock.assert_has_calls(

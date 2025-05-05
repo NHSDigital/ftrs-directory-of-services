@@ -14,6 +14,7 @@ from tests.util.stub_data import (
     mock_gp_endpoints_formatted_B,
     mock_gp_endpoints_formatted_C,
     transformed_GP_Practice_HS,
+    transformed_GP_Practice_Loc,
     transformed_GP_Practice_Org,
 )
 
@@ -29,6 +30,7 @@ from tests.util.stub_data import (
             pd.DataFrame(
                 {
                     "organisation": [transformed_GP_Practice_Org],
+                    "location": [transformed_GP_Practice_Loc],
                     "healthcare-service": [transformed_GP_Practice_HS],
                 }
             ),
@@ -63,6 +65,7 @@ from tests.util.stub_data import (
                             ],
                         )
                     ],
+                    "location": [transformed_GP_Practice_Loc],
                     "healthcare-service": [transformed_GP_Practice_HS],
                 },
             ),
@@ -92,6 +95,7 @@ from tests.util.stub_data import (
                             endpoints=[],
                         )
                     ],
+                    "location": [transformed_GP_Practice_Loc],
                     "healthcare-service": [transformed_GP_Practice_HS],
                 }
             ),

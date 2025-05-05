@@ -124,7 +124,7 @@ class Location(DBModel):
             name=None,
             positionGCS={
                 "latitude": str(data["latitude"]),
-                "longitude": str(data["longitude"])
+                "longitude": str(data["longitude"]),
             },
             # TODO: defaulting will consider how to define for Fhir schema in future.
             #   but since this has the main ODSCode happy with this being set as True
@@ -161,7 +161,7 @@ class HealthcareService(DBModel):
         created_datetime: datetime | None = None,
         updated_datetime: datetime | None = None,
         organisation_id: UUID | str | None = None,
-        location_id: UUID | str | None = None
+        location_id: UUID | str | None = None,
     ) -> "Organisation":
         """
         Create an HealthcareService instance from source DoS data.

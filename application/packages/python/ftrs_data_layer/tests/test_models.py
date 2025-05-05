@@ -195,6 +195,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
     )
 
     organisation_id = "9bb0f952-ab23-4398-a9b8-e2a6b3896107"
+    location_id = "9bb0f952-ab23-4398-a9b8-1234567890ab"
 
     hs = HealthcareService.from_dos(
         data={
@@ -209,6 +210,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
         created_datetime=expected_created_datetime,
         updated_datetime=expected_modified_datetime,
         organisation_id=organisation_id,
+        location_id=location_id,
     )
 
     assert hs.model_dump(mode="json") == {
@@ -217,7 +219,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
         "active": True,
         "category": "unknown",
         "providedBy": organisation_id,
-        "location": None,
+        "location": "9bb0f952-ab23-4398-a9b8-1234567890ab",
         "createdBy": "ROBOT",
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
@@ -279,12 +281,55 @@ def test_location() -> None:
     }
 
 
-def test_location_from_dos() -> None:
-    with pytest.raises(
-        NotImplementedError,
-        match="Location.from_dos method is not implemented.",
-    ):
-        Location.from_dos(data={})
+@freeze_time("2023-10-01T00:00:00Z")
+def test_location_from_dos(mocker: MockerFixture) -> None:
+    expected_created_datetime = datetime(2023, 10, 1, 0, 0, 0, tzinfo=UTC)
+    expected_modified_datetime = datetime(2023, 11, 1, 0, 0, 0, tzinfo=UTC)
+
+    mocker.patch(
+        "ftrs_data_layer.models.uuid4",
+        return_value="d5a852ef-12c7-4014-b398-661716a63027",
+    )
+
+    organisation_id = "9bb0f952-ab23-4398-a9b8-e2a6b3896107"
+    location_id = "9bb0f952-ab23-4398-a9b8-1234567890ab"
+
+    hs = Location.from_dos(
+        data={
+            "address": "123 fake road",
+            "town": "thingyplace",
+            "postcode": "AB123CD",
+            "latitude": "0.123456",
+            "longitude": "-0.123456"
+        },
+        created_datetime=expected_created_datetime,
+        updated_datetime=expected_modified_datetime,
+        organisation_id=organisation_id,
+    )
+
+    assert hs.model_dump(mode="json") == {
+        "id": "d5a852ef-12c7-4014-b398-661716a63027",
+        "address": {
+            "street": "123 fake road",
+            "town": "thingyplace",
+            "postcode": "AB123CD"
+        },
+        "positionGCS": {
+            "latitude": "0.123456",
+            "longitude": "-0.123456",
+        },
+        "active": True,
+        "managingOrganisation": organisation_id,
+        "createdBy": "ROBOT",
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "modifiedBy": "ROBOT",
+        "modifiedDateTime": "2023-11-01T00:00:00Z",
+        "name": None,
+        "partOf": None,
+        "positionReferenceNumber_UBRN": None,
+        "positionReferenceNumber_UPRN": None,
+        "primaryAddress": True
+    }
 
 
 def test_endpoint() -> None:
