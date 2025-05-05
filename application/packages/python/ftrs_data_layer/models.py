@@ -82,12 +82,23 @@ class Organisation(DBModel):
         )
 
 
+class Address(BaseModel):
+    street: str | None
+    town: str | None
+    postcode: str | None
+
+
+class positionGCS(BaseModel):
+    latitude: str | None
+    longitude: str | None
+
+
 class Location(DBModel):
     active: bool
-    address: dict
+    address: Address
     managingOrganisation: UUID
     name: str | None = None
-    positionGCS: dict | None = None
+    positionGCS: positionGCS
     positionReferenceNumber_UPRN: int | None = None
     positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
@@ -116,16 +127,16 @@ class Location(DBModel):
             id=location_id,
             active=True,
             managingOrganisation=organisation_id,
-            address={
-                "street": data["address"],
-                "town": data["town"],
-                "postcode": data["postcode"],
-            },
+            address=Address(
+                street=data["address"],
+                town=data["town"],
+                postcode=data["postcode"],
+            ),
             name=None,
-            positionGCS={
-                "latitude": str(data["latitude"]),
-                "longitude": str(data["longitude"]),
-            },
+            positionGCS=positionGCS(
+                latitude=str(data["latitude"]),
+                longitude=str(data["longitude"]),
+            ),
             # TODO: defaulting will consider how to define for Fhir schema in future.
             #   but since this has the main ODSCode happy with this being set as True
             primaryAddress=True,
