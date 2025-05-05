@@ -1,7 +1,6 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-import pytest
 from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
@@ -292,7 +291,6 @@ def test_location_from_dos(mocker: MockerFixture) -> None:
     )
 
     organisation_id = "9bb0f952-ab23-4398-a9b8-e2a6b3896107"
-    location_id = "9bb0f952-ab23-4398-a9b8-1234567890ab"
 
     hs = Location.from_dos(
         data={
@@ -300,7 +298,7 @@ def test_location_from_dos(mocker: MockerFixture) -> None:
             "town": "thingyplace",
             "postcode": "AB123CD",
             "latitude": "0.123456",
-            "longitude": "-0.123456"
+            "longitude": "-0.123456",
         },
         created_datetime=expected_created_datetime,
         updated_datetime=expected_modified_datetime,
@@ -312,7 +310,7 @@ def test_location_from_dos(mocker: MockerFixture) -> None:
         "address": {
             "street": "123 fake road",
             "town": "thingyplace",
-            "postcode": "AB123CD"
+            "postcode": "AB123CD",
         },
         "positionGCS": {
             "latitude": "0.123456",
@@ -328,7 +326,7 @@ def test_location_from_dos(mocker: MockerFixture) -> None:
         "partOf": None,
         "positionReferenceNumber_UBRN": None,
         "positionReferenceNumber_UPRN": None,
-        "primaryAddress": True
+        "primaryAddress": True,
     }
 
 
