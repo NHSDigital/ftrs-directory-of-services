@@ -40,13 +40,14 @@ def transform_gp_practices(
             created_datetime=current_timestamp,
             updated_datetime=current_timestamp,
             organisation_id=organisation.id,
+            location_id=location.id,
         )
 
         gp_practices.append(
             {
                 "organisation": organisation.model_dump(mode="json"),
                 "healthcare-service": service.model_dump(mode="json"),
-                "location": location.model_dumo(mode="json"),
+                "location": location.model_dump(mode="json"),
             }
         )
 

@@ -161,6 +161,7 @@ class HealthcareService(DBModel):
         created_datetime: datetime | None = None,
         updated_datetime: datetime | None = None,
         organisation_id: UUID | str | None = None,
+        location_id: UUID | str | None = None
     ) -> "Organisation":
         """
         Create an HealthcareService instance from source DoS data.
@@ -178,7 +179,7 @@ class HealthcareService(DBModel):
             active=True,
             category="unknown",  # TODO: in future ticket we will map type to category
             providedBy=organisation_id,
-            location=None,
+            location=location_id,
             name=data["name"],
             telecom=Telecom(
                 phone_public=data["publicphone"],
