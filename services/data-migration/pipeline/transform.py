@@ -2,6 +2,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Annotated
 
+import numpy as np
 import pandas as pd
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from typer import Option
