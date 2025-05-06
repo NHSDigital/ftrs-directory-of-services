@@ -1,6 +1,7 @@
 import os
 import yaml
 
+
 class Config:
     def __init__(self):
         """Load YAML configuration file."""
@@ -26,6 +27,7 @@ class Config:
     def get(self, key):
         """Get a configuration value for the selected environment."""
         return self.env_config.get(key, None)
+
 
 # Create a global config instance
 config = Config()

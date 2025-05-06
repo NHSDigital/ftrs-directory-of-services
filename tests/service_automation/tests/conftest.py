@@ -9,15 +9,24 @@ from pages.ui_pages.result import NewAccountPage
 
 
 # Configure Loguru to log into a file and console
-logger.add("test_logs.log", rotation="1 day", level="INFO", backtrace=True, diagnose=True, mode="w")
+logger.add(
+    "test_logs.log",
+    rotation="1 day",
+    level="INFO",
+    backtrace=True,
+    diagnose=True,
+    mode="w",
+)
 logger.remove(0)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_logging():
-    boto3.set_stream_logger(name='botocore.credentials', level="ERROR")
+    boto3.set_stream_logger(name="botocore.credentials", level="ERROR")
     logger.info("Starting test session...")
     yield
     logger.info("Test session completed.")
+
 
 @pytest.fixture(scope="session")
 def playwright():
@@ -34,16 +43,18 @@ def api_request_context(playwright):
     request_context.dispose()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def chromium():
     with sync_playwright() as p:
         chromium = p.chromium.launch()
         yield chromium
         chromium.close()
 
+
 @pytest.fixture
 def result_page(page: Page) -> NewAccountPage:
     return NewAccountPage(page)
+
 
 @pytest.fixture
 def search_page(page: Page) -> LoginPage:
@@ -58,10 +69,11 @@ def api_response():
 
 def _get_env_var(varname: str) -> str:
     value = os.getenv(varname)
-    assert value, f'{varname} is not set'
+    assert value, f"{varname} is not set"
     return value
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def workspace() -> str:
     if _get_env_var("WORKSPACE") is not None:
         workspace = _get_env_var("WORKSPACE")
@@ -72,13 +84,13 @@ def workspace() -> str:
     return workspace
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def env() -> str:
     env = config.get_environment()
     return env
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def project() -> str:
     project = config.get("project")
     return project
