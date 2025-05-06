@@ -41,7 +41,7 @@ def test_get_table_name_without_workspace() -> None:
     Test get_table_name without workspace.
     """
     result = get_table_name(entity_type="organisation", env="dev")
-    assert result == "ftrs-dos-database-dev-organisation"
+    assert result == "ftrs-dos-dev-database-organisation"
 
 
 def test_get_table_name_with_workspace() -> None:
