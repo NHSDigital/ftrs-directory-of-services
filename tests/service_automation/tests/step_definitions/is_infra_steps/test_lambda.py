@@ -3,7 +3,7 @@ import boto3
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper, invoke_function, get_lambda_name, check_function_exists
-from utilities.infra.s3 import S3Utils
+from utilities.infra.s3_util import S3Utils
 
 # Load feature file
 scenarios("./is_infra_features/lambda.feature")

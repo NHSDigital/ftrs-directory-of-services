@@ -2,6 +2,7 @@ import json
 from botocore.exceptions import ClientError
 from loguru import logger
 
+
 class LambdaWrapper:
     def __init__(self, lambda_client, iam_resource):
         self.lambda_client = lambda_client
@@ -9,36 +10,22 @@ class LambdaWrapper:
 
 
 def get_function(self, function_name):
-        """
-        Gets data about a Lambda function.
-
-        :param function_name: The name of the function.
-        :return: The function data.
-        """
-        response = None
-        try:
-            response = self.lambda_client.get_function(FunctionName=function_name)
-        except ClientError as err:
-            if err.response["Error"]["Code"] == "ResourceNotFoundException":
-                logger.debug("Function{} does not exist.", function_name)
-            else:
-                logger.debug("Couldn't get function {} Here's why: {}: {}",
-                    function_name,
-                    err.response["Error"]["Code"],
-                    err.response["Error"]["Message"],)
-                raise
-        return response
+    response = None
+    try:
+        response = self.lambda_client.get_function(FunctionName=function_name)
+    except ClientError as err:
+        if err.response["Error"]["Code"] == "ResourceNotFoundException":
+            logger.debug("Function{} does not exist.", function_name)
+        else:
+            logger.debug("Couldn't get function {} Here's why: {}: {}",
+                function_name,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],)
+            raise
+    return response
 
 
 def invoke_function(self, function_name, function_params, get_log=False):
-    """
-    Invokes a Lambda function.
-
-    :param function_name: The name of the function to invoke.
-    :param function_params: The parameters of the function as a dict. This dict
-                            is serialized to JSON before it is sent to Lambda.
-    :return: The response from the function invocation.
-    """
     try:
         response = self.lambda_client.invoke(
             FunctionName=function_name,
@@ -53,11 +40,6 @@ def invoke_function(self, function_name, function_params, get_log=False):
 
 
 def get_lambda_name(self, project, workspace, env, stack, lambda_function):
-    """
-    Structures the lambda function name based on the project, workspace, environment, stack
-    and lambda function name.
-    :return: The lambda function name.
-    """
     logger.debug(f"project: {project},  lambda_function: {lambda_function}, stack: {stack}, env: {env}, workspace: {workspace}")
     if workspace == "":
         lambda_name = project + "-" + env + "-" + stack + "-" + lambda_function
@@ -68,10 +50,6 @@ def get_lambda_name(self, project, workspace, env, stack, lambda_function):
 
 
 def check_function_exists(self, lambda_name):
-    """
-    Determine whether the lambda function exists and you have access to it.
-    :return: True when the lambda function exists; otherwise, False.
-    """
     try:
         get_function(self, lambda_name)
         exists = True
