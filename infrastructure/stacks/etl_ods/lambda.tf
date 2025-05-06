@@ -26,8 +26,7 @@ module "extract_lambda" {
   policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
 
   layers = concat(
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   environment_variables = {

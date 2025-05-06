@@ -45,6 +45,7 @@ eval $(poetry env activate)
 
 # Run extraction
 
-dos-etl extract --date "2025-04-24"
+python cli.py 2025-05-01
 
 ```
+The date here being what day you want to start extracting data from.

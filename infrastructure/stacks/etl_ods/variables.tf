@@ -12,11 +12,6 @@ variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
 
-variable "aws_lambda_layers" {
-  description = "A list of Lambda layer ARNs to attach to the Lambda function"
-  type        = list(string)
-}
-
 variable "extract_name" {
   description = "The name of the ETL ODS Extract Lambda function"
 }
