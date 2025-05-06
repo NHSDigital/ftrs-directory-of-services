@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
 
@@ -90,15 +91,19 @@ class Address(BaseModel):
 
 
 class PositionGCS(BaseModel):
-    latitude: float
-    longitude: float
+    latitude: Decimal
+    longitude: Decimal
 
     @classmethod
     def from_dos(
-        cls, latitude: float | None, longitude: float | None
+        cls, latitude: Decimal | None, longitude: Decimal | None
     ) -> Optional["Location"]:
         if latitude is None and longitude is None:
             return None
+        elif latitude.is_nan() and longitude.is_nan():
+            return None
+        elif latitude.is_nan() or longitude.is_nan():
+            raise ValueError("provide both latitude and longitude")
 
         return PositionGCS(latitude=latitude, longitude=longitude)
 
@@ -108,7 +113,7 @@ class Location(DBModel):
     address: Address
     managingOrganisation: UUID
     name: str | None = None
-    positionGCS: PositionGCS
+    positionGCS: PositionGCS | None = None
     positionReferenceNumber_UPRN: int | None = None
     positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
@@ -144,8 +149,8 @@ class Location(DBModel):
             ),
             name=None,
             positionGCS=PositionGCS.from_dos(
-                latitude=data["latitude"],
-                longitude=data["longitude"],
+                latitude=Decimal(data["latitude"]),
+                longitude=Decimal(data["longitude"]),
             ),
             # TODO: defaulting will consider how to define for Fhir schema in future.
             #   but since this has the main ODSCode happy with this being set as True

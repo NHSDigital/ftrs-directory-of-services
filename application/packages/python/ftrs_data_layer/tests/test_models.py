@@ -1,9 +1,9 @@
 from datetime import UTC, datetime
+from decimal import Decimal
 from uuid import uuid4
 
 import pytest
 from freezegun import freeze_time
-from pydantic_core import ValidationError
 from pytest_mock import MockerFixture
 
 from ftrs_data_layer.models import (
@@ -253,7 +253,9 @@ def test_location() -> None:
         modifiedBy="test_user",
         modifiedDateTime="2023-10-01T00:00:00Z",
         name="Test Location",
-        positionGCS=PositionGCS(latitude="51.5074", longitude="-0.1278"),
+        positionGCS=PositionGCS(
+            latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+        ),
         positionReferenceNumber_UPRN=1234567890,
         positionReferenceNumber_UBRN=9876543210,
         primaryAddress=True,
@@ -274,7 +276,7 @@ def test_location() -> None:
         "modifiedBy": "test_user",
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "name": "Test Location",
-        "positionGCS": {"latitude": float("51.5074"), "longitude": float("-0.1278")},
+        "positionGCS": {"latitude": "51.5074", "longitude": "-0.1278"},
         "positionReferenceNumber_UPRN": 1234567890,
         "positionReferenceNumber_UBRN": 9876543210,
         "primaryAddress": True,
@@ -299,8 +301,8 @@ def test_location_from_dos(mocker: MockerFixture) -> None:
             "address": "123 fake road",
             "town": "thingyplace",
             "postcode": "AB123CD",
-            "latitude": "0.123456",
-            "longitude": "-0.123456",
+            "latitude": Decimal("0.123456"),
+            "longitude": Decimal("-0.123456"),
         },
         created_datetime=expected_created_datetime,
         updated_datetime=expected_modified_datetime,
@@ -315,8 +317,8 @@ def test_location_from_dos(mocker: MockerFixture) -> None:
             "postcode": "AB123CD",
         },
         "positionGCS": {
-            "latitude": float("0.123456"),
-            "longitude": float("-0.123456"),
+            "latitude": "0.123456",
+            "longitude": "-0.123456",
         },
         "active": True,
         "managingOrganisation": organisation_id,
@@ -480,23 +482,31 @@ def test_Address() -> None:
 
 
 def test_PositionGCS() -> None:
-    position = PositionGCS(latitude="51.5074", longitude="-0.1278")
+    position = PositionGCS(latitude=Decimal("51.5074"), longitude=Decimal("-0.1278"))
 
     assert position.model_dump(mode="json") == {
-        "latitude": float("51.5074"),
-        "longitude": float("-0.1278"),
+        "latitude": "51.5074",
+        "longitude": "-0.1278",
     }
 
 
 def test_PositionGCS_error_Nonetypes() -> None:
-    position = PositionGCS.from_dos(latitude=None, longitude=None)
+    position = PositionGCS.from_dos(latitude=Decimal("nan"), longitude=Decimal("nan"))
     assert position is None
 
-    with pytest.raises(ValidationError):
-        position = PositionGCS.from_dos(latitude="51.5074", longitude=None)
+    with pytest.raises(ValueError, match="provide both latitude and longitude"):
+        position = PositionGCS.from_dos(
+            latitude=Decimal("51.5074"), longitude=Decimal("nan")
+        )
 
-    with pytest.raises(ValidationError):
-        position = PositionGCS.from_dos(latitude=None, longitude="-0.1278")
+    with pytest.raises(ValueError, match="provide both latitude and longitude"):
+        position = PositionGCS.from_dos(
+            latitude=Decimal("nan"), longitude=Decimal("-0.1278")
+        )
 
-    position = PositionGCS.from_dos(latitude="51.5074", longitude="-0.1278")
-    assert position == PositionGCS(latitude="51.5074", longitude="-0.1278")
+    position = PositionGCS.from_dos(
+        latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+    )
+    assert position == PositionGCS(
+        latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+    )
