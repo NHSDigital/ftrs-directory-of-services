@@ -48,4 +48,5 @@ eval $(poetry env activate)
 python cli.py 2025-05-01
 
 ```
+
 The date here being what day you want to start extracting data from.
