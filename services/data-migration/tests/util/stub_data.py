@@ -10,6 +10,11 @@ mock_gp_practices_A = {
     "nonpublicphone": "1111 2222",
     "email": "test@nhs.net",
     "web": "www.fakeweb.co.uk",
+    "address": "1 fake road",
+    "town": "thingyplace",
+    "postcode": "TP00 9ZZ",
+    "latitude": "0.000003",
+    "longitude": "-1.000005",
 }
 
 mock_gp_practices_df = pd.DataFrame({k: [v] for k, v in mock_gp_practices_A.items()})
@@ -24,6 +29,11 @@ mock_gp_practices_B = {
     "nonpublicphone": "09876543210#EXT0123",
     "email": None,
     "web": None,
+    "address": "2 fake road",
+    "town": "otherplace",
+    "postcode": "TP990AB",
+    "latitude": "-50.123456",
+    "longitude": "64.123456",
 }
 
 mock_gp_practices_B_df = pd.DataFrame({k: [v] for k, v in mock_gp_practices_B.items()})
@@ -164,6 +174,11 @@ extracted_GP_Practice = {
     "nonpublicphone": "12345678901",
     "email": "test@nhs.net",
     "web": "www.test.co.uk",
+    "address": "10 made up road",
+    "town": "thingyplace",
+    "postcode": "TP00 9ZZ",
+    "latitude": "0.000003",
+    "longitude": "-1.000005",
     "endpoints": [[mock_gp_endpoints_formatted_A]],
 }
 
@@ -201,6 +216,31 @@ transformed_GP_Practice_Org = {
     ],
 }
 
+transformed_GP_Practice_Loc = {
+    "id": "123e4567-e89b-12d3-a456-42661417400a",
+    "active": True,
+    "managingOrganisation": "123e4567-e89b-12d3-a456-42661417400a",
+    "name": None,
+    "address": {
+        "street": "10 made up road",
+        "town": "thingyplace",
+        "postcode": "TP00 9ZZ",
+    },
+    "positionGCS": {
+        "latitude": "0.000003",
+        "longitude": "-1.000005",
+    },
+    "positionReferenceNumber_UPRN": None,
+    "positionReferenceNumber_UBRN": None,
+    "partOf": None,
+    "primaryAddress": True,
+    "createdBy": "ROBOT",
+    "createdDateTime": "2025-03-27T12:00:00Z",
+    "modifiedBy": "ROBOT",
+    "modifiedDateTime": "2025-03-27T12:00:00Z",
+}
+
+
 transformed_GP_Practice_HS = {
     "id": "123e4567-e89b-12d3-a456-42661417400a",
     "createdBy": "ROBOT",
@@ -211,7 +251,7 @@ transformed_GP_Practice_HS = {
     "active": True,
     "category": "unknown",
     "providedBy": "123e4567-e89b-12d3-a456-42661417400a",
-    "location": None,
+    "location": "123e4567-e89b-12d3-a456-42661417400a",
     "name": "Test Org",
     "telecom": {
         "phone_public": "0000 8888",

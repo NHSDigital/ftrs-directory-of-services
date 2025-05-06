@@ -1,4 +1,6 @@
 from datetime import UTC, datetime
+from decimal import Decimal
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -82,21 +84,83 @@ class Organisation(DBModel):
         )
 
 
+class Address(BaseModel):
+    street: str | None
+    town: str | None
+    postcode: str | None
+
+
+class PositionGCS(BaseModel):
+    latitude: Decimal
+    longitude: Decimal
+
+    @classmethod
+    def from_dos(
+        cls, latitude: Decimal | None, longitude: Decimal | None
+    ) -> Optional["Location"]:
+        if latitude is None and longitude is None:
+            return None
+        elif latitude.is_nan() and longitude.is_nan():
+            return None
+        elif latitude.is_nan() or longitude.is_nan():
+            err_msg = "provide both latitude and longitude"
+            raise ValueError(err_msg)
+
+        return PositionGCS(latitude=latitude, longitude=longitude)
+
+
 class Location(DBModel):
     active: bool
-    address_street: str
-    address_postcode: str
-    address_town: str
+    address: Address
     managingOrganisation: UUID
-    name: str
-    positionGCS_latitude: float
-    positionGCS_longitude: float
-    positionGCS_easting: float
-    positionGCS_northing: float
+    name: str | None = None
+    positionGCS: PositionGCS | None = None
     positionReferenceNumber_UPRN: int | None = None
     positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
-    partOf: UUID | None
+    partOf: UUID | None = None
+
+    @classmethod
+    def from_dos(
+        cls,
+        data: dict,
+        existing_identifier: UUID | str | None = None,
+        created_datetime: datetime | None = None,
+        updated_datetime: datetime | None = None,
+        organisation_id: UUID | None = None,
+    ) -> "Location":
+        """
+        Create an Location instance from source DoS data.
+
+        :param data: The source data dictionary from the 'services' DoS table.
+        :param created_datetime: The datetime when the location was created.
+        :param updated_datetime: The datetime when the location was last updated.
+        :param organisation_id: The managing organisation of the location.
+        :return: An Organisation instance.
+        """
+        location_id = uuid4() or existing_identifier
+        return Location(
+            id=location_id,
+            active=True,
+            managingOrganisation=organisation_id,
+            address=Address(
+                street=data["address"],
+                town=data["town"],
+                postcode=data["postcode"],
+            ),
+            name=None,
+            positionGCS=PositionGCS.from_dos(
+                latitude=Decimal(data["latitude"]),
+                longitude=Decimal(data["longitude"]),
+            ),
+            # TODO: defaulting will consider how to define for Fhir schema in future.
+            #   but since this has the main ODSCode happy with this being set as True
+            primaryAddress=True,
+            createdBy="ROBOT",
+            createdDateTime=created_datetime or datetime.now(UTC),
+            modifiedBy="ROBOT",
+            modifiedDateTime=updated_datetime or datetime.now(UTC),
+        )
 
 
 class Telecom(BaseModel):
@@ -117,13 +181,14 @@ class HealthcareService(DBModel):
     type: str
 
     @classmethod
-    def from_dos(
+    def from_dos(  # noqa: PLR0913
         cls,
         data: dict,
         existing_identifier: UUID | str | None = None,
         created_datetime: datetime | None = None,
         updated_datetime: datetime | None = None,
         organisation_id: UUID | str | None = None,
+        location_id: UUID | str | None = None,
     ) -> "Organisation":
         """
         Create an HealthcareService instance from source DoS data.
@@ -141,7 +206,7 @@ class HealthcareService(DBModel):
             active=True,
             category="unknown",  # TODO: in future ticket we will map type to category
             providedBy=organisation_id,
-            location=None,
+            location=location_id,
             name=data["name"],
             telecom=Telecom(
                 phone_public=data["publicphone"],

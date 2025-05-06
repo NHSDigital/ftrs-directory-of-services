@@ -98,7 +98,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
     mock_logging.info.assert_has_calls(
         [
             call("Percentage of service profiles: 1.0%"),
-            call("Percentage of all data fields: 21.43%"),
+            call("Percentage of all data fields: 33.33%"),
         ]
     )
 

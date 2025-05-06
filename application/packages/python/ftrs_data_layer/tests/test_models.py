@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from decimal import Decimal
 from uuid import uuid4
 
 import pytest
@@ -6,10 +7,12 @@ from freezegun import freeze_time
 from pytest_mock import MockerFixture
 
 from ftrs_data_layer.models import (
+    Address,
     Endpoint,
     HealthcareService,
     Location,
     Organisation,
+    PositionGCS,
     Telecom,
 )
 
@@ -195,6 +198,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
     )
 
     organisation_id = "9bb0f952-ab23-4398-a9b8-e2a6b3896107"
+    location_id = "9bb0f952-ab23-4398-a9b8-1234567890ab"
 
     hs = HealthcareService.from_dos(
         data={
@@ -209,6 +213,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
         created_datetime=expected_created_datetime,
         updated_datetime=expected_modified_datetime,
         organisation_id=organisation_id,
+        location_id=location_id,
     )
 
     assert hs.model_dump(mode="json") == {
@@ -217,7 +222,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
         "active": True,
         "category": "unknown",
         "providedBy": organisation_id,
-        "location": None,
+        "location": "9bb0f952-ab23-4398-a9b8-1234567890ab",
         "createdBy": "ROBOT",
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
@@ -237,19 +242,20 @@ def test_location() -> None:
     loc = Location(
         id=uuid4(),
         active=True,
-        address_street="123 Main St",
-        address_postcode="AB12 3CD",
-        address_town="Test Town",
+        address=Address(
+            street="123 Main St",
+            postcode="AB12 3CD",
+            town="Test Town",
+        ),
         createdBy="test_user",
         createdDateTime="2023-10-01T00:00:00Z",
         managingOrganisation=uuid4(),
         modifiedBy="test_user",
         modifiedDateTime="2023-10-01T00:00:00Z",
         name="Test Location",
-        positionGCS_latitude=51.5074,
-        positionGCS_longitude=-0.1278,
-        positionGCS_easting=123456,
-        positionGCS_northing=654321,
+        positionGCS=PositionGCS(
+            latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+        ),
         positionReferenceNumber_UPRN=1234567890,
         positionReferenceNumber_UBRN=9876543210,
         primaryAddress=True,
@@ -259,19 +265,18 @@ def test_location() -> None:
     assert loc.model_dump(mode="json") == {
         "id": str(loc.id),
         "active": True,
-        "address_street": "123 Main St",
-        "address_postcode": "AB12 3CD",
-        "address_town": "Test Town",
+        "address": {
+            "street": "123 Main St",
+            "town": "Test Town",
+            "postcode": "AB12 3CD",
+        },
         "createdBy": "test_user",
         "createdDateTime": "2023-10-01T00:00:00Z",
         "managingOrganisation": str(loc.managingOrganisation),
         "modifiedBy": "test_user",
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "name": "Test Location",
-        "positionGCS_latitude": 51.5074,
-        "positionGCS_longitude": -0.1278,
-        "positionGCS_easting": 123456,
-        "positionGCS_northing": 654321,
+        "positionGCS": {"latitude": "51.5074", "longitude": "-0.1278"},
         "positionReferenceNumber_UPRN": 1234567890,
         "positionReferenceNumber_UBRN": 9876543210,
         "primaryAddress": True,
@@ -279,12 +284,54 @@ def test_location() -> None:
     }
 
 
-def test_location_from_dos() -> None:
-    with pytest.raises(
-        NotImplementedError,
-        match="Location.from_dos method is not implemented.",
-    ):
-        Location.from_dos(data={})
+@freeze_time("2023-10-01T00:00:00Z")
+def test_location_from_dos(mocker: MockerFixture) -> None:
+    expected_created_datetime = datetime(2023, 10, 1, 0, 0, 0, tzinfo=UTC)
+    expected_modified_datetime = datetime(2023, 11, 1, 0, 0, 0, tzinfo=UTC)
+
+    mocker.patch(
+        "ftrs_data_layer.models.uuid4",
+        return_value="d5a852ef-12c7-4014-b398-661716a63027",
+    )
+
+    organisation_id = "9bb0f952-ab23-4398-a9b8-e2a6b3896107"
+
+    hs = Location.from_dos(
+        data={
+            "address": "123 fake road",
+            "town": "thingyplace",
+            "postcode": "AB123CD",
+            "latitude": Decimal("0.123456"),
+            "longitude": Decimal("-0.123456"),
+        },
+        created_datetime=expected_created_datetime,
+        updated_datetime=expected_modified_datetime,
+        organisation_id=organisation_id,
+    )
+
+    assert hs.model_dump(mode="json") == {
+        "id": "d5a852ef-12c7-4014-b398-661716a63027",
+        "address": {
+            "street": "123 fake road",
+            "town": "thingyplace",
+            "postcode": "AB123CD",
+        },
+        "positionGCS": {
+            "latitude": "0.123456",
+            "longitude": "-0.123456",
+        },
+        "active": True,
+        "managingOrganisation": organisation_id,
+        "createdBy": "ROBOT",
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "modifiedBy": "ROBOT",
+        "modifiedDateTime": "2023-11-01T00:00:00Z",
+        "name": None,
+        "partOf": None,
+        "positionReferenceNumber_UBRN": None,
+        "positionReferenceNumber_UPRN": None,
+        "primaryAddress": True,
+    }
 
 
 def test_endpoint() -> None:
@@ -418,3 +465,48 @@ def test_telecom() -> None:
         "email": "test@nhs.net",
         "web": "ww.test.co.u",
     }
+
+
+def test_Address() -> None:
+    address = Address(
+        street="123 Main St",
+        postcode="AB12 3CD",
+        town="Test Town",
+    )
+
+    assert address.model_dump(mode="json") == {
+        "street": "123 Main St",
+        "postcode": "AB12 3CD",
+        "town": "Test Town",
+    }
+
+
+def test_PositionGCS() -> None:
+    position = PositionGCS(latitude=Decimal("51.5074"), longitude=Decimal("-0.1278"))
+
+    assert position.model_dump(mode="json") == {
+        "latitude": "51.5074",
+        "longitude": "-0.1278",
+    }
+
+
+def test_PositionGCS_error_Nonetypes() -> None:
+    position = PositionGCS.from_dos(latitude=Decimal("nan"), longitude=Decimal("nan"))
+    assert position is None
+
+    with pytest.raises(ValueError, match="provide both latitude and longitude"):
+        position = PositionGCS.from_dos(
+            latitude=Decimal("51.5074"), longitude=Decimal("nan")
+        )
+
+    with pytest.raises(ValueError, match="provide both latitude and longitude"):
+        position = PositionGCS.from_dos(
+            latitude=Decimal("nan"), longitude=Decimal("-0.1278")
+        )
+
+    position = PositionGCS.from_dos(
+        latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+    )
+    assert position == PositionGCS(
+        latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+    )

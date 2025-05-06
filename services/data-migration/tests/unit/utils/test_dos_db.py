@@ -62,7 +62,12 @@ def test_get_gp_practices(mocker: MockerFixture) -> None:
         "services"."publicphone",
         "services"."nonpublicphone",
         "services"."email",
-        "services"."web"
+        "services"."web",
+        "services"."address",
+        "services"."town",
+        "services"."postcode",
+        "services"."latitude",
+        "services"."longitude"
     FROM "pathwaysdos"."services"
     LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
     LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
