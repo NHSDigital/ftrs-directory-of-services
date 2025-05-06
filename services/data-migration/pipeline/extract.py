@@ -55,6 +55,7 @@ def format_openingtimes(
     bank_holiday_df = day_opening_times[day_opening_times["dayOfWeek"] == "BankHoliday"]
     regular_days_df = day_opening_times[day_opening_times["dayOfWeek"] != "BankHoliday"]
 
+
     available_time_df = format_available_time(regular_days_df)
     available_time_public_holidays_df = format_bank_holidays(bank_holiday_df)
     available_time_variations_df = format_available_time_variations(
@@ -309,9 +310,6 @@ def merge_gp_practice_with_openingtimes(
             .infer_objects(copy=False)
         )
 
-    for row in result.loc[result.availability.isnull(), "endpoints"].index:
-        result.at[row, "endpoints"] = []
-
     return result
 
 
@@ -332,8 +330,6 @@ def extract_gp_practices(db_uri: str) -> pd.DataFrame:
     grouped_openingtimes = format_openingtimes(
         gp_practice_day_openingtime_df, gp_practice_specified_openingtime_df
     )
-
-    print(gp_practice_extract.columns)
 
     gp_practice_extract = merge_gp_practice_with_openingtimes(
         gp_practice_extract, grouped_openingtimes
