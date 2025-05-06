@@ -99,18 +99,62 @@ class Location(DBModel):
     partOf: UUID | None
 
 
+class Telecom(BaseModel):
+    phone_public: str | None
+    phone_private: str | None
+    email: str | None
+    web: str | None
+
+
 class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
     category: str
-    providedBy: UUID
-    location: UUID
+    providedBy: UUID | None
+    location: UUID | None
     name: str
-    telecom_phone_public: str | None
-    telecom_phone_private: str | None
-    telecom_email: str | None
-    telecom_web: str | None
+    telecom: Telecom | None
     type: str
+
+    @classmethod
+    def from_dos(
+        cls,
+        data: dict,
+        existing_identifier: UUID | str | None = None,
+        created_datetime: datetime | None = None,
+        updated_datetime: datetime | None = None,
+        organisation_id: UUID | str | None = None,
+    ) -> "Organisation":
+        """
+        Create an HealthcareService instance from source DoS data.
+
+        :param data: The source data dictionary from the 'services' DoS table.
+        :param created_datetime: The datetime when the service was created.
+        :param updated_datetime: The datetime when the service was last updated.
+        :param organisation_id: The organisation managing the service.
+        :return: An Service instance.
+        """
+        service_id = uuid4() or existing_identifier
+        return HealthcareService(
+            id=service_id,
+            identifier_oldDoS_uid=data["uid"],
+            active=True,
+            category="unknown",  # TODO: in future ticket we will map type to category
+            providedBy=organisation_id,
+            location=None,
+            name=data["name"],
+            telecom=Telecom(
+                phone_public=data["publicphone"],
+                phone_private=data["nonpublicphone"],
+                email=data["email"],
+                web=data["web"],
+            ),
+            type=data["type"],
+            createdBy="ROBOT",
+            createdDateTime=created_datetime or datetime.now(UTC),
+            modifiedBy="ROBOT",
+            modifiedDateTime=updated_datetime or datetime.now(UTC),
+        )
 
 
 class Endpoint(DBModel):

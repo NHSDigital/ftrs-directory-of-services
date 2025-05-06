@@ -1,19 +1,23 @@
 import pandas as pd
 
 QUERY_GP_PRACTICE = """
-SELECT
-    "services"."name",
-    "servicetypes"."name" AS "type",
-    "services"."odscode",
-    "services"."uid",
-    "services"."id" AS "serviceid"
-FROM "pathwaysdos"."services"
-LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
-LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
-WHERE
-    "servicestatuses"."name" = 'active'
-    AND "services"."typeid" = '100'
-    AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$';
+    SELECT
+        "services"."name",
+        "servicetypes"."name" AS "type",
+        "services"."odscode",
+        "services"."uid",
+        "services"."id" AS "serviceid",
+        "services"."publicphone",
+        "services"."nonpublicphone",
+        "services"."email",
+        "services"."web"
+    FROM "pathwaysdos"."services"
+    LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
+    LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
+    WHERE
+        "servicestatuses"."name" = 'active'
+        AND "services"."typeid" = '100'
+        AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$';
 """
 
 QUERY_GP_ENDPOINTS = """

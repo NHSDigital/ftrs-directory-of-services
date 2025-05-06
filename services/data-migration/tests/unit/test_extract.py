@@ -21,9 +21,16 @@ from pipeline.utils.dos_db import (
 )
 from pipeline.utils.file_io import PathType
 from tests.util.stub_data import (
-    mock_gp_endpoints_formatted_df,
-    mock_gp_practice_extract_df,
+    mock_gp_endpoints_A,
+    mock_gp_endpoints_B,
+    mock_gp_endpoints_C,
+    mock_gp_endpoints_formatted_A,
+    mock_gp_endpoints_formatted_B,
+    mock_gp_endpoints_formatted_C,
+    mock_gp_practices_A,
+    mock_gp_practices_B,
     mock_gp_practices_df,
+    mock_two_gp_practices_df,
 )
 
 
@@ -89,7 +96,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
     mock_logging.info.assert_has_calls(
         [
             call("Percentage of service profiles: 1.0%"),
-            call("Percentage of all data fields: 11.9%"),
+            call("Percentage of all data fields: 21.43%"),
         ]
     )
 
@@ -99,46 +106,22 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
     [
         (
             pd.DataFrame(
-                {
-                    "id": [1, 2],
-                    "endpointorder": [1, 2],
-                    "transport": ["email", "sms"],
-                    "format": ["PDF", "XML"],
-                    "interaction": ["interaction1", "interaction2"],
-                    "businessscenario": ["scenario1", "scenario2"],
-                    "address": ["address1", "address2"],
-                    "comment": ["comment1", "comment2"],
-                    "iscompressionenabled": ["false", "true"],
-                    "serviceid": [1, 1],
-                }
+                dict(
+                    {
+                        key: [mock_gp_endpoints_A[key], mock_gp_endpoints_B[key]]
+                        for key in mock_gp_endpoints_A.keys()
+                        if key != "serviceid"
+                    },
+                    serviceid=[1, 1],  # both endpoints use same service id for test
+                )
             ),
             pd.DataFrame(
                 {
                     "serviceid": [1],
                     "endpoints": [
                         [
-                            {
-                                "id": 1,
-                                "endpointorder": 1,
-                                "transport": "email",
-                                "format": "PDF",
-                                "interaction": "interaction1",
-                                "businessscenario": "scenario1",
-                                "address": "address1",
-                                "comment": "comment1",
-                                "iscompressionenabled": "false",
-                            },
-                            {
-                                "id": 2,
-                                "endpointorder": 2,
-                                "transport": "sms",
-                                "format": "XML",
-                                "interaction": "interaction2",
-                                "businessscenario": "scenario2",
-                                "address": "address2",
-                                "comment": "comment2",
-                                "iscompressionenabled": "true",
-                            },
+                            mock_gp_endpoints_formatted_A,
+                            mock_gp_endpoints_formatted_B,
                         ]
                     ],
                 }
@@ -146,60 +129,25 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
         ),
         (
             pd.DataFrame(
-                {
-                    "id": [1, 2, 3],
-                    "endpointorder": [1, 1, 2],
-                    "transport": ["email", "sms", "fax"],
-                    "format": ["PDF", "XML", "TXT"],
-                    "interaction": ["interaction1", "interaction2", "interaction3"],
-                    "businessscenario": ["scenario1", "scenario2", "scenario3"],
-                    "address": ["address1", "address2", "address3"],
-                    "comment": ["comment1", "comment2", "comment3"],
-                    "iscompressionenabled": ["false", "true", "false"],
-                    "serviceid": [1, 2, 2],
-                }
+                dict(
+                    {
+                        key: [
+                            mock_gp_endpoints_A[key],
+                            mock_gp_endpoints_B[key],
+                            mock_gp_endpoints_C[key],
+                        ]
+                        for key in mock_gp_endpoints_A.keys()
+                        if key != "serviceid"
+                    },
+                    serviceid=[1, 2, 2],  # test we get single and double
+                )
             ),
             pd.DataFrame(
                 {
                     "serviceid": [1, 2],
                     "endpoints": [
-                        [
-                            {
-                                "id": 1,
-                                "endpointorder": 1,
-                                "transport": "email",
-                                "format": "PDF",
-                                "interaction": "interaction1",
-                                "businessscenario": "scenario1",
-                                "address": "address1",
-                                "comment": "comment1",
-                                "iscompressionenabled": "false",
-                            }
-                        ],
-                        [
-                            {
-                                "id": 2,
-                                "endpointorder": 1,
-                                "transport": "sms",
-                                "format": "XML",
-                                "interaction": "interaction2",
-                                "businessscenario": "scenario2",
-                                "address": "address2",
-                                "comment": "comment2",
-                                "iscompressionenabled": "true",
-                            },
-                            {
-                                "id": 3,
-                                "endpointorder": 2,
-                                "transport": "fax",
-                                "format": "TXT",
-                                "interaction": "interaction3",
-                                "businessscenario": "scenario3",
-                                "address": "address3",
-                                "comment": "comment3",
-                                "iscompressionenabled": "false",
-                            },
-                        ],
+                        [mock_gp_endpoints_formatted_A],
+                        [mock_gp_endpoints_formatted_B, mock_gp_endpoints_formatted_C],
                     ],
                 }
             ),
@@ -220,127 +168,65 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
     [
         (
             mock_gp_practices_df,
-            mock_gp_endpoints_formatted_df,
-            mock_gp_practice_extract_df,
-        ),
-        (
             pd.DataFrame(
                 {
-                    "name": ["Practice A", "Practice B"],
-                    "type": ["GP", "GP"],
-                    "odscode": ["A12345", "B67890"],
-                    "uid": ["uid123", "uid456"],
-                    "serviceid": [1, 2],
-                }
-            ),
-            pd.DataFrame(
-                {
-                    "serviceid": [1, 2],
-                    "endpoints": [
-                        [
-                            {
-                                "id": 1,
-                                "endpointorder": 1,
-                                "transport": "email",
-                                "format": "PDF",
-                                "interaction": "interaction1",
-                                "businessscenario": "scenario1",
-                                "address": "address1",
-                                "comment": "comment1",
-                                "iscompressionenabled": "false",
-                            }
-                        ],
-                        [
-                            {
-                                "id": 2,
-                                "endpointorder": 1,
-                                "transport": "sms",
-                                "format": "XML",
-                                "interaction": "interaction2",
-                                "businessscenario": "scenario2",
-                                "address": "address2",
-                                "comment": "comment2",
-                                "iscompressionenabled": "true",
-                            }
-                        ],
-                    ],
-                }
-            ),
-            pd.DataFrame(
-                {
-                    "name": ["Practice A", "Practice B"],
-                    "type": ["GP", "GP"],
-                    "odscode": ["A12345", "B67890"],
-                    "uid": ["uid123", "uid456"],
-                    "endpoints": [
-                        [
-                            {
-                                "id": 1,
-                                "endpointorder": 1,
-                                "transport": "email",
-                                "format": "PDF",
-                                "interaction": "interaction1",
-                                "businessscenario": "scenario1",
-                                "address": "address1",
-                                "comment": "comment1",
-                                "iscompressionenabled": "false",
-                            }
-                        ],
-                        [
-                            {
-                                "id": 2,
-                                "endpointorder": 1,
-                                "transport": "sms",
-                                "format": "XML",
-                                "interaction": "interaction2",
-                                "businessscenario": "scenario2",
-                                "address": "address2",
-                                "comment": "comment2",
-                                "iscompressionenabled": "true",
-                            }
-                        ],
-                    ],
-                }
-            ),
-        ),
-        (
-            pd.DataFrame(
-                {
-                    "name": ["Practice A"],
-                    "type": ["GP"],
-                    "odscode": ["A12345"],
-                    "uid": ["uid123"],
                     "serviceid": [1],
+                    "endpoints": [[mock_gp_endpoints_formatted_A]],
                 }
             ),
+            pd.DataFrame(
+                dict(
+                    {
+                        k: [v]
+                        for k, v in mock_gp_practices_A.items()
+                        if k != "serviceid"
+                    },
+                    endpoints=[[mock_gp_endpoints_formatted_A]],
+                )
+            ),
+        ),
+        (
+            mock_two_gp_practices_df,
+            pd.DataFrame(
+                {
+                    "serviceid": [1, 2],
+                    "endpoints": [
+                        [mock_gp_endpoints_formatted_A],
+                        [mock_gp_endpoints_formatted_B],
+                    ],
+                }
+            ),
+            pd.DataFrame(
+                dict(
+                    {
+                        key: [mock_gp_practices_A[key], mock_gp_practices_B[key]]
+                        for key in mock_gp_practices_A.keys()
+                        if key != "serviceid"
+                    },  # Remove service id
+                    endpoints=[
+                        [mock_gp_endpoints_formatted_A],
+                        [mock_gp_endpoints_formatted_B],
+                    ],  # add on endpoints column
+                )
+            ),
+        ),
+        (
+            mock_gp_practices_df,
             pd.DataFrame(
                 {
                     "serviceid": [2],
-                    "endpoints": [
-                        [
-                            {
-                                "id": 2,
-                                "endpointorder": 1,
-                                "transport": "sms",
-                                "format": "XML",
-                                "interaction": "interaction2",
-                                "businessscenario": "scenario2",
-                                "address": "address2",
-                                "comment": "comment2",
-                                "iscompressionenabled": "true",
-                            }
-                        ]
-                    ],
+                    "endpoints": [[mock_gp_endpoints_formatted_A]],
                 }
             ),
             pd.DataFrame(
-                {
-                    "name": ["Practice A"],
-                    "type": ["GP"],
-                    "odscode": ["A12345"],
-                    "uid": ["uid123"],
-                    "endpoints": [[]],
-                }
+                dict(
+                    {
+                        k: [v]
+                        for k, v in mock_gp_practices_A.items()
+                        if k != "serviceid"
+                    },  # Remove service id
+                    endpoints=[[]],  # add on endpoints column
+                )
             ),
         ),
     ],
