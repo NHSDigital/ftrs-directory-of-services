@@ -44,8 +44,8 @@ data "aws_iam_policy_document" "s3_access_policy" {
       "s3:PutObject"
     ]
     resources = [
-      "${module.migration_store_bucket.s3_bucket_arn}/",
-      "${module.migration_store_bucket.s3_bucket_arn}/*",
+      "${module.etl_ods_store_bucket.s3_bucket_arn}/",
+      "${module.etl_ods_store_bucket.s3_bucket_arn}/*",
     ]
   }
 }
