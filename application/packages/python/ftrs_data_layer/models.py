@@ -1,7 +1,7 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -205,44 +205,60 @@ class DayOfWeek(str, Enum):
     sunday = "sun"
 
 
-class OpeningTime(DBModel):
-    """
-    TODO @marksp: enum categories:
-        availableTime
-        availableTimeVariations
-        availableTimePublicHolidays
-        notAvailable
-    """
-
-    category: OpeningTimeCategory
-    # TODO @marksp: validation that description is given when category in (availableTimeVariations, notAvailable)
-    description: str | None = None
-    # TODO @marksp: validation that dayOfWeek is provided if category in (availableTime)
-    dayOfWeek: DayOfWeek | None = None
-    startTime: datetime | None = None
-    endTime: datetime | None = None
-    allDay: bool | None = None
+class AvailableTime(BaseModel):
+    category: Literal[OpeningTimeCategory.availableTime] = (
+        OpeningTimeCategory.availableTime
+    )
+    dayOfWeek: DayOfWeek
+    startTime: time
+    endTime: time
 
 
-def collect_opening_times(availability: dict) -> list:
-    if availability is None:
-        return []
+class AvailableTimePublicHolidays(BaseModel):
+    category: Literal[OpeningTimeCategory.availableTimePublicHolidays] = (
+        OpeningTimeCategory.availableTimePublicHolidays
+    )
+    startTime: time
+    endTime: time
 
-    openingTimes = [
-        OpeningTime(
-            category=OpeningTimeCategory.availableTime,
-            dayOfWeek=data["dayOfWeek"],
-            startTime=data["availableStartTime"],
-            endTime=data["availableEndTime"],
-        )
-        for data in availability["availableTime"]
-    ]
 
-    # openingTimes.append([OpeningTime(data) for data in availability["availableTimePublicHolidays"]])
-    # openingTimes.append([OpeningTime(data) for data in availability["availableTimeVariations"]])
-    # openingTimes.append([OpeningTime(data) for data in availability["notAvailable"]])
+class OpeningTime(BaseModel):
+    id: UUID = uuid4()
+    item: AvailableTime | AvailableTimePublicHolidays = Field(discriminator="category")
 
-    return openingTimes
+    @classmethod
+    def from_dos(cls, availability: dict) -> list["OpeningTime"]:
+        if availability is None:
+            return None
+
+        items = [
+            OpeningTime(
+                item={
+                    "category": OpeningTimeCategory.availableTime,
+                    "dayOfWeek": data["dayOfWeek"][0],
+                    "startTime": data["availableStartTime"],
+                    "endTime": data["availableEndTime"],
+                }
+            )
+            for data in availability["availableTime"]
+        ]
+
+        if availability["availableTimePublicHolidays"] is not None:
+            for data in availability["availableTimePublicHolidays"]:
+                items.append(
+                    OpeningTime(
+                        item={
+                            "category": OpeningTimeCategory.availableTimePublicHolidays,
+                            "startTime": data["availableStartTime"],
+                            "endTime": data["availableEndTime"],
+                        }
+                    )
+                )
+
+        # openingTimes.append([OpeningTime(data) for data in availability["availableTimeVariations"]])
+        # openingTimes.append([OpeningTime(data) for data in availability["notAvailable"]])
+
+        return items
 
 
 class HealthcareService(DBModel):
@@ -254,7 +270,7 @@ class HealthcareService(DBModel):
     name: str
     telecom: Telecom | None
     type: str
-    openingTime: list["OpeningTime"]
+    openingTime: list[OpeningTime] | None
 
     @classmethod
     def from_dos(  # noqa: PLR0913
@@ -290,7 +306,7 @@ class HealthcareService(DBModel):
                 email=data["email"],
                 web=data["web"],
             ),
-            openingTime=collect_opening_times(data["availability"]),
+            openingTime=OpeningTime.from_dos(data["availability"]),
             type=data["type"],
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
