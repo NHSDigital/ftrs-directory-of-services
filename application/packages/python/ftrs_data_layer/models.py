@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from decimal import Decimal
+from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
@@ -187,6 +188,63 @@ class Telecom(BaseModel):
     web: str | None
 
 
+class OpeningTimeCategory(str, Enum):
+    availableTime = "availableTime"
+    availableTimeVariations = "availableTimeVariations"
+    availableTimePublicHolidays = "availableTimePublicHolidays"
+    notAvailable = "notAvailable"
+
+
+class DayOfWeek(str, Enum):
+    monday = "mon"
+    tuesday = "tue"
+    wednesday = "wed"
+    thursday = "thu"
+    friday = "fri"
+    saturday = "sat"
+    sunday = "sun"
+
+
+class OpeningTime(DBModel):
+    """
+    TODO @marksp: enum categories:
+        availableTime
+        availableTimeVariations
+        availableTimePublicHolidays
+        notAvailable
+    """
+
+    category: OpeningTimeCategory
+    # TODO @marksp: validation that description is given when category in (availableTimeVariations, notAvailable)
+    description: str | None = None
+    # TODO @marksp: validation that dayOfWeek is provided if category in (availableTime)
+    dayOfWeek: DayOfWeek | None = None
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    allDay: bool | None = None
+
+
+def collect_opening_times(availability: dict) -> list:
+    if availability is None:
+        return []
+
+    openingTimes = [
+        OpeningTime(
+            category=OpeningTimeCategory.availableTime,
+            dayOfWeek=data["dayOfWeek"],
+            startTime=data["availableStartTime"],
+            endTime=data["availableEndTime"],
+        )
+        for data in availability["availableTime"]
+    ]
+
+    # openingTimes.append([OpeningTime(data) for data in availability["availableTimePublicHolidays"]])
+    # openingTimes.append([OpeningTime(data) for data in availability["availableTimeVariations"]])
+    # openingTimes.append([OpeningTime(data) for data in availability["notAvailable"]])
+
+    return openingTimes
+
+
 class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
@@ -196,6 +254,7 @@ class HealthcareService(DBModel):
     name: str
     telecom: Telecom | None
     type: str
+    openingTime: list["OpeningTime"]
 
     @classmethod
     def from_dos(  # noqa: PLR0913
@@ -231,6 +290,7 @@ class HealthcareService(DBModel):
                 email=data["email"],
                 web=data["web"],
             ),
+            openingTime=collect_opening_times(data["availability"]),
             type=data["type"],
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
