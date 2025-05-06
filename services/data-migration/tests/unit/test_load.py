@@ -59,6 +59,82 @@ def test_save_to_table_organisation(
     )
 
 
+def test_save_to_table_services(
+    mocker: MockerFixture,
+) -> None:
+    """
+    Test save_to_table function with healthcare services
+    """
+
+    mock_repository_create = mocker.patch(
+        "pipeline.load.DocumentLevelRepository.create"
+    )
+
+    input_df = pd.DataFrame(
+        {
+            "organisation": [transformed_GP_Practice_Org],
+            "location": [transformed_GP_Practice_Loc],
+            "healthcare-service": [transformed_GP_Practice_HS],
+        }
+    )
+    table_name = "test-table"
+
+    save_to_table(
+        input_df=input_df,
+        table=TABLE.SERVICE,
+        table_name=table_name,
+        endpoint_url=None,
+    )
+
+    expected_create_calls = [
+        HealthcareService(
+            id="e4682742-09e4-42f8-b9fa-75d9a85cbf76",
+            identifier_oldDoS_uid="139767",
+            category="unknown",
+            type="GP Practice",
+            name="service1",
+            active=True,
+            providedBy="a5881923-0ed8-4c46-aa18-3adb4651cfc2",
+            location=None,
+            telecom={
+                "phone_private": "00000 888888",
+                "web": "https://www.fakewebsite.nhs.uk/",
+                "email": None,
+                "phone_public": "0124 456 7890",
+            },
+            createdBy="ROBOT",
+            createdDateTime="2023-10-01T00:00:00Z",
+            modifiedBy="ROBOT",
+            modifiedDateTime="2023-10-01T00:00:00Z",
+        ),
+        HealthcareService(
+            id="5847df8b-921a-44e8-b0b2-85bcc1565233",
+            identifier_oldDoS_uid="158670",
+            category="unknown",
+            type="GP Practice",
+            name="service2",
+            active=True,
+            providedBy="bb89529e-61b4-4c0e-8012-656d221d2306",
+            location=None,
+            telecom={
+                "phone_private": "00000 888888",
+                "web": "https://www.fakewebsite.nhs.uk/",
+                "email": None,
+                "phone_public": "0124 456 7890",
+            },
+            createdBy="ROBOT",
+            createdDateTime="2023-10-01T00:00:00Z",
+            modifiedBy="ROBOT",
+            modifiedDateTime="2023-10-01T00:00:00Z",
+        ),
+    ]
+    assert mock_repository_create.call_count == len(expected_create_calls)
+    mock_repository_create.assert_has_calls(
+        [call(service) for service in expected_create_calls],
+        any_order=True,
+    )
+
+
 def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     input_df = pd.DataFrame(
         {
