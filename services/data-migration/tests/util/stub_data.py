@@ -227,8 +227,8 @@ transformed_GP_Practice_Loc = {
         "postcode": "TP00 9ZZ",
     },
     "positionGCS": {
-        "latitude": float("0.000003"),
-        "longitude": float("-1.000005"),
+        "latitude": "0.000003",
+        "longitude": "-1.000005",
     },
     "positionReferenceNumber_UPRN": None,
     "positionReferenceNumber_UBRN": None,
