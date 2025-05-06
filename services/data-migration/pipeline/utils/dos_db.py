@@ -30,13 +30,9 @@ WITH {WITH_GP_PRACTICE}
         "services"."postcode",
         "services"."latitude",
         "services"."longitude"
-    FROM "pathwaysdos"."services"
-    LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
+    FROM "gp_practice"
+    LEFT JOIN "pathwaysdos"."services"  ON "gp_practice"."serviceid" = "services"."id"
     LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
-    WHERE
-        "servicestatuses"."name" = 'active'
-        AND "services"."typeid" = '100'
-        AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$';
 """
 
 QUERY_GP_ENDPOINTS = f"""
