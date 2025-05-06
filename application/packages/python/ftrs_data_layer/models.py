@@ -103,7 +103,8 @@ class PositionGCS(BaseModel):
         elif latitude.is_nan() and longitude.is_nan():
             return None
         elif latitude.is_nan() or longitude.is_nan():
-            raise ValueError("provide both latitude and longitude")
+            err_msg = "provide both latitude and longitude"
+            raise ValueError(err_msg)
 
         return PositionGCS(latitude=latitude, longitude=longitude)
 
