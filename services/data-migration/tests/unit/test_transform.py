@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import Mock, call
 
 import pandas as pd
 import pytest
@@ -225,10 +226,12 @@ def test_write_s3(
     mock_write.assert_called_once_with(PathType.S3, s3_uri, "TestOutput")
 
 
-def test_lambda_handler_missing_key() -> None:
-    STATUS_400 = 400
+def test_lambda_handler_missing_key(mock_logging: Mock) -> None:
     event = {"s3_input_uri": "s3://bucket/input"}
     context = {}
-    response = lambda_handler(event, context)
-    assert response["statusCode"] == STATUS_400
-    assert "Missing key in event" in response["body"]
+    lambda_handler(event, context)
+    mock_logging.info.assert_has_calls(
+        [
+            call("Missing key in event"),
+        ]
+    )
