@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -88,9 +89,18 @@ class Address(BaseModel):
     postcode: str | None
 
 
-class positionGCS(BaseModel):
-    latitude: str | None
-    longitude: str | None
+class PositionGCS(BaseModel):
+    latitude: float
+    longitude: float
+
+    @classmethod
+    def from_dos(
+        cls, latitude: float | None, longitude: float | None
+    ) -> Optional["Location"]:
+        if latitude is None and longitude is None:
+            return None
+
+        return PositionGCS(latitude=latitude, longitude=longitude)
 
 
 class Location(DBModel):
@@ -98,7 +108,7 @@ class Location(DBModel):
     address: Address
     managingOrganisation: UUID
     name: str | None = None
-    positionGCS: positionGCS
+    positionGCS: PositionGCS
     positionReferenceNumber_UPRN: int | None = None
     positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
@@ -133,9 +143,9 @@ class Location(DBModel):
                 postcode=data["postcode"],
             ),
             name=None,
-            positionGCS=positionGCS(
-                latitude=str(data["latitude"]),
-                longitude=str(data["longitude"]),
+            positionGCS=PositionGCS.from_dos(
+                latitude=data["latitude"],
+                longitude=data["longitude"],
             ),
             # TODO: defaulting will consider how to define for Fhir schema in future.
             #   but since this has the main ODSCode happy with this being set as True
