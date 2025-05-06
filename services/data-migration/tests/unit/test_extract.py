@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest import mock
 from unittest.mock import Mock, call
 
 import pandas as pd
@@ -10,6 +11,7 @@ from pipeline.extract import (
     extract,
     extract_gp_practices,
     format_endpoints,
+    lambda_handler,
     merge_gp_practice_with_endpoints,
 )
 from pipeline.utils.dos_db import (
@@ -243,3 +245,31 @@ def test_merge_gp_practice_with_endpoints(
     """
     result = merge_gp_practice_with_endpoints(gp_practice_df, grouped_endpoints)
     pd.testing.assert_frame_equal(result, expected_df)
+
+
+def test_lambda_handler_successful_execution(mocker: MockerFixture) -> None:
+    """
+    Test that the lambda handler executes successfully
+    """
+    event = {"s3_output_uri": "s3://bucket/output"}
+    context = mock.Mock()
+
+    mocker.patch(
+        "pipeline.extract.get_secret",
+        return_value={
+            "host": "localhost",
+            "port": 5432,
+            "user": "user",
+            "password": "password",
+            "dbname": "db",
+        },
+    )
+    mock_extract = mocker.patch("pipeline.extract.extract")
+
+    response = lambda_handler(event, context)
+
+    mock_extract.assert_called_once_with(
+        "postgresql://user:password@localhost:5432/db",
+        s3_output_uri="s3://bucket/output",
+    )
+    assert response is None

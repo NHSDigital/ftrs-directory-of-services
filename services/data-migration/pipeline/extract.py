@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated
 
@@ -5,6 +6,7 @@ import numpy as np
 import pandas as pd
 from typer import Option
 
+from pipeline.utils.db_config import DatabaseConfig
 from pipeline.utils.dos_db import (
     get_gp_endpoints,
     get_gp_practices,
@@ -15,6 +17,7 @@ from pipeline.utils.dos_db import (
 from pipeline.utils.file_io import (
     write_parquet_file,
 )
+from pipeline.utils.secret_utils import get_secret
 from pipeline.utils.validators import validate_path
 
 
@@ -130,3 +133,23 @@ def extract(
 
     write_parquet_file(path_type, output_path, extract_gp_practice_df)
     logging.info("Data extraction completed successfully.")
+
+
+def lambda_handler(event: dict, context: object) -> dict[str, any] | None:
+    """
+    AWS Lambda handler function.
+    Parameters:
+    - event: dict, contains the event data passed to the function.
+    - context: object, provides runtime information to the handler.
+    Returns:
+    - dict: Response object with status code and body.
+    """
+    print("Received event:", json.dumps(event))
+
+    db_credentials = get_secret(DatabaseConfig.source_db_credentials, transform="json")
+    db_config = DatabaseConfig(**db_credentials)
+
+    extract(
+        db_config.connection_string,
+        s3_output_uri=event["s3_output_uri"],
+    )
