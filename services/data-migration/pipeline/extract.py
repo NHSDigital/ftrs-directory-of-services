@@ -333,8 +333,6 @@ def extract_gp_practices(db_uri: str) -> pd.DataFrame:
         gp_practice_day_openingtime_df, gp_practice_specified_openingtime_df
     )
 
-    print(gp_practice_extract.columns)
-
     gp_practice_extract = merge_gp_practice_with_openingtimes(
         gp_practice_extract, grouped_openingtimes
     )
