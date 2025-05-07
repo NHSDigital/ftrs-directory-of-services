@@ -7,9 +7,9 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 module "lambda" {
-  source                 = "../../modules/lambda"
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ebe96e5/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
-  description            = "GP search Lambda"
+  description            = "This lambda provides search logic to returns an organisation and its endpoints"
   handler                = "functions/gp_search_function.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
@@ -17,7 +17,7 @@ module "lambda" {
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy.uec_secret_services.policy]
+  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.dynamodb_access_policy.json]
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
@@ -30,22 +30,12 @@ module "lambda" {
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
 
   environment_variables = {
-    "ENVIRONMENT"    = var.environment
-    "PROJECT_NAME"   = var.project
-    "DB_SECRET_NAME" = var.db_secret_name
-    "NAMESPACE"      = "${var.gp_search_service_name}${local.workspace_suffix}"
+    "ENVIRONMENT"         = var.environment
+    "PROJECT_NAME"        = var.project
+    "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
+    "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
   }
 }
-
-resource "aws_vpc_security_group_ingress_rule" "lambda_allow_ingress_to_rds" {
-  security_group_id            = data.aws_security_group.rds_security_group.id
-  referenced_security_group_id = aws_security_group.gp_search_lambda_security_group.id
-  from_port                    = var.rds_port
-  ip_protocol                  = "tcp"
-  to_port                      = var.rds_port
-  description                  = "Allow inbound connection from GP Search Lambda"
-}
-
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
   security_group_id = aws_security_group.gp_search_lambda_security_group.id
   from_port         = "443"
@@ -54,20 +44,6 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhe
   cidr_ipv4         = "0.0.0.0/0"
   description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
 }
-
-resource "aws_vpc_security_group_egress_rule" "lambda_allow_postgres_egress_to_rds" {
-  security_group_id            = aws_security_group.gp_search_lambda_security_group.id
-  referenced_security_group_id = data.aws_security_group.rds_security_group.id
-  from_port                    = var.rds_port
-  to_port                      = var.rds_port
-  ip_protocol                  = "tcp"
-  description                  = "A rule to allow outgoing connections to the postgres port"
-}
-
-data "aws_iam_policy" "uec_secret_services" {
-  name = "uec-ro-secret-services"
-}
-
 data "aws_iam_policy_document" "vpc_access_policy" {
   statement {
     effect = "Allow"
@@ -78,6 +54,21 @@ data "aws_iam_policy_document" "vpc_access_policy" {
     ]
     resources = [
       "*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "dynamodb_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:Scan",
+      "dynamodb:Query"
+    ]
+    resources = [
+      "${data.aws_dynamodb_table.dynamodb_organisation_table.arn}/",
+      "${data.aws_dynamodb_table.dynamodb_organisation_table.arn}/*"
     ]
   }
 }

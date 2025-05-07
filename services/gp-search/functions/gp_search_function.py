@@ -1,65 +1,45 @@
-import json
 import logging
 import os
 
 import boto3
-import psycopg2
-from aws_lambda_powertools import Logger, Metrics, Tracer
-from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from aws_xray_sdk.core import patch_all
+from aws_xray_sdk.core import patch_all, xray_recorder
+from boto3.dynamodb.conditions import Key
 
-# X-Ray patching
+# Patch all supported libraries for X-Ray (includes boto3, requests, etc.)
 patch_all()
 
-# Environment variable
-NAMESPACE = os.environ["NAMESPACE"]
-DB_SECRET_NAME = os.environ["DB_SECRET_NAME"]
-REGION_NAME = os.environ.get("AWS_REGION", "eu-west-2")
+# Setup logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-# Powertools setup
-logger = Logger()
-tracer = Tracer()
-metrics = Metrics(namespace=NAMESPACE)
-
-
-@tracer.capture_method
-def get_db_credentials() -> json:
-    client = boto3.client("secretsmanager", region_name=REGION_NAME)
-    db_secret_value = client.get_secret_value(SecretId=DB_SECRET_NAME)
-    return json.loads(db_secret_value["SecretString"])
+# DynamoDB setup
+dynamodb = boto3.resource("dynamodb")
+table_name = os.environ.get("DYNAMODB_TABLE_NAME")
+table = dynamodb.Table(table_name)
 
 
-@tracer.capture_method
-def test_db_connection(secret: json) -> None:
-    conn = psycopg2.connect(
-        host=secret["host"],
-        port=secret["port"],
-        user=secret["username"],
-        password=secret["password"],
-        dbname=secret["dbname"],
-    )
-    conn.close()  # If no exception, connection worked
-
-
-@tracer.capture_lambda_handler
-@logger.inject_lambda_context
-@metrics.log_metrics
+@xray_recorder.capture("lambda_handler")
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
+    logger.info("Received event: %s", event)
+
+    xray_recorder.put_annotation("Operation", "QueryTable")
+    xray_recorder.put_metadata("TableName", table_name)
+
     try:
-        logger.info("Retrieving DB credentials")
-        secret = get_db_credentials()
+        with xray_recorder.in_subsegment("DynamoDBQuery"):
+            response = table.query(
+                IndexName="ods-code-index",
+                KeyConditionExpression=Key("ods-code").eq("P83010"),
+            )
 
-        logger.info("Testing DB connection")
-        test_db_connection(secret)
-
-        metrics.add_metric(name="ConnectionSuccess", unit=MetricUnit.Count, value=1)
-        return {
-            "statusCode": 200,
-            "body": json.dumps({"message": "Database connection successful"}),
-        }
-
+        logger.info(
+            "Fetched %d items from table %s.",
+            len(response.get("Items", [])),
+            table_name,
+        )
+        return {"statusCode": 200, "body": response.get("Items", [])}
     except Exception as e:
-        logging.exception("Connection failed")
-        metrics.add_metric(name="ConnectionFailure", unit=MetricUnit.Count, value=1)
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        logging.exception("Failed to gather items from table")
+        xray_recorder.put_annotation("Error", str(e))
+        return {"statusCode": 500, "body": str(e)}
