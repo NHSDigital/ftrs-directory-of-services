@@ -31,6 +31,7 @@ build/
 
 tests/*/reports/*
 tests/*/downloads/*
+tests/**/parameter_files/*
 tests/*/*allure-reports/*
 tests/*/*allure-results/*
 tests/**/config.yaml

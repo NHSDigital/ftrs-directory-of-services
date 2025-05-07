@@ -18,7 +18,7 @@
       </Arguments>
       <hashTree/>
       <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Plan Parameters">
-        <stringProp name="filename">/parameter_files/plan_params.csv</stringProp>
+        <stringProp name="filename">parameter_files/plan_params.csv</stringProp>
         <stringProp name="fileEncoding"></stringProp>
         <stringProp name="variableNames">username,password,ServiceEndpoint</stringProp>
         <boolProp name="ignoreFirstLine">false</boolProp>
