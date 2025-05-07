@@ -9,6 +9,7 @@ on:
   delete:
     branches:
       - 'task/FDOS*'
+      - 'task/fdos*'
       - 'dependabot/*'
   workflow_dispatch:
     inputs:

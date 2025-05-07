@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - 'task/FDOS*'
+      - 'task/fdos*'
   workflow_dispatch:
     inputs:
       tag:
