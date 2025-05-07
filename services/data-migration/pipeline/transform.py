@@ -82,7 +82,7 @@ def transform(
 
 
 def lambda_handler(event: any, context: any) -> None:
-    if event["s3_input_uri"] or event["s3_output_uri"]:
+    if not event["s3_input_uri"] or not event["s3_output_uri"]:
         logging.info("Missing key in event")
         return
     return transform(
