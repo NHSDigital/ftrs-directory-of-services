@@ -1,3 +1,3 @@
-from application.services.fhir_mapper.fhir_mapper import FhirMapper
+from application.services.fhir_mapper.bundle_mapper import BundleMapper
 
-__all__ = ["FhirMapper"]
+__all__ = ["BundleMapper"]

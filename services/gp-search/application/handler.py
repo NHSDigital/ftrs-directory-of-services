@@ -9,7 +9,7 @@ from typing import Any, Dict
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from application.config import get_config
-from application.services.fhir_mapper.fhir_mapper import FhirMapper
+from application.services.fhir_mapper.bundle_mapper import BundleMapper
 from application.services.repository.dynamo import DynamoRepository
 
 config = get_config()
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize services
 repository = DynamoRepository(table_name=config.get("DYNAMODB_TABLE_NAME"))
-mapper = FhirMapper(base_url=config.get("FHIR_BASE_URL"))
+mapper = BundleMapper(base_url=config.get("FHIR_BASE_URL"))
 
 
 def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
@@ -53,7 +53,7 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
                 ),
             }
 
-        fhir_bundle = mapper.map_to_fhir(organization_record, ods_code)
+        fhir_bundle = mapper.map_to_fhir(organization_record)
 
         bundle_dump_json = fhir_bundle.model_dump_json()
 
