@@ -87,5 +87,5 @@ def lambda_handler(event: dict, context: any) -> None:
         return
     else:
         transform(
-            s3_input_uri=event["s3_input_uri"], s3_output_uri=event["s3_output_uri"]
+            input=event["s3_input_uri"], output=event["s3_output_uri"]
         )
