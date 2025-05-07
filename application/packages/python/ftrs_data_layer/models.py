@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, time
+from datetime import UTC, date, datetime, time
 from decimal import Decimal
 from enum import Enum
 from typing import Literal, Optional
@@ -212,7 +212,24 @@ class AvailableTime(BaseModel):
     dayOfWeek: DayOfWeek
     startTime: time
     endTime: time
+    allDay: bool = False
 
+class AvailableTimeVariation(BaseModel):
+    category: Literal[OpeningTimeCategory.availableTimeVariations] = (
+        OpeningTimeCategory.availableTimeVariations
+    )
+    description: str
+    startTime: datetime
+    endTime: datetime
+
+
+class NotAvailable(BaseModel):
+    category: Literal[OpeningTimeCategory.notAvailable] = (
+        OpeningTimeCategory.notAvailable
+    )
+    description: str
+    startTime: date
+    allDay: bool = True
 
 class AvailableTimePublicHolidays(BaseModel):
     category: Literal[OpeningTimeCategory.availableTimePublicHolidays] = (
@@ -224,7 +241,7 @@ class AvailableTimePublicHolidays(BaseModel):
 
 class OpeningTime(BaseModel):
     id: UUID = uuid4()
-    item: AvailableTime | AvailableTimePublicHolidays = Field(discriminator="category")
+    item: AvailableTime | AvailableTimeVariation | AvailableTimePublicHolidays | NotAvailable = Field(discriminator="category")
 
     @classmethod
     def from_dos(cls, availability: dict) -> list["OpeningTime"]:
@@ -255,8 +272,30 @@ class OpeningTime(BaseModel):
                     )
                 )
 
-        # openingTimes.append([OpeningTime(data) for data in availability["availableTimeVariations"]])
-        # openingTimes.append([OpeningTime(data) for data in availability["notAvailable"]])
+        if availability["availableTimeVariations"] is not None:
+            for data in availability["availableTimeVariations"]:
+                items.append(
+                    OpeningTime(
+                        item={
+                            "category": OpeningTimeCategory.availableTimeVariations,
+                            "description": data["description"],
+                            "startTime": data["during"]["start"],
+                            "endTime": data["during"]["end"],
+                        }
+                    )
+                )
+
+        if availability["notAvailable"] is not None:
+            for data in availability["notAvailable"]:
+                items.append(
+                    OpeningTime(
+                        item={
+                            "category": OpeningTimeCategory.availableTimeVariations,
+                            "description": data["description"],
+                            "starttime": data["start"]
+                        }
+                    )
+                )
 
         return items
 
