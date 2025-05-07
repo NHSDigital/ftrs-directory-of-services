@@ -55,7 +55,6 @@ def format_openingtimes(
     bank_holiday_df = day_opening_times[day_opening_times["dayOfWeek"] == "BankHoliday"]
     regular_days_df = day_opening_times[day_opening_times["dayOfWeek"] != "BankHoliday"]
 
-
     available_time_df = format_available_time(regular_days_df)
     available_time_public_holidays_df = format_bank_holidays(bank_holiday_df)
     available_time_variations_df = format_available_time_variations(
