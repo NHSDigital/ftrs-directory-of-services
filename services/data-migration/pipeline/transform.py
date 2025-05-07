@@ -86,6 +86,4 @@ def lambda_handler(event: dict, context: any) -> None:
         logging.info("Missing key in event")
         return
     else:
-        transform(
-            input=event["s3_input_uri"], output=event["s3_output_uri"]
-        )
+        transform(input=event["s3_input_uri"], output=event["s3_output_uri"])
