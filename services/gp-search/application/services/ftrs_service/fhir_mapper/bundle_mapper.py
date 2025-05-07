@@ -6,9 +6,11 @@ from fhir.resources.R4B.endpoint import Endpoint
 from fhir.resources.R4B.organization import Organization
 from fhir.resources.R4B.resource import Resource
 
-from application.services.fhir_mapper.endpoint_mapper import EndpointMapper
-from application.services.fhir_mapper.organization_mapper import OrganizationMapper
-from application.services.repository.dynamo import OrganizationRecord
+from application.services.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
+from application.services.ftrs_service.fhir_mapper.organization_mapper import (
+    OrganizationMapper,
+)
+from application.services.ftrs_service.repository.dynamo import OrganizationRecord
 
 
 class BundleMapper:
@@ -17,9 +19,7 @@ class BundleMapper:
         self.organization_mapper = OrganizationMapper()
         self.endpoint_mapper = EndpointMapper()
 
-    def map_to_fhir(
-        self, organization_record: OrganizationRecord
-    ) -> Bundle:
+    def map_to_fhir(self, organization_record: OrganizationRecord) -> Bundle:
         organization_resource = self.organization_mapper.map_to_organization_resource(
             organization_record
         )
@@ -30,11 +30,11 @@ class BundleMapper:
     def _create_bundle(
         self, organization: Organization, endpoints: List[Endpoint]
     ) -> Bundle:
-        ods_code = next(
+        ods_code = [
             identifier.value
             for identifier in organization.identifier
-            if identifier.system == "odsOrganisationCode"
-        )
+            if identifier.system == "https://fhir.nhs.uk/Id/ods-organization-code"
+        ][0]
 
         bundle_type = "searchset"
         bundle_id = str(uuid4())
