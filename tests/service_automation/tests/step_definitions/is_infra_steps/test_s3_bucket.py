@@ -3,10 +3,11 @@ import subprocess
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.s3_util import S3Utils
+from utilities.common import directories, csv_reader
 
 
 # Load feature file
-scenarios("./is_infra_features/test_s3_bucket.feature")
+scenarios("./is_infra_features/s3.feature")
 
 
 @pytest.fixture(scope="module")
@@ -27,22 +28,47 @@ def check_aws_access():
     logger.debug("AWS CLI Authenticate", result.returncode)
     assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
 
-
-@then(parsers.parse('The S3 bucket "{bucket}" exists for stack "{stack}"'))
-def confirm_s3_bucket_exists(project, bucket, stack, aws_s3_client, workspace, env):
-    logger.info(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
-    if workspace == "":
-        bucket_name = project + "-" + env + "-" + stack + "-" + bucket
-    else:
-        bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
+@given(parsers.parse('I can see the S3 bucket "{bucket}" for stack "{stack}"'), target_fixture='fbucket_name')
+def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, env):
+    bucket_name = aws_s3_client.get_bucket(project, workspace, env, stack, bucket)
     response = aws_s3_client.check_bucket_exists(bucket_name)
-    logger.debug("Bucket Exists: {}", response)
     assert response == True
+    return bucket_name
+
+@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='ffile_name')
+def put_s3_file(aws_s3_client, fbucket_name, file_name):
+    file_name = file_name + ".csv"
+    filepath = "tests/csv_files/"+file_name
+    bucket_name = fbucket_name
+    aws_s3_client.put_object(bucket_name, filepath, file_name)
+    return file_name
 
 @when("I fetch the list of S3 buckets")
 def fetch_buckets(aws_s3_client):
     """Retrieve list of S3 buckets"""
     return aws_s3_client.list_buckets()
+
+@then(parsers.parse('I can download the file from the s3 bucket'), target_fixture='fdownload_file')
+def download_s3_file(aws_s3_client, fbucket_name, ffile_name):
+    downloadfile = ffile_name
+    directories.create_folder("downloads")
+    file_name = "downloads/" + downloadfile
+    bucket_name = fbucket_name
+    aws_s3_client.download_object(bucket_name, file_name, downloadfile)
+    return file_name
+
+
+@then(parsers.parse('I can delete the file from the s3 bucket'))
+def delete_s3_file(aws_s3_client, fbucket_name, ffile_name):
+    file_name = ffile_name
+    bucket_name = fbucket_name
+    aws_s3_client.delete_object(bucket_name, file_name)
+
+@then(parsers.parse("the file contains {rowcount} rows"))
+def count_csv_rows(fdownload_file, rowcount):
+    file_name = fdownload_file
+    row_count = str(csv_reader.csv_row_count(file_name))
+    assert row_count == rowcount
 
 @then("the bucket names should be valid")
 def validate_bucket_names(fetch_s3_buckets):
