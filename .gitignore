@@ -27,6 +27,9 @@ build/
 *.log
 .env
 
+# all .idea folders
+.idea/
+
 # Test specific
 
 tests/**/reports/*
