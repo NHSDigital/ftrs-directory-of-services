@@ -26,7 +26,10 @@ lint:
 	poetry run ruff check \
 		|| poetry run ruff format --check
 
-unit-test: #TODO
+test: unit-test
+
+unit-test:
+	poetry run pytest tests/unit
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)

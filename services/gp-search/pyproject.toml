@@ -9,6 +9,7 @@ readme = "README.md"
 requires-python = ">=3.12,<4.0.0"
 dependencies = [
     "fhir-resources (>=8.0.0,<9.0.0)",
+    "psycopg2-binary (>=2.9.10,<3.0.0)",
 ]
 
 [build-system]
@@ -22,6 +23,12 @@ ruff = "^0.9.6"
 aws-lambda-powertools = ">=3.11.0,<4.0.0"
 aws-xray-sdk = ">=2.14.0,<3.0.0"
 boto3 = "^1.38.6"
+
+
+#[tool.poetry.group.test.dependencies]
+#pytest = "^8.3.5"
+#pytest-cov = "^6.1.1"
+#pytest-mock = "^3.14.0"
 
 [tool.poetry.scripts]
 dos-gp-search-function = "functions.gp_search_function:lambda_handler"

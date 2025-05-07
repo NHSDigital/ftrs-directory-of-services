@@ -1,13 +1,95 @@
-"""DynamoDB implementation."""
-
 import json
 import logging
-from typing import Any
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import boto3
 from boto3.dynamodb.conditions import Key
+from pydantic import BaseModel, Field, field_validator
+from pydantic_core import PydanticUseDefault
 
 logger = logging.getLogger(__name__)
+
+
+class DynamoModel(BaseModel):
+    @field_validator("*", mode="before")
+    def none_to_default(cls, v: object) -> object:
+        """Converts None values (when Dynamo returns null values) to default values for Pydantic models."""
+        if v is None:
+            raise PydanticUseDefault()
+        return v
+
+
+class EndpointValue(DynamoModel):
+    """Represents an endpoint associated with an organization."""
+
+    id: str = Field()
+    identifier_oldDoS_id: int = Field()
+    address: str = Field()
+    format: str = Field()
+    description: str = Field()
+    isCompressionEnabled: bool = Field()
+    connectionType: str = Field()
+    payloadType: str = Field()
+    managedByOrganisation: str = Field()
+    status: str = Field()
+    order: int = Field()
+    createdBy: str = Field()
+    modifiedBy: str = Field()
+    createdDateTime: datetime = Field()
+    modifiedDateTime: datetime = Field()
+    service: str = Field("dummy-service")
+    name: str = Field("dummy-name")
+
+    class Config:
+        populate_by_name = True
+        frozen = True
+
+
+class OrganizationValue(DynamoModel):
+    """Represents the 'value' field of an organization record."""
+
+    id: str = Field()
+    name: str = Field()
+    type: str = Field()
+    active: bool = Field()
+    endpoints: List[EndpointValue] = Field(default_factory=list)
+    identifier_ODS_ODSCode: str = Field()
+    createdBy: str = Field()
+    modifiedBy: str = Field()
+    createdDateTime: datetime = Field()
+    modifiedDateTime: datetime = Field()
+    telecom: str = Field("dummy-telecom")
+
+    class Config:
+        populate_by_name = True
+        frozen = True
+
+
+class OrganizationRecord(DynamoModel):
+    """Represents a complete organization record from DynamoDB."""
+
+    id: str = Field()
+    ods_code: str = Field(alias="ods-code")
+    value: OrganizationValue = Field()
+    field: str = Field()
+
+    class Config:
+        populate_by_name = True
+        validate_by_name = True
+        frozen = True
+
+    @classmethod
+    def from_dynamo_item(cls, item: Dict[str, Any]) -> "OrganizationRecord":
+        """Create an OrganizationRecord model from a DynamoDB item."""
+        try:
+            return cls.model_validate(item)
+        except Exception:
+            logger.exception(
+                f"Error validating DynamoDB item. "
+                f"Problem item: {json.dumps(item, indent=2, default=str)}"
+            )
+            raise
 
 
 class DynamoRepository:
@@ -15,37 +97,25 @@ class DynamoRepository:
         self.dynamodb = boto3.resource("dynamodb")
         self.table = self.dynamodb.Table(table_name)
 
-    def get_first_record_by_ods_code(self, ods_code: str) -> dict[str, Any] | None:
-        """Retrieve an organization by its ODS code.
-
-        Args:
-            ods_code: The ODS code to look up
-
-        Returns:
-            The organization raw_data or None if not found
-
-        """
-        items = self.get_records_by_ods_code(ods_code)
-        if items and len(items) > 0:
-            item = items[0]
-
-            logger.info(f"Retrieved record: {json.dumps(item, indent=2, default=str)}")
-
-            return item
-        return None
-
-    def get_records_by_ods_code(self, ods_code: str) -> list[dict[str, Any]]:
-        """Retrieve all organizations matching an ODS code.
-
-        Args:
-            ods_code: The ODS code to look up
-
-        Returns:
-            List of organization raw_data matching the ODS code
-
-        """
+    def get_first_record_by_ods_code(
+        self, ods_code: str
+    ) -> Optional[OrganizationRecord]:
         response = self.table.query(
             IndexName="ods-code-index",
             KeyConditionExpression=Key("ods-code").eq(ods_code),
         )
-        return response.get("Items", [])
+
+        items = response.get("Items", [])
+
+        if items and len(items) > 0:
+            if len(items) > 1:
+                logger.warning(
+                    f"Multiple records found for ODS code {ods_code}: {len(items)}."
+                    f" Retrieving the first record."
+                )
+
+            item = items[0]
+            logger.info(f"Retrieved record: {json.dumps(item, indent=2, default=str)}")
+            return OrganizationRecord.from_dynamo_item(item)
+
+        return None
