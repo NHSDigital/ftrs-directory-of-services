@@ -6,7 +6,7 @@ from application.handler import lambda_handler
 if __name__ == "__main__":
     # Example event for local testing
     test_event = {
-        "pathParameters": {"ods_code": "H82028"},
+        "pathParameters": {"odsCode": "H82028"},
         "queryStringParameters": None,
         "body": None,
     }

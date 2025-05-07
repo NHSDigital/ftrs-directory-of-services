@@ -2,7 +2,10 @@ from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization
-from services.repository.dynamo import OrganizationRecord, OrganizationValue
+from services.ftrs_service.repository.dynamo import (
+    OrganizationRecord,
+    OrganizationValue,
+)
 
 
 class OrganizationMapper:
