@@ -14,35 +14,45 @@ def aws_s3_client():
     """Fixture to initialize AWS S3 utility"""
     return S3Utils()
 
+
 @pytest.fixture
 def fetch_s3_buckets(aws_s3_client):
     """Retrieve list of S3 buckets (Fixture)"""
     logger.info("Fetching list of S3 buckets...")
     return aws_s3_client.list_buckets()
 
+
 @given("I am authenticated with AWS CLI")
 def check_aws_access():
     """Ensure AWS CLI authentication works"""
-    result = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["aws", "sts", "get-caller-identity"], capture_output=True, text=True
+    )
     logger.debug("AWS CLI Authenticate", result.returncode)
-    assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
+    assert result.returncode == 0, (
+        f"Failed to authenticate with AWS CLI: {result.stderr}"
+    )
 
 
 @then(parsers.parse('The S3 bucket "{bucket}" exists for stack "{stack}"'))
 def confirm_s3_bucket_exists(project, bucket, stack, aws_s3_client, workspace, env):
-    logger.info(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
+    logger.info(
+        f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}"
+    )
     if workspace == "":
         bucket_name = project + "-" + env + "-" + stack + "-" + bucket
     else:
         bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
     response = aws_s3_client.check_bucket_exists(bucket_name)
     logger.debug("Bucket Exists: {}", response)
-    assert response == True
+    assert response
+
 
 @when("I fetch the list of S3 buckets")
 def fetch_buckets(aws_s3_client):
     """Retrieve list of S3 buckets"""
     return aws_s3_client.list_buckets()
+
 
 @then("the bucket names should be valid")
 def validate_bucket_names(fetch_s3_buckets):
@@ -54,7 +64,13 @@ def validate_bucket_names(fetch_s3_buckets):
         logger.debug("Valid Bucket Names: {}", bucket)
         assert 3 <= len(bucket) <= 63, f"Invalid length for bucket {bucket}"
         assert bucket.islower(), f"Bucket {bucket} must be lowercase"
-        assert bucket[0].isalnum() and bucket[-1].isalnum(), f"Bucket {bucket} must start & end with letter/number"
+        assert bucket[0].isalnum() and bucket[-1].isalnum(), (
+            f"Bucket {bucket} must start & end with letter/number"
+        )
         assert ".." not in bucket, f"Bucket {bucket} contains consecutive dots"
-        assert not bucket.startswith("xn--"), f"Bucket {bucket} cannot start with 'xn--'"
-        assert not bucket.endswith("-s3alias"), f"Bucket {bucket} cannot end with '-s3alias'"
+        assert not bucket.startswith("xn--"), (
+            f"Bucket {bucket} cannot start with 'xn--'"
+        )
+        assert not bucket.endswith("-s3alias"), (
+            f"Bucket {bucket} cannot end with '-s3alias'"
+        )
