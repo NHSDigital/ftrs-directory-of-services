@@ -81,10 +81,11 @@ def transform(
     logging.info("Transform completed successfully.")
 
 
-def lambda_handler(event: any, context: any) -> None:
-    if not event["s3_input_uri"] or not event["s3_output_uri"]:
+def lambda_handler(event: dict, context: any) -> None:
+    if not event.get("s3_input_uri") or not event.get("s3_output_uri"):
         logging.info("Missing key in event")
         return
-    return transform(
-        s3_input_uri=event["s3_input_uri"], s3_output_uri=event["s3_output_uri"]
-    )
+    else:
+        transform(
+            s3_input_uri=event["s3_input_uri"], s3_output_uri=event["s3_output_uri"]
+        )
