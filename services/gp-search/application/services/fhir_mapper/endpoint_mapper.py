@@ -1,106 +1,72 @@
-"""
-Endpoint Mapper Service - Maps endpoint raw_data to FHIR Endpoint resources.
-"""
-
-from typing import Any, Dict, List, Optional
-from uuid import uuid4
+from typing import Dict, List, Optional
 
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.endpoint import Endpoint
 
+from application.services.repository.dynamo import EndpointValue, OrganizationRecord
+
 logger = Logger(service="endpoint_mapper")
 
 
 class EndpointMapper:
-    """Service to map endpoint raw_data to FHIR Endpoint resources."""
-
-    # Class-level constant for payload MIME type mapping
     PAYLOAD_MIME_TYPE_BY_FORMAT_MAP = {
         "PDF": "application/pdf",
         "CDA": "application/hl7-cda+xml",
         "FHIR": "application/fhir+json",
     }
 
-    # Define connection_type_map as a class-level constant
     CONNECTION_TYPE_MAP = {
         "itk": "ihe-xcpd",
         "email": "direct-project",
         "fhir": "hl7-fhir-rest",
     }
 
-    def map_to_endpoints(self, raw_data: Dict[str, Any]) -> List[Endpoint]:
-        """
-        Map endpoint raw_data from DynamoDB to FHIR Endpoint resources.
-
-        Args:
-            raw_data: The organization raw_data from DynamoDB containing endpoints
-
-        Returns:
-            A list of FHIR Endpoint resources
-        """
-        raw_endpoints = raw_data.get("value", {}).get("endpoints", [])
-        if not raw_endpoints:
-            return []
-
+    def map_to_endpoints(
+        self, organization_record: OrganizationRecord
+    ) -> List[Endpoint]:
         endpoints = []
-        for raw_endpoint in raw_endpoints:
-            # Try to create the endpoint
-            endpoint = self._create_endpoint(raw_endpoint)
-            # If endpoint was successfully created (not None/False)
+
+        for endpoint_value in organization_record.value.endpoints:
+            endpoint = self._create_endpoint(endpoint_value)
             if endpoint:
                 endpoints.append(endpoint)
+
         return endpoints
 
-    def _create_endpoint(self, endpoint_data: Dict[str, Any]) -> Optional[Endpoint]:
-        try:
-            default = str(uuid4())
-            endpoint_id = endpoint_data.get("id", default)
-            status = self._create_status()
-            connection_type = self._create_connection_type(endpoint_data)
-            managing_organization = self._create_managing_organization(endpoint_data)
-            payload_type = self._create_payload_type(endpoint_data)
-            payload_mime_type = self._determine_payload_mime_type(endpoint_data)
-            address = self._create_address(endpoint_data)
-            header = self._create_header(endpoint_data)
+    def _create_endpoint(self, endpoint_value: EndpointValue) -> Optional[Endpoint]:
+        endpoint_id = endpoint_value.id
+        status = self._create_status()
+        connection_type = self._create_connection_type(endpoint_value)
+        managing_organization = self._create_managing_organization(endpoint_value)
+        payload_type = self._create_payload_type(endpoint_value)
+        payload_mime_type = self._determine_payload_mime_type(endpoint_value)
+        address = self._create_address(endpoint_value)
+        header = self._create_header(endpoint_value)
 
-            endpoint = Endpoint(
-                id=endpoint_id,
-                status=status,
-                connectionType=connection_type,
-                managingOrganization=managing_organization,
-                payloadType=payload_type,
-                payloadMimeType=payload_mime_type,
-                address=address,
-                header=header,
-            )
-        except Exception as e:
-            logger.exception(
-                "Unexpected error while creating endpoint",
-                extra={
-                    "error": str(e),
-                    "endpoint_data": endpoint_data,
-                },
-            )
-            return None
-        else:
-            logger.info(
-                "Successfully created endpoint",
-                extra={
-                    "endpoint_data": endpoint_data,
-                },
-            )
-            return endpoint
+        endpoint = Endpoint.model_validate(
+            {
+                "id": endpoint_id,
+                "status": status,
+                "connectionType": connection_type,
+                "managingOrganization": managing_organization,
+                "payloadType": payload_type,
+                "payloadMimeType": payload_mime_type,
+                "address": address,
+                "header": header,
+            }
+        )
 
-    def _create_address(self, endpoint_data: Dict[str, Any]) -> str:
-        address = endpoint_data.get("address")
-        return address
+        return endpoint
+
+    def _create_address(self, endpoint_value: EndpointValue) -> str:
+        return endpoint_value.address
 
     def _create_managing_organization(
-        self, endpoint_data: Dict[str, Any]
+        self, endpoint_value: EndpointValue
     ) -> Dict[str, str]:
-        org_id = endpoint_data.get("managedByOrganisation")
+        org_id = endpoint_value.managedByOrganisation
         managing_organization = {"reference": f"Organization/{org_id}"}
         return managing_organization
 
@@ -109,9 +75,9 @@ class EndpointMapper:
         return status
 
     def _create_payload_type(
-        self, endpoint_data: Dict[str, Any]
+        self, endpoint_value: EndpointValue
     ) -> List[CodeableConcept]:
-        payload_type_str = endpoint_data.get("payloadType")
+        payload_type_str = endpoint_value.payloadType
 
         if not payload_type_str:
             return []
@@ -128,19 +94,19 @@ class EndpointMapper:
         )
         return [codeable_concept]
 
-    def _determine_payload_mime_type(self, endpoint_data: Dict[str, Any]) -> List[str]:
-        format_value = endpoint_data.get("format", "").upper()
+    def _determine_payload_mime_type(self, endpoint_value: EndpointValue) -> List[str]:
+        format_value = endpoint_value.format.upper()
 
         if format_value not in self.PAYLOAD_MIME_TYPE_BY_FORMAT_MAP:
             return []
 
         return [self.PAYLOAD_MIME_TYPE_BY_FORMAT_MAP[format_value]]
 
-    def _create_header(self, endpoint_data: Dict[str, Any]) -> List[str]:
+    def _create_header(self, endpoint_value: EndpointValue) -> List[str]:
         header_data = {
-            "order": endpoint_data.get("order"),
-            "is_compression_enabled": endpoint_data.get("isCompressionEnabled", False),
-            "business_scenario": endpoint_data.get("description"),
+            "order": endpoint_value.order,
+            "is_compression_enabled": endpoint_value.isCompressionEnabled,
+            "business_scenario": endpoint_value.description,
         }
 
         headers = [
@@ -152,15 +118,13 @@ class EndpointMapper:
         return headers
 
     def _create_connection_type(
-        self, endpoint_data: Dict[str, Any]
+        self, endpoint_value: EndpointValue
     ) -> Optional[Coding]:
-        db_conn_type = endpoint_data.get("connectionType", "").lower()
+        db_conn_type = endpoint_value.connectionType.lower()
 
-        # If no mapping exists, return None
         if db_conn_type not in self.CONNECTION_TYPE_MAP:
             return None
 
-        # Create and return the Coding object
         return Coding.model_construct(
             system="http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
             code=self.CONNECTION_TYPE_MAP[db_conn_type],
