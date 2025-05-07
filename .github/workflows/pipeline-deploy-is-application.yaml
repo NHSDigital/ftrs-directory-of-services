@@ -79,7 +79,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
-      stacks: "['gp_search'],['is_performance']"
+      stacks: "['gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
