@@ -56,7 +56,7 @@ def test_write_parquet_file_s3(mocker: MockerFixture) -> None:
         df=mock_df,
         path=file_path,
         dataset=False,
-        compression="zstd",
+        compression="snappy",
     )
 
 
@@ -74,7 +74,7 @@ def test_write_parquet_file_local(mocker: MockerFixture) -> None:
         file_path,
         engine="pyarrow",
         index=False,
-        compression="zstd",
+        compression="snappy",
     )
 
 

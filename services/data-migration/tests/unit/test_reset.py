@@ -66,7 +66,7 @@ def test_reset_success(mocker: MockerFixture) -> None:
 
     mock_confirm.assert_called_once()
     mock_repository.assert_called_once_with(
-        table_name="ftrs-dos-db-dev-organisation-test-workspace",
+        table_name="ftrs-dos-dev-database-organisation-test-workspace",
         model_cls=Organisation,
         endpoint_url="http://localhost:8000",
     )
@@ -127,7 +127,7 @@ def test_init_tables(mocker: MockerFixture) -> None:
     )
 
     mock_client.create_table.assert_called_once_with(
-        TableName="ftrs-dos-db-local-organisation-test-workspace",
+        TableName="ftrs-dos-local-database-organisation-test-workspace",
         AttributeDefinitions=[
             {"AttributeName": "id", "AttributeType": "S"},
             {"AttributeName": "field", "AttributeType": "S"},
@@ -180,5 +180,5 @@ def test_init_tables_existing_table(
     )
 
     mock_logging.info.assert_any_call(
-        "Table ftrs-dos-db-local-organisation-test-workspace already exists."
+        "Table ftrs-dos-local-database-organisation-test-workspace already exists."
     )

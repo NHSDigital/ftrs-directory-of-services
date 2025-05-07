@@ -1,6 +1,6 @@
 team_owner = "future-directory"
 
-migration_pipeline_store_bucket_name = "pipeline-store"
+migration_pipeline_store_bucket_name = "pipeline-stores"
 s3_versioning                        = false
 
 source_rds_database = "data_migration"

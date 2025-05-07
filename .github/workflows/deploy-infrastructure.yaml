@@ -68,6 +68,7 @@ jobs:
       contents: read
     timeout-minutes: ${{ inputs.workflow_timeout }}
     strategy:
+      fail-fast: false
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
     outputs:

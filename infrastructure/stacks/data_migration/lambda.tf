@@ -7,6 +7,15 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 
+resource "aws_lambda_layer_version" "data_layer" {
+  layer_name          = "ftrs_data_layer"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common data dependencies for Lambda functions"
+
+  s3_bucket = local.artefacts_bucket
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+}
+
 module "extract_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.extract_name}"
@@ -22,8 +31,12 @@ module "extract_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.extract_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
+  number_of_policy_jsons = "3"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.secrets_access_policy.json,
+  ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
@@ -31,9 +44,8 @@ module "extract_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"   = var.environment
-    "PROJECT_NAME"  = var.project
-    "S3_OUTPUT_URI" = "${module.migration_store_bucket.s3_bucket_arn}/${terraform.workspace}/extract/${var.data_collection_date}/"
+    "ENVIRONMENT"  = var.environment
+    "PROJECT_NAME" = var.project
   }
 }
 
@@ -52,19 +64,22 @@ module "transform_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.extract_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
+  number_of_policy_jsons = "3"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.secrets_access_policy.json,
+  ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
+    [aws_lambda_layer_version.data_layer.arn],
     var.aws_lambda_layers
   )
 
   environment_variables = {
-    "ENVIRONMENT"   = var.environment
-    "PROJECT_NAME"  = var.project
-    "S3_INPUT_URI"  = "${module.migration_store_bucket.s3_bucket_arn}/${terraform.workspace}/extract/${var.data_collection_date}/"
-    "S3_OUTPUT_URI" = "${module.migration_store_bucket.s3_bucket_arn}/${terraform.workspace}/transform/${var.data_collection_date}/"
+    "ENVIRONMENT"  = var.environment
+    "PROJECT_NAME" = var.project
   }
 }
 
@@ -83,18 +98,23 @@ module "load_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.load_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
+  number_of_policy_jsons = "4"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.secrets_access_policy.json,
+    data.aws_iam_policy_document.dynamdb_access_policy.json,
+  ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
+    [aws_lambda_layer_version.data_layer.arn],
     var.aws_lambda_layers
   )
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment
     "PROJECT_NAME" = var.project
-    "S3_INPUT_URI" = "${module.migration_store_bucket.s3_bucket_arn}/${terraform.workspace}/transform/${var.data_collection_date}/"
   }
 }
 
@@ -103,7 +123,9 @@ data "aws_iam_policy_document" "s3_access_policy" {
     effect = "Allow"
     actions = [
       "s3:GetObject",
-      "s3:PutObject"
+      "s3:PutObject",
+      "s3:HeadBucket",
+      "s3:ListBucket"
     ]
     resources = [
       "${module.migration_store_bucket.s3_bucket_arn}/",
@@ -124,4 +146,52 @@ data "aws_iam_policy_document" "vpc_access_policy" {
       "*"
     ]
   }
+}
+
+data "aws_iam_policy_document" "secrets_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "dynamodb_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem"
+    ]
+    resources = flatten([
+      for table in data.aws_dynamodb_table.dynamodb_tables : [
+        table.arn,
+        "${table.arn}/index/*"
+      ]
+    ])
+  }
+}
+
+resource "aws_lambda_permission" "allow_s3_to_invoke_load_lambda" {
+  statement_id  = "AllowS3InvokeLoad"
+  action        = "lambda:InvokeFunction"
+  function_name = module.load_lambda.lambda_function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = module.migration_store_bucket.s3_bucket_arn
+}
+
+resource "aws_lambda_permission" "allow_s3_to_invoke_transform_lambda" {
+  statement_id  = "AllowS3InvokeTransform"
+  action        = "lambda:InvokeFunction"
+  function_name = module.transform_lambda.lambda_function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = module.migration_store_bucket.s3_bucket_arn
 }

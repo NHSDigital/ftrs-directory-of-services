@@ -36,7 +36,7 @@ def write_parquet_file(path_type: PathType, file_path: str, df: pd.DataFrame) ->
             df=df,
             path=file_path,
             dataset=False,
-            compression="zstd",
+            compression="snappy",
         )
 
     elif path_type == PathType.FILE:
@@ -45,7 +45,7 @@ def write_parquet_file(path_type: PathType, file_path: str, df: pd.DataFrame) ->
             file_path,
             engine="pyarrow",
             index=False,
-            compression="zstd",
+            compression="snappy",
         )
     else:
         err_msg = f"Unsupported path type: {path_type}"

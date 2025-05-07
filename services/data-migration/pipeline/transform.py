@@ -1,4 +1,6 @@
 import logging
+import os
+from urllib.parse import unquote_plus
 from datetime import UTC, datetime
 from typing import Annotated
 
@@ -19,6 +21,9 @@ def transform_gp_practices(
     if df.empty:
         err_msg = "No data found in the input DataFrame"
         raise ValueError(err_msg)
+
+    # Replace pandas.NA with None to avoid Pydantic validation errors
+    df = df.replace({pd.NA: None})
 
     gp_practices = []
     for _, row in df.iterrows():
@@ -79,3 +84,16 @@ def transform(
     write_parquet_file(output_type, output_path, gp_practices_df)
 
     logging.info("Transform completed successfully.")
+
+
+def lambda_handler(event: dict, context: any) -> None:
+    """
+    AWS Lambda entrypoint for transforming data.
+    This function will be triggered by an S3 event.
+    """
+    bucket = event['Records'][0]['s3']['bucket']['name']
+    key = event['Records'][0]['s3']['object']['key']
+    s3_input_uri = f"s3://{bucket}/{key}"
+    s3_output_uri = f"s3://{bucket}/transform/transform.parquet"
+
+    transform(input=s3_input_uri, output=s3_output_uri)

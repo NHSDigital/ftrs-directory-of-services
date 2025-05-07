@@ -11,20 +11,61 @@ resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {
 
 data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
   statement {
-    sid     = "AllowSSLRequestsOnly"
-    actions = ["s3:*"]
+    principals {
+      type = "AWS"
+      identifiers = [
+        module.extract_lambda.lambda_role_arn,
+        module.transform_lambda.lambda_role_arn,
+        module.load_lambda.lambda_role_arn
+      ]
+    }
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:ListBucket",
+      "s3:DeleteObject"
+    ]
+
     resources = [
       module.migration_store_bucket.s3_bucket_arn,
+      "${module.migration_store_bucket.s3_bucket_arn}/*"
     ]
-    effect = "Deny"
+  }
+
+  statement {
     principals {
       type        = "AWS"
-      identifiers = ["*"]
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-PowerUser_735fb053a5c7dd27", data.aws_iam_role.github_runner_iam_role.arn]
     }
-    condition {
-      test     = "Bool"
-      variable = "aws:SecureTransport"
-      values   = ["false"]
-    }
+
+    actions = [
+      "s3:*",
+    ]
+
+    resources = [
+      module.migration_store_bucket.s3_bucket_arn,
+      "${module.migration_store_bucket.s3_bucket_arn}/*",
+    ]
   }
+}
+
+resource "aws_s3_bucket_notification" "lambda_trigger" {
+  bucket = module.migration_store_bucket.s3_bucket_id
+
+  lambda_function {
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "extract/"
+    filter_suffix       = ".parquet"
+    lambda_function_arn = module.transform_lambda.lambda_function_arn
+  }
+
+  lambda_function {
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "transform/"
+    filter_suffix       = ".parquet"
+    lambda_function_arn = module.load_lambda.lambda_function_arn
+  }
+
+  depends_on = [module.transform_lambda, module.load_lambda]
 }
