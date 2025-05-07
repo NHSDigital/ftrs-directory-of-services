@@ -11,25 +11,31 @@ from application.services.fhir_mapper.organization_mapper import OrganizationMap
 from application.services.repository.dynamo import OrganizationRecord
 
 
-class FhirMapper:
+class BundleMapper:
     def __init__(self, base_url: str) -> None:
         self.base_url = base_url
         self.organization_mapper = OrganizationMapper()
         self.endpoint_mapper = EndpointMapper()
 
     def map_to_fhir(
-        self, organization_record: OrganizationRecord, ods_code: str
+        self, organization_record: OrganizationRecord
     ) -> Bundle:
         organization_resource = self.organization_mapper.map_to_organization_resource(
             organization_record
         )
         endpoint_resources = self.endpoint_mapper.map_to_endpoints(organization_record)
 
-        return self._create_bundle(organization_resource, endpoint_resources, ods_code)
+        return self._create_bundle(organization_resource, endpoint_resources)
 
     def _create_bundle(
-        self, organization: Organization, endpoints: List[Endpoint], ods_code: str
+        self, organization: Organization, endpoints: List[Endpoint]
     ) -> Bundle:
+        ods_code = next(
+            identifier.value
+            for identifier in organization.identifier
+            if identifier.system == "odsOrganisationCode"
+        )
+
         bundle_type = "searchset"
         bundle_id = str(uuid4())
         bundle_link = [
