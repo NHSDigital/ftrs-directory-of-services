@@ -5,29 +5,41 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Plan Variables">
-        <collectionProp name="Arguments.arguments">
-          <elementProp name="ServiceEndpoint" elementType="Argument">
-            <stringProp name="Argument.name">ServiceEndpoint</stringProp>
-            <stringProp name="Argument.value"></stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-        </collectionProp>
-      </Arguments>
-      <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Plan Parameters">
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Plan Default Variables">
         <stringProp name="filename">parameter_files/plan_params.csv</stringProp>
         <stringProp name="fileEncoding"></stringProp>
-        <stringProp name="variableNames">username,password,ServiceEndpoint</stringProp>
-        <boolProp name="ignoreFirstLine">false</boolProp>
+        <stringProp name="variableNames">xusername,xpassword,xendpoint</stringProp>
+        <boolProp name="ignoreFirstLine">true</boolProp>
         <stringProp name="delimiter">,</stringProp>
         <boolProp name="quotedData">false</boolProp>
         <boolProp name="recycle">true</boolProp>
         <boolProp name="stopThread">false</boolProp>
         <stringProp name="shareMode">shareMode.all</stringProp>
       </CSVDataSet>
+      <hashTree/>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Plan Variables">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="ServiceEndpoint" elementType="Argument">
+            <stringProp name="Argument.name">ServiceEndpoint</stringProp>
+            <stringProp name="Argument.value">${__P(serviceendpoint,core-dos-istest2-ddc-core-dos-ui.k8s-nonprod.texasplatform.uk)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="p_username" elementType="Argument">
+            <stringProp name="Argument.name">p_username</stringProp>
+            <stringProp name="Argument.value">${__P(username,basicadmin)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="p_password" elementType="Argument">
+            <stringProp name="Argument.name">p_password</stringProp>
+            <stringProp name="Argument.value">${__P(password,Test123)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
       <hashTree/>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
         <stringProp name="HTTPSampler.domain">${ServiceEndpoint}</stringProp>
@@ -44,7 +56,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="byServiceType">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="byServiceType" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -91,8 +103,8 @@
             <collectionProp name="AuthManager.auth_list">
               <elementProp name="" elementType="Authorization">
                 <stringProp name="Authorization.url">https://${ServiceEndpoint}</stringProp>
-                <stringProp name="Authorization.username">${username}</stringProp>
-                <stringProp name="Authorization.password">${password}</stringProp>
+                <stringProp name="Authorization.username">${p_username}</stringProp>
+                <stringProp name="Authorization.password">${p_password}</stringProp>
                 <stringProp name="Authorization.domain"></stringProp>
                 <stringProp name="Authorization.realm"></stringProp>
               </elementProp>
