@@ -26,6 +26,7 @@ boto3-stubs = {extras = ["dynamodb"], version = "^1.38.6"}
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.5"
 pytest-mock = "^3.14.0"
+pytest-cov = "^6.1.1"
 
 [tool.poetry.scripts]
 dos-gp-search-function = "functions.gp_search_function:lambda_handler"
