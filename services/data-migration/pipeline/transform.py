@@ -79,3 +79,11 @@ def transform(
     write_parquet_file(output_type, output_path, gp_practices_df)
 
     logging.info("Transform completed successfully.")
+
+
+def lambda_handler(event: dict, context: any) -> None:
+    if not event.get("s3_input_uri") or not event.get("s3_output_uri"):
+        logging.info("Missing key in event")
+        return
+    else:
+        transform(input=event["s3_input_uri"], output=event["s3_output_uri"])
