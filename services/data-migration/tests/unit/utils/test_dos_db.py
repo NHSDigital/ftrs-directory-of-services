@@ -53,6 +53,18 @@ def test_get_gp_practices(mocker: MockerFixture) -> None:
     result = get_gp_practices(db_uri)
     mock_read_sql.assert_called_once_with(
         """
+WITH
+gp_practice AS (
+    SELECT
+        "services"."id" AS "serviceid"
+    FROM "pathwaysdos"."services"
+    LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
+    WHERE
+        "servicestatuses"."name" = \'active\'
+        AND "services"."typeid" = \'100\'
+        AND "services"."odscode" ~ \'^[A-Za-z][0-9]{5}$\'
+)
+
     SELECT
         "services"."name",
         "servicetypes"."name" AS "type",
@@ -68,13 +80,9 @@ def test_get_gp_practices(mocker: MockerFixture) -> None:
         "services"."postcode",
         "services"."latitude",
         "services"."longitude"
-    FROM "pathwaysdos"."services"
-    LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
-    LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
-    WHERE
-        "servicestatuses"."name" = 'active'
-        AND "services"."typeid" = '100'
-        AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$';
+    FROM "gp_practice"
+    LEFT JOIN "pathwaysdos"."services"  ON "gp_practice"."serviceid" = "services"."id"
+    LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."statusid" = "servicetypes"."id"
 """,
         db_uri,
     )
@@ -86,17 +94,18 @@ def test_get_gp_endpoints(mocker: MockerFixture) -> None:
     result = get_gp_endpoints(db_uri)
     mock_read_sql.assert_called_once_with(
         """
-WITH gp_practice AS (
+WITH
+gp_practice AS (
     SELECT
         "services"."id" AS "serviceid"
     FROM "pathwaysdos"."services"
-    LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
     LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
     WHERE
-        "servicestatuses"."name" = 'active'
-        AND "services"."typeid" = '100'
-        AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$'
+        "servicestatuses"."name" = \'active\'
+        AND "services"."typeid" = \'100\'
+        AND "services"."odscode" ~ \'^[A-Za-z][0-9]{5}$\'
 )
+
 SELECT
     "serviceendpoints".*
 FROM "gp_practice"
