@@ -5,42 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Plan Default Variables">
-        <stringProp name="filename">parameter_files/plan_params.csv</stringProp>
-        <stringProp name="fileEncoding"></stringProp>
-        <stringProp name="variableNames">xusername,xpassword,xendpoint</stringProp>
-        <boolProp name="ignoreFirstLine">true</boolProp>
-        <stringProp name="delimiter">,</stringProp>
-        <boolProp name="quotedData">false</boolProp>
-        <boolProp name="recycle">true</boolProp>
-        <boolProp name="stopThread">false</boolProp>
-        <stringProp name="shareMode">shareMode.all</stringProp>
-      </CSVDataSet>
-      <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Plan Variables">
-        <collectionProp name="Arguments.arguments">
-          <elementProp name="ServiceEndpoint" elementType="Argument">
-            <stringProp name="Argument.name">ServiceEndpoint</stringProp>
-            <stringProp name="Argument.value">${__P(serviceendpoint,core-dos-istest2-ddc-core-dos-ui.k8s-nonprod.texasplatform.uk)}</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="p_username" elementType="Argument">
-            <stringProp name="Argument.name">p_username</stringProp>
-            <stringProp name="Argument.value">${__P(username,basicadmin)}</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="p_password" elementType="Argument">
-            <stringProp name="Argument.name">p_password</stringProp>
-            <stringProp name="Argument.value">${__P(password,Test123)}</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-        </collectionProp>
-      </Arguments>
-      <hashTree/>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
         <stringProp name="HTTPSampler.domain">${ServiceEndpoint}</stringProp>
         <stringProp name="HTTPSampler.protocol">https</stringProp>
@@ -151,6 +117,30 @@
         </objProp>
         <stringProp name="filename"></stringProp>
       </ResultCollector>
+      <hashTree/>
+      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="false">
+        <collectionProp name="UserParameters.names"/>
+        <collectionProp name="UserParameters.thread_values">
+          <collectionProp name="1"/>
+        </collectionProp>
+        <boolProp name="UserParameters.per_iteration">false</boolProp>
+      </UserParameters>
+      <hashTree/>
+      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
+        <collectionProp name="UserParameters.names">
+          <stringProp name="-709871675">p_username</stringProp>
+          <stringProp name="772827530">p_password</stringProp>
+          <stringProp name="1974762314">ServiceEndpoint</stringProp>
+        </collectionProp>
+        <collectionProp name="UserParameters.thread_values">
+          <collectionProp name="417723694">
+            <stringProp name="-1236178040">${__P(username,${__CSVRead(parameter_files/plan_params.csv,0)})}</stringProp>
+            <stringProp name="-780183154">${__P(password,${__CSVRead(parameter_files/plan_params.csv,1)})}</stringProp>
+            <stringProp name="505235584">${__P(serviceendpoint,${__CSVRead(parameter_files/plan_params.csv,2)})}</stringProp>
+          </collectionProp>
+        </collectionProp>
+        <boolProp name="UserParameters.per_iteration">false</boolProp>
+      </UserParameters>
       <hashTree/>
     </hashTree>
   </hashTree>
