@@ -63,7 +63,8 @@ def test_doc_get() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1", "field": "document"},
-        ProjectionExpression="id, value",
+        ProjectionExpression="id, #val",
+        ExpressionAttributeNames={"#val": "value"},
         ReturnConsumedCapacity="INDEXES",
     )
 
@@ -86,7 +87,8 @@ def test_doc_get_no_result() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1", "field": "document"},
-        ProjectionExpression="id, value",
+        ProjectionExpression="id, #val",
+        ExpressionAttributeNames={"#val": "value"},
         ReturnConsumedCapacity="INDEXES",
     )
 
