@@ -4,6 +4,8 @@ BUILD_DIR := ../../../build/packages/$(PACKAGE)
 ARTEFACT_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 PACKAGE_VERSION := $(shell poetry version -s)
 WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
+PYTHON_VERSION ?= 3.12
+PLATFORM ?= manylinux2014_x86_64
 PACKAGES_LAYER_NAME := ftrs-dos-python-packages-layer
 
 ensure-build-dir:
