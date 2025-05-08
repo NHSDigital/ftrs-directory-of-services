@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time
 from decimal import Decimal
 from uuid import uuid4
 
@@ -8,13 +8,26 @@ from pytest_mock import MockerFixture
 
 from ftrs_data_layer.models import (
     Address,
+    AvailableTime,
+    AvailableTimePublicHolidays,
+    AvailableTimeVariation,
+    DayOfWeek,
     Endpoint,
     HealthcareService,
     Location,
+    NotAvailable,
     Organisation,
     PositionGCS,
     Telecom,
 )
+
+
+def to_time(time: str) -> time:
+    return datetime.strptime(time, "%H:%M:%S").time()
+
+
+def to_datetime(dt: str) -> time:
+    return datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 
 
 def test_organisation() -> None:
@@ -152,6 +165,11 @@ def test_organisation_from_dos_existing_timestamp(mocker: MockerFixture) -> None
 
 
 def test_healthcare_service() -> None:
+    # Some pregenerated ids for comparison
+    id1 = uuid4()
+    id2 = uuid4()
+    id3 = uuid4()
+
     hs = HealthcareService(
         id=uuid4(),
         identifier_oldDoS_uid="123456",
@@ -171,6 +189,36 @@ def test_healthcare_service() -> None:
             email="example@mail.com",
             web="www.example.com",
         ),
+        openingTime=[
+            AvailableTime(
+                id=id1,
+                dayOfWeek=DayOfWeek.monday,
+                startTime=to_time("09:00:00"),
+                endTime=to_time("17:00:00"),
+            ),
+            AvailableTime(
+                id=id2,
+                dayOfWeek=DayOfWeek.tuesday,
+                startTime=to_time("00:00:00"),
+                endTime=to_time("23:59:59"),
+                allDay=True,
+            ),
+            AvailableTimeVariation(
+                id=id3,
+                description="staff training",
+                startTime=to_datetime("2025-06-10T10:30:00"),
+                endTime=to_datetime("2025-06-10T12:30:00"),
+            ),
+            AvailableTimePublicHolidays(
+                id=id2, startTime=to_time("12:30:00"), endTime=to_time("16:30:00")
+            ),
+            NotAvailable(
+                id=id1,
+                description="special",
+                startTime=to_datetime("2025-07-15T00:00:00"),
+                allDay=True,
+            ),
+        ],
     )
 
     assert hs.model_dump(mode="json") == {
@@ -192,9 +240,169 @@ def test_healthcare_service() -> None:
             "email": "example@mail.com",
             "web": "www.example.com",
         },
+        "openingTime": [
+            {
+                "allDay": False,
+                "category": "availableTime",
+                "dayOfWeek": "mon",
+                "endTime": "17:00:00",
+                "id": str(id1),
+                "startTime": "09:00:00",
+            },
+            {
+                "allDay": True,
+                "category": "availableTime",
+                "dayOfWeek": "tue",
+                "endTime": "23:59:59",
+                "id": str(id2),
+                "startTime": "00:00:00",
+            },
+            {
+                "category": "availableTimeVariations",
+                "description": "staff training",
+                "endTime": "2025-06-10T12:30:00",
+                "id": str(id3),
+                "startTime": "2025-06-10T10:30:00",
+            },
+            {
+                "category": "availableTimePublicHolidays",
+                "endTime": "16:30:00",
+                "id": str(id2),
+                "startTime": "12:30:00",
+            },
+            {
+                "allDay": True,
+                "category": "notAvailable",
+                "description": "special",
+                "id": str(id1),
+                "startTime": "2025-07-15",
+            },
+        ],
     }
 
     assert hs.indexes == {}
+
+
+def test_healthcare_service_from_json() -> None:
+    # additional test for opening times to ensure the union is
+    #   matching the json values to correct types for openingTimes
+    # this functionality is used in the load file, and may be needed to load data into models for writing/updating.
+
+    id1 = uuid4()
+    id2 = uuid4()
+    id3 = uuid4()
+
+    item = HealthcareService.model_validate(
+        {
+            "id": str(id1),
+            "identifier_oldDoS_uid": "123456",
+            "active": True,
+            "type": "General Practice",
+            "category": "General Practice",
+            "createdBy": "test_user",
+            "createdDateTime": "2023-10-01T00:00:00Z",
+            "providedBy": str(id2),
+            "location": str(id3),
+            "modifiedBy": "test_user",
+            "modifiedDateTime": "2023-10-01T00:00:00Z",
+            "name": "Test Healthcare Service",
+            "telecom": {
+                "phone_public": "123456789",
+                "phone_private": "987654321",
+                "email": "example@mail.com",
+                "web": "www.example.com",
+            },
+            "openingTime": [
+                {
+                    "allDay": False,
+                    "category": "availableTime",
+                    "dayOfWeek": "mon",
+                    "endTime": "17:00:00",
+                    "id": str(id1),
+                    "startTime": "09:00:00",
+                },
+                {
+                    "allDay": True,
+                    "category": "availableTime",
+                    "dayOfWeek": "tue",
+                    "endTime": "23:59:59",
+                    "id": str(id2),
+                    "startTime": "00:00:00",
+                },
+                {
+                    "category": "availableTimeVariations",
+                    "description": "staff training",
+                    "endTime": "2025-06-10T12:30:00",
+                    "id": str(id3),
+                    "startTime": "2025-06-10T10:30:00",
+                },
+                {
+                    "category": "availableTimePublicHolidays",
+                    "endTime": "16:30:00",
+                    "id": str(id2),
+                    "startTime": "12:30:00",
+                },
+                {
+                    "allDay": True,
+                    "category": "notAvailable",
+                    "description": "special",
+                    "id": str(id1),
+                    "startTime": "2025-07-15",
+                },
+            ],
+        }
+    )
+
+    assert item == HealthcareService(
+        id=id1,
+        identifier_oldDoS_uid="123456",
+        active=True,
+        category="General Practice",
+        type="General Practice",
+        createdBy="test_user",
+        createdDateTime="2023-10-01T00:00:00Z",
+        providedBy=id2,
+        location=id3,
+        modifiedBy="test_user",
+        modifiedDateTime="2023-10-01T00:00:00Z",
+        name="Test Healthcare Service",
+        telecom=Telecom(
+            phone_public="123456789",
+            phone_private="987654321",
+            email="example@mail.com",
+            web="www.example.com",
+        ),
+        openingTime=[
+            AvailableTime(
+                id=id1,
+                dayOfWeek=DayOfWeek.monday,
+                startTime=to_time("09:00:00"),
+                endTime=to_time("17:00:00"),
+            ),
+            AvailableTime(
+                id=id2,
+                dayOfWeek=DayOfWeek.tuesday,
+                startTime=to_time("00:00:00"),
+                endTime=to_time("23:59:59"),
+                allDay=True,
+            ),
+            AvailableTimeVariation(
+                id=id3,
+                description="staff training",
+                startTime=to_datetime("2025-06-10T10:30:00"),
+                endTime=to_datetime("2025-06-10T12:30:00"),
+            ),
+            AvailableTimePublicHolidays(
+                id=id2, startTime=to_time("12:30:00"), endTime=to_time("16:30:00")
+            ),
+            NotAvailable(
+                id=id1,
+                description="special",
+                startTime=to_datetime("2025-07-15T00:00:00"),
+                allDay=True,
+            ),
+        ],
+    )
 
 
 @freeze_time("2023-10-01T00:00:00Z")
@@ -219,6 +427,12 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
             "email": "test@nhs.net",
             "web": "abc.co.uk",
             "type": "GP Practice",
+            "availability": {
+                "availableTime": [],
+                "availableTimePublicHolidays": [],
+                "availableTimeVariations": [],
+                "notAvailable": [],
+            },
         },
         created_datetime=expected_created_datetime,
         updated_datetime=expected_modified_datetime,
@@ -245,6 +459,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
             "web": "abc.co.uk",
         },
         "type": "GP Practice",
+        "openingTime": None,
     }
 
     assert hs.indexes == {}
@@ -528,3 +743,6 @@ def test_PositionGCS_error_Nonetypes() -> None:
     assert position == PositionGCS(
         latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
     )
+
+    position = PositionGCS.from_dos(latitude=None, longitude=None)
+    assert position is None
