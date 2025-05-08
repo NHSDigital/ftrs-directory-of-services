@@ -98,7 +98,7 @@ To install and configure the toolchain dependencies
 make config
 ```
 
-Before you make any commits make sure you have enabled gpg key signing by default:
+Before you make any commits make sure you have enabled **GPG** key signing by default:
 
 ```shell
 git config --global commit.gpgsign true
@@ -107,10 +107,10 @@ git config --global commit.gpgsign true
 Make sure your pre-commit githooks are working, some setups may not work when running ``make githooks-config`` and instead you will have to run the scripts directly from ``scripts/init.mk`` specifically lines **34-37**
 
 ```shell
-	pre-commit install \
-		--config scripts/config/pre-commit.yaml \
-		--install-hooks
-	make githooks-commit-msg
+pre-commit install \
+	--config scripts/config/pre-commit.yaml \
+	--install-hooks
+make githooks-commit-msg
 ```
 
 ## Usage
