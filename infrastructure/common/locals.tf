@@ -10,4 +10,9 @@ locals {
   # Deploy databases only in default Terraform workspace.
   # This ensures that database resources are provisioned only in the intended environment.
   deploy_databases = "default" == "${terraform.workspace}"
+
+  dynamodb_tables = {
+    for table_name in var.dynamodb_table_names :
+    table_name => "${var.project}-${var.environment}-database-${table_name}${local.workspace_suffix}"
+  }
 }

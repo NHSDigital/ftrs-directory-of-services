@@ -146,10 +146,12 @@ def lambda_handler(event: dict, context: object) -> dict[str, any] | None:
     """
     print("Received event:", json.dumps(event))
 
-    db_credentials = get_secret(DatabaseConfig.source_db_credentials, transform="json")
+    db_credentials = get_secret(
+        DatabaseConfig.source_db_credentials(), transform="json"
+    )
     db_config = DatabaseConfig(**db_credentials)
 
     extract(
         db_config.connection_string,
-        s3_output_uri=event["s3_output_uri"],
+        output=event["s3_output_uri"],
     )

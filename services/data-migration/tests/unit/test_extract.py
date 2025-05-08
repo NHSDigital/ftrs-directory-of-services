@@ -259,7 +259,7 @@ def test_lambda_handler_successful_execution(mocker: MockerFixture) -> None:
         return_value={
             "host": "localhost",
             "port": 5432,
-            "user": "user",
+            "username": "username",
             "password": "password",
             "dbname": "db",
         },
@@ -269,7 +269,7 @@ def test_lambda_handler_successful_execution(mocker: MockerFixture) -> None:
     response = lambda_handler(event, context)
 
     mock_extract.assert_called_once_with(
-        "postgresql://user:password@localhost:5432/db",
-        s3_output_uri="s3://bucket/output",
+        "postgresql://username:password@localhost:5432/db",
+        output="s3://bucket/output",
     )
     assert response is None

@@ -4,7 +4,7 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/python-layer-${var.application_tag}.zip"
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
 }
 
 resource "aws_lambda_layer_version" "python_dependency_layer" {

@@ -135,10 +135,10 @@ def test_load_s3(
 @pytest.mark.parametrize(
     "entity_type, env, workspace, expected_table_name",
     [
-        ("organisation", "local", None, "ftrs-dos-db-local-organisation"),
-        ("organisation", "dev", "test", "ftrs-dos-db-dev-organisation-test"),
-        ("service", "prod", None, "ftrs-dos-db-prod-service"),
-        ("service", "qa", "workspace1", "ftrs-dos-db-qa-service-workspace1"),
+        ("organisation", "local", None, "ftrs-dos-local-database-organisation"),
+        ("organisation", "dev", "test", "ftrs-dos-dev-database-organisation-test"),
+        ("service", "prod", None, "ftrs-dos-prod-database-service"),
+        ("service", "qa", "workspace1", "ftrs-dos-qa-database-service-workspace1"),
     ],
 )
 def test_get_table_name(

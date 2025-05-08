@@ -9,3 +9,9 @@ service_category = "bronze"
 team_owner       = "ftrs"
 
 artefacts_bucket_name = "artefacts-bucket"
+
+dynamodb_table_names = [
+  "healthcare-service",
+  "location",
+  "organisation"
+]

@@ -10,7 +10,7 @@ from pipeline.utils.dos_db import (
 )
 
 # Mock database URI
-db_uri = "postgresql://user:password@localhost:5432/test_db"
+db_uri = "postgresql://username:password@localhost:5432/test_db"
 
 # Mock data
 mock_gp_practices_df = pd.DataFrame(

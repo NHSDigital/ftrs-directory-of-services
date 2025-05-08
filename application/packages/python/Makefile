@@ -6,6 +6,7 @@ PACKAGE_VERSION := $(shell poetry version -s)
 WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
 PYTHON_VERSION ?= 3.12
 PLATFORM ?= manylinux2014_x86_64
+PACKAGES_LAYER_NAME := ftrs-dos-python-packages-layer
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -32,7 +33,7 @@ build-layer:
 		--only-binary=:all: \
 		--upgrade \
 		$(BUILD_DIR)/$(WHEEL_NAME)
-	cd $(BUILD_DIR)/layer && zip -r -q ../$(PACKAGE)-layer-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/layer && zip -r -q ../$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/layer/
 
 lint:
@@ -43,4 +44,4 @@ unit-test:
 	poetry run pytest
 
 publish:
-	aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)

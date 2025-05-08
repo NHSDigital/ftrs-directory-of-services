@@ -68,3 +68,8 @@ variable "stack_name" {
   description = "The hyphenated version of the stack name used in names of resources defined in that stack"
   type        = string
 }
+
+variable "dynamodb_table_names" {
+  description = "List of DynamoDB table names"
+  type        = list(string)
+}

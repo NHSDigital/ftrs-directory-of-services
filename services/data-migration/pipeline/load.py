@@ -1,4 +1,5 @@
 import logging
+import os
 from enum import Enum
 from typing import Annotated
 
@@ -32,7 +33,7 @@ def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> 
     """
     Build a DynamoDB table name based on the entity type, environment, and optional workspace.
     """
-    table_name = f"ftrs-dos-db-{env}-{entity_type}"
+    table_name = f"ftrs-dos-{env}-database-{entity_type}"
     if workspace:
         table_name = f"{table_name}-{workspace}"
 
@@ -93,4 +94,24 @@ def load(
 
     logging.info(
         f"Data loaded successfully into {env.value} environment (workspace: {workspace or 'default'})"
+    )
+
+
+def lambda_handler(event: dict, context: dict) -> None:
+    """
+    AWS Lambda entrypoint for loading data.
+    This function will be triggered by an S3 event.
+    """
+    s3_bucket = event["Records"][0]["s3"]["bucket"]["name"]
+    s3_key = event["Records"][0]["s3"]["object"]["key"]
+
+    s3_input_uri = f"s3://{s3_bucket}/{s3_key}"
+
+    env = os.environ.get("ENVIRONMENT")
+    workspace = os.environ.get("WORKSPACE")
+
+    load(
+        input=s3_input_uri,
+        env=TargetEnvironment(env),
+        workspace=workspace,
     )

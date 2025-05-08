@@ -22,12 +22,8 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" {
-  for_each = {
-    extract_lambda = aws_security_group.extract_lambda_security_group.id
-  }
-
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  referenced_security_group_id = each.value
+  referenced_security_group_id = aws_security_group.extract_lambda_security_group.id
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -68,4 +64,18 @@ resource "aws_security_group" "load_lambda_security_group" {
   description = "Security group for load lambda"
 
   vpc_id = data.aws_vpc.vpc.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambdas_allow_egress_to_internet" {
+  for_each = {
+    extract_lambda   = aws_security_group.extract_lambda_security_group.id,
+    transform_lambda = aws_security_group.transform_lambda_security_group.id,
+    load_lambda      = aws_security_group.load_lambda_security_group.id
+  }
+
+  security_group_id = each.value
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
 }

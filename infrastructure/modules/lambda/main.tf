@@ -30,3 +30,15 @@ module "lambda" {
   environment_variables = merge(var.environment_variables, { WORKSPACE = "${local.environment_workspace}" })
   layers                = var.layers
 }
+
+output "lambda_function_arn" {
+  value = module.lambda.lambda_function_arn
+}
+
+output "lambda_function_name" {
+  value = module.lambda.lambda_function_name
+}
+
+output "lambda_role_arn" {
+  value = module.lambda.lambda_role_arn
+}
