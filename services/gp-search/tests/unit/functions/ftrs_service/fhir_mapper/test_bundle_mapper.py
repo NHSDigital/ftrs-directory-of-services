@@ -6,8 +6,9 @@ from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.endpoint import Endpoint
 from fhir.resources.R4B.organization import Organization
-from services.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
-from services.ftrs_service.repository.dynamo import (
+
+from functions.ftrs_service.fhir_mapper import BundleMapper
+from functions.ftrs_service.repository.dynamo import (
     EndpointValue,
     OrganizationRecord,
     OrganizationValue,

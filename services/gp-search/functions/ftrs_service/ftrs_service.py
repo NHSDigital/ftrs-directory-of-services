@@ -1,9 +1,10 @@
 from aws_lambda_powertools import logging
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from fhir.resources.R4B.resource import Resource
-from services.ftrs_service.config import get_config
-from services.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
-from services.ftrs_service.repository.dynamo import DynamoRepository
+
+from functions.ftrs_service.config import get_config
+from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
+from functions.ftrs_service.repository.dynamo import DynamoRepository
 
 logger = logging.Logger(service=__name__, level="INFO", child=True)
 
