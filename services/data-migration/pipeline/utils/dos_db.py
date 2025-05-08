@@ -14,7 +14,7 @@ gp_practice AS (
 """
 
 QUERY_GP_PRACTICE = f"""
-WITH {WITH_GP_PRACTICE}
+WITH{WITH_GP_PRACTICE}
     SELECT
         "services"."name",
         "servicetypes"."name" AS "type",
@@ -36,7 +36,7 @@ WITH {WITH_GP_PRACTICE}
 """
 
 QUERY_GP_ENDPOINTS = f"""
-WITH {WITH_GP_PRACTICE}
+WITH{WITH_GP_PRACTICE}
 SELECT
     "serviceendpoints".*
 FROM "gp_practice"
@@ -44,10 +44,9 @@ LEFT JOIN "pathwaysdos"."serviceendpoints" ON "gp_practice"."serviceid" = "servi
 """
 
 QUERY_GP_SERVICEDAYOPENINGTIMES = f"""
-WITH {WITH_GP_PRACTICE}
+WITH{WITH_GP_PRACTICE}
 SELECT
     "gp_practice"."serviceid",
-    "servicedayopenings"."dayid",
     "servicedayopeningtimes"."starttime" as "availableStartTime",
     "servicedayopeningtimes"."endtime" as "availableEndTime",
     "openingtimedays"."name" as "dayOfWeek"
@@ -61,7 +60,7 @@ LEFT JOIN "pathwaysdos"."openingtimedays"
 """
 
 QUERY_GP_SERVICESPECIFIEDOPENINGTIMES = f"""
-WITH {WITH_GP_PRACTICE}
+WITH{WITH_GP_PRACTICE}
 SELECT
     "gp_practice"."serviceid",
     "servicespecifiedopeningdates"."date",
