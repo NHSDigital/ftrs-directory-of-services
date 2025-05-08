@@ -1,6 +1,12 @@
 import json
+import logging
+
+from services.ftrs_service import config
 
 from application.handler import lambda_handler
+
+logging.basicConfig(level=config.get_config().get("LOG_LEVEL"))
+logger = logging.getLogger(__name__)
 
 # add main for local running
 if __name__ == "__main__":

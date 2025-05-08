@@ -18,6 +18,8 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DEPENDENCY_DIR)
 
+install: config
+
 config:
 	make _install-dependencies
 	poetry install --no-interaction
@@ -44,7 +46,7 @@ build: ensure-build-dir build-dependency-layer
 
 build-dependency-layer: clean
 	mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without aws-lambda --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
+	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
 	--platform $(PLATFORM) \
 	--target $(DEPENDENCY_DIR)/python \
