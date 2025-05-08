@@ -103,7 +103,7 @@ module "load_lambda" {
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.vpc_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
-    data.aws_iam_policy_document.dynamdb_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
 
   layers = concat(
@@ -128,7 +128,7 @@ data "aws_iam_policy_document" "s3_access_policy" {
       "s3:ListBucket"
     ]
     resources = [
-      "${module.migration_store_bucket.s3_bucket_arn}/",
+      module.migration_store_bucket.s3_bucket_arn,
       "${module.migration_store_bucket.s3_bucket_arn}/*",
     ]
   }

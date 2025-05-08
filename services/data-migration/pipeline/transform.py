@@ -91,8 +91,9 @@ def lambda_handler(event: dict, context: any) -> None:
     AWS Lambda entrypoint for transforming data.
     This function will be triggered by an S3 event.
     """
-    bucket = event['Records'][0]['s3']['bucket']['name']
-    key = event['Records'][0]['s3']['object']['key']
+
+    bucket = event["Records"][0]["s3"]["bucket"]["name"]
+    key = event["Records"][0]["s3"]["object"]["key"]
     s3_input_uri = f"s3://{bucket}/{key}"
     s3_output_uri = f"s3://{bucket}/transform/transform.parquet"
 
