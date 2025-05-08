@@ -17,6 +17,8 @@ from pipeline.extract import (
 from pipeline.utils.dos_db import (
     QUERY_GP_ENDPOINTS,
     QUERY_GP_PRACTICE,
+    QUERY_GP_SERVICEDAYOPENINGTIMES,
+    QUERY_GP_SERVICESPECIFIEDOPENINGTIMES,
     QUERY_SERVICEENDPOINTS_COLUMNS,
     QUERY_SERVICES_COLUMNS,
     QUERY_SERVICES_SIZE,
@@ -89,6 +91,8 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
         [
             call(QUERY_GP_PRACTICE, "test_db_uri"),
             call(QUERY_GP_ENDPOINTS, "test_db_uri"),
+            call(QUERY_GP_SERVICEDAYOPENINGTIMES, "test_db_uri"),
+            call(QUERY_GP_SERVICESPECIFIEDOPENINGTIMES, "test_db_uri"),
             call(QUERY_SERVICES_SIZE, "test_db_uri"),
             call(QUERY_SERVICES_COLUMNS, "test_db_uri"),
             call(QUERY_SERVICEENDPOINTS_COLUMNS, "test_db_uri"),
@@ -98,7 +102,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
     mock_logging.info.assert_has_calls(
         [
             call("Percentage of service profiles: 1.0%"),
-            call("Percentage of all data fields: 33.33%"),
+            call("Percentage of all data fields: 38.1%"),
         ]
     )
 
@@ -178,11 +182,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
             ),
             pd.DataFrame(
                 dict(
-                    {
-                        k: [v]
-                        for k, v in mock_gp_practices_A.items()
-                        if k != "serviceid"
-                    },
+                    {k: [v] for k, v in mock_gp_practices_A.items()},
                     endpoints=[[mock_gp_endpoints_formatted_A]],
                 )
             ),
@@ -203,7 +203,6 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                     {
                         key: [mock_gp_practices_A[key], mock_gp_practices_B[key]]
                         for key in mock_gp_practices_A.keys()
-                        if key != "serviceid"
                     },  # Remove service id
                     endpoints=[
                         [mock_gp_endpoints_formatted_A],
@@ -223,9 +222,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
             pd.DataFrame(
                 dict(
                     {
-                        k: [v]
-                        for k, v in mock_gp_practices_A.items()
-                        if k != "serviceid"
+                        k: [v] for k, v in mock_gp_practices_A.items()
                     },  # Remove service id
                     endpoints=[[]],  # add on endpoints column
                 )

@@ -82,6 +82,56 @@ mock_gp_endpoints_C = {
     "serviceid": 2,
 }
 
+mock_service_opening_times_df = pd.DataFrame(
+    {
+        "serviceid": [1, 1, 1, 1, 1, 1, 1, 2, 2],
+        "availableStartTime": [
+            "9:00:00",
+            "9:00:00",
+            "9:00:00",
+            "9:00:00",
+            "9:00:00",
+            "10:30:00",
+            "10:30:00",
+            "9:00:00",
+            "11:30:00",
+        ],
+        "availableEndTime": [
+            "17:00:00",
+            "17:00:00",
+            "17:00:00",
+            "17:00:00",
+            "17:00:00",
+            "16:00:00",
+            "16:00:00",
+            "17:00:00",
+            "14:30:00",
+        ],
+        "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+            "Monday",
+            "BankHoliday",
+        ],
+    }
+)
+
+mock_service_specified_opening_times_df = pd.DataFrame(
+    {
+        "serviceid": [1, 2, 1, 2],
+        "date": ["2024-02-22", "2024-03-12", "2024-05-14", "2024-06-12"],
+        "starttime": ["8:00:00", "8:15:00", "8:30:00", "9:00:00"],
+        "endtime": ["13:00:00", "13:00:00", "13:00:00", "13:00:00"],
+        "isclosed": [False, False, False, False],
+    }
+)
+
+
 mock_gp_endpoints_formatted_A = {
     "id": 1,
     "endpointorder": 1,
@@ -180,6 +230,7 @@ extracted_GP_Practice = {
     "latitude": "0.000003",
     "longitude": "-1.000005",
     "endpoints": [[mock_gp_endpoints_formatted_A]],
+    "availability": None,
 }
 
 transformed_GP_Practice_Org = {
@@ -260,4 +311,5 @@ transformed_GP_Practice_HS = {
         "web": "www.test.co.uk",
     },
     "type": "GP Practice",
+    "openingTime": None,
 }
