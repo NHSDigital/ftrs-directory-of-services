@@ -1,59 +1,8 @@
-from datetime import datetime
-
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.endpoint import Endpoint
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
-from functions.ftrs_service.repository.dynamo import (
-    EndpointValue,
-    OrganizationRecord,
-    OrganizationValue,
-)
-
-
-@pytest.fixture
-def endpoint_value():
-    return EndpointValue(
-        id="endpoint-123",
-        identifier_oldDoS_id=9876,
-        connectionType="fhir",
-        managedByOrganisation="org-123",
-        payloadType="document",
-        format="PDF",
-        address="https://example.org/fhir",
-        order=1,
-        isCompressionEnabled=True,
-        description="Test scenario",
-        status="active",
-        createdBy="test-user",
-        modifiedBy="test-user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedDateTime=datetime(2023, 1, 2),
-    )
-
-
-@pytest.fixture
-def organization_record(endpoint_value):
-    org_value = OrganizationValue(
-        id="org-123",
-        name="Test Organization",
-        type="prov",
-        active=True,
-        identifier_ODS_ODSCode="O123",
-        telecom="01234567890",
-        endpoints=[endpoint_value],
-        createdBy="test-user",
-        modifiedBy="test-user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedDateTime=datetime(2023, 1, 2),
-    )
-    return OrganizationRecord(
-        id="org-123",
-        ods_code="O123",
-        field="organization",
-        value=org_value,
-    )
 
 
 @pytest.fixture
@@ -61,270 +10,326 @@ def endpoint_mapper():
     return EndpointMapper()
 
 
-def test_map_to_endpoints(endpoint_mapper, organization_record):
-    # Act
-    endpoints = endpoint_mapper.map_to_endpoints(organization_record)
-
-    # Assert
-    assert len(endpoints) == 1
-    assert isinstance(endpoints[0], Endpoint)
-    assert endpoints[0].id == "endpoint-123"
-    assert endpoints[0].status == "active"
-    assert endpoints[0].connectionType.code == "hl7-fhir-rest"
-    assert endpoints[0].managingOrganization.reference == "Organization/org-123"
-
-
-def test_create_endpoint(endpoint_mapper, endpoint_value):
-    # Act
-    endpoint = endpoint_mapper._create_endpoint(endpoint_value)
-
-    # Assert
-    assert endpoint.id == "endpoint-123"
-    assert endpoint.status == "active"
-    assert endpoint.connectionType.code == "hl7-fhir-rest"
-    assert endpoint.managingOrganization.reference == "Organization/org-123"
-    assert endpoint.address == "https://example.org/fhir"
-    assert len(endpoint.payloadType) == 1
-    assert endpoint.payloadType[0].coding[0].code == "document"
-    assert endpoint.payloadMimeType == ["application/pdf"]
-    assert "header_order 1" in endpoint.header
-    assert "header_is_compression_enabled True" in endpoint.header
-    assert "header_business_scenario Test scenario" in endpoint.header
-
-
-def test_create_connection_type_fhir(endpoint_mapper, endpoint_value):
-    # Act
-    connection_type = endpoint_mapper._create_connection_type(endpoint_value)
-
-    # Assert
-    assert (
-        connection_type.system
-        == "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+class TestEndpointMapper:
+    @pytest.mark.parametrize(
+        ("connection_type", "expected_code"),
+        [
+            ("fhir", "hl7-fhir-rest"),
+            ("FHIR", "hl7-fhir-rest"),  # Test case insensitivity
+            ("itk", "ihe-xcpd"),
+            ("ITK", "ihe-xcpd"),  # Test case insensitivity
+            ("email", "direct-project"),
+            ("EMAIL", "direct-project"),  # Test case insensitivity
+            ("unknown", None),  # Test unsupported type
+            ("", None),  # Test empty string
+        ],
     )
-    assert connection_type.code == "hl7-fhir-rest"
+    def test_create_connection_type(
+        self, endpoint_mapper, create_endpoint_value, connection_type, expected_code
+    ):
+        # Arrange
+        endpoint_value = create_endpoint_value(connection_type=connection_type)
 
+        # Act
+        coding = endpoint_mapper._create_connection_type(endpoint_value)
 
-def test_create_connection_type_itk(endpoint_mapper, endpoint_value):
-    # Arrange
-    updated_endpoint = EndpointValue(
-        **{**endpoint_value.model_dump(), "connectionType": "itk"}
+        # Assert
+        if expected_code:
+            assert (
+                coding.system
+                == "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+            )
+            assert coding.code == expected_code
+        else:
+            assert coding is None
+
+    @pytest.mark.parametrize(
+        ("format_value", "expected_mime_type"),
+        [
+            ("PDF", ["application/pdf"]),
+            ("pdf", ["application/pdf"]),  # Test lowercase
+            ("CDA", ["application/hl7-cda+xml"]),
+            ("FHIR", ["application/fhir+json"]),
+            ("unsupported", []),  # Test unsupported format
+            ("", []),  # Test empty string
+        ],
     )
+    def test_determine_payload_mime_type(
+        self, endpoint_mapper, create_endpoint_value, format_value, expected_mime_type
+    ):
+        # Arrange
+        endpoint_value = create_endpoint_value(format_type=format_value)
 
-    # Act
-    connection_type = endpoint_mapper._create_connection_type(updated_endpoint)
+        # Act
+        mime_type = endpoint_mapper._determine_payload_mime_type(endpoint_value)
 
-    # Assert
-    assert connection_type.code == "ihe-xcpd"
+        # Assert
+        assert mime_type == expected_mime_type
 
-
-def test_create_connection_type_email(endpoint_mapper, endpoint_value):
-    # Arrange
-    updated_endpoint = EndpointValue(
-        **{**endpoint_value.model_dump(), "connectionType": "email"}
+    @pytest.mark.parametrize(
+        ("payload_type", "expected_result"),
+        [
+            ("document", True),
+            ("", False),
+            (
+                None,
+                False,
+            ),  # This case would actually raise a validation error in real use
+        ],
     )
+    def test_create_payload_type(
+        self,
+        endpoint_mapper,
+        create_endpoint_value,
+        payload_type,
+        expected_result,
+        mocker,
+    ):
+        # For None payload_type, we need to mock
+        if payload_type is None:
+            # Create a mock endpoint with None payloadType for testing only
+            mock_endpoint = mocker.MagicMock()
+            mock_endpoint.payloadType = None
+            result = endpoint_mapper._create_payload_type(mock_endpoint)
+            assert result == []
+        else:
+            # Arrange
+            endpoint_value = create_endpoint_value(payload_type=payload_type)
 
-    # Act
-    connection_type = endpoint_mapper._create_connection_type(updated_endpoint)
+            # Act
+            result = endpoint_mapper._create_payload_type(endpoint_value)
 
-    # Assert
-    assert connection_type.code == "direct-project"
+            # Assert
+            if expected_result:
+                assert len(result) == 1
+                assert isinstance(result[0], CodeableConcept)
+                assert len(result[0].coding) == 1
+                assert (
+                    result[0].coding[0].system
+                    == "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                )
+                assert result[0].coding[0].code == payload_type
+            else:
+                assert result == []
 
+    def test_create_endpoint(self, endpoint_mapper, create_endpoint_value):
+        # Arrange
+        endpoint_value = create_endpoint_value()
 
-def test_create_connection_type_unsupported(endpoint_mapper, endpoint_value):
-    # Arrange
-    updated_endpoint = EndpointValue(
-        **{**endpoint_value.model_dump(), "connectionType": "unsupported"}
+        # Act
+        endpoint = endpoint_mapper._create_endpoint(endpoint_value)
+
+        # Assert
+        assert isinstance(endpoint, Endpoint)
+        assert endpoint.id == "endpoint-123"
+        assert endpoint.status == "active"
+        assert endpoint.connectionType.code == "hl7-fhir-rest"
+        assert endpoint.address == "https://example.org/fhir"
+        assert len(endpoint.payloadType) == 1
+        assert endpoint.payloadType[0].coding[0].code == "document"
+        assert endpoint.payloadMimeType == ["application/pdf"]
+        assert len(endpoint.header) == 3
+
+    def test_create_endpoint_with_unsupported_connection_type(
+        self, endpoint_mapper, create_endpoint_value
+    ):
+        # Arrange
+        endpoint_value = create_endpoint_value(connection_type="unsupported")
+
+        # Act
+        endpoint = endpoint_mapper._create_endpoint(endpoint_value)
+
+        # Assert
+        assert endpoint.connectionType is None
+
+    def test_create_address(self, endpoint_mapper, create_endpoint_value):
+        # Arrange
+        address = "https://test-address.org/fhir"
+        endpoint_value = create_endpoint_value(address=address)
+
+        # Act
+        result = endpoint_mapper._create_address(endpoint_value)
+
+        # Assert
+        assert result == address
+
+    def test_create_managing_organization(self, endpoint_mapper, create_endpoint_value):
+        # Arrange
+        org_id = "test-org-123"
+        endpoint_value = create_endpoint_value(managed_by_organisation=org_id)
+
+        # Act
+        result = endpoint_mapper._create_managing_organization(endpoint_value)
+
+        # Assert
+        assert result == {"reference": f"Organization/{org_id}"}
+
+    def test_create_status(self, endpoint_mapper):
+        # Act
+        result = endpoint_mapper._create_status()
+
+        # Assert
+        assert result == "active"
+
+    @pytest.mark.parametrize(
+        ("order", "is_compression_enabled", "description", "expected_headers"),
+        [
+            (
+                1,
+                True,
+                "Test",
+                [
+                    "header_order 1",
+                    "header_is_compression_enabled True",
+                    "header_business_scenario Test",
+                ],
+            ),
+            (
+                None,
+                True,
+                "Test",
+                ["header_is_compression_enabled True", "header_business_scenario Test"],
+            ),
+            (1, None, "Test", ["header_order 1", "header_business_scenario Test"]),
+            (1, True, None, ["header_order 1", "header_is_compression_enabled True"]),
+            (None, None, None, []),
+        ],
     )
+    def test_create_header(
+        self,
+        endpoint_mapper,
+        order,
+        is_compression_enabled,
+        description,
+        expected_headers,
+        mocker,
+    ):
+        # Create a mock endpoint with the specified values
+        mock_endpoint = mocker.MagicMock()
+        mock_endpoint.order = order
+        mock_endpoint.isCompressionEnabled = is_compression_enabled
+        mock_endpoint.description = description
 
-    # Act
-    connection_type = endpoint_mapper._create_connection_type(updated_endpoint)
+        # Act
+        headers = endpoint_mapper._create_header(mock_endpoint)
 
-    # Assert
-    assert connection_type is None
+        # Assert
+        assert sorted(headers) == sorted(expected_headers)
 
+    def test_map_to_endpoints_empty_list(
+        self, endpoint_mapper, create_organization_record, create_organization_value
+    ):
+        # Arrange
+        org_value = create_organization_value(endpoints=[])
+        org_record = create_organization_record(org_value=org_value)
 
-def test_determine_payload_mime_type_pdf(endpoint_mapper, endpoint_value):
-    # Act
-    mime_type = endpoint_mapper._determine_payload_mime_type(endpoint_value)
+        # Act
+        endpoints = endpoint_mapper.map_to_endpoints(org_record)
 
-    # Assert
-    assert mime_type == ["application/pdf"]
+        # Assert
+        assert endpoints == []
 
+    def test_map_to_endpoints_multiple_endpoints(
+        self,
+        endpoint_mapper,
+        create_organization_record,
+        create_organization_value,
+        create_endpoint_value,
+    ):
+        # Arrange
+        endpoint1 = create_endpoint_value(
+            endpoint_id="endpoint-123", connection_type="fhir"
+        )
+        endpoint2 = create_endpoint_value(
+            endpoint_id="endpoint-456", connection_type="itk"
+        )
+        endpoint3 = create_endpoint_value(
+            endpoint_id="endpoint-789", connection_type="email"
+        )
 
-def test_determine_payload_mime_type_cda(endpoint_mapper, endpoint_value):
-    # Arrange
-    updated_endpoint = EndpointValue(**{**endpoint_value.model_dump(), "format": "CDA"})
+        org_value = create_organization_value(
+            endpoints=[endpoint1, endpoint2, endpoint3]
+        )
+        org_record = create_organization_record(org_value=org_value)
 
-    # Act
-    mime_type = endpoint_mapper._determine_payload_mime_type(updated_endpoint)
+        # Act
+        endpoints = endpoint_mapper.map_to_endpoints(org_record)
 
-    # Assert
-    assert mime_type == ["application/hl7-cda+xml"]
+        # Assert
+        assert len(endpoints) == 3
+        assert endpoints[0].id == "endpoint-123"
+        assert endpoints[0].connectionType.code == "hl7-fhir-rest"
+        assert endpoints[1].id == "endpoint-456"
+        assert endpoints[1].connectionType.code == "ihe-xcpd"
+        assert endpoints[2].id == "endpoint-789"
+        assert endpoints[2].connectionType.code == "direct-project"
 
+    def test_map_to_endpoints_with_invalid_endpoints(
+        self,
+        endpoint_mapper,
+        create_organization_record,
+        create_organization_value,
+        create_endpoint_value,
+    ):
+        # Arrange
+        # Valid endpoint
+        endpoint1 = create_endpoint_value(
+            endpoint_id="endpoint-123", connection_type="fhir"
+        )
+        # Endpoint with unsupported connection type (still included but with connectionType=None)
+        endpoint2 = create_endpoint_value(
+            endpoint_id="endpoint-456", connection_type="unsupported"
+        )
 
-def test_determine_payload_mime_type_fhir(endpoint_mapper, endpoint_value):
-    # Arrange
-    updated_endpoint = EndpointValue(
-        **{**endpoint_value.model_dump(), "format": "FHIR"}
+        org_value = create_organization_value(endpoints=[endpoint1, endpoint2])
+        org_record = create_organization_record(org_value=org_value)
+
+        # Act
+        endpoints = endpoint_mapper.map_to_endpoints(org_record)
+
+        # Assert
+        assert len(endpoints) == 2
+        assert endpoints[0].id == "endpoint-123"
+        assert endpoints[0].connectionType is not None
+        assert endpoints[1].id == "endpoint-456"
+        assert endpoints[1].connectionType is None
+
+    @pytest.mark.parametrize(
+        ("connection_type", "format_type", "expected_mime_type", "expected_conn_code"),
+        [
+            ("fhir", "PDF", ["application/pdf"], "hl7-fhir-rest"),
+            ("itk", "CDA", ["application/hl7-cda+xml"], "ihe-xcpd"),
+            ("email", "FHIR", ["application/fhir+json"], "direct-project"),
+            ("unknown", "PDF", ["application/pdf"], None),
+            ("fhir", "unknown", [], "hl7-fhir-rest"),
+            ("unknown", "unknown", [], None),
+        ],
     )
+    def test_combinations(
+        self,
+        endpoint_mapper,
+        create_endpoint_value,
+        create_organization_record,
+        create_organization_value,
+        connection_type,
+        format_type,
+        expected_mime_type,
+        expected_conn_code,
+    ):
+        # Arrange
+        endpoint_value = create_endpoint_value(
+            connection_type=connection_type, format_type=format_type
+        )
+        org_value = create_organization_value(endpoints=[endpoint_value])
+        org_record = create_organization_record(org_value=org_value)
 
-    # Act
-    mime_type = endpoint_mapper._determine_payload_mime_type(updated_endpoint)
+        # Act
+        endpoints = endpoint_mapper.map_to_endpoints(org_record)
 
-    # Assert
-    assert mime_type == ["application/fhir+json"]
-
-
-def test_determine_payload_mime_type_unsupported(endpoint_mapper, endpoint_value):
-    # Arrange
-    updated_endpoint = EndpointValue(
-        **{**endpoint_value.model_dump(), "format": "UNSUPPORTED"}
-    )
-
-    # Act
-    mime_type = endpoint_mapper._determine_payload_mime_type(updated_endpoint)
-
-    # Assert
-    assert mime_type == []
-
-
-def test_create_payload_type(endpoint_mapper, endpoint_value):
-    # Act
-    payload_type = endpoint_mapper._create_payload_type(endpoint_value)
-
-    # Assert
-    assert len(payload_type) == 1
-    assert isinstance(payload_type[0], CodeableConcept)
-    assert len(payload_type[0].coding) == 1
-    assert (
-        payload_type[0].coding[0].system
-        == "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-    )
-    assert payload_type[0].coding[0].code == "document"
-
-
-def test_create_payload_type_empty(endpoint_mapper, endpoint_value):
-    # Arrange
-    # Since we can't directly set None to payloadType (would cause validation error),
-    # create a custom test method that bypasses the field validator
-    def _create_payload_type_with_none(mapper, endpoint):
-        # Create a mock endpoint with None payloadType for testing only
-        class MockEndpoint:
-            pass
-
-        mock = MockEndpoint()
-        mock.payloadType = None
-        return mapper._create_payload_type(mock)
-
-    # Act
-    payload_type = _create_payload_type_with_none(endpoint_mapper, endpoint_value)
-
-    # Assert
-    assert payload_type == []
-
-
-def test_create_header(endpoint_mapper, endpoint_value):
-    # Act
-    headers = endpoint_mapper._create_header(endpoint_value)
-
-    # Assert
-    assert len(headers) == 3
-    assert "header_order 1" in headers
-    assert "header_is_compression_enabled True" in headers
-    assert "header_business_scenario Test scenario" in headers
-
-
-def test_create_header_with_none_values(endpoint_mapper, endpoint_value):
-    # Similar to the test_create_payload_type_empty approach, we need a custom test
-    # function for testing this behavior since we can't set None directly
-    def _create_header_with_some_nones(mapper, endpoint):
-        # Create a mock endpoint with some None values for testing only
-        class MockEndpoint:
-            pass
-
-        mock = MockEndpoint()
-        mock.order = None
-        mock.isCompressionEnabled = None
-        mock.description = "Test scenario"
-        return mapper._create_header(mock)
-
-    # Act
-    headers = _create_header_with_some_nones(endpoint_mapper, endpoint_value)
-
-    # Assert
-    assert len(headers) == 1
-    assert "header_business_scenario Test scenario" in headers
-
-
-def test_map_to_endpoints_with_multiple_endpoints(endpoint_mapper, organization_record):
-    # Arrange
-    second_endpoint = EndpointValue(
-        id="endpoint-456",
-        identifier_oldDoS_id=5432,
-        connectionType="email",
-        managedByOrganisation="org-123",
-        payloadType="document",
-        format="CDA",
-        address="mailto:test@example.org",
-        order=2,
-        isCompressionEnabled=False,
-        description="Email scenario",
-        status="active",
-        createdBy="test-user",
-        modifiedBy="test-user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedDateTime=datetime(2023, 1, 2),
-    )
-
-    # Create a new organization record with both endpoints
-    updated_org_value = OrganizationValue(
-        **{
-            **organization_record.value.model_dump(),
-            "endpoints": [organization_record.value.endpoints[0], second_endpoint],
-        }
-    )
-
-    updated_org_record = OrganizationRecord(
-        **{**organization_record.model_dump(), "value": updated_org_value}
-    )
-
-    # Act
-    endpoints = endpoint_mapper.map_to_endpoints(updated_org_record)
-
-    # Assert
-    assert len(endpoints) == 2
-    assert endpoints[0].id == "endpoint-123"
-    assert endpoints[1].id == "endpoint-456"
-    assert endpoints[1].connectionType.code == "direct-project"
-    assert endpoints[1].payloadMimeType == ["application/hl7-cda+xml"]
-
-
-def test_map_to_endpoints_with_unsupported_connection_type(
-    endpoint_mapper, organization_record
-):
-    # Arrange
-    unsupported_endpoint = EndpointValue(
-        **{
-            **organization_record.value.endpoints[0].model_dump(),
-            "connectionType": "unsupported",
-        }
-    )
-
-    # Create a new organization record with the unsupported endpoint
-    updated_org_value = OrganizationValue(
-        **{
-            **organization_record.value.model_dump(),
-            "endpoints": [unsupported_endpoint],
-        }
-    )
-
-    updated_org_record = OrganizationRecord(
-        **{**organization_record.model_dump(), "value": updated_org_value}
-    )
-
-    # Act - this should still return an endpoint even with unsupported connection type
-    endpoints = endpoint_mapper.map_to_endpoints(updated_org_record)
-
-    # Assert
-    assert len(endpoints) == 1
-    assert endpoints[0].connectionType is None
+        # Assert
+        assert len(endpoints) == 1
+        if expected_conn_code:
+            assert endpoints[0].connectionType.code == expected_conn_code
+        else:
+            assert endpoints[0].connectionType is None
+        assert endpoints[0].payloadMimeType == expected_mime_type
