@@ -151,6 +151,14 @@
         "iam:GetRole"
     ],
     "Resource": "arn:aws:iam::*:role/aws-service-role/acm.amazonaws.com/AWSServiceRoleForCertificateManager*"
+},
+{
+  "Sid": "FirewallManagerPermissions",
+  "Effect": "Allow",
+  "Action": [
+      "fms:*"
+  ],
+  "Resource": "*"
 }
   ]
 }

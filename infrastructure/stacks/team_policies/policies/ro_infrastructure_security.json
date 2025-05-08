@@ -83,6 +83,24 @@
             "acm:GetAccountConfiguration"
         ],
         "Resource": "*"
-      }
+      },
+      {
+        "Sid": "FirewallManagerPermissions",
+        "Effect": "Allow",
+        "Action": [
+            "fms:Get*",
+            "fms:List*"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "KMSPermissions",
+        "Effect": "Allow",
+        "Action": [
+            "kms:ListKeys",
+            "kms:ListAliases"
+        ],
+        "Resource": "*"
+    }
   ]
 }
