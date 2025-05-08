@@ -16,11 +16,26 @@ clean:
 install:
 	poetry install
 
-build:
+build: build-package build-layer
+
+build-package: ensure-build-dir
 	poetry build -o $(BUILD_DIR) -f wheel
 	mkdir -p $(BUILD_DIR)/python
 	poetry run pip install --no-deps --target=$(BUILD_DIR)/python $(BUILD_DIR)/$(WHEEL_NAME)
 	cd $(BUILD_DIR) && zip -r $(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip python --exclude "*__pycache__/*"
+
+build-layer:
+	mkdir -p $(BUILD_DIR)/layer/python
+	pip install \
+		--target $(BUILD_DIR)/layer/python \
+		--platform $(PLATFORM) \
+		--implementation cp \
+		--python-version $(PYTHON_VERSION) \
+		--only-binary=:all: \
+		--upgrade \
+		$(BUILD_DIR)/$(WHEEL_NAME)
+	cd $(BUILD_DIR)/layer && zip -r -q ../$(PACKAGE)-layer-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
+	rm -rf $(BUILD_DIR)/layer/
 
 lint:
 	poetry run ruff check
@@ -31,4 +46,3 @@ unit-test:
 
 publish:
 	aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
-
