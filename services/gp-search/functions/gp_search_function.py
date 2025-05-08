@@ -6,6 +6,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_xray_sdk.core import patch_all, xray_recorder
 from boto3.dynamodb.conditions import Key
 
+from functions.ftrs_service.ftrs_service import FtrsService
+
 # Patch all supported libraries for X-Ray (includes boto3, requests, etc.)
 patch_all()
 
@@ -19,8 +21,22 @@ table_name = os.environ.get("DYNAMODB_TABLE_NAME")
 table = dynamodb.Table(table_name)
 
 
-@xray_recorder.capture("lambda_handler")
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
+    ftrs_service = FtrsService()
+
+    ods_code = event["pathParameters"]["odsCode"]
+    fhir_resource = ftrs_service.endpoints_by_ods(ods_code=ods_code)
+    fhir_resource_json = fhir_resource.model_dump_json()
+
+    return {
+        "statusCode": 200,
+        "headers": {"Content-Type": "application/fhir+json"},
+        "body": fhir_resource_json,
+    }
+
+
+@xray_recorder.capture("lambda_handler")
+def lambda_handler_original(event: dict, context: LambdaContext) -> dict:
     logger.info("Received event: %s", event)
 
     xray_recorder.put_annotation("Operation", "QueryTable")
