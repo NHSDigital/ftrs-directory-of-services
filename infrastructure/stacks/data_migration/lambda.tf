@@ -172,9 +172,9 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:DeleteItem"
     ]
     resources = flatten([
-      for table in data.aws_dynamodb_table.dynamodb_tables : [
-        table.arn,
-        "${table.arn}/index/*"
+      for table in local.dynamodb_tables : [
+        table.value.arn,
+        "${table.value.arn}/index/*"
       ]
     ])
   }
