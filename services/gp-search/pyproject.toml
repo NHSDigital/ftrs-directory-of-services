@@ -40,11 +40,10 @@ indent-width = 4
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB"]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB", "PT"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["ANN", "PLR2004", "F811"]
-"!**/{test_*.py,tests/**/*.py}" = ["PT"]
+"**/tests/**" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
 
 [tool.ruff.format]
 quote-style = "double"
