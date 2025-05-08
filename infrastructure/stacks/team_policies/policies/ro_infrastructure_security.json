@@ -1,0 +1,88 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Effect": "Allow",
+          "Action": [
+              "iam:GenerateCredentialReport",
+              "iam:GenerateServiceLastAccessedDetails",
+              "iam:Get*",
+              "iam:List*",
+              "iam:SimulateCustomPolicy",
+              "iam:SimulatePrincipalPolicy"
+          ],
+          "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "cloudtrail:Get*",
+            "cloudtrail:Describe*",
+            "cloudtrail:List*",
+            "cloudtrail:LookupEvents"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "AWSSecurityHubReadOnlyAccess",
+        "Effect": "Allow",
+        "Action": [
+            "securityhub:Get*",
+            "securityhub:List*",
+            "securityhub:BatchGet*",
+            "securityhub:Describe*"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:ListDelegatedAdministrators",
+            "organizations:ListAWSServiceAccessForOrganization",
+            "organizations:DescribeOrganizationalUnit",
+            "organizations:DescribeAccount",
+            "organizations:DescribeOrganization",
+            "inspector2:BatchGet*",
+            "inspector2:List*",
+            "inspector2:Describe*",
+            "inspector2:Get*",
+            "inspector2:Search*",
+            "codeguru-security:BatchGetFindings",
+            "codeguru-security:GetAccountConfiguration"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "guardduty:Describe*",
+            "guardduty:Get*",
+            "guardduty:List*"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:ListDelegatedAdministrators",
+            "organizations:ListAWSServiceAccessForOrganization",
+            "organizations:DescribeOrganizationalUnit",
+            "organizations:DescribeAccount",
+            "organizations:DescribeOrganization",
+            "organizations:ListAccounts"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "acm:DescribeCertificate",
+            "acm:ListCertificates",
+            "acm:GetCertificate",
+            "acm:ListTagsForCertificate",
+            "acm:GetAccountConfiguration"
+        ],
+        "Resource": "*"
+      }
+  ]
+}

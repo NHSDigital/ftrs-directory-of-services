@@ -1,0 +1,119 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+        "Effect": "Allow",
+        "Action": [
+            "cloudformation:*"
+        ],
+        "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "trustedadvisor:DescribeAccount*",
+          "trustedadvisor:DescribeOrganization",
+          "trustedadvisor:DescribeRisk*",
+          "trustedadvisor:DownloadRisk",
+          "trustedadvisor:UpdateRiskStatus",
+          "trustedadvisor:DescribeNotificationConfigurations",
+          "trustedadvisor:UpdateNotificationConfigurations",
+          "trustedadvisor:DeleteNotificationConfigurationForDelegatedAdmin",
+          "trustedadvisor:SetOrganizationAccess"
+      ],
+      "Resource": "*"
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:DescribeAccount",
+            "organizations:DescribeOrganization",
+            "organizations:ListAWSServiceAccessForOrganization"
+        ],
+        "Resource": "*"
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:ListDelegatedAdministrators",
+            "organizations:EnableAWSServiceAccess",
+            "organizations:DisableAWSServiceAccess"
+        ],
+        "Resource": "*",
+        "Condition": {
+            "StringEquals": {
+                "organizations:ServicePrincipal": [
+                    "reporting.trustedadvisor.amazonaws.com"
+                ]
+            }
+        }
+    },
+    {
+        "Effect": "Allow",
+        "Action": "iam:CreateServiceLinkedRole",
+        "Resource": "arn:aws:iam::*:role/aws-service-role/reporting.trustedadvisor.amazonaws.com/AWSServiceRoleForTrustedAdvisorReporting",
+        "Condition": {
+            "StringLike": {
+                "iam:AWSServiceName": "reporting.trustedadvisor.amazonaws.com"
+            }
+        }
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:RegisterDelegatedAdministrator",
+            "organizations:DeregisterDelegatedAdministrator"
+        ],
+        "Resource": "arn:aws:organizations::*:*",
+        "Condition": {
+            "StringEquals": {
+                "organizations:ServicePrincipal": [
+                    "reporting.trustedadvisor.amazonaws.com"
+                ]
+            }
+        }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "organizations:EnableAWSServiceAccess",
+          "organizations:DisableAWSServiceAccess"
+      ],
+      "Resource": "*",
+      "Condition": {
+          "StringEquals": {
+              "organizations:ServicePrincipal": "health.amazonaws.com"
+          }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "health:*",
+          "organizations:ListAccounts",
+          "organizations:ListParents",
+          "organizations:DescribeAccount",
+          "organizations:ListDelegatedAdministrators"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "*",
+      "Condition": {
+          "StringEquals": {
+              "iam:AWSServiceName": "health.amazonaws.com"
+          }
+      }
+    },
+  {
+    "Effect": "Allow",
+    "Action": [
+        "wellarchitected:*"
+    ],
+    "Resource": "*"
+  }
+
+  ]
+}
