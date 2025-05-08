@@ -6,11 +6,11 @@ from fhir.resources.R4B.endpoint import Endpoint
 from fhir.resources.R4B.organization import Organization
 from fhir.resources.R4B.resource import Resource
 
-from application.services.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
-from application.services.ftrs_service.fhir_mapper.organization_mapper import (
+from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
+from functions.ftrs_service.fhir_mapper.organization_mapper import (
     OrganizationMapper,
 )
-from application.services.ftrs_service.repository.dynamo import OrganizationRecord
+from functions.ftrs_service.repository.dynamo import OrganizationRecord
 
 
 class BundleMapper:

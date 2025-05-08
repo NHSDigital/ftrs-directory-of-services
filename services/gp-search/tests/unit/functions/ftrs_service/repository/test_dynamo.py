@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from boto3.dynamodb.conditions import Key
-from services.ftrs_service.repository.dynamo import (
+
+from functions.ftrs_service.repository.dynamo import (
     DynamoRepository,
     OrganizationRecord,
 )
@@ -41,7 +42,7 @@ class TestDynamoRepository(unittest.TestCase):
 
         mock_org_record = MagicMock(spec=OrganizationRecord)
         with patch(
-            "services.ftrs_service.repository.dynamo.OrganizationRecord.from_dynamo_item",
+            "functions.ftrs_service.repository.dynamo.OrganizationRecord.from_dynamo_item",
             return_value=mock_org_record,
         ) as mock_from_dynamo:
             result = self.repository.get_first_record_by_ods_code(ods_code)
@@ -73,7 +74,7 @@ class TestDynamoRepository(unittest.TestCase):
 
         mock_org_record = MagicMock(spec=OrganizationRecord)
         with patch(
-            "services.ftrs_service.repository.dynamo.OrganizationRecord.from_dynamo_item",
+            "functions.ftrs_service.repository.dynamo.OrganizationRecord.from_dynamo_item",
             return_value=mock_org_record,
         ) as mock_from_dynamo:
             result = self.repository.get_first_record_by_ods_code(ods_code)

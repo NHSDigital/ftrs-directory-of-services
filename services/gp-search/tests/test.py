@@ -1,9 +1,8 @@
 import json
 import logging
 
-from services.ftrs_service import config
-
-from application.handler import lambda_handler
+from ftrs_service import config
+from gp_search_function import lambda_handler
 
 logging.basicConfig(level=config.get_config().get("LOG_LEVEL"))
 logger = logging.getLogger(__name__)

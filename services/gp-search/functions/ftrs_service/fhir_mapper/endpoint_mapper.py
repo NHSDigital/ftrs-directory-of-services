@@ -5,7 +5,7 @@ from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.endpoint import Endpoint
 
-from application.services.ftrs_service.repository.dynamo import (
+from functions.ftrs_service.repository.dynamo import (
     EndpointValue,
     OrganizationRecord,
 )

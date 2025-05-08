@@ -3,8 +3,9 @@ from datetime import datetime
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.endpoint import Endpoint
-from services.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
-from services.ftrs_service.repository.dynamo import (
+
+from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
+from functions.ftrs_service.repository.dynamo import (
     EndpointValue,
     OrganizationRecord,
     OrganizationValue,
