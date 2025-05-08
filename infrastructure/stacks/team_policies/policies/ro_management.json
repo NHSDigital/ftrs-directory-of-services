@@ -1,0 +1,188 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Sid": "VisualEditor0",
+          "Effect": "Allow",
+          "Action": [
+              "account:GetAccountInformation",
+              "aws-portal:ViewBilling",
+              "billing:GetBillingData",
+              "billing:GetBillingDetails",
+              "billing:GetBillingNotifications",
+              "billing:GetBillingPreferences",
+              "billing:GetCredits",
+              "billing:GetContractInformation",
+              "billing:GetIAMAccessPreference",
+              "billing:GetSellerOfRecord",
+              "billing:ListBillingViews",
+              "budgets:ViewBudget",
+              "budgets:DescribeBudgetActionsForBudget",
+              "budgets:DescribeBudgetAction",
+              "budgets:DescribeBudgetActionsForAccount",
+              "budgets:DescribeBudgetActionHistories",
+              "ce:DescribeCostCategoryDefinition",
+              "ce:GetCostAndUsage",
+              "ce:ListCostCategoryDefinitions",
+              "ce:ListTagsForResource",
+              "ce:ListCostAllocationTags",
+              "ce:ListCostAllocationTagBackfillHistory",
+              "ce:GetTags",
+              "ce:GetDimensionValues",
+              "consolidatedbilling:ListLinkedAccounts",
+              "consolidatedbilling:GetAccountBillingRole",
+              "cur:GetClassicReport",
+              "cur:GetClassicReportPreferences",
+              "cur:GetUsageReport",
+              "cur:DescribeReportDefinitions",
+              "freetier:GetFreeTierAlertPreference",
+              "freetier:GetFreeTierUsage",
+              "invoicing:BatchGetInvoiceProfile",
+              "invoicing:GetInvoiceEmailDeliveryPreferences",
+              "invoicing:GetInvoicePDF",
+              "invoicing:GetInvoiceUnit",
+              "invoicing:ListInvoiceSummaries",
+              "invoicing:ListInvoiceUnits",
+              "invoicing:ListTagsForResource",
+              "mapcredits:ListQuarterSpend",
+              "mapcredits:ListAssociatedPrograms",
+              "mapcredits:ListQuarterCredits",
+              "payments:GetFinancingApplication",
+              "payments:GetFinancingLine",
+              "payments:GetFinancingLineWithdrawal",
+              "payments:GetFinancingOption",
+              "payments:GetPaymentInstrument",
+              "payments:GetPaymentStatus",
+              "payments:ListFinancingApplications",
+              "payments:ListFinancingLines",
+              "payments:ListFinancingLineWithdrawals",
+              "payments:ListPaymentInstruments",
+              "payments:ListPaymentPreferences",
+              "payments:ListPaymentProgramOptions",
+              "payments:ListPaymentProgramStatus",
+              "payments:ListTagsForResource",
+              "purchase-orders:GetPurchaseOrder",
+              "purchase-orders:ViewPurchaseOrders",
+              "purchase-orders:ListPurchaseOrderInvoices",
+              "purchase-orders:ListPurchaseOrders",
+              "purchase-orders:ListTagsForResource",
+              "sustainability:GetCarbonFootprintSummary",
+              "tax:GetTaxRegistrationDocument",
+              "tax:GetTaxInheritance",
+              "tax:ListTaxRegistrations"
+          ],
+          "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "events:DescribeRule",
+            "events:DescribeEventBus",
+            "events:DescribeEventSource",
+            "events:ListEventBuses",
+            "events:ListEventSources",
+            "events:ListRuleNamesByTarget",
+            "events:ListRules",
+            "events:ListTargetsByRule",
+            "events:TestEventPattern",
+            "events:DescribeArchive",
+            "events:ListArchives",
+            "events:DescribeReplay",
+            "events:ListReplays",
+            "events:DescribeConnection",
+            "events:ListConnections",
+            "events:DescribeApiDestination",
+            "events:ListApiDestinations",
+            "events:DescribeEndpoint",
+            "events:ListEndpoints",
+            "schemas:DescribeCodeBinding",
+            "schemas:DescribeDiscoverer",
+            "schemas:DescribeRegistry",
+            "schemas:DescribeSchema",
+            "schemas:ExportSchema",
+            "schemas:GetCodeBindingSource",
+            "schemas:GetDiscoveredSchema",
+            "schemas:GetResourcePolicy",
+            "schemas:ListDiscoverers",
+            "schemas:ListRegistries",
+            "schemas:ListSchemas",
+            "schemas:ListSchemaVersions",
+            "schemas:ListTagsForResource",
+            "schemas:SearchSchemas",
+            "scheduler:GetSchedule",
+            "scheduler:GetScheduleGroup",
+            "scheduler:ListSchedules",
+            "scheduler:ListScheduleGroups",
+            "scheduler:ListTagsForResource",
+            "pipes:DescribePipe",
+            "pipes:ListPipes",
+            "pipes:ListTagsForResource"
+        ],
+        "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "ssm:Describe*",
+          "ssm:Get*",
+          "ssm:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "es:Describe*",
+          "es:List*",
+          "es:Get*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AmazonSQSReadOnlyAccess",
+      "Effect": "Allow",
+      "Action": [
+          "sqs:GetQueueAttributes",
+          "sqs:GetQueueUrl",
+          "sqs:ListDeadLetterSourceQueues",
+          "sqs:ListQueues",
+          "sqs:ListMessageMoveTasks",
+          "sqs:ListQueueTags"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SNSReadOnlyAccess",
+      "Effect": "Allow",
+      "Action": [
+          "sns:GetTopicAttributes",
+          "sns:List*",
+          "sns:CheckIfPhoneNumberIsOptedOut",
+          "sns:GetEndpointAttributes",
+          "sns:GetDataProtectionPolicy",
+          "sns:GetPlatformApplicationAttributes",
+          "sns:GetSMSAttributes",
+          "sns:GetSMSSandboxAccountStatus",
+          "sns:GetSubscriptionAttributes"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SMSAccessViaSNS",
+      "Effect": "Allow",
+      "Action": [
+          "sms-voice:DescribeVerifiedDestinationNumbers",
+          "sms-voice:DescribeAccountAttributes",
+          "sms-voice:DescribeSpendLimits",
+          "sms-voice:DescribePhoneNumbers",
+          "sms-voice:DescribeOptedOutNumbers"
+      ],
+      "Resource": "*",
+      "Condition": {
+          "StringEquals": {
+              "aws:CalledViaLast": "sns.amazonaws.com"
+          }
+      }
+    }
+  ]
+}

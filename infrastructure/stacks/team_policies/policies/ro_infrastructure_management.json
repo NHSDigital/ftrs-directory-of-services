@@ -1,0 +1,93 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Effect": "Allow",
+          "Action": [
+              "wellarchitected:Get*",
+              "wellarchitected:List*",
+              "wellarchitected:ExportLens"
+          ],
+          "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "cloudformation:Describe*",
+            "cloudformation:EstimateTemplateCost",
+            "cloudformation:Get*",
+            "cloudformation:List*",
+            "cloudformation:ValidateTemplate",
+            "cloudformation:Detect*"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "trustedadvisor:DescribeAccount*",
+            "trustedadvisor:DescribeOrganization",
+            "trustedadvisor:DescribeRisk*",
+            "trustedadvisor:DownloadRisk",
+            "trustedadvisor:DescribeNotificationConfigurations"
+        ],
+        "Resource": "*"
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:DescribeOrganization",
+            "organizations:ListAWSServiceAccessForOrganization"
+        ],
+        "Resource": "*"
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "organizations:ListDelegatedAdministrators"
+        ],
+        "Resource": "*",
+        "Condition": {
+            "StringEquals": {
+                "organizations:ServicePrincipal": [
+                    "reporting.trustedadvisor.amazonaws.com"
+                ]
+            }
+        }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "organizations:EnableAWSServiceAccess",
+          "organizations:DisableAWSServiceAccess"
+      ],
+      "Resource": "*",
+      "Condition": {
+          "StringEquals": {
+              "organizations:ServicePrincipal": "health.amazonaws.com"
+          }
+      }
+  },
+  {
+      "Effect": "Allow",
+      "Action": [
+          "health:*",
+          "organizations:ListAccounts",
+          "organizations:ListParents",
+          "organizations:DescribeAccount",
+          "organizations:ListDelegatedAdministrators"
+      ],
+      "Resource": "*"
+  },
+  {
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "*",
+      "Condition": {
+          "StringEquals": {
+              "iam:AWSServiceName": "health.amazonaws.com"
+          }
+      }
+  }
+  ]
+}
