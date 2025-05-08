@@ -115,6 +115,41 @@
             "iam:ListUsers"
         ],
         "Resource": "*"
+    },
+    {
+      "Version":"2012-10-17",
+      "Statement": [
+        {
+          "Sid": "IAMPermissions",
+          "Effect": "Allow",
+          "Action": [
+              "iam:GenerateCredentialReport",
+              "iam:List*",
+              "iam:GenerateServiceLastAccessedDetails",
+              "iam:TagRole",
+              "iam:DeletePolicy",
+              "iam:CreateRole",
+              "iam:DeleteRole",
+              "iam:AttachRolePolicy",
+              "iam:TagPolicy",
+              "iam:CreatePolicy",
+              "iam:PassRole",
+              "iam:Get*",
+              "iam:DetachRolePolicy",
+              "iam:SimulatePrincipalPolicy",
+              "iam:SimulateCustomPolicy",
+              "iam:CreatePolicyVersion",
+              "iam:DeletePolicyVersion",
+              "iam:TagOpenIDConnectProvider",
+              "iam:DeleteRolePolicy",
+              "iam:PutRolePolicy",
+              "iam:UpdateOpenIDConnectProviderThumbprint",
+              "iam:UntagPolicy",
+              "iam:UntagRole"
+          ],
+          "Resource": "*"
+        }
+      ]
     }
   ]
 }
