@@ -1,0 +1,149 @@
+name: Data Sourcing SIA Application Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'task/SIA*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: true
+        type: string
+      application_tag:
+        description: "Specify the application tag to be used for deployment"
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+
+jobs:
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+  quality-checks:
+    name: "Quality check"
+    needs:
+      - metadata
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['etl_ods']"
+    secrets: inherit
+
+  build-python-package:
+    name: "Build python package"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: "python"
+      build_type: "package"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+    secrets: inherit
+
+  build-etl-ods-service:
+    name: "Build etl ods service"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: "etl-ods"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+    secrets: inherit
+
+  deploy-infrastructure-plan:
+    name: "Plan application infrastructure deployment"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-protected"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - build-etl-ods-service
+      - build-python-package
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['etl_ods']"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      action: plan
+    secrets: inherit
+
+  manual-approval:
+    name: "Manual approval for deployment"
+    if: ${{ needs.deploy-infrastructure-plan.outputs.plan_result == 'true' }}
+    needs:
+      - metadata
+      - deploy-infrastructure-plan
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+
+  deploy-infrastructure-apply:
+    name: "Deploy application infrastructure"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-protected"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['etl_ods']"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      action: apply
+      workflow_timeout: 30
+    secrets: inherit
+
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    needs:
+      - deploy-infrastructure-apply
+    if: always()
+    uses: ./.github/workflows/pipeline-status-check.yaml
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - metadata
+      - quality-checks
+      - build-etl-ods-service
+      - deploy-infrastructure-plan
+      - manual-approval
+      - deploy-infrastructure-apply
+      - check-pipeline-status
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
