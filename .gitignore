@@ -30,7 +30,6 @@ build/
 # Test specific
 
 tests/**/reports/*
-tests/**/report/*
 tests/*/downloads/*
 tests/**/parameter_files/*
 tests/*/*allure-reports/*
