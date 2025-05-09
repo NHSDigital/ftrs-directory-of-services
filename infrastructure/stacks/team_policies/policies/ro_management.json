@@ -2,134 +2,120 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "ApiGatewayReadOnly",
       "Effect": "Allow",
-      "Action": [
-          "apigateway:GET"
-      ],
+      "Action": "apigateway:GET",
       "Resource": "arn:aws:apigateway:*::/*"
     },
-      {
-        "Effect": "Allow",
-        "Action": [
-            "events:DescribeRule",
-            "events:DescribeEventBus",
-            "events:DescribeEventSource",
-            "events:ListEventBuses",
-            "events:ListEventSources",
-            "events:ListRuleNamesByTarget",
-            "events:ListRules",
-            "events:ListTargetsByRule",
-            "events:TestEventPattern",
-            "events:DescribeArchive",
-            "events:ListArchives",
-            "events:DescribeReplay",
-            "events:ListReplays",
-            "events:DescribeConnection",
-            "events:ListConnections",
-            "events:DescribeApiDestination",
-            "events:ListApiDestinations",
-            "events:DescribeEndpoint",
-            "events:ListEndpoints",
-            "schemas:DescribeCodeBinding",
-            "schemas:DescribeDiscoverer",
-            "schemas:DescribeRegistry",
-            "schemas:DescribeSchema",
-            "schemas:ExportSchema",
-            "schemas:GetCodeBindingSource",
-            "schemas:GetDiscoveredSchema",
-            "schemas:GetResourcePolicy",
-            "schemas:ListDiscoverers",
-            "schemas:ListRegistries",
-            "schemas:ListSchemas",
-            "schemas:ListSchemaVersions",
-            "schemas:ListTagsForResource",
-            "schemas:SearchSchemas",
-            "scheduler:GetSchedule",
-            "scheduler:GetScheduleGroup",
-            "scheduler:ListSchedules",
-            "scheduler:ListScheduleGroups",
-            "scheduler:ListTagsForResource",
-            "pipes:DescribePipe",
-            "pipes:ListPipes",
-            "pipes:ListTagsForResource"
-        ],
-        "Resource": "*"
-    },
     {
+      "Sid": "EventBridgeAndSchedulerReadOnly",
       "Effect": "Allow",
       "Action": [
-          "ssm:Describe*",
-          "ssm:Get*",
-          "ssm:List*"
+        "events:DescribeArchive",
+        "events:DescribeConnection",
+        "events:DescribeEndpoint",
+        "events:DescribeEventBus",
+        "events:DescribeEventSource",
+        "events:DescribeReplay",
+        "events:DescribeRule",
+        "events:ListApiDestinations",
+        "events:ListArchives",
+        "events:ListConnections",
+        "events:ListEndpoints",
+        "events:ListEventBuses",
+        "events:ListEventSources",
+        "events:ListReplays",
+        "events:ListRuleNamesByTarget",
+        "events:ListRules",
+        "events:ListTargetsByRule",
+        "events:TestEventPattern",
+        "pipes:DescribePipe",
+        "pipes:ListPipes",
+        "pipes:ListTagsForResource",
+        "scheduler:GetSchedule",
+        "scheduler:GetScheduleGroup",
+        "scheduler:ListScheduleGroups",
+        "scheduler:ListSchedules",
+        "scheduler:ListTagsForResource",
+        "schemas:DescribeCodeBinding",
+        "schemas:DescribeDiscoverer",
+        "schemas:DescribeRegistry",
+        "schemas:DescribeSchema",
+        "schemas:ExportSchema",
+        "schemas:GetCodeBindingSource",
+        "schemas:GetDiscoveredSchema",
+        "schemas:GetResourcePolicy",
+        "schemas:ListDiscoverers",
+        "schemas:ListRegistries",
+        "schemas:ListSchemaVersions",
+        "schemas:ListSchemas",
+        "schemas:ListTagsForResource",
+        "schemas:SearchSchemas"
       ],
       "Resource": "*"
     },
     {
+      "Sid": "SSMReadOnly",
       "Effect": "Allow",
       "Action": [
-          "es:Describe*",
-          "es:List*",
-          "es:Get*"
+        "ssm:Describe*",
+        "ssm:Get*",
+        "ssm:List*"
       ],
       "Resource": "*"
     },
     {
-      "Sid": "AmazonSQSReadOnlyAccess",
+      "Sid": "OpenSearchServiceReadOnly",
       "Effect": "Allow",
       "Action": [
-          "sqs:GetQueueAttributes",
-          "sqs:GetQueueUrl",
-          "sqs:ListDeadLetterSourceQueues",
-          "sqs:ListQueues",
-          "sqs:ListMessageMoveTasks",
-          "sqs:ListQueueTags"
+        "es:Describe*",
+        "es:Get*",
+        "es:List*",
+        "osis:Get*",
+        "osis:List*",
+        "opensearch:Describe*",
+        "opensearch:Get*",
+        "opensearch:List*",
+        "aoss:Describe*",
+        "aoss:Get*",
+        "aoss:List*"
       ],
       "Resource": "*"
     },
     {
-      "Sid": "SNSReadOnlyAccess",
+      "Sid": "SQSReadOnly",
       "Effect": "Allow",
       "Action": [
-          "sns:GetTopicAttributes",
-          "sns:List*",
-          "sns:CheckIfPhoneNumberIsOptedOut",
-          "sns:GetEndpointAttributes",
-          "sns:GetDataProtectionPolicy",
-          "sns:GetPlatformApplicationAttributes",
-          "sns:GetSMSAttributes",
-          "sns:GetSMSSandboxAccountStatus",
-          "sns:GetSubscriptionAttributes"
+        "sqs:GetQueueAttributes",
+        "sqs:GetQueueUrl",
+        "sqs:ListDeadLetterSourceQueues",
+        "sqs:ListMessageMoveTasks",
+        "sqs:ListQueueTags",
+        "sqs:ListQueues"
       ],
       "Resource": "*"
     },
     {
-      "Sid": "SMSAccessViaSNS",
+      "Sid": "SNSReadOnly",
       "Effect": "Allow",
       "Action": [
-          "sms-voice:DescribeVerifiedDestinationNumbers",
-          "sms-voice:DescribeAccountAttributes",
-          "sms-voice:DescribeSpendLimits",
-          "sms-voice:DescribePhoneNumbers",
-          "sms-voice:DescribeOptedOutNumbers"
+        "sns:CheckIfPhoneNumberIsOptedOut",
+        "sns:Get*",
+        "sns:List*"
       ],
-      "Resource": "*",
-      "Condition": {
-          "StringEquals": {
-              "aws:CalledViaLast": "sns.amazonaws.com"
-          }
-      }
+      "Resource": "*"
     },
     {
-      "Sid": "SecretsManagerAccess",
+      "Sid": "SecretsManagerReadOnly",
       "Effect": "Allow",
       "Action": [
-          "secretsmanager:GetRandomPassword",
-          "secretsmanager:GetResourcePolicy",
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret",
-          "secretsmanager:ListSecretVersionIds",
-          "secretsmanager:ListSecrets",
-          "secretsmanager:BatchGetSecretValue"
+        "secretsmanager:BatchGetSecretValue",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetRandomPassword",
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:ListSecretVersionIds",
+        "secretsmanager:ListSecrets"
       ],
       "Resource": "*"
     }

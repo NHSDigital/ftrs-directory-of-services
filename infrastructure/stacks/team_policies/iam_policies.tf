@@ -5,7 +5,6 @@ locals {
   data_rw_policy                      = jsondecode(file("${path.module}/policies/rw_data.json"))
   data_ro_policy                      = jsondecode(file("${path.module}/policies/ro_data.json"))
   networking_rw_policy                = jsondecode(file("${path.module}/policies/rw_networking.json"))
-  networking_vpc_rw_policy            = jsondecode(file("${path.module}/policies/rw_networking_vpc.json"))
   networking_ro_policy                = jsondecode(file("${path.module}/policies/ro_networking.json"))
   security_rw_policy                  = jsondecode(file("${path.module}/policies/rw_security.json"))
   security_ro_policy                  = jsondecode(file("${path.module}/policies/ro_security.json"))
@@ -13,8 +12,7 @@ locals {
   monitoring_ro_policy                = jsondecode(file("${path.module}/policies/ro_monitoring.json"))
   management_rw_policy                = jsondecode(file("${path.module}/policies/rw_management.json"))
   management_ro_policy                = jsondecode(file("${path.module}/policies/ro_management.json"))
-  infrastructure_security_rw_1_policy = jsondecode(file("${path.module}/policies/rw_infrastructure_security_1.json"))
-  infrastructure_security_rw_2_policy = jsondecode(file("${path.module}/policies/rw_infrastructure_security_2.json"))
+  infrastructure_security_rw_policy   = jsondecode(file("${path.module}/policies/rw_infrastructure_security.json"))
   infrastructure_security_ro_policy   = jsondecode(file("${path.module}/policies/ro_infrastructure_security.json"))
   infrastructure_management_rw_policy = jsondecode(file("${path.module}/policies/rw_infrastructure_management.json"))
   infrastructure_management_ro_policy = jsondecode(file("${path.module}/policies/ro_infrastructure_management.json"))
@@ -57,12 +55,6 @@ resource "aws_iam_policy" "networking_rw" {
   policy      = jsonencode(local.networking_rw_policy)
 }
 
-resource "aws_iam_policy" "networking_vpc_rw" {
-  name        = "rw_networking_vpc"
-  description = "Read-write policies for aws vpc services"
-  policy      = jsonencode(local.networking_vpc_rw_policy)
-}
-
 resource "aws_iam_policy" "networking_ro" {
   name        = "ro_networking"
   description = "Read-only policies for aws networking services"
@@ -103,18 +95,6 @@ resource "aws_iam_policy" "management_ro" {
   name        = "ro_management"
   description = "Read-only policies for aws management services"
   policy      = jsonencode(local.management_ro_policy)
-}
-
-resource "aws_iam_policy" "infrastructure_security_1_rw" {
-  name        = "rw_infrastructure_security_1"
-  description = "Read-write policies for aws infrastructure security services"
-  policy      = jsonencode(local.infrastructure_security_rw_1_policy)
-}
-
-resource "aws_iam_policy" "infrastructure_security_2_rw" {
-  name        = "rw_infrastructure_security_2"
-  description = "Read-write policies for aws infrastructure security services"
-  policy      = jsonencode(local.infrastructure_security_rw_2_policy)
 }
 
 resource "aws_iam_policy" "infrastructure_security_ro" {
