@@ -57,6 +57,7 @@ def download_s3_file(aws_s3_client, fbucket_name, ffile_name):
     aws_s3_client.download_object(bucket_name, file_name, downloadfile)
     return file_name
 
+
 @then(parsers.parse('I can delete the file from the s3 bucket'))
 def delete_s3_file(aws_s3_client, fbucket_name, ffile_name):
     file_name = ffile_name
