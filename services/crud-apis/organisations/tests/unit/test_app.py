@@ -13,6 +13,7 @@ from organisations.app import (
     get_outdated_fields,
     get_repository,
     get_table_name,
+    read_organisation,
     update_organisation,
 )
 from organisations.models import OrganisationPayload
@@ -190,6 +191,21 @@ def test_update_organisation_internal_server_error(
 
     assert e.value.response["Error"]["Code"] == "InternalServerError"
     assert e.value.response["Error"]["Message"] == "An internal server error occurred."
+
+
+@patch("organisations.app.get_repository")
+def test_read_organisation_not_found(
+    mock_get_repository: MagicMock,
+) -> None:
+    mock_repo = MagicMock()
+    mock_repo.get.return_value = None
+    mock_get_repository.return_value = mock_repo
+
+    with pytest.raises(HTTPException) as e:
+        read_organisation(uuid4(), AppSettings(ENVIRONMENT="test"))
+
+    assert str(e.value.status_code) == "404"
+    assert str(e.value.detail) == "Organisation not found"
 
 
 def test_get_repository() -> None:
