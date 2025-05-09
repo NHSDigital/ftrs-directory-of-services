@@ -13,6 +13,8 @@ locals {
 
   dynamodb_tables = {
     for table_name in var.dynamodb_table_names :
-    table_name => "${var.project}-${var.environment}-database-${table_name}${local.workspace_suffix}"
+    table_name => {
+      arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${table_name}${local.workspace_suffix}"
+    }
   }
 }
