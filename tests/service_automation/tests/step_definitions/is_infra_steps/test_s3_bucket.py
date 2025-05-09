@@ -43,28 +43,6 @@ def put_s3_file(aws_s3_client, fbucket_name, file_name):
     aws_s3_client.put_object(bucket_name, filepath, file_name)
     return file_name
 
-@given("I am authenticated with AWS CLI")
-def check_aws_access():
-    """Ensure AWS CLI authentication works"""
-    result = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True)
-    logger.debug("AWS CLI Authenticate", result.returncode)
-    assert result.returncode == 0, f"Failed to authenticate with AWS CLI: {result.stderr}"
-
-@given(parsers.parse('I can see the S3 bucket "{bucket}" for stack "{stack}"'), target_fixture='fbucket_name')
-def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, env):
-    bucket_name = aws_s3_client.get_bucket(project, workspace, env, stack, bucket)
-    response = aws_s3_client.check_bucket_exists(bucket_name)
-    assert response == True
-    return bucket_name
-
-@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='ffile_name')
-def put_s3_file(aws_s3_client, fbucket_name, file_name):
-    file_name = file_name + ".csv"
-    filepath = "tests/csv_files/"+file_name
-    bucket_name = fbucket_name
-    aws_s3_client.put_object(bucket_name, filepath, file_name)
-    return file_name
-
 @when("I fetch the list of S3 buckets")
 def fetch_buckets(aws_s3_client):
     """Retrieve list of S3 buckets"""
@@ -78,7 +56,6 @@ def download_s3_file(aws_s3_client, fbucket_name, ffile_name):
     bucket_name = fbucket_name
     aws_s3_client.download_object(bucket_name, file_name, downloadfile)
     return file_name
-
 
 @then(parsers.parse('I can delete the file from the s3 bucket'))
 def delete_s3_file(aws_s3_client, fbucket_name, ffile_name):
