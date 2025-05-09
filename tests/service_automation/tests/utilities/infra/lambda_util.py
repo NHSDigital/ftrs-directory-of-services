@@ -30,7 +30,6 @@ def invoke_function(self, function_name, function_params, get_log=False):
         response = self.lambda_client.invoke(
             FunctionName=function_name,
             Payload=json.dumps(function_params),
-            LogType="Tail" if get_log else "None",
         )
         logger.debug("Invoked function {}.", function_name)
         payload = json.loads(response['Payload'].read().decode())
