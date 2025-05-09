@@ -1,88 +1,31 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-      {
-          "Effect": "Allow",
-          "Action": [
-              "route53:*",
-              "route53domains:*",
-              "cloudfront:ListDistributions",
-              "elasticloadbalancing:DescribeLoadBalancers",
-              "elasticbeanstalk:DescribeEnvironments",
-              "s3:ListBucket",
-              "s3:GetBucketLocation",
-              "s3:GetBucketWebsite",
-              "ec2:DescribeVpcs",
-              "ec2:DescribeVpcEndpoints",
-              "ec2:DescribeRegions",
-              "sns:ListTopics",
-              "sns:ListSubscriptionsByTopic",
-              "cloudwatch:DescribeAlarms",
-              "cloudwatch:GetMetricStatistics"
-          ],
-          "Resource": "*"
-      },
-      {
-          "Effect": "Allow",
-          "Action": "apigateway:GET",
-          "Resource": "arn:aws:apigateway:*::/domainnames"
-      },
-      {
-        "Sid": "cfflistbuckets",
-        "Action": [
-            "s3:ListAllMyBuckets"
-        ],
-        "Effect": "Allow",
-        "Resource": "*"
-    },
-    {
-        "Sid": "cffullaccess",
-        "Action": [
-            "acm:DescribeCertificate",
-            "acm:ListCertificates",
-            "cloudfront:*",
-            "cloudfront-keyvaluestore:*",
-            "iam:ListServerCertificates",
-            "waf:ListWebACLs",
-            "waf:GetWebACL",
-            "wafv2:ListWebACLs",
-            "wafv2:GetWebACL",
-            "kinesis:ListStreams",
-            "ec2:DescribeInstances",
-            "elasticloadbalancing:DescribeLoadBalancers",
-            "ec2:DescribeInternetGateways"
-        ],
-        "Effect": "Allow",
-        "Resource": "*"
-    },
-    {
-        "Effect": "Allow",
-        "Action": [
-            "acm:RequestCertificate"
-        ],
-        "Resource": "*",
-        "Sid": "cfrequestcertificate",
-        "Condition": {
-            "StringEquals": {
-                "aws:CalledViaLast": "cloudfront.amazonaws.com"
-            }
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Route53FullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "route53:*",
+                "route53domains:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ACMFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "acm:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CloudFrontFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "cloudfront:*",
+                "cloudfront-keyvaluestore:*"
+            ],
+            "Resource": "*"
         }
-    },
-    {
-        "Sid": "cffdescribestream",
-        "Action": [
-            "kinesis:DescribeStream"
-        ],
-        "Effect": "Allow",
-        "Resource": "arn:aws:kinesis:*:*:*"
-    },
-    {
-        "Sid": "cfflistroles",
-        "Action": [
-            "iam:ListRoles"
-        ],
-        "Effect": "Allow",
-        "Resource": "arn:aws:iam::*:*"
-    }
-  ]
+    ]
 }

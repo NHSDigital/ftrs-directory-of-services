@@ -1,240 +1,146 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-        "Effect": "Allow",
-        "Action": [
-            "apigateway:*"
-        ],
-        "Resource": "arn:aws:apigateway:*::/*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-          "execute-api:Invoke",
-          "execute-api:ManageConnections"
-      ],
-      "Resource": "arn:aws:execute-api:*:*:*"
-    },
-    {
-      "Sid": "EventBridgeActions",
-      "Effect": "Allow",
-      "Action": [
-          "events:*",
-          "schemas:*",
-          "scheduler:*",
-          "pipes:*"
-      ],
-      "Resource": "*"
-    },
-    {
-        "Sid": "IAMCreateServiceLinkedRoleForApiDestinations",
-        "Effect": "Allow",
-        "Action": "iam:CreateServiceLinkedRole",
-        "Resource": "arn:aws:iam::*:role/aws-service-role/apidestinations.events.amazonaws.com/AWSServiceRoleForAmazonEventBridgeApiDestinations",
-        "Condition": {
-            "StringEquals": {
-                "iam:AWSServiceName": "apidestinations.events.amazonaws.com"
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ApiGatewayFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "apigateway:*"
+            ],
+            "Resource": "arn:aws:apigateway:*::/*"
+        },
+        {
+            "Sid": "ApiGatewayExcuteFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "execute-api:Invoke",
+                "execute-api:ManageConnections"
+            ],
+            "Resource": "arn:aws:execute-api:*:*:*"
+        },
+        {
+            "Sid": "EventBridgeAndSchedulerFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "events:*",
+                "schemas:*",
+                "scheduler:*",
+                "pipes:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "IAMCreateServiceLinkedRoleForApiDestinations",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/apidestinations.events.amazonaws.com/AWSServiceRoleForAmazonEventBridgeApiDestinations",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "apidestinations.events.amazonaws.com"
+                }
             }
-        }
-    },
-    {
-        "Sid": "IAMCreateServiceLinkedRoleForAmazonEventBridgeSchemas",
-        "Effect": "Allow",
-        "Action": "iam:CreateServiceLinkedRole",
-        "Resource": "arn:aws:iam::*:role/aws-service-role/schemas.amazonaws.com/AWSServiceRoleForSchemas",
-        "Condition": {
-            "StringEquals": {
-                "iam:AWSServiceName": "schemas.amazonaws.com"
+        },
+        {
+            "Sid": "IAMCreateServiceLinkedRoleForAmazonEventBridgeSchemas",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/schemas.amazonaws.com/AWSServiceRoleForSchemas",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "schemas.amazonaws.com"
+                }
             }
-        }
-    },
-    {
-        "Sid": "SecretsManagerAccessForApiDestinations",
-        "Effect": "Allow",
-        "Action": [
-            "secretsmanager:CreateSecret",
-            "secretsmanager:UpdateSecret",
-            "secretsmanager:DeleteSecret",
-            "secretsmanager:GetSecretValue",
-            "secretsmanager:PutSecretValue"
-        ],
-        "Resource": "arn:aws:secretsmanager:*:*:secret:events!*"
-    },
-    {
-        "Sid": "IAMPassRoleAccessForEventBridge",
-        "Effect": "Allow",
-        "Action": "iam:PassRole",
-        "Resource": "arn:aws:iam::*:role/*",
-        "Condition": {
-            "StringLike": {
-                "iam:PassedToService": "events.amazonaws.com"
+        },
+        {
+            "Sid": "IAMPassRoleAccessForEventBridge",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "arn:aws:iam::*:role/*",
+            "Condition": {
+                "StringLike": {
+                    "iam:PassedToService": "events.amazonaws.com"
+                }
             }
-        }
-    },
-    {
-        "Sid": "IAMPassRoleAccessForScheduler",
-        "Effect": "Allow",
-        "Action": "iam:PassRole",
-        "Resource": "arn:aws:iam::*:role/*",
-        "Condition": {
-            "StringLike": {
-                "iam:PassedToService": "scheduler.amazonaws.com"
+        },
+        {
+            "Sid": "IAMPassRoleAccessForScheduler",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "arn:aws:iam::*:role/*",
+            "Condition": {
+                "StringLike": {
+                    "iam:PassedToService": "scheduler.amazonaws.com"
+                }
             }
-        }
-    },
-    {
-        "Sid": "IAMPassRoleAccessForPipes",
-        "Effect": "Allow",
-        "Action": "iam:PassRole",
-        "Resource": "arn:aws:iam::*:role/*",
-        "Condition": {
-            "StringLike": {
-                "iam:PassedToService": "pipes.amazonaws.com"
+        },
+        {
+            "Sid": "IAMPassRoleAccessForPipes",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "arn:aws:iam::*:role/*",
+            "Condition": {
+                "StringLike": {
+                    "iam:PassedToService": "pipes.amazonaws.com"
+                }
             }
+        },
+        {
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM*",
+            "Condition": {
+                "StringLike": {
+                    "iam:AWSServiceName": "ssm.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:DeleteServiceLinkedRole"
+            ],
+            "Resource": "arn:aws:iam::*:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM*"
+        },
+        {
+            "Sid": "SSMFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "OpenSearchServiceFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "es:*",
+                "osis:*",
+                "opensearch:*",
+                "aoss:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SQSFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "sqs:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SNSFullAccess",
+            "Effect": "Allow",
+            "Action": "sns:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "SecretsManagerFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:*"
+            ],
+            "Resource": "*"
         }
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-          "cloudwatch:PutMetricData",
-          "ds:CreateComputer",
-          "ds:DescribeDirectories",
-          "ec2:DescribeInstanceStatus",
-          "logs:*",
-          "ssm:*",
-          "ec2messages:*"
-      ],
-      "Resource": "*"
-  },
-  {
-      "Effect": "Allow",
-      "Action": "iam:CreateServiceLinkedRole",
-      "Resource": "arn:aws:iam::*:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM*",
-      "Condition": {
-          "StringLike": {
-              "iam:AWSServiceName": "ssm.amazonaws.com"
-          }
-      }
-  },
-  {
-      "Effect": "Allow",
-      "Action": [
-          "iam:DeleteServiceLinkedRole",
-          "iam:GetServiceLinkedRoleDeletionStatus"
-      ],
-      "Resource": "arn:aws:iam::*:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM*"
-  },
-  {
-      "Effect": "Allow",
-      "Action": [
-          "ssmmessages:CreateControlChannel",
-          "ssmmessages:CreateDataChannel",
-          "ssmmessages:OpenControlChannel",
-          "ssmmessages:OpenDataChannel"
-      ],
-      "Resource": "*"
-  },
-  {
-    "Effect": "Allow",
-    "Action": [
-        "es:*"
-    ],
-    "Resource": "*"
-  },
-  {
-    "Action": [
-        "sqs:*"
-    ],
-    "Effect": "Allow",
-    "Resource": "*"
-  },
-  {
-    "Sid": "SNSFullAccess",
-    "Effect": "Allow",
-    "Action": "sns:*",
-    "Resource": "*"
-},
-{
-    "Sid": "SMSAccessViaSNS",
-    "Effect": "Allow",
-    "Action": [
-        "sms-voice:DescribeVerifiedDestinationNumbers",
-        "sms-voice:CreateVerifiedDestinationNumber",
-        "sms-voice:SendDestinationNumberVerificationCode",
-        "sms-voice:SendTextMessage",
-        "sms-voice:DeleteVerifiedDestinationNumber",
-        "sms-voice:VerifyDestinationNumber",
-        "sms-voice:DescribeAccountAttributes",
-        "sms-voice:DescribeSpendLimits",
-        "sms-voice:DescribePhoneNumbers",
-        "sms-voice:SetTextMessageSpendLimitOverride",
-        "sms-voice:DescribeOptedOutNumbers",
-        "sms-voice:DeleteOptedOutNumber"
-    ],
-    "Resource": "*",
-    "Condition": {
-        "StringEquals": {
-            "aws:CalledViaLast": "sns.amazonaws.com"
-        }
-    }
-  },
-  {
-    "Sid": "BasePermissions",
-    "Effect": "Allow",
-    "Action": [
-        "secretsmanager:*",
-        "cloudformation:CreateChangeSet",
-        "cloudformation:DescribeChangeSet",
-        "cloudformation:DescribeStackResource",
-        "cloudformation:DescribeStacks",
-        "cloudformation:ExecuteChangeSet",
-        "docdb-elastic:GetCluster",
-        "docdb-elastic:ListClusters",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeSubnets",
-        "ec2:DescribeVpcs",
-        "kms:DescribeKey",
-        "kms:ListAliases",
-        "kms:ListKeys",
-        "lambda:ListFunctions",
-        "rds:DescribeDBClusters",
-        "rds:DescribeDBInstances",
-        "redshift:DescribeClusters",
-        "redshift-serverless:ListWorkgroups",
-        "redshift-serverless:GetNamespace",
-        "tag:GetResources"
-    ],
-    "Resource": "*"
-},
-{
-    "Sid": "LambdaPermissions",
-    "Effect": "Allow",
-    "Action": [
-        "lambda:AddPermission",
-        "lambda:CreateFunction",
-        "lambda:GetFunction",
-        "lambda:InvokeFunction",
-        "lambda:UpdateFunctionConfiguration"
-    ],
-    "Resource": "arn:aws:lambda:*:*:function:SecretsManager*"
-},
-{
-    "Sid": "SARPermissions",
-    "Effect": "Allow",
-    "Action": [
-        "serverlessrepo:CreateCloudFormationChangeSet",
-        "serverlessrepo:GetApplication"
-    ],
-    "Resource": "arn:aws:serverlessrepo:*:*:applications/SecretsManager*"
-},
-{
-    "Sid": "S3Permissions",
-    "Effect": "Allow",
-    "Action": [
-        "s3:GetObject"
-    ],
-    "Resource": "*"
-  }
-  ]
+    ]
 }
