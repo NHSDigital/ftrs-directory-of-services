@@ -24,13 +24,13 @@
             "Resource": "*"
         },
         {
-            "Sid": "AllowReadOnlyAccessToResourceGroups",
+            "Sid": "ResourceGroupsReadOnlyAccess",
             "Effect": "Allow",
             "Action": [
                 "resource-groups:ListGroups",
                 "resource-groups:ListGroupResources",
                 "resource-groups:GetGroup",
-                "resource-groups:GetGroupQuery",
+                "resource-groups:GetGroupQuery"
             ],
             "Resource": "*"
         },
