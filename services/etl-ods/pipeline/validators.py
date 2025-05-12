@@ -66,7 +66,7 @@ class RoleItem(BaseModel):
         max_length=10, description="Role ID from lookup via OrganisationRole CodeSystem"
     )
     primaryRole: bool = Field(
-        ..., description="If the role is the primary one for the organisation."
+        default=False, description="If the role is the primary one for the organisation."
     )
 
 
@@ -86,7 +86,7 @@ class OrganisationValidator(BaseModel):
     Roles: RoleList = Field(
         None, description="List of roles associated with the organisation."
     )
-    Contacts: ContactList = Field(
+    Contacts: ContactList | None = Field(
         None, description="List of contacts methods associated with the organisation."
     )
 
