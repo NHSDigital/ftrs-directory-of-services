@@ -63,9 +63,14 @@ username,password,endpoint
 ```
 
 ### Test setup
-The files required to populate the test parameters will need to be copied down from the appropriate S3 bucket via the command
+
+The files required to populate the test parameters will need to be copied down from the appropriate S3 bucket via the command, either from Main or the workspaced bucket
 ```
-make copy-perfomance-files
+download-workspace-performance-parameter-files
+
+OR
+
+download-performance-parameter-files
 ```
 
 ###
