@@ -46,7 +46,7 @@ build: ensure-build-dir build-dependency-layer
 
 build-dependency-layer: clean
 	mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
+	poetry export --without dev --without test --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
 	--platform $(PLATFORM) \
 	--target $(DEPENDENCY_DIR)/python \
