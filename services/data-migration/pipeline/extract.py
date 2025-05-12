@@ -216,8 +216,6 @@ def format_not_available_time(specified_opening_times: pd.DataFrame) -> dict:
         format="%Y-%m-%dT%H:%M:%S",
     )
 
-    # TODO: test thoroughly as this is throwing same error as endpoints
-    #   (I think it is due to 0 records in the list of services being covered)
     notAvailable = (
         closed_times.groupby(["serviceid", "date", "start"])
         .apply(
