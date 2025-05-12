@@ -26,10 +26,23 @@ performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	jmeter -g ${TEST_DATA}.jtl -f -e -o reports ;
 
 download-workspace-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
-	aws s3 cp s3://${PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
+	echo "PROJECT: ${PROJECT}"
+	echo "ENVIRONMENT: ${ENVIRONMENT}"
+	echo "SERVICE: ${SERVICE}"
+	echo "WORKSPACE_PARAMETER_FILES_BUCKET: ${WORKSPACE_PARAMETER_FILES_BUCKET}"
+	aws s3 cp s3://${WORKSPACE_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
 
 download-main-performance-parameter-files: ##[AWS_REGION=aws region]
+	echo "PROJECT: ${PROJECT}"
+	echo "ENVIRONMENT: ${ENVIRONMENT}"
+	echo "SERVICE: ${SERVICE}"
+	echo "MAIN_PARAMETER_FILES_BUCKET: ${MAIN_PARAMETER_FILES_BUCKET}"
 	aws s3 cp s3://${MAIN_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
 
 copy-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
+	echo "PROJECT: ${PROJECT}"
+	echo "ENVIRONMENT: ${ENVIRONMENT}"
+	echo "SERVICE: ${SERVICE}"
+	echo "WORKSPACE_PARAMETER_FILES_BUCKET: ${WORKSPACE_PARAMETER_FILES_BUCKET}"
+	echo "MAIN_PARAMETER_FILES_BUCKET: ${MAIN_PARAMETER_FILES_BUCKET}"
 	aws s3 cp s3://${MAIN_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) s3://${WORKSPACE_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) --recursive
