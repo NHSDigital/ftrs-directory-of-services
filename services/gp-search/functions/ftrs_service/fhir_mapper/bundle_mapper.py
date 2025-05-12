@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import uuid4
 
 from fhir.resources.R4B.bundle import Bundle
@@ -65,7 +64,7 @@ class BundleMapper:
 
         return bundle
 
-    def _create_entry(self, resource: FHIRResourceModel) -> dict[str, Any]:
+    def _create_entry(self, resource: FHIRResourceModel) -> dict[str, object]:
         resource_type = resource.get_resource_type()
         resource_id = resource.id
         search_mode = self._get_search_mode(resource)

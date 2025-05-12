@@ -129,7 +129,7 @@ class TestLambdaHandler:
     ):
         # Arrange
         ods_code = "O123"
-        event = {"pathParameters": {"odsCode": ods_code}}
+        event = {"odsCode": ods_code}
 
         # Create an empty test bundle
         bundle = create_test_bundle(bundle_id="empty-bundle")
@@ -139,7 +139,7 @@ class TestLambdaHandler:
         response = lambda_handler(event, lambda_context)
 
         # Assert
-        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code=ods_code)
+        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         assert response["statusCode"] == 200
         assert response["headers"] == {"Content-Type": "application/fhir+json"}
 
@@ -156,7 +156,7 @@ class TestLambdaHandler:
     ):
         # Arrange
         ods_code = "O123"
-        event = {"pathParameters": {"odsCode": ods_code}}
+        event = {"odsCode": ods_code}
 
         # Create a test bundle with 2 endpoints and 2 organizations
         bundle = create_test_bundle(
@@ -168,7 +168,7 @@ class TestLambdaHandler:
         response = lambda_handler(event, lambda_context)
 
         # Assert
-        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code=ods_code)
+        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         assert response["statusCode"] == 200
         assert response["headers"] == {"Content-Type": "application/fhir+json"}
 
@@ -193,7 +193,7 @@ class TestLambdaHandler:
     ):
         # Arrange
         ods_code = "O123"
-        event = {"pathParameters": {"odsCode": ods_code}}
+        event = {"odsCode": ods_code}
 
         # Create an error outcome for a service error
         outcome = create_error_outcome(
@@ -205,7 +205,7 @@ class TestLambdaHandler:
         response = lambda_handler(event, lambda_context)
 
         # Assert
-        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code=ods_code)
+        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         assert response["statusCode"] == 500
         assert response["headers"] == {"Content-Type": "application/fhir+json"}
 
@@ -213,45 +213,3 @@ class TestLambdaHandler:
         response_body = json.loads(response["body"])
         assert response_body["resourceType"] == "OperationOutcome"
         assert response_body["issue"][0]["severity"] == "error"
-
-    @pytest.mark.parametrize(
-        ("path_params", "should_raise", "exception_type"),
-        [
-            ({"odsCode": "O123"}, False, None),  # Valid
-            ({"odsCode": ""}, False, None),  # Empty but present
-            ({"odsCode": None}, False, None),  # None but key present
-            ({}, True, KeyError),  # Missing key
-            (None, True, TypeError),  # None path params
-        ],
-    )
-    def test_path_parameter_validation(
-        self,
-        lambda_context,
-        mock_ftrs_service,
-        path_params,
-        should_raise,
-        exception_type,
-    ):
-        # Arrange
-        event = {"pathParameters": path_params}
-
-        # Act & Assert
-        if should_raise:
-            with pytest.raises(exception_type):
-                lambda_handler(event, lambda_context)
-            mock_ftrs_service.endpoints_by_ods.assert_not_called()
-        else:
-            # For valid cases, we need to mock a return value
-            mock_ftrs_service.endpoints_by_ods.return_value = Bundle.model_validate(
-                {
-                    "resourceType": "Bundle",
-                    "type": "searchset",
-                    "id": "test-bundle",
-                    "entry": [],
-                }
-            )
-
-            # Should pass without exceptions
-            response = lambda_handler(event, lambda_context)
-            mock_ftrs_service.endpoints_by_ods.assert_called_once()
-            assert response["statusCode"] == 200

@@ -128,43 +128,19 @@ def test_endpoints_by_ods_success(
 def test_endpoints_by_ods_not_found(ftrs_service, mock_repository, mock_bundle_mapper):
     # Arrange
     ods_code = "UNKNOWN"
+    organization_record = None
+    expected_bundle = mock_bundle_mapper.map_to_fhir.return_value
     mock_repository.get_first_record_by_ods_code.return_value = None
 
-    # Create a mock OperationOutcome that matches the structure in the actual implementation
-    error_outcome = OperationOutcome.model_construct(
-        id="internal-server-error",
-        issue=[
-            {
-                "severity": "error",
-                "code": "internal",
-                "details": {
-                    "coding": [
-                        {
-                            "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
-                            "code": "INTERNAL_SERVER_ERROR",
-                            "display": f"Internal server error while processing ODS code '{ods_code}'",
-                        },
-                    ]
-                },
-            }
-        ],
+    # Act
+    result = ftrs_service.endpoints_by_ods(ods_code)
+
+    # Assert
+    mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
+    mock_bundle_mapper.map_to_fhir.assert_called_once_with(
+        organization_record, ods_code
     )
-
-    # Patch the _create_error_resource method to return our mock
-    with patch.object(
-        ftrs_service, "_create_error_resource", return_value=error_outcome
-    ):
-        # Act
-        result = ftrs_service.endpoints_by_ods(ods_code)
-
-        # Assert
-        mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
-        # Should attempt to map to FHIR with None and the ODS code
-        mock_bundle_mapper.map_to_fhir.assert_not_called()
-        assert isinstance(result, OperationOutcome)
-        assert result.id == "internal-server-error"
-        assert result.issue[0]["severity"] == "error"
-        assert result.issue[0]["code"] == "internal"
+    assert result == expected_bundle
 
 
 def test_endpoints_by_ods_exception(ftrs_service, mock_repository, mock_bundle_mapper):

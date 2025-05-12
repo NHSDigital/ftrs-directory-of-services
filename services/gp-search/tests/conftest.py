@@ -4,7 +4,6 @@ This module provides reusable fixtures that can be used across all test files.
 """
 
 from datetime import datetime
-from typing import Optional
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
@@ -125,7 +124,7 @@ def create_organization_value(create_endpoint_value):
         org_type: str = "prov",
         active: bool = True,
         ods_code: str = "O123",
-        endpoints: Optional[list[EndpointValue]] = None,
+        endpoints: list[EndpointValue] | None = None,
     ) -> OrganizationValue:
         if endpoints is None:
             endpoints = [create_endpoint_value()]
@@ -154,7 +153,7 @@ def create_organization_record(create_organization_value):
     def _create_organization_record(
         org_id: str = "org-123",
         ods_code: str = "O123",
-        org_value: Optional[OrganizationValue] = None,
+        org_value: OrganizationValue | None = None,
     ) -> OrganizationRecord:
         if org_value is None:
             org_value = create_organization_value(org_id=org_id, ods_code=ods_code)

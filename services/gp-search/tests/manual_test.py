@@ -5,7 +5,7 @@ from gp_search_function import lambda_handler
 
 if __name__ == "__main__":
     test_event = {
-        "pathParameters": {"odsCode": os.environ.get("ODS_CODE")},
+        "odsCode": os.environ.get("ODS_CODE"),
     }
 
     # Create mock Lambda context for testing

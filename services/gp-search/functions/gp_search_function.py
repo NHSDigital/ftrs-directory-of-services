@@ -9,24 +9,25 @@ logger = Logger()
 # noinspection PyUnusedLocal
 @logger.inject_lambda_context(log_event=True)
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    ods_code = event["pathParameters"]["odsCode"]
+    ods_code = event["odsCode"]
+    logger.append_keys(ods_code=ods_code)
 
     ftrs_service = FtrsService()
 
-    fhir_resource = ftrs_service.endpoints_by_ods(ods_code=ods_code)
+    fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
     fhir_resource_type = fhir_resource.get_resource_type()
     fhir_resource_json = fhir_resource.model_dump_json()
 
     if fhir_resource_type == "Bundle":
-        logger.info(f"Successfully processed ODS code: {ods_code}")
+        logger.info("Successfully processed")
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/fhir+json"},
             "body": fhir_resource_json,
         }
 
-    if fhir_resource_type == "OperationOutcome":
-        logger.error(f"Error occurred while processing ODS code: {ods_code}")
+    elif fhir_resource_type == "OperationOutcome":
+        logger.error("Error occurred while processing")
         return {
             "statusCode": 500,
             "headers": {"Content-Type": "application/fhir+json"},
