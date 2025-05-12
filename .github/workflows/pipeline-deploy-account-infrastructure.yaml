@@ -10,7 +10,7 @@ on:
       - 'infrastructure/stacks/terraform_management/**'
       - 'infrastructure/stacks/github_runner/**'
       - 'infrastructure/stacks/artefact_management/**'
-      - 'infrastructure/stacks/team_policies/**'
+      - 'infrastructure/stacks/account_policies/**'
       - 'infrastructure/modules/dynamodb/**'
       - 'infrastructure/modules/s3/**'
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','github_runner','artefact_management','team_policies']"
+      stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies']"
     secrets: inherit
 
   deploy-account-infrastructure-plan:
@@ -54,7 +54,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','account_wide','team_policies']"
+      stacks: "['terraform_management','github_runner','account_wide','account_policies']"
       action: plan
     secrets: inherit
 
@@ -69,7 +69,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner', 'artefact_management','team_policies']"
+      stacks: "['terraform_management','github_runner', 'artefact_management','account_policies']"
       action: plan
     secrets: inherit
 
@@ -98,7 +98,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','account_wide','team_policies']"
+      stacks: "['terraform_management','github_runner','account_wide','account_policies']"
       action: apply
     secrets: inherit
 
@@ -114,7 +114,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner', 'artefact_management','team_policies']"
+      stacks: "['terraform_management','github_runner', 'artefact_management','account_policies']"
       action: apply
     secrets: inherit
 
