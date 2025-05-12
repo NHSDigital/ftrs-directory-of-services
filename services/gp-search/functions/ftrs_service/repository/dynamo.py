@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 import boto3
 from aws_lambda_powertools import Logger
 from boto3.dynamodb.conditions import Key
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_core import PydanticUseDefault
 
 logger = Logger()
@@ -41,9 +41,10 @@ class EndpointValue(DynamoModel):
     service: str = Field("dummy-service")
     name: str = Field("dummy-name")
 
-    class Config:
-        populate_by_name = True
-        frozen = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        frozen=True,
+    )
 
 
 class OrganizationValue(DynamoModel):
@@ -61,9 +62,10 @@ class OrganizationValue(DynamoModel):
     modifiedDateTime: datetime = Field()
     telecom: str = Field("dummy-telecom")
 
-    class Config:
-        populate_by_name = True
-        frozen = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        frozen=True,
+    )
 
 
 class OrganizationRecord(DynamoModel):
@@ -74,10 +76,11 @@ class OrganizationRecord(DynamoModel):
     value: OrganizationValue = Field()
     field: str = Field()
 
-    class Config:
-        populate_by_name = True
-        validate_by_name = True
-        frozen = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        validate_by_name=True,
+        frozen=True,
+    )
 
     @classmethod
     def from_dynamo_item(cls, item: Dict[str, Any]) -> "OrganizationRecord":
