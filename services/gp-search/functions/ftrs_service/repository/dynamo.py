@@ -1,14 +1,14 @@
 import json
-import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import boto3
+from aws_lambda_powertools import Logger
 from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel, Field, field_validator
 from pydantic_core import PydanticUseDefault
 
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 
 class DynamoModel(BaseModel):
@@ -53,7 +53,7 @@ class OrganizationValue(DynamoModel):
     name: str = Field()
     type: str = Field()
     active: bool = Field()
-    endpoints: List[EndpointValue] = Field(default_factory=list)
+    endpoints: list[EndpointValue] = Field(default_factory=list)
     identifier_ODS_ODSCode: str = Field()
     createdBy: str = Field()
     modifiedBy: str = Field()

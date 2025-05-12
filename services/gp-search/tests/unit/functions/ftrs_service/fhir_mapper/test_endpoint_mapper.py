@@ -54,14 +54,14 @@ class TestEndpointMapper:
             ("", []),  # Test empty string
         ],
     )
-    def test_determine_payload_mime_type(
+    def test_create_payload_mime_type(
         self, endpoint_mapper, create_endpoint_value, format_value, expected_mime_type
     ):
         # Arrange
         endpoint_value = create_endpoint_value(format_type=format_value)
 
         # Act
-        mime_type = endpoint_mapper._determine_payload_mime_type(endpoint_value)
+        mime_type = endpoint_mapper._create_payload_mime_type(endpoint_value)
 
         # Assert
         assert mime_type == expected_mime_type

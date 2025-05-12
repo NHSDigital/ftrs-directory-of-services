@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.codeableconcept import CodeableConcept
@@ -10,7 +10,7 @@ from functions.ftrs_service.repository.dynamo import (
     OrganizationRecord,
 )
 
-logger = Logger(service="endpoint_mapper")
+logger = Logger()
 
 
 class EndpointMapper:
@@ -28,7 +28,7 @@ class EndpointMapper:
 
     def map_to_endpoints(
         self, organization_record: OrganizationRecord
-    ) -> List[Endpoint]:
+    ) -> list[Endpoint]:
         endpoints = []
 
         for endpoint_value in organization_record.value.endpoints:
@@ -44,7 +44,7 @@ class EndpointMapper:
         connection_type = self._create_connection_type(endpoint_value)
         managing_organization = self._create_managing_organization(endpoint_value)
         payload_type = self._create_payload_type(endpoint_value)
-        payload_mime_type = self._determine_payload_mime_type(endpoint_value)
+        payload_mime_type = self._create_payload_mime_type(endpoint_value)
         address = self._create_address(endpoint_value)
         header = self._create_header(endpoint_value)
 
@@ -79,33 +79,36 @@ class EndpointMapper:
 
     def _create_payload_type(
         self, endpoint_value: EndpointValue
-    ) -> List[CodeableConcept]:
-        payload_type_str = endpoint_value.payloadType
+    ) -> list[CodeableConcept]:
+        system = "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+        code = endpoint_value.payloadType
 
-        if not payload_type_str:
+        if not code:
             return []
 
-        system = "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-        code = payload_type_str
+        codeable_concept = CodeableConcept.model_validate(
+            {
+                "coding": [
+                    {
+                        "system": system,
+                        "code": code,
+                    },
+                ],
+            }
+        )
 
-        coding = Coding.model_construct(
-            system=system,
-            code=code,
-        )
-        codeable_concept = CodeableConcept.model_construct(
-            coding=[coding],
-        )
         return [codeable_concept]
 
-    def _determine_payload_mime_type(self, endpoint_value: EndpointValue) -> List[str]:
+    def _create_payload_mime_type(self, endpoint_value: EndpointValue) -> list[str]:
         format_value = endpoint_value.format.upper()
 
         if format_value not in self.PAYLOAD_MIME_TYPE_BY_FORMAT_MAP:
+            logger.error(f"Unknown format: {format_value}")
             return []
 
         return [self.PAYLOAD_MIME_TYPE_BY_FORMAT_MAP[format_value]]
 
-    def _create_header(self, endpoint_value: EndpointValue) -> List[str]:
+    def _create_header(self, endpoint_value: EndpointValue) -> list[str]:
         header_data = {
             "order": endpoint_value.order,
             "is_compression_enabled": endpoint_value.isCompressionEnabled,
@@ -128,7 +131,9 @@ class EndpointMapper:
         if db_conn_type not in self.CONNECTION_TYPE_MAP:
             return None
 
-        return Coding.model_construct(
-            system="http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
-            code=self.CONNECTION_TYPE_MAP[db_conn_type],
+        return Coding.model_validate(
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+                "code": self.CONNECTION_TYPE_MAP[db_conn_type],
+            }
         )

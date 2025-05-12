@@ -1,21 +1,27 @@
 import json
-import logging
+import os
 
-from ftrs_service import config
 from gp_search_function import lambda_handler
-
-logging.basicConfig(level=config.get_config().get("LOG_LEVEL"))
-logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     test_event = {
-        "pathParameters": {"odsCode": "H82028"},
-        "queryStringParameters": None,
-        "body": None,
+        "pathParameters": {"odsCode": os.environ.get("ODS_CODE")},
     }
-    test_context = None
 
-    response = lambda_handler(test_event, test_context)
+    # Create mock Lambda context for testing
+    class TestContext:
+        def __init__(self):
+            self.function_name = "test-function"
+            self.function_version = "test-version"
+            self.invoked_function_arn = "test-arn"
+            self.memory_limit_in_mb = 128
+            self.aws_request_id = "test-request-id"
+            self.log_group_name = "test-log-group"
+            self.log_stream_name = "test-log-stream"
+
+    context = TestContext()
+
+    response = lambda_handler(test_event, context)
 
     print("Response: ", json.dumps(response, indent=4))
     print("Response body: ", json.dumps(json.loads(response["body"]), indent=4))
