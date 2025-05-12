@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from pipeline.processor import extract
+from pipeline.processor import processor
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -13,4 +13,4 @@ if len(sys.argv) != CORRECT_LENGTH:
     sys.exit(1)
 
 date = sys.argv[1]
-extract(date=date)
+processor(date=date)

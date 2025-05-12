@@ -105,5 +105,4 @@ def apply_updates(
     logging.info(f"Applying updates to organisation: {existing_organisation.id}")
     for field, value in outdated_fields.items():
         setattr(existing_organisation, field, value)
-    existing_organisation.modifiedBy = "ROBOT_API"
     existing_organisation.modifiedDateTime = datetime.now(UTC)
