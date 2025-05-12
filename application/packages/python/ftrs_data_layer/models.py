@@ -352,7 +352,7 @@ class HealthcareService(DBModel):
                     )
                 )
 
-        return items if len(items) else None
+        return items if len(items) > 0 else None
 
 
 class Endpoint(DBModel):

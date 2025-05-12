@@ -168,6 +168,113 @@ mock_gp_endpoints_formatted_C = {
     "iscompressionenabled": "uncompressed",
 }
 
+mock_gp_openingTimes_formatted_A = {
+    "serviceid": 1,
+    "availability": {
+        "availableTime": [
+            {
+                "dayOfWeek": ["mon"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["tue"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["wed"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["thu"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["fri"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["sat"],
+                "availableStartTime": "10:30:00",
+                "availableEndTime": "16:00:00",
+            },
+            {
+                "dayOfWeek": ["sun"],
+                "availableStartTime": "10:30:00",
+                "availableEndTime": "16:00:00",
+            },
+        ],
+        "availableTimePublicHolidays": None,
+        "availableTimeVariations": [
+            {
+                "description": "special",
+                "during": {
+                    "start": "2024-02-22T08:00:00",
+                    "end": "2024-02-22T13:00:00",
+                },
+            },
+            {
+                "description": "special",
+                "during": {
+                    "start": "2024-05-14T08:30:00",
+                    "end": "2024-05-14T13:00:00",
+                },
+            },
+        ],
+        "notAvailable": None,
+    },
+}
+
+mock_gp_openingTimes_formatted_B = {
+    "serviceid": 2,
+    "availability": {
+        "availableTime": [
+            {
+                "dayOfWeek": ["mon"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            }
+        ],
+        "availableTimePublicHolidays": [
+            {"availableStartTime": "11:30:00", "availableEndTime": "14:30:00"}
+        ],
+        "availableTimeVariations": [
+            {
+                "description": "special",
+                "during": {
+                    "start": "2024-03-12T08:15:00",
+                    "end": "2024-03-12T13:00:00",
+                },
+            },
+            {
+                "description": "special",
+                "during": {
+                    "start": "2024-06-12T09:00:00",
+                    "end": "2024-06-12T13:00:00",
+                },
+            },
+        ],
+        "notAvailable": None,
+    },
+}
+
+
+mock_gp_openingTimes_formatted_df = pd.DataFrame(
+    dict(
+        {
+            key: [
+                mock_gp_openingTimes_formatted_A[key],
+                mock_gp_openingTimes_formatted_B[key],
+            ]
+            for key in mock_gp_openingTimes_formatted_A.keys()
+        },
+    )
+)
+
 mock_gp_endpoint_json_dump_B = {
     "id": "123e4567-e89b-12d3-a456-42661417400a",
     "identifier_oldDoS_id": 2,
