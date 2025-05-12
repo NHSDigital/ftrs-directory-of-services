@@ -75,6 +75,7 @@ def test_map_to_fhir_with_no_endpoints(bundle_mapper, organization_record):
     updated_org_record = OrganizationRecord(
         **{**organization_record.model_dump(), "value": updated_org_value}
     )
+    ods_code = "O123"
 
     # Create mock organization resource
     org_resource = Organization.model_validate(
@@ -101,7 +102,7 @@ def test_map_to_fhir_with_no_endpoints(bundle_mapper, organization_record):
             bundle_mapper.endpoint_mapper, "map_to_endpoints", return_value=[]
         ) as mock_endpoint_mapper:
             # Act
-            bundle = bundle_mapper.map_to_fhir(updated_org_record)
+            bundle = bundle_mapper.map_to_fhir(updated_org_record, ods_code)
 
             # Assert
             mock_org_mapper.assert_called_once_with(updated_org_record)
@@ -114,6 +115,8 @@ def test_map_to_fhir_with_no_endpoints(bundle_mapper, organization_record):
 
 def test_map_to_fhir_with_multiple_endpoints(bundle_mapper, organization_record):
     # Arrange
+    ods_code = "O123"
+
     # Create two mock endpoint resources with required fields
     endpoint1 = Endpoint.model_validate(
         {
@@ -186,7 +189,7 @@ def test_map_to_fhir_with_multiple_endpoints(bundle_mapper, organization_record)
             return_value=[endpoint1, endpoint2],
         ) as mock_endpoint_mapper:
             # Act
-            bundle = bundle_mapper.map_to_fhir(organization_record)
+            bundle = bundle_mapper.map_to_fhir(organization_record, ods_code)
 
             # Assert
             mock_org_mapper.assert_called_once_with(organization_record)
@@ -224,7 +227,7 @@ def test_create_entry_for_endpoint(bundle_mapper):
     )
 
     # Act
-    entry = bundle_mapper._create_entry("Endpoint", endpoint_resource, "match")
+    entry = bundle_mapper._create_entry(endpoint_resource)
 
     # Assert
     assert entry["fullUrl"] == "https://example.org/Endpoint/endpoint-123"
@@ -232,12 +235,8 @@ def test_create_entry_for_endpoint(bundle_mapper):
     assert entry["search"]["mode"] == "match"
 
 
-def test_create_bundle_with_invalid_organization(bundle_mapper):
-    # Arrange: Create an Organization without an identifier
-    org_resource = Organization.model_validate(
-        {"id": "org-123", "name": "Test Organization", "active": True}
-    )
-
+def test_get_search_mode(bundle_mapper):
+    # Arrange
     endpoint_resource = Endpoint.model_validate(
         {
             "id": "endpoint-123",
@@ -260,31 +259,43 @@ def test_create_bundle_with_invalid_organization(bundle_mapper):
         }
     )
 
-    # Act & Assert - Use the correct exception type for when organization.identifier is None
-    with pytest.raises(TypeError, match="'NoneType' object is not iterable"):
-        bundle_mapper._create_bundle(org_resource, [endpoint_resource])
-
-
-def test_create_bundle_with_custom_base_url():
-    # Arrange
-    custom_base_url = "https://custom-example.org"
-    custom_mapper = BundleMapper(base_url=custom_base_url)
-
     org_resource = Organization.model_validate(
         {
             "id": "org-123",
-            "identifier": [
-                {
-                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                    "value": "O123",
-                }
-            ],
             "name": "Test Organization",
             "active": True,
         }
     )
 
-    endpoint_resource = Endpoint.model_validate(
+    # Act & Assert
+    # Check that Endpoints get 'match' mode
+    search_mode = bundle_mapper._get_search_mode(endpoint_resource)
+    assert search_mode == "match"
+
+    # Check that other resources get 'include' mode
+    search_mode = bundle_mapper._get_search_mode(org_resource)
+    assert search_mode == "include"
+
+
+def test_map_to_fhir_with_no_organization_record(bundle_mapper):
+    # Arrange
+    ods_code = "O123"
+
+    # Act
+    bundle = bundle_mapper.map_to_fhir(None, ods_code)
+
+    # Assert
+    assert isinstance(bundle, Bundle)
+    assert bundle.type == "searchset"
+    assert len(bundle.entry) == 0  # Empty bundle
+    assert len(bundle.link) == 1
+    assert bundle.link[0].relation == "self"
+    assert ods_code in bundle.link[0].url
+
+
+def test_create_resources(bundle_mapper, organization_record):
+    # Arrange
+    endpoint = Endpoint.model_validate(
         {
             "id": "endpoint-123",
             "status": "active",
@@ -306,10 +317,31 @@ def test_create_bundle_with_custom_base_url():
         }
     )
 
-    # Act
-    bundle = custom_mapper._create_bundle(org_resource, [endpoint_resource])
+    org = Organization.model_validate(
+        {
+            "id": "org-123",
+            "name": "Test Organization",
+            "active": True,
+        }
+    )
 
-    # Assert
-    assert custom_base_url in bundle.link[0].url
-    assert bundle.entry[0].fullUrl == f"{custom_base_url}/Endpoint/endpoint-123"
-    assert bundle.entry[1].fullUrl == f"{custom_base_url}/Organization/org-123"
+    # Mock the mapper methods
+    with patch.object(
+        bundle_mapper.organization_mapper,
+        "map_to_organization_resource",
+        return_value=org,
+    ) as mock_org_mapper:
+        with patch.object(
+            bundle_mapper.endpoint_mapper,
+            "map_to_endpoints",
+            return_value=[endpoint],
+        ) as mock_endpoint_mapper:
+            # Act
+            resources = bundle_mapper._create_resources(organization_record)
+
+            # Assert
+            mock_org_mapper.assert_called_once_with(organization_record)
+            mock_endpoint_mapper.assert_called_once_with(organization_record)
+            assert len(resources) == 2
+            assert endpoint in resources
+            assert org in resources

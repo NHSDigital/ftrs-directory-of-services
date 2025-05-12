@@ -1,10 +1,8 @@
-from typing import Any, Dict, List
+from typing import Any
 from uuid import uuid4
 
 from fhir.resources.R4B.bundle import Bundle
-from fhir.resources.R4B.endpoint import Endpoint
-from fhir.resources.R4B.organization import Organization
-from fhir.resources.R4B.resource import Resource
+from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
 from functions.ftrs_service.fhir_mapper.organization_mapper import (
@@ -19,23 +17,30 @@ class BundleMapper:
         self.organization_mapper = OrganizationMapper()
         self.endpoint_mapper = EndpointMapper()
 
-    def map_to_fhir(self, organization_record: OrganizationRecord) -> Bundle:
+    def map_to_fhir(
+        self, organization_record: OrganizationRecord, ods_code: str
+    ) -> Bundle:
+        resources = (
+            self._create_resources(organization_record) if organization_record else []
+        )
+
+        return self._create_bundle(resources, ods_code)
+
+    def _create_resources(
+        self, organization_record: OrganizationRecord
+    ) -> list[FHIRResourceModel]:
+        endpoint_resources = self.endpoint_mapper.map_to_endpoints(organization_record)
         organization_resource = self.organization_mapper.map_to_organization_resource(
             organization_record
         )
-        endpoint_resources = self.endpoint_mapper.map_to_endpoints(organization_record)
 
-        return self._create_bundle(organization_resource, endpoint_resources)
+        return endpoint_resources + [organization_resource]
 
     def _create_bundle(
-        self, organization: Organization, endpoints: List[Endpoint]
+        self,
+        resources: list[FHIRResourceModel],
+        ods_code: str,
     ) -> Bundle:
-        ods_code = [
-            identifier.value
-            for identifier in organization.identifier
-            if identifier.system == "https://fhir.nhs.uk/Id/ods-organization-code"
-        ][0]
-
         bundle_type = "searchset"
         bundle_id = str(uuid4())
         bundle_link = [
@@ -47,11 +52,7 @@ class BundleMapper:
             }
         ]
 
-        entries = [
-            self._create_entry("Endpoint", endpoint, "match") for endpoint in endpoints
-        ]
-
-        entries.append(self._create_entry("Organization", organization, "include"))
+        entries = [self._create_entry(resource) for resource in resources]
 
         bundle = Bundle.model_validate(
             {
@@ -64,11 +65,19 @@ class BundleMapper:
 
         return bundle
 
-    def _create_entry(
-        self, resource_type: str, resource: Resource, search_mode: str
-    ) -> Dict[str, Any]:
+    def _create_entry(self, resource: FHIRResourceModel) -> dict[str, Any]:
+        resource_type = resource.get_resource_type()
+        resource_id = resource.id
+        search_mode = self._get_search_mode(resource)
+
         return {
-            "fullUrl": f"{self.base_url}/{resource_type}/{resource.id}",
+            "fullUrl": f"{self.base_url}/{resource_type}/{resource_id}",
             "resource": resource,
             "search": {"mode": search_mode},
         }
+
+    def _get_search_mode(self, resource: FHIRResourceModel) -> str:
+        if resource.get_resource_type() == "Endpoint":
+            return "match"
+        else:
+            return "include"

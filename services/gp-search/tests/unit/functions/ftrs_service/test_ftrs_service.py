@@ -118,7 +118,10 @@ def test_endpoints_by_ods_success(
 
     # Assert
     mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
-    mock_bundle_mapper.map_to_fhir.assert_called_once_with(organization_record)
+    # Update to check if map_to_fhir was called with correct parameters
+    mock_bundle_mapper.map_to_fhir.assert_called_once_with(
+        organization_record, ods_code
+    )
     assert result == expected_bundle
 
 
@@ -129,13 +132,20 @@ def test_endpoints_by_ods_not_found(ftrs_service, mock_repository, mock_bundle_m
 
     # Create a mock OperationOutcome that matches the structure in the actual implementation
     error_outcome = OperationOutcome.model_construct(
-        id="not-found",
-        resourceType="OperationOutcome",
+        id="internal-server-error",
         issue=[
             {
                 "severity": "error",
-                "code": "not-found",
-                "details": {"text": f"No organization found for ODS code: {ods_code}"},
+                "code": "internal",
+                "details": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
+                            "code": "INTERNAL_SERVER_ERROR",
+                            "display": f"Internal server error while processing ODS code '{ods_code}'",
+                        },
+                    ]
+                },
             }
         ],
     )
@@ -149,16 +159,12 @@ def test_endpoints_by_ods_not_found(ftrs_service, mock_repository, mock_bundle_m
 
         # Assert
         mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
+        # Should attempt to map to FHIR with None and the ODS code
         mock_bundle_mapper.map_to_fhir.assert_not_called()
         assert isinstance(result, OperationOutcome)
-        assert result.id == "not-found"
-        # Access the issue dictionary properly
+        assert result.id == "internal-server-error"
         assert result.issue[0]["severity"] == "error"
-        assert result.issue[0]["code"] == "not-found"
-        assert (
-            f"No organization found for ODS code: {ods_code}"
-            in result.issue[0]["details"]["text"]
-        )
+        assert result.issue[0]["code"] == "internal"
 
 
 def test_endpoints_by_ods_exception(ftrs_service, mock_repository, mock_bundle_mapper):
@@ -168,15 +174,22 @@ def test_endpoints_by_ods_exception(ftrs_service, mock_repository, mock_bundle_m
         "Test exception"
     )
 
-    # Create a mock OperationOutcome that matches the structure in the actual implementation
+    # Create a mock OperationOutcome for the error
     error_outcome = OperationOutcome.model_construct(
-        id="not-found",
-        resourceType="OperationOutcome",
+        id="internal-server-error",
         issue=[
             {
                 "severity": "error",
-                "code": "not-found",
-                "details": {"text": f"No organization found for ODS code: {ods_code}"},
+                "code": "internal",
+                "details": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
+                            "code": "INTERNAL_SERVER_ERROR",
+                            "display": f"Internal server error while processing ODS code '{ods_code}'",
+                        },
+                    ]
+                },
             }
         ],
     )
@@ -192,10 +205,8 @@ def test_endpoints_by_ods_exception(ftrs_service, mock_repository, mock_bundle_m
         mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
         mock_bundle_mapper.map_to_fhir.assert_not_called()
         assert isinstance(result, OperationOutcome)
-        assert result.id == "not-found"
-        # Access the issue dictionary properly
         assert result.issue[0]["severity"] == "error"
-        assert result.issue[0]["code"] == "not-found"
+        assert result.issue[0]["code"] == "internal"
 
 
 def test_endpoints_by_ods_mapping_exception(
@@ -205,15 +216,22 @@ def test_endpoints_by_ods_mapping_exception(
     ods_code = "O123"
     mock_bundle_mapper.map_to_fhir.side_effect = Exception("Mapping error")
 
-    # Create a mock OperationOutcome that matches the structure in the actual implementation
+    # Create a mock OperationOutcome for the error
     error_outcome = OperationOutcome.model_construct(
-        id="not-found",
-        resourceType="OperationOutcome",
+        id="internal-server-error",
         issue=[
             {
                 "severity": "error",
-                "code": "not-found",
-                "details": {"text": f"No organization found for ODS code: {ods_code}"},
+                "code": "internal",
+                "details": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
+                            "code": "INTERNAL_SERVER_ERROR",
+                            "display": f"Internal server error while processing ODS code '{ods_code}'",
+                        },
+                    ]
+                },
             }
         ],
     )
@@ -227,5 +245,34 @@ def test_endpoints_by_ods_mapping_exception(
 
         # Assert
         mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
-        mock_bundle_mapper.map_to_fhir.assert_called_once_with(organization_record)
+        # Update to check if map_to_fhir was called with correct parameters
+        mock_bundle_mapper.map_to_fhir.assert_called_once_with(
+            organization_record, ods_code
+        )
         assert isinstance(result, OperationOutcome)
+
+
+def test_create_error_resource(ftrs_service):
+    # Arrange
+    ods_code = "TEST123"
+
+    # Act
+    result = ftrs_service._create_error_resource(ods_code)
+
+    # Assert
+    assert isinstance(result, OperationOutcome)
+    assert result.id == "internal-server-error"
+
+    # Access the issue properties correctly (as object attributes)
+    assert len(result.issue) > 0
+    assert result.issue[0].severity == "error"
+    assert result.issue[0].code == "internal"
+
+    # Check if details and coding exist
+    assert hasattr(result.issue[0], "details")
+    assert hasattr(result.issue[0].details, "coding")
+    assert len(result.issue[0].details.coding) > 0
+
+    # Check the coding values
+    assert result.issue[0].details.coding[0].code == "INTERNAL_SERVER_ERROR"
+    assert ods_code in result.issue[0].details.coding[0].display

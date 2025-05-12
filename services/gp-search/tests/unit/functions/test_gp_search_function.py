@@ -96,7 +96,7 @@ def create_error_outcome():
     """Factory function to create a test OperationOutcome for errors."""
 
     def _create_error_outcome(
-        ods_code="UNKNOWN", issue_code="not-found", severity="error"
+        ods_code="UNKNOWN", issue_code="internal-server-error", severity="error"
     ):
         return OperationOutcome.model_validate(
             {
@@ -107,7 +107,13 @@ def create_error_outcome():
                         "severity": severity,
                         "code": issue_code,
                         "details": {
-                            "text": f"No organization found for ODS code: {ods_code}"
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
+                                    "code": "INTERNAL_SERVER_ERROR",
+                                    "display": f"Internal server error while processing ODS code '{ods_code}'",
+                                },
+                            ]
                         },
                     }
                 ],
@@ -182,37 +188,6 @@ class TestLambdaHandler:
         assert response_body["entry"][3]["resource"]["resourceType"] == "Organization"
         assert response_body["entry"][3]["resource"]["id"] == "org-1"
 
-    def test_lambda_handler_not_found(
-        self, lambda_context, mock_ftrs_service, create_error_outcome
-    ):
-        # Arrange
-        ods_code = "UNKNOWN"
-        event = {"pathParameters": {"odsCode": ods_code}}
-
-        # Create an error outcome
-        outcome = create_error_outcome(ods_code=ods_code)
-        mock_ftrs_service.endpoints_by_ods.return_value = outcome
-
-        # Act
-        response = lambda_handler(event, lambda_context)
-
-        # Assert
-        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code=ods_code)
-        assert (
-            response["statusCode"] == 200
-        )  # Note: This could be 404 in a real implementation
-        assert response["headers"] == {"Content-Type": "application/fhir+json"}
-
-        # Verify the response body contains the error
-        response_body = json.loads(response["body"])
-        assert response_body["resourceType"] == "OperationOutcome"
-        assert response_body["issue"][0]["severity"] == "error"
-        assert response_body["issue"][0]["code"] == "not-found"
-        assert (
-            f"No organization found for ODS code: {ods_code}"
-            in response_body["issue"][0]["details"]["text"]
-        )
-
     def test_lambda_handler_service_error(
         self, lambda_context, mock_ftrs_service, create_error_outcome
     ):
@@ -231,9 +206,7 @@ class TestLambdaHandler:
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code=ods_code)
-        assert (
-            response["statusCode"] == 200
-        )  # Note: This could be 500 in a real implementation
+        assert response["statusCode"] == 500
         assert response["headers"] == {"Content-Type": "application/fhir+json"}
 
         # Verify the response body contains the error

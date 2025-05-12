@@ -4,7 +4,7 @@ This module provides reusable fixtures and helper functions for unit tests.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
@@ -64,7 +64,7 @@ def create_organization_value():
         org_type: str = "prov",
         active: bool = True,
         ods_code: str = "O123",
-        endpoints: Optional[List[EndpointValue]] = None,
+        endpoints: Optional[list[EndpointValue]] = None,
     ) -> OrganizationValue:
         return OrganizationValue(
             id=org_id,
@@ -202,7 +202,7 @@ def create_sample_dynamo_item():
         org_id: str = "org-123",
         ods_code: str = "O123",
         org_name: str = "Test Organization",
-        endpoints: Optional[List[Dict]] = None,
+        endpoints: Optional[list[Dict]] = None,
     ) -> Dict:
         if endpoints is None:
             endpoints = [
@@ -251,7 +251,7 @@ def create_sample_dynamo_item():
 
 def create_test_bundle(
     org_resource: Organization,
-    endpoint_resources: List[Endpoint],
+    endpoint_resources: list[Endpoint],
     base_url: str = "https://example.org",
 ) -> Bundle:
     """
