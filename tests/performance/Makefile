@@ -3,7 +3,8 @@ ENVIRONMENT ?= dev
 SERVICE ?= is-performance
 PYTHON_VERSION ?= 3.12
 TEST_DIR := parameter_files
-PARAMETER_FILES_BUCKET := ${PROJECT}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket-${WORKSPACE}
+WORKSPACE_PARAMETER_FILES_BUCKET := ${PROJECT}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket-${WORKSPACE}
+MAIN_PARAMETER_FILES_BUCKET := ${PROJECT}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket
 
 install: install-dependencies
 
@@ -24,5 +25,8 @@ performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	export TEST_DATA=${TEST_DATA} ; \
 	jmeter -g ${TEST_DATA}.jtl -f -e -o reports ;
 
-download-performance-parameter_files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
+download-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
 	aws s3 cp s3://${PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
+
+copy-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
+	aws s3 cp s3://${MAIN_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) s3://${WORKSPACE_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) --recursive
