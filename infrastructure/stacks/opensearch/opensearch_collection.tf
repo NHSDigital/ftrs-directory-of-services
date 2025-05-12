@@ -47,19 +47,35 @@ module "opensearch_serverless" {
   }
 }
 
-resource "aws_opensearchserverless_security_policy" "opensearch_serverless_network_public_dashboard" {
-  name        = "${var.project}${local.workspace_suffix}-dashboard"
-  description = "Public access for dashboard"
+resource "aws_opensearchserverless_security_policy" "opensearch_serverless_network_access_policy" {
+  name        = "${local.resource_prefix}-nap"
+  description = "Public access for dashboard, VPC access for collection endpoint"
   type        = "network"
 
   policy = jsonencode([
     {
+      Description     = "Public access for dashboards",
       AllowFromPublic = true
       Rules = [
         {
-          Resource     = ["collection/${var.project}${local.workspace_suffix}"]
+          Resource     = ["collection/${local.resource_prefix}"]
           ResourceType = "dashboard"
         }
+      ]
+    },
+    {
+      Description = "VPC access for collection endpoint",
+      Rules = [
+        {
+          ResourceType = "collection",
+          Resource = [
+            "collection/${local.resource_prefix}"
+          ]
+        }
+      ],
+      AllowFromPublic = false,
+      SourceVPCEs = [
+        aws_opensearchserverless_vpc_endpoint.vpc_endpoint.id
       ]
     }
   ])
