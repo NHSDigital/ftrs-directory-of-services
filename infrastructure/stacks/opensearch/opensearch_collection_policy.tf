@@ -1,5 +1,5 @@
 resource "aws_opensearchserverless_security_policy" "opensearch_serverless_network_access_policy" {
-  name        = "${local.stack_name}-nap${local.workspace_suffix}"
+  name        = "${var.stack_name}-nap${local.workspace_suffix}"
   description = "Public access for dashboard, VPC access for collection endpoint"
   type        = "network"
 
@@ -33,7 +33,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
 }
 
 resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_access_policy" {
-  name        = "${local.stack_name}-dap${local.workspace_suffix}"
+  name        = "${var.stack_name}-dap${local.workspace_suffix}"
   type        = "data"
   description = "Allow index and collection access"
   policy = jsonencode([
