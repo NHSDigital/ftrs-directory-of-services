@@ -91,7 +91,7 @@ def extract_organisation_data(payload: dict) -> dict:
             "Name": payload.get("Name"),
             "Status": payload.get("Status"),
             "Roles": payload.get("Roles"),
-            "Contacts": payload.get("Contacts", []),
+            "Contacts": payload.get("Contacts", None),
         }
     except AttributeError as e:
         logger.info(f"Organisation payload extraction failed: {e}")
