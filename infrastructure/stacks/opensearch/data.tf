@@ -21,3 +21,7 @@ data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
 }
+
+data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
+  name = "${var.project}-collection"
+}
