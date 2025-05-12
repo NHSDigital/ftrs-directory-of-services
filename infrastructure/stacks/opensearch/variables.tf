@@ -1,22 +1,3 @@
-variable "opensearch_type" {
-  description = "The type of OpenSearch"
-  type        = string
-}
-
-variable "opensearch_standby_replicas" {
-  description = "Number of standby replicas for OpenSearch"
-  type        = string
-}
-
-variable "opensearch_create_access_policy" {
-  description = "Flag to create access policy for OpenSearch"
-  type        = bool
-}
-
-variable "opensearch_create_network_policy" {
-  description = "Flag to create network policy for OpenSearch"
-  type        = bool
-}
 
 variable "osis_pipeline_min_units" {
   description = "The min number of units for the OSIS pipeline"

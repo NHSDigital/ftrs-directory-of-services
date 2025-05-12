@@ -1,7 +1,3 @@
-opensearch_type                         = "SEARCH"
-opensearch_standby_replicas             = "DISABLED"
-opensearch_create_access_policy         = true
-opensearch_create_network_policy        = false
 osis_pipeline_min_units                 = 1
 osis_pipeline_max_units                 = 1
 osis_pipeline_persistent_buffer_enabled = false
