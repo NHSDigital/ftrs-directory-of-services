@@ -309,9 +309,6 @@ def merge_gp_practice_with_openingtimes(
             .infer_objects(copy=False)
         )
 
-    for row in result.loc[result.availability.isnull(), "endpoints"].index:
-        result.at[row, "endpoints"] = []
-
     return result
 
 
