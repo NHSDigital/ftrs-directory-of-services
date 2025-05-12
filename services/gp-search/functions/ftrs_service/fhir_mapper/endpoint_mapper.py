@@ -1,5 +1,3 @@
-from typing import Dict, Optional
-
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
@@ -38,7 +36,7 @@ class EndpointMapper:
 
         return endpoints
 
-    def _create_endpoint(self, endpoint_value: EndpointValue) -> Optional[Endpoint]:
+    def _create_endpoint(self, endpoint_value: EndpointValue) -> Endpoint | None:
         endpoint_id = endpoint_value.id
         status = self._create_status()
         connection_type = self._create_connection_type(endpoint_value)
@@ -68,7 +66,7 @@ class EndpointMapper:
 
     def _create_managing_organization(
         self, endpoint_value: EndpointValue
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         org_id = endpoint_value.managedByOrganisation
         managing_organization = {"reference": f"Organization/{org_id}"}
         return managing_organization
@@ -123,9 +121,7 @@ class EndpointMapper:
 
         return headers
 
-    def _create_connection_type(
-        self, endpoint_value: EndpointValue
-    ) -> Optional[Coding]:
+    def _create_connection_type(self, endpoint_value: EndpointValue) -> Coding | None:
         db_conn_type = endpoint_value.connectionType.lower()
 
         if db_conn_type not in self.CONNECTION_TYPE_MAP:

@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from typing import Any, Dict, Optional
 
 import boto3
 from aws_lambda_powertools import Logger
@@ -83,7 +82,7 @@ class OrganizationRecord(DynamoModel):
     )
 
     @classmethod
-    def from_dynamo_item(cls, item: Dict[str, Any]) -> "OrganizationRecord":
+    def from_dynamo_item(cls, item: dict[str, object]) -> "OrganizationRecord":
         """Create an OrganizationRecord model from a DynamoDB item."""
         try:
             return cls.model_validate(item)
@@ -100,9 +99,7 @@ class DynamoRepository:
         self.dynamodb = boto3.resource("dynamodb")
         self.table = self.dynamodb.Table(table_name)
 
-    def get_first_record_by_ods_code(
-        self, ods_code: str
-    ) -> Optional[OrganizationRecord]:
+    def get_first_record_by_ods_code(self, ods_code: str) -> OrganizationRecord | None:
         response = self.table.query(
             IndexName="ods-code-index",
             KeyConditionExpression=Key("ods-code").eq(ods_code),
