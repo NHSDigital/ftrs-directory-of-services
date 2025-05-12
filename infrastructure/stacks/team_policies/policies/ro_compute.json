@@ -6,8 +6,7 @@
             "Effect": "Allow",
             "Action": [
                 "ec2:Describe*",
-                "ec2:DescribeVerifiedAccessInstances",
-                "ec2:DescribeVerifiedAccessInstanceWebAclAssociations",
+                "ec2:GetSecurityGroupsForVpc",
                 "ec2:GetVerifiedAccessInstanceWebAcl",
                 "elasticloadbalancing:Describe*",
                 "autoscaling:Describe*",

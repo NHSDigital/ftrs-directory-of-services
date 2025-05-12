@@ -10,7 +10,7 @@
             "Resource": "arn:aws:apigateway:*::/*"
         },
         {
-            "Sid": "ApiGatewayExcuteFullAccess",
+            "Sid": "ApiGatewayExecuteFullAccess",
             "Effect": "Allow",
             "Action": [
                 "execute-api:Invoke",
