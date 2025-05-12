@@ -82,7 +82,7 @@ gp_practice AS (
         "services"."longitude"
     FROM "gp_practice"
     LEFT JOIN "pathwaysdos"."services"  ON "gp_practice"."serviceid" = "services"."id"
-    LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."statusid" = "servicetypes"."id"
+    LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
 """,
         db_uri,
     )
