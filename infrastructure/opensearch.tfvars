@@ -14,3 +14,4 @@ dynamodb_table_names = [
   # "location",
   "organisation"
 ]
+osis_pipeline_cloudwatch_log_group_name = "/aws/vendedlogs/OpenSearchIngestion/dynamodb-to-os"

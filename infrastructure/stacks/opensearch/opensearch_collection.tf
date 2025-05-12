@@ -1,8 +1,8 @@
 module "opensearch_serverless" {
   source  = "terraform-aws-modules/opensearch/aws//modules/collection"
-  version = "1.6.0"
+  version = "1.7.0"
 
-  name             = "${var.project}${local.workspace_suffix}"
+  name             = local.resource_prefix
   description      = "OpenSearch Serverless collection for DynamoDB ingestion"
   type             = var.opensearch_type
   standby_replicas = var.opensearch_standby_replicas
@@ -15,7 +15,7 @@ module "opensearch_serverless" {
       [
         {
           ResourceType = "collection"
-          Resource     = ["collection/${var.project}${local.workspace_suffix}"]
+          Resource     = ["collection/${local.resource_prefix}"]
           Permission = [
             "aoss:CreateCollectionItems",
             "aoss:UpdateCollectionItems",
@@ -28,7 +28,7 @@ module "opensearch_serverless" {
         for name, tbl in data.aws_dynamodb_table.dynamodb_tables :
         {
           ResourceType = "index"
-          Resource     = ["index/${var.project}${local.workspace_suffix}/${tbl.name}"]
+          Resource     = ["index/${local.resource_prefix}/${tbl.name}"]
           Permission = [
             "aoss:CreateIndex",
             "aoss:UpdateIndex",

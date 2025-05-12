@@ -57,3 +57,8 @@ variable "dynamodb_table_names" {
   description = "List of DynamoDB table names"
   type        = list(string)
 }
+
+variable "osis_pipeline_cloudwatch_log_group_name" {
+  description = "The  cloudwatch log group name for the osis pipeline"
+  type        = string
+}

@@ -32,8 +32,3 @@ resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
     network_policy_name = "${var.project}${local.workspace_suffix}-private"
   })
 }
-
-resource "aws_cloudwatch_log_group" "osis_pipeline_cloudwatch_log_group" {
-  name              = "/aws/vendedlogs/OpenSearchIngestion/dynamodb-to-os${local.workspace_suffix}"
-  retention_in_days = var.osis_pipeline_log_retention_in_days
-}
