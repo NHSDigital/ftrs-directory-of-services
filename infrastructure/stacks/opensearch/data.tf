@@ -21,9 +21,3 @@ data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
 }
-
-data "aws_dynamodb_table" "dynamodb_tables" {
-  for_each = toset(var.dynamodb_table_names)
-
-  name = "${var.project}-${var.environment}-database-${each.value}${local.workspace_suffix}"
-}

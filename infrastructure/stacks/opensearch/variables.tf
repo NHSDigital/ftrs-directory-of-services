@@ -43,7 +43,7 @@ variable "ddb_export_bucket_name" {
   type        = string
 }
 
-variable "ddb_export_s3_versioning" {
+variable "s3_versioning" {
   description = "Enable versioning for the S3 bucket"
   type        = bool
 }
@@ -60,5 +60,20 @@ variable "dynamodb_table_names" {
 
 variable "osis_pipeline_cloudwatch_log_group_name" {
   description = "The  cloudwatch log group name for the osis pipeline"
+  type        = string
+}
+
+variable "max_sink_retries" {
+  description = "The number of times OpenSearch Ingestion Service pipeline will retry an action on the sink"
+  type        = number
+}
+
+variable "opensearch_pipieline_s3_dlq_bucket_name" {
+  description = "The DLQ bukcet name for OpenSearch Ingestion Service Pipeline"
+  type        = string
+}
+
+variable "opensearch_pipieline_s3_dlq_prefix" {
+  description = "The DLQ bucket prefix for OpenSearch Ingestion Service Pipeline"
   type        = string
 }

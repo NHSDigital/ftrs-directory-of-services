@@ -23,9 +23,17 @@ dynamodb-pipeline:
         document_version: "$${getMetadata(\"document_version\")}"
         document_version_type: "external"
         flush_timeout: -1
+        max_retries: ${max_sink_retries}
+        dlq:
+          s3:
+            bucket: "${s3_dlq_bucket}"
+            key_path_prefix: "${s3_dlq_bucket_prefix}"
+            region: "${region}"
+            sts_role_arn: "${role_arn}"
         aws:
           sts_role_arn: "${role_arn}"
           region: "${region}"
           serverless: true
           serverless_options:
             network_policy_name: "${network_policy_name}"
+            vpce_id: "${vpce_id}"

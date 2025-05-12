@@ -8,8 +8,7 @@ resource "aws_iam_role" "osis_pipelines_role" {
         Action = "sts:AssumeRole"
         Principal = {
           Service = [
-            "osis-pipelines.amazonaws.com",
-            "aoss.amazonaws.com"
+            "osis-pipelines.amazonaws.com"
           ]
         }
         Effect = "Allow"
@@ -39,11 +38,11 @@ resource "aws_iam_role_policy" "osis_pipelines_policy" {
           "dynamodb:DescribeExport"
         ]
         Resource = flatten([
-          for table in data.aws_dynamodb_table.dynamodb_tables :
+          for tablename in var.dynamodb_table_names :
           [
-            table.arn,
-            "${table.arn}/export/*",
-            "${table.arn}/stream/*"
+            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${tablename}",
+            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${tablename}/export/*",
+            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${tablename}/stream/*"
           ]
         ])
       },
@@ -58,7 +57,9 @@ resource "aws_iam_role_policy" "osis_pipelines_policy" {
         ]
         Resource = [
           module.s3.s3_bucket_arn,
-          "${module.s3.s3_bucket_arn}/*"
+          "${module.s3.s3_bucket_arn}/*",
+          module.s3_opensearch_pipeline_dlq_bucket.s3_bucket_arn,
+          "${module.s3_opensearch_pipeline_dlq_bucket.s3_bucket_arn}/*"
         ]
       },
       {
