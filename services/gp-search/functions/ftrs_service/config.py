@@ -10,8 +10,7 @@ class EnvironmentVariableNotFoundError(Exception):
 def get_config() -> dict[str, str]:
     config = {
         "DYNAMODB_TABLE_NAME": _get_env_var("DYNAMODB_TABLE_NAME"),
-        "FHIR_BASE_URL": _get_env_var("FHIR_BASE_URL", "https://example.org"),
-        "LOG_LEVEL": _get_env_var("LOG_LEVEL", "INFO"),
+        "FHIR_BASE_URL": _get_env_var("FHIR_BASE_URL"),
     }
     return config
 

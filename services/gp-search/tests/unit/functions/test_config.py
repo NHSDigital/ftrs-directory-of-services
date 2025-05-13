@@ -61,25 +61,6 @@ def test_get_config_all_vars_set(mock_environment):
     # Assert
     assert config["DYNAMODB_TABLE_NAME"] == "test-table"
     assert config["FHIR_BASE_URL"] == "https://test-fhir-url.org"
-    assert config["LOG_LEVEL"] == "DEBUG"
-
-
-def test_get_config_with_defaults():
-    # Arrange
-    with patch.dict(
-        os.environ,
-        {
-            "DYNAMODB_TABLE_NAME": "test-table",
-        },
-        clear=True,
-    ):
-        # Act
-        config = get_config()
-
-        # Assert
-        assert config["DYNAMODB_TABLE_NAME"] == "test-table"
-        assert config["FHIR_BASE_URL"] == "https://example.org"
-        assert config["LOG_LEVEL"] == "INFO"
 
 
 def test_get_config_missing_required():
