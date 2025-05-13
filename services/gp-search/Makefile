@@ -25,8 +25,12 @@ config:
 	poetry install --no-interaction
 
 lint:
-	poetry run ruff check \
-		|| poetry run ruff format --check
+	poetry run ruff check
+	poetry run ruff format --check
+
+lint-fix:
+	poetry run ruff check --fix
+	poetry run ruff format
 
 test: unit-test
 
