@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from typing import Self
 
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
@@ -7,6 +8,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 MAX_ODS_TEL_LENGTH = 20
+MAX_HTTP_LENGTH = 255
 
 
 class StatusEnum(str, Enum):
@@ -17,17 +19,6 @@ class StatusEnum(str, Enum):
 class ContactTypeEnum(str, Enum):
     tel = "tel"
     http = "http"
-
-
-class RoleItem(BaseModel):
-    """
-    Validator class for role data.
-    """
-
-    displayName: str = Field(
-        max_length=100,
-        description="Display name of the role from lookup via OrganisationRole CodeSystem",
-    )
 
 
 class ContactItem(BaseModel):
@@ -41,12 +32,13 @@ class ContactItem(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_value_length(self):
+    def validate_value_length(self) -> Self:
         if self.type == "tel" and len(self.value) > MAX_ODS_TEL_LENGTH:
-            raise ValueError("For 'tel', the value must not exceed 20 characters.")
-        elif self.type == "http" and len(self.value) > 255:
-            raise ValueError("For 'http', the value must not exceed 255 characters.")
+            raise ValueError("20")
+        elif self.type == "http" and len(self.value) > MAX_HTTP_LENGTH:
+            raise ValueError("255")
         return self
+
 
 class ContactList(BaseModel):
     """
@@ -57,6 +49,7 @@ class ContactList(BaseModel):
         ..., description="List of contact methods associated with the organisation."
     )
 
+
 class RoleItem(BaseModel):
     """
     Validator class for Role item data
@@ -66,7 +59,8 @@ class RoleItem(BaseModel):
         max_length=10, description="Role ID from lookup via OrganisationRole CodeSystem"
     )
     primaryRole: bool = Field(
-        default=False, description="If the role is the primary one for the organisation."
+        default=False,
+        description="If the role is the primary one for the organisation.",
     )
 
 
