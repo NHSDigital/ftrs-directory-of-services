@@ -1,0 +1,40 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ACMCertificateReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "acm:DescribeCertificate",
+                "acm:GetAccountConfiguration",
+                "acm:GetCertificate",
+                "acm:ListCertificates",
+                "acm:ListTagsForCertificate"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CloudFrontReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "cloudfront:Describe*",
+                "cloudfront:Get*",
+                "cloudfront:List*",
+                "cloudfront-keyvaluestore:Describe*",
+                "cloudfront-keyvaluestore:Get*",
+                "cloudfront-keyvaluestore:List*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "Route53ReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "route53:Get*",
+                "route53:List*",
+                "route53:TestDNSAnswer"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

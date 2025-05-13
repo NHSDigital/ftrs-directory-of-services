@@ -1,0 +1,49 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AWSResilienceHubFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "backup:DescribeBackupVault",
+                "backup:GetBackupPlan",
+                "backup:GetBackupSelection",
+                "backup:ListBackupPlans",
+                "backup:ListBackupSelections",
+                "datasync:DescribeTask",
+                "datasync:ListLocations",
+                "datasync:ListTasks",
+                "devops-guru:ListMonitoredResources",
+                "dlm:GetLifecyclePolicies",
+                "dlm:GetLifecyclePolicy",
+                "drs:DescribeJobs",
+                "drs:DescribeSourceServers",
+                "drs:GetReplicationConfiguration",
+                "ds:DescribeDirectories",
+                "fis:GetExperiment",
+                "fis:GetExperimentTemplate",
+                "fis:ListExperimentTemplates",
+                "fis:ListExperiments",
+                "fis:ListExperimentResolvedTargets",
+                "fsx:DescribeFileSystems",
+                "route53-recovery-control-config:ListClusters",
+                "route53-recovery-control-config:ListControlPanels",
+                "route53-recovery-control-config:ListRoutingControls",
+                "route53-recovery-readiness:GetReadinessCheckStatus",
+                "route53-recovery-readiness:GetResourceSet",
+                "route53-recovery-readiness:ListReadinessChecks",
+                "servicecatalog:GetApplication",
+                "servicecatalog:ListAssociatedResources"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AWSResilienceHubSSMStatement",
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParametersByPath"
+            ],
+            "Resource": "arn:aws:ssm:*:*:parameter/ResilienceHub/*"
+        }
+    ]
+}

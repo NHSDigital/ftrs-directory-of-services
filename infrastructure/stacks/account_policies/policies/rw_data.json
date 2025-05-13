@@ -1,0 +1,123 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DataPipelineFullAccess",
+            "Action": [
+                "datapipeline:ActivatePipeline",
+                "datapipeline:CreatePipeline",
+                "datapipeline:DeletePipeline",
+                "datapipeline:DescribeObjects",
+                "datapipeline:DescribePipelines",
+                "datapipeline:GetPipelineDefinition",
+                "datapipeline:ListPipelines",
+                "datapipeline:PutPipelineDefinition",
+                "datapipeline:QueryObjects"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "KinesisFullAccess",
+            "Action": [
+                "kinesis:*"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "ResourceGroupsFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "resource-groups:ListGroups",
+                "resource-groups:ListGroupResources",
+                "resource-groups:GetGroup",
+                "resource-groups:GetGroupQuery",
+                "resource-groups:DeleteGroup",
+                "resource-groups:CreateGroup"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "DynamoFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:*",
+                "dax:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "PassRoleForScalingAndDAX",
+            "Action": "iam:PassRole",
+            "Effect": "Allow",
+            "Resource": "*",
+            "Condition": {
+                "StringLike": {
+                    "iam:PassedToService": [
+                        "application-autoscaling.amazonaws.com",
+                        "application-autoscaling.amazonaws.com.cn",
+                        "dax.amazonaws.com"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "CreateServiceLinkedRoleForDynamoAndDAX",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "replication.dynamodb.amazonaws.com",
+                        "dax.amazonaws.com",
+                        "dynamodb.application-autoscaling.amazonaws.com",
+                        "contributorinsights.dynamodb.amazonaws.com",
+                        "kinesisreplication.dynamodb.amazonaws.com"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "RDSFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "rds:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "PerformanceInsightsFullAccess",
+            "Effect": "Allow",
+            "Action": "pi:*",
+            "Resource": [
+                "arn:aws:pi:*:*:metrics/rds/*",
+                "arn:aws:pi:*:*:perf-reports/rds/*"
+            ]
+        },
+        {
+            "Sid": "CreateServiceLinkedRoleForRDS",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringLike": {
+                    "iam:AWSServiceName": [
+                        "rds.amazonaws.com",
+                        "rds.application-autoscaling.amazonaws.com"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "S3FullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "s3:*",
+                "s3-object-lambda:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

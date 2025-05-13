@@ -1,0 +1,22 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ComputeReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:Describe*",
+                "ec2:GetSecurityGroupsForVpc",
+                "ec2:GetVerifiedAccessInstanceWebAcl",
+                "elasticloadbalancing:Describe*",
+                "autoscaling:Describe*",
+                "lambda:Get*",
+                "lambda:List*",
+                "states:DescribeStateMachine",
+                "states:ListStateMachines",
+                "tag:GetResources"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
