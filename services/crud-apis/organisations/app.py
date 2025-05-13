@@ -23,6 +23,32 @@ logging.basicConfig(
     ],
 )
 
+@app.get("/{ods_code}", summary="Get an organisation by ODS code.")
+def get_org_id(
+    ods_code: str = Path(
+        ...,
+        examples=["example ods code temp"],
+        description="The unique code of an organisation underneath the NHS",
+    ),
+    settings: AppSettings = Depends(get_app_settings),
+) -> None:
+    logging.info(f"Received request to get organisation with ODS code: {ods_code}")
+    settings.workspace = None
+    org_repository = get_repository(
+        env=settings.env,
+        workspace=settings.workspace,
+        endpoint_url=settings.endpoint_url,
+    )
+    # replace get_by_ods with real method
+    organisation = org_repository.get_by_ods(ods_code)
+
+    if not organisation:
+        logging.info(f"Organisation with ODS code {ods_code} not found.")
+        raise HTTPException(status_code=404, detail="Organisation not found")
+
+    logging.info(f"Organisation: {organisation}")
+
+
 
 @app.put("/{organisation_id}", summary="Update an organisation.")
 def update_organisation(
