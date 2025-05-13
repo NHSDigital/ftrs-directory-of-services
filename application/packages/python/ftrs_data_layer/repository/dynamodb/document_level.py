@@ -65,6 +65,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             "id": str(item.id),
             "field": "document",
             "value": item.model_dump(mode="json"),
+            **item.indexes,
         }
 
     def _parse_item(self, item: dict) -> ModelType:
