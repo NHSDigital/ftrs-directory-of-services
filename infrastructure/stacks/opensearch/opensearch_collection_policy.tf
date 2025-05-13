@@ -9,7 +9,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
       AllowFromPublic = true
       Rules = [
         {
-          Resource     = ["collection/${local.resource_prefix}"]
+          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
           ResourceType = "dashboard"
         }
       ]
@@ -20,7 +20,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
         {
           ResourceType = "collection",
           Resource = [
-            "collection/${local.resource_prefix}"
+            "collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"
           ]
         }
       ],
@@ -42,7 +42,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
         [
           {
             ResourceType = "collection"
-            Resource     = ["collection/${local.resource_prefix}"]
+            Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
             Permission = [
               "aoss:CreateCollectionItems",
               "aoss:UpdateCollectionItems",
@@ -55,7 +55,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
           for name in var.dynamodb_table_names_for_opensearch :
           {
             ResourceType = "index"
-            Resource     = ["index/${local.resource_prefix}/${name}"]
+            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${name}"]
             Permission = [
               "aoss:CreateIndex",
               "aoss:UpdateIndex",
