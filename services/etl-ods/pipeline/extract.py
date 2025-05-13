@@ -81,6 +81,7 @@ def fetch_organisation_uuid(ods_code: str) -> str:
     Returns DoS UUID based on ODS code
     """
     organisation_get_uuid_uri = os.environ["ORGANISATION_API"] + "/" + ods_code
+    print(organisation_get_uuid_uri)
     # make_request(organisation_get_uuid_uri).get("id", None)
     return "uuid"
 

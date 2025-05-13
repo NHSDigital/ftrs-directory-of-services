@@ -17,7 +17,6 @@ class DBModel(BaseModel):
     modifiedBy: str
     modifiedDateTime: datetime
 
-
     @property
     def indexes(self) -> dict:
         """
@@ -52,7 +51,6 @@ class Organisation(DBModel):
     telecom: str | None = None
     type: str
     endpoints: list["Endpoint"] = Field(default_factory=list)
-
 
     @property
     def indexes(self) -> dict:
