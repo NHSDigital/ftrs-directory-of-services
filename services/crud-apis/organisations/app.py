@@ -23,6 +23,7 @@ logging.basicConfig(
     ],
 )
 
+
 @app.get("/{ods_code}", summary="Get an organisation by ODS code.")
 def get_org_id(
     ods_code: str = Path(
@@ -47,7 +48,6 @@ def get_org_id(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     logging.info(f"Organisation: {organisation}")
-
 
 
 @app.put("/{organisation_id}", summary="Update an organisation.")

@@ -67,7 +67,7 @@ def init_tables(
         table_name = get_table_name(entity_name, env.value, workspace)
 
         try:
-            if(entity_name == "organisation"):
+            if entity_name == "organisation":
                 client.create_table(
                     TableName=table_name,
                     KeySchema=[
@@ -113,29 +113,29 @@ def init_tables(
                 logging.info(f"Table {table_name} created successfully.")
             else:
                 client.create_table(
-                TableName=table_name,
-                KeySchema=[
-                    {
-                        "AttributeName": "id",
-                        "KeyType": "HASH",
-                    },
-                    {
-                        "AttributeName": "field",
-                        "KeyType": "RANGE",
-                    },
-                ],
-                AttributeDefinitions=[
-                    {
-                        "AttributeName": "id",
-                        "AttributeType": "S",
-                    },
-                    {
-                        "AttributeName": "field",
-                        "AttributeType": "S",
-                    },
-                ],
-                BillingMode="PAY_PER_REQUEST",
-            )
+                    TableName=table_name,
+                    KeySchema=[
+                        {
+                            "AttributeName": "id",
+                            "KeyType": "HASH",
+                        },
+                        {
+                            "AttributeName": "field",
+                            "KeyType": "RANGE",
+                        },
+                    ],
+                    AttributeDefinitions=[
+                        {
+                            "AttributeName": "id",
+                            "AttributeType": "S",
+                        },
+                        {
+                            "AttributeName": "field",
+                            "AttributeType": "S",
+                        },
+                    ],
+                    BillingMode="PAY_PER_REQUEST",
+                )
             logging.info(f"Table {table_name} created successfully.")
 
         except client.exceptions.ResourceInUseException:
