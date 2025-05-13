@@ -22,7 +22,7 @@ resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
   }
 
   pipeline_configuration_body = templatefile("pipeline-config.yaml.tmpl", {
-    dynamodb_table_arn   = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${each.value}"
+    dynamodb_table_arn   = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.resource_prefix}-${each.value}${local.workspace_suffix}"
     role_arn             = aws_iam_role.osis_pipelines_role.arn
     region               = var.aws_region
     opensearch_endpoint  = data.aws_opensearchserverless_collection.opensearch_serverless_collection.collection_endpoint
