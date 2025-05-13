@@ -34,7 +34,7 @@ variable "ddb_export_s3_prefix" {
   type        = string
 }
 
-variable "dynamodb_table_names" {
+variable "dynamodb_table_names_for_opensearch" {
   description = "List of DynamoDB table names"
   type        = list(string)
 }

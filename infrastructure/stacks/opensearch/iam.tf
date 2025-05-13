@@ -38,7 +38,7 @@ resource "aws_iam_role_policy" "osis_pipelines_policy" {
           "dynamodb:DescribeExport"
         ]
         Resource = flatten([
-          for tablename in var.dynamodb_table_names :
+          for tablename in var.dynamodb_table_names_for_opensearch :
           [
             "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${tablename}",
             "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${tablename}/export/*",

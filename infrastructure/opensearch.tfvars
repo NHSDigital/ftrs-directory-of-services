@@ -5,9 +5,7 @@ osis_pipeline_log_retention_in_days     = 7
 ddb_export_bucket_name                  = "ddb-export"
 s3_versioning                           = true
 ddb_export_s3_prefix                    = "ddb-to-opensearch-export/"
-dynamodb_table_names = [
-  # "healthcare-service",
-  # "location",
+dynamodb_table_names_for_opensearch = [
   "organisation"
 ]
 osis_pipeline_cloudwatch_log_group_name = "/aws/vendedlogs/OpenSearchIngestion/dynamodb-to-os"

@@ -52,7 +52,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
           }
         ],
         [
-          for name in var.dynamodb_table_names :
+          for name in var.dynamodb_table_names_for_opensearch :
           {
             ResourceType = "index"
             Resource     = ["index/${local.resource_prefix}/${name}"]

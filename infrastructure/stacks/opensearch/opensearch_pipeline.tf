@@ -1,5 +1,5 @@
 resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
-  for_each = toset(var.dynamodb_table_names)
+  for_each = toset(var.dynamodb_table_names_for_opensearch)
 
   pipeline_name = "{each.value}${local.workspace_suffix}"
   min_units     = var.osis_pipeline_min_units
