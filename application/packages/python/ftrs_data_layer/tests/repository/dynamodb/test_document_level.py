@@ -9,6 +9,12 @@ class MockModel(BaseModel):
     id: str
     name: str
 
+    @property
+    def indexes(self) -> dict:
+        return {
+            "some": "index",
+        }
+
 
 def test_doc_create() -> None:
     """
@@ -36,7 +42,12 @@ def test_doc_create() -> None:
     # Call the create method
     repo.create(obj)
     repo.table.put_item.assert_called_once_with(
-        Item={"id": "1", "field": "document", "value": {"id": "1", "name": "Test"}},
+        Item={
+            "id": "1",
+            "field": "document",
+            "value": {"id": "1", "name": "Test"},
+            "some": "index",
+        },
         ConditionExpression="attribute_not_exists(id)",
         ReturnConsumedCapacity="INDEXES",
     )
@@ -50,7 +61,7 @@ def test_doc_get() -> None:
         table_name="test_table",
         model_cls=MockModel,
     )
-    obj = MockModel(id="1", name="Test")
+    obj = MockModel(id="1", name="Test", indexes={"some_index": "value"})
 
     # Mock the get_item method
     repo.table.get_item = MagicMock(
@@ -119,7 +130,12 @@ def test_doc_update() -> None:
     # Call the update method
     repo.update("1", obj)
     repo.table.put_item.assert_called_once_with(
-        Item={"id": "1", "field": "document", "value": {"id": "1", "name": "Test"}},
+        Item={
+            "id": "1",
+            "field": "document",
+            "value": {"id": "1", "name": "Test"},
+            "some": "index",
+        },
         ConditionExpression="attribute_exists(id)",
         ReturnConsumedCapacity="INDEXES",
     )
@@ -172,6 +188,7 @@ def test_doc_serialise_item() -> None:
         "id": "1",
         "field": "document",
         "value": {"id": "1", "name": "Test"},
+        "some": "index",
     }
 
 
