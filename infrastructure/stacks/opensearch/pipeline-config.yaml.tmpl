@@ -1,0 +1,39 @@
+version: "2"
+dynamodb-pipeline:
+  source:
+    dynamodb:
+      acknowledgments: true
+      tables:
+        - table_arn: "${dynamodb_table_arn}"
+          stream:
+            start_position: "LATEST"
+          export:
+            s3_bucket: "${s3_bucket}"
+            s3_prefix: "${s3_prefix}"
+      aws:
+        sts_role_arn: "${role_arn}"
+        region: "${region}"
+  sink:
+    - opensearch:
+        hosts: [ "${opensearch_endpoint}" ]
+        index: "${index_name}"
+        index_type: custom
+        document_id: "$${getMetadata(\"primary_key\")}"
+        action: "$${getMetadata(\"opensearch_action\")}"
+        document_version: "$${getMetadata(\"document_version\")}"
+        document_version_type: "external"
+        flush_timeout: -1
+        max_retries: ${max_sink_retries}
+        dlq:
+          s3:
+            bucket: "${s3_dlq_bucket}"
+            key_path_prefix: "${s3_dlq_bucket_prefix}"
+            region: "${region}"
+            sts_role_arn: "${role_arn}"
+        aws:
+          sts_role_arn: "${role_arn}"
+          region: "${region}"
+          serverless: true
+          serverless_options:
+            network_policy_name: "${network_policy_name}"
+            vpce_id: "${vpce_id}"
