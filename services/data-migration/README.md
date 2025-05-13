@@ -96,7 +96,7 @@ This can be done using the `dos-etl reset` command.
 dos-etl reset \
     --init \
     --env local \
-    --endpoint-uri http://localhost:8000 \
+    --endpoint-url http://localhost:8000 \
 ```
 
 The script can be aborted at the first prompt.

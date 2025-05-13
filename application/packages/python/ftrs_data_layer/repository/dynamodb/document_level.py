@@ -65,6 +65,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             "id": str(item.id),
             "field": "document",
             "value": item.model_dump(mode="json"),
+            **item.indexes,
         }
 
     def _parse_item(self, item: dict) -> ModelType:
@@ -88,3 +89,14 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             map(self._parse_item, self._scan(Limit=max_results)),
             max_results,
         )
+
+    def get_by_ods_code(self, ods_code: str) -> list[str]:
+        ods_code_field = "identifier_ODS_ODSCode"
+        records = self._query(
+            key=ods_code_field,
+            value=ods_code,
+            IndexName="OsdCodeValueIndex",
+            ProjectionExpression="id, #val",
+            ExpressionAttributeNames={"#val": "value"},
+        )
+        return [record.id for record in records]
