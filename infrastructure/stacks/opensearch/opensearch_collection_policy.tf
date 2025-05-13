@@ -55,7 +55,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
           for name in var.dynamodb_table_names_for_opensearch :
           {
             ResourceType = "index"
-            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${name}"]
+            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${name}${local.workspace_suffix}"]
             Permission = [
               "aoss:CreateIndex",
               "aoss:UpdateIndex",
