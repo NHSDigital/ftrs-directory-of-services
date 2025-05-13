@@ -12,28 +12,28 @@ class OrganisationPayload(BaseModel):
     active: bool = Field(
         ...,
         json_schema_extra={
-            "example": "Test Organisation",
+            "example": "false",
             "description": "If the service is active or not",
         },
     )
     telecom: str | None = Field(
         ...,
         json_schema_extra={
-            "example": "Test Organisation",
+            "example": "0123456789",
             "description": "If the service is active or not",
         },
     )
     type: str = Field(
         ...,
         json_schema_extra={
-            "example": "Test Organisation",
+            "example": "GP Practice",
             "description": "If the service is active or not",
         },
     )
     modified_by: str = Field(
         ...,
         json_schema_extra={
-            "example": "Test Organisation",
+            "example": "ODS_ETL_PIPELINE",
             "description": "If the service is active or not",
         },
     )
