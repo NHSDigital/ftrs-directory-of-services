@@ -34,7 +34,7 @@ def get_org_id(
     settings: AppSettings = Depends(get_app_settings),
 ) -> None:
     logging.info(f"Received request to get organisation with ODS code: {ods_code}")
-    settings.workspace = None
+
     org_repository = get_repository(
         env=settings.env,
         workspace=settings.workspace,
