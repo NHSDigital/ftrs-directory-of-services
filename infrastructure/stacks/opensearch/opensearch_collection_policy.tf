@@ -13,21 +13,6 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
           ResourceType = "dashboard"
         }
       ]
-    },
-    {
-      Description = "VPC access for collection endpoint",
-      Rules = [
-        {
-          ResourceType = "collection",
-          Resource = [
-            "collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"
-          ]
-        }
-      ],
-      AllowFromPublic = false,
-      SourceVPCEs = [
-        aws_opensearchserverless_vpc_endpoint.vpc_endpoint.id
-      ]
     }
   ])
 }

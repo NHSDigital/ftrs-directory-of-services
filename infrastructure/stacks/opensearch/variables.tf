@@ -1,4 +1,3 @@
-
 variable "osis_pipeline_min_units" {
   description = "The min number of units for the OSIS pipeline"
   type        = number
