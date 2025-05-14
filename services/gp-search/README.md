@@ -14,6 +14,7 @@ This service provides FHIR-compliant API endpoints for healthcare system integra
   - [Code Structure](#code-structure)
   - [Testing](#testing)
   - [Linting and Formatting](#linting-and-formatting)
+  - [Pre-commit Hooks](#pre-commit-hooks)
 - [Deployment](#deployment)
 - [Usage](#usage)
   - [Lambda Function Invocation](#lambda-function-invocation)
@@ -138,6 +139,18 @@ make lint-fix
 ```
 
 IDE Integration: Configure your IDE to use ruff for linting and formatting. See [ruff documentation](https://docs.astral.sh/ruff/editors/setup/) for details.
+
+### Pre-commit Hooks
+
+Pre-commit hooks are set up to automatically run linting and formatting checks before each commit.
+
+```shell
+# Pre-commit hooks will run automatically on commit
+git commit
+
+# To manually run pre-commit hooks
+pre-commit run --all-files -c $(git rev-parse --show-toplevel)/scripts/config/pre-commit.yaml
+```
 
 ## Deployment
 
