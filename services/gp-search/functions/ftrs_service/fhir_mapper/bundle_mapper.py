@@ -49,9 +49,9 @@ class BundleMapper:
         bundle_link = [
             {
                 "relation": "self",
-                "url": f"{self.base_url}/Endpoint"
-                f"?organization.identifier=odsOrganisationCode|{ods_code}"
-                f"&_include=Endpoint:organization",
+                "url": f"{self.base_url}/Organization"
+                f"?identifier=odsOrganisationCode|{ods_code}"
+                f"&_revinclude=Endpoint:organization",
             }
         ]
 
