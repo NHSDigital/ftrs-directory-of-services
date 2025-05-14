@@ -40,9 +40,9 @@ resource "aws_iam_role_policy" "osis_pipelines_policy" {
         Resource = flatten([
           for tablename in var.dynamodb_table_names_for_opensearch :
           [
-            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.resource_prefix}-${tablename}${local.workspace_suffix}",
-            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.resource_prefix}-${tablename}${local.workspace_suffix}/export/*",
-            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.resource_prefix}-${tablename}${local.workspace_suffix}/stream/*"
+            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.project}-${var.environment}-database-${tablename}${local.workspace_suffix}",
+            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.project}-${var.environment}-database-${tablename}${local.workspace_suffix}/export/*",
+            "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.project}-${var.environment}-database-${tablename}${local.workspace_suffix}/stream/*"
           ]
         ])
       },
