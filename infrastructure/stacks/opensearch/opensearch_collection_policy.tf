@@ -47,8 +47,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
               "aoss:CreateCollectionItems",
               "aoss:UpdateCollectionItems",
               "aoss:DescribeCollectionItems",
-              "aoss:DeleteCollectionItems",
-              "aoss:BatchGetCollection"
+              "aoss:DeleteCollectionItems"
             ]
           }
         ],
