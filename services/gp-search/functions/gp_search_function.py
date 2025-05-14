@@ -1,13 +1,15 @@
-from aws_lambda_powertools import Logger
+from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from functions.ftrs_service.ftrs_service import FtrsService
 
 logger = Logger()
+tracer = Tracer()
 
 
 # noinspection PyUnusedLocal
 @logger.inject_lambda_context(log_event=True)
+@tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
     ods_code = event["odsCode"]
     logger.append_keys(ods_code=ods_code)

@@ -2,12 +2,13 @@ import json
 from datetime import datetime
 
 import boto3
-from aws_lambda_powertools import Logger
+from aws_lambda_powertools import Logger, Tracer
 from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_core import PydanticUseDefault
 
 logger = Logger()
+tracer = Tracer()
 
 
 class DynamoModel(BaseModel):
@@ -99,6 +100,7 @@ class DynamoRepository:
         self.dynamodb = boto3.resource("dynamodb")
         self.table = self.dynamodb.Table(table_name)
 
+    @tracer.capture_method
     def get_first_record_by_ods_code(self, ods_code: str) -> OrganizationRecord | None:
         response = self.table.query(
             IndexName="ods-code-index",

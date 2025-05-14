@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from aws_lambda_powertools import Tracer
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 
@@ -9,6 +10,8 @@ from functions.ftrs_service.fhir_mapper.organization_mapper import (
 )
 from functions.ftrs_service.repository.dynamo import OrganizationRecord
 
+tracer = Tracer()
+
 
 class BundleMapper:
     def __init__(self, base_url: str) -> None:
@@ -16,6 +19,7 @@ class BundleMapper:
         self.organization_mapper = OrganizationMapper()
         self.endpoint_mapper = EndpointMapper()
 
+    @tracer.capture_method
     def map_to_fhir(
         self, organization_record: OrganizationRecord, ods_code: str
     ) -> Bundle:
