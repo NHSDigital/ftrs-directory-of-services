@@ -46,7 +46,7 @@ jobs:
       - metadata
     uses: ./.github/workflows/infrastructure-cleardown.yaml
     with:
-      environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
+      environment: ${{ inputs.environment || fromJSON(needs.metadata.outputs.environment) }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       domain: ${{ needs.metadata.outputs.reponame }}
       stacks: ${{ fromJSON(inputs.stack != '' && format('["{0}"]', inputs.stack)) || '["database", "data_migration", "crud_apis", "read_only_viewer"]' }}
