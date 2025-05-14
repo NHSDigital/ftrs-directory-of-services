@@ -4,9 +4,9 @@ info:
   description: "## Overview\n
     Use this API to access healthcare services details profiled in the Find the Right Service Directory. This API provides read-only access to the data held in the directory.\n\n
     You can:\n\n
-    - Obtain Endpoint information for an Organization given an ODS Code\n\n
+    - Obtain Organization information for an Endpoint given an ODS Code\n\n
     In the future you will be able to:\n\n
-    - Obtain Organization information given a service Identifier\n\n
+    - Obtain Endpoint information given a service Identifier\n\n
     ## Who can use this API\nThis API can only be used where you have a valid use case to do so. Please [contact us](https://digital.nhs.uk/developer/help-and-support) before\nyou go too far with your development.\n\nYou must do this before you can go live (see 'Onboarding' below).\n\n
     ## Existing API Users\n\n
     TBC\n\n
@@ -53,12 +53,12 @@ servers:
   - description: Production environment
     url: TBC
 paths:
-  /Endpoint:
+  /Organization:
     get:
-      summary: Search for endpoints of a given organization identified by ODS Code
+      summary: Search for organizations of a given endpoint identified by ODS Code
       description: |
         ## Overview
-        Retrieve a list of Endpoints of a given organization identified by the ODS code of the organization.
+        Retrieve a list of Organizations for a given endpoint identified by the ODS code.
 
         ## Request Requirements
         A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
@@ -69,27 +69,27 @@ paths:
 
         | Scenario                    | Request                    | Response                                                      |
         | --------------------------- | -------------------------- | ------------------------------------------------------------- |
-        | Valid ODS code        | odsCode=TBC   | HTTP Status 200 with EndpointResponse                    |
+        | Valid ODS code        | odsCode=TBC   | HTTP Status 200 with OrganizationResponse                    |
         | Invalid ODS code      | odsCode=TBC      | HTTP Status 422 with INVALID_ODS_CODE message           |
         | Missing ODS code      | No odsCode parameter | HTTP Status 422 with MISSING_ODS_CODE message           |
-      operationId: searchEndpoints
+      operationId: searchOrganizations
       parameters:
-        - name: organization.identifier
+        - name: endpoint.identifier
           in: query
-          description: ODS organization code in the format "odsOrganisationCode|{CODE}"
+          description: ODS endpoint code in the format "odsEndpointCode|{CODE}"
           required: true
           schema:
             type: string
-            pattern: '^odsOrganisationCode\|[A-Z0-9]{1,12}$'
-            example: "odsOrganisationCode|ABC123"
+            pattern: '^odsEndpointCode\|[A-Z0-9]{1,12}$'
+            example: "odsEndpointCode|ABC123"
         - name: _include
           in: query
           description: Resources to include in the Bundle response
           required: true
           schema:
             type: string
-            enum: ["Endpoint:organization"]
-            default: "Endpoint:organization"
+            enum: ["Organization:endpoint"]
+            default: "Organization:endpoint"
       responses:
         '200':
           description: Successful response
@@ -103,30 +103,8 @@ paths:
                 type: "searchset"
                 link:
                   - relation: "self"
-                    url: "https://example.org/Endpoint?organization.identifier=odsOrganisationCode%7CABC123&_include=Endpoint:organization"
+                    url: "https://example.org/Organization?endpoint.identifier=odsEndpointCode%7CABC123&_include=Organization:endpoint"
                 entry:
-                  - fullUrl: "https://example.org/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
-                    resource:
-                      resourceType: "Endpoint"
-                      id: "1b62110d-4db5-4230-bf37-cbe948aecf76"
-                      status: "active"
-                      connectionType:
-                        system: "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
-                        code: "hl7-fhir-rest"
-                      managingOrganization:
-                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
-                      payloadType:
-                        - coding:
-                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-                              code: "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType: ["application/fhir+json"]
-                      address: "https://nhs.provided.service.uk/endpoint"
-                      header:
-                        - "header_order 1"
-                        - "header_is_compression_enabled false"
-                        - "header_business_scenario Primary"
-                    search:
-                      mode: "match"
                   - fullUrl: "https://example.org/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                     resource:
                       resourceType: "Organization"
@@ -146,6 +124,28 @@ paths:
                           city: "Example City"
                           postalCode: "AB12 3CD"
                           country: "ENGLAND"
+                      endpoint:
+                        - reference: "Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                    search:
+                      mode: "match"
+                  - fullUrl: "https://example.org/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "1b62110d-4db5-4230-bf37-cbe948aecf76"
+                      status: "active"
+                      connectionType:
+                        system: "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+                        code: "hl7-fhir-rest"
+                      payloadType:
+                        - coding:
+                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                              code: "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType: ["application/fhir+json"]
+                      address: "https://nhs.provided.service.uk/endpoint"
+                      header:
+                        - "header_order 1"
+                        - "header_is_compression_enabled false"
+                        - "header_business_scenario Primary"
                     search:
                       mode: "include"
         '400':
@@ -159,7 +159,7 @@ paths:
                 issue:
                   - severity: "error"
                     code: "invalid"
-                    diagnostics: "Invalid format for organization.identifier parameter"
+                    diagnostics: "Invalid format for endpoint.identifier parameter"
                     details:
                       coding:
                         - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
@@ -241,14 +241,74 @@ components:
                 format: uri
               resource:
                 oneOf:
-                  - $ref: '#/components/schemas/Endpoint'
                   - $ref: '#/components/schemas/Organization'
+                  - $ref: '#/components/schemas/Endpoint'
               search:
                 type: object
                 properties:
                   mode:
                     type: string
                     enum: ["match", "include"]
+
+    Organization:
+      type: object
+      required:
+        - resourceType
+        - identifier
+        - active
+        - name
+      properties:
+        resourceType:
+          type: string
+          enum: ["Organization"]
+        id:
+          type: string
+          format: uuid
+        identifier:
+          type: array
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+              value:
+                type: string
+        active:
+          type: boolean
+        name:
+          type: string
+        telecom:
+          type: array
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+                enum: ["phone", "fax", "email", "pager", "url", "sms", "other"]
+              value:
+                type: string
+        address:
+          type: array
+          items:
+            type: object
+            properties:
+              line:
+                type: array
+                items:
+                  type: string
+              city:
+                type: string
+              postalCode:
+                type: string
+              country:
+                type: string
+        endpoint:
+          type: array
+          items:
+            type: object
+            properties:
+              reference:
+                type: string
 
     Endpoint:
       type: object
@@ -309,64 +369,6 @@ components:
           type: array
           items:
             type: string
-        managingOrganization:
-          type: object
-          properties:
-            reference:
-              type: string
-
-    Organization:
-      type: object
-      required:
-        - resourceType
-        - identifier
-        - active
-        - name
-      properties:
-        resourceType:
-          type: string
-          enum: ["Organization"]
-        id:
-          type: string
-          format: uuid
-        identifier:
-          type: array
-          items:
-            type: object
-            properties:
-              system:
-                type: string
-              value:
-                type: string
-        active:
-          type: boolean
-        name:
-          type: string
-        telecom:
-          type: array
-          items:
-            type: object
-            properties:
-              system:
-                type: string
-                enum: ["phone", "fax", "email", "pager", "url", "sms", "other"]
-              value:
-                type: string
-        address:
-          type: array
-          items:
-            type: object
-            properties:
-              line:
-                type: array
-                items:
-                  type: string
-              city:
-                type: string
-              postalCode:
-                type: string
-              country:
-                type: string
 
     OperationOutcome:
       type: object
