@@ -69,7 +69,9 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
       ),
       Principal = [
         data.aws_caller_identity.current.arn,
-        aws_iam_role.osis_pipelines_role.arn
+        aws_iam_role.osis_pipelines_role.arn,
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-Developer_8bdf3f98a2591a2b",
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-PowerUser_735fb053a5c7dd27"
       ]
     }
   ])
