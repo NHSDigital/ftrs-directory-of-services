@@ -1,7 +1,8 @@
 module "s3" {
-  source      = "../../modules/s3"
-  bucket_name = "${local.resource_prefix}-${var.ddb_export_bucket_name}"
-  versioning  = var.s3_versioning
+  source        = "../../modules/s3"
+  bucket_name   = "${local.resource_prefix}-${var.ddb_export_bucket_name}"
+  versioning    = var.s3_versioning
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_policy" "ddb_export_policy" {
@@ -27,9 +28,10 @@ resource "aws_s3_bucket_policy" "ddb_export_policy" {
 }
 
 module "s3_opensearch_pipeline_dlq_bucket" {
-  source      = "../../modules/s3"
-  bucket_name = "${local.resource_prefix}-${var.opensearch_pipieline_s3_dlq_bucket_name}"
-  versioning  = var.s3_versioning
+  source        = "../../modules/s3"
+  bucket_name   = "${local.resource_prefix}-${var.opensearch_pipieline_s3_dlq_bucket_name}"
+  versioning    = var.s3_versioning
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_policy" "s3_opensearch_pipeline_dlq_bucket_policy" {
