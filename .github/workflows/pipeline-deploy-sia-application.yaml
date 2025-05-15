@@ -36,7 +36,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['etl_ods']"
+      stacks: "['etl_ods','load_data']"
     secrets: inherit
 
   build-python-package:
@@ -87,7 +87,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['etl_ods']"
+      stacks: "['etl_ods','load_data']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
@@ -118,7 +118,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['etl_ods']"
+      stacks: "['etl_ods','load_data']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
