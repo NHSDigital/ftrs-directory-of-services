@@ -76,12 +76,12 @@ paths:
       parameters:
         - name: endpoint.identifier
           in: query
-          description: ODS endpoint code in the format "odsEndpointCode|{CODE}"
+          description: ODS endpoint code in the format "odsOrganizationCode|{CODE}"
           required: true
           schema:
             type: string
-            pattern: '^odsEndpointCode\|[A-Z0-9]{1,12}$'
-            example: "odsEndpointCode|ABC123"
+            pattern: '^odsOrganizationCode\|[A-Z0-9]{1,12}$'
+            example: "odsOrganizationCode|ABC123"
         - name: _include
           in: query
           description: Resources to include in the Bundle response
