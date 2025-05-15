@@ -29,10 +29,6 @@ on:
         description: "Specify the workspace to cleardown"
         required: true
         type: string
-      stack:
-        description: "Optional: Specify a stack name to cleardown only that stack. Leave blank to cleardown all stacks"
-        required: false
-        type: string
 
 jobs:
   metadata:
@@ -49,7 +45,7 @@ jobs:
       environment: ${{ inputs.environment || fromJSON(needs.metadata.outputs.environment) }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      stacks: ${{ inputs.stack != '' && fromJSON(format('["{0}"]', inputs.stack)) || '["database","data_migration","crud_apis","read_only_viewer"]' }}
+      stacks: "['database', 'data_migration', 'crud_apis', 'read_only_viewer']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30
