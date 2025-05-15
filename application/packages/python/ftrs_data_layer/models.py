@@ -59,7 +59,7 @@ class Organisation(DBModel):
         Return the indexes for the Organisation model.
         """
         return {
-            "odscode": self.identifier_ODS_ODSCode,
+            "identifier_ODS_ODSCode": self.identifier_ODS_ODSCode,
         }
 
     @classmethod

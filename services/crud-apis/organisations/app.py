@@ -1,10 +1,11 @@
 import logging
 from datetime import UTC, datetime
+from typing import Iterable
 from uuid import UUID
 
 from fastapi import Body, Depends, FastAPI, HTTPException, Path
 from fastapi.responses import JSONResponse
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.models import Endpoint, Organisation
 from ftrs_data_layer.repository.dynamodb import (
     DocumentLevelRepository,
 )
@@ -74,7 +75,7 @@ def update_organisation(
         return JSONResponse(status_code=200, content={"message": "No changes detected"})
 
     apply_updates(existing_organisation, outdated_fields)
-    org_repository.update(id, existing_organisation)
+    org_repository.update(organisation_id, existing_organisation)
     logging.info(f"Successfully updated organisation {organisation_id}")
 
     return JSONResponse(
@@ -177,4 +178,21 @@ def apply_updates(
             setattr(existing_organisation, "modifiedBy", value)
         else:
             setattr(existing_organisation, field, value)
+
+    # Adjust fields returned from dynamodb to match organisation model types
+    if isinstance(existing_organisation.id, str):
+        existing_organisation.id = UUID(existing_organisation.id)
+    if isinstance(existing_organisation.createdDateTime, str):
+        existing_organisation.createdDateTime = datetime.fromisoformat(
+            existing_organisation.createdDateTime.replace("Z", "+00:00")
+        )
+
+    if isinstance(existing_organisation.endpoints, Iterable):
+        existing_organisation.endpoints = [
+            Endpoint.model_validate(endpoint)
+            if not isinstance(endpoint, Endpoint)
+            else endpoint
+            for endpoint in existing_organisation.endpoints
+        ]
+
     existing_organisation.modifiedDateTime = datetime.now(UTC)

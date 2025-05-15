@@ -59,7 +59,7 @@ def test_organisation() -> None:
     }
 
     assert org.indexes == {
-        "odscode": "123456",
+        "identifier_ODS_ODSCode": "123456",
     }
 
 
@@ -125,7 +125,7 @@ def test_organisation_from_dos(mocker: MockerFixture) -> None:
     }
 
     assert org.indexes == {
-        "odscode": "12345",
+        "identifier_ODS_ODSCode": "12345",
     }
 
 
