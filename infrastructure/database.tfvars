@@ -7,6 +7,7 @@ dynamodb_tables = {
       { name = "id", type = "S" },
       { name = "field", type = "S" }
     ]
+    global_secondary_indexes = []
   }
   "organisation" = {
     hash_key  = "id"
@@ -31,6 +32,7 @@ dynamodb_tables = {
       { name = "id", type = "S" },
       { name = "field", type = "S" }
     ]
+    global_secondary_indexes = []
   }
 }
 
