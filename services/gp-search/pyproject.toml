@@ -58,3 +58,6 @@ pythonpath = "functions"
 python_files = "test_*.py"
 testpaths = "tests"
 addopts = "-v"
+filterwarnings = [
+    "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
+]
