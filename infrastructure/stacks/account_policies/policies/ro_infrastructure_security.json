@@ -1,0 +1,70 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudTrailReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:Describe*",
+        "cloudtrail:Get*",
+        "cloudtrail:List*",
+        "cloudtrail:LookupEvents"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SecurityHubReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "securityhub:BatchGet*",
+        "securityhub:Describe*",
+        "securityhub:Get*",
+        "securityhub:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Inspector2AndCodeGuruSecurityReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "inspector2:BatchGet*",
+        "inspector2:Describe*",
+        "inspector2:Get*",
+        "inspector2:List*",
+        "inspector2:Search*",
+        "codeguru-security:BatchGetFindings",
+        "codeguru-security:GetAccountConfiguration"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "GuardDutyReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "guardduty:Describe*",
+        "guardduty:Get*",
+        "guardduty:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "FirewallManagerReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "fms:Get*",
+        "fms:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "KMSKeyReadOnly",
+      "Effect": "Allow",
+      "Action": [
+        "kms:ListAliases",
+        "kms:ListKeys",
+        "kms:DescribeKey"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Route53FullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "route53:*",
+                "route53domains:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ACMFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "acm:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "CloudFrontFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "cloudfront:*",
+                "cloudfront-keyvaluestore:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

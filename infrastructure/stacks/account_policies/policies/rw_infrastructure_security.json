@@ -1,0 +1,108 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "CloudTrailFullAccess",
+            "Effect": "Allow",
+            "Action": "cloudtrail:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "SecurityHubFullAccess",
+            "Effect": "Allow",
+            "Action": "securityhub:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "Inspector2AndCodeGuruSecurityFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "inspector2:*",
+                "codeguru-security:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "GuardDutyFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "guardduty:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "FirewallFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "fms:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "KMSManagementFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "kms:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "SecurityHubServiceLinkedRole",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringLike": {
+                    "iam:AWSServiceName": "securityhub.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Sid": "CreateServiceLinkedRoleGuardDuty",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringLike": {
+                    "iam:AWSServiceName": [
+                        "guardduty.amazonaws.com",
+                        "malware-protection.guardduty.amazonaws.com"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "AllowAccessToCreateInspectorSlr",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "agentless.inspector2.amazonaws.com",
+                        "inspector2.amazonaws.com"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "CreateSLRForACM",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/acm.amazonaws.com/AWSServiceRoleForCertificateManager*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "acm.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Sid": "ManageSLRForACM",
+            "Effect": "Allow",
+            "Action": [
+                "iam:DeleteServiceLinkedRole"
+            ],
+            "Resource": "arn:aws:iam::*:role/aws-service-role/acm.amazonaws.com/AWSServiceRoleForCertificateManager*"
+        }
+    ]
+}
