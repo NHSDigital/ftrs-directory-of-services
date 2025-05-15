@@ -28,18 +28,10 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
             "body": fhir_resource_json,
         }
 
-    elif fhir_resource_type == "OperationOutcome":
+    else:  # fhir_resource_type must be OperationOutcome
         logger.error("Error occurred while processing")
         return {
             "statusCode": 500,
             "headers": {"Content-Type": "application/fhir+json"},
             "body": fhir_resource_json,
-        }
-
-    else:
-        logger.error(f"Unknown resource type: {fhir_resource_type}")
-        return {
-            "statusCode": 500,
-            "headers": {"Content-Type": "application/fhir+json"},
-            "body": None,
         }
