@@ -271,24 +271,22 @@ def create_test_bundle(
         if identifier.system == "https://fhir.nhs.uk/Id/ods-organization-code"
     ][0]
 
-    # Create entries for endpoints
+    # Create entry for organization first
     entries = [
-        {
-            "fullUrl": f"{base_url}/Endpoint/{endpoint.id}",
-            "resource": endpoint,
-            "search": {"mode": "match"},
-        }
-        for endpoint in endpoint_resources
-    ]
-
-    # Create entry for organization
-    entries.append(
         {
             "fullUrl": f"{base_url}/Organization/{org_resource.id}",
             "resource": org_resource,
             "search": {"mode": "include"},
         }
-    )
+    ]
+
+    # Create entries for endpoints
+    for endpoint in endpoint_resources:
+        entries.append({
+            "fullUrl": f"{base_url}/Endpoint/{endpoint.id}",
+            "resource": endpoint,
+            "search": {"mode": "match"},
+        })
 
     # Create bundle
     bundle = Bundle.model_validate(
