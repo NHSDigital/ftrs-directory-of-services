@@ -84,4 +84,4 @@ def process_organisation(ods_code: str) -> None:
         return json.dumps(request)
 
     except Exception as e:
-        logger.info(f"Error processing organisation with link {ods_code}: {e}")
+        logger.info(f"Error processing organisation with ods_code {ods_code}: {e}")
