@@ -264,24 +264,24 @@ def create_fhir_bundle(create_fhir_organization, create_fhir_endpoint):
             for i in range(endpoints_count)
         ]
 
-        # Create entries
+        # Create entries with organization first
         entries = [
+            {
+                "fullUrl": f"{base_url}/Organization/{org.id}",
+                "resource": org,
+                "search": {"mode": "include"},
+            }
+        ]
+
+        # Add endpoint entries
+        entries.extend([
             {
                 "fullUrl": f"{base_url}/Endpoint/{endpoint.id}",
                 "resource": endpoint,
                 "search": {"mode": "match"},
             }
             for endpoint in endpoints
-        ]
-
-        # Add organization entry
-        entries.append(
-            {
-                "fullUrl": f"{base_url}/Organization/{org.id}",
-                "resource": org,
-                "search": {"mode": "include"},
-            }
-        )
+        ])
 
         # Create bundle
         return Bundle.model_validate(

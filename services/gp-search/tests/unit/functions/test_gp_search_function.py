@@ -34,7 +34,20 @@ def create_test_bundle():
         # Create entries array
         entries = []
 
-        # Add endpoint entries first
+        # Add organization entries first
+        for i in range(organization_count):
+            org = Organization.model_validate(
+                {"id": f"org-{i}", "name": f"Test Organization {i}", "active": True}
+            )
+            entries.append(
+                {
+                    "fullUrl": f"https://example.org/Organization/org-{i}",
+                    "resource": org,
+                    "search": {"mode": "include"},
+                }
+            )
+
+        # Then add endpoint entries
         for i in range(endpoint_count):
             endpoint = Endpoint.model_validate(
                 {
@@ -62,19 +75,6 @@ def create_test_bundle():
                     "fullUrl": f"https://example.org/Endpoint/endpoint-{i}",
                     "resource": endpoint,
                     "search": {"mode": "match"},
-                }
-            )
-
-        # Then add organization entries
-        for i in range(organization_count):
-            org = Organization.model_validate(
-                {"id": f"org-{i}", "name": f"Test Organization {i}", "active": True}
-            )
-            entries.append(
-                {
-                    "fullUrl": f"https://example.org/Organization/org-{i}",
-                    "resource": org,
-                    "search": {"mode": "include"},
                 }
             )
 
@@ -158,7 +158,7 @@ class TestLambdaHandler:
         ods_code = "O123"
         event = {"odsCode": ods_code}
 
-        # Create a test bundle with 2 endpoints and 2 organizations
+        # Create a test bundle with 2 organizations and 2 endpoints
         bundle = create_test_bundle(
             bundle_id="test-bundle-with-entries", endpoint_count=2, organization_count=2
         )
@@ -178,15 +178,15 @@ class TestLambdaHandler:
         assert response_body["id"] == "test-bundle-with-entries"
         assert len(response_body["entry"]) == 4
 
-        # Verify the entries are in the right order - endpoints first, then organizations
-        assert response_body["entry"][0]["resource"]["resourceType"] == "Endpoint"
-        assert response_body["entry"][0]["resource"]["id"] == "endpoint-0"
-        assert response_body["entry"][1]["resource"]["resourceType"] == "Endpoint"
-        assert response_body["entry"][1]["resource"]["id"] == "endpoint-1"
-        assert response_body["entry"][2]["resource"]["resourceType"] == "Organization"
-        assert response_body["entry"][2]["resource"]["id"] == "org-0"
-        assert response_body["entry"][3]["resource"]["resourceType"] == "Organization"
-        assert response_body["entry"][3]["resource"]["id"] == "org-1"
+        # Verify the entries are in the right order - organizations first, then endpoints
+        assert response_body["entry"][0]["resource"]["resourceType"] == "Organization"
+        assert response_body["entry"][0]["resource"]["id"] == "org-0"
+        assert response_body["entry"][1]["resource"]["resourceType"] == "Organization"
+        assert response_body["entry"][1]["resource"]["id"] == "org-1"
+        assert response_body["entry"][2]["resource"]["resourceType"] == "Endpoint"
+        assert response_body["entry"][2]["resource"]["id"] == "endpoint-0"
+        assert response_body["entry"][3]["resource"]["resourceType"] == "Endpoint"
+        assert response_body["entry"][3]["resource"]["id"] == "endpoint-1"
 
     def test_lambda_handler_service_error(
         self, lambda_context, mock_ftrs_service, create_error_outcome

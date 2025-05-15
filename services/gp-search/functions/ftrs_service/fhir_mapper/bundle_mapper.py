@@ -37,7 +37,7 @@ class BundleMapper:
             organization_record
         )
 
-        return endpoint_resources + [organization_resource]
+        return [organization_resource] + endpoint_resources
 
     def _create_bundle(
         self,

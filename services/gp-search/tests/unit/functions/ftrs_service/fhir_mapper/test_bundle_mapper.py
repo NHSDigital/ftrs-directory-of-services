@@ -196,10 +196,10 @@ def test_map_to_fhir_with_multiple_endpoints(bundle_mapper, organization_record)
             mock_endpoint_mapper.assert_called_once_with(organization_record)
             assert isinstance(bundle, Bundle)
             assert bundle.type == "searchset"
-            assert len(bundle.entry) == 3  # 2 endpoints + 1 organization
-            assert bundle.entry[0].resource == endpoint1
-            assert bundle.entry[1].resource == endpoint2
-            assert bundle.entry[2].resource == org_resource
+            assert len(bundle.entry) == 3  # 1 organization + 2 endpoints
+            assert bundle.entry[0].resource == org_resource
+            assert bundle.entry[1].resource == endpoint1
+            assert bundle.entry[2].resource == endpoint2
 
 
 def test_create_entry_for_endpoint(bundle_mapper):
@@ -343,5 +343,5 @@ def test_create_resources(bundle_mapper, organization_record):
             mock_org_mapper.assert_called_once_with(organization_record)
             mock_endpoint_mapper.assert_called_once_with(organization_record)
             assert len(resources) == 2
-            assert endpoint in resources
-            assert org in resources
+            assert resources[0] == org
+            assert resources[1] == endpoint
