@@ -7,5 +7,12 @@ variable "dynamodb_tables" {
       name = string
       type = string
     }))
+    global_secondary_indexes = optional(list(object({
+      name               = string
+      hash_key           = string
+      range_key          = optional(string)
+      projection_type    = string
+      non_key_attributes = optional(list(string))
+    })))
   }))
 }

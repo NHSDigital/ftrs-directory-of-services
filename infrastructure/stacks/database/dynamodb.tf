@@ -7,4 +7,6 @@ module "dynamodb_tables" {
   range_key = each.value.range_key
 
   attributes = each.value.attributes
+
+  global_secondary_indexes = each.value.global_secondary_indexes
 }

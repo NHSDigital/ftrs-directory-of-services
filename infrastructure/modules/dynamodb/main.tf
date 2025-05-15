@@ -12,4 +12,6 @@ module "dynamodb_table" {
   billing_mode        = var.billing_mode
 
   server_side_encryption_enabled = true
+
+  global_secondary_indexes = var.global_secondary_indexes
 }
