@@ -31,7 +31,6 @@ ruff format       # Runs the python code formatter
 
 ### Building the Lambda Package and Dependency Layers
 
-
 Set the environment variables
 
 ```bash
