@@ -58,8 +58,8 @@ jobs:
       - cleardown-infrastructure
     uses: ./.github/workflows/artefacts-cleardown.yaml
     with:
-      environment: ${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace || inputs.workspace }}
+      environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
+      workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
     secrets: inherit
 
