@@ -24,30 +24,25 @@ logging.basicConfig(
 )
 
 
-@app.get("/{ods_code}", summary="Get an organisation by ODS code.")
+@app.get("/ods_code/{ods_code}", summary="Get an organisation by ODS code.")
 def get_org_id(
-    ods_code: str = Path(
-        ...,
-        examples=["example ods code temp"],
-        description="The unique code of an organisation underneath the NHS",
-    ),
+    ods_code: str,
     settings: AppSettings = Depends(get_app_settings),
 ) -> None:
     logging.info(f"Received request to get organisation with ODS code: {ods_code}")
-
     org_repository = get_repository(
         env=settings.env,
         workspace=settings.workspace,
         endpoint_url=settings.endpoint_url,
     )
-    # replace get_by_ods with real method
-    organisation = org_repository.get_by_ods(ods_code)
+    records = org_repository.get_by_ods_code(ods_code)
 
-    if not organisation:
+    if not records:
         logging.info(f"Organisation with ODS code {ods_code} not found.")
         raise HTTPException(status_code=404, detail="Organisation not found")
 
-    logging.info(f"Organisation: {organisation}")
+    logging.info(f"Organisation: {records}")
+    return records
 
 
 @app.put("/{organisation_id}", summary="Update an organisation.")
@@ -75,6 +70,7 @@ def update_organisation(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     outdated_fields = get_outdated_fields(existing_organisation, payload)
+    print(outdated_fields)
     logging.info(
         f"Computed outdated fields: {outdated_fields} for organisation {organisation_id}"
     )
@@ -121,7 +117,13 @@ def get_outdated_fields(
     return {
         field: value
         for field, value in payload.model_dump().items()
-        if getattr(organisation, field, None) != value
+        if (
+            (
+                field == "modified_by"
+                and getattr(organisation, "modifiedBy", None) != value
+            )
+            or (field != "modified_by" and getattr(organisation, field, None) != value)
+        )
     }
 
 
@@ -130,5 +132,8 @@ def apply_updates(
 ) -> Organisation:
     logging.info(f"Applying updates to organisation: {existing_organisation.id}")
     for field, value in outdated_fields.items():
-        setattr(existing_organisation, field, value)
+        if field == "modified_by":
+            setattr(existing_organisation, "modifiedBy", value)
+        else:
+            setattr(existing_organisation, field, value)
     existing_organisation.modifiedDateTime = datetime.now(UTC)

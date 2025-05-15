@@ -31,6 +31,13 @@ ruff format       # Runs the python code formatter
 
 ### Building the Lambda Package and Dependency Layers
 
+
+Set the environment variables
+
+```
+export ORGANISATION_API_URL="http://localhost:8001"
+```
+
 To package the Lambda function package and create the dependency layers, run:
 
 ```bash

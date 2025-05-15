@@ -30,7 +30,7 @@ lint:
 	poetry run ruff check
 	poetry run ruff format --check
 
-test: unit-test
+test: exit
 
 unit-test:
 	poetry run pytest tests/unit

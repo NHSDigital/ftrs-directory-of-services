@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class OrganisationPayload(BaseModel):
     name: str = Field(
-        ...,
+        max_length=100,
         json_schema_extra={
             "example": "Test Organisation",
             "description": "The name of the organisation",
@@ -20,20 +20,21 @@ class OrganisationPayload(BaseModel):
         ...,
         json_schema_extra={
             "example": "0123456789",
-            "description": "If the service is active or not",
+            "description": "The telecom number of the organisation",
         },
     )
     type: str = Field(
         ...,
         json_schema_extra={
             "example": "GP Practice",
-            "description": "If the service is active or not",
+            "description": "The type of the organisation",
         },
     )
     modified_by: str = Field(
-        ...,
+        max_length=100,
+        min_length=1,
         json_schema_extra={
             "example": "ODS_ETL_PIPELINE",
-            "description": "If the service is active or not",
+            "description": "Who modified the record",
         },
     )

@@ -8,7 +8,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 MAX_ODS_TEL_LENGTH = 20
-MAX_HTTP_LENGTH = 255
 
 
 class StatusEnum(str, Enum):
@@ -18,7 +17,6 @@ class StatusEnum(str, Enum):
 
 class ContactTypeEnum(str, Enum):
     tel = "tel"
-    http = "http"
 
 
 class ContactItem(BaseModel):
@@ -31,12 +29,17 @@ class ContactItem(BaseModel):
         ..., description="Value of the contact (e.g., telephone number)."
     )
 
+    @model_validator(mode="before")
+    def strip_whitespace(cls, values: dict) -> dict:
+        if isinstance(values, dict) and "value" in values:
+            values["value"] = values["value"].replace(" ", "")
+            print(values["value"])
+        return values
+
     @model_validator(mode="after")
     def validate_value_length(self) -> Self:
         if self.type == "tel" and len(self.value) > MAX_ODS_TEL_LENGTH:
             raise ValueError("20")
-        elif self.type == "http" and len(self.value) > MAX_HTTP_LENGTH:
-            raise ValueError("255")
         return self
 
 
@@ -76,12 +79,12 @@ class OrganisationValidator(BaseModel):
     """
 
     Name: str = Field(max_length=100, description="The name of the organisation.")
-    Status: StatusEnum = Field(None, description="If the service is active or not.")
+    Status: StatusEnum = Field(..., description="If the service is active or not.")
     Roles: RoleList = Field(
-        None, description="List of roles associated with the organisation."
+        ..., description="List of roles associated with the organisation."
     )
-    Contacts: ContactList | None = Field(
-        None, description="List of contacts methods associated with the organisation."
+    Contacts: list[ContactItem] | None = Field(
+        ..., description="List of contacts methods associated with the organisation."
     )
 
 
