@@ -78,7 +78,7 @@ def update_organisation(
     )
 
 
-@app.get("/organisation/{organisation_id}", summary="Read an organisation")
+@app.get("/{organisation_id}", summary="Read an organisation")
 def read_organisation(
     organisation_id: UUID = Path(
         ...,
@@ -108,7 +108,7 @@ def get_organisation_by_id(
     existing_organisation = org_repository.get(organisation_id)
 
     if not existing_organisation:
-        logging.info(f"Organisation with ID {organisation_id} not found.")
+        logging.error(f"Organisation with ID {organisation_id} not found.")
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     return existing_organisation
