@@ -97,6 +97,12 @@ resource "aws_iam_policy" "management_ro" {
   policy      = jsonencode(local.management_ro_policy)
 }
 
+resource "aws_iam_policy" "infrastructure_security_rw" {
+  name        = "rw_infrastructure_security"
+  description = "Read-write policies for aws infrastructure security services"
+  policy      = jsonencode(local.infrastructure_security_rw_policy)
+}
+
 resource "aws_iam_policy" "infrastructure_security_ro" {
   name        = "ro_infrastructure_security"
   description = "Read-only policies for aws infrastructure security services"
@@ -118,7 +124,7 @@ resource "aws_iam_policy" "infrastructure_management_ro" {
 resource "aws_iam_policy" "infrastructure_resilience_rw" {
   name        = "rw_infrastructure_resilience"
   description = "Read-write policies for aws resilience hub services"
-  policy      = jsonencode(local.infrastructure_management_ro_policy)
+  policy      = jsonencode(local.infrastructure_resilience_rw_policy)
 }
 
 
