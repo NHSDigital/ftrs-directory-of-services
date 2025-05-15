@@ -12,62 +12,55 @@ from functions.ftrs_service.config import (
 
 @pytest.fixture
 def mock_environment():
-    with patch.dict(
-        os.environ,
-        {
-            "DYNAMODB_TABLE_NAME": "test-table",
-            "FHIR_BASE_URL": "https://test-fhir-url.org",
-            "LOG_LEVEL": "DEBUG",
-        },
-        clear=True,
-    ):
-        yield
+    """Mock environment variables for testing."""
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv("DYNAMODB_TABLE_NAME", "test-table")
+        mp.setenv("FHIR_BASE_URL", "https://test-fhir-url.org")
+        mp.setenv("LOG_LEVEL", "DEBUG")
+        yield mp
 
 
-def test_get_env_var_exists():
-    # Arrange
-    with patch.dict(os.environ, {"TEST_VAR": "test-value"}, clear=True):
+class TestConfig:
+    def test_get_env_var_exists(self):
+        # Arrange
+        with patch.dict(os.environ, {"TEST_VAR": "test-value"}, clear=True):
+            # Act
+            result = _get_env_var("TEST_VAR")
+
+            # Assert
+            assert result == "test-value"
+
+    def test_get_env_var_with_default(self):
+        # Arrange
+        with patch.dict(os.environ, {}, clear=True):
+            # Act
+            result = _get_env_var("TEST_VAR", "default-value")
+
+            # Assert
+            assert result == "default-value"
+
+    def test_get_env_var_not_found(self):
+        # Arrange
+        with patch.dict(os.environ, {}, clear=True):
+            # Act & Assert
+            with pytest.raises(EnvironmentVariableNotFoundError) as excinfo:
+                _get_env_var("TEST_VAR")
+
+            assert "TEST_VAR" in str(excinfo.value)
+
+    def test_get_config_all_vars_set(self, mock_environment):
         # Act
-        result = _get_env_var("TEST_VAR")
+        config = get_config()
 
         # Assert
-        assert result == "test-value"
+        assert config["DYNAMODB_TABLE_NAME"] == "test-table"
+        assert config["FHIR_BASE_URL"] == "https://test-fhir-url.org"
 
+    def test_get_config_missing_required(self):
+        # Arrange
+        with patch.dict(os.environ, {}, clear=True):
+            # Act & Assert
+            with pytest.raises(EnvironmentVariableNotFoundError) as excinfo:
+                get_config()
 
-def test_get_env_var_with_default():
-    # Arrange
-    with patch.dict(os.environ, {}, clear=True):
-        # Act
-        result = _get_env_var("TEST_VAR", "default-value")
-
-        # Assert
-        assert result == "default-value"
-
-
-def test_get_env_var_not_found():
-    # Arrange
-    with patch.dict(os.environ, {}, clear=True):
-        # Act & Assert
-        with pytest.raises(EnvironmentVariableNotFoundError) as excinfo:
-            _get_env_var("TEST_VAR")
-
-        assert "TEST_VAR" in str(excinfo.value)
-
-
-def test_get_config_all_vars_set(mock_environment):
-    # Act
-    config = get_config()
-
-    # Assert
-    assert config["DYNAMODB_TABLE_NAME"] == "test-table"
-    assert config["FHIR_BASE_URL"] == "https://test-fhir-url.org"
-
-
-def test_get_config_missing_required():
-    # Arrange
-    with patch.dict(os.environ, {}, clear=True):
-        # Act & Assert
-        with pytest.raises(EnvironmentVariableNotFoundError) as excinfo:
-            get_config()
-
-        assert "DYNAMODB_TABLE_NAME" in str(excinfo.value)
+            assert "DYNAMODB_TABLE_NAME" in str(excinfo.value)
