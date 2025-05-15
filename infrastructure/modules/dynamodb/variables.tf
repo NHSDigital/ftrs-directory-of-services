@@ -64,6 +64,7 @@ variable "point_in_time_recovery_enabled" {
 }
 
 variable "global_secondary_indexes" {
+  description = "List of global secondary indexes for the DynamoDB table."
   type = list(object({
     name               = string
     hash_key           = string
