@@ -6,5 +6,7 @@ module "dynamodb_tables" {
   hash_key  = each.value.hash_key
   range_key = each.value.range_key
 
-  attributes = each.value.attributes
+  attributes                     = each.value.attributes
+  point_in_time_recovery_enabled = true
+  stream_enabled                 = true
 }
