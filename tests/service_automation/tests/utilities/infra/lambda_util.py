@@ -29,7 +29,7 @@ class LambdaWrapper:
         try:
             response = self.lambda_client.invoke(
                 FunctionName=function_name,
-                Payload=json.dumps(function_params).encode("utf-8")
+                Payload=json.dumps(function_params)
             )
             logger.debug("Invoked function {}.", function_name)
             payload = json.loads(response['Payload'].read().decode())
