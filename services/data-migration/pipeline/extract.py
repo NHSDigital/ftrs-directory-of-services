@@ -159,6 +159,10 @@ def format_bank_holidays(bank_holiday_df: pd.DataFrame) -> dict:
 def format_available_time_variations(
     service_specified_opening_times: pd.DataFrame,
 ) -> dict:
+    service_specified_opening_times = service_specified_opening_times[
+        ~service_specified_opening_times["isclosed"]
+    ]
+
     service_specified_opening_times["start"] = pd.to_datetime(
         service_specified_opening_times["date"].astype(str)
         + "T"
@@ -211,12 +215,23 @@ def format_not_available_time(specified_opening_times: pd.DataFrame) -> dict:
         format="%Y-%m-%d",
     )
 
-    closed_times["notAvailable"] = closed_times.groupby("serviceid")[
-        "unavailableDate"
-    ].transform(lambda x: [{"description": "special", "during": item} for item in x])
+    # TODO @marksp: Description doesn't exist in data from live dos, we should decide a default value
+    closed_times["description"] = "From Live"
 
     notAvailable = (
-        closed_times.groupby(["serviceid"])["notAvailable"].apply(list).reset_index()
+        closed_times.groupby(["serviceid"])[["unavailableDate", "description"]]
+        .apply(
+            lambda x: [
+                {
+                    "unavailableDate": x["unavailableDate"]
+                    .iloc[0]
+                    .strftime("%Y-%m-%dT%H:%M:%S")
+                    .strip(),
+                    "description": x["description"].iloc[0],
+                }
+            ]
+        )
+        .reset_index(name="notAvailable")
     )
 
     return notAvailable

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 mock_gp_practices_A = {
@@ -125,9 +126,9 @@ mock_service_specified_opening_times_df = pd.DataFrame(
     {
         "serviceid": [1, 2, 1, 2],
         "date": ["2024-02-22", "2024-03-12", "2024-05-14", "2024-06-12"],
-        "starttime": ["8:00:00", "8:15:00", "8:30:00", "9:00:00"],
-        "endtime": ["13:00:00", "13:00:00", "13:00:00", "13:00:00"],
-        "isclosed": [False, False, False, False],
+        "starttime": ["8:00:00", "8:15:00", "8:30:00", "0:00:00"],
+        "endtime": ["13:00:00", "13:00:00", "13:00:00", "23:59:59"],
+        "isclosed": [False, False, False, True],
     }
 )
 
@@ -208,7 +209,7 @@ mock_gp_openingTimes_formatted_A = {
                 "availableEndTime": "16:00:00",
             },
         ],
-        "availableTimePublicHolidays": None,
+        "availableTimePublicHolidays": np.nan,
         "availableTimeVariations": [
             {
                 "description": "special",
@@ -225,7 +226,7 @@ mock_gp_openingTimes_formatted_A = {
                 },
             },
         ],
-        "notAvailable": None,
+        "notAvailable": np.nan,
     },
 }
 
@@ -250,15 +251,10 @@ mock_gp_openingTimes_formatted_B = {
                     "end": "2024-03-12T13:00:00",
                 },
             },
-            {
-                "description": "special",
-                "during": {
-                    "start": "2024-06-12T09:00:00",
-                    "end": "2024-06-12T13:00:00",
-                },
-            },
         ],
-        "notAvailable": None,
+        "notAvailable": [
+            {"unavailableDate": "2024-06-12T00:00:00", "description": "From Live"}
+        ],
     },
 }
 
