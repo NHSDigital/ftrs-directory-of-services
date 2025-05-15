@@ -58,6 +58,7 @@ variable "billing_mode" {
 }
 
 variable "global_secondary_indexes" {
+  description = "List of global secondary indexes for the DynamoDB table."
   type = list(object({
     name               = string
     hash_key           = string

@@ -8,5 +8,5 @@ module "dynamodb_tables" {
 
   attributes = each.value.attributes
 
-  global_secondary_indexes = each.value.global_secondary_indexes
+  global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
 }
