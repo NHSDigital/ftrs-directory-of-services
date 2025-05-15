@@ -192,13 +192,13 @@ def test_healthcare_service() -> None:
         openingTime=[
             AvailableTime(
                 id=id1,
-                dayOfWeek=DayOfWeek.monday,
+                dayOfWeek=DayOfWeek.MONDAY,
                 startTime=to_time("09:00:00"),
                 endTime=to_time("17:00:00"),
             ),
             AvailableTime(
                 id=id2,
-                dayOfWeek=DayOfWeek.tuesday,
+                dayOfWeek=DayOfWeek.TUESDAY,
                 startTime=to_time("00:00:00"),
                 endTime=to_time("23:59:59"),
                 allDay=True,
@@ -215,8 +215,7 @@ def test_healthcare_service() -> None:
             NotAvailable(
                 id=id1,
                 description="special",
-                startTime=to_datetime("2025-07-15T00:00:00"),
-                allDay=True,
+                unavailableDate=to_datetime("2025-07-15T00:00:00"),
             ),
         ],
     )
@@ -271,11 +270,10 @@ def test_healthcare_service() -> None:
                 "startTime": "12:30:00",
             },
             {
-                "allDay": True,
                 "category": "notAvailable",
                 "description": "special",
                 "id": str(id1),
-                "startTime": "2025-07-15",
+                "unavailableDate": "2025-07-15",
             },
         ],
     }
@@ -343,11 +341,10 @@ def test_healthcare_service_from_json() -> None:
                     "startTime": "12:30:00",
                 },
                 {
-                    "allDay": True,
                     "category": "notAvailable",
                     "description": "special",
                     "id": str(id1),
-                    "startTime": "2025-07-15",
+                    "unavailableDate": "2025-07-15",
                 },
             ],
         }
@@ -375,13 +372,13 @@ def test_healthcare_service_from_json() -> None:
         openingTime=[
             AvailableTime(
                 id=id1,
-                dayOfWeek=DayOfWeek.monday,
+                dayOfWeek=DayOfWeek.MONDAY,
                 startTime=to_time("09:00:00"),
                 endTime=to_time("17:00:00"),
             ),
             AvailableTime(
                 id=id2,
-                dayOfWeek=DayOfWeek.tuesday,
+                dayOfWeek=DayOfWeek.TUESDAY,
                 startTime=to_time("00:00:00"),
                 endTime=to_time("23:59:59"),
                 allDay=True,
@@ -398,8 +395,7 @@ def test_healthcare_service_from_json() -> None:
             NotAvailable(
                 id=id1,
                 description="special",
-                startTime=to_datetime("2025-07-15T00:00:00"),
-                allDay=True,
+                unavailableDate=to_datetime("2025-07-15T00:00:00"),
             ),
         ],
     )

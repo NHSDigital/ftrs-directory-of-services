@@ -206,33 +206,17 @@ def format_not_available_time(specified_opening_times: pd.DataFrame) -> dict:
         return pd.DataFrame(columns=["serviceid", "notAvailable"])
 
     # Convert the date and time columns to datetime
-    closed_times["start"] = pd.to_datetime(
-        closed_times["date"].astype(str) + "T" + closed_times["starttime"].astype(str),
-        format="%Y-%m-%dT%H:%M:%S",
+    closed_times["unavailableDate"] = pd.to_datetime(
+        closed_times["date"].astype(str),
+        format="%Y-%m-%d",
     )
 
-    closed_times["end"] = pd.to_datetime(
-        closed_times["date"].astype(str) + "T" + closed_times["endtime"].astype(str),
-        format="%Y-%m-%dT%H:%M:%S",
-    )
-
-    notAvailable = (
-        closed_times.groupby(["serviceid", "date", "start"])
-        .apply(
-            lambda x: {
-                "start": x["start"].iloc[0].strftime("%Y-%m-%dT%H:%M:%S").strip(),
-                "end": x["end"].iloc[0].strftime("%Y-%m-%dT%H:%M:%S").strip(),
-            },
-        )
-        .reset_index(name="groupedStartEnd")
-    )
-
-    notAvailable["notAvailable"] = notAvailable.groupby("serviceid")[
-        "groupedStartEnd"
+    closed_times["notAvailable"] = closed_times.groupby("serviceid")[
+        "unavailableDate"
     ].transform(lambda x: [{"description": "special", "during": item} for item in x])
 
     notAvailable = (
-        notAvailable.groupby(["serviceid"])["notAvailable"].apply(list).reset_index()
+        closed_times.groupby(["serviceid"])["notAvailable"].apply(list).reset_index()
     )
 
     return notAvailable
