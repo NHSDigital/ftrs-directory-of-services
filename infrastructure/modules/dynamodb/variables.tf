@@ -62,3 +62,14 @@ variable "point_in_time_recovery_enabled" {
   type        = bool
   default     = false
 }
+
+variable "global_secondary_indexes" {
+  type = list(object({
+    name               = string
+    hash_key           = string
+    range_key          = optional(string)
+    projection_type    = string
+    non_key_attributes = optional(list(string))
+  }))
+  default = []
+}
