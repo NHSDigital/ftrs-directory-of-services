@@ -19,6 +19,11 @@ def event():
 
 
 @pytest.fixture
+def lambda_context():
+    return MagicMock()
+
+
+@pytest.fixture
 def mock_bundle():
     mock_bundle = MagicMock()
     mock_bundle.get_resource_type.return_value = "Bundle"

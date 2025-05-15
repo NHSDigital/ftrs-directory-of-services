@@ -71,10 +71,6 @@ class TestEndpointMapper:
         [
             ("document", True),
             ("", False),
-            (
-                None,
-                False,
-            ),  # This case would actually raise a validation error in real use
         ],
     )
     def test_create_payload_type(
@@ -83,34 +79,32 @@ class TestEndpointMapper:
         create_endpoint_value,
         payload_type,
         expected_result,
-        mocker,
     ):
-        # For None payload_type, we need to mock
-        if payload_type is None:
-            # Create a mock endpoint with None payloadType for testing only
-            mock_endpoint = mocker.MagicMock()
-            mock_endpoint.payloadType = None
-            result = endpoint_mapper._create_payload_type(mock_endpoint)
-            assert result == []
+        # Arrange
+        endpoint_value = create_endpoint_value(payload_type=payload_type)
+
+        # Act
+        result = endpoint_mapper._create_payload_type(endpoint_value)
+
+        # Assert
+        if expected_result:
+            assert len(result) == 1
+            assert isinstance(result[0], CodeableConcept)
+            assert len(result[0].coding) == 1
+            assert (
+                result[0].coding[0].system
+                == "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+            )
+            assert result[0].coding[0].code == payload_type
         else:
-            # Arrange
-            endpoint_value = create_endpoint_value(payload_type=payload_type)
+            assert result == []
 
-            # Act
-            result = endpoint_mapper._create_payload_type(endpoint_value)
-
-            # Assert
-            if expected_result:
-                assert len(result) == 1
-                assert isinstance(result[0], CodeableConcept)
-                assert len(result[0].coding) == 1
-                assert (
-                    result[0].coding[0].system
-                    == "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-                )
-                assert result[0].coding[0].code == payload_type
-            else:
-                assert result == []
+    def test_create_payload_type_with_null(self, endpoint_mapper, mocker):
+        # Create a mock endpoint with None payloadType for testing only
+        mock_endpoint = mocker.MagicMock()
+        mock_endpoint.payloadType = None
+        result = endpoint_mapper._create_payload_type(mock_endpoint)
+        assert result == []
 
     def test_create_endpoint(self, endpoint_mapper, create_endpoint_value):
         # Arrange
