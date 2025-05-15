@@ -115,6 +115,20 @@ class TestBundleMapper:
         # Assert
         assert entry["fullUrl"] == "https://example.org/Endpoint/endpoint-123"
         assert entry["resource"] == endpoint_resource
+        assert entry["search"]["mode"] == "include"
+
+    def test_create_entry_for_organization(
+        self, bundle_mapper, create_fhir_organization
+    ):
+        # Arrange
+        organization_resource = create_fhir_organization()
+
+        # Act
+        entry = bundle_mapper._create_entry(organization_resource)
+
+        # Assert
+        assert entry["fullUrl"] == "https://example.org/Organization/org-123"
+        assert entry["resource"] == organization_resource
         assert entry["search"]["mode"] == "match"
 
     def test_get_search_mode(
@@ -125,12 +139,12 @@ class TestBundleMapper:
         org_resource = create_fhir_organization()
 
         # Act & Assert
-        # Check that Endpoints get 'match' mode
-        search_mode = bundle_mapper._get_search_mode(endpoint_resource)
+        # Check that Organizations get 'match' mode
+        search_mode = bundle_mapper._get_search_mode(org_resource)
         assert search_mode == "match"
 
         # Check that other resources get 'include' mode
-        search_mode = bundle_mapper._get_search_mode(org_resource)
+        search_mode = bundle_mapper._get_search_mode(endpoint_resource)
         assert search_mode == "include"
 
     def test_map_to_fhir_with_no_organization_record(self, bundle_mapper):

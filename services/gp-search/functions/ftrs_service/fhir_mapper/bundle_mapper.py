@@ -80,7 +80,7 @@ class BundleMapper:
         }
 
     def _get_search_mode(self, resource: FHIRResourceModel) -> str:
-        if resource.get_resource_type() == "Endpoint":
+        if resource.get_resource_type() == "Organization":
             return "match"
         else:
             return "include"
