@@ -58,7 +58,7 @@ def update_organisation(
         endpoint_url=settings.endpoint_url,
     )
 
-    existing_organisation = get_organisation_by_id(org_repository, organisation_id)
+    existing_organisation = read_organisation(organisation_id, settings)
 
     outdated_fields = get_outdated_fields(existing_organisation, payload)
     logging.info(
@@ -86,7 +86,7 @@ def read_organisation(
         description="The internal id of the organisation",
     ),
     settings: AppSettings = Depends(get_app_settings),
-) -> Organisation | None:
+) -> Organisation:
     logging.info(f"Received request to read organisation with ID: {organisation_id}")
 
     org_repository = get_repository(
@@ -94,17 +94,7 @@ def read_organisation(
         workspace=settings.workspace,
         endpoint_url=settings.endpoint_url,
     )
-    return get_organisation_by_id(org_repository, organisation_id)
 
-
-def get_organisation_by_id(
-    org_repository: DocumentLevelRepository,
-    organisation_id: UUID = Path(
-        ...,
-        examples=["00000000-0000-0000-0000-11111111111"],
-        description="The internal id of the organisation",
-    ),
-) -> Organisation | None:
     existing_organisation = org_repository.get(organisation_id)
 
     if not existing_organisation:
