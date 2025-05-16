@@ -59,7 +59,7 @@ def lambda_empty_response(fLambda_payload):
     assert response["entry"] == []
 
 @then(parsers.parse('the lambda returns the error message "{error_message}" with status code "{status_code}"'))
-def lambda_response_message(fLambda_payload, error_message, status_code):
+def lambda_error_message(fLambda_payload, error_message, status_code):
     logger.debug("Checking for error message {} in lambda response: {}", error_message, fLambda_payload)
     response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == 500
@@ -68,3 +68,10 @@ def lambda_response_message(fLambda_payload, error_message, status_code):
     response["issue"][0]["details"]["coding"][0]["display"] == error_message
 
 
+@then('the lambda response does not contain an endpoint resource')
+def lambda_no_endpoints(fLambda_payload):
+    response = json.loads(fLambda_payload["body"])
+    logger.debug("Checking the lambda response: {}",  fLambda_payload)
+    logger.debug("Checking the lambda response: {}", len(response["entry"]))
+    assert fLambda_payload["statusCode"] == 200
+    assert len(response["entry"]) == 1

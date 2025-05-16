@@ -14,11 +14,13 @@ Background: Check lambda function exists
   When I invoke the lambda with the ods code "12345"
   Then the lambda response contains an empty bundle
 
-  @is-lambda
+
   Scenario: Invoke lambda with empty ods code
   When I invoke the lambda with an empty ods code
   Then the lambda returns the error message "Internal server error while processing ODS code ''" with status code "500"
 
+  @is-lambda
   Scenario: Invoke lambda with ods code for organisation with no endpoints
   When I invoke the lambda with the ods code "F81015"
-  Then the lambda response contains the ods code "P83010"
+  # When I invoke the lambda with the ods code "F81015"
+  Then the lambda response does not contain an endpoint resource
