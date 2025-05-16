@@ -100,6 +100,6 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
 }
 
 resource "aws_lambda_function_url" "organisation_api_lambda_url" {
-  function_name      = module.organisation_api_lambda.function_name
+  function_name      = "${local.resource_prefix}-${var.organisation_api_lambda_name}"
   authorization_type = "AWS_IAM"
 }
