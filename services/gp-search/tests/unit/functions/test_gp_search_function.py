@@ -48,8 +48,8 @@ class TestLambdaHandler:
     @pytest.mark.parametrize(
         ("mock_fhir_resource", "expected_status_code"),
         [
-            (lf("mock_bundle"), 200),
-            (lf("mock_operation_outcome"), 500),
+            (lf("mock_bundle"), 999),
+            (lf("mock_operation_outcome"), 999),
         ],
     )
     def test_lambda_handler(
