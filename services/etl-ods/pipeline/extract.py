@@ -4,6 +4,8 @@ from urllib.parse import urlparse
 
 import requests
 
+from pipeline.validators import ContactItem
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -100,7 +102,7 @@ def extract_organisation_data(payload: dict) -> dict:
             "Name": payload.get("Name"),
             "Status": payload.get("Status"),
             "Roles": payload.get("Roles"),
-            "Contacts": extract_telecom(payload),
+            "Contacts": extract_contact(payload),
         }
     except AttributeError as e:
         logger.info(f"Organisation payload extraction failed: {e}")
@@ -131,18 +133,12 @@ def extract_contact(payload: dict) -> dict | None:
         raise
 
 
-def extract_telecom(payload: dict) -> str | None:
+def extract_telecom(contacts: list[ContactItem]) -> str | None:
     try:
-        contacts = payload.Contacts
-        if not contacts:
-            return None
         for contact in contacts:
-            if isinstance(contact, tuple):
-                contact_type, contact_items = contact
-                if contact_type == "Contact" and isinstance(contact_items, list):
-                    for contact_item in contact_items:
-                        if contact_item.type == "tel":
-                            return contact_item.value  # tidy up this
+            print(contact)
+            if contact.type == "tel":
+                return contact.value
     except AttributeError as e:
         logger.info(f"Telecom payload extraction failed: {e}")
         raise

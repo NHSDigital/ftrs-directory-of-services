@@ -3,7 +3,6 @@ from pydantic import ValidationError
 
 from pipeline.validators import (
     ContactItem,
-    ContactList,
     ContactTypeEnum,
     OrganisationValidator,
     RoleItem,
@@ -27,18 +26,6 @@ def test_contact_item_strip_whitespace() -> None:
 def test_contact_item_invalid_length() -> None:
     with pytest.raises(ValidationError, match="20"):
         ContactItem(type=ContactTypeEnum.tel, value="1" * 21)
-
-
-def test_contact_list_valid() -> None:
-    contacts = ContactList(
-        Contact=[
-            ContactItem(type=ContactTypeEnum.tel, value="123456789"),
-            ContactItem(type=ContactTypeEnum.tel, value="987654321"),
-        ]
-    )
-    assert str(len(contacts.Contact)) == "2"
-    assert contacts.Contact[0].value == "123456789"
-    assert contacts.Contact[1].value == "987654321"
 
 
 def test_role_item_valid() -> None:
@@ -76,17 +63,15 @@ def test_organisation_validator_valid() -> None:
                 RoleItem(id="456", primaryRole=False),
             ]
         ),
-        Contacts=ContactList(
-            Contact=[
-                ContactItem(type=ContactTypeEnum.tel, value="123456789"),
-                ContactItem(type=ContactTypeEnum.tel, value="987654321"),
-            ]
-        ),
+        Contacts=[
+            ContactItem(type=ContactTypeEnum.tel, value="123456789"),
+            ContactItem(type=ContactTypeEnum.tel, value="987654321"),
+        ],
     )
     assert organisation.Name == "Test Organisation"
     assert organisation.Status == StatusEnum.active
     assert str(len(organisation.Roles.Role)) == "2"
-    assert str(len(organisation.Contacts.Contact)) == "2"
+    assert str(len(organisation.Contacts)) == "2"
 
 
 def test_organisation_validator_valid_no_contacts() -> None:

@@ -110,7 +110,9 @@ def test_extract_organisation_data() -> None:
         "Name": "Test Organisation",
         "Status": "Active",
         "Roles": [{"id": "RO123"}],
-        "Contacts": [{"type": "tel", "value": "123456789"}],
+        "Contacts": {
+            "Contact": [{"type": "tel", "value": "123456789"}],
+        },
         "Other": "Data",
     }
     result = extract_organisation_data(payload)
@@ -133,17 +135,23 @@ def test_extract_display_name() -> None:
     assert result == {"displayName": "Test Role"}
 
 
-def test_extract_contact() -> None:
+def test_extract_contact_with_other_type() -> None:
     payload = {
         "Contacts": {
             "Contact": [
                 {"type": "tel", "value": "123456789"},
-                {"type": "email", "value": "test@example.com"},
+                {"type": "other", "value": "test@example.com"},
             ],
         }
     }
     result = extract_contact(payload)
     assert result == {"type": "tel", "value": "123456789"}
+
+
+def test_extract_contact_with_no_contacts() -> None:
+    payload = {}
+    result = extract_contact(payload)
+    assert result is None
 
 
 def test_extract_ods_code() -> None:

@@ -33,7 +33,7 @@ lint:
 test: unit-test
 
 unit-test:
-	exit
+	poetry run pytest tests/unit
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)
