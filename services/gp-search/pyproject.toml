@@ -6,8 +6,11 @@ authors = [
     {name = "NHS England"}
 ]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fhir-resources (>=8.0.0,<9.0.0)",
+    "pydantic (>=2.11.4,<3.0.0)",
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -15,6 +18,16 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.6"
+aws-lambda-powertools = ">=3.11.0,<3.12.0"
+aws-xray-sdk = ">=2.14.0,<3.0.0"
+boto3 = "^1.38.6"
+boto3-stubs = {extras = ["dynamodb"], version = "^1.38.6"}
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.5"
+pytest-mock = "^3.14.0"
+pytest-cov = "^6.1.1"
+pytest-lazy-fixtures = "^1.1.2"
 
 [tool.poetry.scripts]
 dos-gp-search-function = "functions.gp_search_function:lambda_handler"
@@ -28,7 +41,10 @@ indent-width = 4
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB"]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB", "PT"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -36,3 +52,12 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = true
+
+[tool.pytest.ini_options]
+pythonpath = "functions"
+python_files = "test_*.py"
+testpaths = "tests"
+addopts = "-v"
+filterwarnings = [
+    "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
+]
