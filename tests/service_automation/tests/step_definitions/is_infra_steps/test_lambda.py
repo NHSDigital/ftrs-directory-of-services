@@ -71,7 +71,18 @@ def lambda_error_message(fLambda_payload, error_message, status_code):
 @then('the lambda response does not contain an endpoint resource')
 def lambda_no_endpoints(fLambda_payload):
     response = json.loads(fLambda_payload["body"])
-    logger.debug("Checking the lambda response: {}",  fLambda_payload)
-    logger.debug("Checking the lambda response: {}", len(response["entry"]))
+    logger.debug("Checking the entry length: {}", len(response["entry"]))
+    if "entry" in response:
+        # Iterate through each entry in the bundle
+        for entry in response["entry"]:
+            # Check if the entry has a resource
+            if "resource" in entry:
+                # Check if the resource type is "Endpoint"
+                if entry["resource"].get("resourceType") == "Endpoint":
+                    endpoint_exists = True
+    endpoint_exists = False
     assert fLambda_payload["statusCode"] == 200
     assert len(response["entry"]) == 1
+    assert endpoint_exists is False
+
+

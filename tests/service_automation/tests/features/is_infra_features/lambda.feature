@@ -15,7 +15,7 @@ Background: Check lambda function exists
   Then the lambda response contains an empty bundle
 
 
-  Scenario: Invoke lambda with empty ods code
+  Scenario: Invoke lambda with empty ods code  - change to be empty event
   When I invoke the lambda with an empty ods code
   Then the lambda returns the error message "Internal server error while processing ODS code ''" with status code "500"
 
