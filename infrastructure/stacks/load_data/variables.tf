@@ -1,4 +1,4 @@
-variable "queue_name" {
+variable "name" {
   description = "The name of the queue"
 }
 
