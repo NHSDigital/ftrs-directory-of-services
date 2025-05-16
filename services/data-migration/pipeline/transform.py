@@ -1,8 +1,9 @@
-import logging
 from datetime import UTC, datetime
 from typing import Annotated
 
 import pandas as pd
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import ETLPipelineLogBase
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from typer import Option
 
@@ -11,6 +12,8 @@ from pipeline.utils.file_io import (
     write_parquet_file,
 )
 from pipeline.utils.validators import validate_path
+
+transform_logger = Logger.get(service="transform")
 
 
 def transform_gp_practices(
@@ -73,7 +76,11 @@ def transform(
     input_type, input_path = validate_path(input, should_file_exist=True)
     output_type, output_path = validate_path(output, should_file_exist=False)
 
-    logging.info(f"Transforming data from {input_path} to {output_path}")
+    transform_logger.log(
+        ETLPipelineLogBase.ETL_TRANSFORM_001,
+        input_path=input_path,
+        output_path=output_path,
+    )
 
     extract_df = read_parquet_file(input_type, input_path)
     current_timestamp = datetime.now(UTC)
@@ -81,7 +88,7 @@ def transform(
 
     write_parquet_file(output_type, output_path, gp_practices_df)
 
-    logging.info("Transform completed successfully.")
+    transform_logger.log(ETLPipelineLogBase.ETL_TRANSFORM_002)
 
 
 def lambda_handler(event: dict, context: any) -> None:
