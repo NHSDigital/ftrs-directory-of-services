@@ -31,8 +31,9 @@ module "extract_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"          = var.environment
+    "PROJECT_NAME"         = var.project
+    "ORGANISATION_API_URL" = aws_lambda_function_url.organisation_api_lambda_url.url
   }
 }
 
