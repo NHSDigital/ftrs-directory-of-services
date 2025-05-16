@@ -7,6 +7,7 @@ from pipeline.load import load
 from pipeline.reset import reset
 from pipeline.transform import transform
 
+# TODO: FDOS-197 ?
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",

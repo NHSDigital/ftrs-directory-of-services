@@ -1,9 +1,9 @@
-import json
-import logging
 from typing import Annotated
 
 import numpy as np
 import pandas as pd
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import ETLPipelineLogBase
 from typer import Option
 
 from pipeline.utils.db_config import DatabaseConfig
@@ -25,6 +25,8 @@ from pipeline.utils.opening_times import (
 )
 from pipeline.utils.secret_utils import get_secret
 from pipeline.utils.validators import validate_path
+
+extract_logger = Logger.get(service="extract")
 
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
@@ -86,8 +88,14 @@ def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) 
         gp_practice_extract_column, services_columns, serviceendpoints_columns
     )
 
-    logging.info(f"Percentage of service profiles: {service_profiles_percentage}%")
-    logging.info(f"Percentage of all data fields: {data_fields_percentage}%")
+    extract_logger.log(
+        ETLPipelineLogBase.ETL_EXTRACT_002,
+        service_profiles_percentage=service_profiles_percentage,
+    )
+    extract_logger.log(
+        ETLPipelineLogBase.ETL_EXTRACT_003,
+        data_fields_percentage=data_fields_percentage,
+    )
 
 
 def merge_gp_practice_with_endpoints(
@@ -147,11 +155,11 @@ def extract(
     """
     path_type, output_path = validate_path(output, should_file_exist=False)
 
-    logging.info(f"Extracting data to {output_path}")
+    extract_logger.log(ETLPipelineLogBase.ETL_EXTRACT_001, output_path=output_path)
     extract_gp_practice_df = extract_gp_practices(db_uri)
 
     write_parquet_file(path_type, output_path, extract_gp_practice_df)
-    logging.info("Data extraction completed successfully.")
+    extract_logger.log(ETLPipelineLogBase.ETL_EXTRACT_004)
 
 
 def lambda_handler(event: dict, context: object) -> dict[str, any] | None:
@@ -163,8 +171,6 @@ def lambda_handler(event: dict, context: object) -> dict[str, any] | None:
     Returns:
     - dict: Response object with status code and body.
     """
-    print("Received event:", json.dumps(event))
-
     db_credentials = get_secret(
         DatabaseConfig.source_db_credentials(), transform="json"
     )

@@ -1,9 +1,10 @@
-import logging
 import os
 from enum import Enum
 from typing import Annotated
 
 import pandas as pd
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import ETLPipelineLogBase
 from ftrs_data_layer.models import DBModel, HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from typer import Option
@@ -11,6 +12,8 @@ from typer import Option
 from pipeline.constants import TargetEnvironment
 from pipeline.utils.file_io import read_parquet_file
 from pipeline.utils.validators import validate_path
+
+load_logger = Logger.get(service="load")
 
 
 class TABLE(Enum):
@@ -56,8 +59,13 @@ def save_to_table(
     )
 
     model = get_model(table)
-
-    logging.info(f"Loading {len(input_df)} {table.value}s into {table.value}")
+    len_input_df = len(input_df)
+    table_value = table.value
+    load_logger.log(
+        ETLPipelineLogBase.ETL_LOAD_001,
+        len_input_df=len_input_df,
+        table_value=table_value,
+    )
     count = 0
     for row in input_df.to_dict(orient="records"):
         if table.value in row:
@@ -65,7 +73,9 @@ def save_to_table(
             repository.create(item)
             count += 1
 
-    logging.info(f"Loaded {count} {table.value}s into the database.")
+    load_logger.log(
+        ETLPipelineLogBase.ETL_LOAD_002, count=count, table_value=table_value
+    )
 
 
 def load(
@@ -92,8 +102,12 @@ def load(
             endpoint_url=endpoint_url,
         )
 
-    logging.info(
-        f"Data loaded successfully into {env.value} environment (workspace: {workspace or 'default'})"
+    env_value = env.value
+    workspace_value = workspace or "default"
+    load_logger.log(
+        ETLPipelineLogBase.ETL_LOAD_003,
+        env_value=env_value,
+        workspace_value=workspace_value,
     )
 
 

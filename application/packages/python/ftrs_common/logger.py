@@ -15,6 +15,8 @@ class LogReference:
     message: str
     level: int = logging.NOTSET
 
+    def format(self, **kwargs: dict) -> str:
+        return self.message.format(**kwargs)
 
 class LogBase(Enum):
     """
@@ -35,7 +37,8 @@ class Logger(PowertoolsLogger):
         """
         log_key = log_reference.name
         log_details = log_reference.value
-        log_dict = {"msg": log_details.message, "reference": log_key, "stacklevel": 3}
+        formatted_message = log_details.format(**detail)
+        log_dict = {"msg": formatted_message, "reference": log_key, "stacklevel": 3}
         if detail:
             log_dict["detail"] = detail
 
