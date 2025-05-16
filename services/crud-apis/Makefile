@@ -33,7 +33,7 @@ lint:
 test: unit-test
 
 unit-test:
-	exit
+	poetry run pytest organisations/tests/unit
 
 start-api:
 	poetry run start-organisations-api

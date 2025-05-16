@@ -6,7 +6,11 @@ def transfrom_into_payload(organisation_data: dict, primary_role_data: dict) -> 
     return {
         "active": organisation_data.Status == StatusEnum.active,
         "name": organisation_data.Name,
-        "telecom": extract_telecom(organisation_data),
+        "telecom": (
+            extract_telecom(organisation_data.Contacts)
+            if organisation_data.Contacts
+            else None
+        ),
         "type": primary_role_data.displayName,
         "modified_by": "ODS_ETL_PIPELINE",
     }

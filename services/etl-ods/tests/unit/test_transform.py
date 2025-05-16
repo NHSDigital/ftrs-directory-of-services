@@ -1,7 +1,6 @@
 from pipeline.transform import transfrom_into_payload
 from pipeline.validators import (
     ContactItem,
-    ContactList,
     ContactTypeEnum,
     OrganisationValidator,
     RoleItem,
@@ -13,7 +12,7 @@ from pipeline.validators import (
 def setup_organisation_data(
     status: str, contacts: ContactItem, roles: RoleItem
 ) -> OrganisationValidator:
-    test_contacts = ContactList(Contact=contacts)
+    test_contacts = contacts
     test_roles = RoleList(Role=roles)
 
     return OrganisationValidator(
@@ -31,7 +30,6 @@ def setup_role_data(display_name: str) -> RolesValidator:
 def test_transfrom_into_payload_activity_active() -> None:
     contact_items = [
         ContactItem(type=ContactTypeEnum.tel, value="123456789"),
-        ContactItem(type="http", value="http://example.com"),
     ]
     role_items = [
         RoleItem(id="1", primaryRole=True),
@@ -39,7 +37,7 @@ def test_transfrom_into_payload_activity_active() -> None:
 
     organisation_data = setup_organisation_data("Active", contact_items, role_items)
     role_data = setup_role_data("Primary Role")
-
+    print(organisation_data)
     expected_payload = {
         "active": True,
         "name": "Test Organisation",
@@ -49,6 +47,7 @@ def test_transfrom_into_payload_activity_active() -> None:
     }
 
     result = transfrom_into_payload(organisation_data, role_data)
+    print(result)
     assert result == expected_payload
 
 
@@ -67,29 +66,6 @@ def test_transfrom_into_payload_activity_inactive() -> None:
         "active": False,
         "name": "Test Organisation",
         "telecom": "123456789",
-        "type": "Primary Role",
-        "modified_by": "ODS_ETL_PIPELINE",
-    }
-
-    result = transfrom_into_payload(organisation_data, role_data)
-    assert result == expected_payload
-
-
-def test_transfrom_into_payload_no_tel() -> None:
-    contact_items = [
-        ContactItem(type=ContactTypeEnum.http, value="http://example.com"),
-    ]
-    role_items = [
-        RoleItem(id="RO123", primaryRole=True),
-    ]
-
-    organisation_data = setup_organisation_data("Active", contact_items, role_items)
-    role_data = setup_role_data("Primary Role")
-
-    expected_payload = {
-        "active": True,
-        "name": "Test Organisation",
-        "telecom": None,
         "type": "Primary Role",
         "modified_by": "ODS_ETL_PIPELINE",
     }

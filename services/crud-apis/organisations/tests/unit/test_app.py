@@ -10,6 +10,7 @@ from ftrs_data_layer.repository.dynamodb.document_level import DocumentLevelRepo
 
 from organisations.app import (
     apply_updates,
+    get_org_id,
     get_outdated_fields,
     get_repository,
     get_table_name,
@@ -24,7 +25,7 @@ from organisations.validators import UpdatePayloadValidator
     [
         (
             {
-                "id": "00000000-0000-0000-1234-1234567890123",
+                "id": "00000000-0000-0000-0000-00000000000a",
                 "identifier_ODS_ODSCode": "123456",
                 "active": True,
                 "name": "Test Organisation",
@@ -46,7 +47,7 @@ from organisations.validators import UpdatePayloadValidator
         ),
         (
             {
-                "id": "00000000-0000-0000-1234-1234567890123",
+                "id": "00000000-0000-0000-0000-00000000000a",
                 "identifier_ODS_ODSCode": "123456",
                 "active": True,
                 "name": "Test Organisation",
@@ -93,10 +94,10 @@ def test_apply_updates() -> None:
         modifiedBy="test_user",
         modifiedDateTime=datetime(2023, 10, 1, tzinfo=timezone.utc),
     )
-    outdated_fields = {"name": "New Name"}
+    outdated_fields = {"name": "New Name", "modified_by": "new_user"}
     apply_updates(organisation, outdated_fields)
     assert organisation.name == "New Name"
-    assert organisation.modifiedBy == "test_user"
+    assert organisation.modifiedBy == "new_user"
     assert organisation.modifiedDateTime != datetime(2023, 10, 1, tzinfo=timezone.utc)
 
 
@@ -221,6 +222,33 @@ def test_update_organisation_internal_server_error(
 
     assert e.value.response["Error"]["Code"] == "InternalServerError"
     assert e.value.response["Error"]["Message"] == "An internal server error occurred."
+
+
+@patch("organisations.app.get_repository")
+def test_get_org_by_ods_code_success(mock_get_repository: MagicMock) -> None:
+    mock_repository = MagicMock()
+    mock_repository.get_by_ods_code.return_value = {"id": "ods_12345"}
+    mock_get_repository.return_value = mock_repository
+
+    response = get_org_id("uuid", AppSettings(ENVIRONMENT="test"))
+
+    mock_repository.get_by_ods_code.assert_called_once_with("uuid")
+
+    assert str(response.status_code) == "200"
+    assert response.body.decode("utf-8") == '{"id":"ods_12345"}'
+
+
+@patch("organisations.app.get_repository")
+def test_get_org_id_not_found(mock_get_repository: MagicMock) -> None:
+    mock_repository = MagicMock()
+    mock_get_repository.return_value = mock_repository
+    mock_repository.get_by_ods_code.return_value = None
+
+    with pytest.raises(HTTPException) as e:
+        get_org_id("uuid", AppSettings(ENVIRONMENT="test"))
+
+    assert str(e.value.status_code) == "404"
+    assert str(e.value.detail) == "Organisation not found"
 
 
 def test_get_repository() -> None:

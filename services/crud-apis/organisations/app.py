@@ -42,7 +42,7 @@ def get_org_id(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     logging.info(f"Organisation: {records}")
-    return records
+    return JSONResponse(status_code=200, content=records)
 
 
 @app.put("/{organisation_id}", summary="Update an organisation.")
@@ -70,7 +70,6 @@ def update_organisation(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     outdated_fields = get_outdated_fields(existing_organisation, payload)
-    print(outdated_fields)
     logging.info(
         f"Computed outdated fields: {outdated_fields} for organisation {organisation_id}"
     )
