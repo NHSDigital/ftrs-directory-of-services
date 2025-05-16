@@ -7,3 +7,6 @@ read_only_viewer_waf_scope                         = "CLOUDFRONT"
 read_only_viewer_log_group                         = "waf-web-acl-log-group"
 read_only_viewer_log_group_class                   = "STANDARD"
 read_only_viewer_waf_web_acl_log_group_policy_name = "waf_web_acl_log_group_policy"
+frontend_lambda_name                               = "frontend-lambda"
+frontend_lambda_connection_timeout                 = 30
+frontend_lambda_memory_size                        = 256
