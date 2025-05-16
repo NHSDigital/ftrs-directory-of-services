@@ -1,4 +1,4 @@
-name                       = "transformed-queue-sia-499"
+name                       = "ftrs-dos-${var.environment}-etl-ods-queue"
 delay_seconds              = 10
 visibility_timeout_seconds = 30
 max_message_size           = 2048
