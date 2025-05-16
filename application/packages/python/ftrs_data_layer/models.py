@@ -1,6 +1,7 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, time
 from decimal import Decimal
-from typing import Optional
+from enum import Enum
+from typing import Annotated, Literal, Optional, Union
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -170,6 +171,70 @@ class Telecom(BaseModel):
     web: str | None
 
 
+class OpeningTimeCategory(str, Enum):
+    AVAILABLETIME = "availableTime"
+    AVAILABLETIMEVARIATIONS = "availableTimeVariations"
+    AVAILABLETIMEPUBLICHOLIDAYS = "availableTimePublicHolidays"
+    NOTAVAILABLE = "notAvailable"
+
+
+class DayOfWeek(str, Enum):
+    MONDAY = "mon"
+    TUESDAY = "tue"
+    WEDNESDAY = "wed"
+    THURSDAY = "thu"
+    FRIDAY = "fri"
+    SATURDAY = "sat"
+    SUNDAY = "sun"
+
+
+class AvailableTime(BaseModel):
+    id: UUID = uuid4()
+    category: Literal[OpeningTimeCategory.AVAILABLETIME] = (
+        OpeningTimeCategory.AVAILABLETIME
+    )
+    dayOfWeek: DayOfWeek
+    startTime: time
+    endTime: time
+    allDay: bool = False
+
+
+class AvailableTimeVariation(BaseModel):
+    id: UUID = uuid4()
+    category: Literal[OpeningTimeCategory.AVAILABLETIMEVARIATIONS] = (
+        OpeningTimeCategory.AVAILABLETIMEVARIATIONS
+    )
+    description: str
+    startTime: datetime
+    endTime: datetime
+
+
+class AvailableTimePublicHolidays(BaseModel):
+    id: UUID = uuid4()
+    category: Literal[OpeningTimeCategory.AVAILABLETIMEPUBLICHOLIDAYS] = (
+        OpeningTimeCategory.AVAILABLETIMEPUBLICHOLIDAYS
+    )
+    startTime: time
+    endTime: time
+
+
+class NotAvailable(BaseModel):
+    id: UUID = uuid4()
+    category: Literal[OpeningTimeCategory.NOTAVAILABLE] = (
+        OpeningTimeCategory.NOTAVAILABLE
+    )
+    description: str
+    unavailableDate: date
+
+
+OpeningTime = Annotated[
+    Union[
+        AvailableTime, AvailableTimeVariation, AvailableTimePublicHolidays, NotAvailable
+    ],
+    Field(discriminator="category"),
+]
+
+
 class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
@@ -179,6 +244,7 @@ class HealthcareService(DBModel):
     name: str
     telecom: Telecom | None
     type: str
+    openingTime: list[OpeningTime] | None
 
     @classmethod
     def from_dos(  # noqa: PLR0913
@@ -214,12 +280,61 @@ class HealthcareService(DBModel):
                 email=data["email"],
                 web=data["web"],
             ),
+            openingTime=HealthcareService.assign_opening_times(data["availability"]),
             type=data["type"],
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
             modifiedBy="ROBOT",
             modifiedDateTime=updated_datetime or datetime.now(UTC),
         )
+
+    @classmethod
+    def assign_opening_times(cls, availability: dict) -> OpeningTime:
+        if availability is None:
+            return None
+
+        items = [
+            AvailableTime(
+                category=OpeningTimeCategory.AVAILABLETIME,
+                dayOfWeek=data["dayOfWeek"][0],
+                startTime=data["availableStartTime"],
+                endTime=data["availableEndTime"],
+            )
+            for data in availability["availableTime"]
+        ]
+
+        if availability["availableTimePublicHolidays"] is not None:
+            for data in availability["availableTimePublicHolidays"]:
+                items.append(
+                    AvailableTimePublicHolidays(
+                        category=OpeningTimeCategory.AVAILABLETIMEPUBLICHOLIDAYS,
+                        startTime=data["availableStartTime"],
+                        endTime=data["availableEndTime"],
+                    )
+                )
+
+        if availability["availableTimeVariations"] is not None:
+            for data in availability["availableTimeVariations"]:
+                items.append(
+                    AvailableTimeVariation(
+                        category=OpeningTimeCategory.AVAILABLETIMEVARIATIONS,
+                        description=data["description"],
+                        startTime=data["during"]["start"],
+                        endTime=data["during"]["end"],
+                    )
+                )
+
+        if availability["notAvailable"] is not None:
+            for data in availability["notAvailable"]:
+                items.append(
+                    NotAvailable(
+                        category=OpeningTimeCategory.AVAILABLETIMEVARIATIONS,
+                        description=data["description"],
+                        unavailableDate=data["start"],
+                    )
+                )
+
+        return items if len(items) > 0 else None
 
 
 class Endpoint(DBModel):
