@@ -1,7 +1,3 @@
-variable "name" {
-  description = "The name of the queue"
-}
-
 variable "delay_seconds" {
   description = "The number of seconds a message should be invisible to consumers"
 }
