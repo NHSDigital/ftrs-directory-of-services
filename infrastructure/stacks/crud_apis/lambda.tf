@@ -90,8 +90,11 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:Scan",
       "dynamodb:Query"
     ]
-    resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/ftrs-dos-${var.environment}-database-*${local.workspace_suffix}",
-    ]
+    resources = flatten([
+      for table in local.dynamodb_tables : [
+        table.arn,
+        "${table.arn}/index/*"
+      ]
+    ])
   }
 }
