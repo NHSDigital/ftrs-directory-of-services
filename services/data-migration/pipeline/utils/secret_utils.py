@@ -2,17 +2,10 @@ import os
 
 from aws_lambda_powertools.utilities import parameters
 from dotenv import load_dotenv
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import UtilsLogBase
 
-
-# TODO: udpate as part of FDOS-197
-class MissingEnvironmentOrProjectNameError(Exception):
-    """Exception raised when the environment or project name is missing."""
-
-    def __init__(
-        self, message: str = "The environment or project name does not exist"
-    ) -> None:
-        self.message = message
-        super().__init__(self.message)
+secretutils_logger = Logger.get(service="secretutils")
 
 
 def get_secret(secret_name: str, transform: str | None = None) -> str:
@@ -21,7 +14,8 @@ def get_secret(secret_name: str, transform: str | None = None) -> str:
     project_name = os.getenv("PROJECT_NAME")
 
     if not environment or not project_name:
-        raise MissingEnvironmentOrProjectNameError
+        secretutils_logger.log(UtilsLogBase.UTILS_SECRET_001)
+        raise ValueError
 
     return parameters.get_secret(
         name=f"/{project_name}/{environment}/{secret_name}", transform=transform

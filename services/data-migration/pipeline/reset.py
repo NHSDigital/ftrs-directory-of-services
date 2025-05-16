@@ -1,8 +1,9 @@
-import logging
 from enum import StrEnum
 from typing import Annotated, List
 
+from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
+from ftrs_data_layer.logbase import ETLPipelineLogBase
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
     DocumentLevelRepository,
@@ -13,6 +14,8 @@ from typer import Option, confirm
 
 from pipeline.constants import TargetEnvironment
 from pipeline.load import get_table_name
+
+reset_logger = Logger.get(service="reset")
 
 
 class ClearableEntityTypes(StrEnum):
@@ -55,12 +58,11 @@ def init_tables(
     workspace: str | None,
     entity_type: List[ClearableEntityTypes],
 ) -> None:
-    logging.info("Initializing tables...")
+    reset_logger.log(ETLPipelineLogBase.ETL_RESET_001)
 
     if env != TargetEnvironment.local:
-        error_msg = "The init option is only supported for the local environment."
-        logging.error(error_msg)
-        raise ValueError(error_msg)
+        reset_logger.log(ETLPipelineLogBase.ETL_RESET_002)
+        raise ValueError(ETLPipelineLogBase.ETL_RESET_002.value.message)
 
     client = get_dynamodb_client(endpoint_url)
     for entity_name in entity_type:
@@ -91,10 +93,10 @@ def init_tables(
                 ],
                 BillingMode="PAY_PER_REQUEST",
             )
-            logging.info(f"Table {table_name} created successfully.")
+            reset_logger.log(ETLPipelineLogBase.ETL_RESET_003, table_name=table_name)
 
         except client.exceptions.ResourceInUseException:
-            logging.info(f"Table {table_name} already exists.")
+            reset_logger.log(ETLPipelineLogBase.ETL_RESET_004, table_name=table_name)
 
 
 def reset(
@@ -124,9 +126,8 @@ def reset(
         entity_type = DEFAULT_CLEARABLE_ENTITY_TYPES
 
     if env not in [TargetEnvironment.dev, TargetEnvironment.local]:
-        error_msg = f"Invalid environment: {env}. Only 'dev' and 'local' are allowed."
-        logging.error(error_msg)
-        raise ValueError(error_msg)
+        reset_logger.log(ETLPipelineLogBase.ETL_RESET_005, env=env)
+        raise ValueError(ETLPipelineLogBase.ETL_RESET_005.value.message)
 
     if init:
         init_tables(
@@ -160,4 +161,6 @@ def reset(
             repository.delete(item.id)
             count += 1
 
-        logging.info(f"Deleted {count} items from {table_name}")
+        reset_logger.log(
+            ETLPipelineLogBase.ETL_RESET_006, count=count, table_name=table_name
+        )

@@ -4,8 +4,6 @@ from uuid import uuid4
 
 import pytest
 from freezegun import freeze_time
-from pytest_mock import MockerFixture
-
 from ftrs_data_layer.models import (
     Address,
     Endpoint,
@@ -15,6 +13,7 @@ from ftrs_data_layer.models import (
     PositionGCS,
     Telecom,
 )
+from pytest_mock import MockerFixture
 
 
 def test_organisation() -> None:
