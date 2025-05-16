@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "transformed_queue" {
-  name                       = var.name
+  name                       = "ftrs-dos-${var.environment}-etl-ods-queue"
   delay_seconds              = var.delay_seconds
   visibility_timeout_seconds = var.visibility_timeout_seconds
   max_message_size           = var.max_message_size
