@@ -1,5 +1,3 @@
-import error_util
-import json_schemas
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.utilities.validation import (
@@ -8,6 +6,7 @@ from aws_lambda_powertools.utilities.validation import (
 )
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 
+from functions import error_util, json_schemas
 from functions.ftrs_service.ftrs_service import FtrsService
 
 logger = Logger()
