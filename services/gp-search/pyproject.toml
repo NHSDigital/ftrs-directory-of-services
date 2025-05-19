@@ -10,6 +10,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "fhir-resources (>=8.0.0,<9.0.0)",
     "pydantic (>=2.11.4,<3.0.0)",
+    "fastjsonschema (>=2.21.1,<3.0.0)",
 ]
 
 [build-system]
@@ -27,7 +28,6 @@ boto3-stubs = {extras = ["dynamodb"], version = "^1.38.6"}
 pytest = "^8.3.5"
 pytest-mock = "^3.14.0"
 pytest-cov = "^6.1.1"
-pytest-lazy-fixtures = "^1.1.2"
 
 [tool.poetry.scripts]
 dos-gp-search-function = "functions.gp_search_function:lambda_handler"
