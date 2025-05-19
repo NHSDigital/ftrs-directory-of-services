@@ -29,15 +29,17 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
 
     except SchemaValidationError as exception:
-        logger.warning("Schema validation error occurred", exc_info=exception)
         fhir_resource = error_util.create_resource_validation_error(exception)
+        response = create_response(422, fhir_resource)
+        logger.warning("Schema validation error occurred", exc_info=exception, extra={"response": response})
 
-        return create_response(422, fhir_resource)
+        return response
     except Exception:
-        logger.exception("Error occurred while processing")
         fhir_resource = error_util.create_resource_internal_server_error()
+        response = create_response(500, fhir_resource)
+        logger.exception("Error occurred while processing", extra={"response": response})
 
-        return create_response(500, fhir_resource)
+        return response
     else:
         logger.info("Successfully processed")
 
