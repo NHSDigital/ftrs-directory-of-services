@@ -1,9 +1,12 @@
 import pytest
 import boto3
 import json
+from jsonschema import validate
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper
+from utilities.common.schema_validator import oas_spec
+
 
 # Load feature file
 scenarios("./is_infra_features/lambda.feature")
@@ -88,3 +91,11 @@ def lambda_no_endpoints(fLambda_payload):
     assert endpoint_exists is False
 
 
+
+
+@then('the response is valid against the schema')
+def validate_lambda_response_against_oas(fLambda_payload, oas_spec):
+    response = json.loads(fLambda_payload["body"])
+    logger.info(f"Response: {response}")
+    logger.info(f"Schema: {oas_spec}")
+    validate(instance=response, schema=oas_spec)

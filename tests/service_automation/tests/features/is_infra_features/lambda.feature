@@ -20,3 +20,8 @@ Background: Check lambda function exists
   Scenario: Invoke lambda with an ods code for an organisation with no endpoints
   When I invoke the lambda with the ods code "F81015"
   Then the lambda response does not contain an endpoint resource
+
+  @test
+  Scenario: Invoke lambda
+  When I invoke the lambda with the ods code "F81015"
+  Then the response is valid against the schema
