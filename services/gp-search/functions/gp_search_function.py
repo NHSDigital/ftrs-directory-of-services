@@ -31,13 +31,20 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
     except SchemaValidationError as exception:
         fhir_resource = error_util.create_resource_validation_error(exception)
         response = create_response(422, fhir_resource)
-        logger.warning("Schema validation error occurred", exc_info=exception, extra={"response": response})
+        logger.warning(
+            "Schema validation error occurred",
+            exc_info=exception,
+            extra={"response": response},
+        )
 
         return response
     except Exception:
         fhir_resource = error_util.create_resource_internal_server_error()
         response = create_response(500, fhir_resource)
-        logger.exception("Error occurred while processing", extra={"response": response})
+        logger.exception(
+            "Error occurred while processing",
+            extra={"response": response},
+        )
 
         return response
     else:
