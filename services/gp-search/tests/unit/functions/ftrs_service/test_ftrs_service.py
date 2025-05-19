@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
-from fhir.resources.R4B.operationoutcome import OperationOutcome
 
 from functions.ftrs_service.ftrs_service import FtrsService
 
@@ -86,112 +85,38 @@ class TestFtrsService:
         )
         assert result == expected_bundle
 
-    def test_endpoints_by_ods_exception(
+    def test_endpoints_by_ods_repository_exception(
         self, ftrs_service, mock_repository, mock_bundle_mapper
     ):
         # Arrange
         ods_code = "O123"
-        mock_repository.get_first_record_by_ods_code.side_effect = Exception(
-            "Test exception"
-        )
+        expected_exc = Exception("Repository error")
+        mock_repository.get_first_record_by_ods_code.side_effect = expected_exc
 
-        # Create a mock OperationOutcome for the error
-        error_outcome = OperationOutcome.model_validate(
-            {
-                "id": "internal-server-error",
-                "issue": [
-                    {
-                        "severity": "error",
-                        "code": "internal",
-                        "details": {
-                            "coding": [
-                                {
-                                    "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
-                                    "code": "INTERNAL_SERVER_ERROR",
-                                    "display": f"Internal server error while processing ODS code '{ods_code}'",
-                                },
-                            ]
-                        },
-                    }
-                ],
-            }
-        )
+        # Act
+        with pytest.raises(Exception, match=expected_exc.args[0]) as exc_info:
+            ftrs_service.endpoints_by_ods(ods_code)
 
-        # Patch the _create_error_resource method to return our mock
-        with patch.object(
-            ftrs_service, "_create_error_resource", return_value=error_outcome
-        ):
-            # Act
-            result = ftrs_service.endpoints_by_ods(ods_code)
+        # Assert
+        mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
+        mock_bundle_mapper.map_to_fhir.assert_not_called()
+        assert exc_info.value == expected_exc
 
-            # Assert
-            mock_repository.get_first_record_by_ods_code.assert_called_once_with(
-                ods_code
-            )
-            mock_bundle_mapper.map_to_fhir.assert_not_called()
-            assert isinstance(result, OperationOutcome)
-            assert result.issue[0].severity == "error"
-            assert result.issue[0].code == "internal"
-
-    def test_endpoints_by_ods_mapping_exception(
+    def test_endpoints_by_ods_mapper_exception(
         self, ftrs_service, mock_repository, mock_bundle_mapper, organization_record
     ):
         # Arrange
         ods_code = "O123"
-        mock_bundle_mapper.map_to_fhir.side_effect = Exception("Mapping error")
-
-        # Create a mock OperationOutcome for the error
-        error_outcome = OperationOutcome.model_validate(
-            {
-                "id": "internal-server-error",
-                "issue": [
-                    {
-                        "severity": "error",
-                        "code": "internal",
-                        "details": {
-                            "coding": [
-                                {
-                                    "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
-                                    "code": "INTERNAL_SERVER_ERROR",
-                                    "display": f"Internal server error while processing ODS code '{ods_code}'",
-                                },
-                            ]
-                        },
-                    }
-                ],
-            }
-        )
-
-        # Patch the _create_error_resource method to return our mock
-        with patch.object(
-            ftrs_service, "_create_error_resource", return_value=error_outcome
-        ):
-            # Act
-            result = ftrs_service.endpoints_by_ods(ods_code)
-
-            # Assert
-            mock_repository.get_first_record_by_ods_code.assert_called_once_with(
-                ods_code
-            )
-            mock_bundle_mapper.map_to_fhir.assert_called_once_with(
-                organization_record, ods_code
-            )
-            assert isinstance(result, OperationOutcome)
-
-    def test_create_error_resource(self, ftrs_service):
-        # Arrange
-        ods_code = "TEST123"
+        expected_exc = Exception("Mapper error")
+        mock_bundle_mapper.map_to_fhir.side_effect = expected_exc
 
         # Act
-        result = ftrs_service._create_error_resource(ods_code)
+        with pytest.raises(Exception, match=expected_exc.args[0]) as exc_info:
+            ftrs_service.endpoints_by_ods(ods_code)
 
         # Assert
-        assert isinstance(result, OperationOutcome)
-        assert result.id == "internal-server-error"
-        assert result.issue[0].severity == "error"
-        assert result.issue[0].code == "internal"
-        assert hasattr(result.issue[0], "details")
-        assert hasattr(result.issue[0].details, "coding")
-        assert len(result.issue[0].details.coding) > 0
-        assert result.issue[0].details.coding[0].code == "INTERNAL_SERVER_ERROR"
-        assert ods_code in result.issue[0].details.coding[0].display
+        mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
+        mock_bundle_mapper.map_to_fhir.assert_called_once_with(
+            organization_record, ods_code
+        )
+        assert exc_info.value == expected_exc
