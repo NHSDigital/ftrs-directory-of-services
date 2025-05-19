@@ -103,3 +103,11 @@ resource "aws_lambda_function_url" "organisation_api" {
   function_name      = module.organisation_api_lambda.function_name
   authorization_type = "AWS_IAM"
 }
+
+
+resource "aws_ssm_parameter" "organisation_api_function_url" {
+  name        = "/organisation-api/function-url"
+  description = "The function URL for the organisation API Lambda"
+  type        = "String"
+  value       = aws_lambda_function_url.organisation_api.url
+}
