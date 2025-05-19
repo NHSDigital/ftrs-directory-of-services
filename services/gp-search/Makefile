@@ -77,6 +77,8 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 		make _install-dependency name="$${plugin}"; \
 	done
 
+pre-commit: lint
+
 # ==============================================================================
 
 ${VERBOSE}.SILENT: \
