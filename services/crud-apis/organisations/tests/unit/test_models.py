@@ -1,9 +1,10 @@
 import pytest
-from organisations.models import OrganisationPayload
 from pydantic import ValidationError
 
+from organisations.models import OrganisationPayload
 
-def test_valid_payload():
+
+def test_valid_payload() -> None:
     payload = {
         "name": "Test Organisation",
         "active": False,
@@ -28,19 +29,20 @@ def test_valid_payload():
         ("name", "0123456789", "GP Practice", "aa" * 100),
     ],
 )
-def test_field_too_long(name, telecom, type, modified_by):
+def test_field_too_long(name: str, telecom: str, type: str, modified_by: str) -> None:
     payload = {
         "name": name,
         "active": False,
         "telecom": telecom,
         "type": type,
-        "modified_by": modified_by
+        "modified_by": modified_by,
     }
     with pytest.raises(ValidationError) as e:
         OrganisationPayload(**payload)
     assert "string_too_long" in str(e.value)
 
-def test_missing_required_field():
+
+def test_missing_required_field() -> None:
     payload = {
         "name": "Test Organisation",
         "telecom": "0123456789",
@@ -52,7 +54,7 @@ def test_missing_required_field():
     assert "validation error" in str(e.value)
 
 
-def test_additional_field():
+def test_additional_field() -> None:
     payload = {
         "name": "Test Organisation",
         "active": False,
