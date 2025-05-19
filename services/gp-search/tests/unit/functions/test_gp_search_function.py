@@ -110,7 +110,10 @@ class TestLambdaHandler:
     @pytest.mark.parametrize(
         ("invalid_event", "expected_error_message"),
         [
-            ({}, "data must contain ['odsCode'] properties"),
+            (
+                {},
+                "data must contain ['odsCode'] properties",
+            ),
             (
                 {"odsCode": ""},
                 "data.odsCode must be longer than or equal to 5 characters",
@@ -123,7 +126,10 @@ class TestLambdaHandler:
                 {"odsCode": "ABCD123456789"},
                 "data.odsCode must be shorter than or equal to 12 characters",
             ),
-            ({"odsCode": "ABC-123"}, "data.odsCode must match pattern ^[A-Z0-9]+$"),
+            (
+                {"odsCode": "ABC-123"},
+                "data.odsCode must match pattern ^[A-Z0-9]+$",
+            ),
         ],
         ids=[
             "event empty",
