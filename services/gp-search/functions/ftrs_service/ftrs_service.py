@@ -1,6 +1,5 @@
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.bundle import Bundle
-from fhir.resources.R4B.operationoutcome import OperationOutcome
 
 from functions.ftrs_service.config import get_config
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
@@ -16,7 +15,7 @@ class FtrsService:
         self.repository = DynamoRepository(table_name=table_name_)
         self.mapper = BundleMapper(base_url=base_url_)
 
-    def endpoints_by_ods(self, ods_code: str) -> Bundle | OperationOutcome:
+    def endpoints_by_ods(self, ods_code: str) -> Bundle:
         try:
             logger.info("Retrieving organization_record by ods_code")
 
@@ -34,29 +33,7 @@ class FtrsService:
 
         except Exception:
             logger.exception("Error occurred while processing")
-            return self._create_error_resource(ods_code)
+            raise
 
         else:
             return fhir_bundle
-
-    def _create_error_resource(self, ods_code: str) -> OperationOutcome:
-        return OperationOutcome.model_validate(
-            {
-                "id": "internal-server-error",
-                "issue": [
-                    {
-                        "severity": "error",
-                        "code": "internal",
-                        "details": {
-                            "coding": [
-                                {
-                                    "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
-                                    "code": "INTERNAL_SERVER_ERROR",
-                                    "display": f"Internal server error while processing ODS code '{ods_code}'",
-                                },
-                            ]
-                        },
-                    }
-                ],
-            }
-        )
