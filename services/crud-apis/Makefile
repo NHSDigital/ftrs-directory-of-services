@@ -35,6 +35,9 @@ test: unit-test
 unit-test:
 	poetry run pytest organisations/tests/unit
 
+coverage:
+	poetry run pytest --cov-report xml:${SERVICE}-coverage-summary.xml organisations/tests/unit
+
 start-api:
 	poetry run start-organisations-api
 
