@@ -18,13 +18,7 @@ async def get_healthcare_service_id(
     ),
 ):
     logging.info(f"Getting healthCare service with ID: {service_id}")
-    if service_id:
-        return get_healthcare_service_by_id(service_id)
-    else:
-        logging.error("No service_id provided")
-        return JSONResponse(
-            status_code=400, content={"message": "service_id is required"}
-        )
+    return get_healthcare_service_by_id(service_id)
 
 
 @router.get("/healthcareservice/")
@@ -40,7 +34,10 @@ def get_healthcare_service_by_id(service_id: str) -> JSONResponse:
         service = get_healthcare_service_repository().get(service_id)
         if service:
             return service
-        return JSONResponse(
+        else:
+            # If the service is not found, return a 404 response
+            logging.error(f"Healthcare Service with ID {service_id} not found")
+            return JSONResponse(
             status_code=404, content={"message": "Healthcare Service not found"}
         )
     except ValueError:
