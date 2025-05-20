@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.responses import JSONResponse
+
 from healthcare_service.app.services.db_service import get_healthcare_service_repository
 
 router = APIRouter()
@@ -38,8 +39,8 @@ def get_healthcare_service_by_id(service_id: str) -> JSONResponse:
             # If the service is not found, return a 404 response
             logging.error(f"Healthcare Service with ID {service_id} not found")
             return JSONResponse(
-            status_code=404, content={"message": "Healthcare Service not found"}
-        )
+                status_code=404, content={"message": "Healthcare Service not found"}
+            )
     except ValueError:
         raise HTTPException(
             status_code=400, detail="Invalid service_id format. Must be a valid UUID"
