@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
+
 from healthcare_service.app.handler_healthcare_service import handler
+
 
 def test_handler_returns_200_for_valid_get_request():
     mock_event = {
@@ -22,4 +24,3 @@ def test_handler_returns_200_for_valid_get_request():
     assert "statusCode" in response
     assert "headers" in response
     assert "body" in response
-
