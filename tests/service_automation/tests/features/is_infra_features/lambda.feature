@@ -11,8 +11,26 @@ Background: Check lambda function exists
 
 
   Scenario: Invoke lambda returns a valid response
-  When I invoke the lambda with the ods code "F81015"
+  When I invoke the lambda with the ods code "P83010"
   Then the response is valid against the schema
+
+@test
+  Scenario: Lambda returns a bundle
+  When I invoke the lambda with the ods code "P83010"
+  Then the lambda response contains a bundle
+
+  Scenario: Lambda returns an organization resource
+  When I invoke the lambda with the ods code "P83010"
+  Then the lambda response contains an organization resource
+
+
+  Scenario: Lambda returns an endpoint resource
+  When I invoke the lambda with the ods code "P83010"
+  Then the lambda response contains an endpoint resource
+
+  Scenario: Invoke lambda with an ods code for an organisation with no endpoints
+  When I invoke the lambda with the ods code "F81015"
+  Then the lambda response does not contain an endpoint resource
 
   Scenario: Invoke lambda with a lowercase ods code
   When I invoke the lambda with the ods code "p83010"
@@ -38,6 +56,7 @@ Background: Check lambda function exists
   And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
   And the lambda returns the diagnostics "Failed schema validation. Error: data.odsCode must be shorter than or equal to 12 characters, Path: ['data', 'odsCode'], Data: ABCDEFGHIJKLM"
 
+
   Scenario: Invoke lambda with an ods code of a length of 4
   When I invoke the lambda with the ods code "ABCD"
   Then the lambda returns the status code "422"
@@ -54,6 +73,4 @@ Background: Check lambda function exists
   And the lambda returns the diagnostics "Failed schema validation. Error: data.odsCode must match pattern ^[A-Z0-9]+$, Path: ['data', 'odsCode'], Data: P83010@"
 
 
-  Scenario: Invoke lambda with an ods code for an organisation with no endpoints
-  When I invoke the lambda with the ods code "F81015"
-  Then the lambda response does not contain an endpoint resource
+

@@ -98,10 +98,39 @@ def lambda_diagnostics(fLambda_payload, diagnostics):
     assert response["issue"][0]["diagnostics"] == diagnostics
 
 
+@then('the lambda response contains a bundle')
+def lambda_check_endpoints(fLambda_payload):
+    response = json.loads(fLambda_payload["body"])
+    assert fLambda_payload["statusCode"] == 200
+    assert response["resourceType"] == "Bundle"
+
+
+@then('the lambda response contains an endpoint resource')
+def lambda_check_endpoints(fLambda_payload):
+    response = json.loads(fLambda_payload["body"])
+    logger.info(f"Response: {response}")"
+    endpoint_exists = any(
+        entry.get("resource", {}).get("resourceType") == "Endpoint"
+        for entry in response.get("entry", [])
+    )
+    assert fLambda_payload["statusCode"] == 200
+    assert endpoint_exists is True
+
+
+@then('the lambda response contains an organization resource')
+def lambda_no_organization(fLambda_payload):
+    response = json.loads(fLambda_payload["body"])
+    organization_exists = any(
+        entry.get("resource", {}).get("resourceType") == "Organization"
+        for entry in response.get("entry", [])
+    )
+    assert fLambda_payload["statusCode"] == 200
+    assert organization_exists is True
+
+
 @then('the lambda response does not contain an endpoint resource')
 def lambda_no_endpoints(fLambda_payload):
     response = json.loads(fLambda_payload["body"])
-    # Check if any entry in response has a resourceType of "Endpoint"
     endpoint_exists = any(
         entry.get("resource", {}).get("resourceType") == "Endpoint"
         for entry in response.get("entry", [])
@@ -109,8 +138,6 @@ def lambda_no_endpoints(fLambda_payload):
     assert fLambda_payload["statusCode"] == 200
     assert len(response["entry"]) == 1
     assert endpoint_exists is False
-
-
 
 
 @then('the response is valid against the schema')
