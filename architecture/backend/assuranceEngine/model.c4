@@ -2,32 +2,26 @@ model {
 
   extend ftrs {
 
-    component assuranceQueue "Assurance Queue" {
-      description 'Queue for data quality checks'
-      style {
-        icon aws:simple-queue-service
-        shape: queue
-      }
-    }
+    container assurance "FTRS Assurance Engine" {
+      description 'Performs data quality checks on FTRS data'
 
-    component assuranceEngine "Assurance Engine" {
-      description '
-        Performs data quality checks.
-        Success updates data in the Organisations table, and possibly the tasks table
-        Failure updates the Tasks table
-      '
-      style {
-        icon aws:lambda
+      sqs assuranceQueue "Assurance Queue" {
+        description 'Queue for data quality checks'
       }
-    }
 
-    component reassureSelector "Reassurance Data Selector" {
-      description '
-        Selects data to be reassured on a schedule
-        and sends to the assurance queue
-      '
-      style {
-        icon aws:lambda
+      lambda assuranceEngine "Assurance Engine" {
+        description '
+          Performs data quality checks.
+          Success updates data in the Organisations table, and possibly the tasks table
+          Failure updates the Tasks table
+        '
+      }
+
+      lambda reassureSelector "Reassurance Data Selector" {
+        description '
+          Selects data to be reassured on a schedule
+          and sends to the assurance queue
+        '
       }
     }
   }
