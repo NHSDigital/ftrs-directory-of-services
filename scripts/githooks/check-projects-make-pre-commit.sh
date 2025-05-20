@@ -24,13 +24,17 @@ has_staged_changes() {
 }
 
 echo "Finding directories with Makefiles and staged changes..."
-EXIT_CODE=0
 FOUND_DIRECTORIES=0
+EXIT_CODE=0
 
-# Use a standard find command and process the output directly
-find "${REPO_ROOT}" -type f -name "Makefile" -not -path "*/\.*" | while read -r makefile; do
+# Create a temporary file with mktemp
+TEMP_FILE=$(mktemp)
+trap 'rm -f "$TEMP_FILE"' EXIT
+
+# Use find to locate all Makefiles
+find "${REPO_ROOT}" -type f -name "Makefile" -not -path "*/\.*" > "$TEMP_FILE"
+while read -r makefile; do
   DIR=$(dirname "$makefile")
-  DIR_NAME=$(basename "${DIR}")
   RELATIVE_DIR="${DIR#"$REPO_ROOT"/}"
 
   # Only process directories with staged changes
@@ -39,25 +43,29 @@ find "${REPO_ROOT}" -type f -name "Makefile" -not -path "*/\.*" | while read -r 
     if has_pre_commit_target "${DIR}"; then
       echo "Running pre-commit for directory with staged changes: ${RELATIVE_DIR}"
       # Change to the directory and run make pre-commit
-      (cd "${DIR}" && make pre-commit) || {
+      (cd "${DIR}" && make pre-commit)
+      CURRENT_EXIT_CODE=$?
+
+      if [ $CURRENT_EXIT_CODE -ne 0 ]; then
         echo "Pre-Commit failed for directory: ${RELATIVE_DIR}"
         EXIT_CODE=1
-      }
+      fi
     else
       echo "No pre-commit target found for directory with staged changes: ${RELATIVE_DIR}"
     fi
   fi
-done
-
-# Since we're using a pipeline with 'while', we need to capture the exit code differently
-# Store the original EXIT_CODE value
-ORIGINAL_EXIT_CODE=$EXIT_CODE
+done < "$TEMP_FILE"
 
 # Check if any directories were processed
 if [ $FOUND_DIRECTORIES -eq 0 ]; then
   echo "No directories with Makefiles and staged changes found"
-else
-  echo "Completed"
+  exit 0
 fi
 
-exit $ORIGINAL_EXIT_CODE
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "All pre-commit checks passed"
+  exit 0
+else
+  echo "One or more pre-commit checks failed"
+  exit 1
+fi
