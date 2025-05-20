@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
@@ -24,6 +24,12 @@ def mock_ftrs_service():
     with patch("functions.gp_search_function.FtrsService") as mock_class:
         mock_service = mock_class.return_value
         yield mock_service
+
+
+@pytest.fixture
+def mock_logger():
+    with patch("functions.gp_search_function.logger") as mock:
+        yield mock
 
 
 @pytest.fixture
@@ -73,6 +79,7 @@ class TestLambdaHandler:
         self,
         lambda_context,
         mock_ftrs_service,
+        mock_logger,
         ods_code,
         bundle,
     ):
@@ -85,13 +92,20 @@ class TestLambdaHandler:
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(event["odsCode"])
+        mock_logger.append_keys.assert_called_once_with(ods_code=ods_code)
+        mock_logger.info.assert_has_calls(
+            [
+                call("Successfully processed"),
+                call("Returning response", extra={"response": response}),
+            ]
+        )
 
         assert_response(
             response, expected_status_code=200, expected_body=bundle.model_dump_json()
         )
 
     def test_lambda_handler_with_lowercase_ods_code(
-        self, lambda_context, mock_ftrs_service, bundle
+        self, lambda_context, mock_ftrs_service, mock_logger, bundle
     ):
         # Arrange
         event = {"odsCode": "abc123"}  # Lowercase ODS code
@@ -102,6 +116,13 @@ class TestLambdaHandler:
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with("ABC123")
+        mock_logger.append_keys.assert_called_once_with(ods_code="ABC123")
+        mock_logger.info.assert_has_calls(
+            [
+                call("Successfully processed"),
+                call("Returning response", extra={"response": response}),
+            ]
+        )
 
         assert_response(
             response, expected_status_code=200, expected_body=bundle.model_dump_json()
@@ -144,6 +165,7 @@ class TestLambdaHandler:
         lambda_context,
         mock_ftrs_service,
         mock_error_util,
+        mock_logger,
         invalid_event,
         expected_error_message,
     ):
@@ -153,6 +175,15 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_not_called()
         mock_error_util.create_resource_validation_error.assert_called_once()
+
+        mock_logger.warning.assert_called_once_with(
+            "Schema validation error occurred",
+            exc_info=mock_error_util.create_resource_validation_error.call_args[0][0],
+        )
+        mock_logger.info.assert_called_once_with(
+            "Returning response", extra={"response": response}
+        )
+
         assert_response(
             response,
             expected_status_code=422,
@@ -163,7 +194,7 @@ class TestLambdaHandler:
         assert exception.validation_message == expected_error_message
 
     def test_lambda_handler_with_general_exception(
-        self, lambda_context, mock_ftrs_service, event, mock_error_util
+        self, lambda_context, mock_ftrs_service, event, mock_error_util, mock_logger
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
@@ -174,6 +205,13 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(event["odsCode"])
         mock_error_util.create_resource_internal_server_error.assert_called_once()
+
+        mock_logger.append_keys.assert_called_once_with(ods_code=event["odsCode"])
+        mock_logger.exception.assert_called_once_with("Internal server error occurred")
+        mock_logger.info.assert_called_once_with(
+            "Returning response", extra={"response": response}
+        )
+
         assert_response(
             response,
             expected_status_code=500,
