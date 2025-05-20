@@ -30,13 +30,15 @@ boto3 = "^1.37.33"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"
+start-healthcare-api = "healthcare_service.hcserver:run"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
 
 [tool.poetry]
 packages = [
-  { include = "organisations" }
+  { include = "organisations" },
+  { include = "healthcare_service"}
 ]
 
 [tool.ruff]
@@ -56,5 +58,5 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v --cov=organisations --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = "-v --cov=crud-apis --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
