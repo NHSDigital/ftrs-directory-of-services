@@ -117,5 +117,5 @@ resource "aws_lambda_permission" "allow_access_to_lambda" {
   action        = "lambda:InvokeFunction"
   function_name = module.organisation_api_lambda.lambda_function_name
   principal     = "lambda.amazonaws.com"
-  source_arn    = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:extract-lambda"
+  source_arn    = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${local.resource_prefix}-etl-ods-processor-lambda${local.workspace_suffix}"
 }
