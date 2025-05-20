@@ -1,8 +1,12 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from ftrs_data_layer.models import HealthcareService
-from healthcare_service.app.services.db_service import get_healthcare_service_repository, get_table_name
+import pytest
+
+from healthcare_service.app.services.db_service import (
+    get_healthcare_service_repository,
+    get_table_name,
+)
+
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
 @patch("healthcare_service.app.services.db_service.DocumentLevelRepository")
@@ -16,6 +20,7 @@ def test_repository_returns_correct_instance(mock_repository, mock_get_env_varia
     repo_instance = get_healthcare_service_repository()
     assert isinstance(repo_instance, MagicMock)
 
+
 @patch("healthcare_service.app.services.db_service.get_env_variables")
 def test_table_name_includes_workspace_if_present(mock_get_env_variables):
     mock_get_env_variables.return_value = {
@@ -25,6 +30,7 @@ def test_table_name_includes_workspace_if_present(mock_get_env_variables):
     }
     table_name = get_table_name("healthcare")
     assert table_name == "ftrs-dos-dev-database-healthcare-team1"
+
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
 def test_table_name_excludes_workspace_if_absent(mock_get_env_variables):
@@ -36,6 +42,7 @@ def test_table_name_excludes_workspace_if_absent(mock_get_env_variables):
     table_name = get_table_name("healthcare")
     assert table_name == "ftrs-dos-dev-database-healthcare"
 
+
 @patch("healthcare_service.app.services.db_service.get_env_variables")
 def test_table_name_handles_empty_entity_name(mock_get_env_variables):
     mock_get_env_variables.return_value = {
@@ -45,6 +52,7 @@ def test_table_name_handles_empty_entity_name(mock_get_env_variables):
     }
     table_name = get_table_name("")
     assert table_name == "ftrs-dos-dev-database-"
+
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
 def test_table_name_handles_missing_env_variable(mock_get_env_variables):
