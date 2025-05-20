@@ -15,13 +15,8 @@ from organisations.validators import UpdatePayloadValidator
 
 app = FastAPI()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 @app.get("/ods_code/{ods_code}", summary="Get an organisation by ODS code.")

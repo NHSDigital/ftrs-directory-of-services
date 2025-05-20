@@ -20,7 +20,9 @@ def make_request(url: str, params: dict = None, timeout: int = 20) -> dict:
         if response.status_code == NOT_FOUND and url.startswith(
             os.environ["ORGANISATION_API_URL"]
         ):
-            raise ValueError("Test")
+            err_msg = "Organisatoin not found"
+            logger.warning(err_msg)
+            raise ValueError(err_msg)
         logger.warning(
             f"HTTP error occurred: {http_err} - Status Code: {response.status_code}"
         )
@@ -77,8 +79,9 @@ def fetch_organisation_role(roles: list) -> str:
             primary_role_id = None
 
     if not primary_role_id:
-        logger.warning("No primary role found in the roles list.")
-        raise ValueError("Test2")
+        err_msg = "No primary role found in the roles list."
+        logger.warning(err_msg)
+        raise ValueError(err_msg)
     ods_role_data_uri = (
         f"https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/{primary_role_id}"
     )

@@ -69,7 +69,7 @@ def test_make_request_organisation_api_404_error(
     mock_get.return_value = mock_response
 
     url = "https://localhost:8001/ods_code/ABC123"
-    with pytest.raises(ValueError, match="Test"):
+    with pytest.raises(ValueError, match="Organisatoin not found"):
         make_request(url)
 
     mock_get.assert_called_once_with(url, params=None, timeout=20)
@@ -155,7 +155,7 @@ def test_fetch_organisation_role(mock_make_request: MagicMock) -> None:
 def test_fetch_organisation_role_no_primary_role() -> None:
     roles = [RoleItem(id="123", primaryRole=False)]
 
-    with pytest.raises(ValueError, match="Test2"):
+    with pytest.raises(ValueError, match="No primary role found in the roles list."):
         fetch_organisation_role(roles)
 
 
