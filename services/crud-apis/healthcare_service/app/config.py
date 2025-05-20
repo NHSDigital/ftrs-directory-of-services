@@ -1,0 +1,14 @@
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def get_env_variables():
+    return {
+        "env": os.getenv("ENVIRONMENT", "local"),
+        "workspace": os.getenv("WORKSPACE", None),
+        "endpoint_url": os.getenv("ENDPOINT_URL", "http://localhost:8000"),
+        "entity_name": os.getenv("TABLENAME_HC", "healthcare-service"),
+    }

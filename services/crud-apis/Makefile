@@ -34,9 +34,11 @@ test: unit-test
 
 unit-test:
 	poetry run pytest organisations/tests/unit
+	poetry run pytest healthcare_service/tests
 
 start-api:
 	poetry run start-organisations-api
+	poetry run start-healthcare-api
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)

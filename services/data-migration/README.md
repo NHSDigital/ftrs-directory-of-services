@@ -77,7 +77,8 @@ brew link --force libpq
 ```bash
 # Assume role within UEC DOS DEV AWS account
 # Copy source postgres dump
-aws s3 cp s3://ftrs-dos-data-migration-pipeline-store-dev/sanitised-clone/01-02-24/dos-pgdump.sql .tmp/dos-01-02-24.sql
+# take the latest dump from the bucket
+aws s3 cp s3://ftrs-dos-dev-data-migration-pipeline-store/sanitised-clone/05-03-25/dos-pgdump.sql .tmp/dos-01-02-24.sql
 
 # Load the dump into the local DB
 # Ask team for values to substitute here
@@ -111,7 +112,7 @@ For deployed environments, you can use the `dos-etl reset` command to delete dat
 # Delete the local DynamoDB data
 dos-etl reset \
     --env local \
-    --endpoint-uri http://localhost:8000
+    --endpoint-url http://localhost:8000
 
 # Delete the dev DynamoDB data
 dos-etl reset --env dev
@@ -180,7 +181,7 @@ The load step accepts the following options:
 # Load data from local directory into local DynamoDB
 dos-etl load \
     --env local \
-    --endpoint-uri http://localhost:8000 \
+    --endpoint-url http://localhost:8000 \
     --input /tmp/out/transform.parquet
 
 # Load data from S3 into dev DynamoDB
