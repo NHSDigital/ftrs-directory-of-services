@@ -17,6 +17,7 @@ OAuth
 Octokit
 onboarding
 Podman
+(?i)Pydantic
 Python
 sed
 Syft
