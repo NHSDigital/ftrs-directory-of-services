@@ -1,5 +1,6 @@
-from mangum import Mangum
 from fastapi import FastAPI
+from mangum import Mangum
+
 from healthcare_service.app.router import healthcare
 
 app = FastAPI()
