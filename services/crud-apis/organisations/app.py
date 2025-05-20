@@ -42,7 +42,7 @@ def get_org_id(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     logging.info(f"Organisation: {records}")
-    return JSONResponse(status_code=200, content=records)
+    return JSONResponse(status_code=200, content={"id": records[0]})
 
 
 @app.put("/{organisation_id}", summary="Update an organisation.")

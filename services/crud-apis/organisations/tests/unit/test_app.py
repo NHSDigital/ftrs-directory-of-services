@@ -226,15 +226,15 @@ def test_update_organisation_internal_server_error(
 @patch("organisations.app.get_repository")
 def test_get_org_by_ods_code_success(mock_get_repository: MagicMock) -> None:
     mock_repository = MagicMock()
-    mock_repository.get_by_ods_code.return_value = {"id": "ods_12345"}
+    mock_repository.get_by_ods_code.return_value = ["uuid"]
     mock_get_repository.return_value = mock_repository
 
-    response = get_org_id("uuid", AppSettings(ENVIRONMENT="test"))
+    response = get_org_id("ods_code", AppSettings(ENVIRONMENT="test"))
 
-    mock_repository.get_by_ods_code.assert_called_once_with("uuid")
+    mock_repository.get_by_ods_code.assert_called_once_with("ods_code")
 
     assert str(response.status_code) == "200"
-    assert response.body.decode("utf-8") == '{"id":"ods_12345"}'
+    assert response.body.decode("utf-8") == '{"id":"uuid"}'
 
 
 @patch("organisations.app.get_repository")
