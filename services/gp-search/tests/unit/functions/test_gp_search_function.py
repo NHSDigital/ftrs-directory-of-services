@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
@@ -93,12 +93,7 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(event["odsCode"])
         mock_logger.append_keys.assert_called_once_with(ods_code=ods_code)
-        mock_logger.info.assert_has_calls(
-            [
-                call("Successfully processed"),
-                call("Returning response", extra={"response": response}),
-            ]
-        )
+        mock_logger.info.assert_called_once_with("Successfully processed")
 
         assert_response(
             response, expected_status_code=200, expected_body=bundle.model_dump_json()
@@ -117,12 +112,7 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with("ABC123")
         mock_logger.append_keys.assert_called_once_with(ods_code="ABC123")
-        mock_logger.info.assert_has_calls(
-            [
-                call("Successfully processed"),
-                call("Returning response", extra={"response": response}),
-            ]
-        )
+        mock_logger.info.assert_called_once_with("Successfully processed")
 
         assert_response(
             response, expected_status_code=200, expected_body=bundle.model_dump_json()
@@ -180,9 +170,6 @@ class TestLambdaHandler:
             "Schema validation error occurred",
             exc_info=mock_error_util.create_resource_validation_error.call_args[0][0],
         )
-        mock_logger.info.assert_called_once_with(
-            "Returning response", extra={"response": response}
-        )
 
         assert_response(
             response,
@@ -208,9 +195,6 @@ class TestLambdaHandler:
 
         mock_logger.append_keys.assert_called_once_with(ods_code=event["odsCode"])
         mock_logger.exception.assert_called_once_with("Internal server error occurred")
-        mock_logger.info.assert_called_once_with(
-            "Returning response", extra={"response": response}
-        )
 
         assert_response(
             response,

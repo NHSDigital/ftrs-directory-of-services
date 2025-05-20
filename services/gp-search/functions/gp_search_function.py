@@ -31,17 +31,14 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
     except SchemaValidationError as exception:
         logger.warning("Schema validation error occurred", exc_info=exception)
         fhir_resource = error_util.create_resource_validation_error(exception)
-        response = create_response(422, fhir_resource)
+        return create_response(422, fhir_resource)
     except Exception:
         logger.exception("Internal server error occurred")
         fhir_resource = error_util.create_resource_internal_server_error()
-        response = create_response(500, fhir_resource)
+        return create_response(500, fhir_resource)
     else:
         logger.info("Successfully processed")
-        response = create_response(200, fhir_resource)
-
-    logger.info("Returning response", extra={"response": response})
-    return response
+        return create_response(200, fhir_resource)
 
 
 def normalize_event(event: dict) -> dict:
