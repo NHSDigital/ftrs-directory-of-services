@@ -32,8 +32,7 @@ lint:
 
 test: unit-test
 
-unit-test:
-	poetry run pytest organisations/tests/unit
+unit-test: coverage
 
 coverage:
 	poetry run pytest --cov-report xml:${SERVICE}-coverage-summary.xml organisations/tests/unit

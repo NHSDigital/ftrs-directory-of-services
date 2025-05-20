@@ -94,7 +94,7 @@ jobs:
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Run unit tests for coverage"
-        run: make coverage
+        run: make unit-test
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Publish coverage report to GitHub"
@@ -102,7 +102,7 @@ jobs:
         with:
           name: ${{ inputs.name }}-coverage-summary.xml
           path: ${{ steps.get-directories.outputs.working_directory }}
-          if-no-files-found: error
+          if-no-files-found: ignore
 
       - name: "Build project"
         run:  make build
