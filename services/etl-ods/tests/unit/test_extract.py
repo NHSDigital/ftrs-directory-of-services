@@ -57,9 +57,9 @@ def test_make_request_request_exception(
 
 
 @patch("pipeline.extract.requests.get")
-@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001"})
+@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001/"})
 def test_make_request_organisation_api_404_error(
-    mock_get: MagicMock, caplog: pytest.LogCaptureFixture
+    mock_get: MagicMock,
 ) -> None:
     mock_response = MagicMock()
     mock_response.status_code = 404
