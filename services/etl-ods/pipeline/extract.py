@@ -20,7 +20,7 @@ def make_request(url: str, params: dict = None, timeout: int = 20) -> dict:
         if response.status_code == NOT_FOUND and url.startswith(
             os.environ["ORGANISATION_API_URL"]
         ):
-            err_msg = "Organisatoin not found"
+            err_msg = "Organisation not found in database"
             logger.warning(err_msg)
             raise ValueError(err_msg)
         logger.warning(
@@ -107,7 +107,7 @@ def extract_organisation_data(payload: dict) -> dict:
         "Contact": extract_contact(payload),
     }
     for key, value in result.items():
-        if value is None:
+        if value is None and key != "Contact":
             logger.warning(f"Missing key in organisation payload: {key}")
     return result
 

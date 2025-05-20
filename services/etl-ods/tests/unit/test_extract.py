@@ -69,7 +69,7 @@ def test_make_request_organisation_api_404_error(
     mock_get.return_value = mock_response
 
     url = "https://localhost:8001/ods_code/ABC123"
-    with pytest.raises(ValueError, match="Organisatoin not found"):
+    with pytest.raises(ValueError, match="Organisation not found in database"):
         make_request(url)
 
     mock_get.assert_called_once_with(url, params=None, timeout=20)
