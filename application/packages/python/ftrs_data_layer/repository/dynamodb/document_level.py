@@ -100,3 +100,18 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             ExpressionAttributeNames={"#val": "value"},
         )
         return [record.id for record in records]
+
+    def find_all(self) -> list[ModelType]:
+        """
+        Retrieve all items from the DynamoDB table.
+        """
+        items = []
+        response = self.table.scan()
+        items.extend(response.get("Items", []))
+
+        # Handle pagination if the LastEvaluatedKey is present
+        while "LastEvaluatedKey" in response:
+            response = self.table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+            items.extend(response.get("Items", []))
+
+        return [self._parse_item(item) for item in items]
