@@ -1,10 +1,10 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from healthcare_service.app.config import get_env_variables
 
 
 @patch("os.getenv")
-def test_env_variables_return_default_values_if_not_set(mock_getenv):
+def test_env_variables_return_default_values_if_not_set(mock_getenv:MagicMock)-> None:
     mock_getenv.side_effect = lambda key, default=None: default
     env_vars = get_env_variables()
     assert env_vars == {
@@ -16,7 +16,7 @@ def test_env_variables_return_default_values_if_not_set(mock_getenv):
 
 
 @patch("os.getenv")
-def test_env_variables_return_correct_values_if_set(mock_getenv):
+def test_env_variables_return_correct_values_if_set(mock_getenv:MagicMock)-> None:
     mock_getenv.side_effect = lambda key, default=None: {
         "ENVIRONMENT": "production",
         "WORKSPACE": "team1",
