@@ -1,9 +1,12 @@
 
 from unittest.mock import patch, MagicMock
+
+import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from starlette.responses import JSONResponse
 
-from healthcare_service.app.router.healthcare import router
+from healthcare_service.app.router.healthcare import router, get_healthcare_service_by_id
 
 client = TestClient(router)
 
@@ -23,6 +26,13 @@ def test_get_healthcare_service_id_returns_404_if_not_found(mock_get_service):
     assert response.status_code == 404
     assert response.json() == {"message": "Healthcare Service not found"}
 
+def test_get_healthcare_service_id_raises_http_exception_for_invalid_id():
+ with patch("healthcare_service.app.router.healthcare.get_healthcare_service_by_id") as mock_get_service:
+    mock_get_service.side_effect = HTTPException(status_code=404, detail="Healthcare Service not found")
+    with pytest.raises(HTTPException) as exc_info:
+        get_healthcare_service_by_id("invalid-id")
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.detail == "Invalid service_id format. Must be a valid UUID"
 
 @patch("healthcare_service.app.router.healthcare.get_healthcare_service_repository")
 def test_get_all_healthcare_services_returns_all_services(mock_repository):
