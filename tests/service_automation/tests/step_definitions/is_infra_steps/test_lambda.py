@@ -70,12 +70,32 @@ def lambda_empty_response(fLambda_payload):
     assert response["entry"] == []
 
 
-@then(parsers.parse('the lambda returns the error message "{error_message}" with status code "{status_code}"'))
-def lambda_error_message(fLambda_payload, error_message, status_code):
+@then(parsers.parse('the lambda returns the error code "{error_code}"'))
+def lambda_error_code(fLambda_payload, error_code):
     response = json.loads(fLambda_payload["body"])
-    assert fLambda_payload["statusCode"] == 500
-    assert response["issue"][0]["details"]["coding"][0]["code"] == "INTERNAL_SERVER_ERROR" and \
-    response["issue"][0]["details"]["coding"][0]["display"] == error_message
+    logger.info(f"Response: {response}")
+    assert response["issue"][0]["details"]["coding"][0]["code"] == error_code
+
+
+@then(parsers.parse('the lambda returns the status code "{status_code}"'))
+def lambda_status_code(fLambda_payload, status_code):
+    response = json.loads(fLambda_payload["body"])
+    logger.info(f"Response: {response}")
+    assert fLambda_payload["statusCode"] == int(status_code)
+
+
+@then(parsers.parse('the lambda returns the message "{error_message}"'))
+def lambda_error_message(fLambda_payload, error_message):
+    response = json.loads(fLambda_payload["body"])
+    logger.info(f"Response: {response}")
+    assert response["issue"][0]["details"]["text"] == error_message
+
+
+@then(parsers.parse('the lambda returns the diagnostics "{diagnostics}"'))
+def lambda_diagnostics(fLambda_payload, diagnostics):
+    response = json.loads(fLambda_payload["body"])
+    logger.info(f"Response: {response}")
+    assert response["issue"][0]["diagnostics"] == diagnostics
 
 
 @then('the lambda response does not contain an endpoint resource')
