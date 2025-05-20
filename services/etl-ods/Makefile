@@ -30,10 +30,10 @@ lint:
 	poetry run ruff check
 	poetry run ruff format --check
 
-test: exit
+test: unit-test
 
 unit-test:
-	exit
+	poetry run pytest tests/unit
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)

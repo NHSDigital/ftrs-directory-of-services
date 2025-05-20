@@ -4,8 +4,6 @@ from urllib.parse import urlparse
 
 import requests
 
-from pipeline.validators import ContactItem
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -23,12 +21,12 @@ def make_request(url: str, params: dict = None, timeout: int = 20) -> dict:
             os.environ["ORGANISATION_API_URL"]
         ):
             raise ValueError("Test")
-        logger.info(
+        logger.warning(
             f"HTTP error occurred: {http_err} - Status Code: {response.status_code}"
         )
         raise
     except requests.exceptions.RequestException as e:
-        logger.info(f"Request to {url} failed: {e}")
+        logger.warning(f"Request to {url} failed: {e}")
         raise
 
 
@@ -60,7 +58,9 @@ def fetch_organisation_data(ods_code: str) -> str:
     response = make_request(ods_org_data_uri)
     organisation = response.get("Organisation", [])
     if not organisation:
-        logger.warning("No organisations found in the response.")
+        logger.warning(
+            f"No organisation found in the response for the given ODS code {ods_code}"
+        )
 
     return organisation
 
@@ -97,57 +97,49 @@ def fetch_organisation_uuid(ods_code: str) -> str:
 
 
 def extract_organisation_data(payload: dict) -> dict:
-    try:
-        return {
-            "Name": payload.get("Name"),
-            "Status": payload.get("Status"),
-            "Roles": payload.get("Roles"),
-            "Contacts": extract_contact(payload),
-        }
-    except AttributeError as e:
-        logger.info(f"Organisation payload extraction failed: {e}")
-        raise
+    result = {
+        "Name": payload.get("Name"),
+        "Status": payload.get("Status"),
+        "Roles": payload.get("Roles"),
+        "Contact": extract_contact(payload),
+    }
+    for key, value in result.items():
+        if value is None:
+            logger.warning(f"Missing key in organisation payload: {key}")
+    return result
 
 
 def extract_display_name(payload: dict) -> str | None:
     roles = payload.get("Roles")
-    try:
-        for role in roles:
-            if role.get("primaryRole") == "true":
-                return {"displayName": role.get("displayName")}
-    except AttributeError as e:
-        logger.info(f"Roles payload extraction failed: {e}")
-        raise
+
+    if not isinstance(roles, list):
+        err_msg = "Roles payload extraction failed: role is not a list"
+        logger.warning(err_msg)
+        raise TypeError(err_msg)
+
+    for role in roles:
+        if not isinstance(role, dict):
+            logger.warning(f"Invalid role format: {role}")
+            continue
+        if role.get("primaryRole") == "true":
+            return {"displayName": role.get("displayName")}
 
 
 def extract_contact(payload: dict) -> dict | None:
     contacts = payload.get("Contacts", {}).get("Contact", [])
-    try:
-        if not contacts:
-            return None
-        for contact in contacts:
-            if contact.get("type") == "tel":
-                return {"type": "tel", "value": contact.get("value")}
-    except AttributeError as e:
-        logger.info(f"Contact payload extraction failed: {e}")
-        raise
-
-
-def extract_telecom(contacts: list[ContactItem]) -> str | None:
-    try:
-        for contact in contacts:
-            print(contact)
-            if contact.type == "tel":
-                return contact.value
-    except AttributeError as e:
-        logger.info(f"Telecom payload extraction failed: {e}")
-        raise
+    if not contacts:
+        return None
+    for contact in contacts:
+        if not isinstance(contact, dict):
+            logger.warning(f"Invalid contact format: {contact}")
+        if contact.get("type") == "tel":
+            return {"type": "tel", "value": contact.get("value")}
 
 
 def extract_ods_code(link: str) -> str:
     try:
         path = urlparse(link).path
         return path.rstrip("/").split("/")[-1]
-    except AttributeError as e:
-        logger.info(f"ODS code extraction failed: {e}")
+    except Exception as e:
+        logger.warning(f"ODS code extraction failed: {e}")
         raise

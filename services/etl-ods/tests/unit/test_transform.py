@@ -10,15 +10,15 @@ from pipeline.validators import (
 
 
 def setup_organisation_data(
-    status: str, contacts: ContactItem, roles: RoleItem
+    status: str, contact: ContactItem, roles: RoleItem
 ) -> OrganisationValidator:
-    test_contacts = contacts
+    test_contacts = contact
     test_roles = RoleList(Role=roles)
 
     return OrganisationValidator(
         Name="Test Organisation",
         Status=status,
-        Contacts=test_contacts,
+        Contact=test_contacts,
         Roles=test_roles,
     )
 
@@ -28,16 +28,14 @@ def setup_role_data(display_name: str) -> RolesValidator:
 
 
 def test_transfrom_into_payload_activity_active() -> None:
-    contact_items = [
-        ContactItem(type=ContactTypeEnum.tel, value="123456789"),
-    ]
+    contact = ContactItem(type=ContactTypeEnum.tel, value="123456789")
+
     role_items = [
         RoleItem(id="1", primaryRole=True),
     ]
 
-    organisation_data = setup_organisation_data("Active", contact_items, role_items)
+    organisation_data = setup_organisation_data("Active", contact, role_items)
     role_data = setup_role_data("Primary Role")
-    print(organisation_data)
     expected_payload = {
         "active": True,
         "name": "Test Organisation",
@@ -47,19 +45,16 @@ def test_transfrom_into_payload_activity_active() -> None:
     }
 
     result = transfrom_into_payload(organisation_data, role_data)
-    print(result)
     assert result == expected_payload
 
 
 def test_transfrom_into_payload_activity_inactive() -> None:
-    contact_items = [
-        ContactItem(type=ContactTypeEnum.tel, value="123456789"),
-    ]
+    contact = ContactItem(type=ContactTypeEnum.tel, value="123456789")
     role_items = [
         RoleItem(id="RO123", primaryRole=True),
     ]
 
-    organisation_data = setup_organisation_data("Inactive", contact_items, role_items)
+    organisation_data = setup_organisation_data("Inactive", contact, role_items)
     role_data = setup_role_data("Primary Role")
 
     expected_payload = {
@@ -75,12 +70,12 @@ def test_transfrom_into_payload_activity_inactive() -> None:
 
 
 def test_transfrom_into_payload_no_contacts() -> None:
-    contact_items = []
+    contact = None
     role_items = [
         RoleItem(id="RO123", primaryRole=True),
     ]
 
-    organisation_data = setup_organisation_data("Active", contact_items, role_items)
+    organisation_data = setup_organisation_data("Active", contact, role_items)
     role_data = setup_role_data("Primary Role")
 
     expected_payload = {

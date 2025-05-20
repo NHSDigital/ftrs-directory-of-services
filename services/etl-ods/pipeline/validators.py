@@ -33,7 +33,6 @@ class ContactItem(BaseModel):
     def strip_whitespace(cls, values: dict) -> dict:
         if isinstance(values, dict) and "value" in values:
             values["value"] = values["value"].replace(" ", "")
-            print(values["value"])
         return values
 
     @model_validator(mode="after")
@@ -41,16 +40,6 @@ class ContactItem(BaseModel):
         if self.type == "tel" and len(self.value) > MAX_ODS_TEL_LENGTH:
             raise ValueError("20")
         return self
-
-
-class ContactList(BaseModel):
-    """
-    Validator class for a list of contact items.
-    """
-
-    Contact: list[ContactItem] = Field(
-        ..., description="List of contact methods associated with the organisation."
-    )
 
 
 class RoleItem(BaseModel):
@@ -83,8 +72,8 @@ class OrganisationValidator(BaseModel):
     Roles: RoleList = Field(
         ..., description="List of roles associated with the organisation."
     )
-    Contacts: list[ContactItem] | None = Field(
-        ..., description="List of contacts methods associated with the organisation."
+    Contact: ContactItem | None = Field(
+        ..., description="Telephone contact associated with the organisation."
     )
 
 
@@ -93,12 +82,12 @@ class RolesValidator(BaseModel):
     Validator class for ingested roles data.
     """
 
-    displayName: str = Field(max_length=100, description="Displat name of the role.")
+    displayName: str = Field(max_length=100, description="Display name of the role.")
 
 
 def validate_payload(payload: dict, model: BaseModel) -> dict:
     try:
         return model(**payload)
     except ValidationError as e:
-        logger.info(f"Payload validation failed: {e}")
+        logger.warning(f"Payload validation failed: {e}")
         raise

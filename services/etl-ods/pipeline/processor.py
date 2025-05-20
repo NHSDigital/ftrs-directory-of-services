@@ -48,9 +48,11 @@ def processor(
             process_organisation(organisation_ods_code)
 
     except requests.exceptions.RequestException as e:
-        logger.info(f"Error fetching data: {e}")
+        logger.warning(f"Error fetching data: {e}")
+        raise
     except Exception as e:
-        logger.info(f"Unexpected error: {e}")
+        logger.warning(f"Unexpected error: {e}")
+        raise
 
 
 def process_organisation(ods_code: str) -> None:
@@ -85,7 +87,7 @@ def process_organisation(ods_code: str) -> None:
         return json.dumps(request)
 
     except Exception as e:
-        logger.info(f"Error processing organisation with ods_code {ods_code}: {e}")
+        logger.warning(f"Error processing organisation with ods_code {ods_code}: {e}")
 
 
 def lambda_handler(event: any, context: any) -> None:

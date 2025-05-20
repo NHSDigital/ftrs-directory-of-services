@@ -74,7 +74,6 @@ def test_get_outdated_fields(
     payload_data: dict[str, str],
     expected_outdated_fields: dict[str, str],
 ) -> None:
-    print(existing_data)
     organisation = Organisation(**existing_data)
     payload = UpdatePayloadValidator(**payload_data)
     outdated_fields = get_outdated_fields(organisation, payload)

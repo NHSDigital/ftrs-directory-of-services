@@ -9,6 +9,7 @@ from pipeline.validators import (
     RoleList,
     RolesValidator,
     StatusEnum,
+    validate_payload,
 )
 
 
@@ -63,15 +64,13 @@ def test_organisation_validator_valid() -> None:
                 RoleItem(id="456", primaryRole=False),
             ]
         ),
-        Contacts=[
-            ContactItem(type=ContactTypeEnum.tel, value="123456789"),
-            ContactItem(type=ContactTypeEnum.tel, value="987654321"),
-        ],
+        Contact=ContactItem(type=ContactTypeEnum.tel, value="123456789"),
     )
     assert organisation.Name == "Test Organisation"
     assert organisation.Status == StatusEnum.active
     assert str(len(organisation.Roles.Role)) == "2"
-    assert str(len(organisation.Contacts)) == "2"
+    assert organisation.Contact.type == ContactTypeEnum.tel
+    assert organisation.Contact.value == "123456789"
 
 
 def test_organisation_validator_valid_no_contacts() -> None:
@@ -84,9 +83,9 @@ def test_organisation_validator_valid_no_contacts() -> None:
                 RoleItem(id="456", primaryRole=False),
             ]
         ),
-        Contacts=None,
+        Contact=None,
     )
-    assert organisation.Contacts is None
+    assert organisation.Contact is None
 
 
 def test_organisation_validator_valid_non_primary_role_default() -> None:
@@ -99,7 +98,7 @@ def test_organisation_validator_valid_non_primary_role_default() -> None:
                 RoleItem(id="456"),
             ]
         ),
-        Contacts=None,
+        Contact=None,
     )
     assert str(len(organisation.Roles.Role)) == "2"
     assert not organisation.Roles.Role[1].primaryRole
@@ -113,3 +112,31 @@ def test_roles_validator_valid() -> None:
 def test_roles_validator_invalid_display_name_max_length() -> None:  # check min
     with pytest.raises(ValidationError):
         RolesValidator(displayName="A" * 101)
+
+
+def test_validate_payload_missing_required_field() -> None:
+    payload = {
+        "Status": "Active",
+        "Roles": {"Role": [{"id": "RO123", "primaryRole": True}]},
+        "Contact": {"type": "tel", "value": "1234567890"},
+    }
+
+    with pytest.raises(ValidationError) as e:
+        validate_payload(payload, OrganisationValidator)
+
+    assert "Field required" in str(e.value)
+    assert "Name" in str(e.value)
+
+
+def test_validate_payload_logs_error(caplog: pytest.LogCaptureFixture) -> None:
+    payload = {
+        "Name": "Test Organisation",
+        "Status": "Active",
+        "Roles": {"Role": [{"id": "RO123", "primaryRole": True}]},
+        "Contact": {"type": "tel", "value": "1" * 21},
+    }
+
+    with pytest.raises(ValidationError):
+        validate_payload(payload, OrganisationValidator)
+
+    assert "Payload validation failed" in caplog.text
