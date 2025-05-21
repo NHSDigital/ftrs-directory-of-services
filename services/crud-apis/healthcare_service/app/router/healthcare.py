@@ -17,13 +17,13 @@ async def get_healthcare_service_id(
         examples=["00000000-0000-0000-0000-11111111111"],
         description="The UUID of the healthcare service",
     ),
-)-> JSONResponse:
+) -> JSONResponse:
     logging.info(f"Getting healthCare service with ID: {service_id}")
     return get_healthcare_service_by_id(service_id)
 
 
 @router.get("/healthcareservice/")
-async def get_all_healthcare_services()-> JSONResponse:
+async def get_all_healthcare_services() -> JSONResponse:
     logging.info("Getting all healthcare services")
     # Call the repository to get all healthcare services
     return get_healthcare_service_repository().find_all()
