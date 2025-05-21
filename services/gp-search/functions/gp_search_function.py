@@ -1,45 +1,37 @@
-import logging
-import os
-
-import boto3
+from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from aws_xray_sdk.core import patch_all, xray_recorder
-from boto3.dynamodb.conditions import Key
 
-# Patch all supported libraries for X-Ray (includes boto3, requests, etc.)
-patch_all()
+from functions.ftrs_service.ftrs_service import FtrsService
 
-# Setup logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-# DynamoDB setup
-dynamodb = boto3.resource("dynamodb")
-table_name = os.environ.get("DYNAMODB_TABLE_NAME")
-table = dynamodb.Table(table_name)
+logger = Logger()
+tracer = Tracer()
 
 
-@xray_recorder.capture("lambda_handler")
+# noinspection PyUnusedLocal
+@logger.inject_lambda_context(log_event=True)
+@tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    logger.info("Received event: %s", event)
+    ods_code = event["odsCode"]
+    logger.append_keys(ods_code=ods_code)
 
-    xray_recorder.put_annotation("Operation", "QueryTable")
-    xray_recorder.put_metadata("TableName", table_name)
+    ftrs_service = FtrsService()
 
-    try:
-        with xray_recorder.in_subsegment("DynamoDBQuery"):
-            response = table.query(
-                IndexName="ods-code-index",
-                KeyConditionExpression=Key("ods-code").eq("P83010"),
-            )
+    fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
+    fhir_resource_type = fhir_resource.get_resource_type()
+    fhir_resource_json = fhir_resource.model_dump_json()
 
-        logger.info(
-            "Fetched %d items from table %s.",
-            len(response.get("Items", [])),
-            table_name,
-        )
-        return {"statusCode": 200, "body": response.get("Items", [])}
-    except Exception as e:
-        logging.exception("Failed to gather items from table")
-        xray_recorder.put_annotation("Error", str(e))
-        return {"statusCode": 500, "body": str(e)}
+    if fhir_resource_type == "Bundle":
+        logger.info("Successfully processed")
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/fhir+json"},
+            "body": fhir_resource_json,
+        }
+
+    else:  # fhir_resource_type must be OperationOutcome
+        logger.error("Error occurred while processing")
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/fhir+json"},
+            "body": fhir_resource_json,
+        }

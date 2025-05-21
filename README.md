@@ -68,7 +68,7 @@ git clone https://github.com/NHSDigital/ftrs-directory-of-services.git
 The following software packages, or their equivalents, are expected to be installed and configured:
 
 - [Docker](https://www.docker.com/) container runtime or a compatible tool, e.g. [Podman](https://podman.io/),
-- [asdf](https://asdf-vm.com/) version manager,
+- [asdf](https://asdf-vm.com/) version manager (ensuring it is [configured for your shell environment](https://asdf-vm.com/guide/getting-started.html#_2-configure-asdf)),
 - [Homebrew](https://brew.sh/) (for macOS),
 - [GNU make](https://www.gnu.org/software/make/) 3.82 or later,
 

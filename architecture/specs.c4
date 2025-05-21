@@ -6,9 +6,38 @@ specification {
   }
   element system
   element container
-  element controller
+  element controller {
+    style {
+      icon tech:python
+    }
+  }
   element component
-  element restapi
+  element restapi {
+    style {
+      icon tech:python
+    }
+  }
+  element lambda {
+    style {
+      icon aws:lambda
+    }
+  }
+  element sqs {
+    style {
+      icon aws:simple-queue-service
+      shape queue
+    }
+  }
+  element gateway {
+    style {
+      icon aws:api-gateway
+    }
+  }
+  element apigeeproxy {
+    style {
+      icon gcp:apigee-api-platform
+    }
+  }
 
   deploymentNode environment {
     technology "AWS"
@@ -23,7 +52,6 @@ specification {
   deploymentNode subnet
   deploymentNode apigateway
   deploymentNode lambda {
-    // Nodes have same styling options
     style {
       color blue
       icon aws:lambda
