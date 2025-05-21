@@ -10,5 +10,4 @@ def get_env_variables() -> dict[str, str]:
         "env": os.getenv("ENVIRONMENT", "local"),
         "workspace": os.getenv("WORKSPACE", None),
         "endpoint_url": os.getenv("ENDPOINT_URL", "http://localhost:8000"),
-        "entity_name": os.getenv("TABLENAME_HC", "healthcare-service"),
     }

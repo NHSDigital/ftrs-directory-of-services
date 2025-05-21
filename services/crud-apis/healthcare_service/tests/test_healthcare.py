@@ -22,7 +22,7 @@ def test_get_healthcare_service_id_returns_service_if_exists(
         "id": "00000000-0000-0000-0000-11111111111",
         "name": "Test Service",
     }
-    response = client.get("/healthcareservice/00000000-0000-0000-0000-11111111111")
+    response = client.get("/00000000-0000-0000-0000-11111111111")
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "id": "00000000-0000-0000-0000-11111111111",
@@ -38,7 +38,7 @@ def test_get_healthcare_service_id_returns_404_if_not_found(
         status_code=HTTPStatus.NOT_FOUND,
         content={"message": "Healthcare Service not found"},
     )
-    response = client.get("/healthcareservice/00000000-0000-0000-0000-11111111111")
+    response = client.get("/00000000-0000-0000-0000-11111111111")
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {"message": "Healthcare Service not found"}
 
@@ -58,15 +58,15 @@ def test_get_healthcare_service_id_raises_http_exception_for_invalid_id() -> Non
         )
 
 
-@patch("healthcare_service.app.router.healthcare.get_healthcare_service_repository")
+@patch("healthcare_service.app.router.healthcare.get_service_repository")
 def test_get_all_healthcare_services_returns_all_services(
     mock_repository: MagicMock,
 ) -> None:
-    mock_repository.return_value.find_all.return_value = [
+    mock_repository.return_value.find.return_value = [
         {"id": "00000000-0000-0000-0000-11111111111", "name": "Service 1"},
         {"id": "00000000-0000-0000-0000-22222222222", "name": "Service 2"},
     ]
-    response = client.get("/healthcareservice/")
+    response = client.get("/")
     assert response.status_code == HTTPStatus.OK
     assert response.json() == [
         {"id": "00000000-0000-0000-0000-11111111111", "name": "Service 1"},
@@ -74,11 +74,11 @@ def test_get_all_healthcare_services_returns_all_services(
     ]
 
 
-@patch("healthcare_service.app.router.healthcare.get_healthcare_service_repository")
+@patch("healthcare_service.app.router.healthcare.get_service_repository")
 def test_get_all_healthcare_services_returns_empty_list_if_no_services(
     mock_repository: MagicMock,
 ) -> None:
-    mock_repository.return_value.find_all.return_value = []
-    response = client.get("/healthcareservice/")
+    mock_repository.return_value.find.return_value = []
+    response = client.get("/")
     assert response.status_code == HTTPStatus.OK
     assert response.json() == []

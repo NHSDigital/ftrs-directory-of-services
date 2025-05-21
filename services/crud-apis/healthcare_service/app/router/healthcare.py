@@ -5,12 +5,16 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.responses import JSONResponse
 
-from healthcare_service.app.services.db_service import get_healthcare_service_repository
+from ftrs_data_layer.models import HealthcareService
+from utils.db_service import get_service_repository
+
+# Constants
+ITEMS_PER_PAGE = 10
 
 router = APIRouter()
 
 
-@router.get("/healthcareservice/{service_id}")
+@router.get("/{service_id}", summary="Get a healthcare service by ID.")
 async def get_healthcare_service_id(
     service_id: Optional[str] = Path(
         ...,
@@ -22,17 +26,21 @@ async def get_healthcare_service_id(
     return get_healthcare_service_by_id(service_id)
 
 
-@router.get("/healthcareservice/")
+@router.get("/", summary="Get all healthcare services.")
 async def get_all_healthcare_services() -> JSONResponse:
     logging.info("Getting all healthcare services")
     # Call the repository to get all healthcare services
-    return get_healthcare_service_repository().find_all()
+    return get_service_repository(HealthcareService, "healthcare-service").find(
+        ITEMS_PER_PAGE
+    )
 
 
 def get_healthcare_service_by_id(service_id: str) -> JSONResponse:
     try:
         UUID(service_id)  # Validate UUID format
-        service = get_healthcare_service_repository().get(service_id)
+        service = get_service_repository(HealthcareService, "healthcare-service").get(
+            service_id
+        )
         if service:
             return service
         else:
