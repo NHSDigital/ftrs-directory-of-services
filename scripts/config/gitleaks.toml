@@ -25,6 +25,7 @@ paths = [
 ]
 regexes = [
   '''=========================================''',
+  '''(.*)017000801446(.*)''', # Old Lambda Layer ARN no longer in use
   '''(.*)057560766410(.*)''', # Allow AWS account number for Lambda Layers
   '''(.*)336392948345(.*)''',
   '''(.*)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'''
