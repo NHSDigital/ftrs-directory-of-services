@@ -11,3 +11,4 @@ pyyaml==6.0.2                  # For YAML-based configuration management
 loguru==0.6.0                  # For better logging management (optional)
 boto3==1.37.6                # AWS SDK for Python
 pytest-playwright==0.7.0  # Pytest Playwright for UI test
+openapi-spec-validator==0.7.1  # For validating OpenAPI specifications

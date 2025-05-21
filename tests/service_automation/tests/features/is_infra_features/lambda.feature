@@ -6,28 +6,33 @@ Background: Check lambda function exists
 
 
   Scenario: The lambda returns a response that contains the ods code
-  When I invoke the lambda with the ods code "P83010"
-  Then the lambda response contains the ods code "P83010"
+  When I invoke the lambda with the ods code "M81046"
+  Then the lambda response contains the ods code "M81046"
+  And the lambda response contains the endpoint id "b1578130-52ee-4eeb-9458-e676f55e1a0b"
 
+
+#-------------------schema and structure tests-------------------
 
   Scenario: The lambda returns a valid response against the schema
-  When I invoke the lambda with the ods code "P83010"
+  When I invoke the lambda with the ods code "M81046"
   Then the response is valid against the schema
   And the lambda response contains a bundle
   And the lambda response contains an organization resource
   And the lambda response contains an endpoint resource
 
+
   Scenario: The Lambda response contains a bundle
-  When I invoke the lambda with the ods code "P83010"
+  When I invoke the lambda with the ods code "N81063"
   Then the lambda response contains a bundle
 
+
   Scenario: The Lambda response contains an organization resource
-  When I invoke the lambda with the ods code "P83010"
+  When I invoke the lambda with the ods code "N81063"
   Then the lambda response contains an organization resource
 
 
   Scenario: The Lambda response contains an endpoint resource
-  When I invoke the lambda with the ods code "P83010"
+  When I invoke the lambda with the ods code "N81063"
   Then the lambda response contains an endpoint resource
 
 
@@ -43,14 +48,30 @@ Background: Check lambda function exists
   And the lambda response contains "2" endpoint resource
 
 
-  Scenario: A lowercase odscode is accepted and returns the a response for the same odsCode
-  When I invoke the lambda with the ods code "p83010"
-  Then the lambda response contains the ods code "P83010"
-
-
   Scenario: For an odsCode that does not exist an empty bundle will be returned
   When I invoke the lambda with the ods code "12345"
   Then the lambda response contains an empty bundle
+
+
+  Scenario: A lowercase odscode is accepted and returns a response for the same odsCode
+  When I invoke the lambda with the ods code "p83010"
+  Then the lambda response contains the ods code "P83010"
+
+#-------------------validation tests------------------
+
+@test
+  Scenario: Invoke lambda with an ods code of a length of 12 and a valid response is returned
+  When I invoke the lambda with the ods code "abcdefGHIJ12"
+  Then the lambda response contains the ods code "abcdefGHIJ12"
+
+@test
+  Scenario: Invoke lambda with an ods code of a length of 5 and a valid response is returned
+  When I invoke the lambda with the ods code "E8104"
+  Then the lambda response contains the ods code "E8104"
+
+    Scenario: The Lambda response contains a bundle
+  When I invoke the lambda with the ods code "P83010"
+  Then the lambda response contains a bundle
 
   Scenario: Invoke lambda with an ods code set to "" and a validation error is returned
   When I invoke the lambda with the ods code value not set

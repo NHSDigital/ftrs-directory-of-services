@@ -1,11 +1,11 @@
 import pytest
 import boto3
 import json
-from jsonschema import validate
+from openapi_schema_validator import validate
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper
-from utilities.common.schema_validator import oas_spec
+from utilities.common.schema_loader import oas_spec
 
 
 # Load feature file
@@ -62,6 +62,13 @@ def lambda_ods_code(fLambda_payload, odscode):
     assert response["entry"][0]["resource"]["identifier"][0]["system"] =="https://fhir.nhs.uk/Id/ods-organization-code" and \
         response["entry"][0]["resource"]["identifier"][0]["value"] == odscode
 
+@then(parsers.parse('the lambda response contains the endpoint id "{endpoint_id}"'))
+def lambda_endpoint_id(fLambda_payload, endpoint_id):
+    response = json.loads(fLambda_payload["body"])
+    logger.info(f"Response: {response}")
+    assert fLambda_payload["statusCode"] == 200
+    assert response["entry"][1]["resource"]["resourceType"] == "Endpoint" and \
+        response["entry"][1]["resource"]["id"] == endpoint_id
 
 @then(parsers.parse('the lambda response contains an empty bundle'))
 def lambda_empty_response(fLambda_payload):
@@ -161,8 +168,6 @@ def lambda_number_endpoints(fLambda_payload, num_endpoints):
         )
     assert fLambda_payload["statusCode"] == 200
     assert number_endpoints == int(num_endpoints)
-
-
 
 
 @then('the response is valid against the schema')
