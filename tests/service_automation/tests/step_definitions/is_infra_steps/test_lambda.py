@@ -99,7 +99,7 @@ def lambda_diagnostics(fLambda_payload, diagnostics):
 
 
 @then('the lambda response contains a bundle')
-def lambda_check_endpoints(fLambda_payload):
+def lambda_check_bundle(fLambda_payload):
     response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == 200
     assert response["resourceType"] == "Bundle"
@@ -108,7 +108,7 @@ def lambda_check_endpoints(fLambda_payload):
 @then('the lambda response contains an endpoint resource')
 def lambda_check_endpoints(fLambda_payload):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")"
+    logger.info(f"Response: {response}")
     endpoint_exists = any(
         entry.get("resource", {}).get("resourceType") == "Endpoint"
         for entry in response.get("entry", [])
@@ -138,6 +138,31 @@ def lambda_no_endpoints(fLambda_payload):
     assert fLambda_payload["statusCode"] == 200
     assert len(response["entry"]) == 1
     assert endpoint_exists is False
+
+
+@then(parsers.parse('the lambda response contains only "{num_orgs}" organization resource'))
+def lambda_number_orgs(fLambda_payload, num_orgs):
+    response = json.loads(fLambda_payload["body"])
+    number_orgs = sum(
+        entry.get("resource", {}).get("resourceType") == "Organization"
+        for entry in response.get("entry", [])
+        )
+    assert fLambda_payload["statusCode"] == 200
+    assert number_orgs == int(num_orgs)
+
+
+@then(parsers.parse('the lambda response contains "{num_endpoints}" endpoint resource'))
+def lambda_number_endpoints(fLambda_payload, num_endpoints):
+    response = json.loads(fLambda_payload["body"])
+    logger.info(f"Response: {response}")
+    number_endpoints = sum(
+        entry.get("resource", {}).get("resourceType") == "Endpoint"
+        for entry in response.get("entry", [])
+        )
+    assert fLambda_payload["statusCode"] == 200
+    assert number_endpoints == int(num_endpoints)
+
+
 
 
 @then('the response is valid against the schema')
