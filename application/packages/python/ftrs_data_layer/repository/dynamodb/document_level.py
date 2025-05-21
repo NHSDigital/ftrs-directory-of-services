@@ -115,3 +115,13 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             items.extend(response.get("Items", []))
 
         return [self._parse_item(item) for item in items]
+
+    def find(self, limit: int) -> list[ModelType]:
+        """
+        Retrieve only the specified number of items from the DynamoDB table.
+        """
+        response = self.table.scan(Limit=limit)
+        items = response.get("Items", [])
+        return [self._parse_item(item) for item in items]
+
+

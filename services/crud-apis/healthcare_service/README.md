@@ -27,7 +27,6 @@ The following environment variables are required for the application to run:
 - `ENVIRONMENT`: The environment in which the application is running (e.g., `local`, `dev`, `prod`).
 - `WORKSPACE`: The workspace name for the application.
 - `ENDPOINT_URL`: The URL of the DynamoDB endpoint (e.g., `http://localhost:8000` for local development).
-- `TABLENAME_HC`: The name of the DynamoDB table for healthcare services.
 
 Set these variables in a local `.env` file or export them in your terminal session.See the `default.env` file for a template.
 
@@ -75,16 +74,18 @@ pytest tests
 2. Run the following command to start the API locally in the **healthcare_service** directory:
 
 ```bash
-make start-healthcare-api
+poetry run start-healthcare-api
 ```
 
 The API will be available at [http://localhost:7000].
 
 ## API Endpoints
 
+The API routing happens at the API gateway level, routing will happen for the /healthcareservice path.
+
 ### Get Healthcare Service by ID
 
-**Endpoint**: GET /healthcareservice/{service_id}
+**Endpoint**: GET /{service_id}
 
 **Description**: Retrieves a healthcare service by its UUID.
 
@@ -95,9 +96,9 @@ The API will be available at [http://localhost:7000].
  400 Bad Request: Invalid UUID format.
  404 Not Found: Service not found.
 
-### Get All Healthcare Services
+### Get All Healthcare Services (Current page limit is set to 10)
 
-**Endpoint**: GET /healthcareservice/
+**Endpoint**: GET /
 
 **Description**: Retrieves all healthcare services.
 
