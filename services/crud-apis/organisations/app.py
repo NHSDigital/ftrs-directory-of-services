@@ -39,6 +39,8 @@ def get_org_id(
     logging.info(f"Organisation: {records}")
     return JSONResponse(status_code=200, content={"id": records[0]})
 
+LIMIT: int = 10
+
 
 @app.put("/{organisation_id}", summary="Update an organisation.")
 def update_organisation(
@@ -106,6 +108,25 @@ def read_organisation(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     return existing_organisation
+
+
+@app.get("/", summary="Read all organisations")
+def readMany_organisations(settings: AppSettings = Depends(get_app_settings)) -> dict:
+    org_repository = get_repository(
+        env=settings.env,
+        workspace=settings.workspace,
+        endpoint_url=settings.endpoint_url,
+    )
+
+    all_existing_organisation = org_repository.get_all(LIMIT)
+
+    if not all_existing_organisation:
+        logging.error("Unable to retrieve all organisations.")
+        raise HTTPException(
+            status_code=404, detail="Unable to retrieve all organisations"
+        )
+
+    return all_existing_organisation
 
 
 def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> str:
