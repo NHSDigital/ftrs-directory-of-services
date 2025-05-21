@@ -10,7 +10,9 @@ from healthcare_service.app.services.db_service import (
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
 @patch("healthcare_service.app.services.db_service.DocumentLevelRepository")
-def test_repository_returns_correct_instance( mockDocumentLevelRepository:MagicMock,mock_get_env_variables:MagicMock)-> None:
+def test_repository_returns_correct_instance(
+    mockDocumentLevelRepository: MagicMock, mock_get_env_variables: MagicMock
+) -> None:
     mock_get_env_variables.return_value = {
         "entity_name": "healthcare",
         "endpoint_url": "http://localhost:8000",
@@ -22,7 +24,9 @@ def test_repository_returns_correct_instance( mockDocumentLevelRepository:MagicM
 
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
-def test_table_name_includes_workspace_if_present(mock_get_env_variables:MagicMock)-> None:
+def test_table_name_includes_workspace_if_present(
+    mock_get_env_variables: MagicMock,
+) -> None:
     mock_get_env_variables.return_value = {
         "entity_name": "healthcare",
         "env": "dev",
@@ -33,7 +37,9 @@ def test_table_name_includes_workspace_if_present(mock_get_env_variables:MagicMo
 
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
-def test_table_name_excludes_workspace_if_absent(mock_get_env_variables:MagicMock)-> None:
+def test_table_name_excludes_workspace_if_absent(
+    mock_get_env_variables: MagicMock,
+) -> None:
     mock_get_env_variables.return_value = {
         "entity_name": "healthcare",
         "env": "dev",
@@ -44,7 +50,9 @@ def test_table_name_excludes_workspace_if_absent(mock_get_env_variables:MagicMoc
 
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
-def test_table_name_handles_empty_entity_name(mock_get_env_variables:MagicMock)-> None:
+def test_table_name_handles_empty_entity_name(
+    mock_get_env_variables: MagicMock,
+) -> None:
     mock_get_env_variables.return_value = {
         "entity_name": "",
         "env": "dev",
@@ -55,7 +63,9 @@ def test_table_name_handles_empty_entity_name(mock_get_env_variables:MagicMock)-
 
 
 @patch("healthcare_service.app.services.db_service.get_env_variables")
-def test_table_name_handles_missing_env_variable(mock_get_env_variables:MagicMock)-> None:
+def test_table_name_handles_missing_env_variable(
+    mock_get_env_variables: MagicMock,
+) -> None:
     mock_get_env_variables.return_value = {}
     with pytest.raises(KeyError):
         get_table_name("healthcare")
