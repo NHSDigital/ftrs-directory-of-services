@@ -2,7 +2,7 @@
 pytest==8.3.4                   # Core test library
 pytest-bdd==8.1.0               # For BDD-style testing using pytest
 playwright==1.50.0              # Playwright for browser automation
-jsonschema==4.17.0              # JSON schema validation library (if needed for response validation)
+jsonschema==4.18.0              # JSON schema validation library (if needed for response validation)
 pytest-html==4.1.1              # For generating HTML reports
 pytest-metadata==3.1.1         # Adds metadata to the test reports
 allure-pytest-bdd==2.13.5         # Allure integration for pytest-bdd test reports
