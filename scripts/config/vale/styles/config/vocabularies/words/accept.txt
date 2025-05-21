@@ -26,3 +26,5 @@ toolchain
 Trufflehog
 (?i)vpc
 (?i)vpn
+healthcare_service
+service_id

@@ -7,6 +7,7 @@ The Healthcare Service API provides endpoints to manage healthcare services. It 
 ## Installation
 
 ### Prerequisites
+
 This project requires Python and Poetry as core dependencies.
 The current versions of these can be found in the `.tool-versions` file, and can be installed using asdf.
 
@@ -18,8 +19,11 @@ Navigate to the `healthcare_service` directory and install the dependencies usin
 cd services/crud-apis/healthcare_service
 poetry install
 ```
+
 ### Environment Variables
+
 The following environment variables are required for the application to run:
+
 - `ENVIRONMENT`: The environment in which the application is running (e.g., `local`, `dev`, `prod`).
 - `WORKSPACE`: The workspace name for the application.
 - `ENDPOINT_URL`: The URL of the DynamoDB endpoint (e.g., `http://localhost:8000` for local development).
@@ -54,7 +58,7 @@ make build
 
 ### Running Tests
 
-Unit tests are run using Pytest. You can use the make target to conveniently run these tests, or run them directly using pytest.
+Unit tests are run using Pytest. You can use the make target to conveniently run these tests or run them directly using pytest.
 
 ```bash
 make unit-test
@@ -64,8 +68,9 @@ pytest tests
 ```
 
 ### Running Lambda Steps Locally
+
 1. Add environment variables see the `default.env` file for a template.
-2.Follow the guidance in services[/data-migration/README.md]() to initialise the dynamo-db table
+2.Follow the guidance in services/data-migration/README.md to initialise the dynamo-db table
   Once the dynamo-db instance is running and tables are created
 2. Run the following command to start the API locally in the **healthcare_service** directory:
 
@@ -76,7 +81,9 @@ make start-healthcare-api
 The API will be available at [http://localhost:7000].
 
 ## API Endpoints
-###  Get Healthcare Service by ID
+
+### Get Healthcare Service by ID
+
 **Endpoint**: GET /healthcareservice/{service_id}
 
 **Description**: Retrieves a healthcare service by its UUID.
@@ -89,6 +96,7 @@ The API will be available at [http://localhost:7000].
  404 Not Found: Service not found.
 
 ### Get All Healthcare Services
+
 **Endpoint**: GET /healthcareservice/
 
 **Description**: Retrieves all healthcare services.
