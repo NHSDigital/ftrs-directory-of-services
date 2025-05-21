@@ -26,12 +26,23 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           multi_domain: false
 
+      - name: "Install project"
+        run: make install
+        working-directory: tests/coverage
+
+      - name: "Download code coverage reports"
+        uses: actions/download-artifact@v4
+        with:
+          name: .*-coverage
+          path: tests/coverage
+
       - name: "Compile code coverage report"
         run:  make collate-coverage
+        working-directory: tests/coverage
 
       - name: "Publish collated code coverage report to GitHub"
         uses: actions/upload-artifact@v4.6.1
         with:
-          name: collated_service_coverage.xml
-          path: ./services/collated_service_coverage.xml
+          name: .coverage
+          path: .tests/coverage/.coverage
           if-no-files-found: error

@@ -97,11 +97,11 @@ jobs:
         run: make unit-test
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
-      - name: "Publish coverage report to GitHub"
+      - name: "Publish coverage data to GitHub"
         uses: actions/upload-artifact@v4.6.1
         with:
-          name: ${{ inputs.name }}-coverage-summary.xml
-          path: ${{ steps.get-directories.outputs.working_directory }}
+          name: .${{ inputs.name }}-coverage
+          path: ${{ steps.get-directories.outputs.working_directory }}.coverage
           if-no-files-found: ignore
 
       - name: "Build project"
