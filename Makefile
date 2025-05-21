@@ -26,11 +26,15 @@ config:: # Configure development environment (main) @Configuration
 	# TODO: Use only 'make' targets that are specific to this project, e.g. you may not need to install Node.js
 	make _install-dependencies
 
+collate-coverage:: # Collate coverage reports from all services @Pipeline
+	/bin/bash scripts/workflow/collate-coverage.sh
+
 # ==============================================================================
 
 ${VERBOSE}.SILENT: \
 	build \
 	clean \
+	collate-coverage \
 	config \
 	dependencies \
 	deploy \

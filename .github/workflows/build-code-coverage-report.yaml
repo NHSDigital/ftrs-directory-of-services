@@ -1,0 +1,37 @@
+name: Build and upload code coverage report
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The deployment environment"
+        required: true
+        type: string
+
+jobs:
+  build-coverage-report:
+    name: "Build collated code coverage report"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          multi_domain: false
+
+      - name: "Compile code coverage report"
+        run:  make collate-coverage
+
+      - name: "Publish collated code coverage report to GitHub"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: collated_service_coverage.xml
+          path: ./services
+          if-no-files-found: error
