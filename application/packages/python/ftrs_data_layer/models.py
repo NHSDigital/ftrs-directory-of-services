@@ -17,6 +17,14 @@ class DBModel(BaseModel):
     modifiedBy: str
     modifiedDateTime: datetime
 
+    @property
+    def indexes(self) -> dict:
+        """
+        Return the indexes for the model.
+        This is a placeholder and should be overridden in subclasses.
+        """
+        return {}
+
     @classmethod
     def from_dos(
         cls,
@@ -43,6 +51,15 @@ class Organisation(DBModel):
     telecom: str | None = None
     type: str
     endpoints: list["Endpoint"] = Field(default_factory=list)
+
+    @property
+    def indexes(self) -> dict:
+        """
+        Return the indexes for the Organisation model.
+        """
+        return {
+            "odscode": self.identifier_ODS_ODSCode,
+        }
 
     @classmethod
     def from_dos(

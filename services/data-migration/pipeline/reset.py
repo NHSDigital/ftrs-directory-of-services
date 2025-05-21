@@ -2,6 +2,7 @@ import logging
 from enum import StrEnum
 from typing import Annotated, List
 
+import boto3
 from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
@@ -49,6 +50,27 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             raise ValueError(err_msg)
 
 
+def create_table(
+    client: boto3.client,
+    table_name: str,
+    key_schema: List[dict],
+    attribute_definitions: List[dict],
+    global_secondary_indexes: List[dict] | None,
+) -> None:
+    table_params = {
+        "TableName": table_name,
+        "KeySchema": key_schema,
+        "AttributeDefinitions": attribute_definitions,
+        "BillingMode": "PAY_PER_REQUEST",
+    }
+
+    if global_secondary_indexes:
+        table_params["GlobalSecondaryIndexes"] = global_secondary_indexes
+
+    client.create_table(**table_params)
+    logging.info(f"Table {table_name} created successfully.")
+
+
 def init_tables(
     endpoint_url: str | None,
     env: TargetEnvironment,
@@ -67,31 +89,48 @@ def init_tables(
         table_name = get_table_name(entity_name, env.value, workspace)
 
         try:
-            client.create_table(
-                TableName=table_name,
-                KeySchema=[
-                    {
-                        "AttributeName": "id",
-                        "KeyType": "HASH",
-                    },
-                    {
-                        "AttributeName": "field",
-                        "KeyType": "RANGE",
-                    },
-                ],
-                AttributeDefinitions=[
-                    {
-                        "AttributeName": "id",
-                        "AttributeType": "S",
-                    },
-                    {
-                        "AttributeName": "field",
-                        "AttributeType": "S",
-                    },
-                ],
-                BillingMode="PAY_PER_REQUEST",
-            )
-            logging.info(f"Table {table_name} created successfully.")
+            if entity_name == "organisation":
+                create_table(
+                    client=client,
+                    table_name=table_name,
+                    key_schema=[
+                        {"AttributeName": "id", "KeyType": "HASH"},
+                        {"AttributeName": "field", "KeyType": "RANGE"},
+                    ],
+                    attribute_definitions=[
+                        {"AttributeName": "id", "AttributeType": "S"},
+                        {"AttributeName": "field", "AttributeType": "S"},
+                        {
+                            "AttributeName": "identifier_ODS_ODSCode",
+                            "AttributeType": "S",
+                        },
+                    ],
+                    global_secondary_indexes=[
+                        {
+                            "IndexName": "OsdCodeValueIndex",
+                            "KeySchema": [
+                                {
+                                    "AttributeName": "identifier_ODS_ODSCode",
+                                    "KeyType": "HASH",
+                                },
+                            ],
+                            "Projection": {"ProjectionType": "ALL"},
+                        }
+                    ],
+                )
+            else:
+                create_table(
+                    client=client,
+                    table_name=table_name,
+                    key_schema=[
+                        {"AttributeName": "id", "KeyType": "HASH"},
+                        {"AttributeName": "field", "KeyType": "RANGE"},
+                    ],
+                    attribute_definitions=[
+                        {"AttributeName": "id", "AttributeType": "S"},
+                        {"AttributeName": "field", "AttributeType": "S"},
+                    ],
+                )
 
         except client.exceptions.ResourceInUseException:
             logging.info(f"Table {table_name} already exists.")

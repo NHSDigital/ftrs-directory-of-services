@@ -13,4 +13,6 @@ module "dynamodb_table" {
   point_in_time_recovery_enabled = var.point_in_time_recovery_enabled
 
   server_side_encryption_enabled = true
+
+  global_secondary_indexes = var.global_secondary_indexes
 }

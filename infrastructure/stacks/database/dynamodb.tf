@@ -9,4 +9,6 @@ module "dynamodb_tables" {
   attributes                     = each.value.attributes
   point_in_time_recovery_enabled = true
   stream_enabled                 = true
+
+  global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
 }

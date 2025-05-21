@@ -45,6 +45,10 @@ def test_organisation() -> None:
         "endpoints": [],
     }
 
+    assert org.indexes == {
+        "odscode": "123456",
+    }
+
 
 @freeze_time("2023-10-01T00:00:00Z")
 def test_organisation_from_dos(mocker: MockerFixture) -> None:
@@ -105,6 +109,10 @@ def test_organisation_from_dos(mocker: MockerFixture) -> None:
                 "status": "active",
             }
         ],
+    }
+
+    assert org.indexes == {
+        "odscode": "12345",
     }
 
 
@@ -186,6 +194,8 @@ def test_healthcare_service() -> None:
         },
     }
 
+    assert hs.indexes == {}
+
 
 @freeze_time("2023-10-01T00:00:00Z")
 def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
@@ -236,6 +246,8 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
         },
         "type": "GP Practice",
     }
+
+    assert hs.indexes == {}
 
 
 def test_location() -> None:
@@ -333,6 +345,8 @@ def test_location_from_dos(mocker: MockerFixture) -> None:
         "primaryAddress": True,
     }
 
+    assert hs.indexes == {}
+
 
 def test_endpoint() -> None:
     endpoint = Endpoint(
@@ -413,6 +427,8 @@ def test_endpoint_from_dos() -> None:
         "order": 1,
     }
 
+    assert endpoint.indexes == {}
+
 
 @freeze_time("2023-10-01T00:00:00Z")
 def test_endpoint_from_dos_telno_transport() -> None:
@@ -449,6 +465,8 @@ def test_endpoint_from_dos_telno_transport() -> None:
         "address": "01234567890",
         "order": 1,
     }
+
+    assert endpoint.indexes == {}
 
 
 def test_telecom() -> None:
