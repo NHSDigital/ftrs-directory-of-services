@@ -4,8 +4,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.responses import JSONResponse
-
 from ftrs_data_layer.models import HealthcareService
+
 from utils.db_service import get_service_repository
 
 # Constants
