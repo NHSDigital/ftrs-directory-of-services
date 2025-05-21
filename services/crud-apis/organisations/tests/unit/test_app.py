@@ -260,7 +260,7 @@ def test_read_organisation_not_found(
     mock_get_repository.return_value = mock_repo
 
     with pytest.raises(HTTPException) as e:
-        read_organisation(uuid4(), AppSettings(ENVIRONMENT="test"))
+        read_organisation("notARealID", AppSettings(ENVIRONMENT="test"))
 
     assert str(e.value.status_code) == "404"
     assert str(e.value.detail) == "Organisation not found"

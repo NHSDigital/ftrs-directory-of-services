@@ -78,7 +78,7 @@ def update_organisation(
     )
 
 
-@app.get("/{organisation_id}", summary="Read an organisation")
+@app.get("/{organisation_id}", summary="Read a single organisation by id")
 def read_organisation(
     organisation_id: UUID = Path(
         ...,
