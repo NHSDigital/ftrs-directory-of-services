@@ -14,5 +14,5 @@ dynamodb_organisation_table_name = "ftrs-dos-dev-database-organisation-is"
 
 # Dependency layers
 aws_lambda_layers = [
-  "arn:aws:lambda:eu-west-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"
+  "arn:aws:serverlessrepo:eu-west-1:057560766410:applications/aws-lambda-powertools-python-layer-v3-python312-x86-64"
 ]
