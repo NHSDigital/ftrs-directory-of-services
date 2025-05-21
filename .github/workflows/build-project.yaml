@@ -103,6 +103,7 @@ jobs:
           name: .${{ inputs.name }}-coverage
           path: .coverage
           if-no-files-found: ignore
+          include-hidden-files: true
 
       - name: "Build project"
         run:  make build
