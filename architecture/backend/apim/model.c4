@@ -7,18 +7,12 @@ model {
       color muted
     }
 
-    component dosReadProxy "DoS Read Proxy" {
+    apigeeproxy dosReadProxy "DoS Read Proxy" {
       description 'Proxy to read data from DoS'
-      style {
-        icon gcp:apigee-api-platform
-      }
     }
 
-    component dosWriteProxy "DoS Write Proxy" {
+    apigeeproxy dosWriteProxy "DoS Write Proxy" {
       description 'Proxy to write data to DoS'
-      style {
-        icon gcp:apigee-api-platform
-      }
     }
   }
 }

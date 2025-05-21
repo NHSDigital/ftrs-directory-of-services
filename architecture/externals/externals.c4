@@ -66,5 +66,5 @@ model {
   ps2 -> apim.dosReadProxy "Queries DoS"
   du -> apim.dosWriteProxy "Updates DoS"
   pm -> apim.dosReadProxy "Queries DoS"
-  bsa -> ftrs.sourcingEtlProcessor "Data pulled from"
+  ftrs.sourcingEtlProcessor -> bsa "Data pulled from"
 }

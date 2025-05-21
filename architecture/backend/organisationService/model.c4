@@ -1,56 +1,37 @@
 model {
 
   extend ftrs {
+    container externalAPIs "Externally Facing APIs" {
+      description 'APIs for internal use only'
 
-    restapi organisationAPI "FTRS Organisation API" {
-      description '
-        Implements query business logic
-        and exposes as REST API
-      '
-      style {
-        icon tech:python
-      }
-
-      controller orgController "Queries" {
-        description 'Processes any queries on FTRS data'
-        style {
-          icon tech:python
-        }
-        component orgByOdsCode "Get Organisation by ODS Code" {
-          description 'Retrieves organisation data by ODS code'
-          style {
-            icon aws:lambda
-          }
-        }
-      }
-
-      controller updateOrgController "Commands" {
-        description 'Processes any organisation updates on FTRS data'
-        style {
-          icon aws:lambda
-        }
-
-        component addOrg "Add new Organisation" {
-          description 'Adds a new organisation to the FTRS database'
-          style {
-            icon aws:lambda
+      restapi organisationAPI "FTRS Organisation API" {
+        description '
+          Implements query business logic
+          and exposes as REST API
+        '
+        controller orgController "Queries" {
+          description 'Processes any queries on FTRS data'
+          lambda orgByOdsCode "Get Organisation by ODS Code" {
+            description 'Retrieves organisation data by ODS code'
           }
         }
 
-        component updateOrg "Update Organisation" {
-          description 'Updates an existing organisation in the FTRS database'
-          style {
-            icon aws:lambda
-          }
-        }
+        controller updateOrgController "Commands" {
+          description 'Processes any organisation updates on FTRS data'
 
-        component deleteOrg "Delete Organisation" {
-          description 'Deletes an existing organisation from the FTRS database'
-          style {
-            icon aws:lambda
+          lambda addOrg "Add new Organisation" {
+            description 'Adds a new organisation to the FTRS database'
           }
-        }
 
+          lambda updateOrg "Update Organisation" {
+            description 'Updates an existing organisation in the FTRS database'
+          }
+
+          lambda deleteOrg "Delete Organisation" {
+            description 'Deletes an existing organisation from the FTRS database'
+          }
+
+        }
       }
     }
   }
@@ -59,14 +40,14 @@ model {
   apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
   apim.dosWriteProxy -> ftrs.apiGateway "Proxies calls to"
 
-  ftrs.apiGateway -> addOrg "Proxies calls to"
-  ftrs.apiGateway -> updateOrg "Proxies calls to"
-  ftrs.apiGateway -> deleteOrg "Proxies calls to"
+  ftrs.apiGateway -> addOrg "Proxies add calls to"
+  ftrs.apiGateway -> updateOrg "Proxies update calls to"
+  ftrs.apiGateway -> deleteOrg "Proxies delete calls to"
 
   apim.dosReadProxy -> ftrs.apiGateway "Proxies calls to"
-  ftrs.apiGateway -> orgByOdsCode "Proxies calls to"
+  ftrs.apiGateway -> orgByOdsCode "Proxies read calls to"
 
-  orgByOdsCode -> ftrs.db.orgTable "Queries"
+  orgByOdsCode -> ftrs.db.orgTable "Queries data from"
 
   addOrg -> ftrs.assuranceQueue "Enqueues in"
   updateOrg -> ftrs.assuranceQueue "Enqueues in"
