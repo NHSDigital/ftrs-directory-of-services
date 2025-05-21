@@ -111,11 +111,3 @@ resource "aws_ssm_parameter" "organisation_api_function_url" {
   type        = "String"
   value       = aws_lambda_function_url.organisation_api.function_url
 }
-
-resource "aws_lambda_permission" "allow_access_to_lambda" {
-  statement_id  = "AllowSpecificLambdaInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = module.organisation_api_lambda.lambda_function_name
-  principal     = "lambda.amazonaws.com"
-  source_arn    = "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${var.project}-${var.environment}-etl-ods-processor-lambda${local.workspace_suffix}"
-}
