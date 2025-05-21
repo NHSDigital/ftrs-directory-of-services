@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4.6.1
         with:
           name: .${{ inputs.name }}-coverage
-          path: .coverage
+          path: ${{ steps.get-directories.outputs.working_directory }}/.coverage
           if-no-files-found: ignore
           include-hidden-files: true
 
