@@ -65,7 +65,6 @@ def lambda_ods_code(fLambda_payload, odscode):
 @then(parsers.parse('the lambda response contains the endpoint id "{endpoint_id}"'))
 def lambda_endpoint_id(fLambda_payload, endpoint_id):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
     assert fLambda_payload["statusCode"] == 200
     assert response["entry"][1]["resource"]["resourceType"] == "Endpoint" and \
         response["entry"][1]["resource"]["id"] == endpoint_id
@@ -80,28 +79,24 @@ def lambda_empty_response(fLambda_payload):
 @then(parsers.parse('the lambda returns the error code "{error_code}"'))
 def lambda_error_code(fLambda_payload, error_code):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
     assert response["issue"][0]["details"]["coding"][0]["code"] == error_code
 
 
 @then(parsers.parse('the lambda returns the status code "{status_code}"'))
 def lambda_status_code(fLambda_payload, status_code):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
     assert fLambda_payload["statusCode"] == int(status_code)
 
 
 @then(parsers.parse('the lambda returns the message "{error_message}"'))
 def lambda_error_message(fLambda_payload, error_message):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
     assert response["issue"][0]["details"]["text"] == error_message
 
 
 @then(parsers.parse('the lambda returns the diagnostics "{diagnostics}"'))
 def lambda_diagnostics(fLambda_payload, diagnostics):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
     assert response["issue"][0]["diagnostics"] == diagnostics
 
 
@@ -115,7 +110,6 @@ def lambda_check_bundle(fLambda_payload):
 @then('the lambda response contains an endpoint resource')
 def lambda_check_endpoints(fLambda_payload):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
     endpoint_exists = any(
         entry.get("resource", {}).get("resourceType") == "Endpoint"
         for entry in response.get("entry", [])
@@ -161,7 +155,6 @@ def lambda_number_orgs(fLambda_payload, num_orgs):
 @then(parsers.parse('the lambda response contains "{num_endpoints}" endpoint resource'))
 def lambda_number_endpoints(fLambda_payload, num_endpoints):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
     number_endpoints = sum(
         entry.get("resource", {}).get("resourceType") == "Endpoint"
         for entry in response.get("entry", [])
@@ -173,6 +166,6 @@ def lambda_number_endpoints(fLambda_payload, num_endpoints):
 @then('the response is valid against the schema')
 def validate_lambda_response_against_oas(fLambda_payload, oas_spec):
     response = json.loads(fLambda_payload["body"])
-    logger.info(f"Response: {response}")
-    logger.info(f"Schema: {oas_spec}")
+    logger.debug(f"Response: {response}")
+    logger.debug(f"Schema: {oas_spec}")
     validate(instance=response, schema=oas_spec)
