@@ -1,0 +1,21 @@
+check-markdown-format.sh:
+repos:
+  - repo: local
+    hooks:
+      - id: check-markdown-format
+        name: Check Markdown Format
+        entry: ./scripts/githooks/check-markdown-format.sh
+        language: system
+        types: [markdown]
+      - id: check-english-usage
+        name: Check English Usage
+        language: system
+        entry: ./scripts/githooks/check-english-usage.sh
+      - id: check-file-format
+        name: Check File Format
+        language: system
+        entry: ./scripts/githooks/check-file-format.sh
+      - id: check-secrets-id
+        name: Check Secrets
+        language: system
+        entry: ./scripts/githooks/scan-secrets.sh
