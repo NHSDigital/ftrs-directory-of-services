@@ -1,4 +1,4 @@
-from ftrs_data_layer.models import HealthcareService, DBModel
+from ftrs_data_layer.models import DBModel
 from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 
 from utils.config import get_env_variables
