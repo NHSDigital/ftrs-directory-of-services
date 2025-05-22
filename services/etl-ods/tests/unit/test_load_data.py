@@ -13,19 +13,19 @@ class TestLoad(unittest.TestCase):
         """Test queue name generation without workspace"""
         result = get_queue_name("test", None)
         expected = "ftrs-dos-test-etl-ods-queue"
-        self.assertEqual(result, expected)
+        assert result == expected
 
     def test_get_queue_name_with_workspace(self) -> None:
         """Test queue name generation with workspace"""
         result = get_queue_name("test", "branch")
         expected = "ftrs-dos-test-etl-ods-queue-branch"
-        self.assertEqual(result, expected)
+        assert result == expected
 
     @patch("logging.info")
     def test_load_data_successful(self, mock_info: any) -> None:
         """Test successful data loading to SQS"""
         with patch.dict(
-            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "some_region"}
+            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "local","WORKSPACE":"local"}
         ):
             with patch("boto3.client") as mock_boto_client:
                 mock_sqs = MagicMock()
@@ -43,10 +43,10 @@ class TestLoad(unittest.TestCase):
                 load_data(test_data)
 
                 mock_boto_client.assert_called_once_with(
-                    "sqs", region_name="some_region"
+                    "sqs", region_name="local"
                 )
                 mock_sqs.get_queue_url.assert_called_once_with(
-                    QueueName="ftrs-dos-test-etl-ods-queue"
+                    QueueName="ftrs-dos-test-etl-ods-queue-local"
                 )
                 expected_batch = [
                     {"Id": "1", "MessageBody": json.dumps("message1")},
@@ -69,7 +69,7 @@ class TestLoad(unittest.TestCase):
     ) -> None:
         """Test data loading with some failed messages"""
         with patch.dict(
-            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "some_region"}
+            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "local","WORKSPACE":"local"}
         ):
             with patch("boto3.client") as mock_boto_client:
                 mock_sqs = MagicMock()
@@ -105,7 +105,7 @@ class TestLoad(unittest.TestCase):
     def test_load_data_get_queue_url_exception(self, mock_warning: any) -> None:
         """Test exception handling when getting queue URL fails"""
         with patch.dict(
-            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "some_region"}
+            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "local","WORKSPACE":"local"}
         ):
             with patch("boto3.client") as mock_boto_client:
                 mock_sqs = MagicMock()
