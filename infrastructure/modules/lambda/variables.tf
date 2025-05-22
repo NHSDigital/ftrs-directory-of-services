@@ -100,3 +100,11 @@ variable "s3_bucket_name" {
 variable "s3_key" {
   description = "S3 key (path) to the Lambda package inside the S3 bucket"
 }
+
+variable "allowed_triggers" {
+  description = "List of allowed triggers for the Lambda function"
+  type = map(object({
+    service    = string
+    source_arn = string
+  }))
+}
