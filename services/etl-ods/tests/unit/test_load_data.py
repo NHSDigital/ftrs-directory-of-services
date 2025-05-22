@@ -25,7 +25,8 @@ class TestLoad(unittest.TestCase):
     def test_load_data_successful(self, mock_info: any) -> None:
         """Test successful data loading to SQS"""
         with patch.dict(
-            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "local","WORKSPACE":"local"}
+            "os.environ",
+            {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
         ):
             with patch("boto3.client") as mock_boto_client:
                 mock_sqs = MagicMock()
@@ -42,9 +43,7 @@ class TestLoad(unittest.TestCase):
                 test_data = ["message1"]
                 load_data(test_data)
 
-                mock_boto_client.assert_called_once_with(
-                    "sqs", region_name="local"
-                )
+                mock_boto_client.assert_called_once_with("sqs", region_name="local")
                 mock_sqs.get_queue_url.assert_called_once_with(
                     QueueName="ftrs-dos-test-etl-ods-queue-local"
                 )
@@ -69,7 +68,8 @@ class TestLoad(unittest.TestCase):
     ) -> None:
         """Test data loading with some failed messages"""
         with patch.dict(
-            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "local","WORKSPACE":"local"}
+            "os.environ",
+            {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
         ):
             with patch("boto3.client") as mock_boto_client:
                 mock_sqs = MagicMock()
@@ -105,7 +105,8 @@ class TestLoad(unittest.TestCase):
     def test_load_data_get_queue_url_exception(self, mock_warning: any) -> None:
         """Test exception handling when getting queue URL fails"""
         with patch.dict(
-            "os.environ", {"ENVIRONMENT": "test", "AWS_REGION": "local","WORKSPACE":"local"}
+            "os.environ",
+            {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
         ):
             with patch("boto3.client") as mock_boto_client:
                 mock_sqs = MagicMock()
