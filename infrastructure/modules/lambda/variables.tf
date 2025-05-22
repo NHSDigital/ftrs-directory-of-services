@@ -103,9 +103,6 @@ variable "s3_key" {
 
 variable "allowed_triggers" {
   description = "List of allowed triggers for the Lambda function"
-  type = map(object({
-    service    = string
-    source_arn = string
-  }))
-  default = null
+  type        = map(any)
+  default     = {}
 }
