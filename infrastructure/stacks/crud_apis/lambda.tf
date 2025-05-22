@@ -90,8 +90,24 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:Scan",
       "dynamodb:Query"
     ]
-    resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/ftrs-dos-${var.environment}-database-*${local.workspace_suffix}",
-    ]
+    resources = flatten([
+      for table in local.dynamodb_tables : [
+        table.arn,
+        "${table.arn}/index/*"
+      ]
+    ])
   }
+}
+
+resource "aws_lambda_function_url" "organisation_api" {
+  function_name      = module.organisation_api_lambda.lambda_function_name
+  authorization_type = "NONE"
+}
+
+
+resource "aws_ssm_parameter" "organisation_api_function_url" {
+  name        = "/organisation-api/function-url"
+  description = "The function URL for the organisation API Lambda"
+  type        = "String"
+  value       = aws_lambda_function_url.organisation_api.function_url
 }

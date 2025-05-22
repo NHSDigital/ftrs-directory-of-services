@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from pydantic import ValidationError
 
@@ -30,6 +32,7 @@ def test_get_app_settings_invalid_input() -> None:
 
 
 def test_get_app_settings_missing_input() -> None:
+    os.environ.pop("ENVIRONMENT", None)
     env_vars = {
         "WORKSPACE": "test_workspace",
         "ENDPOINT_URL": "http://localhost:8000",

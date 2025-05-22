@@ -30,7 +30,7 @@ variable "autoscaling_enabled" {
 variable "stream_enabled" {
   description = "Flag to enable or disable DynamoDB Streams."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "stream_view_type" {
@@ -55,4 +55,22 @@ variable "billing_mode" {
   description = "Specifies the billing mode for DynamoDB (PROVISIONED or PAY_PER_REQUEST)."
   type        = string
   default     = "PAY_PER_REQUEST"
+}
+
+variable "point_in_time_recovery_enabled" {
+  description = "Enable or disable point-in-time recovery for the DynamoDB table"
+  type        = bool
+  default     = false
+}
+
+variable "global_secondary_indexes" {
+  description = "List of global secondary indexes for the DynamoDB table."
+  type = list(object({
+    name               = string
+    hash_key           = string
+    range_key          = optional(string)
+    projection_type    = string
+    non_key_attributes = optional(list(string))
+  }))
+  default = []
 }

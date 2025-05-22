@@ -15,13 +15,29 @@ from organisations.validators import UpdatePayloadValidator
 
 app = FastAPI()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+
+@app.get("/ods_code/{ods_code}", summary="Get an organisation by ODS code.")
+def get_org_id(
+    ods_code: str,
+    settings: AppSettings = Depends(get_app_settings),
+) -> None:
+    logging.info(f"Received request to get organisation with ODS code: {ods_code}")
+    org_repository = get_repository(
+        env=settings.env,
+        workspace=settings.workspace,
+        endpoint_url=settings.endpoint_url,
+    )
+    records = org_repository.get_by_ods_code(ods_code)
+
+    if not records:
+        logging.info(f"Organisation with ODS code {ods_code} not found.")
+        raise HTTPException(status_code=404, detail="Organisation not found")
+
+    logging.info(f"Organisation: {records}")
+    return JSONResponse(status_code=200, content={"id": records[0]})
 
 
 @app.put("/{organisation_id}", summary="Update an organisation.")
@@ -95,7 +111,13 @@ def get_outdated_fields(
     return {
         field: value
         for field, value in payload.model_dump().items()
-        if getattr(organisation, field, None) != value
+        if (
+            (
+                field == "modified_by"
+                and getattr(organisation, "modifiedBy", None) != value
+            )
+            or (field != "modified_by" and getattr(organisation, field, None) != value)
+        )
     }
 
 
@@ -104,6 +126,8 @@ def apply_updates(
 ) -> Organisation:
     logging.info(f"Applying updates to organisation: {existing_organisation.id}")
     for field, value in outdated_fields.items():
-        setattr(existing_organisation, field, value)
-    existing_organisation.modifiedBy = "ROBOT_API"
+        if field == "modified_by":
+            setattr(existing_organisation, "modifiedBy", value)
+        else:
+            setattr(existing_organisation, field, value)
     existing_organisation.modifiedDateTime = datetime.now(UTC)

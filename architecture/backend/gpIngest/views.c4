@@ -1,12 +1,28 @@
 views {
+
   view of ftrs.etl {
     title "Container diagram for GP Ingestion ETL"
     description '
-      A model showing the containers for FtRS GP API
-      and their relationships to other systems
+      A model showing the containers for FtRS GP API.
+      All externally facing APIs are accessed through API-M
     '
     include *
     include ftrs.sourcingEtlQueue
+
+    include ftrs
+    include apim.dosWriteProxy
+    include apim.dosReadProxy
+    include ftrs.apiGateway
+    include ftrs.orgController
+    include ftrs.orgController.orgByOdsCode
+    include ftrs.updateOrgController
+    include ftrs.updateOrgController.addOrg
+    include ftrs.updateOrgController.updateOrg
+    include ftrs.updateOrgController.deleteOrg
+    include ftrs.externalAPIs
+    include ftrs.db.orgTable
+    include ftrs.assuranceQueue
+    include ftrs.assurance.assuranceEngine
 
     autoLayout LeftRight 70 77
   }

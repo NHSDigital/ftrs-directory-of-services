@@ -21,3 +21,7 @@ data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
 }
+
+data "aws_ssm_parameter" "organisation_api_function_url" {
+  name = "/organisation-api/function-url"
+}

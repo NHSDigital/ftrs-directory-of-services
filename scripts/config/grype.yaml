@@ -17,3 +17,6 @@ add-cpes-if-none: true
 #   # ...or just by a single package field:
 #   - package:
 #       type: gem
+
+db:
+  max-allowed-built-age: 240h0m0s

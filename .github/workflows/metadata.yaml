@@ -129,7 +129,7 @@ jobs:
               echo "environment=[\"test\", \"int\"]" >> $GITHUB_OUTPUT
             # Handling branch deletion event
             elif [[ "${{ github.event_name }}" == "delete" && "${{ github.event.ref }}" =~ ^task/ ]]; then
-              echo "environment=[\"dev\"]" >> $GITHUB_OUTPUT
+              echo "environment=dev" >> $GITHUB_OUTPUT
             else
               echo "environment=dev" >> $GITHUB_OUTPUT
             fi

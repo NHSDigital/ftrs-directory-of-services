@@ -7,13 +7,40 @@ from ftrs_data_layer.models import DBModel, HealthcareService, Location, Organis
 from pytest_mock import MockerFixture
 
 from pipeline.constants import TargetEnvironment
-from pipeline.load import TABLE, get_table_name, load, save_to_table
+from pipeline.load import (
+    TABLE,
+    get_model,
+    get_table_name,
+    lambda_handler,
+    load,
+    save_to_table,
+)
 from pipeline.utils.file_io import PathType
 from tests.unit.test_transform import (
     transformed_GP_Practice_HS,
     transformed_GP_Practice_Loc,
     transformed_GP_Practice_Org,
 )
+
+
+@pytest.mark.parametrize(
+    "table_to_save, expected_output",
+    [
+        (TABLE.ORGANISATION, Organisation),
+        (TABLE.LOCATION, Location),
+        (TABLE.SERVICE, HealthcareService),
+        ("UNKNOWN", None),
+    ],
+)
+def test_get_model(table_to_save: TABLE, expected_output: type[DBModel] | None) -> None:
+    """
+    Test get_model function with various inputs.
+    """
+    result = get_model(table_to_save)
+    if expected_output is not None:
+        assert result == expected_output
+    else:
+        assert result is None
 
 
 @pytest.mark.parametrize(
@@ -57,6 +84,39 @@ def test_save_to_table_organisation(
         [call(org) for org in expected_create_calls],
         any_order=True,
     )
+
+
+def test_save_to_table_empty_row(
+    mocker: MockerFixture,
+) -> None:
+    """
+    Test save_to_table function with empty row
+    """
+
+    mock_repository_create = mocker.patch(
+        "pipeline.load.DocumentLevelRepository.create"
+    )
+
+    input_df = pd.DataFrame(
+        {
+            "organisation": [transformed_GP_Practice_Org],
+            "location": [transformed_GP_Practice_Loc],
+            "healthcare-service": [None],
+        }
+    )
+    table_name = "test-table"
+
+    # Remove the healthcare-service column to simulate an empty row
+    input_df.drop(columns=["healthcare-service"], inplace=True)
+
+    save_to_table(
+        input_df=input_df,
+        table=TABLE.SERVICE,
+        table_name=table_name,
+        endpoint_url=None,
+    )
+
+    assert mock_repository_create.call_count == 0
 
 
 def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
@@ -149,3 +209,34 @@ def test_get_table_name(
     """
     result = get_table_name(entity_type, env, workspace)
     assert result == expected_table_name
+
+
+def test_lambda_handler(mocker: MockerFixture) -> None:
+    mock_load = mocker.patch("pipeline.load.load", return_value=None)
+    mock_environ = mocker.patch(
+        "pipeline.load.os.environ.get",
+        return_value="local",
+    )
+
+    mock_event = {
+        "Records": [
+            {
+                "s3": {
+                    "bucket": {"name": "test-bucket"},
+                    "object": {"key": "path/to/object.parquet"},
+                }
+            }
+        ]
+    }
+    mock_context = mocker.Mock()
+
+    assert lambda_handler(mock_event, mock_context) is None
+
+    mock_load.assert_called_once_with(
+        input="s3://test-bucket/path/to/object.parquet",
+        env=TargetEnvironment.local,
+        workspace="local",
+    )
+
+    mock_environ.assert_any_call("ENVIRONMENT")
+    mock_environ.assert_any_call("WORKSPACE")

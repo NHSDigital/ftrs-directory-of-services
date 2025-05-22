@@ -1,33 +1,20 @@
 model {
   extend ftrs {
-    container etl "FTRS Sourcing ETL" {
+    container etl "FTRS GP Sourcing ETL" {
       description 'ETL for non API consumer data sources'
-      style {
-        multiple true
-      }
-      component sourcingEtlProcessor "Sourcing ETL Processor" {
+      lambda sourcingEtlProcessor "Sourcing ETL Processor" {
         description 'Lambda as ETL Processor'
-        style {
-          icon aws:lambda
-        }
       }
-      component sourcingEtlQueue "Sourcing ETL Queue" {
+      sqs sourcingEtlQueue "Sourcing ETL Queue" {
         description 'Queue for ETL Process'
-        style {
-          icon aws:simple-queue-service
-          shape: queue
-        }
       }
-      component sourcingEtlConsumer "Sourcing ETL Consumer" {
+      lambda sourcingEtlConsumer "Sourcing ETL Consumer" {
         description 'Dequeues requests and sends to API'
-        style {
-          icon aws:lambda
-        }
       }
     }
   }
   sourcingEtlProcessor -> sourcingEtlQueue "Messages sent to"
+  sourcingEtlProcessor -> apim.dosReadProxy "Makes calls to"
   sourcingEtlQueue -> sourcingEtlConsumer "Dequeue messages"
-  sourcingEtlConsumer -> ftrs.organisationAPI.addOrg "Makes calls to"
-  sourcingEtlConsumer -> ftrs.organisationAPI.updateOrg "Makes calls to"
+  sourcingEtlConsumer -> apim.dosWriteProxy "Makes calls to"
 }
