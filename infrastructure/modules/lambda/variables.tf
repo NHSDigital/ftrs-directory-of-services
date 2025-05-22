@@ -107,4 +107,5 @@ variable "allowed_triggers" {
     service    = string
     source_arn = string
   }))
+  default = null
 }
