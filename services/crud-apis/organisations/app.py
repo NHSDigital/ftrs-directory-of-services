@@ -39,6 +39,7 @@ def get_org_id(
     logging.info(f"Organisation: {records}")
     return JSONResponse(status_code=200, content={"id": records[0]})
 
+
 LIMIT: int = 10
 
 
