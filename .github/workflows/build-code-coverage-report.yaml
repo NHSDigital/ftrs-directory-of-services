@@ -11,6 +11,9 @@ jobs:
   build-coverage-report:
     name: "Build collated code coverage report"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests/coverage
     environment: ${{ inputs.environment }}
     permissions:
       id-token: write
@@ -44,7 +47,7 @@ jobs:
 
       - name: "Install project"
         run: make install
-        working-directory: tests/coverage
+        # working-directory: tests/coverage
 
       - name: "Download code coverage reports"
         uses: actions/download-artifact@v4
@@ -54,7 +57,7 @@ jobs:
 
       - name: "Compile code coverage report"
         run:  make combine-coverage
-        working-directory: tests/coverage
+        # working-directory: tests/coverage
 
       - name: "Publish collated code coverage report to GitHub"
         uses: actions/upload-artifact@v4.6.1
