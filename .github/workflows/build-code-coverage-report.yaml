@@ -53,7 +53,7 @@ jobs:
           path: tests/coverage
 
       - name: "Compile code coverage report"
-        run:  echo ls -lat
+        run:  ls -lat
         working-directory: tests/coverage
 
       - name: "Compile code coverage report"
