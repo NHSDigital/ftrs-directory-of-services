@@ -8,14 +8,20 @@ from typer import Option
 
 from pipeline.utils.db_config import DatabaseConfig
 from pipeline.utils.dos_db import (
+    get_gp_day_opening_times,
     get_gp_endpoints,
     get_gp_practices,
+    get_gp_specified_opening_times,
     get_serviceendpoints_columns_count,
     get_services_columns_count,
     get_services_size,
 )
 from pipeline.utils.file_io import (
     write_parquet_file,
+)
+from pipeline.utils.opening_times import (
+    format_openingtimes,
+    merge_gp_practice_with_openingtimes,
 )
 from pipeline.utils.secret_utils import get_secret
 from pipeline.utils.validators import validate_path
@@ -92,7 +98,6 @@ def merge_gp_practice_with_endpoints(
     with pd.option_context("future.no_silent_downcasting", True):
         result = (
             gp_practice_df.merge(grouped_endpoints, on="serviceid", how="left")
-            .drop(columns=["serviceid"])
             .replace([np.nan], [None])
             .infer_objects(copy=False)
         )
@@ -106,12 +111,26 @@ def merge_gp_practice_with_endpoints(
 
 def extract_gp_practices(db_uri: str) -> pd.DataFrame:
     gp_practice_df = get_gp_practices(db_uri)
-    gp_practice_endpoints_df = get_gp_endpoints(db_uri)
 
+    # Extract endpoint information
+    gp_practice_endpoints_df = get_gp_endpoints(db_uri)
     grouped_endpoints = format_endpoints(gp_practice_endpoints_df)
     gp_practice_extract = merge_gp_practice_with_endpoints(
         gp_practice_df, grouped_endpoints
     )
+
+    # Extract Opening Time information
+    gp_practice_day_openingtime_df = get_gp_day_opening_times(db_uri)
+    gp_practice_specified_openingtime_df = get_gp_specified_opening_times(db_uri)
+
+    grouped_openingtimes = format_openingtimes(
+        gp_practice_day_openingtime_df, gp_practice_specified_openingtime_df
+    )
+
+    gp_practice_extract = merge_gp_practice_with_openingtimes(
+        gp_practice_extract, grouped_openingtimes
+    )
+
     logging_gp_practice_metrics(gp_practice_extract, db_uri)
     return gp_practice_extract
 
