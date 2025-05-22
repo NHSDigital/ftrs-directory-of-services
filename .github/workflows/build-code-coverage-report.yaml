@@ -1,4 +1,4 @@
-name: Build and upload code coverage report
+name: Run SonarCloud analysis
 on:
   workflow_call:
     inputs:
@@ -8,12 +8,10 @@ on:
         type: string
 
 jobs:
-  build-coverage-report:
-    name: "Build collated code coverage report"
+  download-coverage-report:
+    name: "Download python coverage reports"
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tests/coverage
+
     environment: ${{ inputs.environment }}
     permissions:
       id-token: write
@@ -22,22 +20,6 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
 
-      - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v3.0.2
-        with:
-          asdf_branch: v0.15.0
-
-      - name: "Cache asdf tools"
-        id: asdf-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
-
-      - name: "Install tools from .tool-versions"
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v3.0.2
-
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
@@ -45,23 +27,13 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           multi_domain: false
 
-      - name: "Install project"
-        run: make install
-
       - name: "Download code coverage reports"
         uses: actions/download-artifact@v4
         with:
-          path: tests/coverage
+          path: .
           pattern: .*-coverage
           merge-multiple: true
 
-      - name: "Compile code coverage report"
-        run:  make combine-coverage
+      - name: "Run sonarcloud analysis"
+        run:  echo "Run analysis - placeholder"
 
-      - name: "Publish collated code coverage report to GitHub"
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: .coverage
-          path: tests/coverage/.coverage
-          if-no-files-found: error
-          include-hidden-files: true
