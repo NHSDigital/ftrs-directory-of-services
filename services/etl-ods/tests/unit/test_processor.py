@@ -68,8 +68,6 @@ def mock_responses() -> MagicMock:
     "os.environ",
     {
         "ORGANISATION_API_URL": "https://localhost:8001/",
-        "ENVIRONMENT": os.environ["ENVIRONMENT"],
-        "WORKSPACE": os.environ["WORKSPACE"],
     },
 )
 def test_processor_processing_organisations_continues_if_failure(
@@ -138,6 +136,12 @@ def test_processor_processing_organisations_continues_if_failure(
 
     GET_COUNT = 5
     caplog.set_level(logging.INFO)
+    with patch("boto3.client") as mock_boto_client:
+        mock_sqs = MagicMock()
+        mock_boto_client.return_value = mock_sqs
+        mock_sqs.get_queue_url.return_value = {
+            "QueueUrl": "https://sqs.region.amazonaws.com/test-queue"
+        }
     processor(date="2023-01-01")
 
     first_call_args = mock_get.call_args_list[0]
