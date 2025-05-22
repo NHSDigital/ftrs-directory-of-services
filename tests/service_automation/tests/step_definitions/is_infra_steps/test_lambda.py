@@ -122,13 +122,7 @@ def validate_lambda_response_against_oas(fLambda_payload, oas_spec):
 
 
 def countResources(lambda_response, resource_type):
-    if any(
-            entry.get("resource", {}).get("resourceType") == resource_type
-            for entry in lambda_response.get("entry", [])
-            ) is True:
-        return sum(
-            entry.get("resource", {}).get("resourceType") == resource_type
-            for entry in lambda_response.get("entry", [])
-            )
-    else:
-        return 0
+    return sum(
+        entry.get("resource", {}).get("resourceType") == resource_type
+        for entry in lambda_response.get("entry", [])
+        )
