@@ -50,11 +50,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .crud-apis-coverage
-          path: tests/coverage
-
-      - name: "Compile code coverage report"
-        run:  ls -lat
-        working-directory: tests/coverage
+          path: tests
 
       - name: "Compile code coverage report"
         run:  make combine-coverage
