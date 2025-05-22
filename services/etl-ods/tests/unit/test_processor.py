@@ -1,5 +1,4 @@
 import logging
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -184,11 +183,7 @@ def test_processor_processing_organisations_continues_if_failure(
 @patch("pipeline.processor.requests.get")
 @patch.dict(
     "os.environ",
-    {
-        "ORGANISATION_API_URL": "https://localhost:8001/",
-        "ENVIRONMENT": os.environ["ENVIRONMENT"],
-        "WORKSPACE": os.environ["WORKSPACE"],
-    },
+    {"ORGANISATION_API_URL": "https://localhost:8001/"},
 )
 def test_processor_processing_organisations_successful(
     mock_get: MagicMock, mock_responses: MagicMock, caplog: any
