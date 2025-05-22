@@ -18,6 +18,7 @@ module "lambda" {
   create_package          = var.s3_bucket_name == "" ? var.create_package : false
   local_existing_package  = var.s3_bucket_name == "" ? var.local_existing_package : null
   ignore_source_code_hash = var.ignore_source_code_hash
+  allowed_triggers        = var.allowed_triggers
 
   s3_existing_package = var.s3_bucket_name != "" ? {
     bucket = var.s3_bucket_name

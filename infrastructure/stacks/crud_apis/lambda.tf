@@ -81,6 +81,13 @@ module "healthcare_service_api_lambda" {
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME" = var.project
   }
+
+  allowed_triggers = {
+    AllowExecutionFromAPIGateway = {
+      service    = "apigateway"
+      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+    }
+  }
 }
 
 data "aws_iam_policy_document" "vpc_access_policy" {
@@ -129,31 +136,4 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       ]
     ])
   }
-}
-
-resource "aws_lambda_function_url" "organisation_api" {
-  function_name      = module.organisation_api_lambda.lambda_function_name
-  authorization_type = "NONE"
-}
-
-
-resource "aws_ssm_parameter" "organisation_api_function_url" {
-  name        = "/${local.resource_prefix}${local.workspace_suffix}/organisation-api/function-url"
-  description = "The function URL for the organisation API Lambda"
-  type        = "String"
-  value       = aws_lambda_function_url.organisation_api.function_url
-}
-
-
-resource "aws_lambda_function_url" "healthcare_service_api" {
-  function_name      = module.healthcare_service_api_lambda.lambda_function_name
-  authorization_type = "NONE"
-}
-
-
-resource "aws_ssm_parameter" "healthcare_service_function_url" {
-  name        = "/${local.resource_prefix}${local.workspace_suffix}/healthcare_service-api/function-url"
-  description = "The function URL for the healthcare service API Lambda"
-  type        = "String"
-  value       = aws_lambda_function_url.healthcare_service_api.function_url
 }
