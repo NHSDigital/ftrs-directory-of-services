@@ -29,27 +29,15 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
 
     except SchemaValidationError as exception:
+        logger.warning("Schema validation error occurred", exc_info=exception)
         fhir_resource = error_util.create_resource_validation_error(exception)
-        response = create_response(422, fhir_resource)
-        logger.warning(
-            "Schema validation error occurred",
-            exc_info=exception,
-            extra={"response": response},
-        )
-
-        return response
+        return create_response(422, fhir_resource)
     except Exception:
+        logger.exception("Internal server error occurred")
         fhir_resource = error_util.create_resource_internal_server_error()
-        response = create_response(500, fhir_resource)
-        logger.exception(
-            "Error occurred while processing",
-            extra={"response": response},
-        )
-
-        return response
+        return create_response(500, fhir_resource)
     else:
         logger.info("Successfully processed")
-
         return create_response(200, fhir_resource)
 
 
@@ -60,6 +48,7 @@ def normalize_event(event: dict) -> dict:
 
 
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> dict:
+    logger.info("Creating response", extra={"status_code": status_code})
     return {
         "statusCode": status_code,
         "headers": {"Content-Type": "application/fhir+json"},
