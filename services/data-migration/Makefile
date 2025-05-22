@@ -35,8 +35,7 @@ test: unit-test
 unit-test: coverage
 
 coverage:
-	poetry run pytest --cov-report html:${SERVICE}-coverage-summary.html tests/unit
-	cp .coverage  ../../tests/coverage/.${SERVICE}-coverage
+	poetry run pytest --cov-report xml:${SERVICE}-coverage-summary.xml tests/unit
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)
