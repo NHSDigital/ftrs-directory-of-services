@@ -4,9 +4,9 @@ info:
   description: "## Overview\n
     Use this API to access healthcare services details profiled in the Find the Right Service Directory. This API provides read-only access to the data held in the directory.\n\n
     You can:\n\n
-    - Obtain Organization information for an Endpoint given an ODS Code\n\n
+    - Obtain Organization details (including Endpoints managed by the Organization) for a given Organization ODS Code\n\n
     In the future you will be able to:\n\n
-    - Obtain Endpoint information given a service Identifier\n\n
+    - Obtain Organization details (including Endpoints managed by the Organization) for a given service Identifier\n\n
     ## Who can use this API\nThis API can only be used where you have a valid use case to do so. Please [contact us](https://digital.nhs.uk/developer/help-and-support) before\nyou go too far with your development.\n\nYou must do this before you can go live (see 'Onboarding' below).\n\n
     ## Existing API Users\n\n
     TBC\n\n
@@ -15,8 +15,8 @@ info:
     - restricted access\n\n
     ### Restricted Access\n\n
     This is the only access mode supported by the API and it is [application-restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis), meaning we authenticate and authorise the calling application but not the end user. This mode is used as part of a back-end process to retrieve healthcare service details\n\n
-    This access mode adopts the following security/authentication pattern:\n\n
-    - [Application-restricted RESTful API - signed JWT authentication](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/application-restricted-restful-apis-signed-jwt-authentication)\n\n
+    This access mode adopts the following security/authentication patterns:\n\n
+    - TBC\n\n
     ## Roadmap\n\n
     TBC\n\n
     ## Service Levels\n\n
@@ -55,10 +55,10 @@ servers:
 paths:
   /Organization:
     get:
-      summary: Search for organizations of a given endpoint identified by ODS Code
+      summary: Search for organizations by ODS code to return Organization details (inlcuding Endpoints managed by the Organization)
       description: |
         ## Overview
-        Retrieve a list of Organizations for a given endpoint identified by the ODS code.
+        Retrieve an Organizations identified by an ODS code (including Endpoints managed by the Organization).
 
         ## Request Requirements
         A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
@@ -74,9 +74,9 @@ paths:
         | Missing ODS code      | No odsCode parameter | HTTP Status 422 with MISSING_ODS_CODE message           |
       operationId: searchOrganizations
       parameters:
-        - name: endpoint.identifier
+        - name: organization.identifier
           in: query
-          description: ODS endpoint code in the format "odsOrganizationCode|{CODE}"
+          description: ODS code in the format "odsOrganizationCode|{CODE}"
           required: true
           schema:
             type: string
@@ -126,6 +126,8 @@ paths:
                           country: "ENGLAND"
                       endpoint:
                         - reference: "Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                        - reference: "Endpoint/a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
+                        - reference: "Endpoint/z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
                     search:
                       mode: "match"
                   - fullUrl: "https://example.org/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
@@ -142,10 +144,59 @@ paths:
                               code: "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
                       payloadMimeType: ["application/fhir+json"]
                       address: "https://nhs.provided.service.uk/endpoint"
-                      header:
-                        - "header_order 1"
-                        - "header_is_compression_enabled false"
-                        - "header_business_scenario Primary"
+                      extension:
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-order"
+                          valueInteger: 1
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-compression"
+                          valueBoolean: false
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-business-scenario"
+                          valueString: "Primary"
+                    search:
+                      mode: "include"
+                  - fullUrl: "https://example.org/Endpoint/a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
+                      status: "active"
+                      connectionType:
+                        system: "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+                        code: "hl7-fhir-rest"
+                      payloadType:
+                        - coding:
+                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                              code: "urn:nhs-itk:interaction:secondaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType: ["application/fhir+json"]
+                      address: "https://nhs.provided.service.uk/endpoint2"
+                      extension:
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-order"
+                          valueInteger: 2
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-compression"
+                          valueBoolean: true
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-business-scenario"
+                          valueString: "Secondary"
+                    search:
+                      mode: "include"
+                  - fullUrl: "https://example.org/Endpoint/z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
+                      status: "active"
+                      connectionType:
+                        system: "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+                        code: "hl7-fhir-rest"
+                      payloadType:
+                        - coding:
+                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                              code: "urn:nhs-itk:interaction:backupEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType: ["application/fhir+json"]
+                      address: "https://nhs.provided.service.uk/endpoint3"
+                      extension:
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-order"
+                          valueInteger: 3
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-compression"
+                          valueBoolean: false
+                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-business-scenario"
+                          valueString: "Backup"
                     search:
                       mode: "include"
         '400':
@@ -159,7 +210,7 @@ paths:
                 issue:
                   - severity: "error"
                     code: "invalid"
-                    diagnostics: "Invalid format for endpoint.identifier parameter"
+                    diagnostics: "Invalid format for organization.identifier parameter"
                     details:
                       coding:
                         - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
@@ -233,6 +284,7 @@ components:
                 format: uri
         entry:
           type: array
+          minItems: 1
           items:
             type: object
             properties:
@@ -257,6 +309,8 @@ components:
         - identifier
         - active
         - name
+        - telecom
+        - address
       properties:
         resourceType:
           type: string
@@ -365,10 +419,19 @@ components:
         address:
           type: string
           format: uri
-        header:
+        extension:
           type: array
           items:
-            type: string
+            type: object
+            properties:
+              url:
+                type: string
+              valueInteger:
+                type: integer
+              valueBoolean:
+                type: boolean
+              valueString:
+                type: string
 
     OperationOutcome:
       type: object
