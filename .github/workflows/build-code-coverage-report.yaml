@@ -53,6 +53,10 @@ jobs:
           path: tests/coverage
 
       - name: "Compile code coverage report"
+        run:  echo ls -lat
+        working-directory: tests/coverage
+
+      - name: "Compile code coverage report"
         run:  make combine-coverage
         working-directory: tests/coverage
 
@@ -60,6 +64,6 @@ jobs:
         uses: actions/upload-artifact@v4.6.1
         with:
           name: .coverage
-          path: .tests/coverage/.coverage
+          path: tests/coverage/.coverage
           if-no-files-found: error
           include-hidden-files: true
