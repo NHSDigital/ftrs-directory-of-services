@@ -111,7 +111,9 @@ def read_organisation(
 
 
 @app.get("/", summary="Read all organisations")
-def readMany_organisations(settings: AppSettings = Depends(get_app_settings)) -> dict:
+def readMany_organisations(
+    settings: AppSettings = Depends(get_app_settings),
+) -> list[Organisation]:
     org_repository = get_repository(
         env=settings.env,
         workspace=settings.workspace,

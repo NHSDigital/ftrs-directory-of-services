@@ -57,7 +57,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             ConditionExpression="attribute_exists(id)",
         )
 
-    def get_all(self, limit: int) -> list[ModelType]:
+    def get_all(self, limit: int | None = None) -> list[ModelType]:
         """
         Get all items from the DynamoDB table.
         """

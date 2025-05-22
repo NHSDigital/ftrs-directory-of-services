@@ -288,6 +288,42 @@ def test_read_organisation_not_found(
 
 
 @patch("organisations.app.get_repository")
+def test_readMany_organisations_success(
+    mock_get_repository: MagicMock,
+) -> None:
+    mock_repo = MagicMock()
+    org_id = uuid4()
+    mock_repo.get_all.return_value = Organisation(
+        id=org_id,
+        identifier_ODS_ODSCode="123456",
+        active=True,
+        name="Test Organisation",
+        telecom="123456789",
+        type="NHS",
+        createdBy="test_user",
+        createdDateTime="2023-10-01T00:00:00Z",
+        modifiedBy="test_user",
+        modifiedDateTime="2023-10-01T00:00:00Z",
+    )
+    mock_get_repository.return_value = mock_repo
+
+    response = readMany_organisations(AppSettings(ENVIRONMENT="test"))
+
+    assert response == Organisation(
+        id=org_id,
+        identifier_ODS_ODSCode="123456",
+        active=True,
+        name="Test Organisation",
+        telecom="123456789",
+        type="NHS",
+        createdBy="test_user",
+        createdDateTime="2023-10-01T00:00:00Z",
+        modifiedBy="test_user",
+        modifiedDateTime="2023-10-01T00:00:00Z",
+    )
+
+
+@patch("organisations.app.get_repository")
 def test_readMany_organisations_not_found(
     mock_get_repository: MagicMock,
 ) -> None:
