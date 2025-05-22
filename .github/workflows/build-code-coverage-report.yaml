@@ -49,7 +49,7 @@ jobs:
       - name: "Download code coverage reports"
         uses: actions/download-artifact@v4
         with:
-          name: .*-coverage
+          name: .crud-apis-coverage
           path: tests/coverage
 
       - name: "Compile code coverage report"
