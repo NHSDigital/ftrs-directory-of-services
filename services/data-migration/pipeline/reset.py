@@ -62,7 +62,7 @@ def create_table(
         "KeySchema": key_schema,
         "AttributeDefinitions": attribute_definitions,
         "BillingMode": "PAY_PER_REQUEST",
-        "GlobalSecondaryIndexes": global_secondary_indexes
+        "GlobalSecondaryIndexes": global_secondary_indexes,
     }
 
     client.create_table(**table_params)
