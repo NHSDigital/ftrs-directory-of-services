@@ -59,15 +59,15 @@ def invoke_lambda_empty_event(aws_lambda_client, flambda_name):
 def lambda_ods_code(fLambda_payload, odscode):
     response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == 200
-    assert response["entry"][0]["resource"]["identifier"][0]["system"] =="https://fhir.nhs.uk/Id/ods-organization-code" and \
-        response["entry"][0]["resource"]["identifier"][0]["value"] == odscode
+    assert response["entry"][0]["resource"]["identifier"][0]["system"] =="https://fhir.nhs.uk/Id/ods-organization-code"
+    assert response["entry"][0]["resource"]["identifier"][0]["value"] == odscode
 
 @then(parsers.parse('the lambda response contains the endpoint id "{endpoint_id}"'))
 def lambda_endpoint_id(fLambda_payload, endpoint_id):
     response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == 200
-    assert response["entry"][1]["resource"]["resourceType"] == "Endpoint" and \
-        response["entry"][1]["resource"]["id"] == endpoint_id
+    assert response["entry"][1]["resource"]["resourceType"] == "Endpoint"
+    assert response["entry"][1]["resource"]["id"] == endpoint_id
 
 @then(parsers.parse('the lambda response contains an empty bundle'))
 def lambda_empty_response(fLambda_payload):
@@ -84,7 +84,6 @@ def lambda_error_code(fLambda_payload, error_code):
 
 @then(parsers.parse('the lambda returns the status code "{status_code}"'))
 def lambda_status_code(fLambda_payload, status_code):
-    response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == int(status_code)
 
 
@@ -107,60 +106,11 @@ def lambda_check_bundle(fLambda_payload):
     assert response["resourceType"] == "Bundle"
 
 
-@then('the lambda response contains an endpoint resource')
-def lambda_check_endpoints(fLambda_payload):
+@then(parsers.parse('the lambda response contains "{number}" "{resource_type}" resources'))
+def lambda_number_resources(fLambda_payload, number, resource_type):
     response = json.loads(fLambda_payload["body"])
-    endpoint_exists = any(
-        entry.get("resource", {}).get("resourceType") == "Endpoint"
-        for entry in response.get("entry", [])
-    )
     assert fLambda_payload["statusCode"] == 200
-    assert endpoint_exists is True
-
-
-@then('the lambda response contains an organization resource')
-def lambda_no_organization(fLambda_payload):
-    response = json.loads(fLambda_payload["body"])
-    organization_exists = any(
-        entry.get("resource", {}).get("resourceType") == "Organization"
-        for entry in response.get("entry", [])
-    )
-    assert fLambda_payload["statusCode"] == 200
-    assert organization_exists is True
-
-
-@then('the lambda response does not contain an endpoint resource')
-def lambda_no_endpoints(fLambda_payload):
-    response = json.loads(fLambda_payload["body"])
-    endpoint_exists = any(
-        entry.get("resource", {}).get("resourceType") == "Endpoint"
-        for entry in response.get("entry", [])
-    )
-    assert fLambda_payload["statusCode"] == 200
-    assert len(response["entry"]) == 1
-    assert endpoint_exists is False
-
-
-@then(parsers.parse('the lambda response contains only "{num_orgs}" organization resource'))
-def lambda_number_orgs(fLambda_payload, num_orgs):
-    response = json.loads(fLambda_payload["body"])
-    number_orgs = sum(
-        entry.get("resource", {}).get("resourceType") == "Organization"
-        for entry in response.get("entry", [])
-        )
-    assert fLambda_payload["statusCode"] == 200
-    assert number_orgs == int(num_orgs)
-
-
-@then(parsers.parse('the lambda response contains "{num_endpoints}" endpoint resource'))
-def lambda_number_endpoints(fLambda_payload, num_endpoints):
-    response = json.loads(fLambda_payload["body"])
-    number_endpoints = sum(
-        entry.get("resource", {}).get("resourceType") == "Endpoint"
-        for entry in response.get("entry", [])
-        )
-    assert fLambda_payload["statusCode"] == 200
-    assert number_endpoints == int(num_endpoints)
+    assert countResources(response, resource_type) == int(number)
 
 
 @then('the response is valid against the schema')
@@ -169,3 +119,16 @@ def validate_lambda_response_against_oas(fLambda_payload, oas_spec):
     logger.debug(f"Response: {response}")
     logger.debug(f"Schema: {oas_spec}")
     validate(instance=response, schema=oas_spec)
+
+
+def countResources(lambda_response, resource_type):
+    if any(
+            entry.get("resource", {}).get("resourceType") == resource_type
+            for entry in lambda_response.get("entry", [])
+            ) is True:
+        return sum(
+            entry.get("resource", {}).get("resourceType") == resource_type
+            for entry in lambda_response.get("entry", [])
+            )
+    else:
+        return 0

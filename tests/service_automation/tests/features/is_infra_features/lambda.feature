@@ -17,9 +17,8 @@ Background: Check lambda function exists
   When I invoke the lambda with the ods code "M81046"
   Then the response is valid against the schema
   And the lambda response contains a bundle
-  And the lambda response contains an organization resource
-  And the lambda response contains an endpoint resource
-
+  And the lambda response contains "1" "Organization" resources
+  And the lambda response contains "4" "Endpoint" resources
 
   Scenario: The Lambda response contains a bundle
   When I invoke the lambda with the ods code "N81063"
@@ -28,24 +27,22 @@ Background: Check lambda function exists
 
   Scenario: The Lambda response contains an organization resource
   When I invoke the lambda with the ods code "N81063"
-  Then the lambda response contains an organization resource
-
+  Then the lambda response contains "1" "Organization" resources
 
   Scenario: The Lambda response contains an endpoint resource
   When I invoke the lambda with the ods code "N81063"
-  Then the lambda response contains an endpoint resource
+  Then the lambda response contains "4" "Endpoint" resources
 
 
   Scenario: For an odsCode without Endpoints a bundle containing only an organisazation resource will be returned
   When I invoke the lambda with the ods code "F81015"
-  Then the lambda response does not contain an endpoint resource
-
+  Then the lambda response contains "0" "Endpoint" resources
 
   Scenario: For an odsCode that has more than one record only the first record will be returned
   When I invoke the lambda with the ods code "P83010"
   Then the lambda response contains the ods code "P83010"
-  And the lambda response contains only "1" organization resource
-  And the lambda response contains "2" endpoint resource
+  And the lambda response contains "1" "Organization" resources
+  And the lambda response contains "2" "Endpoint" resources
 
 
   Scenario: For an odsCode that does not exist an empty bundle will be returned
@@ -59,12 +56,12 @@ Background: Check lambda function exists
 
 #-------------------validation tests------------------
 
-@test
+
   Scenario: Invoke lambda with an ods code of a length of 12 and a valid response is returned
   When I invoke the lambda with the ods code "abcdefGHIJ12"
   Then the lambda response contains the ods code "abcdefGHIJ12"
 
-@test
+
   Scenario: Invoke lambda with an ods code of a length of 5 and a valid response is returned
   When I invoke the lambda with the ods code "E8104"
   Then the lambda response contains the ods code "E8104"
