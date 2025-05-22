@@ -162,3 +162,23 @@ jobs:
 
       - name: "Check format of Terraform code"
         uses: ./.github/actions/check-format-terraform
+
+  checkov-terraform-scan:
+    name: "Checkov Terraform scan"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    permissions:
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - name: Checkov Terraform scan
+        uses: bridgecrewio/checkov-action@v12
+        continue-on-error: true
+        with:
+          soft_fail: true
+          quiet: true
+          output_format: sarif
+          output_file_path: reports/checkov.sarif
