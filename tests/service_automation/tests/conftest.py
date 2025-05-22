@@ -4,8 +4,8 @@ import boto3
 from utilities.common.config import config
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
-from pages.ui_pages.search import UserTestLoginPage
-from pages.ui_pages.result import UserTestMfaHelpPage
+from pages.ui_pages.search import LoginPage
+from pages.ui_pages.result import NewAccountPage
 
 
 # Configure Loguru to log into a file and console
@@ -42,12 +42,12 @@ def chromium():
         chromium.close()
 
 @pytest.fixture
-def result_page(page: Page) -> UserTestMfaHelpPage:
-    return UserTestMfaHelpPage(page)
+def result_page(page: Page) -> NewAccountPage:
+    return NewAccountPage(page)
 
 @pytest.fixture
-def search_page(page: Page) -> UserTestLoginPage:
-    return UserTestLoginPage(page)
+def search_page(page: Page) -> LoginPage:
+    return LoginPage(page)
 
 
 @pytest.fixture

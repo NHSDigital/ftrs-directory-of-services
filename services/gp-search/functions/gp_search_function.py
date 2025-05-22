@@ -1,6 +1,12 @@
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from aws_lambda_powertools.utilities.validation import (
+    SchemaValidationError,
+    validate,
+)
+from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 
+from functions import error_util, json_schemas
 from functions.ftrs_service.ftrs_service import FtrsService
 
 logger = Logger()
@@ -8,30 +14,54 @@ tracer = Tracer()
 
 
 # noinspection PyUnusedLocal
-@logger.inject_lambda_context(log_event=True)
+@logger.inject_lambda_context(log_event=True, clear_state=True)
 @tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    ods_code = event["odsCode"]
-    logger.append_keys(ods_code=ods_code)
+    try:
+        event = normalize_event(event)
+        validate(event, json_schemas.INPUT_EVENT)
 
-    ftrs_service = FtrsService()
+        ods_code = event["odsCode"]
+        logger.append_keys(ods_code=ods_code)
 
-    fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
-    fhir_resource_type = fhir_resource.get_resource_type()
-    fhir_resource_json = fhir_resource.model_dump_json()
+        ftrs_service = FtrsService()
 
-    if fhir_resource_type == "Bundle":
+        fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
+
+    except SchemaValidationError as exception:
+        fhir_resource = error_util.create_resource_validation_error(exception)
+        response = create_response(422, fhir_resource)
+        logger.warning(
+            "Schema validation error occurred",
+            exc_info=exception,
+            extra={"response": response},
+        )
+
+        return response
+    except Exception:
+        fhir_resource = error_util.create_resource_internal_server_error()
+        response = create_response(500, fhir_resource)
+        logger.exception(
+            "Error occurred while processing",
+            extra={"response": response},
+        )
+
+        return response
+    else:
         logger.info("Successfully processed")
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "application/fhir+json"},
-            "body": fhir_resource_json,
-        }
 
-    else:  # fhir_resource_type must be OperationOutcome
-        logger.error("Error occurred while processing")
-        return {
-            "statusCode": 500,
-            "headers": {"Content-Type": "application/fhir+json"},
-            "body": fhir_resource_json,
-        }
+        return create_response(200, fhir_resource)
+
+
+def normalize_event(event: dict) -> dict:
+    if "odsCode" in event and isinstance(event["odsCode"], str):
+        event["odsCode"] = event["odsCode"].upper()
+    return event
+
+
+def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> dict:
+    return {
+        "statusCode": status_code,
+        "headers": {"Content-Type": "application/fhir+json"},
+        "body": fhir_resource.model_dump_json(),
+    }
