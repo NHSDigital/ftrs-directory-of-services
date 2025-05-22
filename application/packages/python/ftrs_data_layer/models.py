@@ -189,10 +189,10 @@ class Telecom(BaseModel):
 
 
 class OpeningTimeCategory(str, Enum):
-    AVAILABLETIME = "availableTime"
-    AVAILABLETIMEVARIATIONS = "availableTimeVariations"
-    AVAILABLETIMEPUBLICHOLIDAYS = "availableTimePublicHolidays"
-    NOTAVAILABLE = "notAvailable"
+    AVAILABLE_TIME = "availableTime"
+    AVAILABLE_TIME_VARIATIONS = "availableTimeVariations"
+    AVAILABLE_TIME_PUBLIC_HOLIDAYS = "availableTimePublicHolidays"
+    NOT_AVAILABLE = "notAvailable"
 
 
 class DayOfWeek(str, Enum):
@@ -207,8 +207,8 @@ class DayOfWeek(str, Enum):
 
 class AvailableTime(BaseModel):
     id: UUID = uuid4()
-    category: Literal[OpeningTimeCategory.AVAILABLETIME] = (
-        OpeningTimeCategory.AVAILABLETIME
+    category: Literal[OpeningTimeCategory.AVAILABLE_TIME] = (
+        OpeningTimeCategory.AVAILABLE_TIME
     )
     dayOfWeek: DayOfWeek
     startTime: time
@@ -218,8 +218,8 @@ class AvailableTime(BaseModel):
 
 class AvailableTimeVariation(BaseModel):
     id: UUID = uuid4()
-    category: Literal[OpeningTimeCategory.AVAILABLETIMEVARIATIONS] = (
-        OpeningTimeCategory.AVAILABLETIMEVARIATIONS
+    category: Literal[OpeningTimeCategory.AVAILABLE_TIME_VARIATIONS] = (
+        OpeningTimeCategory.AVAILABLE_TIME_VARIATIONS
     )
     description: str
     startTime: datetime
@@ -228,8 +228,8 @@ class AvailableTimeVariation(BaseModel):
 
 class AvailableTimePublicHolidays(BaseModel):
     id: UUID = uuid4()
-    category: Literal[OpeningTimeCategory.AVAILABLETIMEPUBLICHOLIDAYS] = (
-        OpeningTimeCategory.AVAILABLETIMEPUBLICHOLIDAYS
+    category: Literal[OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS] = (
+        OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS
     )
     startTime: time
     endTime: time
@@ -237,8 +237,8 @@ class AvailableTimePublicHolidays(BaseModel):
 
 class NotAvailable(BaseModel):
     id: UUID = uuid4()
-    category: Literal[OpeningTimeCategory.NOTAVAILABLE] = (
-        OpeningTimeCategory.NOTAVAILABLE
+    category: Literal[OpeningTimeCategory.NOT_AVAILABLE] = (
+        OpeningTimeCategory.NOT_AVAILABLE
     )
     description: str
     unavailableDate: date
@@ -312,7 +312,7 @@ class HealthcareService(DBModel):
 
         items = [
             AvailableTime(
-                category=OpeningTimeCategory.AVAILABLETIME,
+                category=OpeningTimeCategory.AVAILABLE_TIME,
                 dayOfWeek=data["dayOfWeek"][0],
                 startTime=data["availableStartTime"],
                 endTime=data["availableEndTime"],
@@ -324,7 +324,7 @@ class HealthcareService(DBModel):
             for data in availability["availableTimePublicHolidays"]:
                 items.append(
                     AvailableTimePublicHolidays(
-                        category=OpeningTimeCategory.AVAILABLETIMEPUBLICHOLIDAYS,
+                        category=OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS,
                         startTime=data["availableStartTime"],
                         endTime=data["availableEndTime"],
                     )
@@ -334,7 +334,7 @@ class HealthcareService(DBModel):
             for data in availability["availableTimeVariations"]:
                 items.append(
                     AvailableTimeVariation(
-                        category=OpeningTimeCategory.AVAILABLETIMEVARIATIONS,
+                        category=OpeningTimeCategory.AVAILABLE_TIME_VARIATIONS,
                         description=data["description"],
                         startTime=data["during"]["start"],
                         endTime=data["during"]["end"],
@@ -345,7 +345,7 @@ class HealthcareService(DBModel):
             for data in availability["notAvailable"]:
                 items.append(
                     NotAvailable(
-                        category=OpeningTimeCategory.AVAILABLETIMEVARIATIONS,
+                        category=OpeningTimeCategory.NOT_AVAILABLE,
                         description=data["description"],
                         unavailableDate=data["start"],
                     )
