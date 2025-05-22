@@ -6,4 +6,5 @@ install-dependencies:
 	poetry install --no-interaction
 
 combine-coverage:
+	ls -lat
 	poetry run coverage combine .*-coverage
