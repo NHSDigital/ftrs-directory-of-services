@@ -23,5 +23,5 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_ssm_parameter" "organisation_api_function_url" {
-  name = "/${var.project}-${var.environment}-crud-apis/organisation-api/function-url"
+  name = "/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/organisation-api/function-url"
 }
