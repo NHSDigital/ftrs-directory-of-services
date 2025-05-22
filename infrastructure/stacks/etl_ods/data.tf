@@ -23,5 +23,5 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_ssm_parameter" "organisation_api_function_url" {
-  name = "/organisation-api/function-url"
+  name = "/${var.project}-${var.environment}-etl-ods/organisation-api/function-url"
 }
