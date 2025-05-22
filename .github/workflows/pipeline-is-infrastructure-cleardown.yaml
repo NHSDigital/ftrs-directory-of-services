@@ -8,6 +8,7 @@ on:
   delete:
     branches:
       - 'task/DOSIS*'
+      - 'task/dosis*'
   workflow_dispatch:
     inputs:
       application_tag:
