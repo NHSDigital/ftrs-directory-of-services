@@ -51,8 +51,9 @@ jobs:
       - name: "Download code coverage reports"
         uses: actions/download-artifact@v4
         with:
-          name: .*-coverage
           path: tests/coverage
+          pattern: .*-coverage
+          merge-multiple: true
 
       - name: "Compile code coverage report"
         run:  make combine-coverage
