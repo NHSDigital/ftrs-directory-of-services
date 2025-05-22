@@ -7,7 +7,5 @@ install-dependencies:
 
 combine-coverage:
 	pwd
-	cd ../
-	pwd
 	ls -lat
 	poetry run coverage combine .*-coverage
