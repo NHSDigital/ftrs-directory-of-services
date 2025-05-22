@@ -63,7 +63,10 @@ def mock_responses() -> MagicMock:
 
 
 @patch("pipeline.processor.requests.get")
-@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001/"})
+@patch.dict(
+    "os.environ",
+    {"ORGANISATION_API_URL": "https://localhost:8001/", "ENVIRONMENT": "dev"},
+)
 def test_processor_processing_organisations_continues_if_failure(
     mock_get: MagicMock, caplog: any
 ) -> None:
@@ -170,7 +173,10 @@ def test_processor_processing_organisations_continues_if_failure(
 
 
 @patch("pipeline.processor.requests.get")
-@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001/"})
+@patch.dict(
+    "os.environ",
+    {"ORGANISATION_API_URL": "https://localhost:8001/", "ENVIRONMENT": "dev"},
+)
 def test_processor_processing_organisations_successful(
     mock_get: MagicMock, mock_responses: MagicMock, caplog: any
 ) -> None:
@@ -272,6 +278,7 @@ def test_processor_exception(mock_get: MagicMock, caplog: any) -> None:
 
 @patch("pipeline.processor.process_organisation")
 @patch("pipeline.processor.requests.get")
+@patch.dict({"ENVIRONMENT": "dev"})
 def test_processor_calls_organisation_crud_api(
     mock_get: MagicMock, mock_process_organisation: MagicMock, mock_responses: MagicMock
 ) -> None:
