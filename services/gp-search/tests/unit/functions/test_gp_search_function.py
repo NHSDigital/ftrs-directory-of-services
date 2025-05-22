@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
@@ -92,8 +92,13 @@ class TestLambdaHandler:
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(event["odsCode"])
-        mock_logger.append_keys.assert_called_once_with(ods_code=ods_code)
-        mock_logger.info.assert_called_once_with("Successfully processed")
+        mock_logger.assert_has_calls(
+            [
+                call.append_keys(ods_code=ods_code),
+                call.info("Successfully processed"),
+                call.info("Creating response", extra={"status_code": 200}),
+            ]
+        )
 
         assert_response(
             response, expected_status_code=200, expected_body=bundle.model_dump_json()
@@ -111,8 +116,13 @@ class TestLambdaHandler:
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with("ABC123")
-        mock_logger.append_keys.assert_called_once_with(ods_code="ABC123")
-        mock_logger.info.assert_called_once_with("Successfully processed")
+        mock_logger.assert_has_calls(
+            [
+                call.append_keys(ods_code="ABC123"),
+                call.info("Successfully processed"),
+                call.info("Creating response", extra={"status_code": 200}),
+            ]
+        )
 
         assert_response(
             response, expected_status_code=200, expected_body=bundle.model_dump_json()
@@ -166,9 +176,14 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_not_called()
         mock_error_util.create_resource_validation_error.assert_called_once()
 
-        mock_logger.warning.assert_called_once_with(
-            "Schema validation error occurred",
-            exc_info=mock_error_util.create_resource_validation_error.call_args[0][0],
+        exception = mock_error_util.create_resource_validation_error.call_args[0][0]
+        assert exception.validation_message == expected_error_message
+
+        mock_logger.assert_has_calls(
+            [
+                call.warning("Schema validation error occurred", exc_info=exception),
+                call.info("Creating response", extra={"status_code": 422}),
+            ]
         )
 
         assert_response(
@@ -176,9 +191,6 @@ class TestLambdaHandler:
             expected_status_code=422,
             expected_body=mock_error_util.create_resource_validation_error.return_value.model_dump_json(),
         )
-
-        exception = mock_error_util.create_resource_validation_error.call_args[0][0]
-        assert exception.validation_message == expected_error_message
 
     def test_lambda_handler_with_general_exception(
         self, lambda_context, mock_ftrs_service, event, mock_error_util, mock_logger
@@ -193,8 +205,13 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(event["odsCode"])
         mock_error_util.create_resource_internal_server_error.assert_called_once()
 
-        mock_logger.append_keys.assert_called_once_with(ods_code=event["odsCode"])
-        mock_logger.exception.assert_called_once_with("Internal server error occurred")
+        mock_logger.assert_has_calls(
+            [
+                call.append_keys(ods_code=event["odsCode"]),
+                call.exception("Internal server error occurred"),
+                call.info("Creating response", extra={"status_code": 500}),
+            ]
+        )
 
         assert_response(
             response,

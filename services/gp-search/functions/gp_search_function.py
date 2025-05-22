@@ -48,6 +48,7 @@ def normalize_event(event: dict) -> dict:
 
 
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> dict:
+    logger.info("Creating response", extra={"status_code": status_code})
     return {
         "statusCode": status_code,
         "headers": {"Content-Type": "application/fhir+json"},
