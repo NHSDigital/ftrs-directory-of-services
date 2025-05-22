@@ -53,7 +53,7 @@ jobs:
           path: tests/coverage
 
       - name: "Compile code coverage report"
-        run:  make collate-coverage
+        run:  make combine-coverage
         working-directory: tests/coverage
 
       - name: "Publish collated code coverage report to GitHub"
@@ -62,3 +62,4 @@ jobs:
           name: .coverage
           path: .tests/coverage/.coverage
           if-no-files-found: error
+          include-hidden-files: true
