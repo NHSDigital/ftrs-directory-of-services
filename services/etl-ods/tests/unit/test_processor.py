@@ -66,7 +66,11 @@ def mock_responses() -> MagicMock:
 @patch("pipeline.processor.requests.get")
 @patch.dict(
     "os.environ",
-    {"ORGANISATION_API_URL": "https://localhost:8001/", "ENVIRONMENT": os.environ["ENVIRONMENT"], "WORKSPACE":os.environ["WORKSPACE"]},
+    {
+        "ORGANISATION_API_URL": "https://localhost:8001/",
+        "ENVIRONMENT": os.environ["ENVIRONMENT"],
+        "WORKSPACE": os.environ["WORKSPACE"],
+    },
 )
 def test_processor_processing_organisations_continues_if_failure(
     mock_get: MagicMock, caplog: any
@@ -176,7 +180,11 @@ def test_processor_processing_organisations_continues_if_failure(
 @patch("pipeline.processor.requests.get")
 @patch.dict(
     "os.environ",
-    {"ORGANISATION_API_URL": "https://localhost:8001/", "ENVIRONMENT": os.environ["ENVIRONMENT"], "WORKSPACE":os.environ["WORKSPACE"]},
+    {
+        "ORGANISATION_API_URL": "https://localhost:8001/",
+        "ENVIRONMENT": os.environ["ENVIRONMENT"],
+        "WORKSPACE": os.environ["WORKSPACE"],
+    },
 )
 def test_processor_processing_organisations_successful(
     mock_get: MagicMock, mock_responses: MagicMock, caplog: any
@@ -283,8 +291,9 @@ def test_processor_calls_organisation_crud_api(
     mock_get: MagicMock, mock_process_organisation: MagicMock, mock_responses: MagicMock
 ) -> None:
     with patch.dict(
-    "os.environ",
-    {"ENVIRONMENT": "dev"},):
+        "os.environ",
+        {"ENVIRONMENT": "dev"},
+    ):
         first_response, second_response, _, _ = mock_responses
         mock_get.side_effect = [first_response, second_response]
         mock_process_organisation.return_value = None
