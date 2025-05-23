@@ -112,7 +112,7 @@ def test_doc_update() -> None:
         table_name="test_table",
         model_cls=MockModel,
     )
-    obj = MockModel(id="1", name="Test")
+    obj = MockModel(id="1", name="Test", indexes={"some_index": "value"})
 
     # Mock the put_item method
     repo.table.put_item = MagicMock(

@@ -295,6 +295,8 @@ def test_location() -> None:
         "partOf": None,
     }
 
+    assert loc.indexes == {}
+
 
 @freeze_time("2023-10-01T00:00:00Z")
 def test_location_from_dos(mocker: MockerFixture) -> None:
@@ -389,6 +391,8 @@ def test_endpoint() -> None:
         "address": "https://example.com/endpoint",
         "order": 1,
     }
+
+    assert endpoint.indexes == {}
 
 
 @freeze_time("2023-10-01T00:00:00Z")
