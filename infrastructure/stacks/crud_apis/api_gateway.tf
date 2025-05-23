@@ -9,8 +9,11 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
+
   routes = {
     "ANY /organisation/{proxy+}" = {
+      # TODO: Setup to use mTLS or API Keys
+      authorization_type = "AWS_IAM"
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = "2.0"
@@ -20,6 +23,7 @@ module "api_gateway" {
 
     # TODO: Uncomment and configure the following routes as needed
     # "ANY /healthcare-service/{proxy+}" = {
+    #   authorization_type = "AWS_IAM"
     #   integration = {
     #     uri                    = module.healthcare_service_api_lambda.lambda_function_arn
     #     payload_format_version = "2.0"
@@ -28,6 +32,7 @@ module "api_gateway" {
     # }
 
     # "ANY /location/{proxy+}" = {
+    #   authorization_type = "AWS_IAM"
     #   integration = {
     #     uri                    = module.location_api_lambda.lambda_function_arn
     #     payload_format_version = "2.0"
@@ -70,8 +75,6 @@ module "api_gateway" {
     throttling_burst_limit   = 100
     throttling_rate_limit    = 10
   }
-
-
 }
 
 resource "aws_ssm_parameter" "crud_api_endpoint" {
