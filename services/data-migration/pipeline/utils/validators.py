@@ -1,13 +1,16 @@
-import logging
 from pathlib import Path
 from typing import Literal
 from urllib.parse import urlparse
 
 import boto3
 from botocore.exceptions import ClientError
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import UtilsLogBase
 from typer import BadParameter
 
 from pipeline.utils.file_io import PathType
+
+validators_logger = Logger.get(service="validators")
 
 
 def check_bucket_access(bucket_name: str) -> bool:
@@ -21,9 +24,11 @@ def check_bucket_access(bucket_name: str) -> bool:
     s3_client = boto3.client("s3")
     try:
         s3_client.head_bucket(Bucket=bucket_name)
-        logging.info(f"Bucket {bucket_name} exists and is accessible.")
+        validators_logger.log(UtilsLogBase.UTILS_VALIDATOR_001, bucket_name=bucket_name)
     except ClientError as e:
-        logging.warning(f"Error checking bucket {bucket_name}: {e}")
+        validators_logger.log(
+            UtilsLogBase.UTILS_VALIDATOR_002, bucket_name=bucket_name, e=e
+        )
         return False
 
     return True
@@ -40,10 +45,17 @@ def check_object_exists(bucket_name: str, object_key: str) -> bool:
     s3_client = boto3.client("s3")
     try:
         s3_client.head_object(Bucket=bucket_name, Key=object_key)
-        logging.info(f"Object {object_key} exists in bucket {bucket_name}.")
+        validators_logger.log(
+            UtilsLogBase.UTILS_VALIDATOR_003,
+            object_key=object_key,
+            bucket_name=bucket_name,
+        )
     except ClientError as e:
-        logging.warning(
-            f"Error checking object {object_key} in bucket {bucket_name}: {e}"
+        validators_logger.log(
+            UtilsLogBase.UTILS_VALIDATOR_004,
+            object_key=object_key,
+            bucket_name=bucket_name,
+            e=e,
         )
         return False
 
@@ -61,7 +73,8 @@ def validate_s3_uri(
         return False
 
     if not check_bucket_access(parsed.netloc):
-        err_msg = f"Invalid S3 URI: {s3_uri}. Please provide a valid S3 URI and confirm you have access to the S3 bucket."
+        validators_logger.log(UtilsLogBase.UTILS_VALIDATOR_005, s3_uri=s3_uri)
+        err_msg = UtilsLogBase.UTILS_VALIDATOR_005.value.message.format(s3_uri=s3_uri)
         raise BadParameter(err_msg)
 
     if should_file_exist is None:
@@ -74,9 +87,8 @@ def validate_s3_uri(
         raise BadParameter(err_msg)
 
     if not should_file_exist and file_exists:
-        err_msg = (
-            f"File already exists in S3: {s3_uri}. Please provide a different S3 URI."
-        )
+        validators_logger.log(UtilsLogBase.UTILS_VALIDATOR_007, s3_uri=s3_uri)
+        err_msg = UtilsLogBase.UTILS_VALIDATOR_007.value.message.format(s3_uri=s3_uri)
         raise BadParameter(err_msg)
 
     return s3_uri
@@ -89,19 +101,29 @@ def validate_local_path(path: str, should_file_exist: bool | None = None) -> Pat
     parsed_path = Path(path)
 
     if not parsed_path.parent.exists():
-        err_msg = f"Parent directory does not exist: {parsed_path.parent}. Please provide a valid path to a file."
+        parsed_path_parent = parsed_path.parent
+        validators_logger.log(
+            UtilsLogBase.UTILS_VALIDATOR_008, parsed_path_parent=parsed_path_parent
+        )
+        err_msg = UtilsLogBase.UTILS_VALIDATOR_008.value.message.format(
+            parsed_path_parent=parsed_path_parent
+        )
         raise BadParameter(err_msg)
 
     if should_file_exist is None:
         return parsed_path
 
     if should_file_exist and not parsed_path.is_file():
-        err_msg = f"File does not exist: {parsed_path}. Please provide a valid path to a file."
+        validators_logger.log(UtilsLogBase.UTILS_VALIDATOR_009, parsed_path=parsed_path)
+        err_msg = UtilsLogBase.UTILS_VALIDATOR_009.value.message.format(
+            parsed_path=parsed_path
+        )
         raise BadParameter(err_msg)
 
     if not should_file_exist and parsed_path.exists():
-        err_msg = (
-            f"File already exists: {parsed_path}. Please provide a different path."
+        validators_logger.log(UtilsLogBase.UTILS_VALIDATOR_010, parsed_path=parsed_path)
+        err_msg = UtilsLogBase.UTILS_VALIDATOR_010.value.message.format(
+            parsed_path=parsed_path
         )
         raise BadParameter(err_msg)
 

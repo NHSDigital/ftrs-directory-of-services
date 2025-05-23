@@ -1,5 +1,4 @@
 import pytest
-
 from ftrs_data_layer.models import BaseModel
 from ftrs_data_layer.repository.base import BaseRepository
 
