@@ -17,34 +17,34 @@ variable "aws_lambda_layers" {
   type        = list(string)
 }
 
-variable "extract_name" {
-  description = "The name of the ETL ODS Extract Lambda function"
+variable "processor_name" {
+  description = "The name of the ETL ODS Processor Lambda function"
 }
 
-variable "processor_lambda_connection_timeout" {
-  description = "The timeout for the ETL ODS Extract Lambda function"
-  type        = number
-}
-
-variable "processor_lambda_memory_size" {
-  description = "The memory size for the ETL ODS Extract Lambda function"
-  type        = number
+variable "consumer_name" {
+  description = "The name of the ETL ODS Consumer Lambda function"
 }
 
 variable "processor_lambda_handler" {
-  description = "The handler for the ETL ODS Extract Lambda function"
+  description = "The handler for the ETL ODS Processor Lambda function"
   type        = string
 }
 
-variable "data_migration_rds_min_capacity" {
-  description = "The minimum capacity for the RDS instance"
+variable "consumer_lambda_handler" {
+  description = "The handler for the ETL ODS Consumer Lambda function"
+  type        = string
+}
+
+variable "lambda_connection_timeout" {
+  description = "The timeout for the ETL ODS Lambda functions"
   type        = number
 }
 
-variable "data_migration_rds_max_capacity" {
-  description = "The maximum capacity for the RDS instance"
+variable "lambda_memory_size" {
+  description = "The memory size for the ETL ODS Lambda functions"
   type        = number
 }
+
 
 variable "etl_ods_pipeline_store_bucket_name" {
   description = "The name of the S3 bucket to use for the etl ods pipeline"
