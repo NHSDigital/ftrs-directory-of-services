@@ -126,9 +126,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - build-data-migration-service
-      - build-python-package
-      - build-read-only-viewer-service
+      - run-code-analysis-report
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
