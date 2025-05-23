@@ -96,7 +96,7 @@ data "aws_iam_policy_document" "vpc_access_policy" {
 }
 
 resource "aws_lambda_event_source_mapping" "sqs_trigger" {
-  event_source_arn = aws_sqs_queue.my_queue.arn
+  event_source_arn = aws_sqs_queue.transformed_queue.arn
   function_name    = module.consumer_lambda.lambda_function_name
   batch_size       = 10
   enabled          = true
