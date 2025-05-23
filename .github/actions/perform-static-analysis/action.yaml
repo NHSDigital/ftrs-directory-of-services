@@ -19,7 +19,7 @@ runs:
       uses: actions/download-artifact@v4
       with:
         path: .
-        pattern: coverage-*.xml
+        pattern: coverage-data-migration.xml
 
     - name: "Perform SonarCloud static analysis"
       uses: sonarsource/sonarqube-scan-action@v5.2.0
@@ -31,6 +31,7 @@ runs:
           -Dsonar.organization=${{ inputs.sonar_organisation_key }}
           -Dsonar.projectKey=${{ inputs.sonar_project_key }}
           -Dsonar.branch.name=${{ github.ref }}
+          -Dsonar.python.coverage.reportPaths=coverage-data-migration.xml
           -Dproject.settings=./scripts/config/sonar-scanner.properties
       continue-on-error: true
 
