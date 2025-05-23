@@ -1,3 +1,8 @@
+variable "commit_hash" {
+  description = "The commit hash of the read-only viewer application"
+  type        = string
+}
+
 variable "read_only_viewer_bucket_name" {
   description = "The name of the read-only viewer bucket"
   type        = string
@@ -59,4 +64,21 @@ variable "read_only_viewer_log_group_name_prefix" {
   description = "Prefix for WAF CloudWatch Log Group Name"
   type        = string
   default     = "aws-waf-logs-"
+}
+
+variable "frontend_lambda_connection_timeout" {
+  description = "The connection timeout for the frontend lambda"
+  type        = number
+  default     = 30
+}
+
+variable "frontend_lambda_memory_size" {
+  description = "The memory size for the frontend lambda"
+  type        = number
+  default     = 256
+}
+
+variable "frontend_lambda_name" {
+  description = "The name of the frontend lambda"
+  type        = string
 }
