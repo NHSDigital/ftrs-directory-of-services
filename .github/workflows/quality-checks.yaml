@@ -204,5 +204,6 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          trivy-config: trivy.yaml
-
+          format: 'sarif'
+          output: 'trivy.sarif'
+          scanners: vuln,misconfig
