@@ -42,7 +42,7 @@ publish:
 deploy:
 	aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
 	unzip $(SERVICE)-assets-$(APPLICATION_TAG).zip -d ${TEMP_DIRECTORY}
-	aws s3 sync $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/
+	aws s3 sync --delete $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/
 
 invalidate-cloudfront-cache:
 	@echo "CLOUDFRONT_DISTRIBUTION_ID: $(CLOUDFRONT_DISTRIBUTION_ID)"

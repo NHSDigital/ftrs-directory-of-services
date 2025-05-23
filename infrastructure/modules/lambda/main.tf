@@ -8,8 +8,8 @@ terraform {
 }
 
 module "lambda" {
-  source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 6.0"
+  # Module version: 7.21.0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=f1f06ed88f567ec75815bd37897d612092e7941c"
 
   function_name          = "${var.function_name}${local.workspace_suffix}"
   handler                = var.handler
