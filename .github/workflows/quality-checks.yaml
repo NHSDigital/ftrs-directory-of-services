@@ -191,8 +191,10 @@ jobs:
         include:
           - folder: "infrastructure/stacks/opensearch"
             tfvarsfile: "infrastructure/opensearch.tfvars"
+            output: opensearch-trivy.sarif
           - folder: "infrastructure/stacks/read_only_viewer"
             tfvarsfile: "infrastructure/read_only_viewer.tfvars"
+            output: read_only_viewer-trivy.sarif
     timeout-minutes: ${{ inputs.workflow_timeout }}
     permissions:
       contents: read
@@ -209,7 +211,7 @@ jobs:
           cp infrastructure/common/locals.tf ${{matrix.folder}}
           cp ${{matrix.tfvarsfile}} ${{matrix.folder}}
 
-      - name: Trivy scan
+      - name: "Trivy scan"
         uses: aquasecurity/trivy-action@0.30.0
         continue-on-error: true
         with:
@@ -218,3 +220,10 @@ jobs:
           format: 'sarif'
           output: 'trivy.sarif'
           scanners: vuln,misconfig
+
+      - name: "Publish report"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: ${{matrix.output}}
+          path: "."
+          if-no-files-found: ignore
