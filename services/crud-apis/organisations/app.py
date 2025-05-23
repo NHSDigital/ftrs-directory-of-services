@@ -40,9 +40,6 @@ def get_org_id(
     return JSONResponse(status_code=200, content={"id": records[0]})
 
 
-LIMIT: int = 10
-
-
 @app.put("/{organisation_id}", summary="Update an organisation.")
 def update_organisation(
     organisation_id: UUID = Path(
@@ -112,8 +109,8 @@ def read_organisation(
 
 
 @app.get("/", summary="Read all organisations")
-def readMany_organisations(
-    settings: AppSettings = Depends(get_app_settings),
+def read_many_organisations(
+    settings: AppSettings = Depends(get_app_settings), limit: int = 10
 ) -> list[Organisation]:
     org_repository = get_repository(
         env=settings.env,
@@ -121,7 +118,7 @@ def readMany_organisations(
         endpoint_url=settings.endpoint_url,
     )
 
-    all_existing_organisation = org_repository.get_all(LIMIT)
+    all_existing_organisation = org_repository.get_all(limit)
 
     if not all_existing_organisation:
         logging.error("Unable to retrieve all organisations.")

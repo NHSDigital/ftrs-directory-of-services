@@ -62,7 +62,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         Get all items from the DynamoDB table.
         """
         items = []
-        response = self.table.scan(Limit=limit)
+        response = self._scan(Limit=limit)
         items.extend(response.get("Items", []))
 
         return [self._parse_item(item) for item in items]
