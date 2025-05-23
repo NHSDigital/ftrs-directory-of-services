@@ -4,6 +4,9 @@ import re
 
 import requests
 
+from pipeline.load_data import (
+    load_data,
+)
 from pipeline.validators import (
     OrganisationValidator,
     RolesValidator,
@@ -25,6 +28,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 STATUS_SUCCESSFUL = 200
+BATCH_SIZE = 10
 
 
 def processor(
@@ -38,14 +42,24 @@ def processor(
         if not organisations:
             logger.info("No organisations found for the given date.")
             return
-
+        total_organisations = len(organisations)
+        transformed_batch = []
         for organisation in organisations:
             org_link = organisation.get("OrgLink")
             if not org_link:
                 logger.warning("Organisation link is missing in the response.")
                 continue
             organisation_ods_code = extract_ods_code(org_link)
-            process_organisation(organisation_ods_code)
+            transformed_request = process_organisation(organisation_ods_code)
+            transformed_batch.append(transformed_request)
+
+            if (
+                len(transformed_batch) == BATCH_SIZE
+                or len(transformed_batch) == total_organisations
+            ):
+                load_data(transformed_batch)
+                transformed_batch = []
+                total_organisations = total_organisations - BATCH_SIZE
 
     except requests.exceptions.RequestException as e:
         logger.warning(f"Error fetching data: {e}")
