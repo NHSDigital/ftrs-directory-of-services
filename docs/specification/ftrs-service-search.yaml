@@ -1,49 +1,74 @@
 openapi: 3.0.3
 info:
   title: Find the Right Service Search API
-  description: "## Overview\n
-    Use this API to access healthcare services details profiled in the Find the Right Service Directory. This API provides read-only access to the data held in the directory.\n\n
-    You can:\n\n
-    - Obtain Organization details (including Endpoints managed by the Organization) for a given Organization ODS Code\n\n
-    In the future you will be able to:\n\n
-    - Obtain Organization details (including Endpoints managed by the Organization) for a given service Identifier\n\n
-    ## Who can use this API\nThis API can only be used where you have a valid use case to do so. Please [contact us](https://digital.nhs.uk/developer/help-and-support) before\nyou go too far with your development.\n\nYou must do this before you can go live (see 'Onboarding' below).\n\n
-    ## Existing API Users\n\n
-    TBC\n\n
-    ## Access modes\n\n
-    This API supports the following access modes:\n\n
-    - restricted access\n\n
-    ### Restricted Access\n\n
-    This is the only access mode supported by the API and it is [application-restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis), meaning we authenticate and authorise the calling application but not the end user. This mode is used as part of a back-end process to retrieve healthcare service details\n\n
-    This access mode adopts the following security/authentication patterns:\n\n
-    - TBC\n\n
-    ## Roadmap\n\n
-    TBC\n\n
-    ## Service Levels\n\n
-    This is a TBC service. For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)\n\n
-    ## Rate Limits\n\n
-    TBC\n\n
-    ## Technology\n\n
-    This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest)/n/n
-    It conforms to the FHIR global standard for health care data exchange, specifically to FHIR R4 (v4.0.1).\n\n
-    You do not need to know much about [FHIR](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#fhir) to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:\n\n
-    - resource names are capitalised and singular, for example /Patient not /patients\n\n
-    - array names are singular, for example line not lines for address lines\n\n
-    - data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object\n\n
-  There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.\n\n
-  ## Network access\n\n
-  This API is available over the internet\n\n
-  ## Errors\n\n
-  We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:\n\n
-  - 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action\n
-  - 400 to 499 if it failed because of a client error by your application\n
-  - 500 to 599 if it failed because of an error on our server\n\n
-  Errors specific to each API endpoint are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.\n\n
-  Your API-calling application should have a mechanism to automatically try again, for example by giving status information to your end user, before giving up. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.\n\n
-  ## Environments and testing\n| Environment       | Base URL                                                                             |\n| ----------------- | ------------------------------------------------------------------------------------ |\n| Sandbox           | TBC                |\n| Integration test  | TBC                    |\n| Production        | TBC                        |\n\n
-  ### Sandbox testing\nOur [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)\n\n* is for early developer testing\n* only covers a limited set of scenarios\n* is open access, so does not allow you to test authorisation\n\n
-  ### Integration testing\n\nOur [integration test environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing)\n\n* is for formal integration testing\n* includes authorisation via JWT Private Key\n\n
-  ## Onboarding\nYou must get your software onboarded before it can go live.\n\nFor more details, contact us at TBC.\n"
+  description: |
+    ## Overview
+    Use this API to access healthcare services details profiled in the Find the Right Service Directory. This API provides read-only access to the data held in the directory.
+    You can:
+    - Obtain Organization details (including Endpoints managed by the Organization) for a given Organization ODS Code
+    In the future you will be able to:
+    - Obtain Organization details (including Endpoints managed by the Organization) for a given service Identifier
+
+    ## Who can use this API
+    This API can only be used where you have a valid use case to do so. Please [contact us](https://digital.nhs.uk/developer/help-and-support) before you go too far with your development.
+    You must do this before you can go live (see 'Onboarding' below).
+
+    ## Existing API Users
+    TBC
+
+    ## Access modes
+    This API supports the following access modes:
+    - restricted access
+
+    ### Restricted Access
+    This is the only access mode supported by the API and it is [application-restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis), meaning we authenticate and authorise the calling application but not the end user. This mode is used as part of a back-end process to retrieve healthcare service details
+    This access mode adopts the following security/authentication patterns:
+    - TBC
+
+    ## Roadmap
+    TBC
+
+    ## Service Levels
+    This is a TBC service. For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
+
+    ## Rate Limits
+    TBC
+
+    ## Technology
+    This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest)
+    It conforms to the FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1
+
+    You do not need to know much about [FHIR](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#fhir) to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
+    - resource names are capitalised and singular, for example /Patient not /patients
+    - array names are singular, for example line not lines for address lines
+    - data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object
+    There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
+
+    ## Network access
+    This API is available over the internet
+
+    ## Errors
+    We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
+    - 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
+    - 400 to 499 if it failed because of a client error by your application
+    - 500 to 599 if it failed because of an error on our server
+    Errors specific to each API endpoint are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+    Your API-calling application should have a mechanism to automatically try again, for example by giving status information to your end user, before giving up. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.
+
+    ## Environments and testing
+
+    | Environment      | Base URL |
+    |------------------|----------|
+    | Sandbox          | TBC      |
+    | Integration test | TBC      |
+    | Production       | TBC      |
+
+    ### Sandbox testing
+    Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing) is for early developer testing only covers a limited set of scenarios is open access, so does not allow you to test authorisation.
+    ### Integration testing
+    Our [integration test environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing) is for formal integration testing includes authorisation via JWT Private Key.
+    ## Onboarding
+    You must get your software onboarded before it can go live.\n\nFor more details, contact us at TBC.
   version: 1.0.0
 servers:
   - description: Sandbox environment
@@ -80,7 +105,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^odsOrganizationCode\|[A-Z0-9]{1,12}$'
+            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{1,12}$'
             example: "odsOrganizationCode|ABC123"
         - name: _include
           in: query
@@ -88,8 +113,8 @@ paths:
           required: true
           schema:
             type: string
-            enum: ["Organization:endpoint"]
-            default: "Organization:endpoint"
+            enum: ["&_revinclude=Endpoint:organization"]
+            default: "&_revinclude=Endpoint:organization"
       responses:
         '200':
           description: Successful response
@@ -390,7 +415,7 @@ components:
                 type: string
         status:
           type: string
-          enum: ["active", "suspended", "error", "off", "entered-in-error", "test"]
+          enum: ["active", "off"]
         connectionType:
           type: object
           properties:
@@ -452,10 +477,10 @@ components:
             properties:
               severity:
                 type: string
-                enum: ["fatal", "error", "warning", "information"]
+                enum: ["error"]
               code:
                 type: string
-                enum: ["invalid", "structure", "required", "value", "invariant", "security", "login", "unknown", "expired", "forbidden", "suppressed", "processing", "not-supported", "duplicate", "multiple-matches", "not-found", "too-long", "code-invalid", "extension", "too-costly", "business-rule", "conflict", "transient", "lock-error", "no-store", "exception", "timeout", "incomplete", "throttled", "informational"]
+                enum: ["invalid", "internal"]
               diagnostics:
                 type: string
               details:
