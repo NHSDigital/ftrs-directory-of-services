@@ -199,5 +199,6 @@ jobs:
         continue-on-error: true
         with:
           scan-type: 'fs'
+          scan-ref: ${{ inputs.workspace }}
           trivy-config: trivy.yaml
 
