@@ -14,7 +14,7 @@ module "processor_lambda" {
   handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-processor-lambda-${var.application_tag}.zip"
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.lambda_connection_timeout
   memory_size             = var.lambda_memory_size
@@ -44,13 +44,13 @@ module "consumer_lambda" {
   handler                 = var.consumer_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-consumer-lambda-${var.application_tag}.zip"
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.processor_lambda_security_group.id]
+  security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
 
   number_of_policy_jsons = "2"
   policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
