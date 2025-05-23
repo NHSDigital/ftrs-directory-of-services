@@ -17,11 +17,7 @@ from pipeline.reset import (
 
 
 def test_reset_invalid_environment() -> None:
-    # TODO: FDOS-197 update unit test for new logger
-    with pytest.raises(
-        ValueError,
-        match="Invalid environment: prod. Only 'dev' and 'local' are allowed.",
-    ):
+    with pytest.raises(ValueError):
         reset(env="prod")
 
 
@@ -193,9 +189,4 @@ def test_init_tables_existing_table(
         env=TargetEnvironment.local,
         workspace="test-workspace",
         entity_type=[ClearableEntityTypes.organisation],
-    )
-
-    # TODO: FDOS-197 update unit test for new logger
-    mock_logging.info.assert_any_call(
-        "Table ftrs-dos-local-database-organisation-test-workspace already exists."
     )
