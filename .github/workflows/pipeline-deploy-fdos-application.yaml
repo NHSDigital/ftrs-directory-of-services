@@ -118,6 +118,7 @@ jobs:
       - build-data-migration-service
       - build-python-package
       - build-read-only-viewer-service
+      - build-crud-apis-service
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
