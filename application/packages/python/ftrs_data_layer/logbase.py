@@ -59,6 +59,7 @@ class ETLPipelineLogBase(LogBase):
     ETL_RESET_004 = LogReference(level=INFO, message="Table {table_name} already exists.")
     ETL_RESET_005 = LogReference(level=ERROR, message="Invalid environment: {env}. Only 'dev' and 'local' are allowed.")
     ETL_RESET_006 = LogReference(level=INFO, message="Deleted {count} items from {table_name}")
+    ETL_RESET_007 = LogReference(level=ERROR, message="Unsupported entity type: {entity_type}")
 
 class UtilsLogBase(LogBase):
     """

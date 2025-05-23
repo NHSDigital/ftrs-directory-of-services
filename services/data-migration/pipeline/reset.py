@@ -1,4 +1,3 @@
-import logging
 from enum import StrEnum
 from typing import Annotated, List
 
@@ -50,7 +49,10 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
         case ClearableEntityTypes.location:
             return Location
         case _:
-            err_msg = f"Unsupported entity type: {entity_type}"
+            reset_logger.log(ETLPipelineLogBase.ETL_RESET_007, entity_type=entity_type)
+            err_msg = ETLPipelineLogBase.ETL_RESET_007.value.message.format(
+                entity_type=entity_type
+            )
             raise ValueError(err_msg)
 
 
@@ -70,7 +72,7 @@ def create_table(
     if global_secondary_indexes:
         table_params["GlobalSecondaryIndexes"] = global_secondary_indexes
     client.create_table(**table_params)
-    logging.info(f"Table {table_name} created successfully.")
+    reset_logger.log(ETLPipelineLogBase.ETL_RESET_003, table_name=table_name)
 
 
 def init_tables(
