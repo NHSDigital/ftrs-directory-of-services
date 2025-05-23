@@ -4,7 +4,7 @@ BUILD_DIR := ../../build/services/${SERVICE}
 ARTEFACT_BUCKET := ${REPO_NAME}-mgmt-artefacts-bucket
 TEMP_DIRECTORY ?= ./temp
 DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),$(if $(filter default,$(WORKSPACE)),,-$(WORKSPACE)),)
-DEPLOYMENT_BUCKET ?= ftrs-dos-${DEPLOYMENT_ENVIRONMENT}-${SERVICE}-frontend-bucket${DEPLOYMENT_WORKSPACE}
+DEPLOYMENT_BUCKET ?= ftrs-dos-${ENVIRONMENT}-${SERVICE}-frontend-bucket${DEPLOYMENT_WORKSPACE}
 READ_ONLY_VIEWER_DOMAIN_NAME = ${DEPLOYMENT_BUCKET}.s3.${AWS_REGION}.amazonaws.com
 CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(READ_ONLY_VIEWER_DOMAIN_NAME)')].Id" --output text)
 

@@ -35,10 +35,6 @@ on:
           description: "The application tag identifying the timeline in the repository to deploy from"
           required: false
           type: string
-      deployment_environment:
-        description: "The deployment environment"
-        required: true
-        type: string
 
 jobs:
   deploy-project:
@@ -84,7 +80,6 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
-          DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
 
       - name: "Invalidate CloudFront Cache"
         run: make invalidate-cloudfront-cache
@@ -97,4 +92,3 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
-          DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
