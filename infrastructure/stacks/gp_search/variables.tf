@@ -18,10 +18,6 @@ variable "lambda_timeout" {
   description = "The connection timeout of the lambda function"
   type        = number
 }
-variable "aws_lambda_layers" {
-  description = "A list of Lambda layer ARNs to attach to the lambda function"
-  type        = list(string)
-}
 variable "application_tag" {
   description = "The version or tag of the gp search application"
   type        = string

@@ -21,9 +21,8 @@ module "lambda" {
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
-  layers = concat(
-    var.aws_lambda_layers,
-    [aws_lambda_layer_version.python_dependency_layer.arn]
+  layers = (
+    aws_lambda_layer_version.python_dependency_layer.arn
   )
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
