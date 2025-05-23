@@ -91,6 +91,17 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
     secrets: inherit
 
+  run-code-analysis-report:
+    name: "Run static code analysis"
+    needs:
+      - metadata
+      - build-crud-apis-service
+      - build-data-migration-service
+    uses: ./.github/workflows/build-code-coverage-report.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
+
   build-read-only-viewer-service:
     name: "Build read only viewer service"
     needs:

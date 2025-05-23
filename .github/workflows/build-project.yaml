@@ -93,9 +93,17 @@ jobs:
         run: make lint
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
-      - name: "Run unit tests"
+      - name: "Run unit tests for coverage"
         run: make unit-test
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
+
+      - name: "Publish coverage data to GitHub"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: coverage-${{ inputs.name }}.xml
+          path: ${{ steps.get-directories.outputs.working_directory }}
+          if-no-files-found: ignore
+          include-hidden-files: true
 
       - name: "Build project"
         run:  make build

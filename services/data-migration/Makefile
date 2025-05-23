@@ -32,8 +32,10 @@ lint:
 
 test: unit-test
 
-unit-test:
-	poetry run pytest tests/unit
+unit-test: coverage
+
+coverage:
+	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml tests/unit
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)
