@@ -227,3 +227,20 @@ jobs:
           name: ${{matrix.output}}
           path: "."
           if-no-files-found: ignore
+
+      - name: Trivy scan simple way
+        uses: aquasecurity/trivy-action@0.30.0
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-simple.sarif'
+          scanners: vuln,misconfig
+
+      - name: "Publish report simple way"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: "trivy-simple.sarif"
+          path: "."
+          if-no-files-found: ignore
