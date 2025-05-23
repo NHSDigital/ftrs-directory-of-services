@@ -22,7 +22,7 @@ module "lambda" {
   memory_size            = var.lambda_memory_size
 
   layers = (
-    aws_lambda_layer_version.python_dependency_layer.arn
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
