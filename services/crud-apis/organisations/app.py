@@ -9,7 +9,6 @@ from ftrs_data_layer.repository.dynamodb import (
     DocumentLevelRepository,
 )
 
-
 from organisations.dependencies import get_app_settings
 from organisations.settings import AppSettings
 from organisations.validators import UpdatePayloadValidator
