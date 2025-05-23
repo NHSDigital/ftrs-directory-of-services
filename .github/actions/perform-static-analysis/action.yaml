@@ -31,6 +31,6 @@ runs:
           -Dsonar.organization=${{ inputs.sonar_organisation_key }}
           -Dsonar.projectKey=${{ inputs.sonar_project_key }}
           -Dsonar.branch.name=${{ github.ref }}
-          -Dproject.settings=./scripts/config/sonar-scannar.properties
+          -Dproject.settings=./scripts/config/sonar-scanner.properties
       continue-on-error: true
 
