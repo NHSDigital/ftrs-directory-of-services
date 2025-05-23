@@ -11,8 +11,3 @@ lambda_memory_size = 512
 
 #DynamoDB
 dynamodb_organisation_table_name = "ftrs-dos-dev-database-organisation-is"
-
-# Dependency layers
-aws_lambda_layers = [
-  "arn:aws:lambda:eu-west-2:017000801446:layer:AWSLambdaPowertoolsPythonV2:46"
-]
