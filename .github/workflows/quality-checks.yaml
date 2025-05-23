@@ -203,6 +203,6 @@ jobs:
         continue-on-error: true
         with:
           scan-type: 'fs'
-          scan-ref: '/github/workspace/'
+          scan-ref: '.'
           trivy-config: trivy.yaml
 
