@@ -182,3 +182,23 @@ jobs:
           quiet: true
           output_format: sarif
           output_file_path: reports/checkov.sarif
+
+  trivy-scan:
+    name: "Trivy scan"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    permissions:
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.30.0
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          trivy-config: trivy.yaml
+
