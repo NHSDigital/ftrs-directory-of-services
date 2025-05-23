@@ -107,14 +107,14 @@ paths:
             type: string
             pattern: '^odsOrganizationCode\|[A-Za-z0-9]{1,12}$'
             example: "odsOrganizationCode|ABC123"
-        - name: _include
+        - name: _revinclude
           in: query
           description: Resources to include in the Bundle response
           required: true
           schema:
             type: string
-            enum: ["&_revinclude=Endpoint:organization"]
-            default: "&_revinclude=Endpoint:organization"
+            enum: ["Endpoint:organization"]
+            default: "Endpoint:organization"
       responses:
         '200':
           description: Successful response
