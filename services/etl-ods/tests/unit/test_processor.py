@@ -73,12 +73,7 @@ def test_processor_processing_organisations_continues_if_failure(
     mock_get: MagicMock, caplog: any
 ) -> None:
     """Test successful data extraction"""
-    with patch("boto3.client") as mock_boto_client:
-        mock_sqs = MagicMock()
-        mock_boto_client.return_value = mock_sqs
-        mock_sqs.get_queue_url.return_value = {
-            "QueueUrl": "https://sqs.region.amazonaws.com/test-queue"
-        }
+    with patch("pipeline.processor.load_data") as mock_load_data:
         first_response = MagicMock()
         first_response.status_code = 200
         first_response.json.return_value = {
@@ -141,7 +136,11 @@ def test_processor_processing_organisations_continues_if_failure(
 
         GET_COUNT = 5
         caplog.set_level(logging.INFO)
-
+        mock_sqs = MagicMock()
+        mock_load_data.return_value = mock_sqs
+        mock_sqs.get_queue_url.return_value = {
+            "QueueUrl": "https://sqs.region.amazonaws.com/test-queue"
+        }
         processor(date="2023-01-01")
 
         first_call_args = mock_get.call_args_list[0]
@@ -184,49 +183,59 @@ def test_processor_processing_organisations_continues_if_failure(
 @patch("pipeline.processor.requests.get")
 @patch.dict(
     "os.environ",
-    {"ORGANISATION_API_URL": "https://localhost:8001/"},
+    {
+        "ORGANISATION_API_URL": "https://localhost:8001/",
+    },
 )
 def test_processor_processing_organisations_successful(
     mock_get: MagicMock, mock_responses: MagicMock, caplog: any
 ) -> None:
     """Test successful data extraction"""
-    first_response, second_response, third_response, fourth_response = mock_responses
-    mock_get.side_effect = [
-        first_response,
-        second_response,
-        third_response,
-        fourth_response,
-    ]
-    GET_COUNT = 4
-    caplog.set_level(logging.INFO)
-    processor(date="2023-01-01")
+    with patch("pipeline.processor.load_data") as mock_load_data:
+        first_response, second_response, third_response, fourth_response = (
+            mock_responses
+        )
+        mock_get.side_effect = [
+            first_response,
+            second_response,
+            third_response,
+            fourth_response,
+        ]
+        GET_COUNT = 4
+        caplog.set_level(logging.INFO)
+        mock_sqs = MagicMock()
+        mock_load_data.return_value = mock_sqs
+        mock_sqs.get_queue_url.return_value = {
+            "QueueUrl": "https://sqs.region.amazonaws.com/test-queue"
+        }
+        processor(date="2023-01-01")
 
-    first_call_args = mock_get.call_args_list[0]
-    second_call_args = mock_get.call_args_list[1]
-    third_call_args = mock_get.call_args_list[2]
-    forth_call_args = mock_get.call_args_list[3]
+        first_call_args = mock_get.call_args_list[0]
+        second_call_args = mock_get.call_args_list[1]
+        third_call_args = mock_get.call_args_list[2]
+        forth_call_args = mock_get.call_args_list[3]
 
-    assert mock_get.call_count == GET_COUNT
+        assert mock_get.call_count == GET_COUNT
 
-    assert (
-        first_call_args[0][0]
-        == "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?"
-    )
-    assert first_call_args[1]["params"] == {"LastChangeDate": "2023-01-01"}
-    assert (
-        second_call_args[0][0]
-        == "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123"
-    )
-    assert (
-        third_call_args[0][0]
-        == "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/RO157"
-    )
-    assert forth_call_args[0][0] == "https://localhost:8001/ods_code/ABC123"
+        assert (
+            first_call_args[0][0]
+            == "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?"
+        )
+        assert first_call_args[1]["params"] == {"LastChangeDate": "2023-01-01"}
+        assert (
+            second_call_args[0][0]
+            == "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123"
+        )
+        assert (
+            third_call_args[0][0]
+            == "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/RO157"
+        )
+        assert forth_call_args[0][0] == "https://localhost:8001/ods_code/ABC123"
 
-    assert (
-        'Transformed request_body: {"path": "uuid", "body": {"active": true, "name": "Test Organisation", "telecom": "00000000000", "type": "NHS TRUST", "modified_by": "ODS_ETL_PIPELINE"}}'
-        in caplog.text
-    )
+        assert (
+            'Transformed request_body: {"path": "uuid", "body": {"active": true, "name": "Test Organisation", "telecom": "00000000000", "type": "NHS TRUST", "modified_by": "ODS_ETL_PIPELINE"}}'
+            in caplog.text
+        )
 
 
 @patch("pipeline.processor.requests.get")
@@ -290,13 +299,15 @@ def test_processor_exception(mock_get: MagicMock, caplog: any) -> None:
 def test_processor_calls_organisation_crud_api(
     mock_get: MagicMock, mock_process_organisation: MagicMock, mock_responses: MagicMock
 ) -> None:
-    with patch.dict(
-        "os.environ",
-        {"ENVIRONMENT": "dev"},
-    ):
+    with patch("pipeline.processor.load_data") as mock_load_data:
         first_response, second_response, _, _ = mock_responses
         mock_get.side_effect = [first_response, second_response]
         mock_process_organisation.return_value = None
+        mock_sqs = MagicMock()
+        mock_load_data.return_value = mock_sqs
+        mock_sqs.get_queue_url.return_value = {
+            "QueueUrl": "https://sqs.region.amazonaws.com/test-queue"
+        }
 
         processor(date="2023-01-01")
 
