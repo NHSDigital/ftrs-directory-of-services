@@ -14,6 +14,7 @@ from organisations.app import (
     get_outdated_fields,
     get_repository,
     get_table_name,
+    read_many_organisations,
     update_organisation,
 )
 from organisations.settings import AppSettings
@@ -248,6 +249,57 @@ def test_get_org_id_not_found(mock_get_repository: MagicMock) -> None:
 
     assert str(e.value.status_code) == "404"
     assert str(e.value.detail) == "Organisation not found"
+
+
+@patch("organisations.app.get_repository")
+def test_read_many_organisations_success(
+    mock_get_repository: MagicMock,
+) -> None:
+    mock_repo = MagicMock()
+    org_id = uuid4()
+    mock_repo.get_all.return_value = Organisation(
+        id=org_id,
+        identifier_ODS_ODSCode="123456",
+        active=True,
+        name="Test Organisation",
+        telecom="123456789",
+        type="NHS",
+        createdBy="test_user",
+        createdDateTime="2023-10-01T00:00:00Z",
+        modifiedBy="test_user",
+        modifiedDateTime="2023-10-01T00:00:00Z",
+    )
+    mock_get_repository.return_value = mock_repo
+
+    response = read_many_organisations(AppSettings(ENVIRONMENT="test"))
+
+    assert response == Organisation(
+        id=org_id,
+        identifier_ODS_ODSCode="123456",
+        active=True,
+        name="Test Organisation",
+        telecom="123456789",
+        type="NHS",
+        createdBy="test_user",
+        createdDateTime="2023-10-01T00:00:00Z",
+        modifiedBy="test_user",
+        modifiedDateTime="2023-10-01T00:00:00Z",
+    )
+
+
+@patch("organisations.app.get_repository")
+def test_read_many_organisations_not_found(
+    mock_get_repository: MagicMock,
+) -> None:
+    mock_repo = MagicMock()
+    mock_repo.get_all.return_value = None
+    mock_get_repository.return_value = mock_repo
+
+    with pytest.raises(HTTPException) as e:
+        read_many_organisations(AppSettings(ENVIRONMENT="test"))
+
+    assert str(e.value.status_code) == "404"
+    assert str(e.value.detail) == "Unable to retrieve all organisations"
 
 
 def test_get_repository() -> None:
