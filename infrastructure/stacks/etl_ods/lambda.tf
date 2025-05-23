@@ -9,7 +9,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 
 module "processor_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.extract_name}"
+  function_name           = "${local.resource_prefix}-${var.processor_name}"
   description             = "Lambda to process data from ods for etl pipeline"
   handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
@@ -39,7 +39,7 @@ module "processor_lambda" {
 
 module "consumer_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.extract_name}"
+  function_name           = "${local.resource_prefix}-${var.consumer_name}"
   description             = "Lambda to consume queue data in the etl pipeline"
   handler                 = var.consumer_lambda_handler
   runtime                 = var.lambda_runtime
