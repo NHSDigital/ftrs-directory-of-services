@@ -10,13 +10,30 @@ module "api_gateway" {
   create_domain_records = false
 
   routes = {
-    "ANY /organisation" = {
+    "ANY /organisation/{proxy+}" = {
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = "2.0"
         timeout_milliseconds   = 10000
       }
     }
+
+    # TODO: Uncomment and configure the following routes as needed
+    # "ANY /healthcare-service/{proxy+}" = {
+    #   integration = {
+    #     uri                    = module.healthcare_service_api_lambda.lambda_function_arn
+    #     payload_format_version = "2.0"
+    #     timeout_milliseconds   = 10000
+    #   }
+    # }
+
+    # "ANY /location/{proxy+}" = {
+    #   integration = {
+    #     uri                    = module.location_api_lambda.lambda_function_arn
+    #     payload_format_version = "2.0"
+    #     timeout_milliseconds   = 10000
+    #   }
+    # }
   }
 
   stage_access_log_settings = {
@@ -53,10 +70,12 @@ module "api_gateway" {
     throttling_burst_limit   = 100
     throttling_rate_limit    = 10
   }
+
+
 }
 
-resource "aws_ssm_parameter" "organisation_api_function_url" {
-  name        = "/${local.resource_prefix}/endpoint"
+resource "aws_ssm_parameter" "crud_api_endpoint" {
+  name        = "/${local.resource_prefix}${local.workspace_suffix}/endpoint"
   description = "The endpoint URL for the CRUD API Gateway"
   type        = "String"
   value       = module.api_gateway.api_endpoint
