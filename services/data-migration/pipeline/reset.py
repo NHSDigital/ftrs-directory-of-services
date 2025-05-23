@@ -166,7 +166,7 @@ def reset(
 
     if env not in [TargetEnvironment.dev, TargetEnvironment.local]:
         reset_logger.log(ETLPipelineLogBase.ETL_RESET_005, env=env)
-        raise ValueError(ETLPipelineLogBase.ETL_RESET_005.value.message)
+        raise ValueError()
 
     if init:
         init_tables(

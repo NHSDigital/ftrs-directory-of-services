@@ -52,5 +52,5 @@ def write_parquet_file(path_type: PathType, file_path: str, df: pd.DataFrame) ->
             compression="snappy",
         )
     else:
-        fileio_logger.log(UtilsLogBase.UTILS_FILEIO_006, file_path=file_path)
+        fileio_logger.log(UtilsLogBase.UTILS_FILEIO_006, path_type=path_type)
         raise ValueError()

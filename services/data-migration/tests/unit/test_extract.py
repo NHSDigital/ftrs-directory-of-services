@@ -108,8 +108,8 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
         ]
     )
 
-    # TODO: FDOS-197 update unit test for new logger
-    # mock_logging.info.assert_has_calls(
+    # TODO: FDOS-197 unsure why the below logs fail - perhaps due to how called?
+    # mock_logging.assert_has_calls(
     #     [
     #         call("Percentage of service profiles: 1.0%"),
     #         call("Percentage of all data fields: 38.1%"),
