@@ -186,6 +186,13 @@ jobs:
   trivy-scan:
     name: "Trivy scan"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - folder: "infrastructure/stacks/opensearch"
+            tfvarsfile: "infrastructure/opensearch.tfvars"
+          - folder: "infrastructure/stacks/read_only_viewer"
+            tfvarsfile: "infrastructure/read_only_viewer.tfvars"
     timeout-minutes: ${{ inputs.workflow_timeout }}
     permissions:
       contents: read
@@ -195,28 +202,19 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v3.0.2
-        with:
-          asdf_branch: v0.15.0
-
-      - name: "Cache asdf tools"
-        id: asdf-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
-
-      - name: "Install tools from .tool-versions"
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v3.0.2
+      - name: "Copy common and tfvars"
+        run: |
+          cp infrastructure/common/common-variable.tf ${{matrix.folder}}
+          cp infrastructure/common/provider.tf ${{matrix.folder}}
+          cp infrastructure/common/locals.tf ${{matrix.folder}}
+          cp ${{matrix.tfvarsfile}} ${{matrix.folder}}
 
       - name: Trivy scan
         uses: aquasecurity/trivy-action@0.30.0
         continue-on-error: true
         with:
           scan-type: 'fs'
-          scan-ref: '.'
+          scan-ref: ${{matrix.folder}}
           format: 'sarif'
           output: 'trivy.sarif'
           scanners: vuln,misconfig
