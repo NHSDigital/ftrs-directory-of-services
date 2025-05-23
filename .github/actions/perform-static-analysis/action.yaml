@@ -24,13 +24,13 @@ runs:
     - name: "Perform SonarCloud static analysis"
       uses: sonarsource/sonarqube-scan-action@v5.2.0
       env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
       with:
         projectBaseDir: services/
         args: >
-          -Dsonar.organization=${{ vars.SONAR_ORGANISATION_KEY }}
-          -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
-          -Dsonar.branch.name=${{ github.head_ref || github.ref_name }}
+          -Dsonar.organization=${{ inputs.sonar_organisation_key }}
+          -Dsonar.projectKey=${{ inputs.sonar_project_key }}
+          -Dsonar.branch.name=${{ github.ref }}
           -Dproject.settings=./scripts/config/sonar-scannar.properties
       continue-on-error: true
 
