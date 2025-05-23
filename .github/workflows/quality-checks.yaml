@@ -199,6 +199,5 @@ jobs:
         continue-on-error: true
         with:
           scan-type: 'fs'
-          scan-ref: '.'
           trivy-config: trivy.yaml
 
