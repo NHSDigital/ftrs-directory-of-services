@@ -43,7 +43,7 @@ jobs:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       domain: ${{ needs.metadata.outputs.reponame }}
-      stacks: "['database', 'data_migration', 'crud_apis', 'read_only_viewer', 'opensearch']"
+      stacks: "['gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30
