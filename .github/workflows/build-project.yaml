@@ -103,7 +103,7 @@ jobs:
           name: coverage-${{ inputs.name }}.xml
           path: ${{ steps.get-directories.outputs.working_directory }}
           if-no-files-found: ignore
-          include-hidden-files: true
+          include-hidden-files: false
 
       - name: "Build project"
         run:  make build
