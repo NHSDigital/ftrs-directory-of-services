@@ -21,6 +21,11 @@ runs:
         path: .
         pattern: coverage-data-migration.xml
 
+    - name: "List files"
+      run: |
+          echo "Looking for coverage reports..."
+          find . -type f -name "coverage*.xml"
+
     - name: "Perform SonarCloud static analysis"
       uses: sonarsource/sonarqube-scan-action@v5.2.0
       env:
