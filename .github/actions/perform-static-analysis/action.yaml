@@ -25,7 +25,6 @@ runs:
       env:
         SONAR_TOKEN: ${{ inputs.sonar_token }}
       with:
-        projectBaseDir: /
         args: >
           -Dsonar.organization=${{ inputs.sonar_organisation_key }}
           -Dsonar.projectKey=${{ inputs.sonar_project_key }}
