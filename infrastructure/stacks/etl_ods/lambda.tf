@@ -22,8 +22,8 @@ module "extract_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json]
+  number_of_policy_jsons = "3"
+  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.sqs_access_policy.json]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
@@ -62,6 +62,21 @@ data "aws_iam_policy_document" "vpc_access_policy" {
     ]
     resources = [
       "*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "sqs_access_policy" {
+  statement {
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:SendMessage",
+      "sqs:GetQueueUrl"
+    ]
+    resources = [
+      aws_sqs_queue.transformed_queue.arn,
     ]
   }
 }
