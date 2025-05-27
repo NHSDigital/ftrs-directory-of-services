@@ -288,41 +288,6 @@ def test_read_organisation_not_found(
 
 
 @patch("organisations.app.get_repository")
-def test_read_organisation_by_id_returns_organisation_if_exists(
-    mock_get_repository: MagicMock,
-) -> None:
-    mock_repo = MagicMock()
-    mock_repo.get.return_value = {
-        "id": "00000000-0000-0000-0000-11111111111",
-        "name": "Test Organisation",
-    }
-    mock_get_repository.return_value = mock_repo
-    response = read_organisation(
-        "/00000000-0000-0000-0000-11111111111", AppSettings(ENVIRONMENT="test")
-    )
-
-    assert response == {
-        "id": "00000000-0000-0000-0000-11111111111",
-        "name": "Test Organisation",
-    }
-
-
-@patch("organisations.app.get_repository")
-def test_read_organisation_not_found(
-    mock_get_repository: MagicMock,
-) -> None:
-    mock_repo = MagicMock()
-    mock_repo.get.return_value = None
-    mock_get_repository.return_value = mock_repo
-
-    with pytest.raises(HTTPException) as e:
-        read_organisation("notARealID", AppSettings(ENVIRONMENT="test"))
-
-    assert str(e.value.status_code) == "404"
-    assert str(e.value.detail) == "Organisation not found"
-
-
-@patch("organisations.app.get_repository")
 def test_read_many_organisations_success(
     mock_get_repository: MagicMock,
 ) -> None:
