@@ -108,7 +108,9 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
         ]
     )
 
-    # TODO: FDOS-197 unsure why the below logs fail - perhaps due to how called?
+    # TODO: FDOS-197 fix test, so following calls are asserted:
+    # INFO    extract.ftrs_common.logger:extract.py:85 Percentage of service profiles: 1.0%
+    # INFO    extract.ftrs_common.logger:extract.py:89 Percentage of all data fields: 33.33%
     # mock_logging.assert_has_calls(
     #     [
     #         call("Percentage of service profiles: 1.0%"),

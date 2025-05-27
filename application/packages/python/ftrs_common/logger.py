@@ -18,6 +18,7 @@ class LogReference:
     def format(self, **kwargs: dict) -> str:
         return self.message.format(**kwargs)
 
+
 class LogBase(Enum):
     """
     A wrapper class for storing log references.
