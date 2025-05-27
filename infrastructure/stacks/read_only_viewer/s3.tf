@@ -31,18 +31,17 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
       identifiers = ["cloudfront.amazonaws.com"]
     }
 
-    actions = [
-      "s3:GetObject",
-    ]
-
+    actions = ["s3:GetObject"]
     resources = [
       "${module.read_only_viewer_bucket.s3_bucket_arn}/*",
     ]
 
     condition {
       test     = "StringEquals"
-      variable = "AWS:SourceArn"
-      values   = [module.read_only_viewer_cloudfront.cloudfront_distribution_arn]
+      variable = "aws:SourceArn"
+      values = [
+        module.read_only_viewer_cloudfront.cloudfront_distribution_arn,
+      ]
     }
   }
 
