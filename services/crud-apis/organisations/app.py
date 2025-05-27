@@ -61,7 +61,7 @@ def update_organisation(
     existing_organisation = org_repository.get(organisation_id)
 
     if not existing_organisation:
-        logging.info(f"Organisation with ID {organisation_id} not found.")
+        logging.error(f"Organisation with ID {organisation_id} not found.")
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     outdated_fields = get_outdated_fields(existing_organisation, payload)
@@ -80,6 +80,32 @@ def update_organisation(
     return JSONResponse(
         status_code=200, content={"message": "Data processed successfully"}
     )
+
+
+@app.get("/{organisation_id}", summary="Read a single organisation by id")
+def read_organisation(
+    organisation_id: UUID = Path(
+        ...,
+        examples=["00000000-0000-0000-0000-11111111111"],
+        description="The internal id of the organisation",
+    ),
+    settings: AppSettings = Depends(get_app_settings),
+) -> Organisation:
+    logging.info(f"Received request to read organisation with ID: {organisation_id}")
+
+    org_repository = get_repository(
+        env=settings.env,
+        workspace=settings.workspace,
+        endpoint_url=settings.endpoint_url,
+    )
+
+    existing_organisation = org_repository.get(organisation_id)
+
+    if not existing_organisation:
+        logging.error(f"Organisation with ID {organisation_id} not found.")
+        raise HTTPException(status_code=404, detail="Organisation not found")
+
+    return existing_organisation
 
 
 def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> str:
