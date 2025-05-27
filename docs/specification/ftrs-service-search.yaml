@@ -283,6 +283,7 @@ components:
   schemas:
     Bundle:
       type: object
+      description: A FHIR resource for the collection of FHIR resources returned in a contained manner.
       required:
         - resourceType
         - type
@@ -329,6 +330,7 @@ components:
 
     Organization:
       type: object
+      description: A FHIR resource that returns the included components.
       required:
         - resourceType
         - identifier
@@ -391,6 +393,7 @@ components:
 
     Endpoint:
       type: object
+      description: A FHIR resource that returns the included components.
       required:
         - resourceType
         - status
