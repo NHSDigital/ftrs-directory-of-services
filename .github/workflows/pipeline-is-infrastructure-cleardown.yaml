@@ -1,0 +1,74 @@
+name: IS DOS Cleardown Workflow
+# Intended to run if
+# actor is not the queue bot and
+# the branch deleted is
+# a task branch
+
+on:
+  delete:
+    branches:
+      - 'task/DOSIS*'
+      - 'task/dosis*'
+  workflow_dispatch:
+    inputs:
+      application_tag:
+        description: "Specify the application tag to cleardown"
+        required: true
+        default: 'latest'
+        type: string
+      environment:
+        description: "Specify the environment to cleardown"
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+      workspace:
+        description: "Specify the workspace to cleardown"
+        required: true
+        type: string
+
+jobs:
+  metadata:
+    if: github.actor != 'github-merge-queue[bot]'
+    name: "Get Metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+  cleardown-infrastructure:
+    name: "Cleardown Infrastructure"
+    needs:
+      - metadata
+    uses: ./.github/workflows/infrastructure-cleardown.yaml
+    with:
+      environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
+      workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
+      domain: ${{ needs.metadata.outputs.reponame }}
+      stacks: "['gp_search', 'is_performance']"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      workflow_timeout: 30
+    secrets: inherit
+
+  cleardown-artefacts:
+    name: "Cleardown Artefacts"
+    needs:
+      - metadata
+      - cleardown-infrastructure
+    uses: ./.github/workflows/artefacts-cleardown.yaml
+    with:
+      environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
+      workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
+      artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
+    secrets: inherit
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - metadata
+      - cleardown-artefacts
+      - cleardown-infrastructure
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment || inputs.environment }}
+    secrets: inherit

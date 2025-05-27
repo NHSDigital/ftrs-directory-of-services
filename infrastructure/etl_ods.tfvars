@@ -10,3 +10,10 @@ s3_versioning                       = false
 aws_lambda_layers = [
   "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"
 ]
+
+delay_seconds              = 10
+visibility_timeout_seconds = 30
+max_message_size           = 2048
+message_retention_seconds  = 86400
+receive_wait_time_seconds  = 2
+sqs_managed_sse_enabled    = true
