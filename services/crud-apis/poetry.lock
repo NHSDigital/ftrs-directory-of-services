@@ -35,6 +35,33 @@ test = ["anyio[trio]", "blockbuster (>=1.5.23)", "coverage[toml] (>=7)", "except
 trio = ["trio (>=0.26.1)"]
 
 [[package]]
+name = "aws-lambda-powertools"
+version = "3.13.0"
+description = "Powertools for AWS Lambda (Python) is a developer toolkit to implement Serverless best practices and increase developer velocity."
+optional = false
+python-versions = "<4.0.0,>=3.9"
+groups = ["main"]
+files = [
+    {file = "aws_lambda_powertools-3.13.0-py3-none-any.whl", hash = "sha256:9df045f4c3ff944176655813dbff8c1160e056babf5e6d71d4e18c0003818f2e"},
+    {file = "aws_lambda_powertools-3.13.0.tar.gz", hash = "sha256:99dc11ac6eb81564f599fdd85ba79069f7740ae3481c99bca2cee8abb7c95543"},
+]
+
+[package.dependencies]
+jmespath = ">=1.0.1,<2.0.0"
+typing-extensions = ">=4.11.0,<5.0.0"
+
+[package.extras]
+all = ["aws-encryption-sdk (>=3.1.1,<5.0.0)", "aws-xray-sdk (>=2.8.0,<3.0.0)", "fastjsonschema (>=2.14.5,<3.0.0)", "jsonpath-ng (>=1.6.0,<2.0.0)", "pydantic (>=2.4.0,<3.0.0)", "pydantic-settings (>=2.6.1,<3.0.0)"]
+aws-sdk = ["boto3 (>=1.34.32,<2.0.0)"]
+datadog = ["datadog-lambda (>=6.106.0,<7.0.0)"]
+datamasking = ["aws-encryption-sdk (>=3.1.1,<5.0.0)", "jsonpath-ng (>=1.6.0,<2.0.0)"]
+parser = ["pydantic (>=2.4.0,<3.0.0)"]
+redis = ["redis (>=4.4,<7.0)"]
+tracer = ["aws-xray-sdk (>=2.8.0,<3.0.0)"]
+validation = ["fastjsonschema (>=2.14.5,<3.0.0)"]
+valkey = ["valkey-glide (>=1.3.5,<2.0)"]
+
+[[package]]
 name = "boto3"
 version = "1.38.6"
 description = "The AWS SDK for Python"
@@ -765,7 +792,7 @@ version = "1.0.1"
 description = "JSON Matching Expressions"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
+groups = ["main", "dev"]
 files = [
     {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
     {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
@@ -1345,4 +1372,4 @@ standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0.0"
-content-hash = "3f316fb549f16f0c10086e5f4909de264e5b8522737b084e3a3a2e735ecf65b1"
+content-hash = "d0d42bbdb7207d3e243a105e8527e3afbd02b55e0f29935c08e48424474424d6"
