@@ -9,7 +9,7 @@ module "read_only_viewer_cloudfront" {
 
   create_origin_access_control = true
   origin_access_control = {
-    s3_oac = {
+    "${local.resource-prefix}-s3-oai${local.workspace_suffix}" = {
       description      = "CloudFront access to S3"
       origin_type      = "s3"
       signing_behavior = "always"
@@ -27,7 +27,7 @@ module "read_only_viewer_cloudfront" {
   origin = {
     s3_bucket = {
       domain_name           = module.read_only_viewer_bucket.s3_bucket_bucket_regional_domain_name
-      origin_access_control = "s3_oac"
+      origin_access_control = "${local.resource-prefix}-s3-oai${local.workspace_suffix}"
     }
 
     lambda_function = {
