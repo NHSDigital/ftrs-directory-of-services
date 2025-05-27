@@ -108,6 +108,27 @@ def read_organisation(
     return existing_organisation
 
 
+@app.get("/", summary="Read all organisations")
+def read_many_organisations(
+    settings: AppSettings = Depends(get_app_settings), limit: int = 10
+) -> list[Organisation]:
+    org_repository = get_repository(
+        env=settings.env,
+        workspace=settings.workspace,
+        endpoint_url=settings.endpoint_url,
+    )
+
+    all_existing_organisation = list(org_repository.iter_records(max_results=limit))
+
+    if not all_existing_organisation:
+        logging.error("Unable to retrieve any organisations.")
+        raise HTTPException(
+            status_code=404, detail="Unable to retrieve any organisations"
+        )
+
+    return all_existing_organisation
+
+
 def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> str:
     """
     Build a DynamoDB table name based on the entity type, environment, and optional workspace.
