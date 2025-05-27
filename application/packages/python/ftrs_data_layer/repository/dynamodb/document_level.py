@@ -57,16 +57,6 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             ConditionExpression="attribute_exists(id)",
         )
 
-    def get_all(self, limit: int | None = None) -> list[ModelType]:
-        """
-        Get all items from the DynamoDB table.
-        """
-        items = []
-        response = self._scan(Limit=limit)
-        items.extend(response.get("Items", []))
-
-        return [self._parse_item(item) for item in items]
-
     def _serialise_item(self, item: ModelType) -> dict:
         """
         Prepare the item for DynamoDB in a document-level format.

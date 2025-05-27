@@ -118,7 +118,7 @@ def read_many_organisations(
         endpoint_url=settings.endpoint_url,
     )
 
-    all_existing_organisation = org_repository.get_all(limit)
+    all_existing_organisation = list(org_repository.iter_records(max_results=limit))
 
     if not all_existing_organisation:
         logging.error("Unable to retrieve all organisations.")

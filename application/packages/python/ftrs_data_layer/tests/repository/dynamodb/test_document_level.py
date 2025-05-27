@@ -171,53 +171,6 @@ def test_doc_delete() -> None:
     )
 
 
-def test_get_all() -> None:
-    """
-    Test the get_all method of the DocumentLevelRepository.
-    """
-    repo = DocumentLevelRepository(
-        table_name="test_table",
-        model_cls=MockModel,
-    )
-    obj = [
-        MockModel(id="1", name="Test1"),
-        MockModel(id="2", name="Test2"),
-    ]
-    repo.table.scan = MagicMock(
-        return_value={
-            "Items": [
-                {"id": "1", "field": "document", "value": {"id": "1", "name": "Test1"}},
-                {"id": "2", "field": "document", "value": {"id": "2", "name": "Test2"}},
-            ]
-        }
-    )
-
-    # Call the get_all method
-    result = repo.get_all(2)
-    assert result == obj
-
-    repo.table.scan.assert_called_once_with(Limit=2)
-
-
-def test_get_all_no_result() -> None:
-    """
-    Test the get_all method of the DocumentLevelRepository when no item is found.
-    """
-    repo = DocumentLevelRepository(
-        table_name="test_table",
-        model_cls=MockModel,
-    )
-
-    # Mock the scan method
-    repo.table.scan = MagicMock(return_value={"Items": []})
-
-    # Call the get_all method
-    result = repo.get_all(1)
-    assert result == []
-
-    repo.table.scan.assert_called_once_with(Limit=1)
-
-
 def test_doc_serialise_item() -> None:
     """
     Test the _serialise_item method of the DocumentLevelRepository.
