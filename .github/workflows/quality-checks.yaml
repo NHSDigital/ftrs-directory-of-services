@@ -178,7 +178,6 @@ jobs:
       - name: "Checkov scan"
         id: "checkov"
         uses: bridgecrewio/checkov-action@v12
-        continue-on-error: true
         with:
           soft_fail: true
           quiet: true
@@ -211,7 +210,6 @@ jobs:
       - name: "Trivy scan"
         id: "trivy"
         uses: aquasecurity/trivy-action@0.30.0
-        continue-on-error: true
         with:
           scan-type: 'fs'
           scan-ref: '.'
