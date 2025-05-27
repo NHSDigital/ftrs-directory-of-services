@@ -18,41 +18,45 @@ def get_queue_name(env: str, workspace: str | None = None) -> str:
     return queue_name
 
 
-def load_data(transformed_data: list[str]) -> None:
-    id = 0
-    batch = []
-    for data in transformed_data:
-        id = id + 1
-        batch.append({"Id": str(id), "MessageBody": json.dumps(data)})
-    logging.info(f"Trying to send {id} messages to sqs queue")
-
-    sqs = boto3.client("sqs", region_name=os.environ["AWS_REGION"])
-    queue_name = get_queue_name(os.environ["ENVIRONMENT"], os.environ["WORKSPACE"])
-
+def get_queue_url(queue_name: str, sqs: any) -> any:
+    """
+    Gets an SQS queue url based on the queue name.
+    """
     try:
-        response_get_queue = sqs.get_queue_url(QueueName=queue_name)
+        return sqs.get_queue_url(QueueName=queue_name)
     except Exception as e:
         logging.warning(
             f"Error when requesting queue url with queue name: {queue_name} with error: {e}"
         )
         raise
 
-    queue_url = response_get_queue["QueueUrl"]
 
+def load_data(transformed_data: list[str]) -> None:
     try:
+        batch = []
+        for index, item in enumerate(transformed_data, start=1):
+            batch.append({"Id": str(index), "MessageBody": json.dumps(item)})
+        logging.info(f"Trying to send {len(transformed_data)} messages to sqs queue")
+
+        sqs = boto3.client("sqs", region_name=os.environ["AWS_REGION"])
+        queue_name = get_queue_name(os.environ["ENVIRONMENT"], os.environ["WORKSPACE"])
+        response_get_queue = get_queue_url(queue_name, sqs)
+
+        queue_url = response_get_queue["QueueUrl"]
+
         response = sqs.send_message_batch(QueueUrl=queue_url, Entries=batch)
+
+        successful = len(response.get("Successful", []))
+        failed = len(response.get("Failed", []))
+
+        if failed > 0:
+            logging.warning(f"Failed to send {failed} messages in batch")
+            for fail in response.get("Failed", []):
+                logging.warning(
+                    f"  Message {fail.get('Id')}: {fail.get('Message')} - {fail.get('Code')}"
+                )
+
+        logging.info(f"Succeeded to send {successful} messages in batch")
     except Exception as e:
-        logging.warning(f"Error sending data to queue: {queue_name} with error: {e}")
+        logging.warning(f"Error sending data to queue with error: {e}")
         raise
-
-    successful = len(response.get("Successful", []))
-    failed = len(response.get("Failed", []))
-
-    if failed > 0:
-        logging.warning(f"Failed to send {failed} messages in batch")
-        for fail in response.get("Failed", []):
-            logging.warning(
-                f"  Message {fail.get('Id')}: {fail.get('Message')} - {fail.get('Code')}"
-            )
-
-    logging.info(f"Succeeded to send {successful} messages in batch")

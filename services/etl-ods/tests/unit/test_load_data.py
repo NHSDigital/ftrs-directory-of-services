@@ -126,9 +126,8 @@ class TestLoad(unittest.TestCase):
                 with pytest.raises(Exception):
                     load_data(test_data)
 
-                mock_warning.assert_called_once()
                 warning_call = mock_warning.call_args[0][0]
                 self.assertIn(
-                    "Error when requesting queue url with queue name: ftrs-dos-test-etl-ods-queue",
+                    "Error sending data to queue with error",
                     warning_call,
                 )
