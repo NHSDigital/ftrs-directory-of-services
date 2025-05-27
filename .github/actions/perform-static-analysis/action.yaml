@@ -36,7 +36,7 @@ runs:
         args: >
           -Dsonar.organization=${{ inputs.sonar_organisation_key }}
           -Dsonar.projectKey=${{ inputs.sonar_project_key }}
-          -Dsonar.branch.name=${{ github.ref }}
+          -Dsonar.branch.name=${{ github.ref_name }}
           -Dsonar.python.coverage.reportPaths=${{ steps.coverage-files.outputs.files }}
           -Dproject.settings=./scripts/config/sonar-scanner.properties
       continue-on-error: true
