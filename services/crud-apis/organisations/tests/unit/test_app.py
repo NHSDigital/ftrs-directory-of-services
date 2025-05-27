@@ -339,7 +339,7 @@ def test_read_many_organisations_not_found(
         read_many_organisations(AppSettings(ENVIRONMENT="test"))
 
     assert str(e.value.status_code) == "404"
-    assert str(e.value.detail) == "Unable to retrieve all organisations"
+    assert str(e.value.detail) == "Unable to retrieve any organisations"
 
 
 def test_get_repository() -> None:

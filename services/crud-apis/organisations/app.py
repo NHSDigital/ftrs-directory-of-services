@@ -121,9 +121,9 @@ def read_many_organisations(
     all_existing_organisation = list(org_repository.iter_records(max_results=limit))
 
     if not all_existing_organisation:
-        logging.error("Unable to retrieve all organisations.")
+        logging.error("Unable to retrieve any organisations.")
         raise HTTPException(
-            status_code=404, detail="Unable to retrieve all organisations"
+            status_code=404, detail="Unable to retrieve any organisations"
         )
 
     return all_existing_organisation
