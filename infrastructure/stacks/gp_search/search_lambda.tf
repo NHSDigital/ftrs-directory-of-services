@@ -21,8 +21,7 @@ module "lambda" {
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
-  layers = concat(
-    var.aws_lambda_layers,
+  layers = (
     [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
