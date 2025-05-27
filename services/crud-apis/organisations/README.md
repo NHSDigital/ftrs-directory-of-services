@@ -98,7 +98,6 @@ The API will now be running on [http://localhost:8001]
 
 - No request body needed.
 
-
 ### Update Organisation
 
 **Endpoint**: `PUT /{organisation_id}`
