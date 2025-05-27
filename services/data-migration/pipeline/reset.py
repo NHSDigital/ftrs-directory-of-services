@@ -62,9 +62,9 @@ def create_table(
         "KeySchema": key_schema,
         "AttributeDefinitions": attribute_definitions,
         "BillingMode": "PAY_PER_REQUEST",
-        "GlobalSecondaryIndexes": global_secondary_indexes,
     }
-
+    if global_secondary_indexes:
+        table_params["GlobalSecondaryIndexes"] = global_secondary_indexes
     client.create_table(**table_params)
     logging.info(f"Table {table_name} created successfully.")
 
