@@ -11,24 +11,34 @@ from pipeline.extract import (
     extract,
     extract_gp_practices,
     format_endpoints,
+    format_openingtimes,
     lambda_handler,
     merge_gp_practice_with_endpoints,
+    merge_gp_practice_with_openingtimes,
 )
 from pipeline.utils.dos_db import (
     QUERY_GP_ENDPOINTS,
     QUERY_GP_PRACTICE,
+    QUERY_GP_SERVICEDAYOPENINGTIMES,
+    QUERY_GP_SERVICESPECIFIEDOPENINGTIMES,
     QUERY_SERVICEENDPOINTS_COLUMNS,
     QUERY_SERVICES_COLUMNS,
     QUERY_SERVICES_SIZE,
 )
 from pipeline.utils.file_io import PathType
+from tests.util.fixtures import (
+    mock_service_opening_times_df,
+    mock_service_specified_opening_times_df,
+)
 from tests.util.stub_data import (
+    extracted_GP_Practice,
     mock_gp_endpoints_A,
     mock_gp_endpoints_B,
     mock_gp_endpoints_C,
     mock_gp_endpoints_formatted_A,
     mock_gp_endpoints_formatted_B,
     mock_gp_endpoints_formatted_C,
+    mock_gp_openingTimes_formatted_df,
     mock_gp_practices_A,
     mock_gp_practices_B,
     mock_gp_practices_df,
@@ -89,6 +99,8 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
         [
             call(QUERY_GP_PRACTICE, "test_db_uri"),
             call(QUERY_GP_ENDPOINTS, "test_db_uri"),
+            call(QUERY_GP_SERVICEDAYOPENINGTIMES, "test_db_uri"),
+            call(QUERY_GP_SERVICESPECIFIEDOPENINGTIMES, "test_db_uri"),
             call(QUERY_SERVICES_SIZE, "test_db_uri"),
             call(QUERY_SERVICES_COLUMNS, "test_db_uri"),
             call(QUERY_SERVICEENDPOINTS_COLUMNS, "test_db_uri"),
@@ -98,7 +110,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
     mock_logging.info.assert_has_calls(
         [
             call("Percentage of service profiles: 1.0%"),
-            call("Percentage of all data fields: 33.33%"),
+            call("Percentage of all data fields: 38.1%"),
         ]
     )
 
@@ -165,6 +177,17 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
     pd.testing.assert_frame_equal(result, expected_df)
 
 
+def test_format_openingtimes() -> None:
+    result = format_openingtimes(
+        mock_service_opening_times_df, mock_service_specified_opening_times_df
+    )
+
+    # we drop level_1 as it is returned in the format_openingtimes but this doesn't affect transform
+    pd.testing.assert_frame_equal(
+        result.drop("level_1", axis=1), mock_gp_openingTimes_formatted_df
+    )
+
+
 @pytest.mark.parametrize(
     "gp_practice_df, grouped_endpoints, expected_df",
     [
@@ -178,11 +201,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
             ),
             pd.DataFrame(
                 dict(
-                    {
-                        k: [v]
-                        for k, v in mock_gp_practices_A.items()
-                        if k != "serviceid"
-                    },
+                    {k: [v] for k, v in mock_gp_practices_A.items()},
                     endpoints=[[mock_gp_endpoints_formatted_A]],
                 )
             ),
@@ -203,7 +222,6 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
                     {
                         key: [mock_gp_practices_A[key], mock_gp_practices_B[key]]
                         for key in mock_gp_practices_A.keys()
-                        if key != "serviceid"
                     },  # Remove service id
                     endpoints=[
                         [mock_gp_endpoints_formatted_A],
@@ -223,9 +241,7 @@ def test_format_endpoints(input_df: pd.DataFrame, expected_df: pd.DataFrame) -> 
             pd.DataFrame(
                 dict(
                     {
-                        k: [v]
-                        for k, v in mock_gp_practices_A.items()
-                        if k != "serviceid"
+                        k: [v] for k, v in mock_gp_practices_A.items()
                     },  # Remove service id
                     endpoints=[[]],  # add on endpoints column
                 )
@@ -245,6 +261,26 @@ def test_merge_gp_practice_with_endpoints(
     """
     result = merge_gp_practice_with_endpoints(gp_practice_df, grouped_endpoints)
     pd.testing.assert_frame_equal(result, expected_df)
+
+
+def test_merge_gp_practice_with_opening_times() -> None:
+    result = merge_gp_practice_with_openingtimes(
+        pd.DataFrame(
+            {
+                k: [v]
+                for k, v in extracted_GP_Practice.items()
+                if k not in ("availability")
+            }
+        ),
+        mock_gp_openingTimes_formatted_df,
+    )
+
+    pd.testing.assert_frame_equal(
+        result,
+        pd.DataFrame(
+            {k: [v] for k, v in extracted_GP_Practice.items() if k not in ("serviceid")}
+        ),
+    )
 
 
 def test_lambda_handler_successful_execution(mocker: MockerFixture) -> None:

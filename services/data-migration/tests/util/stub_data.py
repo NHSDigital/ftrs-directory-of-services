@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 mock_gp_practices_A = {
@@ -82,6 +83,56 @@ mock_gp_endpoints_C = {
     "serviceid": 2,
 }
 
+mock_service_opening_times_df = pd.DataFrame(
+    {
+        "serviceid": [1, 1, 1, 1, 1, 1, 1, 2, 2],
+        "availableStartTime": [
+            "9:00:00",
+            "9:00:00",
+            "9:00:00",
+            "9:00:00",
+            "9:00:00",
+            "10:30:00",
+            "10:30:00",
+            "9:00:00",
+            "11:30:00",
+        ],
+        "availableEndTime": [
+            "17:00:00",
+            "17:00:00",
+            "17:00:00",
+            "17:00:00",
+            "17:00:00",
+            "16:00:00",
+            "16:00:00",
+            "17:00:00",
+            "14:30:00",
+        ],
+        "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+            "Monday",
+            "BankHoliday",
+        ],
+    }
+)
+
+mock_service_specified_opening_times_df = pd.DataFrame(
+    {
+        "serviceid": [1, 2, 1, 2],
+        "date": ["2024-02-22", "2024-03-12", "2024-05-14", "2024-06-12"],
+        "starttime": ["8:00:00", "8:15:00", "8:30:00", "0:00:00"],
+        "endtime": ["13:00:00", "13:00:00", "13:00:00", "23:59:59"],
+        "isclosed": [False, False, False, True],
+    }
+)
+
+
 mock_gp_endpoints_formatted_A = {
     "id": 1,
     "endpointorder": 1,
@@ -117,6 +168,108 @@ mock_gp_endpoints_formatted_C = {
     "comment": "comment3",
     "iscompressionenabled": "uncompressed",
 }
+
+mock_gp_openingTimes_formatted_A = {
+    "serviceid": 1,
+    "availability": {
+        "availableTime": [
+            {
+                "dayOfWeek": ["mon"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["tue"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["wed"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["thu"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["fri"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            },
+            {
+                "dayOfWeek": ["sat"],
+                "availableStartTime": "10:30:00",
+                "availableEndTime": "16:00:00",
+            },
+            {
+                "dayOfWeek": ["sun"],
+                "availableStartTime": "10:30:00",
+                "availableEndTime": "16:00:00",
+            },
+        ],
+        "availableTimePublicHolidays": np.nan,
+        "availableTimeVariations": [
+            {
+                "description": "special",
+                "during": {
+                    "start": "2024-02-22T08:00:00",
+                    "end": "2024-02-22T13:00:00",
+                },
+            },
+            {
+                "description": "special",
+                "during": {
+                    "start": "2024-05-14T08:30:00",
+                    "end": "2024-05-14T13:00:00",
+                },
+            },
+        ],
+        "notAvailable": np.nan,
+    },
+}
+
+mock_gp_openingTimes_formatted_B = {
+    "serviceid": 2,
+    "availability": {
+        "availableTime": [
+            {
+                "dayOfWeek": ["mon"],
+                "availableStartTime": "9:00:00",
+                "availableEndTime": "17:00:00",
+            }
+        ],
+        "availableTimePublicHolidays": [
+            {"availableStartTime": "11:30:00", "availableEndTime": "14:30:00"}
+        ],
+        "availableTimeVariations": [
+            {
+                "description": "special",
+                "during": {
+                    "start": "2024-03-12T08:15:00",
+                    "end": "2024-03-12T13:00:00",
+                },
+            },
+        ],
+        "notAvailable": [
+            {"unavailableDate": "2024-06-12T00:00:00", "description": "From Live"}
+        ],
+    },
+}
+
+
+mock_gp_openingTimes_formatted_df = pd.DataFrame(
+    dict(
+        {
+            key: [
+                mock_gp_openingTimes_formatted_A[key],
+                mock_gp_openingTimes_formatted_B[key],
+            ]
+            for key in mock_gp_openingTimes_formatted_A.keys()
+        },
+    )
+)
 
 mock_gp_endpoint_json_dump_B = {
     "id": "123e4567-e89b-12d3-a456-42661417400a",
@@ -180,6 +333,7 @@ extracted_GP_Practice = {
     "latitude": "0.000003",
     "longitude": "-1.000005",
     "endpoints": [[mock_gp_endpoints_formatted_A]],
+    "availability": None,
 }
 
 transformed_GP_Practice_Org = {
@@ -260,4 +414,5 @@ transformed_GP_Practice_HS = {
         "web": "www.test.co.uk",
     },
     "type": "GP Practice",
+    "openingTime": None,
 }
