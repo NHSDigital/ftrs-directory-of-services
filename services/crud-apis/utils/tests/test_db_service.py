@@ -2,9 +2,10 @@ from unittest.mock import patch
 
 from ftrs_data_layer.models import DBModel
 from ftrs_data_layer.repository.dynamodb.document_level import DocumentLevelRepository
+
 from utils.db_service import (
-    get_service_repository,
     env_variable_settings,
+    get_service_repository,
     get_table_name,
 )
 
@@ -38,7 +39,7 @@ def test_get_service_repository_with_no_endpoint_url() -> None:
         assert repository.model_cls == TestModel
 
 
-def test_returns_correct_table_name_for_given_entity():
+def test_returns_correct_table_name_for_given_entity() -> None:
     env_variable_settings.env = "dev"
     env_variable_settings.workspace = None
     entity_name = "healthcare"
@@ -46,7 +47,7 @@ def test_returns_correct_table_name_for_given_entity():
     assert get_table_name(entity_name) == expected_table_name
 
 
-def test_includes_workspace_in_table_name_if_present():
+def test_includes_workspace_in_table_name_if_present() -> None:
     env_variable_settings.env = "prod"
     env_variable_settings.workspace = "team1"
     entity_name = "organisation"
@@ -54,7 +55,7 @@ def test_includes_workspace_in_table_name_if_present():
     assert get_table_name(entity_name) == expected_table_name
 
 
-def test_handles_empty_entity_name_gracefully():
+def test_handles_empty_entity_name_gracefully() -> None:
     env_variable_settings.env = "test"
     env_variable_settings.workspace = None
     entity_name = ""
@@ -62,7 +63,7 @@ def test_handles_empty_entity_name_gracefully():
     assert get_table_name(entity_name) == expected_table_name
 
 
-def test_handles_none_workspace_correctly():
+def test_handles_none_workspace_correctly() -> None:
     env_variable_settings.env = "staging"
     env_variable_settings.workspace = None
     entity_name = "service"

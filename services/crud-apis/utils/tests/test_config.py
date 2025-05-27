@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from utils.config import get_env_variables, Settings
+from utils.config import Settings, get_env_variables
 
 
 def test_get_env_variables_with_defaults() -> None:
