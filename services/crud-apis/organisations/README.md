@@ -70,6 +70,34 @@ The API will now be running on [http://localhost:8001]
 
 ## API Endpoints
 
+### Read Organisation
+
+**Endpoint**: `GET /{organisation_id}`
+
+**Description**: Reads an organisation with the given ID.
+
+**Path Parameters**:
+
+- `organisation_id` (UUID): The internal ID of the organisation.
+
+**Request Body**:
+
+- No request body needed.
+
+### Read Many Organisation
+
+**Endpoint**: `GET /`
+
+**Description**: Reads many organisations with a given limit.
+
+**Path Parameters**:
+
+- `limit` (int): The number of records to be read.
+
+**Request Body**:
+
+- No request body needed.
+
 ### Update Organisation
 
 **Endpoint**: `PUT /{organisation_id}`
