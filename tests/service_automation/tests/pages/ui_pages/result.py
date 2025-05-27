@@ -4,7 +4,6 @@ the page object for the new account page.
 """
 
 from playwright.sync_api import Page
-from typing import List
 
 
 class NewAccountPage:
