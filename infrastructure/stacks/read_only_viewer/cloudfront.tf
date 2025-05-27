@@ -3,7 +3,7 @@ module "read_only_viewer_cloudfront" {
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git?ref=d66669f42ec922cb4b1acea8e4a17e5f6c6c9a15"
 
   comment         = "CloudFront distribution for read-only viewer"
-  price_class     = "PriceClass_100"
+  price_class     = var.read_only_viewer_cloudfront_price_class
   is_ipv6_enabled = true
 
 
@@ -29,7 +29,7 @@ module "read_only_viewer_cloudfront" {
         http_port              = 80
         https_port             = 443
         origin_protocol_policy = "https-only"
-        origin_ssl_protocols   = ["TLSv1.2"]
+        origin_ssl_protocols   = ["TLSv1.2", "TLSv1.3"]
       }
     }
   }

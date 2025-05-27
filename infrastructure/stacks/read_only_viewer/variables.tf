@@ -66,6 +66,12 @@ variable "read_only_viewer_log_group_name_prefix" {
   default     = "aws-waf-logs-"
 }
 
+variable "read_only_viewer_cloudfront_price_class" {
+  description = "The price class for the CloudFront distribution"
+  type        = string
+  default     = "PriceClass_100"
+}
+
 variable "frontend_lambda_connection_timeout" {
   description = "The connection timeout for the frontend lambda"
   type        = number
@@ -81,4 +87,10 @@ variable "frontend_lambda_memory_size" {
 variable "frontend_lambda_name" {
   description = "The name of the frontend lambda"
   type        = string
+}
+
+variable "frontend_lambda_runtime" {
+  description = "The runtime for the frontend lambda"
+  type        = string
+  default     = "nodejs20.x"
 }

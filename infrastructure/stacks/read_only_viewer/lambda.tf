@@ -3,7 +3,7 @@ module "frontend_lambda" {
 
   description   = "Read only viewer frontend server lambda"
   function_name = "${local.resource_prefix}-${var.frontend_lambda_name}"
-  runtime       = "nodejs20.x"
+  runtime       = var.frontend_lambda_runtime
   handler       = "index.handler"
 
   s3_bucket_name = local.artefacts_bucket
