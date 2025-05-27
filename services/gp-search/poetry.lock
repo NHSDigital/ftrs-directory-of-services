@@ -14,14 +14,14 @@ files = [
 
 [[package]]
 name = "aws-lambda-powertools"
-version = "3.11.0"
+version = "3.12.0"
 description = "Powertools for AWS Lambda (Python) is a developer toolkit to implement Serverless best practices and increase developer velocity."
 optional = false
 python-versions = "<4.0.0,>=3.9"
-groups = ["main", "dev"]
+groups = ["main"]
 files = [
-    {file = "aws_lambda_powertools-3.11.0-py3-none-any.whl", hash = "sha256:c3f93da374420cbdf4c2f68758bbcd7d9581703f2266a8fe38e2a0d594023548"},
-    {file = "aws_lambda_powertools-3.11.0.tar.gz", hash = "sha256:3af14454ecbeb5220a7b684189931f0da82f039ddc7428ddcecdc6ba348d64a0"},
+    {file = "aws_lambda_powertools-3.12.0-py3-none-any.whl", hash = "sha256:094d5b404a8025b09ca1425099aa417ddaff537f915b250007dcd43217c61dc5"},
+    {file = "aws_lambda_powertools-3.12.0.tar.gz", hash = "sha256:b13146bbacf7bc029539b18c2a9b07b333cecca482d9ec4fba81dff5fb8523ea"},
 ]
 
 [package.dependencies]
@@ -44,7 +44,7 @@ version = "2.14.0"
 description = "The AWS X-Ray SDK for Python (the SDK) enables Python developers to record and emit information from within their applications to the AWS X-Ray service."
 optional = false
 python-versions = ">=3.7"
-groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "aws_xray_sdk-2.14.0-py2.py3-none-any.whl", hash = "sha256:cfbe6feea3d26613a2a869d14c9246a844285c97087ad8f296f901633554ad94"},
     {file = "aws_xray_sdk-2.14.0.tar.gz", hash = "sha256:aab843c331af9ab9ba5cefb3a303832a19db186140894a523edafc024cc0493c"},
@@ -1043,7 +1043,7 @@ version = "4.13.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "typing_extensions-4.13.2-py3-none-any.whl", hash = "sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c"},
     {file = "typing_extensions-4.13.2.tar.gz", hash = "sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef"},
@@ -1088,7 +1088,7 @@ version = "1.17.2"
 description = "Module for decorators, wrappers and monkey patching."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["main"]
 files = [
     {file = "wrapt-1.17.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:3d57c572081fed831ad2d26fd430d565b76aa277ed1d30ff4d40670b1c0dd984"},
     {file = "wrapt-1.17.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b5e251054542ae57ac7f3fba5d10bfff615b6c2fb09abeb37d2f1463f841ae22"},
@@ -1174,4 +1174,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "5f660b9d5012654919fa1efd992ff41b83949b1e46d75f018b9b49ba9d4c6f23"
+content-hash = "260d8dc1f569effb9ba2683751f46aabb9df3342b1478ce59d3782b925425525"
