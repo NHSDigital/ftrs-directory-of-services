@@ -102,19 +102,13 @@ def init_tables(
                     attribute_definitions=[
                         {"AttributeName": "id", "AttributeType": "S"},
                         {"AttributeName": "field", "AttributeType": "S"},
-                        {
-                            "AttributeName": "identifier_ODS_ODSCode",
-                            "AttributeType": "S",
-                        },
+                        {"AttributeName": "odscode", "AttributeType": "S"},
                     ],
                     global_secondary_indexes=[
                         {
                             "IndexName": "OdsCodeValueIndex",
                             "KeySchema": [
-                                {
-                                    "AttributeName": "identifier_ODS_ODSCode",
-                                    "KeyType": "HASH",
-                                },
+                                {"AttributeName": "odscode", "KeyType": "HASH"},
                             ],
                             "Projection": {"ProjectionType": "ALL"},
                         }
