@@ -179,7 +179,6 @@ jobs:
         id: "checkov"
         uses: bridgecrewio/checkov-action@v12
         with:
-          soft_fail: true
           quiet: true
           output_format: sarif
           output_file_path: checkov.sarif
