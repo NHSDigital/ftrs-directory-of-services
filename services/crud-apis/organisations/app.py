@@ -58,7 +58,11 @@ def update_organisation(
         endpoint_url=settings.endpoint_url,
     )
 
-    existing_organisation = read_organisation(organisation_id, settings)
+    existing_organisation = org_repository.get(organisation_id)
+
+    if not existing_organisation:
+        logging.error(f"Organisation with ID {organisation_id} not found.")
+        raise HTTPException(status_code=404, detail="Organisation not found")
 
     outdated_fields = get_outdated_fields(existing_organisation, payload)
     logging.info(
