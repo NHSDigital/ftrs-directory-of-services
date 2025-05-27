@@ -1,29 +1,27 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from utils.config import get_env_variables
-
-
-@patch("os.getenv")
-def test_env_variables_return_default_values_if_not_set(mock_getenv: MagicMock) -> None:
-    mock_getenv.side_effect = lambda key, default=None: default
-    env_vars = get_env_variables()
-    assert env_vars == {
-        "env": "local",
-        "workspace": None,
-        "endpoint_url": "http://localhost:8000",
-    }
+from utils.config import get_env_variables, Settings
 
 
-@patch("os.getenv")
-def test_env_variables_return_correct_values_if_set(mock_getenv: MagicMock) -> None:
-    mock_getenv.side_effect = lambda key, default=None: {
-        "ENVIRONMENT": "production",
-        "WORKSPACE": "team1",
-        "ENDPOINT_URL": "https://api.example.com",
-    }.get(key, default)
-    env_vars = get_env_variables()
-    assert env_vars == {
-        "env": "production",
-        "workspace": "team1",
-        "endpoint_url": "https://api.example.com",
-    }
+def test_get_env_variables_with_defaults() -> None:
+    with patch("utils.config.os.getenv", side_effect=lambda key, default=None: default):
+        settings = get_env_variables()
+        assert isinstance(settings, Settings)
+        assert settings.env == "local"
+        assert settings.workspace is None
+        assert settings.endpoint_url is None
+
+
+def test_get_env_variables_with_custom_values() -> None:
+    with patch("os.getenv") as mock_getenv:  # Note: patching os.getenv directly
+        mock_getenv.side_effect = lambda key, default=None: {
+            "ENVIRONMENT": "production",
+            "WORKSPACE": "test_workspace",
+            "ENDPOINT_URL": "http://custom-endpoint.com",
+        }.get(key, default)
+
+        settings = get_env_variables()
+        assert isinstance(settings, Settings)
+        assert settings.env == "production"
+        assert settings.workspace == "test_workspace"
+        assert settings.endpoint_url == "http://custom-endpoint.com"

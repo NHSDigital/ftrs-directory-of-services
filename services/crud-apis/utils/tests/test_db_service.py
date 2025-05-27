@@ -1,29 +1,70 @@
 from unittest.mock import patch
 
-import pytest
-from ftrs_data_layer.models import HealthcareService
-from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
+from ftrs_data_layer.models import DBModel
+from ftrs_data_layer.repository.dynamodb.document_level import DocumentLevelRepository
+from utils.db_service import (
+    get_service_repository,
+    env_variable_settings,
+    get_table_name,
+)
 
-from utils.db_service import get_service_repository, get_table_name
+
+class TestModel(DBModel):
+    pass
 
 
-def test_returns_correct_repository_for_healthcare_service() -> None:
-    with patch("utils.db_service.get_env_variables") as mock_env_vars:
-        mock_env_vars.return_value = {"endpoint_url": "http://localhost", "env": "dev"}
-        repository = get_service_repository(HealthcareService, "healthcare-service")
+def test_get_service_repository_returns_repository() -> None:
+    with (
+        patch("utils.db_service.get_table_name", return_value="mock-table-name"),
+        patch(
+            "utils.db_service.env_variable_settings.endpoint_url",
+            "http://mock-endpoint.com",
+        ),
+    ):
+        repository = get_service_repository(TestModel, "entity-name")
+
         assert isinstance(repository, DocumentLevelRepository)
-        assert repository.model_cls == HealthcareService
+        assert repository.model_cls == TestModel
 
 
-def test_returns_correct_table_name_with_workspace() -> None:
-    with patch("utils.db_service.get_env_variables") as mock_env_vars:
-        mock_env_vars.return_value = {"env": "dev", "workspace": "team1"}
-        table_name = get_table_name("organisation")
-        assert table_name == "ftrs-dos-dev-database-organisation-team1"
+def test_get_service_repository_with_no_endpoint_url() -> None:
+    with (
+        patch("utils.db_service.get_table_name", return_value="mock-table-name"),
+        patch("utils.db_service.env_variable_settings.endpoint_url", None),
+    ):
+        repository = get_service_repository(TestModel, "entity-name")
+
+        assert isinstance(repository, DocumentLevelRepository)
+        assert repository.model_cls == TestModel
 
 
-def test_raises_error_for_missing_env_variables() -> None:
-    with patch("utils.db_service.get_env_variables") as mock_env_vars:
-        mock_env_vars.side_effect = KeyError("Missing environment variable")
-        with pytest.raises(KeyError):
-            get_service_repository(HealthcareService, "healthcare-service")
+def test_returns_correct_table_name_for_given_entity():
+    env_variable_settings.env = "dev"
+    env_variable_settings.workspace = None
+    entity_name = "healthcare"
+    expected_table_name = "ftrs-dos-dev-database-healthcare"
+    assert get_table_name(entity_name) == expected_table_name
+
+
+def test_includes_workspace_in_table_name_if_present():
+    env_variable_settings.env = "prod"
+    env_variable_settings.workspace = "team1"
+    entity_name = "organisation"
+    expected_table_name = "ftrs-dos-prod-database-organisation-team1"
+    assert get_table_name(entity_name) == expected_table_name
+
+
+def test_handles_empty_entity_name_gracefully():
+    env_variable_settings.env = "test"
+    env_variable_settings.workspace = None
+    entity_name = ""
+    expected_table_name = "ftrs-dos-test-database-"
+    assert get_table_name(entity_name) == expected_table_name
+
+
+def test_handles_none_workspace_correctly():
+    env_variable_settings.env = "staging"
+    env_variable_settings.workspace = None
+    entity_name = "service"
+    expected_table_name = "ftrs-dos-staging-database-service"
+    assert get_table_name(entity_name) == expected_table_name

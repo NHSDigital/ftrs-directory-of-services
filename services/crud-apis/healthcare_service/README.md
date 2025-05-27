@@ -73,8 +73,10 @@ pytest tests
   Once the dynamo-db instance is running and tables are created
 2. Run the following command to start the API locally in the **healthcare_service** directory:
 
+from the crud-apis directory run:
+
 ```bash
-poetry run start-healthcare-api
+poetry run poe start-healthcare-api
 ```
 
 The API will be available at [http://localhost:7000].

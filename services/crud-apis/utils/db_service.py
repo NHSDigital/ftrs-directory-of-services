@@ -3,6 +3,8 @@ from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 
 from utils.config import get_env_variables
 
+env_variable_settings = get_env_variables()
+
 
 def get_service_repository(
     model_cls: type[DBModel], entity_name: str
@@ -17,11 +19,10 @@ def get_service_repository(
     Returns:
         DocumentLevelRepository[DBModel]: The repository for the specified model.
     """
-    env_vars = get_env_variables()
     return DocumentLevelRepository[DBModel](
         table_name=get_table_name(entity_name),
         model_cls=model_cls,
-        endpoint_url=env_vars["endpoint_url"],
+        endpoint_url=env_variable_settings.endpoint_url or None,
     )
 
 
@@ -35,9 +36,8 @@ def get_table_name(entity_name: str) -> str:
     Returns:
         str: The constructed table name
     """
-    env_vars = get_env_variables()
 
-    table_name = f"ftrs-dos-{env_vars['env']}-database-{entity_name}"
-    if env_vars.get("workspace"):
-        table_name = f"{table_name}-{env_vars['workspace']}"
+    table_name = f"ftrs-dos-{env_variable_settings.env}-database-{entity_name}"
+    if env_variable_settings.workspace:
+        table_name = f"{table_name}-{env_variable_settings.workspace}"
     return table_name

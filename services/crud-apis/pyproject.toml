@@ -28,10 +28,10 @@ pytest-mock = "^3.14.0"
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 uvicorn = "^0.34.2"
 boto3 = "^1.37.33"
+poethepoet = "^0.34.0"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"
-start-healthcare-api = "healthcare_service.hcserver:run"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
@@ -42,6 +42,10 @@ packages = [
   { include = "healthcare_service"},
   {include = "utils"}
 ]
+
+[tool.poe.tasks]
+start-healthcare-api = "uvicorn healthcare_service.app.handler_healthcare_service:app --host 0.0.0.0 --port 7000 --reload"
+
 
 [tool.ruff]
 line-length = 88
