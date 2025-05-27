@@ -6,4 +6,4 @@ from healthcare_service.app.router import healthcare
 app = FastAPI()
 app.include_router(healthcare.router)
 
-handler = Mangum(app)
+handler = Mangum(app, lifespan="off")
