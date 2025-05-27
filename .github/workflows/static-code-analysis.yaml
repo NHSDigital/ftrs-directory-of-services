@@ -1,0 +1,33 @@
+name: "Perform SonarCloud static analysis"
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The deployment environment"
+        required: true
+        type: string
+      tag:
+        description: "The git tag to checkout or, if not passed in, the current branch"
+        required: false
+        type: string
+
+jobs:
+  static-analysis:
+    name: "Perform SonarCloud static analysis"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Perform static analysis"
+        uses: ./.github/actions/perform-static-analysis
+        with:
+          sonar_organisation_key: ${{ vars.SONAR_ORGANISATION_KEY }}
+          sonar_project_key: ${{ vars.SONAR_PROJECT_KEY }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
