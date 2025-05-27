@@ -17,6 +17,13 @@ module "read_only_viewer_cloudfront" {
     }
   }
 
+  http_version = "http2and3"
+
+  geo_restriction = {
+    restriction_type = "whitelist"
+    locations        = ["GB", "JE", "IM"]
+  }
+
   origin = {
     s3_bucket = {
       domain_name           = module.read_only_viewer_bucket.s3_bucket_bucket_regional_domain_name
