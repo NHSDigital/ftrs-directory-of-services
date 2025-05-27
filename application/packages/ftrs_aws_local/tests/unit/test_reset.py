@@ -137,7 +137,7 @@ def test_init_tables(mocker: MockerFixture) -> None:
         ],
         GlobalSecondaryIndexes=[
             {
-                "IndexName": "OsdCodeValueIndex",
+                "IndexName": "OdsCodeValueIndex",
                 "KeySchema": [
                     {
                         "AttributeName": "identifier_ODS_ODSCode",

@@ -109,7 +109,7 @@ def init_tables(
                     ],
                     global_secondary_indexes=[
                         {
-                            "IndexName": "OsdCodeValueIndex",
+                            "IndexName": "OdsCodeValueIndex",
                             "KeySchema": [
                                 {
                                     "AttributeName": "identifier_ODS_ODSCode",
