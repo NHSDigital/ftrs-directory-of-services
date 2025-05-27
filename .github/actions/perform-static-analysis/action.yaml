@@ -40,3 +40,8 @@ runs:
           -Dsonar.python.coverage.reportPaths=${{ steps.coverage-files.outputs.files }}
           -Dproject.settings=./scripts/config/sonar-scanner.properties
       continue-on-error: true
+
+    - name: "Check SonarCloud Scan Result"
+      if: steps.sonar.outcome != 'success'
+      run: |
+        echo "::warning::SonarCloud scan failed, continuing pipeline"

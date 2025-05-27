@@ -25,13 +25,6 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: "Configure AWS Credentials"
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: false
-
       - name: "Perform static analysis"
         uses: ./.github/actions/perform-static-analysis
         with:
