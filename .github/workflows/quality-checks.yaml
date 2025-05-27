@@ -163,8 +163,8 @@ jobs:
       - name: "Check format of Terraform code"
         uses: ./.github/actions/check-format-terraform
 
-  checkov-terraform-scan:
-    name: "Checkov Terraform scan"
+  checkov-scan:
+    name: "Checkov scan"
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     permissions:
@@ -174,27 +174,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-      - name: Checkov Terraform scan
+
+      - name: Checkov scan
         uses: bridgecrewio/checkov-action@v12
         continue-on-error: true
         with:
           soft_fail: true
           quiet: true
           output_format: sarif
-          output_file_path: reports/checkov.sarif
+          output_file_path: checkov.sarif
+
+      - name: "Publish Checkov report"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: "checkov.sarif"
+          path: "."
+          if-no-files-found: ignore
 
   trivy-scan:
     name: "Trivy scan"
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - folder: "infrastructure/stacks/opensearch"
-            tfvarsfile: "infrastructure/opensearch.tfvars"
-            output: opensearch-trivy.sarif
-          - folder: "infrastructure/stacks/read_only_viewer"
-            tfvarsfile: "infrastructure/read_only_viewer.tfvars"
-            output: read_only_viewer-trivy.sarif
     timeout-minutes: ${{ inputs.workflow_timeout }}
     permissions:
       contents: read
@@ -204,43 +203,19 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: "Copy common and tfvars"
-        run: |
-          cp infrastructure/common/common-variables.tf ${{matrix.folder}}
-          cp infrastructure/common/provider.tf ${{matrix.folder}}
-          cp infrastructure/common/locals.tf ${{matrix.folder}}
-          cp ${{matrix.tfvarsfile}} ${{matrix.folder}}
-
       - name: "Trivy scan"
-        uses: aquasecurity/trivy-action@0.30.0
-        continue-on-error: true
-        with:
-          scan-type: 'fs'
-          scan-ref: ${{matrix.folder}}
-          format: 'sarif'
-          output: 'trivy.sarif'
-          scanners: vuln,misconfig
-
-      - name: "Publish report"
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: ${{matrix.output}}
-          path: "."
-          if-no-files-found: ignore
-
-      - name: Trivy scan simple way
         uses: aquasecurity/trivy-action@0.30.0
         continue-on-error: true
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
-          output: 'trivy-simple.sarif'
+          output: 'trivy.sarif'
           scanners: vuln,misconfig
 
-      - name: "Publish report simple way"
+      - name: "Publish Trivy report"
         uses: actions/upload-artifact@v4.6.1
         with:
-          name: "trivy-simple.sarif"
+          name: "trivy.sarif"
           path: "."
           if-no-files-found: ignore
