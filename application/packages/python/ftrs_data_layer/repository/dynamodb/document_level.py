@@ -95,7 +95,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         records = self._query(
             key=ods_code_field,
             value=ods_code,
-            IndexName="OsdCodeValueIndex",
+            IndexName="OdsCodeValueIndex",
             ProjectionExpression="id, #val",
             ExpressionAttributeNames={"#val": "value"},
         )
