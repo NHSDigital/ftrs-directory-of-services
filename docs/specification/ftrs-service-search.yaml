@@ -68,7 +68,7 @@ info:
     ### Integration testing
     Our [integration test environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing) is for formal integration testing includes authorisation via JWT Private Key.
     ## Onboarding
-    You must get your software onboarded before it can go live.\n\nFor more details, contact us at TBC.
+    You must get your software onboarded before it can go live. For more details, contact us at TBC.
   version: 1.0.0
 servers:
   - description: Sandbox environment
@@ -80,10 +80,10 @@ servers:
 paths:
   /Organization:
     get:
-      summary: Search for organizations by ODS code to return Organization details (inlcuding Endpoints managed by the Organization)
+      summary: Search for organizations by ODS code to return Organization details (including Endpoints managed by the Organization)
       description: |
         ## Overview
-        Retrieve an Organizations identified by an ODS code (including Endpoints managed by the Organization).
+        Retrieve an Organization identified by an ODS code (including Endpoints managed by the Organization).
 
         ## Request Requirements
         A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
@@ -105,7 +105,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{1,12}$'
+            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{5,12}$'
             example: "odsOrganizationCode|ABC123"
         - name: _revinclude
           in: query
