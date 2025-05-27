@@ -75,14 +75,8 @@ def _get_env_var(varname: str) -> str:
 
 @pytest.fixture(scope="session")
 def workspace() -> str:
-    if _get_env_var("WORKSPACE") is not None:
-        workspace = _get_env_var("WORKSPACE")
-    elif config.get("workspace") != "default":
-        workspace = config.get("workspace")
-    else:
-        workspace = ""
-    return workspace
-
+    logger.info("Fetching workspace  {}", _get_env_var("WORKSPACE"))
+    return _get_env_var("WORKSPACE")
 
 @pytest.fixture(scope="session")
 def env() -> str:
