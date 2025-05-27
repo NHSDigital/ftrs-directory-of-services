@@ -131,7 +131,7 @@ def test_init_tables(mocker: MockerFixture) -> None:
         AttributeDefinitions=[
             {"AttributeName": "id", "AttributeType": "S"},
             {"AttributeName": "field", "AttributeType": "S"},
-            {"AttributeName": "identifier_ODS_ODSCode", "AttributeType": "S"},
+            {"AttributeName": "odscode", "AttributeType": "S"},
         ],
         KeySchema=[
             {"AttributeName": "id", "KeyType": "HASH"},
@@ -140,12 +140,7 @@ def test_init_tables(mocker: MockerFixture) -> None:
         GlobalSecondaryIndexes=[
             {
                 "IndexName": "OdsCodeValueIndex",
-                "KeySchema": [
-                    {
-                        "AttributeName": "identifier_ODS_ODSCode",
-                        "KeyType": "HASH",
-                    },
-                ],
+                "KeySchema": [{"AttributeName": "odscode", "KeyType": "HASH"}],
                 "Projection": {
                     "ProjectionType": "ALL",
                 },
