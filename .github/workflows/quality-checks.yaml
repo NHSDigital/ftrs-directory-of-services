@@ -175,7 +175,8 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: Checkov scan
+      - name: "Checkov scan"
+        id: "checkov"
         uses: bridgecrewio/checkov-action@v12
         continue-on-error: true
         with:
@@ -191,6 +192,10 @@ jobs:
           path: "."
           if-no-files-found: ignore
 
+      - name : "Warn Checkov failure"
+        if: ${{ steps.checkov.outcome == 'failure' }}
+        run: echo "::warning::Checkov has encountered issues. Please check the checkov.sarif file for the issues identified"
+
   trivy-scan:
     name: "Trivy scan"
     runs-on: ubuntu-latest
@@ -204,6 +209,7 @@ jobs:
           ref: ${{ inputs.tag }}
 
       - name: "Trivy scan"
+        id: "trivy"
         uses: aquasecurity/trivy-action@0.30.0
         continue-on-error: true
         with:
@@ -219,3 +225,7 @@ jobs:
           name: "trivy.sarif"
           path: "."
           if-no-files-found: ignore
+
+      - name : "Warn Trivy failure"
+        if: ${{ steps.trivy.outcome == 'failure' }}
+        run: echo "::warning::Trivy has encountered issues. Please check the trivy.sarif file for the issues identified"
