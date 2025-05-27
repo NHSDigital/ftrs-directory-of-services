@@ -109,6 +109,9 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
       - name: "Scan dependencies"
         uses: ./.github/actions/scan-dependencies
         with:
