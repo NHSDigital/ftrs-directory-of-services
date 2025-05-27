@@ -1,4 +1,4 @@
-# FtRS Organisation API
+# FtRS HealthCare service API
 
 ## Overview
 

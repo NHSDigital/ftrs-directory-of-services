@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Path
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from ftrs_data_layer.models import HealthcareService
 
@@ -22,17 +23,45 @@ async def get_healthcare_service_id(
         description="The UUID of the healthcare service",
     ),
 ) -> JSONResponse:
-    logging.info(f"Getting healthCare service with ID: {service_id}")
-    return get_healthcare_service_by_id(service_id)
+    try:
+        logging.info(f"Getting healthCare service with ID: {service_id}")
+        healthCareService = get_healthcare_service_by_id(service_id)
+        return JSONResponse(
+            content={
+                "data": jsonable_encoder(healthCareService),
+            }
+        )
+    except Exception as e:
+        logging.error(f"Error fetching healthcare service: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Failed to fetch healthcare service with id {service_id}"
+            },
+        )
 
 
 @router.get("/", summary="Get all healthcare services.")
 async def get_all_healthcare_services() -> JSONResponse:
-    logging.info("Getting all healthcare services")
-    # Call the repository to get all healthcare services
-    return get_service_repository(HealthcareService, "healthcare-service").find(
-        ITEMS_PER_PAGE
-    )
+    try:
+        logging.info("Getting all healthcare services")
+        repository = get_service_repository(HealthcareService, "healthcare-service")
+        healthCareServices = [
+            jsonable_encoder(service)
+            for service in repository.iter_records(ITEMS_PER_PAGE)
+        ]
+
+        return JSONResponse(
+            content={
+                "data": healthCareServices,
+                "metadata": {"count": len(healthCareServices), "limit": ITEMS_PER_PAGE},
+            }
+        )
+    except Exception as e:
+        logging.error(f"Error fetching healthcare services: {str(e)}")
+        return JSONResponse(
+            status_code=500, content={"error": "Failed to fetch healthcare services"}
+        )
 
 
 def get_healthcare_service_by_id(service_id: str) -> JSONResponse:
