@@ -1,3 +1,0 @@
-format: 'sarif'
-output: 'trivy.sarif'
-scanners: vuln,misconfig,

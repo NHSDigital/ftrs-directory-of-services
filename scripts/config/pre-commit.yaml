@@ -56,5 +56,5 @@ repos:
     rev: "a58cc7d" # sha for version 3.2.431
     hooks:
       - id: checkov
-        verbose: true
-        args: [--soft-fail, --quiet]
+        args:
+          [--soft-fail, --quiet, --output-file-path, "scans/checkov", --output, sarif]
