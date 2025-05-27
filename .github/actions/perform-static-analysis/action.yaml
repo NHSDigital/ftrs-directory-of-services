@@ -43,5 +43,6 @@ runs:
 
     - name: "Check SonarCloud Scan Result"
       if: steps.sonar.outcome != 'success'
+      shell: bash
       run: |
         echo "::warning::SonarCloud scan failed, continuing pipeline"
