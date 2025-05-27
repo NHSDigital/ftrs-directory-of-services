@@ -91,6 +91,17 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
     secrets: inherit
 
+  perform-code-analysis:
+    name: "Perform static code analysis"
+    needs:
+      - metadata
+      - build-crud-apis-service
+      - build-data-migration-service
+    uses: ./.github/workflows/static-code-analysis.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
+
   build-read-only-viewer-service:
     name: "Build read only viewer service"
     needs:
@@ -115,9 +126,8 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - build-data-migration-service
-      - build-python-package
       - build-read-only-viewer-service
+      - perform-code-analysis
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -176,11 +186,10 @@ jobs:
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
-      deployment_environment : ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
   check-pipeline-status:
