@@ -1,9 +1,22 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
-from pytest_lazy_fixtures import lf
+from fhir.resources.R4B.bundle import Bundle
+from fhir.resources.R4B.operationoutcome import OperationOutcome
 
 from functions.gp_search_function import lambda_handler
+
+
+@pytest.fixture
+def mock_error_util():
+    with patch("functions.gp_search_function.error_util") as mock:
+        mock_validation_error = OperationOutcome.model_construct(id="validation-error")
+        mock_internal_error = OperationOutcome.model_construct(id="internal-error")
+
+        mock.create_resource_validation_error.return_value = mock_validation_error
+        mock.create_resource_internal_server_error.return_value = mock_internal_error
+
+        yield mock
 
 
 @pytest.fixture
@@ -14,8 +27,14 @@ def mock_ftrs_service():
 
 
 @pytest.fixture
+def mock_logger():
+    with patch("functions.gp_search_function.logger") as mock:
+        yield mock
+
+
+@pytest.fixture
 def event():
-    return {"odsCode": "O123"}
+    return {"odsCode": "ABC123"}
 
 
 @pytest.fixture
@@ -24,53 +43,178 @@ def lambda_context():
 
 
 @pytest.fixture
-def mock_bundle():
-    mock_bundle = MagicMock()
-    mock_bundle.get_resource_type.return_value = "Bundle"
-    mock_bundle.model_dump_json.return_value = (
-        '{"resourceType": "Bundle", "id": "test-id"}'
-    )
-    return mock_bundle
+def bundle():
+    return Bundle.model_construct(id="bundle-id")
 
 
-@pytest.fixture
-def mock_operation_outcome():
-    mock_operation_outcome = MagicMock()
-    mock_operation_outcome.get_resource_type.return_value = "OperationOutcome"
-    mock_operation_outcome.model_dump_json.return_value = (
-        '{"resourceType": "OperationOutcome", "id": "error-id"}'
-    )
-
-    return mock_operation_outcome
+def assert_response(
+    response,
+    expected_status_code,
+    expected_body,
+):
+    assert response["statusCode"] == expected_status_code
+    assert response["headers"] == {"Content-Type": "application/fhir+json"}
+    assert response["body"] == expected_body
 
 
 class TestLambdaHandler:
     @pytest.mark.parametrize(
-        ("mock_fhir_resource", "expected_status_code"),
+        "ods_code",
         [
-            (lf("mock_bundle"), 200),
-            (lf("mock_operation_outcome"), 500),
+            "ABC12",
+            "ABC123456789",
+            "ABC123",
+            "ABCDEF",
+            "123456",
+        ],
+        ids=[
+            "odsCode minimum length",
+            "odsCode maximum length",
+            "odsCode alphanumeric",
+            "odsCode only uppercase characters",
+            "odsCode only numbers",
         ],
     )
-    def test_lambda_handler(
+    def test_lambda_handler_with_valid_ods_code(
         self,
         lambda_context,
         mock_ftrs_service,
-        event,
-        mock_fhir_resource,
-        expected_status_code,
+        mock_logger,
+        ods_code,
+        bundle,
     ):
         # Arrange
-        mock_ftrs_service.endpoints_by_ods.return_value = mock_fhir_resource
+        mock_ftrs_service.endpoints_by_ods.return_value = bundle
+        event = {"odsCode": ods_code}
 
         # Act
         response = lambda_handler(event, lambda_context)
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(event["odsCode"])
-        mock_fhir_resource.get_resource_type.assert_called_once()
-        mock_fhir_resource.model_dump_json.assert_called_once()
+        mock_logger.assert_has_calls(
+            [
+                call.append_keys(ods_code=ods_code),
+                call.info("Successfully processed"),
+                call.info("Creating response", extra={"status_code": 200}),
+            ]
+        )
 
-        assert response["statusCode"] == expected_status_code
-        assert response["headers"] == {"Content-Type": "application/fhir+json"}
-        assert response["body"] == mock_fhir_resource.model_dump_json.return_value
+        assert_response(
+            response, expected_status_code=200, expected_body=bundle.model_dump_json()
+        )
+
+    def test_lambda_handler_with_lowercase_ods_code(
+        self, lambda_context, mock_ftrs_service, mock_logger, bundle
+    ):
+        # Arrange
+        event = {"odsCode": "abc123"}  # Lowercase ODS code
+        mock_ftrs_service.endpoints_by_ods.return_value = bundle
+
+        # Act
+        response = lambda_handler(event, lambda_context)
+
+        # Assert
+        mock_ftrs_service.endpoints_by_ods.assert_called_once_with("ABC123")
+        mock_logger.assert_has_calls(
+            [
+                call.append_keys(ods_code="ABC123"),
+                call.info("Successfully processed"),
+                call.info("Creating response", extra={"status_code": 200}),
+            ]
+        )
+
+        assert_response(
+            response, expected_status_code=200, expected_body=bundle.model_dump_json()
+        )
+
+    @pytest.mark.parametrize(
+        ("invalid_event", "expected_error_message"),
+        [
+            (
+                {},
+                "data must contain ['odsCode'] properties",
+            ),
+            (
+                {"odsCode": ""},
+                "data.odsCode must be longer than or equal to 5 characters",
+            ),
+            (
+                {"odsCode": "ABC1"},
+                "data.odsCode must be longer than or equal to 5 characters",
+            ),
+            (
+                {"odsCode": "ABCD123456789"},
+                "data.odsCode must be shorter than or equal to 12 characters",
+            ),
+            (
+                {"odsCode": "ABC-123"},
+                "data.odsCode must match pattern ^[A-Z0-9]+$",
+            ),
+        ],
+        ids=[
+            "event empty",
+            "odsCode empty",
+            "odsCode too short",
+            "odsCode too long",
+            "odsCode non-alphanumeric",
+        ],
+    )
+    def test_lambda_handler_with_invalid_event(
+        self,
+        lambda_context,
+        mock_ftrs_service,
+        mock_error_util,
+        mock_logger,
+        invalid_event,
+        expected_error_message,
+    ):
+        # Act
+        response = lambda_handler(invalid_event, lambda_context)
+
+        # Assert
+        mock_ftrs_service.endpoints_by_ods.assert_not_called()
+        mock_error_util.create_resource_validation_error.assert_called_once()
+
+        exception = mock_error_util.create_resource_validation_error.call_args[0][0]
+        assert exception.validation_message == expected_error_message
+
+        mock_logger.assert_has_calls(
+            [
+                call.warning("Schema validation error occurred", exc_info=exception),
+                call.info("Creating response", extra={"status_code": 422}),
+            ]
+        )
+
+        assert_response(
+            response,
+            expected_status_code=422,
+            expected_body=mock_error_util.create_resource_validation_error.return_value.model_dump_json(),
+        )
+
+    def test_lambda_handler_with_general_exception(
+        self, lambda_context, mock_ftrs_service, event, mock_error_util, mock_logger
+    ):
+        # Arrange
+        mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
+
+        # Act
+        response = lambda_handler(event, lambda_context)
+
+        # Assert
+        mock_ftrs_service.endpoints_by_ods.assert_called_once_with(event["odsCode"])
+        mock_error_util.create_resource_internal_server_error.assert_called_once()
+
+        mock_logger.assert_has_calls(
+            [
+                call.append_keys(ods_code=event["odsCode"]),
+                call.exception("Internal server error occurred"),
+                call.info("Creating response", extra={"status_code": 500}),
+            ]
+        )
+
+        assert_response(
+            response,
+            expected_status_code=500,
+            expected_body=mock_error_util.create_resource_internal_server_error.return_value.model_dump_json(),
+        )

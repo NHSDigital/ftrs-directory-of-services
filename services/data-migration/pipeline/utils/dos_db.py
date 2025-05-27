@@ -1,6 +1,20 @@
 import pandas as pd
 
-QUERY_GP_PRACTICE = """
+WITH_GP_PRACTICE = """
+gp_practice AS (
+    SELECT
+        "services"."id" AS "serviceid"
+    FROM "pathwaysdos"."services"
+    LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
+    WHERE
+        "servicestatuses"."name" = 'active'
+        AND "services"."typeid" = '100'
+        AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$'
+)
+"""
+
+QUERY_GP_PRACTICE = f"""
+WITH{WITH_GP_PRACTICE}
     SELECT
         "services"."name",
         "servicetypes"."name" AS "type",
@@ -16,31 +30,48 @@ QUERY_GP_PRACTICE = """
         "services"."postcode",
         "services"."latitude",
         "services"."longitude"
-    FROM "pathwaysdos"."services"
-    LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
+    FROM "gp_practice"
+    LEFT JOIN "pathwaysdos"."services"  ON "gp_practice"."serviceid" = "services"."id"
     LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
-    WHERE
-        "servicestatuses"."name" = 'active'
-        AND "services"."typeid" = '100'
-        AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$';
 """
 
-QUERY_GP_ENDPOINTS = """
-WITH gp_practice AS (
-    SELECT
-        "services"."id" AS "serviceid"
-    FROM "pathwaysdos"."services"
-    LEFT JOIN "pathwaysdos"."servicetypes" ON "services"."typeid" = "servicetypes"."id"
-    LEFT JOIN "pathwaysdos"."servicestatuses" ON "services"."statusid" = "servicestatuses"."id"
-    WHERE
-        "servicestatuses"."name" = 'active'
-        AND "services"."typeid" = '100'
-        AND "services"."odscode" ~ '^[A-Za-z][0-9]{5}$'
-)
+QUERY_GP_ENDPOINTS = f"""
+WITH{WITH_GP_PRACTICE}
 SELECT
     "serviceendpoints".*
 FROM "gp_practice"
 LEFT JOIN "pathwaysdos"."serviceendpoints" ON "gp_practice"."serviceid" = "serviceendpoints"."serviceid"
+"""
+
+QUERY_GP_SERVICEDAYOPENINGTIMES = f"""
+WITH{WITH_GP_PRACTICE}
+SELECT
+    "gp_practice"."serviceid",
+    "servicedayopeningtimes"."starttime" as "availableStartTime",
+    "servicedayopeningtimes"."endtime" as "availableEndTime",
+    "openingtimedays"."name" as "dayOfWeek"
+FROM "gp_practice"
+INNER JOIN "pathwaysdos"."servicedayopenings"
+    ON "gp_practice"."serviceid" = "servicedayopenings"."serviceid"
+LEFT JOIN "pathwaysdos"."servicedayopeningtimes"
+    ON "servicedayopenings"."id" = "servicedayopeningtimes"."servicedayopeningid"
+LEFT JOIN "pathwaysdos"."openingtimedays"
+    ON "servicedayopenings"."dayid" = "openingtimedays"."id"
+"""
+
+QUERY_GP_SERVICESPECIFIEDOPENINGTIMES = f"""
+WITH{WITH_GP_PRACTICE}
+SELECT
+    "gp_practice"."serviceid",
+    "servicespecifiedopeningdates"."date",
+    "servicespecifiedopeningtimes"."starttime",
+    "servicespecifiedopeningtimes"."endtime",
+    "servicespecifiedopeningtimes"."isclosed"
+FROM "gp_practice"
+INNER JOIN "pathwaysdos"."servicespecifiedopeningdates"
+    ON "gp_practice"."serviceid" = "servicespecifiedopeningdates"."serviceid"
+LEFT JOIN "pathwaysdos"."servicespecifiedopeningtimes"
+    ON "servicespecifiedopeningdates"."id" = "servicespecifiedopeningtimes"."servicespecifiedopeningdateid"
 """
 
 QUERY_SERVICES_SIZE = """
@@ -68,6 +99,14 @@ def get_gp_practices(db_uri: str) -> pd.DataFrame:
 
 def get_gp_endpoints(db_uri: str) -> pd.DataFrame:
     return pd.read_sql(QUERY_GP_ENDPOINTS, db_uri)
+
+
+def get_gp_day_opening_times(db_uri: str) -> pd.DataFrame:
+    return pd.read_sql(QUERY_GP_SERVICEDAYOPENINGTIMES, db_uri)
+
+
+def get_gp_specified_opening_times(db_uri: str) -> pd.DataFrame:
+    return pd.read_sql(QUERY_GP_SERVICESPECIFIEDOPENINGTIMES, db_uri)
 
 
 def get_services_size(db_uri: str) -> int:
