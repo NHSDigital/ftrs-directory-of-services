@@ -77,8 +77,7 @@ brew link --force libpq
 ```bash
 # Assume role within UEC DOS DEV AWS account
 # Copy source postgres dump
-# take the latest dump from the bucket
-aws s3 cp s3://ftrs-dos-dev-data-migration-pipeline-store/sanitised-clone/05-03-25/dos-pgdump.sql .tmp/dos-01-02-24.sql
+aws s3 cp s3://ftrs-dos-data-migration-pipeline-store-dev/sanitised-clone/01-02-24/dos-pgdump.sql .tmp/dos-01-02-24.sql
 
 # Load the dump into the local DB
 # Ask team for values to substitute here
@@ -87,39 +86,6 @@ psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
 
-### Setting up the local DynamoDB tables
-
-Before running the load steps of the pipeline locally, you will need to create the DynamoDB tables locally.
-This can be done using the `dos-etl reset` command.
-
-```bash
-# Create the local DynamoDB tables
-dos-etl reset \
-    --init \
-    --env local \
-    --endpoint-url http://localhost:8000 \
-```
-
-The script can be aborted at the first prompt.
-
-### Clearing Down DynamoDB Tables
-
-To clear down the DynamoDB tables locally, you can delete them using NoSQL Workbench or the AWS CLI.
-
-For deployed environments, you can use the `dos-etl reset` command to delete data within the existing tables.
-
-```bash
-# Delete the local DynamoDB data
-dos-etl reset \
-    --env local \
-    --endpoint-url http://localhost:8000
-
-# Delete the dev DynamoDB data
-dos-etl reset --env dev
-
-# Delete a workspaced dev DynamoDB table
-dos-etl reset --env dev --workspace my-workspace
-```
 
 ### Running Pipeline Steps Locally
 
@@ -181,7 +147,7 @@ The load step accepts the following options:
 # Load data from local directory into local DynamoDB
 dos-etl load \
     --env local \
-    --endpoint-url http://localhost:8000 \
+    --endpoint-uri http://localhost:8000 \
     --input /tmp/out/transform.parquet
 
 # Load data from S3 into dev DynamoDB

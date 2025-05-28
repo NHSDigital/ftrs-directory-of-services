@@ -13,8 +13,7 @@ from ftrs_data_layer.repository.dynamodb import (
 from rich.progress import track
 from typer import Option, confirm
 
-from pipeline.constants import TargetEnvironment
-from pipeline.load import get_table_name
+from dynamodb.constants import TargetEnvironment, get_table_name
 
 reset_logger = Logger.get(service="reset")
 
@@ -178,10 +177,11 @@ def reset(
             entity_type=entity_type,
         )
 
-    confirm(
-        f"Are you sure you want to reset the {env} environment (workspace: {workspace or 'default'})? This action cannot be undone.",
-        abort=True,
-    )
+    else:
+        confirm(
+            f"Are you sure you want to reset the {env} environment (workspace: {workspace or 'default'})? This action cannot be undone.",
+            abort=True,
+        )
 
     for entity_name in entity_type:
         entity_cls = get_entity_cls(entity_name)

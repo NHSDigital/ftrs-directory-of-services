@@ -4,7 +4,6 @@ from typer import Typer
 
 from pipeline.extract import extract
 from pipeline.load import load
-from pipeline.reset import reset
 from pipeline.transform import transform
 
 logging.basicConfig(
@@ -22,4 +21,4 @@ typer_app = Typer(
 typer_app.command("load")(load)
 typer_app.command("transform")(transform)
 typer_app.command("extract")(extract)
-typer_app.command("reset")(reset)
+
