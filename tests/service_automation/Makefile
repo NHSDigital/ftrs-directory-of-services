@@ -8,7 +8,7 @@ TEST_TYPE ?= non-ui
 
 # ==============================================================================
 
-.PHONY: clean install config lint lint-fix test unit-test api-test ui-test allure-report
+.PHONY: clean install config test report
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .tmp .build
@@ -33,6 +33,7 @@ test:
 			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \
 	done
+
 report:
 	allure generate --single-file -c -o $(ALLURE_REPORTS) $(ALLURE_RESULTS)
 
@@ -53,3 +54,6 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 ${VERBOSE}.SILENT: \
 	clean \
 	config \
+	_install-dependency \
+	_install-dependencies \
+	install \
