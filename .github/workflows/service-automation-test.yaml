@@ -68,6 +68,18 @@ jobs:
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@v3.0.2
 
+      - name: "Cache Poetry dependencies"
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('tests/service_automation/poetry.lock') }}
+
+      - name: "Cache Playwright browsers"
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/service_automation/poetry.lock') }}
+
       - name: Configure AWS Credentials
         uses: ./.github/actions/configure-credentials
         with:
