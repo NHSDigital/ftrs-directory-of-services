@@ -1,7 +1,108 @@
-openapi: 3.0.1
+openapi: 3.0.3
 info:
   title: Directory of Services Ingestion API
-  description: "## Overview\n\nUse this API to submit service data from your system to the NHS [Directory of Services (DoS)](https://digital.nhs.uk/services/directory-of-services-dos). This API enables data providers to send structured updates—such as service availability, contact details, or referral information—which are validated and prepared for inclusion in the national DoS.\n\nOnce submitted, the data will either undergo manual assurance by DoS leads or, in applicable cases, be processed through an automated assurance workflow. If manual assurance is required, the sender will receive an acknowledgment confirming that the data has been successfully submitted and is pending review.\n\nThe API is designed for secure, system-to-system communication and supports consistent, efficient data submission—helping ensure the DoS remains accurate and up to date for use across NHS systems. \n\n## Who can use this API\n\nThis API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organisations, local authorities, or trusted third-party systems that manage health and care service data.\n\nTo use this API, both your organisation and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the DoS.\n\nBefore access is granted, your organisation must:\n* Contact our integration team to discuss your use case and technical approach.\n* Undergo a technical and data assurance process to validate the structure, accuracy, and governance of the data source you plan to use.\n* Receive approval that your system and data are fit for integration with the DoS Ingestion API.\n\nUse of this API is subject to data governance requirements and must align with approved use cases.\n\n## Access modes\n\n* Application Restricted - Addition of new resource allowed / replacement of organisation allowed\n* User Restricted - Healthcare worker access for authentication via UI\n\n## Roadmap \nWe're currently finalising our roadmap and we'll update this content in due course.\n\n## Service Level\n\nTBC when service is in Beta.\n\n## Technology\n\nThis API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).\n\nIt conforms to the FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1.\n\nYou do not need to know much about FHIR to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:\n* resource names are capitalised and singular, for example /Patient not /patients\n* array names are singular, for example line not lines for address lines\n* data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object\n\nThere are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.\n\nTBC - exact FHIR version\n\n## Network access\n\nThis API is available on the Internet. \n\n## Errors\nWe use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:\n* 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action\n* 400 to 499 if it failed because of a client error by your application\n* 500 to 599 if it failed because of an error on our server\n\nErrors specific to each API are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.\n\n## Open source\nYou might find the following open source resources useful:\n\n| Resource | Description | Link |\n|-----|-----|-----|\n|Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services) | \n | ETL Layer | ETL developed for Data Sourcing Partners | [Github](https://github.com/NHSDigital/ftrs-directory-of-services)| \n | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) | \n\n## Environments and testing\nTBC links to available environments:\n\n| Environment | Base URL |\n|-------------|----------|\n| Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |\n| Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |\n| Production | https://api.service.nhs.uk/dos-ingestion/FHIR/R4 |\n\n\n\n### Sandbox \nOur [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing):\n* is for early developer testing\n* only covers a limited set of scenarios\n* is stateless, so does not actually persist any updates\n* is open access, so does not allow you to test authorisation - TBC\n\nFor details of sandbox test scenarios, or to try out the sandbox using our 'Try this API' feature, see the documentation for each endpoint.\n\nTBC - More details to be posted on integration, authentication, resources or test data available in all our environments during Beta phase.\n## Onboarding\n\nYou need to get your software approved by us before it can go live with this API. We call this onboarding. The onboarding process can sometimes be quite long, so it's worth planning well ahead.\n\nAs part of this process, you need to demonstrate your technical conformance to the requirements for this API. \n## Related APIs\n\nThe following APIs are related to this one:\n\n* [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - Access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care REST API.\n* [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England.\n\n"
+  description: |
+    ## Overview
+
+    Use this API to submit service data from your system to the NHS [Directory of Services (DoS)](https://digital.nhs.uk/services/directory-of-services-dos). This API enables data providers to send structured updates—such as service availability, contact details, or referral information—which are validated and prepared for inclusion in the national DoS.
+
+    Once submitted, the data will either undergo manual assurance by DoS leads or, in applicable cases, be processed through an automated assurance workflow. If manual assurance is required, the sender will receive an acknowledgment confirming that the data has been successfully submitted and is pending review.
+
+    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission—helping ensure the DoS remains accurate and up to date for use across NHS systems.
+
+    ## Who can use this API
+
+    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organisations, local authorities, or trusted third-party systems that manage health and care service data.
+
+    To use this API, both your organisation and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the DoS.
+
+    Before access is granted, your organisation must:
+    * Contact our integration team to discuss your use case and technical approach.
+    * Undergo a technical and data assurance process to validate the structure, accuracy, and governance of the data source you plan to use.
+    * Receive approval that your system and data are fit for integration with the DoS Ingestion API.
+
+    Use of this API is subject to data governance requirements and must align with approved use cases.
+
+    ## Access modes
+
+    * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
+    * User Restricted - Healthcare worker access for authentication via UI
+
+    ## Roadmap
+    We're currently finalising our roadmap and we'll update this content in due course.
+
+    ## Service Level
+
+    TBC when service is in Beta.
+
+    ## Technology
+
+    This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).
+
+    It conforms to the FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1.
+
+    You do not need to know much about FHIR to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
+    * resource names are capitalised and singular, for example /Patient not /patients
+    * array names are singular, for example line not lines for address lines
+    * data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object
+
+    There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
+
+    ## Network access
+
+    This API is available on the Internet.
+
+    ## Errors
+
+    We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
+    * 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
+    * 400 to 499 if it failed because of a client error by your application
+    * 500 to 599 if it failed because of an error on our server
+
+    Errors specific to each API are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+
+    ## Open source
+
+    You might find the following open source resources useful:
+    | Resource | Description | Link |
+    |-----|-----|-----|
+    |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services) |
+    | ETL Layer | ETL developed for Data Sourcing Partners | [Github](https://github.com/NHSDigital/ftrs-directory-of-services)|
+    | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
+
+    ## Environments and testing
+
+    TBC links to available environments:
+
+    | Environment | Base URL |
+    |-------------|----------|
+    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Production | https://api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+
+    ### Sandbox
+
+    Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing):
+    * is for early developer testing
+    * only covers a limited set of scenarios
+    * is stateless, so does not actually persist any updates
+    * is open access, so does not allow you to test authorisation - TBC
+
+    For details of sandbox test scenarios, or to try out the sandbox using our 'Try this API' feature, see the documentation for each endpoint.
+
+    TBC - More details to be posted on integration, authentication, resources or test data available in all our environments during Beta phase.
+
+    ## Onboarding
+
+    You need to get your software approved by us before it can go live with this API. We call this onboarding. The onboarding process can sometimes be quite long, so it's worth planning well ahead.
+
+    As part of this process, you need to demonstrate your technical conformance to the requirements for this API.
+
+    ## Related APIs
+
+    The following APIs are related to this one:
+    * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - Access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care REST API.
+    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England.
   version: 1.0.0
 servers:
   - url: 'https://usertest.directoryofservices.nhs.uk/app/controllers/api/v1.0/'
@@ -14,7 +115,7 @@ paths:
         ## Overview
 
         Use this endpoint to create a new Organisation entity.
-        
+
         ### Access Modes
 
         * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
@@ -33,8 +134,8 @@ paths:
         name: X-Correlation-ID
         required: false
         description: |
-          Use an optional ID with which you can use to track transactions across multiple systems. 
-  
+          Use an optional ID with which you can use to track transactions across multiple systems.
+
           Mirrored back in a response header.
         schema:
           type: string
@@ -147,7 +248,7 @@ paths:
         ## Overview
 
         Use this endpoint to update an Organisation entity.
-        
+
         ### Access Modes
 
         * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
@@ -166,8 +267,8 @@ paths:
         name: X-Correlation-ID
         required: false
         description: |
-          Use an optional ID with which you can use to track transactions across multiple systems. 
-  
+          Use an optional ID with which you can use to track transactions across multiple systems.
+
           Mirrored back in a response header.
         schema:
           type: string
