@@ -14,7 +14,8 @@ poetry install
 
 ### Running Linting
 
-Python code is linted and formatted using Ruff. The rules and arguments enabled can be found in the `pyproject.toml` file.
+Python code is linted and formatted using Ruff. The rules and arguments enabled can be found in the `pyproject.toml`
+file.
 
 ```bash
 make lint # Runs ruff check and ruff format
@@ -39,7 +40,8 @@ make build
 
 ### Running Tests
 
-Unit tests are run using Pytest. You can use the make target to conveniently run these tests, or run them directly using pytest.
+Unit tests are run using Pytest. You can use the make target to conveniently run these tests, or run them directly using
+pytest.
 
 ```bash
 make unit-test
@@ -86,10 +88,10 @@ psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
 
-
 ### Running Pipeline Steps Locally
 
-The pipeline can be run locally using the `dos-etl` command. Ensure you are in the correct directory and have activated the Poetry environment.
+The pipeline can be run locally using the `dos-etl` command. Ensure you are in the correct directory and have activated
+the Poetry environment.
 
 ```bash
 # Activate Python virtual environment
@@ -100,7 +102,8 @@ eval $(poetry env activate)
 
 The extract step accepts the following options:
 
-- `--db-uri`: The URI of the source database. This should be in the format `postgresql://<user>:<password>@<host>:<port>/<database>`.
+- `--db-uri`: The URI of the source database. This should be in the format
+  `postgresql://<user>:<password>@<host>:<port>/<database>`.
 - `--output`: The output path for the extracted data. This can be a local path or an S3 URI.
 
 ```bash
