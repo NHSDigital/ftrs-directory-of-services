@@ -21,4 +21,3 @@ typer_app = Typer(
 typer_app.command("load")(load)
 typer_app.command("transform")(transform)
 typer_app.command("extract")(extract)
-
