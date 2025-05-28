@@ -22,7 +22,7 @@ install: config
 config:
 	make _install-dependencies
 	poetry install --no-root --no-interaction
-	poetry run playwright install
+	poetry run playwright install chromium
 
 test:
 	@for marker in $(MARKERS); do \
