@@ -34,3 +34,10 @@ data "aws_iam_policy_document" "read_only_viewer_waf_log_group_policy_document" 
   }
   provider = aws.us-east-1
 }
+
+resource "aws_cloudwatch_log_group" "read_only_viewer_waf_log_group_1" {
+  name              = "${var.read_only_viewer_log_group_name_prefix}${local.resource_prefix}-${var.read_only_viewer_log_group}${local.workspace_suffix}-1"
+  retention_in_days = var.read_only_viewer_log_group_retention_days
+  log_group_class   = var.read_only_viewer_log_group_class
+  provider          = aws.us-east-1
+}
