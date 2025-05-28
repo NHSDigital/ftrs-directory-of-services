@@ -14,6 +14,7 @@ from dynamodb.reset import (
     init_tables,
     reset,
 )
+from tests.utils.fixtures import mock_logging
 
 
 def test_reset_invalid_environment() -> None:

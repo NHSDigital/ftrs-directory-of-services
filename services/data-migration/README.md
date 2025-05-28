@@ -87,39 +87,6 @@ psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
 
-### Setting up the local DynamoDB tables
-
-Before running the load steps of the pipeline locally, you will need to create the DynamoDB tables locally.
-This can be done using the `dos-etl reset` command.
-
-```bash
-# Create the local DynamoDB tables
-dos-etl reset \
-    --init \
-    --env local \
-    --endpoint-url http://localhost:8000 \
-```
-
-The script can be aborted at the first prompt.
-
-### Clearing Down DynamoDB Tables
-
-To clear down the DynamoDB tables locally, you can delete them using NoSQL Workbench or the AWS CLI.
-
-For deployed environments, you can use the `dos-etl reset` command to delete data within the existing tables.
-
-```bash
-# Delete the local DynamoDB data
-dos-etl reset \
-    --env local \
-    --endpoint-uri http://localhost:8000
-
-# Delete the dev DynamoDB data
-dos-etl reset --env dev
-
-# Delete a workspaced dev DynamoDB table
-dos-etl reset --env dev --workspace my-workspace
-```
 
 ### Running Pipeline Steps Locally
 
