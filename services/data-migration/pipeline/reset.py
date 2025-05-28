@@ -1,9 +1,10 @@
-import logging
 from enum import StrEnum
 from typing import Annotated, List
 
 import boto3
+from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
+from ftrs_data_layer.logbase import ETLPipelineLogBase
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
     DocumentLevelRepository,
@@ -14,6 +15,8 @@ from typer import Option, confirm
 
 from pipeline.constants import TargetEnvironment
 from pipeline.load import get_table_name
+
+reset_logger = Logger.get(service="reset")
 
 
 class ClearableEntityTypes(StrEnum):
@@ -46,7 +49,10 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
         case ClearableEntityTypes.location:
             return Location
         case _:
-            err_msg = f"Unsupported entity type: {entity_type}"
+            reset_logger.log(ETLPipelineLogBase.ETL_RESET_007, entity_type=entity_type)
+            err_msg = ETLPipelineLogBase.ETL_RESET_007.value.message.format(
+                entity_type=entity_type
+            )
             raise ValueError(err_msg)
 
 
@@ -66,7 +72,7 @@ def create_table(
     if global_secondary_indexes:
         table_params["GlobalSecondaryIndexes"] = global_secondary_indexes
     client.create_table(**table_params)
-    logging.info(f"Table {table_name} created successfully.")
+    reset_logger.log(ETLPipelineLogBase.ETL_RESET_003, table_name=table_name)
 
 
 def init_tables(
@@ -75,12 +81,11 @@ def init_tables(
     workspace: str | None,
     entity_type: List[ClearableEntityTypes],
 ) -> None:
-    logging.info("Initializing tables...")
+    reset_logger.log(ETLPipelineLogBase.ETL_RESET_001)
 
     if env != TargetEnvironment.local:
-        error_msg = "The init option is only supported for the local environment."
-        logging.error(error_msg)
-        raise ValueError(error_msg)
+        reset_logger.log(ETLPipelineLogBase.ETL_RESET_002)
+        raise ValueError(ETLPipelineLogBase.ETL_RESET_002.value.message)
 
     client = get_dynamodb_client(endpoint_url)
     for entity_name in entity_type:
@@ -132,7 +137,7 @@ def init_tables(
                 )
 
         except client.exceptions.ResourceInUseException:
-            logging.info(f"Table {table_name} already exists.")
+            reset_logger.log(ETLPipelineLogBase.ETL_RESET_004, table_name=table_name)
 
 
 def reset(
@@ -162,9 +167,8 @@ def reset(
         entity_type = DEFAULT_CLEARABLE_ENTITY_TYPES
 
     if env not in [TargetEnvironment.dev, TargetEnvironment.local]:
-        error_msg = f"Invalid environment: {env}. Only 'dev' and 'local' are allowed."
-        logging.error(error_msg)
-        raise ValueError(error_msg)
+        reset_logger.log(ETLPipelineLogBase.ETL_RESET_005, env=env)
+        raise ValueError()
 
     if init:
         init_tables(
@@ -198,4 +202,6 @@ def reset(
             repository.delete(item.id)
             count += 1
 
-        logging.info(f"Deleted {count} items from {table_name}")
+        reset_logger.log(
+            ETLPipelineLogBase.ETL_RESET_006, count=count, table_name=table_name
+        )
