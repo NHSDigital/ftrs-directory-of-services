@@ -3,25 +3,26 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000",
-    "start": "vite --port 3000",
-    "build": "vite build",
+    "dev": "vinxi dev --port 3000",
+    "start": "vinxi start --port 3000",
+    "build": "vinxi build",
     "build:types": "tsc",
-    "serve": "vite preview",
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check"
   },
   "dependencies": {
-    "@tanstack/react-router": "^1.114.3",
+    "@tanstack/react-router": "^1.119.0",
     "@tanstack/react-router-devtools": "^1.114.3",
+    "@tanstack/react-start": "^1.119.0",
     "@tanstack/router-plugin": "^1.114.3",
-    "nhsuk-frontend": "^9.3.0",
+    "nhsuk-frontend": "^9.4.1",
     "nhsuk-react-components": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sass": "^1.86.3"
+    "sass": "^1.87.0",
+    "vinxi": "^0.5.6"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
@@ -32,8 +33,8 @@
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^26.0.0",
     "typescript": "^5.7.2",
-    "vite": "^6.1.0",
     "vitest": "^3.0.5",
+    "vite-tsconfig-paths": "^5.1.4",
     "web-vitals": "^4.2.4"
   }
 }

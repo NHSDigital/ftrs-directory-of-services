@@ -22,6 +22,8 @@ pytest-cov = "^6.0.0"
 pytest-mock = "^3.14.0"
 typer = "^0.15.2"
 requests = "^2.32.3"
+boto3 = "^1.38.6"
+boto3-stubs = {extras = ["dynamodb"], version = "^1.38.6"}
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 
 [tool.poetry.scripts]

@@ -45,3 +45,10 @@ repos:
     entry: ./scripts/githooks/check-terraform-format.sh
     language: script
     pass_filenames: false
+- repo: local
+  hooks:
+  - id: project-make-pre-commit
+    name: Run make pre-commit in individual projects
+    entry: ./scripts/githooks/check-projects-make-pre-commit.sh
+    language: script
+    pass_filenames: false
