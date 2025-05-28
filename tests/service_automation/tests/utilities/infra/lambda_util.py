@@ -40,12 +40,12 @@ class LambdaWrapper:
 
 
     def get_lambda_name(self, project, workspace, env, stack, lambda_function):
-        logger.info(f"project: {project},  lambda_function: {lambda_function}, stack: {stack}, env: {env}, workspace: {workspace}")
+        logger.debug(f"project: {project},  lambda_function: {lambda_function}, stack: {stack}, env: {env}, workspace: {workspace}")
         if workspace == "default":
             lambda_name = project + "-" + env + "-" + stack + "-" + lambda_function
         else:
             lambda_name = project + "-" + env + "-" + stack + "-" + lambda_function + "-" + workspace
-        logger.info("lambda name {}", lambda_name)
+        logger.debug("lambda name {}", lambda_name)
         return lambda_name
 
 
