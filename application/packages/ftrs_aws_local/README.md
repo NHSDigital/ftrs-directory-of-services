@@ -1,6 +1,12 @@
-### Start Database Container
+# FTRS AWS Local
 
-For local development, this project relies on a local Postgres and local DynamoDB instance running in a docker container.
+This package provides a set of tools to manage local AWS resources for the FTRS project, including DynamoDB and
+Postgres.
+
+## Start Database Container
+
+For local development, this project relies on a local Postgres and local DynamoDB instance running in a docker
+container.
 This container will persist data at `./.tmp/pg_data/`.
 
 ```bash
@@ -19,6 +25,7 @@ Before running the load steps of the pipeline locally, you will need to create t
 This can be done using the `dos-etl reset` command.
 
 ## Create the local DynamoDB tables
+
 ```bash
 ftrs-aws-local reset \
     --init \
@@ -34,7 +41,7 @@ To clear down the DynamoDB tables locally, you can delete them using NoSQL Workb
 
 For deployed environments, you can use the `ftrs-aws-local reset` command to delete data within the existing tables.
 
-## To delete all local DynamoDB tables use the command without the `--init` flag:
+## To delete all local DynamoDB tables use the command without the `--init` flag
 
 ```bash
 ftrs-aws-local reset \
@@ -42,22 +49,20 @@ ftrs-aws-local reset \
     --endpoint-url http://localhost:8000
 ```
 
-# Delete the dev DynamoDB data
+## Delete the development DynamoDB data
 
 ```bash
 ftrs-aws-local reset --env dev
 ```
 
-# Delete a workspace dev DynamoDB table
+## Delete a workspace development DynamoDB table
 
 ```bash
 ftrs-aws-local reset --env dev --workspace my-workspace
 ```
 
-## To load the local data clone, you will need to have the Postgres database running and the data dump file available.
-## Follow the steps from services/data-migration/README.md to extract, transform and load the data dump into your local dynamoDB instance.
+## To load the local data clone
 
-
-
-
-
+To load the local data clone, you will need to have the Postgres database running and the data dump file available.
+Follow the steps from services/data-migration/README.md to extract, transform and load the data dump into your local
+dynamoDB instance.

@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+MISSING_PARAMETERS = "entity_type and env parameters are required"
 
 class TargetEnvironment(StrEnum):
     local = "local"
@@ -11,7 +12,7 @@ def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> 
     Build a DynamoDB table name based on the entity type, environment, and optional workspace.
     """
     if not entity_type or not env:
-        raise ValueError("Entity type and environment must be provided.")
+        raise ValueError(MISSING_PARAMETERS)
 
     table_name = f"ftrs-dos-{env}-database-{entity_type}"
     if workspace:
