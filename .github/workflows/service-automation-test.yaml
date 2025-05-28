@@ -52,16 +52,31 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v3.0.2
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v3.0.2
+
       - name: Configure AWS Credentials
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
 
-      - name: Install Allure command-line tool
-        id: install-allure
-        continue-on-error: true
-        uses: ./.github/actions/install-allure
+      - name: "Install project"
+        run: make install
+        working-directory: "tests/service_automation"
 
       - name: Run service automation test
         id: run-service_automation-tests

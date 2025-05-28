@@ -4,6 +4,7 @@ BUILD_DIR := build
 ALLURE_RESULTS := allure-results
 ALLURE_REPORTS := allure-reports
 MARKERS ?= ui is-api is-infra
+TEST_TYPE ?= non-ui
 
 # ==============================================================================
 
@@ -26,13 +27,12 @@ config:
 test:
 	@for marker in $(MARKERS); do \
 		echo "Running tests for marker: $$marker"; \
-		if [ "$$marker" = "ui" ]; then \
+		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
 		else \
 			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \
 	done
-
 report:
 	allure generate --single-file -c -o $(ALLURE_REPORTS) $(ALLURE_RESULTS)
 
