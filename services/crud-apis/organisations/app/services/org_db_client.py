@@ -1,7 +1,8 @@
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from ftrs_data_layer.models import Organisation
+
 from organisations.app.services.validators import UpdatePayloadValidator
 
 

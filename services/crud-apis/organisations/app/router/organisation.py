@@ -1,9 +1,9 @@
 import logging
 from uuid import UUID
 
-from fastapi import Body, HTTPException, Path, APIRouter
+from fastapi import APIRouter, Body, HTTPException, Path
 from fastapi.responses import JSONResponse
-from ftrs_data_layer.models import Organisation, Endpoint
+from ftrs_data_layer.models import Organisation
 
 from organisations.app.services.org_db_client import apply_updates, get_outdated_fields
 from organisations.app.services.validators import UpdatePayloadValidator
@@ -17,9 +17,9 @@ logger.setLevel(logging.INFO)
 
 
 @router.get("/ods_code/{ods_code}", summary="Get an organisation by ODS code.")
-def get_organisation_by_ods_code(
+def get_org_id(
     ods_code: str,
-) -> Endpoint:
+) -> JSONResponse:
     logging.info(f"Received request to get organisation with ODS code: {ods_code}")
     records = org_repository.get_by_ods_code(ods_code)
 
@@ -28,7 +28,7 @@ def get_organisation_by_ods_code(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     logging.info(f"Organisation: {records}")
-    return records[0]
+    return JSONResponse(status_code=200, content={"id": records[0]})
 
 
 @router.put("/{organisation_id}", summary="Update an organisation.")
@@ -87,7 +87,6 @@ def get_organisation_by_id(
 @router.get("/", summary="Read all organisations")
 def get_all_organisations(limit: int = 10) -> list[Organisation]:
     logging.info("Received request to read all organisations")
-    print(org_repository.model_cls)
     organisations = list(org_repository.iter_records(max_results=limit))
     if not organisations:
         logging.error("Unable to retrieve any organisations.")

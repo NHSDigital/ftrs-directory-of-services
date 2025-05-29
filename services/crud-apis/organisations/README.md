@@ -63,10 +63,10 @@ Follow the guidance in services/data-migration/README.md to initiliase the dynam
 Once the dynamo-db instance is running and tables created run
 
 ```bash
-make start-api
+make start-organisations-api
 ```
 
-The API will now be running on [http://localhost:8001]
+The API will now be running on [http://localhost:7001]
 
 ## API Endpoints
 
@@ -80,9 +80,12 @@ The API will now be running on [http://localhost:8001]
 
 - `organisation_id` (UUID): The internal ID of the organisation.
 
-**Request Body**:
+**Responses**:
+- `200 OK`: Returns the organisation details.
+- `404 Not Found`: Organisation not found.
+- `400 Bad Request`: Invalid UUID format.
+- `500 Internal Server Error`: An error occurred while processing the request.
 
-- No request body needed.
 
 ### Read Many Organisation
 
@@ -94,9 +97,7 @@ The API will now be running on [http://localhost:8001]
 
 - `limit` (int): The number of records to be read.
 
-**Request Body**:
-
-- No request body needed.
+**R
 
 ### Update Organisation
 
