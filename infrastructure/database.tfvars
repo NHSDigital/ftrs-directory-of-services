@@ -15,12 +15,12 @@ dynamodb_tables = {
     attributes = [
       { name = "id", type = "S" },
       { name = "field", type = "S" },
-      { name = "odscode", type = "S" }
+      { name = "identifier_ODS_ODSCode", type = "S" }
     ]
     global_secondary_indexes = [
       {
         name            = "OdsCodeValueIndex"
-        hash_key        = "odscode"
+        hash_key        = "identifier_ODS_ODSCode"
         projection_type = "ALL"
       }
     ]
