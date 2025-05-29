@@ -80,13 +80,6 @@ The API will now be running on [http://localhost:7001]
 
 - `organisation_id` (UUID): The internal ID of the organisation.
 
-**Responses**:
-- `200 OK`: Returns the organisation details.
-- `404 Not Found`: Organisation not found.
-- `400 Bad Request`: Invalid UUID format.
-- `500 Internal Server Error`: An error occurred while processing the request.
-
-
 ### Read Many Organisation
 
 **Endpoint**: `GET /`
@@ -96,8 +89,6 @@ The API will now be running on [http://localhost:7001]
 **Path Parameters**:
 
 - `limit` (int): The number of records to be read.
-
-**R
 
 ### Update Organisation
 
@@ -118,13 +109,13 @@ The API will now be running on [http://localhost:7001]
     "name": "New Organisation Name",
   }
   ```
-  ### Get Organisation by ODS Code
-- **Endpoint**: `GET /ods/{ods_code}`
-- **Description**: Retrieves an organisation by its ODS code.
-- **Path Parameters**:
-  - `ods_code` (string): The ODS code of the organisation.
-  - **Responses**:
-    - 200 OK: Returns the organisation details.
-    - 404 Not Found: Organisation not found.
-    - 400 Bad Request: Invalid ODS code format.
-    - 500 Internal Server Error: An error occurred while processing the request.
+
+### Get Organisation by ODS Code
+
+**Endpoint**: `GET /ods/{ods_code}`
+
+**Description**: Retrieves an organisation by its ODS code.
+
+**Path Parameters**:
+
+- `ods_code` (string): The ODS code of the organisation.
