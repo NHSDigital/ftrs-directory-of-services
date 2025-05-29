@@ -74,6 +74,78 @@ LEFT JOIN "pathwaysdos"."servicespecifiedopeningtimes"
     ON "servicespecifiedopeningdates"."id" = "servicespecifiedopeningtimes"."servicespecifiedopeningdateid"
 """
 
+QUERY_CLINICAL_CODES = """
+WITH synonyms as (
+    SELECT symptomdiscriminatorid, string_agg(name, ';') as synonym_value
+    FROM pathwaysdos.symptomdiscriminatorsynonyms
+    GROUP BY symptomdiscriminatorid
+),
+combination_list as (
+    SELECT
+        "symptomgroups".id as sg_id,
+        symptomgroups.name as sg_name,
+        "symptomdiscriminators".id as sd_id,
+        symptomdiscriminators.description as sd_name
+    FROM "pathwaysdos"."symptomgroupsymptomdiscriminators"
+    LEFT JOIN "pathwaysdos"."symptomgroups" on "symptomgroupsymptomdiscriminators".symptomgroupid = "symptomgroups".id
+    LEFT JOIN "pathwaysdos"."symptomdiscriminators" on "symptomgroupsymptomdiscriminators".symptomdiscriminatorid = "symptomdiscriminators".id
+),
+sg_combinations as (
+    SELECT
+        sg_id, string_agg(concat('SD', sd_id::varchar, '\\', sd_name::varchar), ';') as combinations
+    FROM combination_list
+    GROUP BY sg_id
+),
+sd_combinations as (
+    SELECT
+        sd_id, string_agg(concat('SG', sg_id::varchar, '\\', sg_name::varchar), ';') as combinations
+    FROM combination_list
+    GROUP BY sd_id
+)
+SELECT
+    concat('SG', id) as id,
+    'item' as field,
+    'pathways' as source,
+    'Symptom Group (SG)' as codeType,
+    id::VARCHAR as codeID,
+    name as codeValue,
+    coalesce(zcodeexists, false) as zcodeexists,
+    null as synonyms,
+    null::integer as time,
+    combinations
+FROM "pathwaysdos"."symptomgroups"
+LEFT JOIN sg_combinations on sg_id = symptomgroups.id
+UNION
+SELECT
+    concat('SD', id) as id,
+    'item' as field,
+    'pathways' as source,
+    'Symptom Discriminator (SD)' as codeType,
+    id::VARCHAR as codeID,
+    description as codeValue,
+    null as zcodeexists,
+    synonym_value as synonyms,
+    null::integer as time,
+    combinations
+FROM pathwaysdos.symptomdiscriminators
+LEFT JOIN synonyms on synonyms.symptomdiscriminatorid = symptomdiscriminators.id
+LEFT JOIN sd_combinations on sd_id = symptomdiscriminators.id
+UNION
+SELECT
+    dxcode as id,
+    'item' as field,
+    'pathways' as source,
+    'Disposition (Dx)' as codeType,
+    dxcode as codeID,
+    name as codeValue,
+    null as zcodeexists,
+    null as synonyms,
+    dispositiontime as time,
+    null as combinations
+FROM "pathwaysdos"."dispositions"
+ORDER BY id
+"""
+
 QUERY_SERVICES_SIZE = """
 SELECT COUNT(*) FROM "pathwaysdos"."services";
 """
@@ -107,6 +179,10 @@ def get_gp_day_opening_times(db_uri: str) -> pd.DataFrame:
 
 def get_gp_specified_opening_times(db_uri: str) -> pd.DataFrame:
     return pd.read_sql(QUERY_GP_SERVICESPECIFIEDOPENINGTIMES, db_uri)
+
+
+def get_clinical_codes(db_uri: str) -> int:
+    return pd.read_sql(QUERY_CLINICAL_CODES, db_uri)
 
 
 def get_services_size(db_uri: str) -> int:

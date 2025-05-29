@@ -48,6 +48,12 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             ConditionExpression="attribute_exists(id)",
         )
 
+    def insert(self, obj: ModelType) -> None:
+        """
+        Update an existing document in DynamoDB.
+        """
+        self._put_item(obj)
+
     def delete(self, id: str | UUID) -> None:
         """
         Delete a document from DynamoDB by ID.
@@ -62,9 +68,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         Prepare the item for DynamoDB in a document-level format.
         """
         return {
-            "id": str(item.id),
-            "field": "document",
-            "value": item.model_dump(mode="json"),
+            **item.model_dump(mode="json"),
             **item.indexes,
         }
 
@@ -72,12 +76,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         Parse the item from DynamoDB into the model format.
         """
-        return self.model_cls.model_construct(
-            **{
-                "id": item["id"],
-                **item["value"],
-            }
-        )
+        return self.model_cls.model_construct(item)
 
     def iter_records(
         self, max_results: int | None = 100
