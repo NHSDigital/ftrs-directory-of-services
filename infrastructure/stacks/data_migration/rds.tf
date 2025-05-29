@@ -19,7 +19,6 @@ module "rds" {
   # Module version: 9.13.0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=592cb15809bde8eed2a641ba5971ec665c9b4397"
 
-
   name           = "${local.resource_prefix}-rds"
   engine         = var.rds_engine
   engine_version = var.rds_engine_version
