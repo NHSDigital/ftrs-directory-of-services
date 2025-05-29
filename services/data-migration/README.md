@@ -87,7 +87,6 @@ psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
 
-
 ### Running Pipeline Steps Locally
 
 The pipeline can be run locally using the `dos-etl` command. Ensure you are in the correct directory and have activated the Poetry environment.
