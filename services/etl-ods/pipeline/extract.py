@@ -1,35 +1,15 @@
 import logging
-import os
+from http import HTTPStatus
 from urllib.parse import urlparse
 
-import requests
+from requests.exceptions import HTTPError
+
+from pipeline.utilities import get_base_crud_api_url, make_request
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 STATUS_SUCCESSFUL = 200
-NOT_FOUND = 404
-
-
-def make_request(url: str, params: dict = None, timeout: int = 20) -> dict:
-    try:
-        response = requests.get(url, params=params, timeout=timeout)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.HTTPError as http_err:
-        if response.status_code == NOT_FOUND and url.startswith(
-            os.environ["ORGANISATION_API_URL"]
-        ):
-            err_msg = "Organisation not found in database"
-            logger.warning(err_msg)
-            raise ValueError(err_msg)
-        logger.warning(
-            f"HTTP error occurred: {http_err} - Status Code: {response.status_code}"
-        )
-        raise
-    except requests.exceptions.RequestException as e:
-        logger.warning(f"Request to {url} failed: {e}")
-        raise
 
 
 def fetch_sync_data(date: str) -> dict:
@@ -93,10 +73,18 @@ def fetch_organisation_uuid(ods_code: str) -> str:
     """
     Returns DoS UUID based on ODS code
     """
-    organisation_get_uuid_uri = (
-        os.environ["ORGANISATION_API_URL"] + "ods_code/" + ods_code
-    )
-    return make_request(organisation_get_uuid_uri).get("id", None)
+    base_url = get_base_crud_api_url()
+    organisation_get_uuid_uri = base_url + "/organisation/ods_code/" + ods_code
+
+    try:
+        return make_request(organisation_get_uuid_uri, sign=True).get("id", None)
+
+    except HTTPError as http_err:
+        if http_err.response.status_code == HTTPStatus.NOT_FOUND:
+            err_msg = "Organisation not found in database"
+            logger.warning(err_msg)
+            raise ValueError(err_msg) from http_err
+        raise
 
 
 def extract_organisation_data(payload: dict) -> dict:
