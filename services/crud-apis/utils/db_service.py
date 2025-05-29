@@ -6,7 +6,6 @@ from utils.config import Settings
 env_variable_settings = Settings()
 
 
-
 def get_service_repository(
     model_cls: type[DBModel], entity_name: str
 ) -> DocumentLevelRepository[DBModel]:

@@ -3,7 +3,10 @@ from unittest.mock import MagicMock, patch
 
 from ftrs_data_layer.models import Organisation
 
-from organisations.app.services.org_db_client import apply_updates, get_outdated_fields
+from organisations.app.services.organisation_helpers import (
+    apply_updates,
+    get_outdated_fields,
+)
 
 
 def test_get_outdated_fields_no_changes() -> None:
@@ -56,7 +59,7 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         "modified_by": "UserX",
     }
 
-    with patch("organisations.app.services.org_db_client.datetime") as mock_datetime:
+    with patch("organisations.app.services.organisation_helpers.datetime") as mock_datetime:
         mock_datetime.now.return_value = datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
         apply_updates(organisation, updates)
 

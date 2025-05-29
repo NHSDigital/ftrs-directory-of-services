@@ -5,7 +5,10 @@ from fastapi import APIRouter, Body, HTTPException, Path
 from fastapi.responses import JSONResponse
 from ftrs_data_layer.models import Organisation
 
-from organisations.app.services.org_db_client import apply_updates, get_outdated_fields
+from organisations.app.services.organisation_helpers import (
+    apply_updates,
+    get_outdated_fields,
+)
 from organisations.app.services.validators import UpdatePayloadValidator
 from utils.db_service import get_service_repository
 

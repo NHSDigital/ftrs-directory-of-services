@@ -62,6 +62,8 @@ Follow the guidance in services/data-migration/README.md to initiliase the dynam
 
 Once the dynamo-db instance is running and tables created run
 
+## To start the API locally, run the following command from the crud-apis/ directory
+
 ```bash
 make start-organisations-api
 ```
