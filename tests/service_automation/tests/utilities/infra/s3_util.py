@@ -33,7 +33,7 @@ class S3Utils:
 
     def get_bucket(self, project, workspace, env, stack, bucket):
         logger.debug(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
-        if workspace == "":
+        if workspace == "default":
             bucket_name = project + "-" + env + "-" + stack + "-" + bucket
         else:
             bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
