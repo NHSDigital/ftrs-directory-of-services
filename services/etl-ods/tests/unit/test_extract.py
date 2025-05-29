@@ -2,7 +2,6 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
-import requests
 
 from pipeline.extract import (
     extract_contact,
@@ -13,7 +12,6 @@ from pipeline.extract import (
     fetch_organisation_role,
     fetch_organisation_uuid,
     fetch_sync_data,
-    make_request,
 )
 from pipeline.validators import RoleItem
 
@@ -32,66 +30,6 @@ def mock_response() -> MagicMock:
         "Organisations": [{"OrgLink": "https://example.com/organisations/ABC123"}]
     }
     return response
-
-
-@patch("pipeline.extract.requests.get")
-def test_make_request_success(mock_get: MagicMock, mock_response: MagicMock) -> None:
-    mock_get.return_value = mock_response
-    url = "https://"
-    result = make_request(url)
-    assert result == mock_response.json.return_value
-    mock_get.assert_called_once_with(url, params=None, timeout=20)
-
-
-@patch("pipeline.extract.requests.get")
-def test_make_request_request_exception(
-    mock_get: MagicMock, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test make_request for a request exception."""
-    mock_get.side_effect = requests.exceptions.RequestException("Connection error")
-
-    with pytest.raises(requests.exceptions.RequestException, match="Connection error"):
-        make_request("http://")
-
-    assert "Request to http:// failed: Connection error" in caplog.text
-
-
-@patch("pipeline.extract.requests.get")
-@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001/"})
-def test_make_request_organisation_api_404_error(
-    mock_get: MagicMock,
-) -> None:
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-        "404 Not Found"
-    )
-    mock_get.return_value = mock_response
-
-    url = "https://localhost:8001/ods_code/ABC123"
-    with pytest.raises(ValueError, match="Organisation not found in database"):
-        make_request(url)
-
-    mock_get.assert_called_once_with(url, params=None, timeout=20)
-
-
-@patch("pipeline.extract.requests.get")
-def test_make_request_HTTP_error(
-    mock_get: MagicMock, caplog: pytest.LogCaptureFixture
-) -> None:
-    mock_response = MagicMock()
-    mock_response.status_code = 400
-    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-        "400 Bad Request"
-    )
-    mock_get.return_value = mock_response
-
-    url = "ANY"
-    with pytest.raises(requests.exceptions.HTTPError):
-        make_request(url)
-
-    mock_get.assert_called_once_with(url, params=None, timeout=20)
-    assert "HTTP error occurred: 400 Bad Request - Status Code: 400" in caplog.text
 
 
 @patch("pipeline.extract.make_request")
@@ -160,14 +98,17 @@ def test_fetch_organisation_role_no_primary_role() -> None:
 
 
 @patch("pipeline.extract.make_request")
-@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001/"})
+@patch.dict(
+    "os.environ",
+    {"ENVIRONMENT": "local", "LOCAL_CRUD_API_URL": "https://localhost:8001"},
+)
 def test_fetch_organisation_uuid(mock_make_request: MagicMock) -> None:
     mock_make_request.return_value = {"id": "UUID123"}
     ods_code = "ABC123"
     result = fetch_organisation_uuid(ods_code)
     assert result == "UUID123"
     mock_make_request.assert_called_once_with(
-        f"https://localhost:8001/ods_code/{ods_code}"
+        f"https://localhost:8001/organisation/ods_code/{ods_code}", sign=True
     )
 
 
