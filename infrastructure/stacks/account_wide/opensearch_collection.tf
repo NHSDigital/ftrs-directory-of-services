@@ -1,6 +1,6 @@
 module "opensearch_serverless" {
-  source  = "terraform-aws-modules/opensearch/aws//modules/collection"
-  version = "1.6.0"
+  # Module version: 1.7.0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-opensearch.git//modules/collection?ref=6f7113edebb53779de7225634f7e914bc6d59c8c"
 
   name             = "${var.project}${var.opensearch_collection_name}"
   description      = "OpenSearch Serverless collection for DynamoDB ingestion"

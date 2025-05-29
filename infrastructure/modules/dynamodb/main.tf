@@ -1,6 +1,6 @@
 module "dynamodb_table" {
-  source  = "terraform-aws-modules/dynamodb-table/aws"
-  version = "3.3.0"
+  # Module version: 4.3.0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-dynamodb-table.git?ref=1ab93ca82023b72fe37de7f17cc10714867b2d4f"
 
   name                           = "${var.table_name}${local.workspace_suffix}"
   hash_key                       = var.hash_key

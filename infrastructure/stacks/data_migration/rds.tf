@@ -15,9 +15,9 @@ resource "random_password" "rds_password" {
 }
 
 module "rds" {
-  count   = local.deploy_databases ? 1 : 0
-  source  = "terraform-aws-modules/rds-aurora/aws"
-  version = "9.10.0"
+  count = local.deploy_databases ? 1 : 0
+  # Module version: 9.13.0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=592cb15809bde8eed2a641ba5971ec665c9b4397"
 
   name           = "${local.resource_prefix}-rds"
   engine         = var.rds_engine
