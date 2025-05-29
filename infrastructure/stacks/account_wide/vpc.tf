@@ -1,6 +1,6 @@
 module "vpc" {
-  # Module version: 5.18.0
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-vpc.git?ref=8d6eba20521e29456a0991c2f31ff2a0ff52fe66"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.18.0"
 
   name               = "${local.account_prefix}-${var.vpc["name"]}"
   cidr               = var.vpc["cidr"]
