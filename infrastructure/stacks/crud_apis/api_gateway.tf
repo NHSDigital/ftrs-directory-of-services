@@ -1,9 +1,7 @@
 module "api_gateway" {
-  # source = "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git?ref=5d1548624b39145ead043794ae5762abb9aadb27"
-  source  = "terraform-aws-modules/apigateway-v2/aws"
-  version = "5.3.0"
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git?ref=5d1548624b39145ead043794ae5762abb9aadb27"
 
-  name          = "${local.resource_prefix}-api-gateway"
+  name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
   protocol_type = "HTTP"
 
   create_domain_name    = false
