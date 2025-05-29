@@ -1,9 +1,9 @@
 from ftrs_data_layer.models import DBModel
 from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 
-from utils.config import get_env_variables
+from utils.config import Settings
 
-env_variable_settings = get_env_variables()
+env_variable_settings = Settings()
 
 
 def get_service_repository(

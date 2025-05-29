@@ -1,23 +1,9 @@
-import os
-
-from dotenv import load_dotenv
-from pydantic import BaseModel
-from pydantic_settings import BaseSettings
-
-load_dotenv()
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    env: str = "local"
-    workspace: str | None = None
-    endpoint_url: str | None = None
-
-    def model_post_init(self, __context: BaseModel) -> None:
-        super().model_post_init(__context)
-        self.env = os.getenv("ENVIRONMENT", self.env)
-        self.workspace = os.getenv("WORKSPACE", self.workspace)
-        self.endpoint_url = os.getenv("ENDPOINT_URL", self.endpoint_url)
-
-
-def get_env_variables() -> Settings:
-    return Settings()
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    env: str = Field("local", alias="ENVIRONMENT")
+    workspace: str | None = Field(None, alias="WORKSPACE")
+    endpoint_url: str | None = Field(None, alias="ENDPOINT_URL")
