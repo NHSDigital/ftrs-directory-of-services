@@ -12,7 +12,8 @@ dependencies = [
     "fastapi (>=0.115.12,<0.116.0)",
     "mangum (>=0.19.0,<0.20.0)",
     "boto3-stubs[dynamodb] (>=1.38.3,<2.0.0)",
-    "pydantic-settings (>=2.9.1,<3.0.0)"
+    "pydantic-settings (>=2.9.1,<3.0.0)",
+    "httpx (>=0.28.1,<0.29.0)"
 ]
 
 [build-system]
@@ -27,6 +28,7 @@ pytest-mock = "^3.14.0"
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 uvicorn = "^0.34.2"
 boto3 = "^1.37.33"
+poethepoet = "^0.34.0"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"
@@ -36,8 +38,14 @@ poetry-plugin-export = ">=1.8"
 
 [tool.poetry]
 packages = [
-  { include = "organisations" }
+  { include = "organisations" },
+  { include = "healthcare_service"},
+  {include = "utils"}
 ]
+
+[tool.poe.tasks]
+start-healthcare-api = "uvicorn healthcare_service.app.handler_healthcare_service:app --host 0.0.0.0 --port 7000 --reload"
+
 
 [tool.ruff]
 line-length = 88
@@ -56,5 +64,5 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v --cov=organisations --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = "-v --cov=organisations --cov=healthcare_service --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
