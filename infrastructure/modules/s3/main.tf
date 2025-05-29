@@ -1,6 +1,7 @@
 module "s3" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "3.13.0"
+  # Module version: 3.13.0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-s3-bucket.git?ref=299ddffbb8e80e04d70e828f3e66e04d43d0cb47"
+
 
   bucket         = "${var.bucket_name}${local.workspace_suffix}"
   attach_policy  = var.attach_policy
