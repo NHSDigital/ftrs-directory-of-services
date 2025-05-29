@@ -60,7 +60,7 @@ export ENDPOINT_URL=http://localhost:8000
 
 Follow the guidance in services/data-migration/README.md to initiliase the dynamo-db table
 
-Once the dynamo-db instance running and tables created run
+Once the dynamo-db instance is running and tables created run
 
 ```bash
 make start-api
@@ -117,3 +117,13 @@ The API will now be running on [http://localhost:8001]
     "name": "New Organisation Name",
   }
   ```
+  ### Get Organisation by ODS Code
+- **Endpoint**: `GET /ods/{ods_code}`
+- **Description**: Retrieves an organisation by its ODS code.
+- **Path Parameters**:
+  - `ods_code` (string): The ODS code of the organisation.
+  - **Responses**:
+    - 200 OK: Returns the organisation details.
+    - 404 Not Found: Organisation not found.
+    - 400 Bad Request: Invalid ODS code format.
+    - 500 Internal Server Error: An error occurred while processing the request.

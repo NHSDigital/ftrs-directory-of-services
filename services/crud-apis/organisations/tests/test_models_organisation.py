@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from organisations.models import OrganisationPayload
+from organisations.app.models.organisation import OrganisationPayload
 
 
 def test_valid_payload() -> None:
