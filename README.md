@@ -117,7 +117,7 @@ To follow
 
 ### Testing
 
-To follow
+Service automation tests and performance tests are stored in the `tests/` directory and contain individual READMEs addressing their usage.
 
 ## Design
 
