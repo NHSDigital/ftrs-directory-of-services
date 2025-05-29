@@ -42,6 +42,7 @@ report:
 _install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
 	asdf plugin add ${name} ||:
+	asdf plugin update ${name} ||:
 	asdf install ${name} $(or ${version},)
 
 _install-dependencies: # Install all the dependencies listed in .tool-versions
