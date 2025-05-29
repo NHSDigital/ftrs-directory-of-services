@@ -102,7 +102,7 @@ def process_organisation(ods_code: str) -> None:
         logger.warning(f"Error processing organisation with ods_code {ods_code}: {e}")
 
 
-def lambda_handler(event: any, context: any) -> None:
+def processor_lambda_handler(event: any, context: any) -> None:
     logging.info("Executing lambda handler")
     try:
         date = event.get("date")

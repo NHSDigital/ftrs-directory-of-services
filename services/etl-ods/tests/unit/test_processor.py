@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from pipeline.processor import lambda_handler, processor
+from pipeline.processor import processor, processor_lambda_handler
 
 STATUS_SUCCESSFUL = 200
 STATUS_UNEXPECTED_ERROR = 500
@@ -315,36 +315,36 @@ def test_processor_calls_organisation_crud_api(
 
 
 @patch("pipeline.processor.processor")
-def test_lambda_handler_success(mock_processor: MagicMock) -> None:
+def test_processor_lambda_handler_success(mock_processor: MagicMock) -> None:
     date = "2025-02-02"
     event = {"date": date}
 
-    response = lambda_handler(event, {})
+    response = processor_lambda_handler(event, {})
 
     mock_processor.assert_called_once_with(date=date)
     assert response is None
 
 
-def test_lambda_handler_missing_date() -> None:
-    response = lambda_handler({}, {})
+def test_processor_lambda_handler_missing_date() -> None:
+    response = processor_lambda_handler({}, {})
 
     assert response == {"statusCode": 400, "body": "Date parameter is required"}
 
 
-def test_lambda_handler_invalid_date_format() -> None:
+def test_processor_lambda_handler_invalid_date_format() -> None:
     invalid_event = {"date": "14-05-2025"}
 
-    response = lambda_handler(invalid_event, {})
+    response = processor_lambda_handler(invalid_event, {})
 
     assert response == {"statusCode": 400, "body": "Date must be in YYYY-MM-DD format"}
 
 
 @patch("pipeline.processor.processor")
-def test_lambda_handler_exception(mock_processor: MagicMock) -> None:
+def test_processor_lambda_handler_exception(mock_processor: MagicMock) -> None:
     mock_processor.side_effect = Exception("Test error")
     event = {"date": "2025-02-02"}
 
-    result = lambda_handler(event, {})
+    result = processor_lambda_handler(event, {})
 
     mock_processor.assert_called_once_with(date="2025-02-02")
     # assert "Unexpected error" in mock_logging.call_args[0][0]
