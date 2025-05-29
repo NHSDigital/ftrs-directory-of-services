@@ -1,0 +1,501 @@
+openapi: 3.0.3
+info:
+  title: Directory of Services Ingestion API
+  description: |
+    ## Overview
+
+    Use this API to submit service data from your system to the NHS [Directory of Services (DoS)](https://digital.nhs.uk/services/directory-of-services-dos). This API enables data providers to send structured updates—such as service availability, contact details, or referral information—which are validated and prepared for inclusion in the national DoS.
+
+    Once submitted, the data will either undergo manual assurance by DoS leads or, in applicable cases, be processed through an automated assurance workflow. If manual assurance is required, the sender will receive an acknowledgment confirming that the data has been successfully submitted and is pending review.
+
+    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission—helping ensure the DoS remains accurate and up to date for use across NHS systems.
+
+    ## Who can use this API
+
+    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organisations, local authorities, or trusted third-party systems that manage health and care service data.
+
+    To use this API, both your organisation and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the DoS.
+
+    Before access is granted, your organisation must:
+    * Contact our integration team to discuss your use case and technical approach.
+    * Undergo a technical and data assurance process to validate the structure, accuracy, and governance of the data source you plan to use.
+    * Receive approval that your system and data are fit for integration with the DoS Ingestion API.
+
+    Use of this API is subject to data governance requirements and must align with approved use cases.
+
+    ## Access modes
+
+    * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
+    * User Restricted - Healthcare worker access for authentication via UI
+
+    ## Roadmap
+    We're currently finalising our roadmap and we'll update this content in due course.
+
+    ## Service Level
+
+    TBC when service is in Beta.
+
+    ## Technology
+
+    This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).
+
+    It conforms to the FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1.
+
+    You do not need to know much about FHIR to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
+    * resource names are capitalised and singular, for example /Patient not /patients
+    * array names are singular, for example line not lines for address lines
+    * data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object
+
+    There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
+
+    ## Network access
+
+    This API is available on the Internet.
+
+    ## Errors
+
+    We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
+    * 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
+    * 400 to 499 if it failed because of a client error by your application
+    * 500 to 599 if it failed because of an error on our server
+
+    Errors specific to each API are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+
+    ## Open source
+
+    You might find the following open source resources useful:
+    | Resource | Description | Link |
+    |-----|-----|-----|
+    |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services) |
+    | ETL Layer | ETL developed for Data Sourcing Partners | [Github](https://github.com/NHSDigital/ftrs-directory-of-services)|
+    | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
+
+    ## Environments and testing
+
+    TBC links to available environments:
+
+    | Environment | Base URL |
+    |-------------|----------|
+    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Production | https://api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+
+    ### Sandbox
+
+    Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing):
+    * is for early developer testing
+    * only covers a limited set of scenarios
+    * is stateless, so does not actually persist any updates
+    * is open access, so does not allow you to test authorisation - TBC
+
+    For details of sandbox test scenarios, or to try out the sandbox using our 'Try this API' feature, see the documentation for each endpoint.
+
+    TBC - More details to be posted on integration, authentication, resources or test data available in all our environments during Beta phase.
+
+    ## Onboarding
+
+    You need to get your software approved by us before it can go live with this API. We call this onboarding. The onboarding process can sometimes be quite long, so it's worth planning well ahead.
+
+    As part of this process, you need to demonstrate your technical conformance to the requirements for this API.
+
+    ## Related APIs
+
+    The following APIs are related to this one:
+    * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - Access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care REST API.
+    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England.
+  version: 1.0.0
+servers:
+  - url: 'https://usertest.directoryofservices.nhs.uk/app/controllers/api/v1.0/'
+paths:
+  '/Organisation':
+    post:
+      operationId: postOrganisation
+      summary: Create a new organisation
+      description: |
+        ## Overview
+
+        Use this endpoint to create a new Organisation entity.
+
+        ### Access Modes
+
+        * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
+        * User Restricted - Healthcare worker access for authentication via UI
+      parameters:
+      - in: header
+        name: apiKey
+        required: true
+        description: |
+          Use the unique api key provided to you during onboarding. This will be used to authorise API requests
+        schema:
+          type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+      - in: header
+        name: X-Correlation-ID
+        required: false
+        description: |
+          Use an optional ID with which you can use to track transactions across multiple systems.
+
+          Mirrored back in a response header.
+        schema:
+          type: string
+          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      requestBody:
+        required: true
+        content:
+          application/json-patch+json:
+            schema:
+              description: Organisation entity
+              type: object
+              required:
+              - active
+              - name
+              - type
+              properties:
+                active:
+                  type: string
+                  enum:
+                  - True
+                  example: True
+                name:
+                  type: string
+                  example: Test Organisation
+                type:
+                  type: string
+                  example: NHS England Region
+                endpoints:
+                  type: array
+                  minItems: 1
+                  maxItems: 1
+                  items:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'active'
+                      connectionType:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'itk'
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'ITK Endpoint'
+                      description:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'Primary'
+                      payloadType:
+                        type: string
+                        minLength: 1
+                        maxLength: 200
+                        example: 'urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0'
+                      address:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                        example: 'https://abc01.endpoint.nhs.uk/report'
+                      order:
+                        type: number
+                        example: 1
+                      isCompressionEnabled:
+                        type: boolean
+                        example: False
+      responses:
+        '201':
+          description: "The organisation resource has been  successfully created"
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: 'The X-Correlation-ID from the request header, if supplied,
+                mirrored back.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganisationResponse'
+        4XX:
+          description: |
+            Error creating the organisation due to invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4XXError'
+        5XX:
+          description: |
+            These error types are typically raised for server processing errors, and should be reported back to our customer support Team:
+
+            | HTTP status | Description |
+            | ----------- | --------------------------------------------- |
+            | 500         | Internal Error |
+            | 502         | Bad Gateway |
+            | 504         | Gateway Timed Out |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5XXError'
+  '/Organisation/{ODSCode}':
+    put:
+      operationId: putOrganisation
+      summary: Updates an existing organisation
+      description: |
+        ## Overview
+
+        Use this endpoint to update an Organisation entity.
+
+        ### Access Modes
+
+        * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
+        * User Restricted - Healthcare worker access for authentication via UI
+      parameters:
+      - in: header
+        name: apiKey
+        required: true
+        description: |
+          Use the unique api key provided to you during onboarding. This will be used to authorise API requests
+        schema:
+          type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+      - in: header
+        name: X-Correlation-ID
+        required: false
+        description: |
+          Use an optional ID with which you can use to track transactions across multiple systems.
+
+          Mirrored back in a response header.
+        schema:
+          type: string
+          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: path
+        name: ODSCode
+        description: The unique Organization Data Service (ODS) code used to identify and retrieve details for specific healthcare services. Must be a [valid ODSCode](https://digital.nhs.uk/services/organisation-data-service).
+        required: true
+        schema:
+          type: string
+          example: 'ABC12'
+      requestBody:
+        required: true
+        content:
+          application/json-patch+json:
+            schema:
+              description: Insurance or medical plan or a payment agreement
+              type: object
+              required:
+              - active
+              - name
+              - type
+              properties:
+                active:
+                  type: string
+                  enum:
+                  - True
+                  example: True
+                name:
+                  type: string
+                  example: Test Organisation
+                type:
+                  type: string
+                  example: NHS England Region
+                endpoints:
+                  type: array
+                  minItems: 1
+                  maxItems: 1
+                  items:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'active'
+                      connectionType:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'itk'
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'ITK Endpoint'
+                      description:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'Primary'
+                      payloadType:
+                        type: string
+                        minLength: 1
+                        maxLength: 200
+                        example: 'urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0'
+                      address:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                        example: 'https://abc01.endpoint.nhs.uk/report'
+                      order:
+                        type: number
+                        example: 1
+                      isCompressionEnabled:
+                        type: boolean
+                        example: False
+      responses:
+        '201':
+          description: "The organisation resource has been  successfully created"
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: 'The X-Correlation-ID from the request header, if supplied,
+                mirrored back.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganisationResponse'
+        4XX:
+          description: |
+            Error creating the organisation due to invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/4XXError'
+        5XX:
+          description: |
+            These error types are typically raised for server processing errors, and should be reported back to our customer support Team:
+
+            | HTTP status | Description |
+            | ----------- | --------------------------------------------- |
+            | 500         | Internal Error |
+            | 502         | Bad Gateway |
+            | 504         | Gateway Timed Out |
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/5XXError'
+components:
+  schemas:
+    OrganisationResponse:
+      type: object
+      description: Successful response schema.
+      required:
+        - success
+      properties:
+        success:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: The HTTP status code of the response.
+              example: 201
+            organisation:
+              type: object
+              description: 'The list of healthcare services returned by the search, grouped by service type and ordered by closest distance from the search location first.'
+              required:
+              - active
+              - name
+              - type
+              properties:
+                active:
+                  type: string
+                  enum:
+                  - True
+                  example: True
+                name:
+                  type: string
+                  example: Test Organisation
+                type:
+                  type: string
+                  example: NHS England Region
+                endpoints:
+                  type: array
+                  minItems: 1
+                  maxItems: 1
+                  items:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'active'
+                      connectionType:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'itk'
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'ITK Endpoint'
+                      description:
+                        type: string
+                        minLength: 1
+                        maxLength: 25
+                        example: 'Primary'
+                      payloadType:
+                        type: string
+                        minLength: 1
+                        maxLength: 200
+                        example: 'urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0'
+                      address:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                        example: 'https://abc01.endpoint.nhs.uk/report'
+                      order:
+                        type: number
+                        example: 1
+                      isCompressionEnabled:
+                        type: boolean
+                        example: False
+    4XXError:
+      type: object
+      description: 4XX Error response schema.
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          description: The error object containing the HTTP status code and descriptive error message.
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: integer
+              description: The HTTP status code of the error.
+              example: 400
+            message:
+              type: string
+              description: A human-readable error message.
+              example: 'Bad Request: Invalid endpoint type'
+    5XXError:
+      type: object
+      description: 5XX Error response schema.
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          description: The error object containing the HTTP status code and descriptive error message.
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: integer
+              description: The HTTP status code of the error.
+              example: 500
+            message:
+              type: string
+              description: A human-readable error message.
+              example: Internal Server Error
