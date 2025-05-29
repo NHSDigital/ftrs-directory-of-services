@@ -6,6 +6,7 @@ from utils.config import Settings
 env_variable_settings = Settings()
 
 
+
 def get_service_repository(
     model_cls: type[DBModel], entity_name: str
 ) -> DocumentLevelRepository[DBModel]:
@@ -40,4 +41,5 @@ def get_table_name(entity_name: str) -> str:
     table_name = f"ftrs-dos-{env_variable_settings.env}-database-{entity_name}"
     if env_variable_settings.workspace:
         table_name = f"{table_name}-{env_variable_settings.workspace}"
+        print(table_name)
     return table_name

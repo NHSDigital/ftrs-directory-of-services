@@ -1,6 +1,6 @@
 from pydantic import field_validator
 
-from organisations.models import OrganisationPayload
+from organisations.app.models.organisation import OrganisationPayload
 
 NAME_EMPTY_ERROR = "Name cannot be empty."
 
