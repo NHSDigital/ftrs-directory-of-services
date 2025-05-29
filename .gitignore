@@ -40,3 +40,5 @@ tests/*/*allure-results/*
 tests/**/config.yaml
 tests/**/*.log
 tests/performance/**/*.jtl
+
+scans/*

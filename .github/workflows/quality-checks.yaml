@@ -109,6 +109,9 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
       - name: "Scan dependencies"
         uses: ./.github/actions/scan-dependencies
         with:
@@ -162,3 +165,70 @@ jobs:
 
       - name: "Check format of Terraform code"
         uses: ./.github/actions/check-format-terraform
+
+  checkov-scan:
+    name: "Checkov scan"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    permissions:
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Checkov scan"
+        id: "checkov"
+        uses: bridgecrewio/checkov-action@v12
+        continue-on-error: true
+        with:
+          quiet: true
+          output_format: sarif
+          output_file_path: checkov.sarif
+
+      - name: "Publish Checkov report"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: "checkov.sarif"
+          path: "."
+          if-no-files-found: ignore
+
+      - name : "Warn Checkov failure"
+        if: ${{ steps.checkov.outcome == 'failure' }}
+        run: echo "::warning::Checkov has encountered issues. Please check the checkov.sarif file for the issues identified"
+
+  trivy-scan:
+    name: "Trivy scan"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    permissions:
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Trivy scan"
+        id: "trivy"
+        uses: aquasecurity/trivy-action@0.30.0
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy.sarif'
+          scanners: vuln,misconfig
+          exit-code: 1
+
+      - name: "Publish Trivy report"
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: "trivy.sarif"
+          path: "."
+          if-no-files-found: ignore
+
+      - name : "Warn Trivy failure"
+        if: ${{ steps.trivy.outcome == 'failure' }}
+        run: echo "::warning::Trivy has encountered issues. Please check the trivy.sarif file for the issues identified"
