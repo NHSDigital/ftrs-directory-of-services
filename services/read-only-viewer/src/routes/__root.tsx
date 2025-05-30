@@ -62,6 +62,15 @@ export const Route = createRootRoute({
       </p>
     </>
   ),
+  errorComponent: ({ error }) => (
+    <>
+      <h1 className="nhsuk-heading-l">An error occurred</h1>
+      <p>{error.message}</p>
+      <p>
+        <a href="/">Return to the homepage</a>
+      </p>
+    </>
+  ),
 });
 
 const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {

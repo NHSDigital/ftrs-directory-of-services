@@ -18,10 +18,13 @@ module "frontend_lambda" {
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.execute_api_policy.json
   ]
-  security_group_ids    = null
-  subnet_ids            = null
-  layers                = []
-  environment_variables = {}
+  security_group_ids = null
+  subnet_ids         = null
+  layers             = []
+  environment_variables = {
+    "ENVIRONMENT" = var.environment
+    "WORKSPACE"   = terraform.workspace == "default" ? "" : terraform.workspace
+  }
 }
 
 data "aws_iam_policy_document" "ssm_access_policy" {
