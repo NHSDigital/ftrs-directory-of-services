@@ -21,6 +21,8 @@ install-dependencies:
 	asdf install
 	npm install
 
+pre-commit: format lint
+
 format:
 	npm run format -- --fix
 	npm run lint -- --fix

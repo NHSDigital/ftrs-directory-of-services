@@ -65,9 +65,7 @@ def mock_responses() -> MagicMock:
 @patch("pipeline.processor.requests.get")
 @patch.dict(
     "os.environ",
-    {
-        "ORGANISATION_API_URL": "https://localhost:8001/",
-    },
+    {"LOCAL_CRUD_API_URL": "https://localhost:8001/"},
 )
 def test_processor_processing_organisations_continues_if_failure(
     mock_get: MagicMock, caplog: any
@@ -168,7 +166,10 @@ def test_processor_processing_organisations_continues_if_failure(
             forth_call_args[0][0]
             == "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/RO157"
         )
-        assert fifth_call_args[0][0] == "https://localhost:8001/ods_code/EFG456"
+        assert (
+            fifth_call_args[0][0]
+            == "https://localhost:8001/organisation/ods_code/EFG456"
+        )
 
         assert (
             "Error processing organisation with ods_code ABC123: 404 Client Error: Not Found for url"
@@ -183,9 +184,7 @@ def test_processor_processing_organisations_continues_if_failure(
 @patch("pipeline.processor.requests.get")
 @patch.dict(
     "os.environ",
-    {
-        "ORGANISATION_API_URL": "https://localhost:8001/",
-    },
+    {"ENVIRONMENT": "local", "LOCAL_CRUD_API_URL": "https://localhost:8001/"},
 )
 def test_processor_processing_organisations_successful(
     mock_get: MagicMock, mock_responses: MagicMock, caplog: any
@@ -230,7 +229,10 @@ def test_processor_processing_organisations_successful(
             third_call_args[0][0]
             == "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/RO157"
         )
-        assert forth_call_args[0][0] == "https://localhost:8001/ods_code/ABC123"
+        assert (
+            forth_call_args[0][0]
+            == "https://localhost:8001/organisation/ods_code/ABC123"
+        )
 
         assert (
             'Transformed request_body: {"path": "uuid", "body": {"active": true, "name": "Test Organisation", "telecom": "00000000000", "type": "NHS TRUST", "modified_by": "ODS_ETL_PIPELINE"}}'

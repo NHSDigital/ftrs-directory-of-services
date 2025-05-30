@@ -127,7 +127,10 @@ jobs:
     needs:
       - metadata
       - build-read-only-viewer-service
+      - build-crud-apis-service
       - perform-code-analysis
+      - build-data-migration-service
+      - build-python-package
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}

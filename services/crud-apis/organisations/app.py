@@ -14,7 +14,7 @@ from organisations.dependencies import get_app_settings
 from organisations.settings import AppSettings
 from organisations.validators import UpdatePayloadValidator
 
-app = FastAPI()
+app = FastAPI(title="Organisations API", root_path="/organisation")
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
