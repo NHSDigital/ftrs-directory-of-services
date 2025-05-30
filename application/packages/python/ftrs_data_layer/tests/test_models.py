@@ -107,7 +107,7 @@ def test_organisation_from_dos(mocker: MockerFixture) -> None:
                 "address": "https://example.com/endpoint",
                 "connectionType": "itk",
                 "description": "Primary",
-                "format": "xml",
+                "payloadMimeType": "xml",
                 "identifier_oldDoS_id": 67890,
                 "isCompressionEnabled": True,
                 "managedByOrganisation": "d5a852ef-12c7-4014-b398-661716a63027",
@@ -566,7 +566,7 @@ def test_endpoint() -> None:
         status="active",
         connectionType="itk",
         description="Test Endpoint",
-        format="xml",
+        payloadMimeType="xml",
         identifier_oldDoS_uid="123456",
         isCompressionEnabled=True,
         managedByOrganisation=uuid4(),
@@ -587,7 +587,7 @@ def test_endpoint() -> None:
         "status": "active",
         "connectionType": "itk",
         "description": "Test Endpoint",
-        "format": "xml",
+        "payloadMimeType": "xml",
         "isCompressionEnabled": True,
         "managedByOrganisation": str(endpoint.managedByOrganisation),
         "createdBy": "test_user",
@@ -624,7 +624,7 @@ def test_endpoint_from_dos() -> None:
         "status": "active",
         "connectionType": "itk",
         "description": "Primary",
-        "format": "xml",
+        "payloadMimeType": "xml",
         "isCompressionEnabled": False,
         "managedByOrganisation": str(endpoint.managedByOrganisation),
         "createdBy": "ROBOT",
@@ -663,7 +663,7 @@ def test_endpoint_from_dos_telno_transport() -> None:
         "status": "active",
         "connectionType": "telno",
         "description": "Primary",
-        "format": None,
+        "payloadMimeType": None,
         "isCompressionEnabled": False,
         "managedByOrganisation": str(endpoint.managedByOrganisation),
         "createdBy": "ROBOT",
@@ -672,6 +672,58 @@ def test_endpoint_from_dos_telno_transport() -> None:
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "name": None,
         "payloadType": None,
+        "service": None,
+        "address": "01234567890",
+        "order": 1,
+    }
+
+    assert endpoint.indexes == {}
+
+
+@freeze_time("2023-10-01T00:00:00Z")
+@pytest.mark.parametrize(
+    "format_value, expected_payload_mime_type",
+    [
+        ("PDF", "application/pdf"),
+        ("HTML", "text/html"),
+        ("FHIR", "application/fhir"),
+        ("email", "message/rfc822"),
+        ("telno", "text/vcard"),
+        ("xml", "xml"),
+    ],
+)
+def test_endpoint_from_dos_format_mapping(
+    format_value: str, expected_payload_mime_type: str
+) -> None:
+    endpoint = Endpoint.from_dos(
+        data={
+            "id": 123456,
+            "transport": "itk",
+            "businessscenario": "Primary",
+            "interaction": "urn:nhs:example:interaction",
+            "format": format_value,
+            "address": "01234567890",
+            "endpointorder": 1,
+            "iscompressionenabled": "uncompressed",
+        },
+        managed_by_id=uuid4(),
+    )
+
+    assert endpoint.model_dump(mode="json") == {
+        "id": str(endpoint.id),
+        "identifier_oldDoS_id": 123456,
+        "status": "active",
+        "connectionType": "itk",
+        "description": "Primary",
+        "payloadMimeType": expected_payload_mime_type,
+        "isCompressionEnabled": False,
+        "managedByOrganisation": str(endpoint.managedByOrganisation),
+        "createdBy": "ROBOT",
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "modifiedBy": "ROBOT",
+        "modifiedDateTime": "2023-10-01T00:00:00Z",
+        "name": None,
+        "payloadType": "urn:nhs:example:interaction",
         "service": None,
         "address": "01234567890",
         "order": 1,
