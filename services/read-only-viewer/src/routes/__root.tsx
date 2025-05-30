@@ -8,6 +8,18 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Container, Footer, Header } from "nhsuk-react-components";
 import type { PropsWithChildren } from "react";
 import appStylesUrl from "../styles/App.scss?url";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
+
 
 export const Route = createRootRoute({
   head: () => ({
@@ -31,10 +43,13 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
-        <RootDocument>
-          <Outlet />
-        </RootDocument>
-        <TanStackRouterDevtools />
+        <QueryClientProvider client={queryClient}>
+          <RootDocument>
+            <Outlet />
+          </RootDocument>
+          <TanStackRouterDevtools />
+          <ReactQueryDevtools />
+        </QueryClientProvider>
         <Scripts />
       </body>
     </html>
