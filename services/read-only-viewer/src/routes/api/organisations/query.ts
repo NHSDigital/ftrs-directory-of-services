@@ -6,13 +6,13 @@ import { createAPIFileRoute } from "@tanstack/react-start/api";
 export const APIRoute = createAPIFileRoute("/api/organisations/query")({
   GET: async () => {
     const correlationId = randomUUID();
-    const baseUrl = await getBaseEndpoint();
+    const baseEndpoint = await getBaseEndpoint();
     const signedHeaders = await getSignedHeaders({
       method: "GET",
-      url: `${baseUrl}/organisation/`,
+      url: `${baseEndpoint}/organisation/`,
     });
 
-    const response = await fetch(`${baseUrl}/organisation/`, {
+    const response = await fetch(`${baseEndpoint}/organisation/`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

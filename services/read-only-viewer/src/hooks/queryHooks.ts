@@ -6,7 +6,7 @@ export const useOrganisationQuery = (organisationID: string) => {
   return useQuery<Organisation>({
     queryKey: ["organisation", organisationID],
     queryFn: async () => {
-      const response = await fetch(`/api/organisations/${organisationID}`);
+      const response = await fetch(`/api/organisations/${organisationID}/`);
       if (!response.ok) {
         throw new ResponseError(
           `Failed to fetch organisation: ${response.status} ${response.statusText}`,
