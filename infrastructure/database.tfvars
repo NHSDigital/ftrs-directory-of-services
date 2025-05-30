@@ -19,7 +19,7 @@ dynamodb_tables = {
     ]
     global_secondary_indexes = [
       {
-        name            = "OsdCodeValueIndex"
+        name            = "OdsCodeValueIndex"
         hash_key        = "identifier_ODS_ODSCode"
         projection_type = "ALL"
       }
