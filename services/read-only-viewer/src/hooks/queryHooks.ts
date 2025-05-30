@@ -24,7 +24,7 @@ export const useOrganisationsQuery = () => {
   return useQuery<Organisation[]>({
     queryKey: ["organisations"],
     queryFn: async () => {
-      const response = await fetch("/api/organisations/query");
+      const response = await fetch("/api/organisations/");
       if (!response.ok) {
         throw new ResponseError(
           `Failed to fetch organisations: ${response.status} ${response.statusText}`,
