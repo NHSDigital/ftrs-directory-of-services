@@ -354,12 +354,21 @@ class HealthcareService(DBModel):
         return items if len(items) > 0 else None
 
 
+format_to_payloadMimeType = {
+    "PDF": "application/pdf",
+    "HTML": "text/html",
+    "FHIR": "application/fhir",
+    "email": "message/rfc822",
+    "telno": "text/vcard",
+}
+
+
 class Endpoint(DBModel):
     identifier_oldDoS_id: int | None
     status: str
     connectionType: str
     name: str | None
-    format: str | None
+    payloadMimeType: str | None
     description: str
     payloadType: str | None
     address: str
@@ -388,11 +397,12 @@ class Endpoint(DBModel):
         :return: An Endpoint instance.
         """
         payload_type = data["interaction"]
-        format = data["format"]
+
+        payloadMimeType = format_to_payloadMimeType.get(data["format"], data["format"])
 
         if data["transport"] == "telno":
             payload_type = None
-            format = None
+            payloadMimeType = None
 
         return Endpoint(
             id=uuid4(),
@@ -402,7 +412,7 @@ class Endpoint(DBModel):
             name=None,
             description=data["businessscenario"],
             payloadType=payload_type,
-            format=format,
+            payloadMimeType=payloadMimeType,
             address=data["address"],
             managedByOrganisation=managed_by_id,
             service=service_id,
