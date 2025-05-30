@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useOrganisationQuery = (organisationID: string) => {
   return useQuery<Organisation>({
-    queryKey: ['organisation', organisationID],
+    queryKey: ["organisation", organisationID],
     queryFn: async () => {
       const response = await fetch(`/api/organisations/${organisationID}`);
       if (!response.ok) {
@@ -12,18 +12,17 @@ export const useOrganisationQuery = (organisationID: string) => {
           `Failed to fetch organisation: ${response.status} ${response.statusText}`,
           response.status,
           Object.fromEntries(response.headers.entries()),
-          await response.text()
+          await response.text(),
         );
       }
       return await response.json();
-    }
-  })
-}
-
+    },
+  });
+};
 
 export const useOrganisationsQuery = () => {
   return useQuery<Organisation[]>({
-    queryKey: ['organisations'],
+    queryKey: ["organisations"],
     queryFn: async () => {
       const response = await fetch("/api/organisations/query");
       if (!response.ok) {
@@ -31,12 +30,12 @@ export const useOrganisationsQuery = () => {
           `Failed to fetch organisations: ${response.status} ${response.statusText}`,
           response.status,
           Object.fromEntries(response.headers.entries()),
-          await response.json()
-        )
+          await response.json(),
+        );
       }
 
       const data = await response.json();
       return data;
-    }
-  })
-}
+    },
+  });
+};
