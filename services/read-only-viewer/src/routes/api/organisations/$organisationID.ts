@@ -13,6 +13,10 @@ export const APIRoute = createAPIFileRoute(
       expectedStatus: [200],
     });
 
-    return json(await response.json());
+    return json(await response.json(), {
+      headers: {
+        "X-Correlation-ID": response.headers.get("X-Correlation-ID") || "",
+      },
+    });
   },
 });

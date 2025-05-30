@@ -3,34 +3,30 @@ import { useOrganisationQuery } from "@/hooks/queryHooks";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  "/organisations/$organisationID/endpoints/$endpointID",
+  "/organisations/$organisationID/endpoints/",
 )({
-  component: EndpointDetailsPage,
+  component: OrganisationEndpointsPage,
 });
 
-function EndpointDetailsPage() {
-  const { organisationID, endpointID } = Route.useParams();
+function OrganisationEndpointsPage() {
+  const { organisationID } = Route.useParams();
   const { data: organisation } = useOrganisationQuery(organisationID);
 
   return (
     <>
       <PageBreadcrumbs
-        backTo="/organisations/$organisationID/endpoints"
+        backTo="/organisations/$organisationID"
         items={[
-          { to: "/organisations", label: "Organisations" },
+          { to: "/organisations/", label: "Organisations" },
           {
             to: "/organisations/$organisationID",
             label: organisation?.name || "Organisation",
+            params: { organisationID },
           },
           {
             to: "/organisations/$organisationID/endpoints",
             label: "Endpoints",
             params: { organisationID },
-          },
-          {
-            to: "/organisations/$organisationID/endpoints/$endpointID",
-            label: endpointID,
-            params: { organisationID, endpointID },
           },
         ]}
       />

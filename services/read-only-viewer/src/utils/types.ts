@@ -10,7 +10,7 @@ export const endpointSchema = zod.object({
   description: zod.string(),
   payloadType: zod.string().nullable(),
   address: zod.string(),
-  managedByOrganisationId: zod.string().uuid(),
+  managedByOrganisation: zod.string().uuid(),
   service: zod.string().uuid().optional(),
   order: zod.number(),
   isCompressionEnabled: zod.boolean(),

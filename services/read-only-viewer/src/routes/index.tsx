@@ -1,13 +1,6 @@
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import {
-  Breadcrumb,
-  Button,
-  Card,
-  Form,
-  TextInput,
-} from "nhsuk-react-components";
-import { useState } from "react";
+import { Card } from "nhsuk-react-components";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -50,13 +43,7 @@ const HomePageCardGroup: React.FC<HomePageCardGroupProps> = ({ items }) => {
 function HomePage() {
   return (
     <>
-      <Breadcrumb className="nhsuk-u-margin-bottom-3">
-        <Breadcrumb.Item>
-          <Link to="/" className="nhsuk-link nhsuk-link--no-visited-state">
-            Home
-          </Link>
-        </Breadcrumb.Item>
-      </Breadcrumb>
+      <PageBreadcrumbs backTo={null} items={[{ to: "/", label: "Home" }]} />
       <h1 className="nhsuk-heading-l">Read Only Viewer</h1>
       <h2 className="nhsuk-heading-m">Available Entity Types</h2>
       <HomePageCardGroup

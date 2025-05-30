@@ -1,3 +1,4 @@
+import Banner from "@/components/Banner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
@@ -84,6 +85,9 @@ const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
           </Header.ServiceName>
         </Header.Container>
       </Header>
+      <Banner label="Test Utility">
+        This is an internal test tool for Find the Right Service (FtRS) teams.
+      </Banner>
       <Container className="ftrs-page-container">{children}</Container>
       <Footer>
         <Footer.List>
