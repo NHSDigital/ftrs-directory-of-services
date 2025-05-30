@@ -1,67 +1,73 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { Button, Form, TextInput } from "nhsuk-react-components";
+import { Breadcrumb, Button, Card, Form, TextInput } from "nhsuk-react-components";
 import { useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
-  loader: async (_ctx) => {
-    // This is where you can load data for the route
-    // For example, you can fetch data from an API or a database
-    // and return it as props to the component
-    return {
-      title: "Hello World!",
-      description:
-        "This is the basic boilerplate FtRS Read Only Viewer application.",
-    };
-  },
 });
 
-const exampleServerFn = createServerFn()
-  .validator((input: { name: string }) => input)
-  .handler(async (ctx) => {
-    const { name } = ctx.data;
-    return `Hello, ${name}!`;
-  });
+type HomePageCardGroupProps = {
+  items: Array<{
+    title: string;
+    description: string;
+    link: string;
+    disabled?: boolean;
+  }>
+};
+
+const HomePageCardGroup: React.FC<HomePageCardGroupProps> = ({ items }) => {
+  return (
+    <Card.Group>
+      {items.map((item) => (
+        <Card.GroupItem key={item.title} width="one-half">
+          <Card clickable={!item.disabled}>
+            <Card.Content>
+              <Card.Heading headingLevel="h3">
+                <Card.Link asElement={Link} to={item.link} disabled={item.disabled}>
+                  {item.title}
+                </Card.Link>
+              </Card.Heading>
+              <Card.Description>
+                {item.description}
+              </Card.Description>
+            </Card.Content>
+          </Card>
+        </Card.GroupItem>
+      ))}
+    </Card.Group>
+  );
+}
 
 function HomePage() {
-  const { title, description } = Route.useLoaderData();
-  const [name, setName] = useState("");
-  const [error, setError] = useState<string | undefined>();
-  const [response, setResponse] = useState<string | undefined>();
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!name) {
-      setError("Name is required");
-      return;
-    }
-
-    setError(undefined);
-    setResponse(undefined);
-    const response = await exampleServerFn({ data: { name } });
-    setResponse(response);
-  };
-
   return (
     <>
-      <h1 className="nhsuk-heading-l">{title}</h1>
-      <p>{description}</p>
-      <h2 className="nhsuk-heading-m">Test Server Function Support</h2>
-      <Form onSubmit={handleSubmit} method="POST">
-        <TextInput
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.currentTarget.value)}
-          error={error}
-          label="What is your name?"
-          width="20"
-        />
-        <Button type="submit">Submit</Button>
-      </Form>
-      <h3 className="nhsuk-heading-s">Server Response</h3>
-      <p>{response}</p>
+      <Breadcrumb className="nhsuk-u-margin-bottom-3">
+        <Breadcrumb.Item>
+          <Link to="/" className="nhsuk-link nhsuk-link--no-visited-state">Home</Link>
+        </Breadcrumb.Item>
+      </Breadcrumb>
+      <h1 className="nhsuk-heading-l">Read Only Viewer</h1>
+      <h2 className="nhsuk-heading-m">Available Entity Types</h2>
+      <HomePageCardGroup items={[
+        {
+          title: "Organisations",
+          description: "View and search organisations.",
+          link: "/organisations",
+        },
+        {
+          title: "Healthcare Services",
+          description: "View and search services (coming soon).",
+          link: "/healthcare-services",
+          disabled: true,
+        },
+        {
+          title: "Locations",
+          description: "View and search locations (coming soon).",
+          link: "/locations",
+          disabled: true,
+        }
+      ]} />
     </>
   );
 }

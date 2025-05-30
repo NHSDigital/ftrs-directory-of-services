@@ -17,7 +17,6 @@ export default defineConfig({
         scss: {
           logger: Logger.silent
         }
-
       }
     }
   },

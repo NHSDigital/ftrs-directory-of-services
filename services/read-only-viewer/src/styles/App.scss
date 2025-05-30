@@ -2,8 +2,8 @@
 @import "font-face";
 
 .ftrs-page-container {
-  @include nhsuk-responsive-padding(5, "top");
-  @include nhsuk-responsive-padding(5, "bottom");
+  @include nhsuk-responsive-margin(5, "top");
+  @include nhsuk-responsive-margin(5, "bottom");
 
   min-height: 60vh;
 }
