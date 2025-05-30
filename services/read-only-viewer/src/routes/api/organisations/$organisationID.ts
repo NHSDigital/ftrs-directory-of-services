@@ -9,7 +9,7 @@ export const APIRoute = createAPIFileRoute(
     const { organisationID } = params;
 
     const response = await makeSignedFetch({
-      pathname: `/organisation/${organisationID}/`,
+      pathname: `/organisation/${organisationID}`,
       expectedStatus: [200],
     });
 
