@@ -30,34 +30,6 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = ({ backTo, items }) => {
           {item.label}
         </Breadcrumb.Item>
       ))}
-
-      {/* <Breadcrumb.Item
-      asElement={Link}
-      to="/"
-      className="nhsuk-link--no-visited-state"
-    >
-      Home
-    </Breadcrumb.Item>
-    <Breadcrumb.Item
-      asElement={Link}
-      to="/organisations"
-      className="nhsuk-link--no-visited-state"
-    >
-      Organisations
-    </Breadcrumb.Item>
-    <Breadcrumb.Item
-      asElement={Link}
-      to="/organisations/$organisationID"
-      // @ts-expect-error - TanStack Router expects params to be an object
-      params={{ organisationID }}
-      className="nhsuk-link--no-visited-state"
-    >
-      {isLoading
-        ? "Loading"
-        : error
-          ? "Error loading organisation"
-          : organisation?.name || "Organisation Details"}
-    </Breadcrumb.Item> */}
     </Breadcrumb>
   );
 };
