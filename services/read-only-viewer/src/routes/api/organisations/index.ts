@@ -3,10 +3,13 @@ import { json } from "@tanstack/react-start";
 import { createAPIFileRoute } from "@tanstack/react-start/api";
 
 export const APIRoute = createAPIFileRoute("/api/organisations")({
-  GET: async () => {
+  GET: async ({ request }) => {
     const response = await makeSignedFetch({
       pathname: "/organisation/",
       expectedStatus: [200],
+      headers: {
+        "X-Correlation-ID": request.headers.get("X-Correlation-ID") || "",
+      },
     });
 
     return json(await response.json(), {

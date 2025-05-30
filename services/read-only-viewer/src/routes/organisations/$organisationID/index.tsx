@@ -7,7 +7,7 @@ import type { ResponseError } from "@/utils/errors";
 import type { Endpoint, Organisation } from "@/utils/types";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Card } from "nhsuk-react-components";
+import { Card, Details } from "nhsuk-react-components";
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/organisations/$organisationID/")({
@@ -61,21 +61,12 @@ const OrganisationOverview: React.FC<{ organisation: Organisation }> = ({
 
 const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
   const sortedEndpoints = useMemo(() => {
-    return endpoints.sort((a, b) =>
-      a.payloadType === b.payloadType
-        ? a.order - b.order
-        : a.payloadType?.localeCompare(b.payloadType || "") || 0,
-    );
+    return endpoints.sort((a, b) => a.order - b.order);
   }, [endpoints]);
 
   return useReactTable({
     data: sortedEndpoints,
     columns: [
-      {
-        accessorKey: "payloadType",
-        header: "Payload Type",
-        cell: (info) => info.getValue().replace("urn:nhs-itk:interaction:", ""),
-      },
       {
         accessorKey: "order",
         header: "Order",
@@ -83,6 +74,14 @@ const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
       {
         accessorKey: "status",
         header: "Status",
+      },
+      {
+        accessorKey: "connectionType",
+        header: "Type",
+      },
+      {
+        accessorKey: "address",
+        header: "Address",
       },
       {
         accessorKey: "id",
@@ -111,6 +110,12 @@ const OrganisationEndpointsTable: React.FC<{ endpoints: Endpoint[] }> = ({
 }) => {
   const table = useOrganisationEndpointsTable(endpoints);
 
+  return <DataTable table={table} />;
+};
+
+const OrganisationEndpointsList: React.FC<{ endpoints: Endpoint[] }> = ({
+  endpoints,
+}) => {
   if (!endpoints || endpoints.length === 0) {
     return (
       <Card className="nhsuk-u-padding-5">
@@ -120,10 +125,33 @@ const OrganisationEndpointsTable: React.FC<{ endpoints: Endpoint[] }> = ({
     );
   }
 
+  const groupedEndpoints = useMemo(
+    () =>
+      endpoints.reduce<Record<string, Endpoint[]>>((acc, endpoint) => {
+        const key = endpoint.payloadType || "Unknown";
+        if (key in acc) {
+          acc[key].push(endpoint);
+        } else {
+          acc[key] = [endpoint];
+        }
+        return acc;
+      }, {}),
+    [endpoints],
+  );
+
   return (
     <Card className="nhsuk-u-padding-5">
       <h2 className="nhsuk-heading-m">Endpoints</h2>
-      <DataTable table={table} />
+      <Details.ExpanderGroup>
+        {Object.entries(groupedEndpoints).map(([interaction, endpoints]) => (
+          <Details expander key={interaction}>
+            <Details.Summary>{interaction}</Details.Summary>
+            <Details.Text>
+              <OrganisationEndpointsTable endpoints={endpoints} />
+            </Details.Text>
+          </Details>
+        ))}
+      </Details.ExpanderGroup>
     </Card>
   );
 };
@@ -156,7 +184,7 @@ function OrganisationDetailsRoute() {
         <>
           <h1 className="nhsuk-heading-l">{organisation.name}</h1>
           <OrganisationOverview organisation={organisation} />
-          <OrganisationEndpointsTable endpoints={organisation.endpoints} />
+          <OrganisationEndpointsList endpoints={organisation.endpoints} />
         </>
       )}
     </>
