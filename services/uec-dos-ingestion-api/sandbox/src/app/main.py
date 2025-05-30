@@ -1,6 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
-from router.routes import router as api_router
+from ..router.routes import router as api_router
 from starlette.responses import Response
 from starlette.status import HTTP_200_OK
 

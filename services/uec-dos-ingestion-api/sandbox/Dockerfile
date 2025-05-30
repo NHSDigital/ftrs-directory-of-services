@@ -10,4 +10,4 @@ RUN pip install --trusted-host pypi.python.org --trusted-host pypi.org --trusted
 
 COPY src /app/src
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000"]
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "9000"]
