@@ -1,10 +1,12 @@
-import { useOrganisationQuery } from '@/hooks/queryHooks';
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { Breadcrumb } from 'nhsuk-react-components'
+import { useOrganisationQuery } from "@/hooks/queryHooks";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { Breadcrumb } from "nhsuk-react-components";
 
-export const Route = createFileRoute('/organisations/$organisationID/endpoints/$endpointID')({
+export const Route = createFileRoute(
+  "/organisations/$organisationID/endpoints/$endpointID",
+)({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
   const { organisationID, endpointID } = Route.useParams();
@@ -34,7 +36,7 @@ function RouteComponent() {
           params={{ organisationID }}
           className="nhsuk-link--no-visited-state"
         >
-          {organisation?.name || 'Organisation'}
+          {organisation?.name || "Organisation"}
         </Breadcrumb.Item>
         <Breadcrumb.Item
           asElement={Link}
@@ -54,8 +56,7 @@ function RouteComponent() {
         >
           {endpointID}
         </Breadcrumb.Item>
-
       </Breadcrumb>
     </>
-  )
+  );
 }

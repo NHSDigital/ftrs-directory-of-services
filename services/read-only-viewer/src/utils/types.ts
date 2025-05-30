@@ -1,4 +1,4 @@
-import zod from 'zod';
+import zod from "zod";
 
 export const endpointSchema = zod.object({
   id: zod.string().uuid(),
@@ -18,7 +18,7 @@ export const endpointSchema = zod.object({
   createdDateTime: zod.string().datetime(),
   modifiedBy: zod.string(),
   modifiedDateTime: zod.string().datetime(),
-})
+});
 
 export type Endpoint = zod.infer<typeof endpointSchema>;
 
@@ -34,6 +34,6 @@ const organisationSchema = zod.object({
   createdDateTime: zod.string().datetime(),
   modifiedBy: zod.string(),
   modifiedDateTime: zod.string().datetime(),
-})
+});
 
 export type Organisation = zod.infer<typeof organisationSchema>;
