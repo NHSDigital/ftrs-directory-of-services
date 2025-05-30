@@ -2,8 +2,23 @@
 @import "font-face";
 
 .ftrs-page-container {
-  @include nhsuk-responsive-margin(5, "top");
+  @include nhsuk-responsive-margin(3, "top");
   @include nhsuk-responsive-margin(5, "bottom");
 
   min-height: 60vh;
+}
+
+.ftrs-code-block {
+  @include nhsuk-responsive-margin(0, "top");
+  @include nhsuk-responsive-padding(3, "bottom");
+  @include nhsuk-responsive-padding(3, "top");
+  @include nhsuk-responsive-padding(3, "left");
+  @include nhsuk-responsive-padding(3, "right");
+
+  background-color: $color_nhsuk-white;
+  border: 2px solid $color_nhsuk-grey-2;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  word-wrap: break-word;
 }

@@ -1,21 +1,17 @@
+import DataTable from "@/components/DataTable";
+import KeyValueTable from "@/components/KeyValueTable";
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import RequestErrorDetails from "@/components/RequestErrorDetails";
 import { useOrganisationQuery } from "@/hooks/queryHooks";
 import type { ResponseError } from "@/utils/errors";
 import type { Endpoint, Organisation } from "@/utils/types";
-import { useQuery } from "@tanstack/react-query";
-import { HeadContent, Link, createFileRoute } from "@tanstack/react-router";
-import { Meta } from "@tanstack/react-start";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { Breadcrumb, Card, SummaryList, Table } from "nhsuk-react-components";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { Card } from "nhsuk-react-components";
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/organisations/$organisationID/")({
-  component: RouteComponent,
+  component: OrganisationDetailsRoute,
   head: () => ({
     meta: [{ title: "Organisation Details - FtRS Read Only Viewer" }],
   }),
@@ -27,71 +23,43 @@ const OrganisationOverview: React.FC<{ organisation: Organisation }> = ({
   return (
     <Card className="nhsuk-u-padding-5">
       <h2 className="nhsuk-heading-m">Overview</h2>
-      <SummaryList>
-        <SummaryList.Row>
-          <SummaryList.Key>ID</SummaryList.Key>
-          <SummaryList.Value>{organisation.id}</SummaryList.Value>
-        </SummaryList.Row>
-        <SummaryList.Row>
-          <SummaryList.Key>Name</SummaryList.Key>
-          <SummaryList.Value>{organisation.name}</SummaryList.Value>
-        </SummaryList.Row>
-        <SummaryList.Row>
-          <SummaryList.Key>ODS Code</SummaryList.Key>
-          <SummaryList.Value>
-            {organisation.identifier_ODS_ODSCode}
-          </SummaryList.Value>
-        </SummaryList.Row>
-        <SummaryList.Row>
-          <SummaryList.Key>Type</SummaryList.Key>
-          <SummaryList.Value>{organisation.type}</SummaryList.Value>
-        </SummaryList.Row>
-        <SummaryList.Row>
-          <SummaryList.Key>Active</SummaryList.Key>
-          <SummaryList.Value>
-            {organisation.active ? "Yes" : "No"}
-          </SummaryList.Value>
-        </SummaryList.Row>
-        <SummaryList.Row>
-          <SummaryList.Key>Telecom</SummaryList.Key>
-          <SummaryList.Value>
-            {organisation.telecom || (
-              <span className="nhsuk-caption">None Provided</span>
-            )}
-          </SummaryList.Value>
-        </SummaryList.Row>
-        <SummaryList.Row>
-          <SummaryList.Key>Created By</SummaryList.Key>
-          <SummaryList.Value>
-            {organisation.createdBy}{" "}
-            <i className="nhsuk-u-font-size-16">
-              ({organisation.createdDateTime})
-            </i>
-          </SummaryList.Value>
-        </SummaryList.Row>
-        <SummaryList.Row>
-          <SummaryList.Key>Last Modified By</SummaryList.Key>
-          <SummaryList.Value>
-            {organisation.modifiedBy}{" "}
-            <i className="nhsuk-u-font-size-16">
-              ({organisation.modifiedDateTime})
-            </i>
-          </SummaryList.Value>
-        </SummaryList.Row>
-      </SummaryList>
+      <KeyValueTable
+        items={[
+          { key: "ID", value: organisation.id },
+          { key: "Name", value: organisation.name },
+          { key: "ODS Code", value: organisation.identifier_ODS_ODSCode },
+          { key: "Type", value: organisation.type },
+          { key: "Active", value: organisation.active ? "Yes" : "No" },
+          { key: "Telecom", value: organisation.telecom || "None Provided" },
+          {
+            key: "Created By",
+            value: (
+              <>
+                {organisation.createdBy}{" "}
+                <span className="nhsuk-u-font-size-16">
+                  ({organisation.createdDateTime})
+                </span>
+              </>
+            ),
+          },
+          {
+            key: "Modified By",
+            value: (
+              <>
+                {organisation.modifiedBy}{" "}
+                <span className="nhsuk-u-font-size-16">
+                  ({organisation.modifiedDateTime})
+                </span>
+              </>
+            ),
+          },
+        ]}
+      />
     </Card>
   );
 };
 
-const columnHelper = createColumnHelper<Endpoint>();
-
-const humanReadableInteraction = (interaction: string) => {
-  return interaction.replace("urn:nhs-itk:interaction:", "");
-};
-
-const OrganisationEndpoints: React.FC<{ endpoints: Endpoint[] }> = ({
-  endpoints,
-}) => {
+const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
   const sortedEndpoints = useMemo(() => {
     return endpoints.sort((a, b) =>
       a.payloadType === b.payloadType
@@ -100,36 +68,48 @@ const OrganisationEndpoints: React.FC<{ endpoints: Endpoint[] }> = ({
     );
   }, [endpoints]);
 
-  const table = useReactTable({
+  return useReactTable({
     data: sortedEndpoints,
-    sortingFns: {
-      interaction: (rowA, rowB) => {
-        const interactionA = rowA.getValue<string>("payloadType") || "";
-        const interactionB = rowB.getValue<string>("payloadType") || "";
-        return interactionA.localeCompare(interactionB);
-      },
-    },
-    enableSorting: true,
     columns: [
-      columnHelper.accessor("payloadType", {
-        header: () => "Payload Type",
+      {
+        accessorKey: "payloadType",
+        header: "Payload Type",
+        cell: (info) => info.getValue().replace("urn:nhs-itk:interaction:", ""),
+      },
+      {
+        accessorKey: "order",
+        header: "Order",
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+      },
+      {
+        accessorKey: "id",
+        header: "Action",
         cell: (info) => (
-          <span style={{ maxWidth: 10, overflow: "scroll" }}>
-            {humanReadableInteraction(info.getValue()) || "Not Specified"}
-          </span>
+          <Link
+            to="/organisations/$organisationID/endpoints/$endpointID"
+            params={{
+              organisationID: info.row.original.managedByOrganisation,
+              endpointID: info.getValue(),
+            }}
+            className="nhsuk-link nhsuk-link--no-visited-state"
+          >
+            View
+          </Link>
         ),
-      }),
-      columnHelper.accessor("order", {
-        header: () => "Order",
-        cell: (info) => info.getValue(),
-      }),
-      columnHelper.accessor("status", {
-        header: () => "Status",
-      }),
+      },
     ],
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
   });
+};
+
+const OrganisationEndpointsTable: React.FC<{ endpoints: Endpoint[] }> = ({
+  endpoints,
+}) => {
+  const table = useOrganisationEndpointsTable(endpoints);
 
   if (!endpoints || endpoints.length === 0) {
     return (
@@ -143,49 +123,12 @@ const OrganisationEndpoints: React.FC<{ endpoints: Endpoint[] }> = ({
   return (
     <Card className="nhsuk-u-padding-5">
       <h2 className="nhsuk-heading-m">Endpoints</h2>
-      <Table responsive>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Table.Head key={headerGroup.id}>
-            <Table.Row>
-              {headerGroup.headers.map((header) => (
-                <Table.Cell key={header.id} colSpan={header.colSpan}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </Table.Cell>
-              ))}
-              <Table.Cell>Action</Table.Cell>
-            </Table.Row>
-          </Table.Head>
-        ))}
-        <Table.Body>
-          {table.getRowModel().rows.map((row) => (
-            <Table.Row key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <Table.Cell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </Table.Cell>
-              ))}
-              <Table.Cell>
-                <Link
-                  to="/organisations/$organisationID/endpoints/$endpointID"
-                  params={{ endpointID: row.id }}
-                >
-                  View
-                </Link>
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table>
+      <DataTable table={table} />
     </Card>
   );
 };
 
-function RouteComponent() {
+function OrganisationDetailsRoute() {
   const { organisationID } = Route.useParams();
   const {
     data: organisation,
@@ -195,38 +138,17 @@ function RouteComponent() {
 
   return (
     <>
-      <Breadcrumb className="nhsuk-u-margin-bottom-3">
-        <Breadcrumb.Back asElement={Link} to="/organisations">
-          Back
-        </Breadcrumb.Back>
-        <Breadcrumb.Item
-          asElement={Link}
-          to="/"
-          className="nhsuk-link--no-visited-state"
-        >
-          Home
-        </Breadcrumb.Item>
-        <Breadcrumb.Item
-          asElement={Link}
-          to="/organisations"
-          className="nhsuk-link--no-visited-state"
-        >
-          Organisations
-        </Breadcrumb.Item>
-        <Breadcrumb.Item
-          asElement={Link}
-          to="/organisations/$organisationID"
-          // @ts-expect-error - TanStack Router expects params to be an object
-          params={{ organisationID }}
-          className="nhsuk-link--no-visited-state"
-        >
-          {isLoading
-            ? "Loading"
-            : error
-              ? "Error loading organisation"
-              : organisation?.name || "Organisation Details"}
-        </Breadcrumb.Item>
-      </Breadcrumb>
+      <PageBreadcrumbs
+        backTo="/organisations"
+        items={[
+          { to: "/", label: "Home" },
+          { to: "/organisations", label: "Organisations" },
+          {
+            to: `/organisations/${organisationID}`,
+            label: organisation?.name || "Organisation Details",
+          },
+        ]}
+      />
       <span className="nhsuk-caption-l">Organisation Details</span>
       {isLoading && <p>Loading...</p>}
       {error && <RequestErrorDetails error={error as ResponseError} />}
@@ -234,7 +156,7 @@ function RouteComponent() {
         <>
           <h1 className="nhsuk-heading-l">{organisation.name}</h1>
           <OrganisationOverview organisation={organisation} />
-          <OrganisationEndpoints endpoints={organisation.endpoints} />
+          <OrganisationEndpointsTable endpoints={organisation.endpoints} />
         </>
       )}
     </>

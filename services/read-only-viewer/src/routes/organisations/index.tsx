@@ -1,3 +1,5 @@
+import DataTable from "@/components/DataTable";
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import RequestErrorDetails from "@/components/RequestErrorDetails";
 import { useOrganisationsQuery } from "@/hooks/queryHooks";
 import type { ResponseError } from "@/utils/errors";
@@ -5,22 +7,34 @@ import type { Organisation } from "@/utils/types";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   createColumnHelper,
-  flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Breadcrumb, Table } from "nhsuk-react-components";
+import { useMemo } from "react";
 
-export const Route = createFileRoute("/organisations/")({
-  component: RouteComponent,
-});
+const OrganisationsPage: React.FC = () => {
+  const { data, isLoading, isError, error } = useOrganisationsQuery();
 
-const columnHelper = createColumnHelper<Organisation>();
+  return (
+    <>
+      <PageBreadcrumbs
+        backTo="/"
+        items={[
+          { to: "/", label: "Home" },
+          { to: "/organisations", label: "Organisations" },
+        ]}
+      />
+      <h1 className="nhsuk-heading-l">Organisations</h1>
+      {isLoading && <p>Loading organisations...</p>}
+      {isError && <RequestErrorDetails error={error as ResponseError} />}
+      {data && data.length > 0 && <OrganisationsDataTable data={data} />}
+    </>
+  );
+};
 
-const OrganisationsDataTable: React.FC<{ data: Organisation[] }> = ({
-  data,
-}) => {
-  const table = useReactTable({
+const useOrganisationsTable = (data: Organisation[]) => {
+  const columnHelper = useMemo(() => createColumnHelper<Organisation>(), []);
+  return useReactTable({
     data: data,
     columns: [
       columnHelper.accessor("name", {
@@ -45,68 +59,15 @@ const OrganisationsDataTable: React.FC<{ data: Organisation[] }> = ({
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
   });
-
-  return (
-    <Table>
-      <Table.Head>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Table.Row key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <Table.Cell key={header.id} colSpan={header.colSpan}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext(),
-                    )}
-              </Table.Cell>
-            ))}
-          </Table.Row>
-        ))}
-      </Table.Head>
-      <Table.Body>
-        {table.getRowModel().rows.map((row) => (
-          <Table.Row key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <Table.Cell key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </Table.Cell>
-            ))}
-          </Table.Row>
-        ))}
-      </Table.Body>
-    </Table>
-  );
 };
 
-function RouteComponent() {
-  const { data, isLoading, isError, error } = useOrganisationsQuery();
+const OrganisationsDataTable: React.FC<{ data: Organisation[] }> = ({
+  data,
+}) => {
+  const table = useOrganisationsTable(data);
+  return <DataTable table={table} />;
+};
 
-  return (
-    <>
-      <Breadcrumb className="nhsuk-u-margin-bottom-3">
-        <Breadcrumb.Back asElement={Link} to="/">
-          Back
-        </Breadcrumb.Back>
-        <Breadcrumb.Item
-          asElement={Link}
-          to="/"
-          className="nhsuk-link--no-visited-state"
-        >
-          Home
-        </Breadcrumb.Item>
-        <Breadcrumb.Item
-          asElement={Link}
-          to="/organisations"
-          className="nhsuk-link--no-visited-state"
-        >
-          Organisations
-        </Breadcrumb.Item>
-      </Breadcrumb>
-      <h1 className="nhsuk-heading-l">Organisations</h1>
-      {isLoading && <p>Loading organisations...</p>}
-      {isError && <RequestErrorDetails error={error as ResponseError} />}
-      {data && data.length > 0 && <OrganisationsDataTable data={data} />}
-    </>
-  );
-}
+export const Route = createFileRoute("/organisations/")({
+  component: OrganisationsPage,
+});

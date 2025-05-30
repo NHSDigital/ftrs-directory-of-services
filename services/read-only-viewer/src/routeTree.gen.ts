@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as OrganisationsIndexImport } from './routes/organisations/index'
 import { Route as OrganisationsOrganisationIDIndexImport } from './routes/organisations/$organisationID/index'
+import { Route as OrganisationsOrganisationIDEndpointsIndexImport } from './routes/organisations/$organisationID/endpoints/index'
 import { Route as OrganisationsOrganisationIDEndpointsEndpointIDImport } from './routes/organisations/$organisationID/endpoints/$endpointID'
 
 // Create/Update Routes
@@ -34,6 +35,13 @@ const OrganisationsOrganisationIDIndexRoute =
   OrganisationsOrganisationIDIndexImport.update({
     id: '/organisations/$organisationID/',
     path: '/organisations/$organisationID/',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const OrganisationsOrganisationIDEndpointsIndexRoute =
+  OrganisationsOrganisationIDEndpointsIndexImport.update({
+    id: '/organisations/$organisationID/endpoints/',
+    path: '/organisations/$organisationID/endpoints/',
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -76,6 +84,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganisationsOrganisationIDEndpointsEndpointIDImport
       parentRoute: typeof rootRoute
     }
+    '/organisations/$organisationID/endpoints/': {
+      id: '/organisations/$organisationID/endpoints/'
+      path: '/organisations/$organisationID/endpoints'
+      fullPath: '/organisations/$organisationID/endpoints'
+      preLoaderRoute: typeof OrganisationsOrganisationIDEndpointsIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -86,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/organisations': typeof OrganisationsIndexRoute
   '/organisations/$organisationID': typeof OrganisationsOrganisationIDIndexRoute
   '/organisations/$organisationID/endpoints/$endpointID': typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
+  '/organisations/$organisationID/endpoints': typeof OrganisationsOrganisationIDEndpointsIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -93,6 +109,7 @@ export interface FileRoutesByTo {
   '/organisations': typeof OrganisationsIndexRoute
   '/organisations/$organisationID': typeof OrganisationsOrganisationIDIndexRoute
   '/organisations/$organisationID/endpoints/$endpointID': typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
+  '/organisations/$organisationID/endpoints': typeof OrganisationsOrganisationIDEndpointsIndexRoute
 }
 
 export interface FileRoutesById {
@@ -101,6 +118,7 @@ export interface FileRoutesById {
   '/organisations/': typeof OrganisationsIndexRoute
   '/organisations/$organisationID/': typeof OrganisationsOrganisationIDIndexRoute
   '/organisations/$organisationID/endpoints/$endpointID': typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
+  '/organisations/$organisationID/endpoints/': typeof OrganisationsOrganisationIDEndpointsIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -110,18 +128,21 @@ export interface FileRouteTypes {
     | '/organisations'
     | '/organisations/$organisationID'
     | '/organisations/$organisationID/endpoints/$endpointID'
+    | '/organisations/$organisationID/endpoints'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/organisations'
     | '/organisations/$organisationID'
     | '/organisations/$organisationID/endpoints/$endpointID'
+    | '/organisations/$organisationID/endpoints'
   id:
     | '__root__'
     | '/'
     | '/organisations/'
     | '/organisations/$organisationID/'
     | '/organisations/$organisationID/endpoints/$endpointID'
+    | '/organisations/$organisationID/endpoints/'
   fileRoutesById: FileRoutesById
 }
 
@@ -130,6 +151,7 @@ export interface RootRouteChildren {
   OrganisationsIndexRoute: typeof OrganisationsIndexRoute
   OrganisationsOrganisationIDIndexRoute: typeof OrganisationsOrganisationIDIndexRoute
   OrganisationsOrganisationIDEndpointsEndpointIDRoute: typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
+  OrganisationsOrganisationIDEndpointsIndexRoute: typeof OrganisationsOrganisationIDEndpointsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -138,6 +160,8 @@ const rootRouteChildren: RootRouteChildren = {
   OrganisationsOrganisationIDIndexRoute: OrganisationsOrganisationIDIndexRoute,
   OrganisationsOrganisationIDEndpointsEndpointIDRoute:
     OrganisationsOrganisationIDEndpointsEndpointIDRoute,
+  OrganisationsOrganisationIDEndpointsIndexRoute:
+    OrganisationsOrganisationIDEndpointsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -153,7 +177,8 @@ export const routeTree = rootRoute
         "/",
         "/organisations/",
         "/organisations/$organisationID/",
-        "/organisations/$organisationID/endpoints/$endpointID"
+        "/organisations/$organisationID/endpoints/$endpointID",
+        "/organisations/$organisationID/endpoints/"
       ]
     },
     "/": {
@@ -167,6 +192,9 @@ export const routeTree = rootRoute
     },
     "/organisations/$organisationID/endpoints/$endpointID": {
       "filePath": "organisations/$organisationID/endpoints/$endpointID.tsx"
+    },
+    "/organisations/$organisationID/endpoints/": {
+      "filePath": "organisations/$organisationID/endpoints/index.tsx"
     }
   }
 }
