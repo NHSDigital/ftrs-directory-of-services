@@ -70,7 +70,6 @@ class DynamoDBRepository(BaseRepository[ModelType]):
                 table=self.table.name,
                 consumed_capacity=result.get("ConsumedCapacity"),
             )
-
         except ClientError as client_error:
             self.logger.log(
                 DDBLogBase.DDB_CORE_004,
@@ -98,7 +97,6 @@ class DynamoDBRepository(BaseRepository[ModelType]):
                 table=self.table.name,
                 consumed_capacity=response.get("ConsumedCapacity"),
             )
-
         except ClientError as client_error:
             self.logger.log(
                 DDBLogBase.DDB_CORE_007,
@@ -142,7 +140,6 @@ class DynamoDBRepository(BaseRepository[ModelType]):
                 table=self.table.name,
                 consumed_capacity=response.get("ConsumedCapacity"),
             )
-
         except ClientError as client_error:
             self.logger.log(
                 DDBLogBase.DDB_CORE_011,
@@ -193,7 +190,6 @@ class DynamoDBRepository(BaseRepository[ModelType]):
                 table=self.table.name,
                 consumed_capacity=response.get("ConsumedCapacity"),
             )
-
         except ClientError as client_error:
             self.logger.log(
                 DDBLogBase.DDB_CORE_014,
