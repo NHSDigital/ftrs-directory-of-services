@@ -1,5 +1,5 @@
 import pytest
-from dynamodb.constants import get_table_name
+from dynamodb.utils import get_table_name
 
 
 def test_get_table_name_no_workspace() -> None:

@@ -2,6 +2,7 @@ from enum import StrEnum
 
 MISSING_PARAMETERS = "entity_type and env parameters are required"
 
+
 class TargetEnvironment(StrEnum):
     local = "local"
     dev = "dev"

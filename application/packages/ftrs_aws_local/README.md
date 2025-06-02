@@ -3,6 +3,14 @@
 This package provides a set of tools to manage local AWS resources for the FTRS project, including DynamoDB and
 Postgres.
 
+## Current Packages
+
+- `ftrs_aws_local` - responsible for managing local AWS resources such as DynamoDB etc
+
+## Installation
+
+Poetry is used for dependency management and packaging. Ensure you have poetry installed, and then run `make install` to install packages from the ftrs_aws_local package.
+
 ## Start Database Container
 
 For local development, this project relies on a local Postgres and local DynamoDB instance running in a docker
@@ -30,7 +38,7 @@ This can be done using the `dos-etl reset` command.
 ftrs-aws-local reset \
     --init \
     --env local \
-    --endpoint-url http://localhost:8000 \
+    --endpoint-url http://localhost:8000
 ```
 
 The script can be aborted at the first prompt.

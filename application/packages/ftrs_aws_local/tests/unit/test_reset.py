@@ -6,7 +6,7 @@ from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from pytest_mock import MockerFixture
 from typer import Abort
 
-from dynamodb.constants import TargetEnvironment
+from dynamodb.utils import TargetEnvironment
 from dynamodb.reset import (
     DEFAULT_CLEARABLE_ENTITY_TYPES,
     ClearableEntityTypes,
