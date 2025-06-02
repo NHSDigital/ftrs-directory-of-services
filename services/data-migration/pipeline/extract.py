@@ -26,8 +26,6 @@ from pipeline.utils.opening_times import (
 from pipeline.utils.secret_utils import get_secret
 from pipeline.utils.validators import validate_path
 
-extract_logger = Logger.get(service="extract")
-
 
 def format_endpoints(gp_practice_endpoints: pd.DataFrame) -> pd.DataFrame:
     """Format the endpoints DataFrame."""
@@ -88,6 +86,7 @@ def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) 
         gp_practice_extract_column, services_columns, serviceendpoints_columns
     )
 
+    extract_logger = Logger.get(service="extract")
     extract_logger.log(
         ETLPipelineLogBase.ETL_EXTRACT_002,
         service_profiles_percentage=service_profiles_percentage,
@@ -154,6 +153,7 @@ def extract(
     Extract GP practice data from the source database and save it to the specified path.
     """
     path_type, output_path = validate_path(output, should_file_exist=False)
+    extract_logger = Logger.get(service="extract")
 
     extract_logger.log(ETLPipelineLogBase.ETL_EXTRACT_001, output_path=output_path)
     extract_gp_practice_df = extract_gp_practices(db_uri)
