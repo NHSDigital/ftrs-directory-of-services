@@ -37,7 +37,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration', 'crud_apis', 'read_only_viewer', 'opensearch']"
+      stacks: "['database', 'data_migration', 'crud_apis', 'read_only_viewer', 'opensearch', 'etl_ods']"
     secrets: inherit
 
   build-python-package:
@@ -136,7 +136,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration', 'crud_apis', 'read_only_viewer', 'opensearch']"
+      stacks: "['database', 'data_migration', 'crud_apis', 'read_only_viewer', 'opensearch', 'etl_ods']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
@@ -167,7 +167,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'data_migration', 'read_only_viewer', 'crud_apis', 'opensearch']"
+      stacks: "['database', 'data_migration', 'read_only_viewer', 'crud_apis', 'opensearch', 'etl_ods']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
