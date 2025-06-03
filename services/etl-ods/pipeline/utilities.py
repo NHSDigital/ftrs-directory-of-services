@@ -8,6 +8,7 @@ import requests
 from aws_lambda_powertools.utilities.parameters import get_parameter
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
+from requests import Response
 
 logger = logging.getLogger()
 
@@ -42,21 +43,35 @@ def get_signed_request_headers(
 
 
 def make_request(
-    url: str, params: dict = None, timeout: int = 20, sign: bool = False
-) -> dict:
+    url: str,
+    method: str = "GET",
+    params: dict = None,
+    timeout: int = 20,
+    sign: bool = False,
+    **kwargs: dict,
+) -> requests.Response:
     headers = {}
 
     if sign is True:
         parsed_url = urlparse(url)
         host = parsed_url.netloc
         headers = get_signed_request_headers(
-            method="GET", url=url, host=host, region="eu-west-2"
+            method=method,
+            url=url,
+            host=host,
+            region="eu-west-2",
         )
 
     try:
-        response = requests.get(url, params=params, headers=headers, timeout=timeout)
+        response = requests.request(
+            url=url,
+            method=method,
+            params=params,
+            headers=headers,
+            timeout=timeout,
+            **kwargs,
+        )
         response.raise_for_status()
-        return response.json()
 
     except requests.exceptions.HTTPError as http_err:
         logger.warning(
@@ -65,5 +80,7 @@ def make_request(
         raise
 
     except requests.exceptions.RequestException as e:
-        logger.warning(f"Request to {url} failed: {e}")
+        logger.warning(f"Request to {method} {url} failed: {e}")
         raise
+
+    return response

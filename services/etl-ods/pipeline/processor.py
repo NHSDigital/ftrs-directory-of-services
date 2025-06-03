@@ -40,7 +40,7 @@ def processor(
     try:
         organisations = fetch_sync_data(date)
         if not organisations:
-            logger.info("No organisations found for the given date.")
+            logger.info(f"No organisations found for the given date: {date}")
             return
         transformed_batch = []
         for organisation in organisations:
@@ -56,6 +56,7 @@ def processor(
             if len(transformed_batch) == BATCH_SIZE:
                 load_data(transformed_batch)
                 transformed_batch = []
+
         if len(transformed_batch) > 0:
             load_data(transformed_batch)
 

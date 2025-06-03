@@ -1,12 +1,16 @@
 import logging
 from unittest.mock import MagicMock, patch
 
+from requests_mock import Mocker as RequestsMock
 import pytest
 
 from pipeline.consumer import (
     consumer_lambda_handler,
     process_message_and_send_request,
+    RequestProcessingError,
 )
+from requests.exceptions import HTTPError
+from http import HTTPStatus
 
 
 @patch("pipeline.consumer.process_message_and_send_request")
@@ -108,14 +112,15 @@ def test_consumer_lambda_handler_handle_missing_message_parameters(
     )
 
 
-@patch("pipeline.consumer.requests.put")
-@patch("os.environ", {"ORGANISATION_API_URL": "organisation_api_url"})
 def test_process_message_and_send_request_success(
-    mock_requests_put: MagicMock, caplog: pytest.LogCaptureFixture
+    requests_mock: RequestsMock,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_requests_put.return_value = mock_response
+    mock_call = requests_mock.put(
+        "http://test-crud-api/organisation/uuid",
+        json={"status": "success"},
+        status_code=HTTPStatus.OK,
+    )
 
     record = {
         "messageId": "1",
@@ -124,20 +129,22 @@ def test_process_message_and_send_request_success(
 
     process_message_and_send_request(record)
 
-    mock_requests_put.assert_called_once_with(
-        "organisation_api_url/uuid", json={"name": "Organisation Name"}
-    )
     assert "Successfully sent request. Response status code: 200" in caplog.text
 
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/organisation/uuid"
+    assert mock_call.last_request.json() == {"name": "Organisation Name"}
 
-@patch("pipeline.consumer.requests.put")
-@patch("os.environ", {"ORGANISATION_API_URL": "organisation_api_url"})
+
 def test_process_message_and_send_request_unprocessable(
-    mock_requests_put: MagicMock, caplog: pytest.LogCaptureFixture
+    requests_mock: RequestsMock,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    mock_response = MagicMock()
-    mock_response.status_code = 422
-    mock_requests_put.return_value = mock_response
+    mock_call = requests_mock.put(
+        "http://test-crud-api/organisation/uuid",
+        json={"error": "Unprocessable Entity"},
+        status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+    )
 
     record = {
         "messageId": "1",
@@ -147,23 +154,21 @@ def test_process_message_and_send_request_unprocessable(
 
     process_message_and_send_request(record)
 
-    mock_requests_put.assert_called_once_with(
-        "organisation_api_url/uuid", json={"name": "Organisation Name"}
-    )
-
     assert "Bad request returned for message id: 1. Not re-processing." in caplog.text
 
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/organisation/uuid"
 
-@patch("pipeline.consumer.requests.put")
-@patch("os.environ", {"ORGANISATION_API_URL": "organisation_api_url"})
+
 def test_process_message_and_send_request_failure(
-    mock_requests_put: MagicMock, caplog: pytest.LogCaptureFixture
+    requests_mock: RequestsMock,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    # Mock response
-    mock_response = MagicMock()
-    mock_response.status_code = 500
-    mock_response.text = "Internal Server Error"
-    mock_requests_put.return_value = mock_response
+    mock_call = requests_mock.put(
+        "http://test-crud-api/organisation/uuid",
+        json={"error": "Internal Server Error"},
+        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+    )
 
     record = {
         "messageId": "1",
@@ -172,13 +177,9 @@ def test_process_message_and_send_request_failure(
     }
     caplog.set_level(logging.ERROR)
 
-    with pytest.raises(Exception):
+    with pytest.raises(RequestProcessingError):
         process_message_and_send_request(record)
 
-    mock_requests_put.assert_called_once_with(
-        "organisation_api_url/uuid", json={"name": "Organisation Name"}
-    )
-    assert (
-        "Failed to send request for message id: 1. Status Code: 500, Response: Internal Server Error"
-        in caplog.text
-    )
+    assert "Request failed for message id: 1" in caplog.text
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/organisation/uuid"

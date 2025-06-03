@@ -16,25 +16,21 @@ from pipeline.utilities import (
     os.environ,
     {
         "ENVIRONMENT": "dev",
-        "WORKSPACE": "test_workspace",
+        "WORKSPACE": "test-workspace",
     },
 )
-@patch("pipeline.utilities.get_parameter")
 def test_get_base_crud_api_url(
-    get_parameter_mock: MagicMock,
+    mock_get_parameter: MagicMock,
 ) -> None:
     get_base_crud_api_url.cache_clear()
-
-    get_parameter_mock.return_value = "https://api.example.com"
-    expected_url = "https://api.example.com"
-
+    expected_url = "http://test-crud-api"
     url = get_base_crud_api_url()
 
     assert url == expected_url
 
-    assert get_parameter_mock.call_count == 1
-    get_parameter_mock.assert_called_once_with(
-        name="/ftrs-dos-dev-crud-apis-test_workspace/endpoint"
+    assert mock_get_parameter.call_count == 1
+    mock_get_parameter.assert_called_once_with(
+        name="/ftrs-dos-dev-crud-apis-test-workspace/endpoint"
     )
 
 
@@ -111,7 +107,7 @@ def test_make_request_success(mock_get: MagicMock) -> None:
     url = "https://api.example.com/resource"
     result = make_request(url)
 
-    assert result == {"key": "value"}
+    assert result.json() == {"key": "value"}
     mock_get.assert_called_once_with(url, params=None, timeout=20, headers={})
 
 
@@ -129,7 +125,8 @@ def test_make_request_with_params(mock_get: MagicMock) -> None:
     params = {"param1": "value1", "param2": "value2"}
     result = make_request(url, params=params)
 
-    assert result == {"key": "value"}
+    assert result.status_code == 200
+    assert result.json() == {"key": "value"}
     mock_get.assert_called_once_with(url, params=params, timeout=20, headers={})
 
 
@@ -157,7 +154,8 @@ def test_make_request_signed_request(
     url = "https://api.example.com/resource"
     result = make_request(url, sign=True)
 
-    assert result == {"key": "value"}
+    assert result.status_code == 200
+    assert result.json() == {"key": "value"}
     mock_get.assert_called_once_with(
         url, params=None, timeout=20, headers=mock_get.call_args[1]["headers"]
     )

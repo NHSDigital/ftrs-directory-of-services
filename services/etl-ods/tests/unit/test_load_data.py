@@ -104,30 +104,26 @@ class TestLoad(unittest.TestCase):
     @patch("logging.warning")
     def test_load_data_get_queue_url_exception(self, mock_warning: any) -> None:
         """Test exception handling when getting queue URL fails"""
-        with patch.dict(
-            "os.environ",
-            {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
-        ):
-            with patch("boto3.client") as mock_boto_client:
-                mock_sqs = MagicMock()
-                mock_boto_client.return_value = mock_sqs
+        with patch("boto3.client") as mock_boto_client:
+            mock_sqs = MagicMock()
+            mock_boto_client.return_value = mock_sqs
 
-                mock_sqs.get_queue_url.side_effect = ClientError(
-                    error_response={
-                        "Error": {
-                            "Code": "QueueDoesNotExist",
-                            "Message": "Queue not found",
-                        }
-                    },
-                    operation_name="GetQueueUrl",
-                )
-                test_data = ["message1"]
+            mock_sqs.get_queue_url.side_effect = ClientError(
+                error_response={
+                    "Error": {
+                        "Code": "QueueDoesNotExist",
+                        "Message": "Queue not found",
+                    }
+                },
+                operation_name="GetQueueUrl",
+            )
+            test_data = ["message1"]
 
-                with pytest.raises(Exception):
-                    load_data(test_data)
+            with pytest.raises(Exception):
+                load_data(test_data)
 
-                warning_call = mock_warning.call_args[0][0]
-                self.assertIn(
-                    "Error sending data to queue with error",
-                    warning_call,
-                )
+            warning_call = mock_warning.call_args[0][0]
+            self.assertIn(
+                "Error sending data to queue with error",
+                warning_call,
+            )

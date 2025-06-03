@@ -1,6 +1,6 @@
 import logging
 from unittest.mock import MagicMock, patch
-
+from requests_mock import Mocker as RequestsMock
 import pytest
 
 from pipeline.extract import (
@@ -21,73 +21,81 @@ def set_log_level(caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.WARNING)
 
 
-@pytest.fixture
-def mock_response() -> MagicMock:
-    """Fixture to create a mock response object."""
-    response = MagicMock()
-    response.status_code = 200
-    response.json.return_value = {
-        "Organisations": [{"OrgLink": "https://example.com/organisations/ABC123"}]
-    }
-    return response
+# @pytest.fixture
+# def mock_response() -> MagicMock:
+#     """Fixture to create a mock response object."""
+#     response = MagicMock()
+#     response.status_code = 200
+#     response.json.return_value = {
+#         "Organisations": [{"OrgLink": "https://example.com/organisations/ABC123"}]
+#     }
+#     return response
 
 
-@patch("pipeline.extract.make_request")
-def test_fetch_sync_data(mock_make_request: MagicMock) -> None:
-    mock_make_request.return_value = {
-        "Organisations": [{"OrgLink": "https:///organisations/ABC123"}]
-    }
+def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?",
+        json={"Organisations": [{"OrgLink": "https:///organisations/ABC123"}]},
+    )
+
     date = "2025-05-14"
     result = fetch_sync_data(date)
+
     assert result == [{"OrgLink": "https:///organisations/ABC123"}]
-    mock_make_request.assert_called_once_with(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?",
-        params={"LastChangeDate": date},
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/sync"
+    assert mock_call.last_request.qs == {"lastchangedate": [date]}
+
+
+def test_fetch_organisation_data(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123",
+        json={"Organisation": {"Name": "Test Organisation"}},
     )
 
-
-@patch("pipeline.extract.make_request")
-def test_fetch_organisation_data(
-    mock_make_request: MagicMock,
-) -> None:
-    mock_make_request.return_value = {"Organisation": {"Name": "Test Organisation"}}
     ods_code = "ABC123"
     result = fetch_organisation_data(ods_code)
-    mock_make_request.assert_called_once_with(
-        f"https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/{ods_code}"
-    )
     assert result == {"Name": "Test Organisation"}
 
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/organisations/abc123"
 
-@patch("pipeline.extract.make_request")
+
 def test_fetch_organisation_data_no_organisations(
-    mock_make_request: MagicMock, caplog: pytest.LogCaptureFixture
+    requests_mock: RequestsMock,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    mock_make_request.return_value = {}
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123",
+        json={},
+    )
+
     ods_code = "ABC123"
     result = fetch_organisation_data(ods_code)
-    mock_make_request.assert_called_once_with(
-        f"https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/{ods_code}"
-    )
+
     assert result == []
     assert (
         "No organisation found in the response for the given ODS code ABC123"
         in caplog.text
     )
 
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/organisations/abc123"
 
-@patch("pipeline.extract.make_request")
-def test_fetch_organisation_role(mock_make_request: MagicMock) -> None:
-    mock_make_request.return_value = {"displayName": "Test Role"}
-    roles = [
-        RoleItem(id="123", primaryRole=True),
-    ]
 
-    result = fetch_organisation_role(roles)
-    mock_make_request.assert_called_once_with(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/123"
+def test_fetch_organisation_role(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/123",
+        json={"displayName": "Test Role"},
     )
+
+    roles = [RoleItem(id="123", primaryRole=True)]
+    result = fetch_organisation_role(roles)
+
     assert result == {"displayName": "Test Role"}
+
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/roles/123"
 
 
 def test_fetch_organisation_role_no_primary_role() -> None:
@@ -97,19 +105,17 @@ def test_fetch_organisation_role_no_primary_role() -> None:
         fetch_organisation_role(roles)
 
 
-@patch("pipeline.extract.make_request")
-@patch.dict(
-    "os.environ",
-    {"ENVIRONMENT": "local", "LOCAL_CRUD_API_URL": "https://localhost:8001"},
-)
-def test_fetch_organisation_uuid(mock_make_request: MagicMock) -> None:
-    mock_make_request.return_value = {"id": "UUID123"}
-    ods_code = "ABC123"
-    result = fetch_organisation_uuid(ods_code)
-    assert result == "UUID123"
-    mock_make_request.assert_called_once_with(
-        f"https://localhost:8001/organisation/ods_code/{ods_code}", sign=True
+def test_fetch_organisation_uuid(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "http://test-crud-api/organisation/ods_code/ABC123",
+        json={"id": "UUID123"},
     )
+
+    result = fetch_organisation_uuid("ABC123")
+    assert result == "UUID123"
+
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/organisation/ods_code/abc123"
 
 
 def test_extract_organisation_data() -> None:
