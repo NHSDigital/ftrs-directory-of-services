@@ -10,9 +10,3 @@ resource "aws_s3_bucket_versioning" "versioning" {
     status = "Enabled"
   }
 }
-resource "aws_s3_object" "truststore_pem" {
-  bucket = module.trust_store_s3_bucket.truststore.id
-  key    = "mtls/truststore.pem"
-  source = "truststore.pem" # Local path to truststore file
-  etag   = filemd5("truststore.pem")
-}
