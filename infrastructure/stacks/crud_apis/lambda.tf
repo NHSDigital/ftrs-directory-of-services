@@ -97,6 +97,189 @@ module "healthcare_service_api_lambda" {
   }
 }
 
+module "location_api_lambda" {
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.location_api_lambda_name}"
+  description             = "Lambda to expose CRUD apis for locations"
+  handler                 = var.location_api_lambda_handler
+  runtime                 = var.location_api_lambda_runtime
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  ignore_source_code_hash = false
+  timeout                 = var.location_api_lambda_timeout
+  memory_size             = var.location_api_lambda_memory_size
+
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
+
+  number_of_policy_jsons = "3"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_access_policy.json
+  ]
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
+
+  environment_variables = {
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+  }
+
+  allowed_triggers = {
+    AllowExecutionFromAPIGateway = {
+      service    = "apigateway"
+      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+    }
+  }
+}
+
+module "healthcare_service_api_lambda" {
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.healthcare_service_api_lambda_name}"
+  description             = "Lambda to expose CRUD apis for healthcare services"
+  handler                 = var.healthcare_service_api_lambda_handler
+  runtime                 = var.healthcare_service_api_lambda_runtime
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  ignore_source_code_hash = false
+  timeout                 = var.healthcare_service_api_lambda_timeout
+  memory_size             = var.healthcare_service_api_lambda_memory_size
+
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.healthcare_service_api_lambda_security_group.id]
+
+  number_of_policy_jsons = "3"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_access_policy.json
+  ]
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
+
+
+  environment_variables = {
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+  }
+
+  allowed_triggers = {
+    AllowExecutionFromAPIGateway = {
+      service    = "apigateway"
+      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+    }
+  }
+}
+
+module "location_api_lambda" {
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.location_api_lambda_name}"
+  description             = "Lambda to expose CRUD apis for locations"
+  handler                 = var.location_api_lambda_handler
+  runtime                 = var.location_api_lambda_runtime
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  ignore_source_code_hash = false
+  timeout                 = var.location_api_lambda_timeout
+  memory_size             = var.location_api_lambda_memory_size
+
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
+
+  number_of_policy_jsons = "3"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_access_policy.json
+  ]
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
+
+  environment_variables = {
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+  }
+}
+
+module "healthcare_service_api_lambda" {
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.healthcare_service_api_lambda_name}"
+  description             = "Lambda to expose CRUD apis for healthcare services"
+  handler                 = var.healthcare_service_api_lambda_handler
+  runtime                 = var.healthcare_service_api_lambda_runtime
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  ignore_source_code_hash = false
+  timeout                 = var.healthcare_service_api_lambda_timeout
+  memory_size             = var.healthcare_service_api_lambda_memory_size
+
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.healthcare_service_api_lambda_security_group.id]
+
+  number_of_policy_jsons = "3"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_access_policy.json
+  ]
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
+
+
+  environment_variables = {
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+  }
+}
+
+module "location_api_lambda" {
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.location_api_lambda_name}"
+  description             = "Lambda to expose CRUD apis for locations"
+  handler                 = var.location_api_lambda_handler
+  runtime                 = var.location_api_lambda_runtime
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  ignore_source_code_hash = false
+  timeout                 = var.location_api_lambda_timeout
+  memory_size             = var.location_api_lambda_memory_size
+
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
+
+  number_of_policy_jsons = "3"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_access_policy.json
+  ]
+  layers = concat(
+    [
+      aws_lambda_layer_version.python_dependency_layer.arn,
+      aws_lambda_layer_version.common_packages_layer.arn,
+    ],
+  )
+
+  environment_variables = {
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+  }
+}
+
 data "aws_iam_policy_document" "vpc_access_policy" {
   statement {
     effect = "Allow"
@@ -143,4 +326,45 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       ]
     ])
   }
+}
+
+resource "aws_lambda_function_url" "organisation_api" {
+  function_name      = module.organisation_api_lambda.lambda_function_name
+  authorization_type = "NONE"
+}
+
+
+resource "aws_ssm_parameter" "organisation_api_function_url" {
+  name        = "/${local.resource_prefix}${local.workspace_suffix}/organisation-api/function-url"
+  description = "The function URL for the organisation API Lambda"
+  type        = "String"
+  value       = aws_lambda_function_url.organisation_api.function_url
+}
+
+
+resource "aws_lambda_function_url" "healthcare_service_api" {
+  function_name      = module.healthcare_service_api_lambda.lambda_function_name
+  authorization_type = "NONE"
+}
+
+
+resource "aws_ssm_parameter" "healthcare_service_function_url" {
+  name        = "/${local.resource_prefix}${local.workspace_suffix}/healthcare_service-api/function-url"
+  description = "The function URL for the healthcare service API Lambda"
+  type        = "String"
+  value       = aws_lambda_function_url.healthcare_service_api.function_url
+}
+
+
+resource "aws_lambda_function_url" "location_api" {
+  function_name      = module.location_api_lambda.lambda_function_name
+  authorization_type = "NONE"
+}
+
+
+resource "aws_ssm_parameter" "location_api_function_url" {
+  name        = "/${local.resource_prefix}${local.workspace_suffix}/location-api/function-url"
+  description = "The function URL for the location API Lambda"
+  type        = "String"
+  value       = aws_lambda_function_url.location_api.function_url
 }
