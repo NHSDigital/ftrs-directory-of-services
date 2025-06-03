@@ -7,6 +7,7 @@ from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper
 from utilities.common.schema_loader import oas_spec
 from utilities.infra import dynamodb_util
+from step_definitions.common_steps.data_steps import *
 
 # Load feature file
 scenarios("./is_infra_features/lambda.feature")
@@ -130,9 +131,9 @@ def countResources(lambda_response, resource_type):
         )
 
 
-@then(parsers.parse('I can retrieve data for id "{id}" in the dynamoDB table "{table_name}"'))
-def dynamodb_get( project, workspace, env, id, table_name):
-    stack = "database"
-    dynamo_table_name = dynamodb_util.get_dynamo_name(project, workspace, env, stack, table_name)
-    response = dynamodb_util.get_record_by_id(dynamo_table_name, id)
-    assert response["id"] == id, f"Expected id {id}, but got {response['id']}"
+# @then(parsers.parse('I can retrieve data for id "{id}" in the dynamoDB table "{table_name}"'))
+# def dynamodb_get( project, workspace, env, id, table_name):
+#     stack = "database"
+#     dynamo_table_name = dynamodb_util.get_dynamo_name(project, workspace, env, stack, table_name)
+#     response = dynamodb_util.get_record_by_id(dynamo_table_name, id)
+#     assert response["id"] == id, f"Expected id {id}, but got {response['id']}"

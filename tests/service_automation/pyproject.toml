@@ -46,3 +46,6 @@ markers = [
     "is-lambda: marks test as IS lambda related",
     "test:"
 ]
+filterwarnings = [
+    'ignore:.*datetime.datetime.utcnow*',
+]

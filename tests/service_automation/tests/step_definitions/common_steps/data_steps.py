@@ -2,7 +2,7 @@ import pytest
 from utilities.common.config import config
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
-from utilities.infra.dynamodb_util import dynamodb
+from utilities.infra import dynamodb_util
 
 scenarios("./is_infra_features/lambda.feature")
 
@@ -20,11 +20,13 @@ def dynamodb_add(context, file_name, resource_name):
     dynamodb.add_record_from_file(table_name, body)
 
 
-# @then(parsers.parse("I can retrieve data for id "{id}" in the dynamoDB table"))
-# def dynamodb_get(context, id):
-#     table_name = context.resource_name + context.workspace
-#     response = dynamodb.get_record_by_id(table_name, id)
-#     assert response["Item"]["id"].is_equal_to(id)
+@then(parsers.parse('I can retrieve data for id "{id}" in the dynamoDB table "{table_name}"'))
+def dynamodb_get( project, workspace, env, id, table_name):
+    stack = "database"
+    dynamo_table_name = dynamodb_util.get_dynamo_name(project, workspace, env, stack, table_name)
+    response = dynamodb_util.get_record_by_id(dynamo_table_name, id)
+    assert response["id"] == id, f"Expected id {id}, but got {response['id']}"
+
 
 
 @then("data for id {id} in the dynamoDB table has been deleted")
