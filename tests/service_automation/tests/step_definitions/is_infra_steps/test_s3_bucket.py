@@ -8,6 +8,7 @@ from utilities.common import directories, csv_reader
 
 # Load feature file
 scenarios("./is_infra_features/s3.feature")
+# scenarios("./is_infra_features/")
 
 
 @pytest.fixture(scope="module")

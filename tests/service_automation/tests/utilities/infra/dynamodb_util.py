@@ -1,13 +1,20 @@
 import json
 import boto3
+from loguru import logger
+from boto3.dynamodb.conditions import Key
+
 
 dynamodb = boto3.resource("dynamodb")
 
 
-def get_record_by_id(tablename, id: str):
+def get_record_by_id(tablename, id):
     table = dynamodb.Table(tablename)
-    response = table.get_item(Key={"id": id})
-    return response
+    # response = table.get_item(Key={"id": id})
+    response = table.query(
+        KeyConditionExpression=Key('id').eq(id)
+    )
+    logger.debug(f"Retrieved item with id {id} from table {tablename}: {response}")
+    return response["Items"][0]
 
 
 def add_record(tablename, item):
@@ -28,3 +35,13 @@ def delete_record_by_id(tablename, id):
     table = dynamodb.Table(tablename)
     response = table.delete_item(Key={"id": id})
     return response
+
+
+def get_dynamo_name(project, workspace, env, stack, table_name):
+    logger.debug(f"project: {project},  table_name: {table_name}, stack: {stack}, env: {env}, workspace: {workspace}")
+    if workspace == "default":
+        table_name = project + "-" + env + "-" + stack + "-" + table_name
+    else:
+        table_name = project + "-" + env + "-" + stack + "-" + table_name + "-" + workspace
+    logger.debug("dynamo table name {}", table_name)
+    return table_name

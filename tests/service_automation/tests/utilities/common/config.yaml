@@ -7,7 +7,7 @@ environments:
     api_key:
     search_engine_id:
     project:  ftrs-dos
-    workspace:
+    organisation_body: data_json/organisation_post_body.json
 
 
   nonprod:
