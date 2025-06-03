@@ -354,7 +354,7 @@ class HealthcareService(DBModel):
         return items if len(items) > 0 else None
 
 
-format_to_payloadMimeType = {
+payloadMimeType_mapping = {
     "PDF": "application/pdf",
     "HTML": "text/html",
     "FHIR": "application/fhir",
@@ -398,7 +398,7 @@ class Endpoint(DBModel):
         """
         payload_type = data["interaction"]
 
-        payloadMimeType = format_to_payloadMimeType.get(data["format"], data["format"])
+        payloadMimeType = payloadMimeType_mapping.get(data["format"], data["format"])
 
         if data["transport"] == "telno":
             payload_type = None
