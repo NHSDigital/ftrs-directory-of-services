@@ -34,6 +34,7 @@ module "lambda" {
     "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
     "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
   }
+
 }
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
   security_group_id = aws_security_group.gp_search_lambda_security_group.id
@@ -42,6 +43,15 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhe
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
   description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
+}
+
+module "search_api_gateway_permissions" {
+  source = "../../modules/api-gateway-permissions"
+
+  account_id           = local.account_id
+  aws_region           = var.aws_region
+  lambda_function_name = "${local.resource_prefix}-${var.lambda_name}"
+  rest_api_id          = module.search_rest_api.rest_api_id
 }
 data "aws_iam_policy_document" "vpc_access_policy" {
   statement {

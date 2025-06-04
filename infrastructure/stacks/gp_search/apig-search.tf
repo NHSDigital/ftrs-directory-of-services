@@ -17,7 +17,7 @@ resource "aws_api_gateway_method" "search_get" {
 
 module "search_integrations_get" {
   source               = "../../modules/api-gateway-integrations"
-  aws_region           = "eu-west-2" # to be converted to a variable
+  aws_region           = var.aws_region
   account_id           = local.account_id
   rest_api_id          = module.search_rest_api.rest_api_id
   http_method          = aws_api_gateway_method.search_get.http_method
