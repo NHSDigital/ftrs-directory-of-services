@@ -19,15 +19,14 @@ module "api_gateway" {
       }
     }
 
-    # TODO: Uncomment and configure the following routes as needed
-    # "ANY /healthcare-service/{proxy+}" = {
-    #   authorization_type = "AWS_IAM"
-    #   integration = {
-    #     uri                    = module.healthcare_service_api_lambda.lambda_function_arn
-    #     payload_format_version = "2.0"
-    #     timeout_milliseconds   = 10000
-    #   }
-    # }
+    "ANY /healthcare-service/{proxy+}" = {
+      authorization_type = "AWS_IAM"
+      integration = {
+        uri                    = module.healthcare_service_api_lambda.lambda_function_arn
+        payload_format_version = "2.0"
+        timeout_milliseconds   = 10000
+      }
+    }
 
     # "ANY /location/{proxy+}" = {
     #   authorization_type = "AWS_IAM"
