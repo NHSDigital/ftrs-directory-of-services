@@ -1,9 +1,10 @@
 import os
-import os
+from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
+from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
     get_base_crud_api_url,
@@ -94,55 +95,75 @@ def test_get_signed_request_headers() -> None:
     assert headers["Host"] == host
 
 
-@patch("pipeline.utilities.requests.get")
-def test_make_request_success(mock_get: MagicMock) -> None:
+def test_make_request_success(requests_mock: RequestsMock) -> None:
     """
     Test the make_request function for a successful request.
     """
-    mock_response = MagicMock()
-    mock_response.json.return_value = {"key": "value"}
-    mock_response.status_code = 200
-    mock_get.return_value = mock_response
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
 
     url = "https://api.example.com/resource"
     result = make_request(url)
 
     assert result.json() == {"key": "value"}
-    mock_get.assert_called_once_with(url, params=None, timeout=20, headers={})
+
+    assert mock_call.last_request.url == url
+    assert mock_call.last_request.method == "GET"
+    assert mock_call.last_request.headers == {
+        "User-Agent": "python-requests/2.32.3",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+    }
 
 
-@patch("pipeline.utilities.requests.get")
-def test_make_request_with_params(mock_get: MagicMock) -> None:
+def test_make_request_with_params(requests_mock: RequestsMock) -> None:
     """
     Test the make_request function with parameters.
     """
-    mock_response = MagicMock()
-    mock_response.json.return_value = {"key": "value"}
-    mock_response.status_code = 200
-    mock_get.return_value = mock_response
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
 
     url = "https://api.example.com/resource"
     params = {"param1": "value1", "param2": "value2"}
     result = make_request(url, params=params)
 
-    assert result.status_code == 200
+    assert result.status_code == HTTPStatus.OK
     assert result.json() == {"key": "value"}
-    mock_get.assert_called_once_with(url, params=params, timeout=20, headers={})
+
+    assert (
+        mock_call.last_request.url
+        == "https://api.example.com/resource?param1=value1&param2=value2"
+    )
+    assert mock_call.last_request.method == "GET"
+    assert mock_call.last_request.headers == {
+        "User-Agent": "python-requests/2.32.3",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+    }
+    assert mock_call.last_request.qs == {"param1": ["value1"], "param2": ["value2"]}
 
 
-@patch("pipeline.utilities.requests.get")
 @patch("pipeline.utilities.get_signed_request_headers")
 def test_make_request_signed_request(
     mock_get_headers: MagicMock,
-    mock_get: MagicMock,
+    requests_mock: RequestsMock,
 ) -> None:
     """
     Test the make_request function with signed request.
     """
-    mock_response = MagicMock()
-    mock_response.json.return_value = {"key": "value"}
-    mock_response.status_code = 200
-    mock_get.return_value = mock_response
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
 
     mock_get_headers.return_value = {
         "Authorization": "MockedAuthorization",
@@ -154,47 +175,62 @@ def test_make_request_signed_request(
     url = "https://api.example.com/resource"
     result = make_request(url, sign=True)
 
-    assert result.status_code == 200
+    assert result.status_code == HTTPStatus.OK
     assert result.json() == {"key": "value"}
-    mock_get.assert_called_once_with(
-        url, params=None, timeout=20, headers=mock_get.call_args[1]["headers"]
-    )
 
     mock_get_headers.assert_called_once_with(
         method="GET", url=url, host="api.example.com", region="eu-west-2"
     )
 
+    assert mock_call.last_request.url == url
+    assert mock_call.last_request.method == "GET"
+    assert mock_call.last_request.headers == {
+        "User-Agent": "python-requests/2.32.3",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Authorization": "MockedAuthorization",
+        "X-Amz-Date": "MockedDate",
+        "X-Amz-Security-Token": "MockedToken",
+        "Host": "api.example.com",
+    }
 
-@patch("pipeline.utilities.requests.get")
-def test_make_request_http_error(mock_get: MagicMock) -> None:
+
+def test_make_request_http_error(requests_mock: RequestsMock) -> None:
     """
     Test the make_request function for an HTTP error.
     """
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-        "404 Not Found"
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        status_code=HTTPStatus.NOT_FOUND,
+        json={"error": "Resource not found"},
     )
-    mock_get.return_value = mock_response
 
     url = "https://api.example.com/resource"
 
-    with pytest.raises(requests.exceptions.HTTPError, match="404 Not Found"):
+    with pytest.raises(
+        requests.exceptions.HTTPError,
+        match="404 Client Error: None for url: https://api.example.com/resource",
+    ):
         make_request(url)
 
-    mock_get.assert_called_once_with(url, params=None, timeout=20, headers={})
+    assert mock_call.last_request.url == url
+    assert mock_call.last_request.method == "GET"
 
 
-@patch("pipeline.utilities.requests.get")
-def test_make_request_request_exception(mock_get: MagicMock) -> None:
+def test_make_request_request_exception(requests_mock: RequestsMock) -> None:
     """
     Test the make_request function for a request exception.
     """
-    mock_get.side_effect = requests.exceptions.RequestException("Connection error")
+    mock_get = requests_mock.get(
+        "https://api.example.com/resource",
+        exc=requests.exceptions.RequestException("Connection error"),
+    )
 
     url = "https://api.example.com/resource"
 
     with pytest.raises(requests.exceptions.RequestException, match="Connection error"):
         make_request(url)
 
-    mock_get.assert_called_once_with(url, params=None, timeout=20, headers={})
+    assert mock_get.last_request.url == url
+    assert mock_get.last_request.method == "GET"

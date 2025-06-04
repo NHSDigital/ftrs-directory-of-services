@@ -1,6 +1,7 @@
 import logging
-from requests_mock import Mocker as RequestsMock
+
 import pytest
+from requests_mock import Mocker as RequestsMock
 
 from pipeline.extract import (
     extract_contact,

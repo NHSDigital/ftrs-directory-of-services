@@ -86,6 +86,7 @@ def fetch_organisation_uuid(ods_code: str) -> str:
             err_msg = "Organisation not found in database"
             logger.warning(err_msg)
             raise ValueError(err_msg) from http_err
+
         raise
 
 

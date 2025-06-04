@@ -31,9 +31,7 @@ STATUS_SUCCESSFUL = 200
 BATCH_SIZE = 10
 
 
-def processor(
-    date: str,
-) -> None:
+def processor(date: str) -> None:
     """
     Extract GP practice data from the source, transform to payload and log it out.
     """
@@ -63,6 +61,7 @@ def processor(
     except requests.exceptions.RequestException as e:
         logger.warning(f"Error fetching data: {e}")
         raise
+
     except Exception as e:
         logger.warning(f"Unexpected error: {e}")
         raise

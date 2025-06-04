@@ -1,16 +1,15 @@
 import logging
+from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
-from requests_mock import Mocker as RequestsMock
 import pytest
+from requests_mock import Mocker as RequestsMock
 
 from pipeline.consumer import (
+    RequestProcessingError,
     consumer_lambda_handler,
     process_message_and_send_request,
-    RequestProcessingError,
 )
-from requests.exceptions import HTTPError
-from http import HTTPStatus
 
 
 @patch("pipeline.consumer.process_message_and_send_request")

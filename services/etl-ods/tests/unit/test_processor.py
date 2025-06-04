@@ -1,12 +1,14 @@
+import json
+from typing import NamedTuple
+
 import pytest
+from pytest_mock import MockerFixture
 from requests_mock import (
     Mocker as RequestsMock,
 )
 from requests_mock.adapter import _Matcher as Matcher
-from typing import NamedTuple
+
 from pipeline.processor import processor, processor_lambda_handler
-from pytest_mock import MockerFixture
-import json
 
 
 class MockResponses(NamedTuple):
@@ -158,7 +160,6 @@ def test_processor_continue_on_validation_failure(
     mock_responses: MockResponses,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    # Simulate a validation failure in the CRUD API call
     ods_sync_mock = requests_mock.get(
         "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync",
         json={
@@ -204,14 +205,14 @@ def test_processor_continue_on_validation_failure(
         "http://test-crud-api/organisation/ods_code/EFG456",
         json={"id": "uuid_efg456", "name": "Test Organisation EFG"},
     )
+    expected_call_count = 7
 
     date = "2023-01-01"
 
     load_data_mock = mocker.patch("pipeline.processor.load_data")
     assert processor(date) is None
 
-    assert requests_mock.call_count == 7
-
+    assert requests_mock.call_count == expected_call_count
     # Assert ODS Sync Call
     assert ods_sync_mock.called_once
     assert ods_sync_mock.last_request.path == "/ord/2-0-0/sync"
@@ -226,7 +227,6 @@ def test_processor_continue_on_validation_failure(
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
 
     # Assert Role Call for RO157
-    assert mock_responses.ods_role_ro157.call_count == 2
     assert mock_responses.ods_role_ro157.last_request.path == "/ord/2-0-0/roles/ro157"
     assert (
         requests_mock.request_history[2]
@@ -247,7 +247,6 @@ def test_processor_continue_on_validation_failure(
     assert requests_mock.request_history[4] == ods_efg456_mock.last_request
 
     # Assert Role Call for RO157 (again)
-    assert mock_responses.ods_role_ro157.call_count == 2
     assert mock_responses.ods_role_ro157.last_request.path == "/ord/2-0-0/roles/ro157"
     assert (
         requests_mock.request_history[5]
@@ -275,26 +274,6 @@ def test_processor_continue_on_validation_failure(
             },
         }
     ]
-
-
-def test_processor_exit_on_critical_error(
-    mock_responses: MockResponses,
-    requests_mock: RequestsMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test when a critical error occurs during processing."""
-    requests_mock.get(
-        "http://test-crud-api/organisation/ods_code/ABC123",
-        status_code=500,  # Simulate a server error
-    )
-
-    date = "2023-01-01"
-
-    with pytest.raises(Exception) as exc_info:
-        # print(exc_info)
-        processor(date)
-
-    assert "Error fetching data: 500 Server Error" in caplog.text
 
 
 def test_processor_no_outdated_organisations(

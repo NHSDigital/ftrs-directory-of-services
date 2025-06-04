@@ -1,7 +1,8 @@
 import os
-import pytest
-from unittest.mock import MagicMock, patch
 from typing import Generator
+from unittest.mock import patch
+
+import pytest
 
 
 @pytest.fixture(autouse=True)

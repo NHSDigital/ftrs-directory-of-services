@@ -8,7 +8,6 @@ import requests
 from aws_lambda_powertools.utilities.parameters import get_parameter
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
-from requests import Response
 
 logger = logging.getLogger()
 

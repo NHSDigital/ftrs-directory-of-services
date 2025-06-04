@@ -1,10 +1,10 @@
 import json
 import logging
-import os
-from pipeline.utilities import get_base_crud_api_url, make_request
-import requests
 from http import HTTPStatus
 
+import requests
+
+from pipeline.utilities import get_base_crud_api_url, make_request
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
