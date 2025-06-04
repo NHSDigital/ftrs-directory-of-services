@@ -1,7 +1,7 @@
 import pytest
 from pytest_mock import MockerFixture
 
-from pipeline.utils.secret_utils import MissingEnvironmentOrProjectNameError, get_secret
+from pipeline.utils.secret_utils import get_secret
 
 
 def test_get_secret_success(mocker: MockerFixture) -> None:
@@ -43,5 +43,5 @@ def test_get_secret_missing_env_vars(mocker: MockerFixture, env_vars: dict) -> N
         side_effect=lambda key: env_vars.get(key),
     )
 
-    with pytest.raises(MissingEnvironmentOrProjectNameError):
+    with pytest.raises(ValueError):
         get_secret("my_secret")

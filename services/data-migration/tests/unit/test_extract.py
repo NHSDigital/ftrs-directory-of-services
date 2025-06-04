@@ -2,9 +2,11 @@ from pathlib import Path
 from unittest import mock
 from unittest.mock import Mock, call
 
+import numpy as np
 import pandas as pd
 import pytest
 from freezegun import freeze_time
+from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 
 from pipeline.extract import (
@@ -71,6 +73,7 @@ def test_extract(
     mock_check_bucket = mocker.patch(
         "pipeline.utils.validators.check_bucket_access", return_value=True
     )
+    mocker.patch("pipeline.utils.validators.check_object_exists", return_value=False)
 
     if expected_path_type == PathType.FILE:
         output_path = mock_tmp_directory / output_path
@@ -89,7 +92,7 @@ def test_extract(
 
 
 @freeze_time("2024-01-01 12:00:00")
-def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
+def test_extract_gp_practice(mock_sql_data: Mock, mock_logger: MockLogger) -> None:
     """
     Test the extract_gp_practice function calls its dependencies with the correct arguments,
     and logs the expected messages.
@@ -107,12 +110,20 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logging: Mock) -> None:
         ]
     )
 
-    mock_logging.info.assert_has_calls(
-        [
-            call("Percentage of service profiles: 1.0%"),
-            call("Percentage of all data fields: 38.1%"),
-        ]
-    )
+    assert mock_logger.get_log("ETL_EXTRACT_002", "INFO") == [
+        {
+            "reference": "ETL_EXTRACT_002",
+            "msg": "Percentage of service profiles: 1.0%",
+            "detail": {"service_profiles_percentage": np.float64(1.0)},
+        }
+    ]
+    assert mock_logger.get_log("ETL_EXTRACT_003", "INFO") == [
+        {
+            "reference": "ETL_EXTRACT_003",
+            "msg": "Percentage of all data fields: 38.1%",
+            "detail": {"data_fields_percentage": np.float64(38.1)},
+        }
+    ]
 
 
 @pytest.mark.parametrize(

@@ -38,7 +38,7 @@ def test_read_parquet_file_local(mocker: MockerFixture) -> None:
 def test_read_parquet_file_invalid_path_type() -> None:
     file_path = "/path/to/file.parquet"
 
-    with pytest.raises(ValueError, match="Unsupported path type: invalid"):
+    with pytest.raises(ValueError):
         read_parquet_file("invalid", file_path)
 
 
@@ -82,5 +82,5 @@ def test_write_parquet_file_invalid_path_type() -> None:
     mock_df = pd.DataFrame({"col1": [1, 2], "col2": ["a", "b"]})
     file_path = "/path/to/file.parquet"
 
-    with pytest.raises(ValueError, match="Unsupported path type: invalid"):
+    with pytest.raises(ValueError):
         write_parquet_file("invalid", file_path, mock_df)

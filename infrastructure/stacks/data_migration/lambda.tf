@@ -40,6 +40,7 @@ module "extract_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
+    [aws_lambda_layer_version.data_layer.arn],
     var.aws_lambda_layers
   )
 

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generator, Generic, Type, TypeVar
 from uuid import UUID
 
+from ftrs_common.logger import Logger
 from ftrs_data_layer.models import BaseModel
 
 ModelType = TypeVar("ModelType", bound=BaseModel)
@@ -14,7 +15,10 @@ class BaseRepository(ABC, Generic[ModelType]):
 
     model_cls: Type[ModelType]
 
-    def __init__(self, model_cls: Type[ModelType]) -> None:
+    def __init__(
+        self, model_cls: Type[ModelType], logger: Logger | None = None
+    ) -> None:
+        self.logger = logger or Logger.get(service="ftrs_data_layer")
         self.model_cls = model_cls
         if not issubclass(model_cls, BaseModel):
             error_msg = (
