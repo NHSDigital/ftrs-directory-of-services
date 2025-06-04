@@ -14,3 +14,18 @@ resource "aws_api_gateway_method" "search_get" {
     aws_api_gateway_resource.search_resource
   ]
 }
+
+module "search_integrations_get" {
+  source               = "../../modules/api-gateway-integrations"
+  aws_region           = "eu-west-2" # to be converted to a variable
+  account_id           = local.account_id
+  rest_api_id          = module.search_rest_api.rest_api_id
+  http_method          = aws_api_gateway_method.search_get.http_method
+  lambda_function_name = var.lambda_name
+  gateway_resource_id  = aws_api_gateway_resource.search_resource.id
+
+  depends_on = [
+    aws_api_gateway_resource.search_resource,
+    aws_api_gateway_method.search_get
+  ]
+}
