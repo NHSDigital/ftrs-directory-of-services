@@ -177,11 +177,10 @@ def reset(
             entity_type=entity_type,
         )
 
-    else:
-        confirm(
-            f"Are you sure you want to reset the {env} environment (workspace: {workspace or 'default'})? This action cannot be undone.",
-            abort=True,
-        )
+    confirm(
+        f"Are you sure you want to reset the {env} environment (workspace: {workspace or 'default'})? This action cannot be undone.",
+        abort=True,
+    )
 
     for entity_name in entity_type:
         entity_cls = get_entity_cls(entity_name)
