@@ -5,6 +5,8 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
+from ftrs_common.logger import Logger
+from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 
 from pipeline.utils.dos_db import (
@@ -103,3 +105,14 @@ def mock_tmp_directory() -> Generator[Path, None, None]:
         mock_tmpdir = Path(tmpdir)
         mock_tmpdir.mkdir(parents=True, exist_ok=True)
         yield mock_tmpdir
+
+
+@pytest.fixture()
+def mock_logger() -> Generator[MockLogger, None, None]:
+    """
+    Mock the logger to avoid actual logging.
+    """
+    mock_logger = MockLogger()
+
+    with patch.object(Logger, "get", return_value=mock_logger):
+        yield mock_logger
