@@ -118,3 +118,4 @@ jobs:
         with:
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
+          stack: ${{ matrix.stack }}
