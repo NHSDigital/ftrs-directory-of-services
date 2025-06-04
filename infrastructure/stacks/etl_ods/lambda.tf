@@ -67,9 +67,10 @@ module "consumer_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"          = var.environment
-    "PROJECT_NAME"         = var.project
-    "ORGANISATION_API_URL" = data.aws_ssm_parameter.organisation_api_function_url.value
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+
   }
 }
 
