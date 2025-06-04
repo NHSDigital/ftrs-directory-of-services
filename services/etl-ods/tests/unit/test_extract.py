@@ -1,5 +1,4 @@
 import logging
-from unittest.mock import MagicMock, patch
 from requests_mock import Mocker as RequestsMock
 import pytest
 
@@ -19,17 +18,6 @@ from pipeline.validators import RoleItem
 @pytest.fixture(autouse=True)
 def set_log_level(caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.WARNING)
-
-
-# @pytest.fixture
-# def mock_response() -> MagicMock:
-#     """Fixture to create a mock response object."""
-#     response = MagicMock()
-#     response.status_code = 200
-#     response.json.return_value = {
-#         "Organisations": [{"OrgLink": "https://example.com/organisations/ABC123"}]
-#     }
-#     return response
 
 
 def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
