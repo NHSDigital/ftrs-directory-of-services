@@ -85,23 +85,23 @@ The API will be available at [http://localhost:6000].
 
 The API routing happens at the API gateway level, routing will happen for the /locations path.
 
-### Get Healthcare Service by ID
+### Get Location by ID
 
-**Endpoint**: GET /{service_id}
+**Endpoint**: GET /{location_id}
 
-**Description**: Retrieves a healthcare service by its UUID.
+**Description**: Retrieves a location by its UUID.
 
-**Path Parameters**: service_id (UUID): The ID of the healthcare service.
+**Path Parameters**: location_id (UUID): The ID of the location.
 
 **Responses**:
- 200 OK: Returns the healthcare service details.
+ 200 OK: Returns the location details.
  400 Bad Request: Invalid UUID format.
- 404 Not Found: Service not found.
+ 404 Not Found: Location not found.
 
-### Get All Healthcare Services (Current page limit is set to 10)
+### Get All locations (Current page limit is set to 10)
 
 **Endpoint**: GET /
 
-**Description**: Retrieves all healthcare services.
+**Description**: Retrieves all locations.
 
-**Responses**: 200 OK: Returns a list of healthcare services.
+**Responses**: 200 OK: Returns a list of locations.
