@@ -25,13 +25,14 @@ def dynamodb_get( project, workspace, env, id, table_name):
     stack = "database"
     dynamo_table_name = dynamodb_util.get_dynamo_name(project, workspace, env, stack, table_name)
     response = dynamodb_util.get_record_by_id(dynamo_table_name, id)
-    assert response["id"] == id, f"Expected id {id}, but got {response['id']}"
+    assert response["Items"][0]["id"] == id
 
 
 
-@then("data for id {id} in the dynamoDB table has been deleted")
-def dynamodb_check_delete(context, id):
-    table_name = context.resource_name + context.workspace
-    response = dynamodb.get_record_by_id(table_name, id)
-    assert response["ResponseMetadata"]["HTTPHeaders"]["content-length"] == ("2")
-    assert response.does_not_contain("Item")
+@then(parsers.parse('the data for id "{id}" in the dynamoDB table "{table_name}" has been deleted'))
+def dynamodb_check_delete( project, workspace, env, id, table_name):
+    stack = "database"
+    dynamo_table_name = dynamodb_util.get_dynamo_name(project, workspace, env, stack, table_name)
+    response = dynamodb_util.get_record_by_id(dynamo_table_name, id)
+    assert response["Items"] == ([])
+    assert response != ("id")

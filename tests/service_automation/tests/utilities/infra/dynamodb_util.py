@@ -14,7 +14,7 @@ def get_record_by_id(tablename, id):
         KeyConditionExpression=Key('id').eq(id)
     )
     logger.debug(f"Retrieved item with id {id} from table {tablename}: {response}")
-    return response["Items"][0]
+    return response
 
 
 def add_record(tablename, item):
