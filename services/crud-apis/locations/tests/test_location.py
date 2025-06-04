@@ -13,7 +13,7 @@ client = TestClient(router)
 test_location_id = uuid4()
 
 
-def get_mock_service() -> dict:
+def get_mock_location() -> dict:
     return {
         "id": test_location_id,
         "active": True,
@@ -42,8 +42,8 @@ def get_mock_service() -> dict:
 @pytest.fixture
 def mock_repository(mocker: mocker) -> None:
     repository_mock = mocker.patch("locations.app.router.locations.repository")
-    repository_mock.get.return_value = get_mock_service()
-    repository_mock.iter_records.return_value = [get_mock_service()]
+    repository_mock.get.return_value = get_mock_location()
+    repository_mock.iter_records.return_value = [get_mock_location()]
     return repository_mock
 
 
