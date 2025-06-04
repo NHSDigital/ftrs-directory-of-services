@@ -6,14 +6,15 @@ from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from pytest_mock import MockerFixture
 from typer import Abort
 
-from pipeline.constants import TargetEnvironment
-from pipeline.reset import (
+from dynamodb.utils import TargetEnvironment
+from dynamodb.reset import (
     DEFAULT_CLEARABLE_ENTITY_TYPES,
     ClearableEntityTypes,
     get_entity_cls,
     init_tables,
     reset,
 )
+from tests.utils.fixtures import mock_logging
 
 
 def test_reset_invalid_environment() -> None:
@@ -22,7 +23,7 @@ def test_reset_invalid_environment() -> None:
 
 
 def test_reset_user_aborts(mocker: MockerFixture) -> None:
-    mock_confirm = mocker.patch("pipeline.reset.confirm", side_effect=Abort)
+    mock_confirm = mocker.patch("dynamodb.reset.confirm", side_effect=Abort)
 
     with pytest.raises(Abort):
         reset(env=TargetEnvironment.dev, workspace="test-workspace")
@@ -34,16 +35,16 @@ def test_reset_user_aborts(mocker: MockerFixture) -> None:
 
 
 def test_reset_user_aborts_with_exception(mocker: MockerFixture) -> None:
-    mocker.patch("pipeline.reset.confirm", side_effect=Abort())
+    mocker.patch("dynamodb.reset.confirm", side_effect=Abort())
 
     with pytest.raises(Abort):
         reset(env=TargetEnvironment.dev)
 
 
 def test_reset_success(mocker: MockerFixture) -> None:
-    mock_confirm = mocker.patch("pipeline.reset.confirm", return_value=True)
-    mocker.patch("pipeline.reset.track", side_effect=lambda *args, **_: args[0])
-    mock_repository = mocker.patch("pipeline.reset.DocumentLevelRepository")
+    mock_confirm = mocker.patch("dynamodb.reset.confirm", return_value=True)
+    mocker.patch("dynamodb.reset.track", side_effect=lambda *args, **_: args[0])
+    mock_repository = mocker.patch("dynamodb.reset.DocumentLevelRepository")
 
     mock_records: list[MagicMock] = [
         mocker.MagicMock(id="item1"),
@@ -74,9 +75,9 @@ def test_reset_success(mocker: MockerFixture) -> None:
 
 
 def test_reset_init_tables(mocker: MockerFixture) -> None:
-    mock_init_tables = mocker.patch("pipeline.reset.init_tables")
-    mocker.patch("pipeline.reset.confirm", return_value=True)
-    mocker.patch("pipeline.reset.track", return_value=[])
+    mock_init_tables = mocker.patch("dynamodb.reset.init_tables")
+    mocker.patch("dynamodb.reset.confirm", return_value=True)
+    mocker.patch("dynamodb.reset.track", return_value=[])
     reset(
         env=TargetEnvironment.dev,
         workspace="test-workspace",
@@ -114,7 +115,7 @@ def test_get_entity_cls_invalid_type() -> None:
 
 def test_init_tables(mocker: MockerFixture) -> None:
     mock_client = MagicMock(create_table=MagicMock())
-    mocker.patch("pipeline.reset.get_dynamodb_client", return_value=mock_client)
+    mocker.patch("dynamodb.reset.get_dynamodb_client", return_value=mock_client)
 
     init_tables(
         endpoint_url="http://localhost:8000",
@@ -182,7 +183,7 @@ def test_init_tables_existing_table(
             operation_name="CreateTable",
         )
     )
-    mocker.patch("pipeline.reset.get_dynamodb_client", return_value=mock_client)
+    mocker.patch("dynamodb.reset.get_dynamodb_client", return_value=mock_client)
 
     init_tables(
         endpoint_url="http://localhost:8000",

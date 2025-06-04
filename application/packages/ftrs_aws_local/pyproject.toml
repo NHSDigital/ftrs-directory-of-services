@@ -1,0 +1,64 @@
+[project]
+name = "ftrs-aws-local"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "NHS England"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0.0"
+package-mode = false
+dependencies = [
+  "sqlalchemy (>=2.0.38,<3.0.0)",
+  "psycopg2-binary (>=2.9.10,<3.0.0)",
+  "pydantic (>=2.10.6,<3.0.0)",
+  "python-dotenv (>=1.1.0,<2.0.0)",
+  "boto3-stubs[dynamodb,s3] (>=1.38.1,<2.0.0)",
+  "typer (>=0.15.2)",
+]
+
+
+[tool.poetry]
+packages = [{include = "dynamodb", from = "."}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.9.6"
+pytest = "^8.3.5"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+pandas = "^2.2.2"
+ftrs-python-packages = {path = "../../packages/python", develop = true}
+freezegun = "^1.5.1"
+boto3-stubs = {extras = ["dynamodb"], version = "^1.37.33"}
+boto3 = "^1.37.33"
+awswrangler = "^3.11.0"
+
+[tool.poetry.scripts]
+ftrs-aws-local = "dynamodb.cli:typer_app"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-v --cov=dynamodb --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+testpaths = ["tests"]

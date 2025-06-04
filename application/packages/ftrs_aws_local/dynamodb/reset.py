@@ -13,8 +13,7 @@ from ftrs_data_layer.repository.dynamodb import (
 from rich.progress import track
 from typer import Option, confirm
 
-from pipeline.constants import TargetEnvironment
-from pipeline.load import get_table_name
+from dynamodb.utils import TargetEnvironment, get_table_name
 
 reset_logger = Logger.get(service="reset")
 
