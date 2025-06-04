@@ -54,6 +54,29 @@ variable "healthcare_service_api_lambda_handler" {
   type        = string
 }
 
+variable "location_api_lambda_runtime" {
+  description = "The runtime environment for the Lambda function"
+}
+
+variable "location_api_lambda_name" {
+  description = "The name of the locations api Lambda function"
+}
+
+variable "location_api_lambda_timeout" {
+  description = "The timeout for the locations api Lambda function"
+  type        = number
+}
+
+variable "location_api_lambda_memory_size" {
+  description = "The memory size for the locations api Lambda function"
+  type        = number
+}
+
+variable "location_api_lambda_handler" {
+  description = "The handler for the locations api Lambda function"
+  type        = string
+}
+
 variable "crud_apis_store_bucket_name" {
   description = "The name of the S3 bucket to use for the crud apis"
 }
