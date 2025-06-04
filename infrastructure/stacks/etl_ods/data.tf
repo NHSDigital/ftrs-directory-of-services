@@ -21,5 +21,3 @@ data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
 }
-
-data "aws_caller_identity" "current" {}

@@ -7,10 +7,9 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-
+  # TODO: FDOS-370 - Setup to use mTLS or API Keys
   routes = {
     "ANY /organisation/{proxy+}" = {
-      # TODO: Setup to use mTLS or API Keys
       authorization_type = "AWS_IAM"
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
