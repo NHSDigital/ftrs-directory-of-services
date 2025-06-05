@@ -88,3 +88,9 @@ def env() -> str:
 def project() -> str:
     project = config.get("project")
     return project
+
+
+@pytest.fixture(scope="session")
+def stack() -> str:
+    stack = config.get("stack")
+    return stack

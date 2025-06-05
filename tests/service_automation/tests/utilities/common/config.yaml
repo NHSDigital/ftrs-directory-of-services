@@ -3,21 +3,15 @@ environment: "dev"
 
 environments:
   dev:
-    base_url:
-    api_key:
-    search_engine_id:
     project:  ftrs-dos
     organisation_body: data_json/organisation_post_body.json
+    stack: gp-search
 
 
   nonprod:
-    project:
-    base_url:
-    api_key:
-    search_engine_id:
+    project:  ftrs-dos
+    stack: gp-search
 
   prod:
-    project:
-    base_url:
-    api_key:
-    search_engine_id:
+    project:  ftrs-dos
+    stack: gp-search

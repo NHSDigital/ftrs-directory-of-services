@@ -12,7 +12,7 @@ Background: Check lambda function exists
 
 
 #-------------------schema and structure tests-------------------
-@test
+
   Scenario: The lambda returns a valid response against the schema
   When I invoke the lambda with the ods code "M81046"
   Then the response is valid against the schema
@@ -95,7 +95,7 @@ Background: Check lambda function exists
   And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
   And the lambda returns the diagnostics "Failed schema validation. Error: data.odsCode must be longer than or equal to 5 characters, Path: ['data', 'odsCode'], Data: ABCD"
 
-@test
+
   Scenario: Invoke lambda with an ods code containing special characters and a validation error is returned
   When I invoke the lambda with the ods code "P83010@"
   Then the lambda returns the status code "422"
