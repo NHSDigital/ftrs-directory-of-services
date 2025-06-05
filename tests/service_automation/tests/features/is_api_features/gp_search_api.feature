@@ -1,8 +1,7 @@
-@is-api
+@is-api @is-pipeline @gp_search-api
+
 Feature: API GP Endpoint Search
 
-
-@test
   Scenario: Search for GP Endpoint by ODS Code
     Given I request data for "odscode=M81046" from "organization"
     Then I receive a status code "422" in response

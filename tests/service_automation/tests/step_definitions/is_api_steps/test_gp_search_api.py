@@ -5,12 +5,7 @@ from loguru import logger
 from utilities.infra.api_util import get_url
 
 # Load feature file
-scenarios("./is_api_features/test_api.feature")
-
-# @pytest.fixture
-# def api_response():
-#     """Fixture to store API response for logging in reports."""
-#     return {}
+scenarios("./is_api_features/gp_search_api.feature")
 
 
 @given(parsers.parse('I request data for "{params}" from "{resource_name}"'), target_fixture='fresponse')

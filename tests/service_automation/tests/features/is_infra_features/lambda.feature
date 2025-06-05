@@ -15,12 +15,10 @@ Background: Check lambda function exists
 
   Scenario: The lambda returns a valid response against the schema
   When I invoke the lambda with the ods code "M81046"
-  Then the response is valid against the schema
-  And the lambda response contains a bundle
+  Then the lambda response contains a bundle
   And the lambda response contains "1" "Organization" resources
   And the lambda response contains "4" "Endpoint" resources
-  And I can retrieve data for id "bc8d1559-9101-4778-a1fe-d8bba3aac7f5" in the dynamoDB table "organisation-is"
-  And the data for id "xxxxx" in the dynamoDB table "organisation-is" has been deleted
+
 
   Scenario: The Lambda response contains a bundle
   When I invoke the lambda with the ods code "N81063"

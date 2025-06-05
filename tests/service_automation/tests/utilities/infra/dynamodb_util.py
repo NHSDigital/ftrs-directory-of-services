@@ -9,7 +9,6 @@ dynamodb = boto3.resource("dynamodb")
 
 def get_record_by_id(tablename, id):
     table = dynamodb.Table(tablename)
-    # response = table.get_item(Key={"id": id})
     response = table.query(
         KeyConditionExpression=Key('id').eq(id)
     )

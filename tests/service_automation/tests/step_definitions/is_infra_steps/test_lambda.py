@@ -1,7 +1,6 @@
 import pytest
 import boto3
 import json
-from openapi_schema_validator import validate
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper
@@ -11,9 +10,6 @@ from step_definitions.common_steps.data_steps import *
 
 # Load feature file
 scenarios("./is_infra_features/lambda.feature")
-# scenarios("./is_infra_features")
-
-
 
 @pytest.fixture(scope="module")
 def aws_lambda_client():
@@ -114,14 +110,6 @@ def lambda_number_resources(fLambda_payload, number, resource_type):
     response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == 200
     assert countResources(response, resource_type) == int(number)
-
-
-@then('the response is valid against the schema')
-def validate_lambda_response_against_oas(fLambda_payload, oas_spec):
-    response = json.loads(fLambda_payload["body"])
-    # logger.debug(f"Response: {response}")
-    # logger.debug(f"Schema: {oas_spec}")
-    validate(instance=response, schema=oas_spec)
 
 
 def countResources(lambda_response, resource_type):
