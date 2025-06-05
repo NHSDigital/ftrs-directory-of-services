@@ -47,6 +47,13 @@ module "organisation_api_lambda" {
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME" = var.project
   }
+
+  allowed_triggers = {
+    AllowExecutionFromAPIGateway = {
+      service    = "apigateway"
+      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+    }
+  }
 }
 
 module "healthcare_service_api_lambda" {
