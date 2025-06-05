@@ -20,15 +20,8 @@ resource "aws_api_gateway_deployment" "deployment" {
 }
 
 resource "aws_api_gateway_stage" "stage" {
-  depends_on = [aws_cloudwatch_log_group.api_gateway_execution_logs]
-
   deployment_id        = aws_api_gateway_deployment.deployment.id
   rest_api_id          = module.search_rest_api.rest_api_id
   stage_name           = "default"
   xray_tracing_enabled = true
-}
-
-resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
-  name              = "API-Gateway-Execution-Logs_${module.search_rest_api.rest_api_id}/default"
-  retention_in_days = 7
 }
