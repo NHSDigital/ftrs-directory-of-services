@@ -1,7 +1,7 @@
 module "search_rest_api" {
   source = "../../modules/api-gateway-rest-api"
 
-  rest_api_name = "${var.gp_search_service_name}-api-gateway"
+  rest_api_name = local.resource_prefix
 }
 
 resource "aws_api_gateway_deployment" "deployment" {
