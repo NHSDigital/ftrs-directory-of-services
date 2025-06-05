@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 
 def test_lambda_handler_execution() -> None:
-    from organisations.lambda_handler import handler
+    from organisations.app.handler_organisation import handler
 
     mock_event = {
         "httpMethod": "GET",
