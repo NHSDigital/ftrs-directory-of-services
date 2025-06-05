@@ -28,11 +28,11 @@ module "api_gateway" {
     }
 
     # "ANY /location/{proxy+}" = {
-    #   authorization_type = "AWS_IAM"
+    #   authorization_type = var.api_gateway_authorization_type
     #   integration = {
     #     uri                    = module.location_api_lambda.lambda_function_arn
-    #     payload_format_version = "2.0"
-    #     timeout_milliseconds   = 10000
+    #     payload_format_version = var.api_gateway_payload_format_version
+    #     timeout_milliseconds   = var.api_gateway_integration_timeout
     #   }
     # }
   }
