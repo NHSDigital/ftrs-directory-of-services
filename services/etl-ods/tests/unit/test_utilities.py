@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
+from botocore.credentials import Credentials
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
@@ -77,10 +78,17 @@ def test_get_base_crud_api_url_local_workspace(
     assert get_parameter_mock.call_count == 0
 
 
-def test_get_signed_request_headers() -> None:
+@patch("pipeline.utilities.boto3.Session")
+def test_get_signed_request_headers(session_mock: MagicMock) -> None:
     """
     Test the get_signed_request_headers function.
     """
+    session_mock.return_value.get_credentials.return_value = Credentials(
+        access_key="mock_access_key",
+        secret_key="mock_secret_key",
+        token="mock_token",
+    )
+
     method = "GET"
     url = "https://api.example.com/resource"
     host = "api.example.com"
@@ -120,10 +128,20 @@ def test_make_request_success(requests_mock: RequestsMock) -> None:
     }
 
 
-def test_make_request_with_params(requests_mock: RequestsMock) -> None:
+@patch("pipeline.utilities.boto3.Session")
+def test_make_request_with_params(
+    session_mock: MagicMock,
+    requests_mock: RequestsMock,
+) -> None:
     """
     Test the make_request function with parameters.
     """
+    session_mock.return_value.get_credentials.return_value = Credentials(
+        access_key="mock_access_key",
+        secret_key="mock_secret_key",
+        token="mock_token",
+    )
+
     mock_call = requests_mock.get(
         "https://api.example.com/resource",
         json={"key": "value"},
