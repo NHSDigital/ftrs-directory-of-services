@@ -1,6 +1,6 @@
 resource "aws_lambda_layer_version" "common_packages_layer" {
   layer_name          = "${local.resource_prefix}-common-packages-layer${local.workspace_suffix}"
-  compatible_runtimes = [var.organisation_api_lambda_runtime]
+  compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
