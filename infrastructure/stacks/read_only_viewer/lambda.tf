@@ -53,3 +53,8 @@ data "aws_iam_policy_document" "execute_api_policy" {
     ]
   }
 }
+
+resource "aws_lambda_function_url" "frontend_lambda_url" {
+  function_name      = module.frontend_lambda.function_name
+  authorization_type = "NONE"
+}
