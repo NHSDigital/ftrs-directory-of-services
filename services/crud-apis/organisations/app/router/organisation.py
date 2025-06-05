@@ -2,10 +2,10 @@ import logging
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
-from fastapi.params import Path, Body
+from fastapi.params import Body, Path
 from fastapi.responses import JSONResponse
-
 from ftrs_data_layer.models import Organisation
+
 from organisations.app.services.organisation_helpers import (
     apply_updates,
     get_outdated_fields,
