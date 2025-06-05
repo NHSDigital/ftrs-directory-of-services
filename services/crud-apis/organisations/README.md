@@ -15,13 +15,7 @@ poetry install
 ### Running Linting
 
 Python code is linted and formatted using Ruff. The rules and arguments enabled can be found in the `pyproject.toml` file.
-[__init__.py](../../../../organisations/tests/__init__.py)
-[__pycache__](../../../../organisations/tests/__pycache__)
-[test_handler_organisation.py](../../../../organisations/tests/test_handler_organisation.py)
-[test_models_organisation.py](../../../../organisations/tests/test_models_organisation.py)
-[test_organisation_helpers.py](../../../../organisations/tests/test_organisation_helpers.py)
-[test_organisation.py](../../../../organisations/tests/test_organisation.py)
-[test_validators.py](../../../../organisations/tests/test_validators.py)
+
 ```bash
 make lint # Runs ruff check and ruff format
 ```
