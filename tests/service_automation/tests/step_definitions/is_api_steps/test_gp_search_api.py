@@ -12,7 +12,6 @@ scenarios("./is_api_features/gp_search_api.feature")
 def send_get_with_params(api_request_context, workspace, stack, project, env, params, resource_name):
     url = get_url( workspace, stack, project, env) + "/" + resource_name
     response = api_request_context.get(url, params=params)
-    logger.debug("API response: {}", response.json())
     return response
 
 
@@ -35,5 +34,4 @@ def api__error_message(fresponse, error_message):
 @then(parsers.parse('I receive the diagnostics "{diagnostics}"'))
 def api__diagnostics(fresponse, diagnostics):
     response = fresponse.json()
-    logger.debug("Response diagnostics: {}", response["issue"][0]["diagnostics"])
     assert (response["issue"][0]["diagnostics"]).startswith(diagnostics)

@@ -4,9 +4,9 @@ import json
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper
-from utilities.common.schema_loader import oas_spec
-from utilities.infra import dynamodb_util
-from step_definitions.common_steps.data_steps import *
+from utilities.common.resource_name import get_resource_name
+
+
 
 # Load feature file
 scenarios("./is_infra_features/lambda.feature")
@@ -22,7 +22,7 @@ def aws_lambda_client():
 
 @given(parsers.parse('that the lambda function "{lambda_function}" exists for stack "{stack}"'), target_fixture='flambda_name')
 def confirm_lambda_exists(aws_lambda_client, project, lambda_function, stack, workspace, env):
-    lambda_name = aws_lambda_client.get_lambda_name(project, workspace, env, stack, lambda_function)
+    lambda_name = get_resource_name(project, workspace, env, stack, lambda_function)
     lambda_exists = aws_lambda_client.check_function_exists(lambda_name)
     assert lambda_exists is True
     return lambda_name
@@ -117,4 +117,3 @@ def countResources(lambda_response, resource_type):
         entry.get("resource", {}).get("resourceType") == resource_type
         for entry in lambda_response.get("entry", [])
         )
-

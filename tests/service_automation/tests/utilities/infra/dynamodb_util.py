@@ -35,12 +35,3 @@ def delete_record_by_id(tablename, id):
     response = table.delete_item(Key={"id": id})
     return response
 
-
-def get_dynamo_name(project, workspace, env, stack, table_name):
-    logger.debug(f"project: {project},  table_name: {table_name}, stack: {stack}, env: {env}, workspace: {workspace}")
-    if workspace == "default":
-        table_name = project + "-" + env + "-" + stack + "-" + table_name
-    else:
-        table_name = project + "-" + env + "-" + stack + "-" + table_name + "-" + workspace
-    logger.debug("dynamo table name {}", table_name)
-    return table_name

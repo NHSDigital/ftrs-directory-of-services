@@ -1,14 +1,11 @@
 from utilities.infra.api_gateway_util import ApiGatewayToService
 from loguru import logger
+from utilities.common.resource_name import get_resource_name
 
 
 def get_url(workspace, stack, project, env):
     # get the api gateway name env var and then the api gateway id
-    logger.info("Fetching API Gateway ID for: {}", stack)
-    if workspace == "default":
-        apigateway_name = project + "-" + env + "-" + stack + "-" + "api-gateway"
-    else:
-        apigateway_name = project + "-" + env + "-" + stack + "-" + "api-gateway-" + workspace
+    apigateway_name = get_resource_name(project, workspace, env, stack, "api-gateway")
     logger.info("Fetching API Gateway ID for: {}", apigateway_name)
     agts = ApiGatewayToService()
     apigatewayid = agts.get_rest_api_id(apigateway_name)

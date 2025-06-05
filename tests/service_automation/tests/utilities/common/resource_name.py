@@ -1,11 +1,12 @@
 from loguru import logger
 
-def get_resource_name(self, project, workspace, env, stack, resource):
-    logger.debug(f"project: {project},  resource: {resource}, stack: {stack}, env: {env}, workspace: {workspace}")
+
+def get_resource_name(project, workspace, env, stack, resource):
+    logger.info(f"project: {project},  resource: {resource}, stack: {stack}, env: {env}, workspace: {workspace}")
     if workspace == "default":
-        lambda_name = project + "-" + env + "-" + stack + "-" + resource
+        resource_name = project + "-" + env + "-" + stack + "-" + resource
     else:
-        lambda_name = project + "-" + env + "-" + stack + "-" + resource + "-" + workspace
-    logger.debug("resource name {}", lambda_name)
-    return lambda_name
+        resource_name = project + "-" + env + "-" + stack + "-" + resource + "-" + workspace
+    logger.info("resource name {}", resource_name)
+    return resource_name
 
