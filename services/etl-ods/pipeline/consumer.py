@@ -1,8 +1,10 @@
 import json
 import logging
-import os
+from http import HTTPStatus
 
 import requests
+
+from pipeline.utilities import get_base_crud_api_url, make_request
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -52,24 +54,26 @@ def process_message_and_send_request(record: dict) -> None:
         logger.warning(err_msg)
         raise ValueError(err_msg)
 
-    api_url = os.environ["ORGANISATION_API_URL"] + path
-    response = requests.put(api_url, json=body)
-    if str(response.status_code) == "200":
+    api_url = get_base_crud_api_url() + "/organisation" + path
+
+    try:
+        response = make_request(api_url, method="PUT", sign=True, json=body)
         logger.info(
             f"Successfully sent request. Response status code: {response.status_code}"
         )
-    elif str(response.status_code) == "422":
-        logger.warning(
-            f"Bad request returned for message id: {record['messageId']}. Not re-processing."
-        )
-    else:
-        logger.exception(
-            f"Failed to send request for message id: {record['messageId']}. Status Code: {response.status_code}, Response: {response.text}"
-        )
+
+    except requests.exceptions.HTTPError as http_error:
+        if http_error.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+            logger.warning(
+                f"Bad request returned for message id: {record['messageId']}. Not re-processing."
+            )
+            return
+
+        logger.exception(f"Request failed for message id: {record['messageId']}.")
         raise RequestProcessingError(
             message_id=record["messageId"],
-            status_code=response.status_code,
-            response_text=response.text,
+            status_code=(http_error.response.status_code),
+            response_text=str(http_error),
         )
 
 

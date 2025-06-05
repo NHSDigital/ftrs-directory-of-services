@@ -22,8 +22,14 @@ module "processor_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
-  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.sqs_access_policy.json]
+  number_of_policy_jsons = "5"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.sqs_access_policy.json,
+    data.aws_iam_policy_document.ssm_access_policy.json,
+    data.aws_iam_policy_document.execute_api_policy.json
+  ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
@@ -31,9 +37,9 @@ module "processor_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"          = var.environment
-    "PROJECT_NAME"         = var.project
-    "ORGANISATION_API_URL" = data.aws_ssm_parameter.organisation_api_function_url.value
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
   }
 }
 
@@ -61,9 +67,10 @@ module "consumer_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"          = var.environment
-    "PROJECT_NAME"         = var.project
-    "ORGANISATION_API_URL" = data.aws_ssm_parameter.organisation_api_function_url.value
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+
   }
 }
 
@@ -116,4 +123,32 @@ resource "aws_lambda_event_source_mapping" "sqs_trigger" {
   function_name    = module.consumer_lambda.lambda_function_name
   batch_size       = 10
   enabled          = true
+}
+
+data "aws_iam_policy_document" "ssm_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters",
+      "ssm:GetParametersByPath"
+    ]
+    resources = [
+      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint"
+    ]
+  }
+}
+
+# TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
+data "aws_iam_policy_document" "execute_api_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "execute-api:Invoke"
+    ]
+    resources = [
+      "arn:aws:execute-api:*:*:*/*/*/*/*"
+    ]
+  }
+
 }

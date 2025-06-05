@@ -21,7 +21,3 @@ data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
 }
-
-data "aws_ssm_parameter" "organisation_api_function_url" {
-  name = "/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/organisation-api/function-url"
-}

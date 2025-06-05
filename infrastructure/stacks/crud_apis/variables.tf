@@ -62,3 +62,33 @@ variable "s3_versioning" {
   description = "Whether to enable versioning on the S3 bucket"
   type        = bool
 }
+
+variable "api_gateway_authorization_type" {
+  description = "The authorization type for the API Gateway"
+  type        = string
+}
+
+variable "api_gateway_payload_format_version" {
+  description = "The payload format version for the API Gateway"
+  type        = string
+}
+
+variable "api_gateway_integration_timeout" {
+  description = "The integration timeout for the API Gateway"
+  type        = number
+}
+
+variable "api_gateway_access_log_retention_days" {
+  description = "The number of days to retain API Gateway access logs"
+  type        = number
+}
+
+variable "api_gateway_throttling_burst_limit" {
+  description = "The burst limit for API Gateway throttling"
+  type        = number
+}
+
+variable "api_gateway_throttling_rate_limit" {
+  description = "The rate limit for API Gateway throttling"
+  type        = number
+}

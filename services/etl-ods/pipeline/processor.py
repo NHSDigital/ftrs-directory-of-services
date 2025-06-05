@@ -31,16 +31,14 @@ STATUS_SUCCESSFUL = 200
 BATCH_SIZE = 10
 
 
-def processor(
-    date: str,
-) -> None:
+def processor(date: str) -> None:
     """
     Extract GP practice data from the source, transform to payload and log it out.
     """
     try:
         organisations = fetch_sync_data(date)
         if not organisations:
-            logger.info("No organisations found for the given date.")
+            logger.info(f"No organisations found for the given date: {date}")
             return
         transformed_batch = []
         for organisation in organisations:
@@ -56,12 +54,14 @@ def processor(
             if len(transformed_batch) == BATCH_SIZE:
                 load_data(transformed_batch)
                 transformed_batch = []
+
         if len(transformed_batch) > 0:
             load_data(transformed_batch)
 
     except requests.exceptions.RequestException as e:
         logger.warning(f"Error fetching data: {e}")
         raise
+
     except Exception as e:
         logger.warning(f"Unexpected error: {e}")
         raise

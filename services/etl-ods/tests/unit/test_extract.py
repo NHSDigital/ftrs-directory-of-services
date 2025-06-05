@@ -1,8 +1,7 @@
 import logging
-from unittest.mock import MagicMock, patch
 
 import pytest
-import requests
+from requests_mock import Mocker as RequestsMock
 
 from pipeline.extract import (
     extract_contact,
@@ -13,7 +12,6 @@ from pipeline.extract import (
     fetch_organisation_role,
     fetch_organisation_uuid,
     fetch_sync_data,
-    make_request,
 )
 from pipeline.validators import RoleItem
 
@@ -23,133 +21,70 @@ def set_log_level(caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level(logging.WARNING)
 
 
-@pytest.fixture
-def mock_response() -> MagicMock:
-    """Fixture to create a mock response object."""
-    response = MagicMock()
-    response.status_code = 200
-    response.json.return_value = {
-        "Organisations": [{"OrgLink": "https://example.com/organisations/ABC123"}]
-    }
-    return response
-
-
-@patch("pipeline.extract.requests.get")
-def test_make_request_success(mock_get: MagicMock, mock_response: MagicMock) -> None:
-    mock_get.return_value = mock_response
-    url = "https://"
-    result = make_request(url)
-    assert result == mock_response.json.return_value
-    mock_get.assert_called_once_with(url, params=None, timeout=20)
-
-
-@patch("pipeline.extract.requests.get")
-def test_make_request_request_exception(
-    mock_get: MagicMock, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test make_request for a request exception."""
-    mock_get.side_effect = requests.exceptions.RequestException("Connection error")
-
-    with pytest.raises(requests.exceptions.RequestException, match="Connection error"):
-        make_request("http://")
-
-    assert "Request to http:// failed: Connection error" in caplog.text
-
-
-@patch("pipeline.extract.requests.get")
-@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001/"})
-def test_make_request_organisation_api_404_error(
-    mock_get: MagicMock,
-) -> None:
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-        "404 Not Found"
+def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?",
+        json={"Organisations": [{"OrgLink": "https:///organisations/ABC123"}]},
     )
-    mock_get.return_value = mock_response
 
-    url = "https://localhost:8001/ods_code/ABC123"
-    with pytest.raises(ValueError, match="Organisation not found in database"):
-        make_request(url)
-
-    mock_get.assert_called_once_with(url, params=None, timeout=20)
-
-
-@patch("pipeline.extract.requests.get")
-def test_make_request_HTTP_error(
-    mock_get: MagicMock, caplog: pytest.LogCaptureFixture
-) -> None:
-    mock_response = MagicMock()
-    mock_response.status_code = 400
-    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
-        "400 Bad Request"
-    )
-    mock_get.return_value = mock_response
-
-    url = "ANY"
-    with pytest.raises(requests.exceptions.HTTPError):
-        make_request(url)
-
-    mock_get.assert_called_once_with(url, params=None, timeout=20)
-    assert "HTTP error occurred: 400 Bad Request - Status Code: 400" in caplog.text
-
-
-@patch("pipeline.extract.make_request")
-def test_fetch_sync_data(mock_make_request: MagicMock) -> None:
-    mock_make_request.return_value = {
-        "Organisations": [{"OrgLink": "https:///organisations/ABC123"}]
-    }
     date = "2025-05-14"
     result = fetch_sync_data(date)
+
     assert result == [{"OrgLink": "https:///organisations/ABC123"}]
-    mock_make_request.assert_called_once_with(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?",
-        params={"LastChangeDate": date},
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/sync"
+    assert mock_call.last_request.qs == {"lastchangedate": [date]}
+
+
+def test_fetch_organisation_data(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123",
+        json={"Organisation": {"Name": "Test Organisation"}},
     )
 
-
-@patch("pipeline.extract.make_request")
-def test_fetch_organisation_data(
-    mock_make_request: MagicMock,
-) -> None:
-    mock_make_request.return_value = {"Organisation": {"Name": "Test Organisation"}}
     ods_code = "ABC123"
     result = fetch_organisation_data(ods_code)
-    mock_make_request.assert_called_once_with(
-        f"https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/{ods_code}"
-    )
     assert result == {"Name": "Test Organisation"}
 
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/organisations/abc123"
 
-@patch("pipeline.extract.make_request")
+
 def test_fetch_organisation_data_no_organisations(
-    mock_make_request: MagicMock, caplog: pytest.LogCaptureFixture
+    requests_mock: RequestsMock,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    mock_make_request.return_value = {}
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123",
+        json={},
+    )
+
     ods_code = "ABC123"
     result = fetch_organisation_data(ods_code)
-    mock_make_request.assert_called_once_with(
-        f"https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/{ods_code}"
-    )
+
     assert result == []
     assert (
         "No organisation found in the response for the given ODS code ABC123"
         in caplog.text
     )
 
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/organisations/abc123"
 
-@patch("pipeline.extract.make_request")
-def test_fetch_organisation_role(mock_make_request: MagicMock) -> None:
-    mock_make_request.return_value = {"displayName": "Test Role"}
-    roles = [
-        RoleItem(id="123", primaryRole=True),
-    ]
 
-    result = fetch_organisation_role(roles)
-    mock_make_request.assert_called_once_with(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/123"
+def test_fetch_organisation_role(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/123",
+        json={"displayName": "Test Role"},
     )
+
+    roles = [RoleItem(id="123", primaryRole=True)]
+    result = fetch_organisation_role(roles)
+
     assert result == {"displayName": "Test Role"}
+
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/ord/2-0-0/roles/123"
 
 
 def test_fetch_organisation_role_no_primary_role() -> None:
@@ -159,16 +94,17 @@ def test_fetch_organisation_role_no_primary_role() -> None:
         fetch_organisation_role(roles)
 
 
-@patch("pipeline.extract.make_request")
-@patch.dict("os.environ", {"ORGANISATION_API_URL": "https://localhost:8001/"})
-def test_fetch_organisation_uuid(mock_make_request: MagicMock) -> None:
-    mock_make_request.return_value = {"id": "UUID123"}
-    ods_code = "ABC123"
-    result = fetch_organisation_uuid(ods_code)
-    assert result == "UUID123"
-    mock_make_request.assert_called_once_with(
-        f"https://localhost:8001/ods_code/{ods_code}"
+def test_fetch_organisation_uuid(requests_mock: RequestsMock) -> None:
+    mock_call = requests_mock.get(
+        "http://test-crud-api/organisation/ods_code/ABC123",
+        json={"id": "UUID123"},
     )
+
+    result = fetch_organisation_uuid("ABC123")
+    assert result == "UUID123"
+
+    assert mock_call.called_once
+    assert mock_call.last_request.path == "/organisation/ods_code/abc123"
 
 
 def test_extract_organisation_data() -> None:
