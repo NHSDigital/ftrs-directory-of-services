@@ -10,20 +10,20 @@ module "api_gateway" {
   # TODO: FDOS-370 - Setup to use mTLS or API Keys
   routes = {
     "ANY /organisation/{proxy+}" = {
-      authorization_type = "AWS_IAM"
+      authorization_type = var.api_gateway_authorization_type
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
-        payload_format_version = "2.0"
-        timeout_milliseconds   = 10000
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
 
     "ANY /healthcare-service/{proxy+}" = {
-      authorization_type = "AWS_IAM"
+      authorization_type = var.api_gateway_authorization_type
       integration = {
         uri                    = module.healthcare_service_api_lambda.lambda_function_arn
-        payload_format_version = "2.0"
-        timeout_milliseconds   = 10000
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
 
@@ -39,7 +39,7 @@ module "api_gateway" {
 
   stage_access_log_settings = {
     create_log_group            = true
-    log_group_retention_in_days = 7
+    log_group_retention_in_days = var.api_gateway_access_log_retention_days
     format = jsonencode({
       context = {
         domainName              = "$context.domainName"
@@ -68,8 +68,8 @@ module "api_gateway" {
 
   stage_default_route_settings = {
     detailed_metrics_enabled = true
-    throttling_burst_limit   = 100
-    throttling_rate_limit    = 10
+    throttling_burst_limit   = var.api_gateway_throttling_burst_limit
+    throttling_rate_limit    = var.api_gateway_throttling_rate_limit
   }
 }
 
