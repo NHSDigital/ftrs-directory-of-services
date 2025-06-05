@@ -1,6 +1,6 @@
 import pytest
 
-from organisations.validators import (
+from organisations.app.services.validators import (
     NAME_EMPTY_ERROR,
     UpdatePayloadValidator,
 )

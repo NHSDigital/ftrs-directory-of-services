@@ -37,9 +37,11 @@ unit-test: coverage
 coverage:
 	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml organisations/tests/unit healthcare_service/tests/ utils/tests/
 
-start-api:
-	poetry run start-organisations-api
-	poetry run start-healthcare-api
+start-organisations-api:
+	poetry run poe start-organisations-api
+
+start-healthcare-api:
+	poetry run poe start-healthcare-api
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)

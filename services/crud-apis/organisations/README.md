@@ -60,10 +60,12 @@ export ENDPOINT_URL=http://localhost:8000
 
 Follow the guidance in services/data-migration/README.md to initiliase the dynamo-db table
 
-Once the dynamo-db instance running and tables created run
+Once the dynamo-db instance is running and tables created run
+
+## To start the API locally, run the following command from the crud-apis/ directory
 
 ```bash
-make start-api
+make start-organisations-api
 ```
 
 The API will now be running on [http://localhost:8001]
@@ -80,10 +82,6 @@ The API will now be running on [http://localhost:8001]
 
 - `organisation_id` (UUID): The internal ID of the organisation.
 
-**Request Body**:
-
-- No request body needed.
-
 ### Read Many Organisation
 
 **Endpoint**: `GET /`
@@ -93,10 +91,6 @@ The API will now be running on [http://localhost:8001]
 **Path Parameters**:
 
 - `limit` (int): The number of records to be read.
-
-**Request Body**:
-
-- No request body needed.
 
 ### Update Organisation
 
@@ -117,3 +111,13 @@ The API will now be running on [http://localhost:8001]
     "name": "New Organisation Name",
   }
   ```
+
+### Get Organisation by ODS Code
+
+**Endpoint**: `GET /ods/{ods_code}`
+
+**Description**: Retrieves an organisation by its ODS code.
+
+**Path Parameters**:
+
+- `ods_code` (string): The ODS code of the organisation.
