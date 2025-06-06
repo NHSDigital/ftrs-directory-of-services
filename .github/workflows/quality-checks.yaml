@@ -30,6 +30,7 @@ on:
           default: 5
           type: number
 
+# TODO: FDOS-358 example githook secret scan here
 jobs:
   scan-secrets:
     name: "Scan secrets"

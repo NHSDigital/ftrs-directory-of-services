@@ -1,3 +1,4 @@
+# TODO: FDOS-358 githook secret scan here?
 name: "Scan secrets"
 description: "Scan secrets"
 runs:
