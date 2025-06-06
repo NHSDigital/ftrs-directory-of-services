@@ -6,6 +6,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_bucket = local.artefacts_bucket
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-python-dependency-layer-${var.application_tag}.zip"
 }
+
 module "lambda" {
   source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ebe96e5/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
@@ -35,6 +36,7 @@ module "lambda" {
     "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
   }
 }
+
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
   security_group_id = aws_security_group.gp_search_lambda_security_group.id
   from_port         = "443"
@@ -43,6 +45,16 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhe
   cidr_ipv4         = "0.0.0.0/0"
   description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
 }
+
+module "search_api_gateway_permissions" {
+  source = "../../modules/api-gateway-permissions"
+
+  account_id           = local.account_id
+  aws_region           = var.aws_region
+  lambda_function_name = "${local.resource_prefix}-${var.lambda_name}"
+  rest_api_id          = module.search_rest_api.rest_api_id
+}
+
 data "aws_iam_policy_document" "vpc_access_policy" {
   statement {
     effect = "Allow"
