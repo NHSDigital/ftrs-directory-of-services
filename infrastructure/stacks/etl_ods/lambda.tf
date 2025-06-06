@@ -58,8 +58,14 @@ module "consumer_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
-  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.sqs_access_policy.json]
+  number_of_policy_jsons = "5"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.sqs_access_policy.json,
+    data.aws_iam_policy_document.ssm_access_policy.json,
+    data.aws_iam_policy_document.execute_api_policy.json
+  ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
