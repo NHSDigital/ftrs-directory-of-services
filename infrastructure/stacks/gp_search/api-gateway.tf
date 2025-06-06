@@ -29,5 +29,5 @@ resource "aws_api_gateway_stage" "stage" {
 }
 
 resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
-  name = "${local.resource_prefix}-api-gateway-execution-logs-${module.search_rest_api.rest_api_id}/default"
+  name = "aws/api-gateway/${local.resource_prefix}-api-gateway-execution-logs-${local.workspace_suffix}/default"
 }
