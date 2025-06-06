@@ -1,0 +1,25 @@
+# TODO: FDOS-358 githook secret scan here
+# - Gitleaks runs on the commits in the current branch only when running against a pull request or task branch.
+# - Gitleaks runs on all commits in the main branch when merged to main.
+# - A Gitleaks failure in one branch should not have an impact on any other branches.
+
+name: gitleaks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  scan-secrets:
+    name: "Scan secrets"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history is needed to scan all commits
+      - name: "Scan secrets"
+        uses: ./.github/actions/scan-secrets
+
