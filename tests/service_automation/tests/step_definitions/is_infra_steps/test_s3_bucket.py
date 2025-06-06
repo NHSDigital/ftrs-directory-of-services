@@ -4,10 +4,12 @@ from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.s3_util import S3Utils
 from utilities.common import directories, csv_reader
+from utilities.common.resource_name import get_resource_name
 
 
 # Load feature file
 scenarios("./is_infra_features/s3.feature")
+# scenarios("./is_infra_features/")
 
 
 @pytest.fixture(scope="module")
@@ -36,7 +38,7 @@ def check_aws_access():
 
 @given(parsers.parse('I can see the S3 bucket "{bucket}" for stack "{stack}"'), target_fixture='fbucket_name')
 def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, env):
-    bucket_name = aws_s3_client.get_bucket(project, workspace, env, stack, bucket)
+    bucket_name = get_resource_name(project, workspace, env, stack, bucket)
     response = aws_s3_client.check_bucket_exists(bucket_name)
     assert response == True
     return bucket_name
