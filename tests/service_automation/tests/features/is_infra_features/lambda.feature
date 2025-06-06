@@ -4,7 +4,7 @@ Feature: Lambda function
 Background: Check lambda function exists
   Given that the lambda function "gp-search-lambda" exists for stack "gp-search"
 
-
+@test
   Scenario: The lambda returns a response that contains the ods code
   When I invoke the lambda with the ods code "M81046"
   Then the lambda response contains the ods code "M81046"

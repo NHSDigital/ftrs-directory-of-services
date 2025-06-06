@@ -10,8 +10,8 @@ scenarios("./is_api_features/gp_search_api.feature")
 
 
 @given(parsers.parse('I request data for "{params}" from "{resource_name}"'), target_fixture='fresponse')
-def send_get_with_params(api_request_context, workspace, stack, project, env, params, resource_name):
-    url = get_url( workspace, stack, project, env) + "/" + resource_name
+def send_get_with_params(api_request_context, workspace, fstack_name, project, env, params, resource_name):
+    url = get_url( workspace, fstack_name, project, env) + "/" + resource_name
     response = api_request_context.get(url, params=params)
     return response
 

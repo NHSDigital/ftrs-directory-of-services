@@ -4,6 +4,7 @@ Feature: API GP Endpoint Search
   Background: Set stack
     Given that the stack is "gp-search"
 
+
   Scenario: Search for GP Endpoint by ODS Code
     Given I request data for "odscode=M81046" from "organization"
     Then I receive a status code "422" in response
