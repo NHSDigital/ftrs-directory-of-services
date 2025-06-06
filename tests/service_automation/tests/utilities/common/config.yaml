@@ -5,13 +5,9 @@ environments:
   dev:
     project:  ftrs-dos
     organisation_body: data_json/organisation_post_body.json
-    stack: gp-search
-
 
   nonprod:
     project:  ftrs-dos
-    stack: gp-search
 
   prod:
     project:  ftrs-dos
-    stack: gp-search

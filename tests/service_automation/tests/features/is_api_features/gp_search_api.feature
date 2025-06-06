@@ -1,6 +1,8 @@
-@is-api @is-pipeline @gp_search-api
+@is-api @is-pipeline @gp-search-api
 
 Feature: API GP Endpoint Search
+  Background: Set stack
+    Given that the stack is "gp-search"
 
   Scenario: Search for GP Endpoint by ODS Code
     Given I request data for "odscode=M81046" from "organization"

@@ -3,6 +3,7 @@ import json
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.api_util import get_url
+from step_definitions.common_steps.setup_steps import *
 
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")

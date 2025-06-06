@@ -45,7 +45,7 @@ markers = [
     "is-pipeline: mark test to be run in the IS pipeline",
     "is-lambda: marks test as IS lambda related",
     "is-s3: marks test as IS S3 related",
-    "gp_search-api: marks test as gp search related",
+    "gp-search-api: marks test as gp search related",
     "test: marks test as generic test",
 ]
 filterwarnings = [
