@@ -31,14 +31,6 @@ class S3Utils:
             exists = False
         return exists
 
-    def get_bucket(self, project, workspace, env, stack, bucket):
-        logger.debug(f"project: {project}, bucket: {bucket}, stack: {stack}, env: {env}, workspace: {workspace}")
-        if workspace == "default":
-            bucket_name = project + "-" + env + "-" + stack + "-" + bucket
-        else:
-            bucket_name = project + "-" + env + "-" + stack + "-" + bucket + "-" + workspace
-        return bucket_name
-
     def get_object(self, bucket_name, filename):
         try:
             response = self.s3_client.get_object(

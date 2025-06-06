@@ -39,16 +39,6 @@ class LambdaWrapper:
         return payload
 
 
-    def get_lambda_name(self, project, workspace, env, stack, lambda_function):
-        logger.debug(f"project: {project},  lambda_function: {lambda_function}, stack: {stack}, env: {env}, workspace: {workspace}")
-        if workspace == "default":
-            lambda_name = project + "-" + env + "-" + stack + "-" + lambda_function
-        else:
-            lambda_name = project + "-" + env + "-" + stack + "-" + lambda_function + "-" + workspace
-        logger.debug("lambda name {}", lambda_name)
-        return lambda_name
-
-
     def check_function_exists(self, lambda_name):
         try:
             self.get_function(lambda_name)

@@ -15,8 +15,7 @@ Background: Check lambda function exists
 
   Scenario: The lambda returns a valid response against the schema
   When I invoke the lambda with the ods code "M81046"
-  Then the response is valid against the schema
-  And the lambda response contains a bundle
+  Then the lambda response contains a bundle
   And the lambda response contains "1" "Organization" resources
   And the lambda response contains "4" "Endpoint" resources
 

@@ -1,12 +1,18 @@
 import json
 import boto3
+from loguru import logger
+from boto3.dynamodb.conditions import Key
+
 
 dynamodb = boto3.resource("dynamodb")
 
 
-def get_record_by_id(tablename, id: str):
+def get_record_by_id(tablename, id):
     table = dynamodb.Table(tablename)
-    response = table.get_item(Key={"id": id})
+    response = table.query(
+        KeyConditionExpression=Key('id').eq(id)
+    )
+    logger.debug(f"Retrieved item with id {id} from table {tablename}: {response}")
     return response
 
 
@@ -28,3 +34,4 @@ def delete_record_by_id(tablename, id):
     table = dynamodb.Table(tablename)
     response = table.delete_item(Key={"id": id})
     return response
+
