@@ -47,8 +47,12 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
 
   statement {
     principals {
-      type        = "AWS"
-      identifiers = [data.aws_iam_role.github_runner_iam_role.arn, "arn:aws:iam::${data.aws_ssm_parameter.dos_aws_account_id_mgmt.value}:role/${var.repo_name}-${var.github_runner_role_name}"]
+      type = "AWS"
+      identifiers = [
+        data.aws_iam_role.github_runner_iam_role.arn,
+        data.aws_iam_role.app_github_runner_iam_role.arn,
+        "arn:aws:iam::${data.aws_ssm_parameter.dos_aws_account_id_mgmt.value}:role/${var.repo_name}-${var.github_runner_role_name}"
+      ]
     }
 
     actions = [

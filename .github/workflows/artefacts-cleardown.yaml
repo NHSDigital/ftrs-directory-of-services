@@ -20,6 +20,10 @@ on:
         description: "The name of the s3 bucket holding domain artefacts"
         required: true
         type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
 
 jobs:
   cleardown-artefacts:
@@ -41,6 +45,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: "Cleardown redundant artefacts"
         uses: ./.github/actions/artefact-cleardown

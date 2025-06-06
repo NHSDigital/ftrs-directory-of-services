@@ -21,11 +21,6 @@ on:
         required: false
         default: ""
         type: string
-      multi_domain:
-        description: "If true uses 'dos-management' github runner ; if false uses github runner for triggering repo"
-        required: false
-        default: 'false'
-        type: string
       stacks:
         description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
         required: false
@@ -52,6 +47,10 @@ on:
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
         required: false
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
         type: string
     outputs:
       plan_result:
@@ -85,7 +84,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: ${{ inputs.multi_domain }}
+          type: ${{ inputs.type }}
 
       - name: "Download Terraform Plan Artifact"
         uses: actions/download-artifact@v4

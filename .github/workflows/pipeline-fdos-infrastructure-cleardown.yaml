@@ -50,6 +50,7 @@ jobs:
       stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      type: app
       workflow_timeout: 30
     secrets: inherit
 
@@ -63,6 +64,7 @@ jobs:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
+      type: app
     secrets: inherit
 
   slack-notifications:

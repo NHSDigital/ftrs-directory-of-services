@@ -41,6 +41,10 @@ on:
         description: "The commit hash, set by the CI/CD pipeline workflow"
         required: false
         type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
 
 jobs:
   destroy-application-infrastructure:
@@ -81,6 +85,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: "Delete terraform state file"
         id: delete_tf_state
@@ -111,6 +116,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: "Check terraform state file"
         id: check_tf_state
