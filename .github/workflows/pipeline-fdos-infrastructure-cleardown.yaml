@@ -12,6 +12,7 @@ on:
       - 'task/fdos*'
       - 'dependabot/*'
       - 'task/SIA*'
+      - 'task/sia*'
   workflow_dispatch:
     inputs:
       application_tag:
