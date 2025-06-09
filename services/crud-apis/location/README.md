@@ -13,10 +13,10 @@ The current versions of these can be found in the `.tool-versions` file, and can
 
 ### Install Dependencies
 
-Navigate to the `locations` directory and install the dependencies using Poetry:
+Navigate to the `location` directory and install the dependencies using Poetry:
 
 ```bash
-cd services/crud-apis/locations
+cd services/crud-apis/location
 poetry install
 ```
 
@@ -71,12 +71,12 @@ pytest tests
 1. Add environment variables see the `default.env` file for a template.
 2.Follow the guidance in services/data-migration/README.md to initialise the dynamo-db table
   Once the dynamo-db instance is running and tables are created
-2. Run the following command to start the API locally in the **locations** directory:
+2. Run the following command to start the API locally in the **location** directory:
 
 from the crud-apis directory run:
 
 ```bash
-poetry run poe start-loctions-api
+poetry run poe start-loction-api
 ```
 
 The API will be available at [http://localhost:6000].

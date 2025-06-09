@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from pytest_mock import mocker
 
-from locations.app.router.locations import router
+from location.app.router.location import router
 
 client = TestClient(router)
 
@@ -64,7 +64,7 @@ def test_returns_404_when_location_not_found(mock_repository: mocker) -> None:
 def test_returns_all_locations(mock_repository: mocker) -> None:
     response = client.get("/")
     assert response.status_code == HTTPStatus.OK
-    assert len(response.json()) > 0
+    assert len(response.json()) == 1
 
 
 def test_returns_404_when_no_locations_found(mock_repository: mocker) -> None:

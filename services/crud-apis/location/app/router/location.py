@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from typing import NoReturn
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Path
@@ -39,9 +40,9 @@ def get_location_by_id(location_id: str) -> Location:
             # If the location is not found, return a 404 response
             logging.error(f"Location with ID {location_id} not found")
             return raise_http_exception(HTTPStatus.NOT_FOUND, "Location not found")
-        else:
-            logging.info(f"Location found: {location}")
-            return location
+
+        logging.info(f"Location found: {location}")
+        return location  # noqa: TRY300
     except Exception as e:
         return raise_http_exception_if_not_found(e)
 
@@ -52,15 +53,14 @@ def get_locations() -> list[Location]:
         if not locations:
             logging.error("No locations found")
             return raise_http_exception(HTTPStatus.NOT_FOUND, "No locations found")
-        else:
-            logging.info(f"Found {len(locations)} locations")
-            return locations
+        logging.info(f"Found {len(locations)} locations")
+        return locations  # noqa: TRY300
 
     except Exception as e:
         return raise_http_exception_if_not_found(e)
 
 
-def raise_http_exception_if_not_found(exception: Exception) -> None:
+def raise_http_exception_if_not_found(exception: Exception) -> NoReturn:
     """
     Raise an HTTPException if the exception is a 404 Not Found error.
     Otherwise, log the error and raise a generic 500 Internal Server Error.
@@ -78,6 +78,6 @@ def raise_http_exception_if_not_found(exception: Exception) -> None:
         )
 
 
-def raise_http_exception(status_code: int, detail: str) -> None:
+def raise_http_exception(status_code: int, detail: str) -> NoReturn:
     logging.error(detail)
     raise HTTPException(status_code=status_code, detail=detail)

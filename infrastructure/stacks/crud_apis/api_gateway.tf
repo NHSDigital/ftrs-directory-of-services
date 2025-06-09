@@ -27,14 +27,14 @@ module "api_gateway" {
       }
     }
 
-    # "ANY /location/{proxy+}" = {
-    #   authorization_type = var.api_gateway_authorization_type
-    #   integration = {
-    #     uri                    = module.location_api_lambda.lambda_function_arn
-    #     payload_format_version = var.api_gateway_payload_format_version
-    #     timeout_milliseconds   = var.api_gateway_integration_timeout
-    #   }
-    # }
+    "ANY /location/{proxy+}" = {
+      authorization_type = var.api_gateway_authorization_type
+      integration = {
+        uri                    = module.location_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
   }
 
   stage_access_log_settings = {

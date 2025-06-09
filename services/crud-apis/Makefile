@@ -43,8 +43,8 @@ start-organisations-api:
 start-healthcare-api:
 	poetry run poe start-healthcare-api
 
-start-locations-api:
-	poetry run poe start-locations-api
+start-location-api:
+	poetry run poe start-location-api
 
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)

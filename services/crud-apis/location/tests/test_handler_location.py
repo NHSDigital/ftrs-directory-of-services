@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock
 
-from locations.app.handler_locations import handler
+from location.app.handler_location import handler
 
 
-def test_handler_returns_200_for_valid_get_request() -> None:
+def test_handler_returns_response() -> None:
     mock_event = {
         "httpMethod": "GET",
         "path": "/",

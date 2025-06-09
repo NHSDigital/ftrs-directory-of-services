@@ -16,7 +16,7 @@ healthcare_service_api_lambda_handler     = "healthcare_service/app/handler_heal
 location_api_lambda_runtime               = "python3.12"
 location_api_lambda_timeout               = 30
 location_api_lambda_memory_size           = 512
-location_api_lambda_handler               = "locations/app/handler_locations.handler"
+location_api_lambda_handler               = "location/app/handler_location.handler"
 
 #S3
 crud_apis_store_bucket_name = "crud-api-store"

@@ -41,14 +41,14 @@ poetry-plugin-export = ">=1.8"
 packages = [
   { include = "organisations" },
   { include = "healthcare_service" },
-  { include = "locations" },
+  { include = "location" },
   { include = "utils" }
 ]
 
 [tool.poe.tasks]
 start-healthcare-api = "uvicorn healthcare_service.app.handler_healthcare_service:app --host 0.0.0.0 --port 8002 --reload"
 start-organisations-api = "uvicorn organisations.app.handler_organisation:app --host 0.0.0.0 --port 8001 --reload"
-start-locations-api = "uvicorn locations.app.handler_locations:app --host 0.0.0.0 --port 6000 --reload"
+start-location-api = "uvicorn location.app.handler_location:app --host 0.0.0.0 --port 6000 --reload"
 
 
 [tool.ruff]
