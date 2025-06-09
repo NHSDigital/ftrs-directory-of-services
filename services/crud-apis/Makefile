@@ -35,7 +35,7 @@ test: unit-test
 unit-test: coverage
 
 coverage:
-	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml organisations/tests/unit healthcare_service/tests/ locations/tests/ utils/tests/
+	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml organisations/tests/unit healthcare_service/tests/ location/tests/ utils/tests/
 
 start-organisations-api:
 	poetry run poe start-organisations-api
