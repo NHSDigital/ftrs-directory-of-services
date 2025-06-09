@@ -1,16 +1,15 @@
 import pytest
 import boto3
 import json
-from openapi_schema_validator import validate
 from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
 from utilities.infra.lambda_util import LambdaWrapper
-from utilities.common.schema_loader import oas_spec
+from utilities.common.resource_name import get_resource_name
+
 
 
 # Load feature file
 scenarios("./is_infra_features/lambda.feature")
-
 
 @pytest.fixture(scope="module")
 def aws_lambda_client():
@@ -23,7 +22,7 @@ def aws_lambda_client():
 
 @given(parsers.parse('that the lambda function "{lambda_function}" exists for stack "{stack}"'), target_fixture='flambda_name')
 def confirm_lambda_exists(aws_lambda_client, project, lambda_function, stack, workspace, env):
-    lambda_name = aws_lambda_client.get_lambda_name(project, workspace, env, stack, lambda_function)
+    lambda_name = get_resource_name(project, workspace, env, stack, lambda_function)
     lambda_exists = aws_lambda_client.check_function_exists(lambda_name)
     assert lambda_exists is True
     return lambda_name
@@ -111,14 +110,6 @@ def lambda_number_resources(fLambda_payload, number, resource_type):
     response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == 200
     assert countResources(response, resource_type) == int(number)
-
-
-@then('the response is valid against the schema')
-def validate_lambda_response_against_oas(fLambda_payload, oas_spec):
-    response = json.loads(fLambda_payload["body"])
-    logger.debug(f"Response: {response}")
-    logger.debug(f"Schema: {oas_spec}")
-    validate(instance=response, schema=oas_spec)
 
 
 def countResources(lambda_response, resource_type):

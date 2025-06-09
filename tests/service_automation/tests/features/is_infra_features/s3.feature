@@ -1,4 +1,4 @@
-@is-infra @is-pipeline
+@is-infra @is-pipeline @is-s3
 Feature: S3 Bucket Name Validation
 
   Scenario: get a s3 bucket
