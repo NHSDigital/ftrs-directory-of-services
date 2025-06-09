@@ -83,7 +83,7 @@ The API will be available at [http://localhost:6000].
 
 ## API Endpoints
 
-The API routing happens at the API gateway level, routing will happen for the /locations path.
+The API routing happens at the API gateway level, routing will happen for the /location path.
 
 ### Get Location by ID
 

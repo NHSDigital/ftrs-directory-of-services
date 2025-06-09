@@ -41,7 +41,7 @@ def get_mock_location() -> dict:
 
 @pytest.fixture
 def mock_repository(mocker: mocker) -> None:
-    repository_mock = mocker.patch("locations.app.router.locations.repository")
+    repository_mock = mocker.patch("location.app.router.location.repository")
     repository_mock.get.return_value = get_mock_location()
     repository_mock.iter_records.return_value = [get_mock_location()]
     return repository_mock

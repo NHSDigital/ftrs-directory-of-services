@@ -2,7 +2,7 @@
 s3_bucket_name                     = "crud-apis-s3"
 organisation_api_lambda_name       = "organisations-lambda"
 healthcare_service_api_lambda_name = "healthcare-service-lambda"
-location_api_lambda_name           = "locations-lambda"
+location_api_lambda_name           = "location-lambda"
 
 # Lambda
 organisation_api_lambda_runtime           = "python3.12"
