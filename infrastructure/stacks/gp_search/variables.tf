@@ -30,3 +30,9 @@ variable "dynamodb_organisation_table_name" {
   description = "The dynamodb table name for gp search"
   type        = string
 }
+
+variable "retention_in_days" {
+  description = "The retention period in days for anything that can be retained"
+  type        = number
+  default     = 7
+}
