@@ -18,8 +18,8 @@ def test_consumer_lambda_handler_success(
 ) -> None:
     event = {
         "Records": [
-            {"messageId": "1", "path": "/test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "/test2", "body": {"key": "value2"}},
+            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
+            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
         ]
     }
 
@@ -46,8 +46,8 @@ def test_consumer_lambda_handler_failure(
 ) -> None:
     event = {
         "Records": [
-            {"messageId": "1", "path": "/test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "/test2", "body": {"key": "value2"}},
+            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
+            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
         ]
     }
 
@@ -123,7 +123,7 @@ def test_process_message_and_send_request_success(
 
     record = {
         "messageId": "1",
-        "body": '"{\\"path\\": \\"/uuid\\", \\"body\\": {\\"name\\": \\"Organisation Name\\"}}"',
+        "body": '"{\\"path\\": \\"uuid\\", \\"body\\": {\\"name\\": \\"Organisation Name\\"}}"',
     }
 
     process_message_and_send_request(record)
@@ -147,7 +147,7 @@ def test_process_message_and_send_request_unprocessable(
 
     record = {
         "messageId": "1",
-        "path": "/uuid",
+        "path": "uuid",
         "body": {"name": "Organisation Name"},
     }
 
@@ -171,7 +171,7 @@ def test_process_message_and_send_request_failure(
 
     record = {
         "messageId": "1",
-        "path": "/uuid",
+        "path": "uuid",
         "body": {"name": "Organisation Name"},
     }
     caplog.set_level(logging.ERROR)

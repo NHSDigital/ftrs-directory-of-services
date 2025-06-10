@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from functools import cache
@@ -33,10 +34,14 @@ def get_base_crud_api_url() -> str:
 
 
 def get_signed_request_headers(
-    method: str, url: str, host: str = None, region: str = "eu-west-2"
+    method: str,
+    url: str,
+    data: str | None = None,
+    host: str = None,
+    region: str = "eu-west-2",
 ) -> dict:
     session = boto3.Session()
-    request = AWSRequest(method=method, url=url, headers={"Host": host})
+    request = AWSRequest(method=method, url=url, data=data, headers={"Host": host})
     SigV4Auth(session.get_credentials(), "execute-api", region).add_auth(request)
     return dict(request.headers)
 
@@ -51,6 +56,12 @@ def make_request(
 ) -> requests.Response:
     headers = {}
 
+    json_data = kwargs.get("json")
+    json_string = None
+    if json_data is not None:
+        headers["Content-Type"] = "application/json"
+        json_string = json.dumps(json_data)
+
     if sign is True:
         parsed_url = urlparse(url)
         host = parsed_url.netloc
@@ -58,6 +69,7 @@ def make_request(
             method=method,
             url=url,
             host=host,
+            data=json_string,
             region="eu-west-2",
         )
 
