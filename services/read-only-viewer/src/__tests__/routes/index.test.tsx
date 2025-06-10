@@ -1,6 +1,6 @@
-import { createRouter, RouterProvider } from "@tanstack/react-router";
-import { act, render } from "@testing-library/react";
 import { routeTree } from "@/routeTree.gen";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { act, render } from "@testing-library/react";
 
 describe("Index Route", () => {
   let router: ReturnType<typeof createRouter>;
@@ -9,13 +9,11 @@ describe("Index Route", () => {
   beforeEach(async () => {
     router = createRouter({
       defaultPendingMinMs: 0,
-      routeTree: routeTree
-    })
+      routeTree: routeTree,
+    });
     app = render(<RouterProvider<typeof router> router={router} />);
 
-    await act(() =>
-      router.navigate(({ to: "/" }))
-    )
+    await act(() => router.navigate({ to: "/" }));
   });
 
   it("should render the HomePage component", () => {
@@ -26,14 +24,23 @@ describe("Index Route", () => {
 
     const organisationsCardLink = getByText("Organisations");
     expect(organisationsCardLink).toBeInTheDocument();
-    expect(organisationsCardLink.closest("a")).toHaveAttribute("href", "/organisations");
+    expect(organisationsCardLink.closest("a")).toHaveAttribute(
+      "href",
+      "/organisations",
+    );
 
     const healthcareServicesCardLink = getByText("Healthcare Services");
     expect(healthcareServicesCardLink).toBeInTheDocument();
-    expect(healthcareServicesCardLink).not.toHaveAttribute("href", "/healthcare-services");
+    expect(healthcareServicesCardLink).not.toHaveAttribute(
+      "href",
+      "/healthcare-services",
+    );
 
     const locationsCardLink = getByText("Locations");
     expect(locationsCardLink).toBeInTheDocument();
-    expect(locationsCardLink.closest("a")).not.toHaveAttribute("href", "/locations");
+    expect(locationsCardLink.closest("a")).not.toHaveAttribute(
+      "href",
+      "/locations",
+    );
   });
 });

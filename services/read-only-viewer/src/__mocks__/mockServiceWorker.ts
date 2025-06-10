@@ -1,7 +1,6 @@
-import { http, HttpResponse } from 'msw'
 import type { Organisation } from "@/utils/types";
-import {setupServer} from "msw/node";
-
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 
 const organisations: Organisation[] = [
   {
@@ -14,7 +13,7 @@ const organisations: Organisation[] = [
     createdBy: "user1",
     createdDateTime: "2023-01-01T00:00:00Z",
     modifiedBy: "user2",
-    modifiedDateTime: "2023-01-02T00:00:00Z"
+    modifiedDateTime: "2023-01-02T00:00:00Z",
   },
   {
     id: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc",
@@ -26,8 +25,8 @@ const organisations: Organisation[] = [
     createdBy: "user3",
     createdDateTime: "2023-01-03T00:00:00Z",
     modifiedBy: "user4",
-    modifiedDateTime: "2023-01-04T00:00:00Z"
-  }
+    modifiedDateTime: "2023-01-04T00:00:00Z",
+  },
 ] as const;
 
 export const StubData = {
@@ -35,21 +34,25 @@ export const StubData = {
 
   reset() {
     this.organisations = organisations;
-  }
+  },
 };
 
-
 export const server = setupServer(
-  http.get('/api/organisations', () => {
-    return HttpResponse.json(organisations)
+  http.get("/api/organisations", () => {
+    return HttpResponse.json(organisations);
   }),
-  http.get('/api/organisations/:id', (req) => {
-    const { id } = req.params
-    const organisation = StubData.organisations.find(org => org.id === id)
+  http.get("/api/organisations/:id", (req) => {
+    const { id } = req.params;
+    const organisation = StubData.organisations.find((org) => org.id === id);
     if (!organisation) {
-      return HttpResponse.json({ error: 'Organisation not found' }, { status: 404, headers: {'X-Correlation-ID': 'test-correlation-id'} })
+      return HttpResponse.json(
+        { error: "Organisation not found" },
+        { status: 404, headers: { "X-Correlation-ID": "test-correlation-id" } },
+      );
     }
 
-    return HttpResponse.json(organisation, {headers: {'X-Correlation-ID': 'test-correlation-id'}})
-  })
+    return HttpResponse.json(organisation, {
+      headers: { "X-Correlation-ID": "test-correlation-id" },
+    });
+  }),
 );

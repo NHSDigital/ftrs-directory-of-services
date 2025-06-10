@@ -1,6 +1,6 @@
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { render, renderHook } from "@testing-library/react";
 import DataTable from "../DataTable";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 describe("DataTable", () => {
   const mockData = [
@@ -9,24 +9,26 @@ describe("DataTable", () => {
   ];
 
   it("renders table headers and rows correctly", () => {
-    const tableHook = renderHook(() => useReactTable({
-      data: mockData,
-      columns: [
-        {
-          accessorKey: "id",
-          header: "ID"
-        },
-        {
-          accessorKey: "name",
-          header: "Name"
-        },
-        {
-          accessorKey: "value",
-          header: "Value"
-        }
-      ],
-      getCoreRowModel: getCoreRowModel()
-    }));
+    const tableHook = renderHook(() =>
+      useReactTable({
+        data: mockData,
+        columns: [
+          {
+            accessorKey: "id",
+            header: "ID",
+          },
+          {
+            accessorKey: "name",
+            header: "Name",
+          },
+          {
+            accessorKey: "value",
+            header: "Value",
+          },
+        ],
+        getCoreRowModel: getCoreRowModel(),
+      }),
+    );
 
     const headerGroups = tableHook.result.current.getHeaderGroups();
     expect(headerGroups.length).toBe(1);
@@ -36,7 +38,7 @@ describe("DataTable", () => {
     expect(rowModel.rows.length).toBe(2);
 
     const { container } = render(
-      <DataTable table={tableHook.result.current} />
+      <DataTable table={tableHook.result.current} />,
     );
 
     const headers = container.querySelectorAll("th");
@@ -115,6 +117,6 @@ describe("DataTable", () => {
           </td>
         </tr>,
       ]
-    `)
-  })
-})
+    `);
+  });
+});

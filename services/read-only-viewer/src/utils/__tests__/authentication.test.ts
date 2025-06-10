@@ -1,14 +1,18 @@
-import type { Mock } from "vitest";
-import { getBaseEndpoint, getSignedHeaders, makeSignedFetch } from "../authentication";
+import { server } from "@/__mocks__/mockServiceWorker";
 import { getParameter } from "@aws-lambda-powertools/parameters/ssm";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
-import { server } from "@/__mocks__/mockServiceWorker";
-import {http, HttpResponse} from "msw";
+import { http, HttpResponse } from "msw";
+import type { Mock } from "vitest";
+import {
+  getBaseEndpoint,
+  getSignedHeaders,
+  makeSignedFetch,
+} from "../authentication";
 import { ResponseError } from "../errors";
 
 vi.mock("@aws-lambda-powertools/parameters/ssm", () => ({
-  getParameter: vi.fn().mockReturnValue("https://example.com")
-}))
+  getParameter: vi.fn().mockReturnValue("https://example.com"),
+}));
 vi.mock("@aws-sdk/credential-providers", () => ({
   fromNodeProviderChain: vi.fn().mockReturnValue({}),
 }));
@@ -25,8 +29,6 @@ vi.mock("@aws-sdk/signature-v4", () => ({
   })),
 }));
 
-
-
 describe("getBaseEndpoint", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,15 +37,17 @@ describe("getBaseEndpoint", () => {
   });
 
   it("loads the base endpoint from parameter store", async () => {
-      process.env.ENVIRONMENT = "test";
-      process.env.WORKSPACE = "test-workspace";
+    process.env.ENVIRONMENT = "test";
+    process.env.WORKSPACE = "test-workspace";
 
-      const endpoint = await getBaseEndpoint();
-      expect(endpoint).toBe("https://example.com");
+    const endpoint = await getBaseEndpoint();
+    expect(endpoint).toBe("https://example.com");
 
-      expect(getParameter).toHaveBeenCalledWith("/ftrs-dos-test-crud-apis-test-workspace/endpoint");
-      expect(getParameter).toHaveBeenCalledTimes(1);
-  })
+    expect(getParameter).toHaveBeenCalledWith(
+      "/ftrs-dos-test-crud-apis-test-workspace/endpoint",
+    );
+    expect(getParameter).toHaveBeenCalledTimes(1);
+  });
 
   it("loads the base endpoint without workspace", async () => {
     process.env.ENVIRONMENT = "test";
@@ -52,7 +56,9 @@ describe("getBaseEndpoint", () => {
     const endpoint = await getBaseEndpoint();
     expect(endpoint).toBe("https://example.com");
 
-    expect(getParameter).toHaveBeenCalledWith("/ftrs-dos-test-crud-apis/endpoint");
+    expect(getParameter).toHaveBeenCalledWith(
+      "/ftrs-dos-test-crud-apis/endpoint",
+    );
     expect(getParameter).toHaveBeenCalledTimes(1);
   });
 
@@ -63,12 +69,14 @@ describe("getBaseEndpoint", () => {
     process.env.WORKSPACE = "test-workspace";
 
     await expect(getBaseEndpoint()).rejects.toThrow(
-      "Base URL not found for environment: test, workspace: test-workspace"
+      "Base URL not found for environment: test, workspace: test-workspace",
     );
 
-    expect(getParameter).toHaveBeenCalledWith("/ftrs-dos-test-crud-apis-test-workspace/endpoint");
+    expect(getParameter).toHaveBeenCalledWith(
+      "/ftrs-dos-test-crud-apis-test-workspace/endpoint",
+    );
   });
-})
+});
 
 describe("getSignedHeaders", () => {
   it("returns signed headers for a request", async () => {
@@ -98,20 +106,24 @@ describe("getSignedHeaders", () => {
 
     await expect(getSignedHeaders(options)).rejects.toThrow("Signing failed");
   });
-})
+});
 
 describe("makeSignedFetch", () => {
   it("makes a signed fetch request with correct options", async () => {
     server.use(
-      http.get("https://example.com/api/organisations/", () => {
-        return HttpResponse.json([
-          { id: "1", name: "Org 1" },
-          { id: "2", name: "Org 2" }
-        ])
-      }, {
-        once: true
-      })
-    )
+      http.get(
+        "https://example.com/api/organisations/",
+        () => {
+          return HttpResponse.json([
+            { id: "1", name: "Org 1" },
+            { id: "2", name: "Org 2" },
+          ]);
+        },
+        {
+          once: true,
+        },
+      ),
+    );
 
     const options = {
       pathname: "/api/organisations/",
@@ -126,17 +138,21 @@ describe("makeSignedFetch", () => {
     const data = await response.json();
     expect(data).toEqual([
       { id: "1", name: "Org 1" },
-      { id: "2", name: "Org 2" }
+      { id: "2", name: "Org 2" },
     ]);
   });
 
   it("throws an error if the response status is not expected", async () => {
     server.use(
-      http.get("https://example.com/api/resource", () => {
-        return HttpResponse.json({ error: "Not Found" }, { status: 404 });
-      }, {
-        once: true
-      })
+      http.get(
+        "https://example.com/api/resource",
+        () => {
+          return HttpResponse.json({ error: "Not Found" }, { status: 404 });
+        },
+        {
+          once: true,
+        },
+      ),
     );
 
     const options = {
@@ -155,6 +171,8 @@ describe("makeSignedFetch", () => {
       correlationId: undefined,
     });
 
-    await expect(makeSignedFetch(options)).rejects.toThrow(expectedResponseError);
-  })
-})
+    await expect(makeSignedFetch(options)).rejects.toThrow(
+      expectedResponseError,
+    );
+  });
+});

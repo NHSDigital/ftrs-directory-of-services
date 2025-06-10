@@ -3,7 +3,7 @@ type ResponseErrorInput = {
   statusCode: number;
   headers?: Record<string, string>;
   correlationId?: string;
-}
+};
 
 export class ResponseError extends Error {
   public statusCode: number;
@@ -14,7 +14,7 @@ export class ResponseError extends Error {
     message,
     statusCode,
     headers,
-    correlationId
+    correlationId,
   }: ResponseErrorInput) {
     super(message);
     this.name = "ResponseError";

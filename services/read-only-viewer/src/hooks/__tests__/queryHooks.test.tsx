@@ -1,10 +1,10 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { useOrganisationQuery, useOrganisationsQuery } from "../queryHooks";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { PropsWithChildren } from "react";
-import { ResponseError } from "@/utils/errors";
 import { server } from "@/__mocks__/mockServiceWorker";
+import { ResponseError } from "@/utils/errors";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
+import type { PropsWithChildren } from "react";
+import { useOrganisationQuery, useOrganisationsQuery } from "../queryHooks";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,18 +16,19 @@ const queryClient = new QueryClient({
 });
 
 const QueryClientWrapper: React.FC<PropsWithChildren> = ({ children }) => (
-  <QueryClientProvider client={queryClient}>
-    {children}
-  </QueryClientProvider>
-)
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+);
 
 beforeEach(() => {
   queryClient.clear();
-})
+});
 
 describe("useOrganisationQuery", () => {
   it("should return organisation data", async () => {
-    const queryHook = renderHook(() => useOrganisationQuery("e2f1d47c-a72b-431c-ad99-5e943d450f34"), { wrapper: QueryClientWrapper });
+    const queryHook = renderHook(
+      () => useOrganisationQuery("e2f1d47c-a72b-431c-ad99-5e943d450f34"),
+      { wrapper: QueryClientWrapper },
+    );
 
     expect(queryHook.result.current.status).toBe("pending");
     expect(queryHook.result.current.data).toBeUndefined();
@@ -50,11 +51,14 @@ describe("useOrganisationQuery", () => {
       createdBy: "user1",
       createdDateTime: "2023-01-01T00:00:00Z",
       modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z"
-    })
+      modifiedDateTime: "2023-01-02T00:00:00Z",
+    });
 
     // Check data is stored in query cache
-    const cachedData = queryClient.getQueryData(["organisation", "e2f1d47c-a72b-431c-ad99-5e943d450f34"]);
+    const cachedData = queryClient.getQueryData([
+      "organisation",
+      "e2f1d47c-a72b-431c-ad99-5e943d450f34",
+    ]);
     expect(cachedData).toEqual({
       id: "e2f1d47c-a72b-431c-ad99-5e943d450f34",
       name: "Organisation 1",
@@ -65,12 +69,15 @@ describe("useOrganisationQuery", () => {
       createdBy: "user1",
       createdDateTime: "2023-01-01T00:00:00Z",
       modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z"
+      modifiedDateTime: "2023-01-02T00:00:00Z",
     });
   });
 
   it("should handle error when organisation not found", async () => {
-    const queryHook = renderHook(() => useOrganisationQuery("non-existent-id"), { wrapper: QueryClientWrapper });
+    const queryHook = renderHook(
+      () => useOrganisationQuery("non-existent-id"),
+      { wrapper: QueryClientWrapper },
+    );
 
     expect(queryHook.result.current.status).toBe("pending");
     expect(queryHook.result.current.data).toBeUndefined();
@@ -88,16 +95,18 @@ describe("useOrganisationQuery", () => {
     const error = queryHook.result.current.error as ResponseError;
     expect(error).toBeInstanceOf(ResponseError);
 
-    expect(error.message).toBe("Failed to fetch organisation data for ID: non-existent-id");
+    expect(error.message).toBe(
+      "Failed to fetch organisation data for ID: non-existent-id",
+    );
     expect(error.statusCode).toBe(404);
     expect(error.headers).toEqual({
       "content-length": "34",
       "content-type": "application/json",
-      "x-correlation-id": "test-correlation-id"
+      "x-correlation-id": "test-correlation-id",
     });
     expect(error.correlationId).toBe("test-correlation-id");
   });
-})
+});
 
 describe("useOrganisationsQuery", () => {
   it("should return list of organisations", async () => {
@@ -112,7 +121,7 @@ describe("useOrganisationsQuery", () => {
         createdBy: "user1",
         createdDateTime: "2023-01-01T00:00:00Z",
         modifiedBy: "user2",
-        modifiedDateTime: "2023-01-02T00:00:00Z"
+        modifiedDateTime: "2023-01-02T00:00:00Z",
       },
       {
         id: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc",
@@ -124,11 +133,13 @@ describe("useOrganisationsQuery", () => {
         createdBy: "user3",
         createdDateTime: "2023-01-03T00:00:00Z",
         modifiedBy: "user4",
-        modifiedDateTime: "2023-01-04T00:00:00Z"
-      }
-    ]
+        modifiedDateTime: "2023-01-04T00:00:00Z",
+      },
+    ];
 
-    const queryHook = renderHook(() => useOrganisationsQuery(), { wrapper: QueryClientWrapper });
+    const queryHook = renderHook(() => useOrganisationsQuery(), {
+      wrapper: QueryClientWrapper,
+    });
 
     expect(queryHook.result.current.status).toBe("pending");
     expect(queryHook.result.current.data).toBeUndefined();
@@ -151,14 +162,26 @@ describe("useOrganisationsQuery", () => {
   it("should handle error when fetching organisations fails", async () => {
     // Override the server response to simulate an error
     server.use(
-      http.get('/api/organisations', () => {
-        return HttpResponse.json({ error: 'Failed to fetch organisations' }, { status: 500, headers: { 'X-Correlation-ID': 'test-correlation-id' } });
-      }, {
-        once: true
-      })
+      http.get(
+        "/api/organisations",
+        () => {
+          return HttpResponse.json(
+            { error: "Failed to fetch organisations" },
+            {
+              status: 500,
+              headers: { "X-Correlation-ID": "test-correlation-id" },
+            },
+          );
+        },
+        {
+          once: true,
+        },
+      ),
     );
 
-    const queryHook = renderHook(() => useOrganisationsQuery(), { wrapper: QueryClientWrapper });
+    const queryHook = renderHook(() => useOrganisationsQuery(), {
+      wrapper: QueryClientWrapper,
+    });
     expect(queryHook.result.current.status).toBe("pending");
     expect(queryHook.result.current.data).toBeUndefined();
     expect(queryHook.result.current.error).toBeNull();
@@ -179,7 +202,7 @@ describe("useOrganisationsQuery", () => {
     expect(error.headers).toEqual({
       "content-length": "41",
       "content-type": "application/json",
-      "x-correlation-id": "test-correlation-id"
+      "x-correlation-id": "test-correlation-id",
     });
     expect(error.correlationId).toBe("test-correlation-id");
   });
