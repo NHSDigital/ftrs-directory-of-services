@@ -1,13 +1,24 @@
+type ResponseErrorInput = {
+  message: string;
+  statusCode: number;
+  headers?: Record<string, string>;
+  correlationId?: string;
+}
+
 export class ResponseError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public headers?: Record<string, string>,
-    public correlationId?: string,
-  ) {
+  public statusCode: number;
+  public headers?: Record<string, string>;
+  public correlationId?: string;
+
+  constructor({
+    message,
+    statusCode,
+    headers,
+    correlationId
+  }: ResponseErrorInput) {
     super(message);
     this.name = "ResponseError";
-    this.status = status;
+    this.statusCode = statusCode;
     this.headers = headers;
     this.correlationId = correlationId;
   }
@@ -16,11 +27,11 @@ export class ResponseError extends Error {
     response: Response,
     message?: string,
   ): ResponseError {
-    return new ResponseError(
-      message || `Request failed with status ${response.status}`,
-      response.status,
-      Object.fromEntries(response.headers.entries()),
-      response.headers.get("X-Correlation-ID") || undefined,
-    );
+    return new ResponseError({
+      message: message || `Request failed with status code ${response.status}`,
+      statusCode: response.status,
+      headers: Object.fromEntries(response.headers.entries()),
+      correlationId: response.headers.get("X-Correlation-ID") || undefined,
+    });
   }
 }

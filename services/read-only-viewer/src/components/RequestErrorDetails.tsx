@@ -25,10 +25,10 @@ const RequestErrorDetails: React.FC<RequestErrorDetailsProps> = ({ error }) => {
                 {error?.correlationId}
               </p>
             )}
-            {error?.status && (
+            {error?.statusCode && (
               <p className="nhsuk-u-margin-bottom-1">
                 <span className="nhsuk-u-font-weight-bold">Status Code:</span>{" "}
-                {error?.status}
+                {error?.statusCode}
               </p>
             )}
             <p className="nhsuk-u-font-weight-bold nhsuk-u-margin-bottom-1">
