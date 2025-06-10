@@ -1,4 +1,4 @@
-import { organisationSchema, endpointSchema } from "../types";
+import { endpointSchema, organisationSchema } from "../types";
 
 describe("organisationSchema", () => {
   it("validates a valid organisation object", () => {
@@ -13,7 +13,7 @@ describe("organisationSchema", () => {
       createdBy: "user1",
       createdDateTime: "2023-01-01T00:00:00Z",
       modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z"
+      modifiedDateTime: "2023-01-02T00:00:00Z",
     };
 
     expect(organisationSchema.safeParse(validOrganisation).success).toBe(true);
@@ -31,7 +31,7 @@ describe("organisationSchema", () => {
       createdBy: "user1",
       createdDateTime: "2023-01-01T00:00:00Z",
       modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z"
+      modifiedDateTime: "2023-01-02T00:00:00Z",
     };
 
     const result = organisationSchema.safeParse(invalidOrganisation);
@@ -41,23 +41,23 @@ describe("organisationSchema", () => {
         code: "invalid_string",
         message: "Invalid uuid",
         path: ["id"],
-        validation: "uuid"
+        validation: "uuid",
       },
       {
         code: "invalid_type",
         expected: "string",
         message: "Required",
         path: ["name"],
-        received: "undefined"
+        received: "undefined",
       },
       {
         code: "invalid_type",
         expected: "string",
         message: "Required",
         path: ["type"],
-        received: "undefined"
-      }
-    ])
+        received: "undefined",
+      },
+    ]);
   });
 });
 
@@ -79,7 +79,7 @@ describe("endpointSchema", () => {
       createdBy: "user1",
       createdDateTime: "2023-01-01T00:00:00Z",
       modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z"
+      modifiedDateTime: "2023-01-02T00:00:00Z",
     };
 
     expect(endpointSchema.safeParse(validEndpoint).success).toBe(true);
@@ -102,55 +102,55 @@ describe("endpointSchema", () => {
       createdBy: "user1",
       createdDateTime: "2023-01-01T00:00:00Z",
       modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z"
+      modifiedDateTime: "2023-01-02T00:00:00Z",
     };
 
     const result = endpointSchema.safeParse(invalidEndpoint);
     expect(result.success).toBe(false);
     expect(result.error?.issues).toEqual([
       {
-        validation: 'uuid',
-        code: 'invalid_string',
-        message: 'Invalid uuid',
-        path: [ 'id' ]
+        validation: "uuid",
+        code: "invalid_string",
+        message: "Invalid uuid",
+        path: ["id"],
       },
       {
-        code: 'invalid_type',
-        expected: 'string',
-        received: 'number',
-        path: [ 'status' ],
-        message: 'Expected string, received number'
+        code: "invalid_type",
+        expected: "string",
+        received: "number",
+        path: ["status"],
+        message: "Expected string, received number",
       },
       {
-        code: 'invalid_type',
-        expected: 'string',
-        received: 'null',
-        path: [ 'connectionType' ],
-        message: 'Expected string, received null'
+        code: "invalid_type",
+        expected: "string",
+        received: "null",
+        path: ["connectionType"],
+        message: "Expected string, received null",
       },
       {
-        code: 'invalid_type',
-        expected: 'string',
-        received: 'undefined',
-        path: [ 'name' ],
-        message: 'Required'
+        code: "invalid_type",
+        expected: "string",
+        received: "undefined",
+        path: ["name"],
+        message: "Required",
       },
       {
-        code: 'invalid_type',
-        expected: 'string',
-        received: 'undefined',
-        path: [ 'payloadType' ],
-        message: 'Required'
+        code: "invalid_type",
+        expected: "string",
+        received: "undefined",
+        path: ["payloadType"],
+        message: "Required",
       },
       {
-        code: 'too_small',
+        code: "too_small",
         minimum: 0,
-        type: 'number',
+        type: "number",
         inclusive: false,
         exact: false,
-        message: 'Number must be greater than 0',
-        path: [ 'order' ]
-      }
-    ])
+        message: "Number must be greater than 0",
+        path: ["order"],
+      },
+    ]);
   });
 });

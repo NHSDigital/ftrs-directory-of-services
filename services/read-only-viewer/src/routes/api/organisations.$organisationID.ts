@@ -1,8 +1,13 @@
 import { makeSignedFetch } from "@/utils/authentication";
 import { json } from "@tanstack/react-start";
-import { createAPIFileRoute, type StartAPIMethodCallback } from "@tanstack/react-start/api";
+import {
+  type StartAPIMethodCallback,
+  createAPIFileRoute,
+} from "@tanstack/react-start/api";
 
-export const getOrganisationByID: StartAPIMethodCallback<"/api/organisations/$organisationID"> = async ({ params, request }) => {
+export const getOrganisationByID: StartAPIMethodCallback<
+  "/api/organisations/$organisationID"
+> = async ({ params, request }) => {
   const { organisationID } = params;
 
   const response = await makeSignedFetch({
@@ -19,7 +24,7 @@ export const getOrganisationByID: StartAPIMethodCallback<"/api/organisations/$or
       "X-Correlation-ID": response.headers.get("X-Correlation-ID") || "",
     },
   });
-}
+};
 
 export const APIRoute = createAPIFileRoute(
   "/api/organisations/$organisationID",
