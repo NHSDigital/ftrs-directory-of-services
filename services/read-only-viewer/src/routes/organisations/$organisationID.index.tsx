@@ -144,7 +144,7 @@ const OrganisationEndpointsList: React.FC<{ endpoints: Endpoint[] }> = ({
       <h2 className="nhsuk-heading-m">Endpoints</h2>
       <Details.ExpanderGroup>
         {Object.entries(groupedEndpoints).map(([interaction, endpoints]) => (
-          <Details expander key={interaction}>
+          <Details expander={true} key={interaction}>
             <Details.Summary>{interaction}</Details.Summary>
             <Details.Text>
               <OrganisationEndpointsTable endpoints={endpoints} />

@@ -12,10 +12,10 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as OrganisationsIndexImport } from './routes/organisations.index'
-import { Route as OrganisationsOrganisationIDIndexImport } from './routes/organisations.$organisationID.index'
-import { Route as OrganisationsOrganisationIDEndpointsIndexImport } from './routes/organisations.$organisationID.endpoints.index'
-import { Route as OrganisationsOrganisationIDEndpointsEndpointIDImport } from './routes/organisations.$organisationID.endpoints.$endpointID'
+import { Route as OrganisationsIndexImport } from './routes/organisations/index'
+import { Route as OrganisationsOrganisationIDIndexImport } from './routes/organisations/$organisationID.index'
+import { Route as OrganisationsOrganisationIDEndpointsIndexImport } from './routes/organisations/$organisationID.endpoints.index'
+import { Route as OrganisationsOrganisationIDEndpointsEndpointIDImport } from './routes/organisations/$organisationID.endpoints.$endpointID'
 
 // Create/Update Routes
 
@@ -185,16 +185,16 @@ export const routeTree = rootRoute
       "filePath": "index.tsx"
     },
     "/organisations/": {
-      "filePath": "organisations.index.tsx"
+      "filePath": "organisations/index.tsx"
     },
     "/organisations/$organisationID/": {
-      "filePath": "organisations.$organisationID.index.tsx"
+      "filePath": "organisations/$organisationID.index.tsx"
     },
     "/organisations/$organisationID/endpoints/$endpointID": {
-      "filePath": "organisations.$organisationID.endpoints.$endpointID.tsx"
+      "filePath": "organisations/$organisationID.endpoints.$endpointID.tsx"
     },
     "/organisations/$organisationID/endpoints/": {
-      "filePath": "organisations.$organisationID.endpoints.index.tsx"
+      "filePath": "organisations/$organisationID.endpoints.index.tsx"
     }
   }
 }

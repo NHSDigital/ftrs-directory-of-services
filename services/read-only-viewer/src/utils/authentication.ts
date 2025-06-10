@@ -52,6 +52,7 @@ export const getSignedHeaders = async (options: {
 };
 
 interface SignedRequestOptions extends RequestInit {
+  method: string;
   pathname: string;
   expectedStatus?: number[];
 }
@@ -67,7 +68,7 @@ export const makeSignedFetch = async (options: SignedRequestOptions) => {
   const baseEndpoint = await getBaseEndpoint();
 
   const signedHeaders = await getSignedHeaders({
-    method: options.method || "GET",
+    method: options.method,
     url: `${baseEndpoint}${options.pathname}`,
     headers: {
       ...options.headers,

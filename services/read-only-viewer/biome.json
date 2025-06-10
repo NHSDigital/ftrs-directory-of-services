@@ -7,8 +7,15 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["src/routeTree.gen.ts"],
-    "include": ["src/*", ".vscode/*", "index.html", "vite.config.js"]
+    "ignore": [
+      "src/routeTree.gen.ts"
+    ],
+    "include": [
+      "src/*",
+      ".vscode/*",
+      "index.html",
+      "vite.config.js"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -22,7 +29,10 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "style": {
+        "noNonNullAssertion": "off"
+      }
     }
   },
   "javascript": {

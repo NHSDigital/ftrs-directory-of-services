@@ -5,6 +5,7 @@ import { createAPIFileRoute } from "@tanstack/react-start/api";
 export const APIRoute = createAPIFileRoute("/api/organisations")({
   GET: async ({ request }) => {
     const response = await makeSignedFetch({
+      method: "GET",
       pathname: "/organisation/",
       expectedStatus: [200],
       headers: {

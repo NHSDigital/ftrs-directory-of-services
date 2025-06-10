@@ -12,7 +12,7 @@ import { Container, Footer, Header } from "nhsuk-react-components";
 import type { PropsWithChildren } from "react";
 import appStylesUrl from "../styles/App.scss?url";
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
@@ -78,7 +78,7 @@ export const Route = createRootRoute({
 const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <>
-      <Header transactional>
+      <Header transactional={true}>
         <Header.Container>
           <Header.Logo href="/" />
           <Header.ServiceName href="/">

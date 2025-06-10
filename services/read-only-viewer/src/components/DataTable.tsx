@@ -14,12 +14,10 @@ const DataTable = <T,>({ table }: DataTableProps<T>): JSX.Element => {
           <Table.Row key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <Table.Cell key={header.id} colSpan={header.colSpan}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext(),
-                    )}
+                {flexRender(
+                  header.column.columnDef.header,
+                  header.getContext(),
+                )}
               </Table.Cell>
             ))}
           </Table.Row>

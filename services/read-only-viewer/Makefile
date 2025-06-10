@@ -29,7 +29,7 @@ lint:
 	npm run check
 
 unit-test:
-	npm run test -- --passWithNoTests
+	npm run test
 
 build: clean ensure-build-dir
 	npm run build

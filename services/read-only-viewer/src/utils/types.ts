@@ -12,7 +12,7 @@ export const endpointSchema = zod.object({
   address: zod.string(),
   managedByOrganisation: zod.string().uuid(),
   service: zod.string().uuid().optional(),
-  order: zod.number(),
+  order: zod.number().positive(),
   isCompressionEnabled: zod.boolean(),
   createdBy: zod.string(),
   createdDateTime: zod.string().datetime(),
@@ -22,7 +22,7 @@ export const endpointSchema = zod.object({
 
 export type Endpoint = zod.infer<typeof endpointSchema>;
 
-const organisationSchema = zod.object({
+export const organisationSchema = zod.object({
   id: zod.string().uuid(),
   identifier_ODS_ODSCode: zod.string().optional(),
   active: zod.boolean(),
