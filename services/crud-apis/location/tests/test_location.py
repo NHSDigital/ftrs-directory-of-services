@@ -1,10 +1,11 @@
 from http import HTTPStatus
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from pytest_mock import mocker
+from pytest_mock import MockerFixture
 
 from location.app.router.location import router
 
@@ -40,20 +41,20 @@ def get_mock_location() -> dict:
 
 
 @pytest.fixture
-def mock_repository(mocker: mocker) -> None:
+def mock_repository(mocker: MockerFixture) -> None:
     repository_mock = mocker.patch("location.app.router.location.repository")
     repository_mock.get.return_value = get_mock_location()
     repository_mock.iter_records.return_value = [get_mock_location()]
     return repository_mock
 
 
-def test_returns_location_by_id(mock_repository: mocker) -> None:
+def test_returns_location_by_id(mock_repository: Mock) -> None:
     response = client.get(f"/{test_location_id}")
     assert response.status_code == HTTPStatus.OK
     assert response.json()["id"] == str(test_location_id)
 
 
-def test_returns_404_when_location_not_found(mock_repository: mocker) -> None:
+def test_returns_404_when_location_not_found(mock_repository: Mock) -> None:
     mock_repository.get.return_value = None
     with pytest.raises(HTTPException) as exc_info:
         client.get(f"/{test_location_id}")
@@ -61,13 +62,13 @@ def test_returns_404_when_location_not_found(mock_repository: mocker) -> None:
     assert exc_info.value.detail == "Location not found"
 
 
-def test_returns_all_locations(mock_repository: mocker) -> None:
+def test_returns_all_locations(mock_repository: Mock) -> None:
     response = client.get("/")
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()) == 1
 
 
-def test_returns_404_when_no_locations_found(mock_repository: mocker) -> None:
+def test_returns_404_when_no_locations_found(mock_repository: Mock) -> None:
     mock_repository.iter_records.return_value = []
     with pytest.raises(HTTPException) as exc_info:
         client.get("/")
@@ -75,7 +76,7 @@ def test_returns_404_when_no_locations_found(mock_repository: mocker) -> None:
     assert exc_info.value.detail == "No locations found"
 
 
-def test_returns_500_on_unexpected_error(mock_repository: mocker) -> None:
+def test_returns_500_on_unexpected_error(mock_repository: Mock) -> None:
     mock_repository.get.side_effect = Exception("Unexpected error")
     with pytest.raises(HTTPException) as exc_info:
         client.get(f"/{test_location_id}")
@@ -84,7 +85,7 @@ def test_returns_500_on_unexpected_error(mock_repository: mocker) -> None:
 
 
 def test_returns_500_on_unexpected_error_in_get_all(
-    mock_repository: mocker,
+    mock_repository: Mock,
 ) -> None:
     mock_repository.iter_records.side_effect = Exception("Unexpected error")
     with pytest.raises(HTTPException) as exc_info:
