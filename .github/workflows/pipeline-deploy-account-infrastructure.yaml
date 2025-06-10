@@ -99,7 +99,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','account_wide','account_policies']"
+      stacks: "['terraform_management','github_runner','account_wide','account_policies','domain_name']"
       action: apply
     secrets: inherit
 
@@ -115,7 +115,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner', 'artefact_management','account_policies']"
+      stacks: "['terraform_management','github_runner', 'artefact_management','account_policies','domain_name']"
       action: apply
     secrets: inherit
 
