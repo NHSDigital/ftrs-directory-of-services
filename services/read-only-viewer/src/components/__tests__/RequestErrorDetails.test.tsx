@@ -1,29 +1,28 @@
+import { ResponseError } from "@/utils/errors";
 import { render } from "@testing-library/react";
 import RequestErrorDetails from "../RequestErrorDetails";
-import { ResponseError } from "@/utils/errors";
 
 describe("RequestErrorDetails", () => {
   it("renders error details with correct information", () => {
-
     const error = new ResponseError({
       message: "Request failed with status code 500",
       statusCode: 500,
       headers: {
         "Content-Type": "application/json",
-        "X-Request-ID": "abcde"
+        "X-Request-ID": "abcde",
       },
       correlationId: "12345",
-    })
+    });
 
-    const { getByText } = render(
-      <RequestErrorDetails error={error} />
-    );
+    const { getByText } = render(<RequestErrorDetails error={error} />);
 
     const errorSummaryTitle = getByText("Something went wrong");
     expect(errorSummaryTitle).toBeInTheDocument();
     expect(errorSummaryTitle.tagName).toBe("H2");
 
-    const errorDetails = getByText("There was an error while processing your request. Please try again later.");
+    const errorDetails = getByText(
+      "There was an error while processing your request. Please try again later.",
+    );
     expect(errorDetails).toBeInTheDocument();
     expect(errorDetails.tagName).toBe("P");
 
@@ -49,7 +48,7 @@ describe("RequestErrorDetails", () => {
     const headersContent = headersLabel.nextSibling;
     expect(headersContent).toBeInTheDocument();
     expect(headersContent?.textContent).toContain(
-      JSON.stringify(error.headers, null, 2)
+      JSON.stringify(error.headers, null, 2),
     );
   });
 
@@ -57,14 +56,16 @@ describe("RequestErrorDetails", () => {
     const error = new Error("An unexpected error occurred");
 
     const { getByText } = render(
-      <RequestErrorDetails error={error as ResponseError} />
+      <RequestErrorDetails error={error as ResponseError} />,
     );
 
     const errorSummaryTitle = getByText("Something went wrong");
     expect(errorSummaryTitle).toBeInTheDocument();
     expect(errorSummaryTitle.tagName).toBe("H2");
 
-    const errorDetails = getByText("There was an error while processing your request. Please try again later.");
+    const errorDetails = getByText(
+      "There was an error while processing your request. Please try again later.",
+    );
     expect(errorDetails).toBeInTheDocument();
     expect(errorDetails.tagName).toBe("P");
 
@@ -72,5 +73,5 @@ describe("RequestErrorDetails", () => {
     expect(message).toBeInTheDocument();
     expect(message.tagName).toBe("PRE");
     expect(message).toHaveClass("ftrs-code-block");
-  })
+  });
 });

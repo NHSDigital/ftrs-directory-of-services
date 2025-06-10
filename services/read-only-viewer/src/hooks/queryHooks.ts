@@ -10,7 +10,7 @@ export const useOrganisationQuery = (organisationId: string) => {
       if (!response.ok) {
         throw ResponseError.fromResponse(
           response,
-          `Failed to fetch organisation data for ID: ${organisationId}`
+          `Failed to fetch organisation data for ID: ${organisationId}`,
         );
       }
       return await response.json();
@@ -26,7 +26,7 @@ export const useOrganisationsQuery = () => {
       if (!response.ok) {
         throw ResponseError.fromResponse(
           response,
-          "Failed to fetch organisations data"
+          "Failed to fetch organisations data",
         );
       }
 

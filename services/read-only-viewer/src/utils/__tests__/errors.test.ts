@@ -7,7 +7,7 @@ describe("ResponseError", () => {
       statusCode: 500,
       headers: {
         "content-type": "application/json",
-        "x-correlation-id": "test-correlation-id"
+        "x-correlation-id": "test-correlation-id",
       },
       correlationId: "test-correlation-id",
     });
@@ -18,30 +18,30 @@ describe("ResponseError", () => {
     expect(error.statusCode).toBe(500);
     expect(error.headers).toEqual({
       "content-type": "application/json",
-      "x-correlation-id": "test-correlation-id"
+      "x-correlation-id": "test-correlation-id",
     });
     expect(error.correlationId).toBe("test-correlation-id");
   });
 
   it("fromResponse sets properties correctly", () => {
-    const mockResponse = new Response(
-      JSON.stringify({ error: "Not Found" }),
-      {
-        status: 404,
-        headers: {
-          "content-type": "application/json",
-          "x-correlation-id": "test-correlation-id"
-        }
-      }
-    );
+    const mockResponse = new Response(JSON.stringify({ error: "Not Found" }), {
+      status: 404,
+      headers: {
+        "content-type": "application/json",
+        "x-correlation-id": "test-correlation-id",
+      },
+    });
 
-    const error = ResponseError.fromResponse(mockResponse, "Resource not found");
+    const error = ResponseError.fromResponse(
+      mockResponse,
+      "Resource not found",
+    );
     expect(error).toBeInstanceOf(ResponseError);
     expect(error.message).toBe("Resource not found");
     expect(error.statusCode).toBe(404);
     expect(error.headers).toEqual({
       "content-type": "application/json",
-      "x-correlation-id": "test-correlation-id"
+      "x-correlation-id": "test-correlation-id",
     });
     expect(error.correlationId).toBe("test-correlation-id");
   });
@@ -57,4 +57,4 @@ describe("ResponseError", () => {
     const error = ResponseError.fromResponse(mockResponse);
     expect(error.correlationId).toBeUndefined();
   });
-})
+});

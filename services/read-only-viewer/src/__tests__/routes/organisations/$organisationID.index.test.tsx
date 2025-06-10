@@ -1,6 +1,6 @@
 import { StubData } from "@/__mocks__/mockServiceWorker";
 import { routeTree } from "@/routeTree.gen";
-import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { render, waitFor } from "@testing-library/react";
 import { act } from "react";
 
@@ -11,8 +11,8 @@ describe("Organisation Details", () => {
   beforeEach(async () => {
     router = createRouter({
       defaultPendingMinMs: 0,
-      routeTree: routeTree
-    })
+      routeTree: routeTree,
+    });
 
     app = render(<RouterProvider<typeof router> router={router} />);
   });
@@ -24,38 +24,43 @@ describe("Organisation Details", () => {
       identifier_ODS_ODSCode: "ODS1",
       active: true,
       type: "Type A",
-      endpoints: [{
-        id: "endpoint1",
-        name: "Primary Endpoint",
-        status: "active",
-        connectionType: "REST",
-        managedByOrganisation: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
-        format: "JSON",
-        payloadType: "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
-        isCompressionEnabled: false,
-        address: "https://api.organisation1.example.com",
-        order: 1,
-        description: "Primary endpoint for Organisation 1",
-        createdBy: "user1",
-        createdDateTime: "2023-01-01T00:00:00Z",
-        modifiedBy: "user2",
-        modifiedDateTime: "2023-01-02T00:00:00Z"
-      }],
+      endpoints: [
+        {
+          id: "endpoint1",
+          name: "Primary Endpoint",
+          status: "active",
+          connectionType: "REST",
+          managedByOrganisation: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
+          format: "JSON",
+          payloadType:
+            "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
+          isCompressionEnabled: false,
+          address: "https://api.organisation1.example.com",
+          order: 1,
+          description: "Primary endpoint for Organisation 1",
+          createdBy: "user1",
+          createdDateTime: "2023-01-01T00:00:00Z",
+          modifiedBy: "user2",
+          modifiedDateTime: "2023-01-02T00:00:00Z",
+        },
+      ],
       createdBy: "user1",
       createdDateTime: "2023-01-01T00:00:00Z",
       modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z"
-    })
+      modifiedDateTime: "2023-01-02T00:00:00Z",
+    });
 
-    await act(() => router.navigate(({
-      to: "/organisations/$organisationID",
-      params: {
-        organisationID: "32200d9e-fa54-43d4-8cb1-514aac0113a1"
-      }
-    })));
+    await act(() =>
+      router.navigate({
+        to: "/organisations/$organisationID",
+        params: {
+          organisationID: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
+        },
+      }),
+    );
 
     await waitFor(() =>
-      expect(app.queryByText("Loading...")).not.toBeInTheDocument()
+      expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
     );
 
     const heading = app.getByText("Organisation 1", { selector: "h1" });
@@ -69,8 +74,8 @@ describe("Organisation Details", () => {
       { key: "Active", value: "Yes" },
       { key: "Telecom", value: "None Provided" },
       { key: "Created By", value: "user1 (2023-01-01T00:00:00Z)" },
-      { key: "Modified By", value: "user2 (2023-01-02T00:00:00Z)" }
-    ]
+      { key: "Modified By", value: "user2 (2023-01-02T00:00:00Z)" },
+    ];
 
     const detailsList = app.container.querySelector("dl.nhsuk-summary-list")!;
     expect(detailsList).toBeInTheDocument();
@@ -87,7 +92,9 @@ describe("Organisation Details", () => {
       expect(value.textContent).toBe(item.value);
     });
 
-    const endpointDetailsSummary = app.getByText("urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0")
+    const endpointDetailsSummary = app.getByText(
+      "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
+    );
     expect(endpointDetailsSummary).toBeInTheDocument();
 
     const endpointDetails = endpointDetailsSummary.closest("details")!;
@@ -110,12 +117,17 @@ describe("Organisation Details", () => {
     expect(firstRowCells[0].textContent).toBe("1");
     expect(firstRowCells[1].textContent).toBe("active");
     expect(firstRowCells[2].textContent).toBe("REST");
-    expect(firstRowCells[3].textContent).toBe("https://api.organisation1.example.com");
+    expect(firstRowCells[3].textContent).toBe(
+      "https://api.organisation1.example.com",
+    );
 
     const actionLink = firstRowCells[4].querySelector("a");
     expect(actionLink).toBeInTheDocument();
     expect(actionLink?.textContent).toBe("View");
-    expect(actionLink).toHaveAttribute("href", "/organisations/32200d9e-fa54-43d4-8cb1-514aac0113a1/endpoints/endpoint1");
+    expect(actionLink).toHaveAttribute(
+      "href",
+      "/organisations/32200d9e-fa54-43d4-8cb1-514aac0113a1/endpoints/endpoint1",
+    );
   });
 
   it("handles no endpoints gracefully", async () => {
@@ -129,24 +141,28 @@ describe("Organisation Details", () => {
       createdBy: "user3",
       createdDateTime: "2023-01-03T00:00:00Z",
       modifiedBy: "user4",
-      modifiedDateTime: "2023-01-04T00:00:00Z"
-    })
+      modifiedDateTime: "2023-01-04T00:00:00Z",
+    });
 
-    await act(() => router.navigate(({
-      to: "/organisations/$organisationID",
-      params: {
-        organisationID: "d8a60e97-d77d-4331-85b3-5e378f83f9cd"
-      }
-    })));
+    await act(() =>
+      router.navigate({
+        to: "/organisations/$organisationID",
+        params: {
+          organisationID: "d8a60e97-d77d-4331-85b3-5e378f83f9cd",
+        },
+      }),
+    );
 
     await waitFor(() =>
-      expect(app.queryByText("Loading...")).not.toBeInTheDocument()
+      expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
     );
 
     const heading = app.getByText("Organisation 2", { selector: "h1" });
     expect(heading).toBeInTheDocument();
 
-    const noEndpointsMessage = app.getByText("No endpoints available for this organisation.");
+    const noEndpointsMessage = app.getByText(
+      "No endpoints available for this organisation.",
+    );
     expect(noEndpointsMessage).toBeInTheDocument();
   });
-})
+});
