@@ -91,10 +91,11 @@ def test_get_signed_request_headers(session_mock: MagicMock) -> None:
 
     method = "GET"
     url = "https://api.example.com/resource"
+    data = None
     host = "api.example.com"
     region = "eu-west-2"
 
-    headers = get_signed_request_headers(method, url, host, region)
+    headers = get_signed_request_headers(method, url, data, host, region)
 
     assert isinstance(headers, dict)
     assert "Authorization" in headers
@@ -169,6 +170,46 @@ def test_make_request_with_params(
     assert mock_call.last_request.qs == {"param1": ["value1"], "param2": ["value2"]}
 
 
+@patch("pipeline.utilities.boto3.Session")
+def test_make_request_with_json_data(
+    session_mock: MagicMock,
+    requests_mock: RequestsMock,
+) -> None:
+    """
+    Test the make_request function with parameters.
+    """
+    session_mock.return_value.get_credentials.return_value = Credentials(
+        access_key="mock_access_key",
+        secret_key="mock_secret_key",
+        token="mock_token",
+    )
+
+    mock_call = requests_mock.put(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
+
+    url = "https://api.example.com/resource"
+    json = {"json": "value"}
+    result = make_request(url, method="PUT", json=json)
+
+    assert result.status_code == HTTPStatus.OK
+    assert result.json() == {"key": "value"}
+
+    assert mock_call.last_request.url == "https://api.example.com/resource"
+    assert mock_call.last_request.method == "PUT"
+    assert mock_call.last_request.headers == {
+        "User-Agent": "python-requests/2.32.3",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "Content-Length": "17",
+    }
+    assert mock_call.last_request.body.decode() == '{"json": "value"}'
+
+
 @patch("pipeline.utilities.get_signed_request_headers")
 def test_make_request_signed_request(
     mock_get_headers: MagicMock,
@@ -197,7 +238,7 @@ def test_make_request_signed_request(
     assert result.json() == {"key": "value"}
 
     mock_get_headers.assert_called_once_with(
-        method="GET", url=url, host="api.example.com", region="eu-west-2"
+        method="GET", url=url, host="api.example.com", data=None, region="eu-west-2"
     )
 
     assert mock_call.last_request.url == url
