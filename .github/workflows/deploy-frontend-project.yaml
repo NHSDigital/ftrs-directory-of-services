@@ -35,6 +35,10 @@ on:
           description: "The application tag identifying the timeline in the repository to deploy from"
           required: false
           type: string
+      type:
+          description: "The type of permissions (e.g., account, app)"
+          required: true
+          type: string
 
 jobs:
   deploy-project:
@@ -53,7 +57,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: false
+          type: ${{ inputs.type }}
 
       - name: "Get directories"
         id: get-directories

@@ -35,6 +35,10 @@ on:
         required: false
         default: 5
         type: number
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
 
 jobs:
   service-automation-tests:
@@ -85,6 +89,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: "Install project"
         run: make install

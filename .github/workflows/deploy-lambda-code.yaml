@@ -16,11 +16,6 @@ on:
         required: false
         default: ${{ github.event.repository.name }}
         type: string
-      multi_domain:
-        description: "If true uses 'dos-management' github runner ; if false uses github runner for triggering repo"
-        required: false
-        default: 'false'
-        type: string
       workspace:
         description: "The name of the workspace to deploy the application into"
         required: true
@@ -123,7 +118,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: ${{ inputs.multi_domain }}
+          type: ${{ inputs.type }}
 
       - name: "Deploy service"
         uses: NHSDigital/uec-dos-management/.github/actions/deploy-service@latest

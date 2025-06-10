@@ -42,6 +42,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
       stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies']"
+      type: account
     secrets: inherit
 
   deploy-account-infrastructure-plan:
@@ -57,6 +58,7 @@ jobs:
       tag: ${{ inputs.tag }}
       stacks: "['terraform_management','github_runner','account_wide','account_policies','domain_name']"
       action: plan
+      type: account
     secrets: inherit
 
   mgmt-deploy-account-infrastructure-plan:
@@ -72,6 +74,7 @@ jobs:
       tag: ${{ inputs.tag }}
       stacks: "['terraform_management','github_runner', 'artefact_management','account_policies','domain_name']"
       action: plan
+      type: account
     secrets: inherit
 
   manual-approval:
@@ -101,6 +104,7 @@ jobs:
       tag: ${{ inputs.tag }}
       stacks: "['terraform_management','github_runner','account_wide','account_policies','domain_name']"
       action: apply
+      type: account
     secrets: inherit
 
   mgmt-deploy-account-infrastructure-apply:
@@ -117,6 +121,7 @@ jobs:
       tag: ${{ inputs.tag }}
       stacks: "['terraform_management','github_runner', 'artefact_management','account_policies','domain_name']"
       action: apply
+      type: account
     secrets: inherit
 
   slack-notifications:

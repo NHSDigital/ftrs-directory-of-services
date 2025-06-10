@@ -64,6 +64,18 @@ variable "github_runner_role_name" {
   default     = "github-runner"
 }
 
+variable "account_github_runner_role_name" {
+  description = "GitHub runner IAM role name for account"
+  type        = string
+  default     = "account-github-runner"
+}
+
+variable "app_github_runner_role_name" {
+  description = "GitHub runner IAM role name for app"
+  type        = string
+  default     = "app-github-runner"
+}
+
 variable "stack_name" {
   description = "The hyphenated version of the stack name used in names of resources defined in that stack"
   type        = string
