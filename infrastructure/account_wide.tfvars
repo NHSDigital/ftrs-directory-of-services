@@ -9,3 +9,4 @@ opensearch_create_network_policy = false
 opensearch_collection_name       = "-collection"
 
 s3_trust_store_bucket_name = "truststore"
+root_domain_name           = "ftrs.nhs.uk"
