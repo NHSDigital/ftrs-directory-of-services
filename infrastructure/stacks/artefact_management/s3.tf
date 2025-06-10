@@ -3,6 +3,7 @@ module "artefacts_bucket" {
   bucket_name = local.artefacts_bucket
 }
 
+
 resource "aws_s3_bucket_policy" "artefacts_bucket_policy" {
   depends_on = [module.artefacts_bucket]
   bucket     = local.artefacts_bucket
