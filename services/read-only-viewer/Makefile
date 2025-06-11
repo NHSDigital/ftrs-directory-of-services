@@ -27,6 +27,7 @@ format:
 
 lint:
 	npm run check
+	npm run build:types -- --noEmit
 
 unit-test:
 	npm run test
