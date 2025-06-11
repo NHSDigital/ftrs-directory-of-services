@@ -1,14 +1,9 @@
-name: Truncate Workflow History
+name: Stop OpenSearch Ingestion Pipelines
 
 on:
   # Run daily, at 18:00.
-  # schedule:
-  #   - cron: '0 18 * * *'
-  push:
-    branches:
-      - 'task/FDOS-388_Suspend_ingestion_pipelines'
-
-
+  schedule:
+    - cron: '0 18 * * *'
 
 jobs:
 
@@ -39,9 +34,10 @@ jobs:
 
   slack-notifications:
     needs:
+      - metadata
       - stop_ingestion_pipelines
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: dev
+      env: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
