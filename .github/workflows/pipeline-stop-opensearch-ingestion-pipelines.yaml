@@ -2,11 +2,9 @@ name: Stop OpenSearch Ingestion Pipelines
 
 on:
   # Run daily, at 18:00.
-  # schedule:
-  #   - cron: '0 18 * * *'
-  push:
-    branches:
-      - 'task/FDOS-388_Suspend_ingestion_pipelines'
+  schedule:
+    - cron: '0 18 * * *'
+
   workflow_dispatch:
     inputs:
       environment:
