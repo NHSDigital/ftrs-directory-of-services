@@ -57,7 +57,7 @@ docstring-code-format = true
 pythonpath = "functions"
 python_files = "test_*.py"
 testpaths = "tests"
-addopts = "-v"
+addopts = "-v --cov=functions --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 filterwarnings = [
     "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
 ]
