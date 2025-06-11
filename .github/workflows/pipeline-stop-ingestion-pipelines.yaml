@@ -8,7 +8,13 @@ on:
     branches:
       - 'task/FDOS-388_Suspend_ingestion_pipelines'
 
+
+
 jobs:
+
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
   stop_ingestion_pipelines:
     name: "Stop OpenSearch ingestion pipelines"
     permissions:
@@ -16,10 +22,18 @@ jobs:
       id-token: write
       contents: read
     timeout-minutes: 15
+    environment: ${{ needs.metadata.outputs.environment }}
+    needs:
+      - metadata
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
       - name: "Stop active ingestion pipelines"
         uses: ./.github/actions/stop-ingestion-pipelines
 
