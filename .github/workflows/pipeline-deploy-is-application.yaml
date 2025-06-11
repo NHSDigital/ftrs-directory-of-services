@@ -67,6 +67,16 @@ jobs:
       type: app
     secrets: inherit
 
+  perform-code-analysis:
+    name: "Perform static code analysis"
+    needs:
+      - metadata
+      - build-gp-search-service
+    uses: ./.github/workflows/static-code-analysis.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
+
   deploy-infrastructure-plan:
     name: "TF Plan IS level infrastructure"
     needs:
