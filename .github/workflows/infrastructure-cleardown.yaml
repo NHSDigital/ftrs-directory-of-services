@@ -59,6 +59,7 @@ jobs:
       application_tag: ${{ inputs.application_tag }}
       commit_hash: ${{ inputs.commit_hash }}
       action: destroy
+      type: ${{ inputs.type }}
     secrets: inherit
 
   delete-tf-state:
