@@ -23,7 +23,7 @@ jobs:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
   stop_opensearch_ingestion_pipelines:
-    if: ${{ needs.metadata.outputs.environment != 'prod' }}
+    if: ${{ needs.metadata.outputs.environment != 'dev' }}
     name: "Stop OpenSearch ingestion pipelines"
     permissions:
       actions: write
