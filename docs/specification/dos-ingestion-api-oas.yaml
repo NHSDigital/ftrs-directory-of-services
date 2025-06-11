@@ -107,7 +107,7 @@ info:
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
   version: 1.0.0
 servers:
-  - url: 'https://usertest.directoryofservices.nhs.uk/app/controllers/api/v1.0/'
+  - url: TBC
 paths:
   '/Organisation':
     post:
