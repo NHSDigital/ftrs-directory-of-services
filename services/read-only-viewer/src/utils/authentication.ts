@@ -8,7 +8,6 @@ import { ResponseError } from "./errors";
 export const getBaseEndpoint = async () => {
   const environment = process.env.ENVIRONMENT;
   const workspace = process.env.WORKSPACE;
-
   const parameterPath = workspace
     ? `/ftrs-dos-${environment}-crud-apis-${workspace}/endpoint`
     : `/ftrs-dos-${environment}-crud-apis/endpoint`;
