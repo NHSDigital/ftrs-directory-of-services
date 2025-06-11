@@ -1,0 +1,33 @@
+name: Truncate Workflow History
+
+on:
+  # Run daily, at 18:00.
+  # schedule:
+  #   - cron: '0 18 * * *'
+  push:
+    branches:
+      - 'task/FDOS-388_Suspend_ingestion_pipelines'
+
+jobs:
+  stop_ingestion_pipelines:
+    name: "Stop OpenSearch ingestion pipelines"
+    permissions:
+      actions: write
+      id-token: write
+      contents: read
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Stop active ingestion pipelines"
+        uses: ./.github/actions/stop-ingestion-pipelines
+
+  slack-notifications:
+    needs:
+      - stop_ingestion_pipelines
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: dev
+    secrets: inherit

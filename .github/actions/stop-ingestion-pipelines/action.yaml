@@ -1,0 +1,11 @@
+name: "Action stop opensearch ingestion pipelines"
+description: "Stops all active OpenSearch ingestion pipelines - intended only for use in non-production environments."
+
+runs:
+  using: "composite"
+  steps:
+      - name: "Stop Ingestion Pipelines"
+        id: "stop_ingestion-pipelines"
+        shell: bash
+        run: |
+          /bin/bash ./scripts/workflow/stop-ingestion-pipelines.sh
