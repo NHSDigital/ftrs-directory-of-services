@@ -4,8 +4,8 @@ description: "Stops all active OpenSearch ingestion pipelines - intended only fo
 runs:
   using: "composite"
   steps:
-      - name: "Stop Ingestion Pipelines"
-        id: "stop_ingestion-pipelines"
+      - name: "Stop opensearch ingestion pipelines"
+        id: "stop-opensearch-ingestion-pipelines"
         shell: bash
         run: |
           /bin/bash ./scripts/workflow/stop-ingestion-pipelines.sh

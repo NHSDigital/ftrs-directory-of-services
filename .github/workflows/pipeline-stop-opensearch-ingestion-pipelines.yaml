@@ -2,15 +2,28 @@ name: Stop OpenSearch Ingestion Pipelines
 
 on:
   # Run daily, at 18:00.
-  schedule:
-    - cron: '0 18 * * *'
+  # schedule:
+  #   - cron: '0 18 * * *'
+  push:
+    branches:
+      - 'task/FDOS-388_Suspend_ingestion_pipelines'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
 
 jobs:
 
   metadata:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
-  stop_ingestion_pipelines:
+  stop_opensearch_ingestion_pipelines:
+    if: ${{ needs.metadata.outputs.environment != 'prod' }}
     name: "Stop OpenSearch ingestion pipelines"
     permissions:
       actions: write
@@ -29,13 +42,14 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-      - name: "Stop active ingestion pipelines"
-        uses: ./.github/actions/stop-ingestion-pipelines
+          type: app
+      - name: "Stop active opensearch ingestion pipelines"
+        uses: ./.github/actions/stop-opensearch-ingestion-pipelines
 
   slack-notifications:
     needs:
       - metadata
-      - stop_ingestion_pipelines
+      - stop_opensearch_ingestion_pipelines
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
