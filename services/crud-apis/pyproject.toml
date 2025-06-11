@@ -40,13 +40,16 @@ poetry-plugin-export = ">=1.8"
 [tool.poetry]
 packages = [
   { include = "organisations" },
-  { include = "healthcare_service"},
-  {include = "utils"}
+  { include = "healthcare_service" },
+  { include = "location" },
+  { include = "utils" }
 ]
 
 [tool.poe.tasks]
 start-healthcare-api = "uvicorn healthcare_service.app.handler_healthcare_service:app --host 0.0.0.0 --port 8002 --reload"
 start-organisations-api = "uvicorn organisations.app.handler_organisation:app --host 0.0.0.0 --port 8001 --reload"
+start-location-api = "uvicorn location.app.handler_location:app --host 0.0.0.0 --port 6000 --reload"
+
 
 [tool.ruff]
 line-length = 88
@@ -65,5 +68,5 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v --cov=organisations --cov=healthcare_service --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = "-v --cov=organisations --cov=healthcare_service --cov=location --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
