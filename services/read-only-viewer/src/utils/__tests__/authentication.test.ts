@@ -51,7 +51,7 @@ describe("getBaseEndpoint", () => {
 
   it("loads the base endpoint without workspace", async () => {
     process.env.ENVIRONMENT = "test";
-    process.env.WORKSPACE = undefined;
+    process.env.WORKSPACE = "";
 
     const endpoint = await getBaseEndpoint();
     expect(endpoint).toBe("https://example.com");
