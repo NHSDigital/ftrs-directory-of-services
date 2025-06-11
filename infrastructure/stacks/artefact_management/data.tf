@@ -1,7 +1,3 @@
-data "aws_iam_role" "github_runner_iam_role" {
-  name = "${var.repo_name}-${var.github_runner_role_name}"
-}
-
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.app_github_runner_role_name}"
 }

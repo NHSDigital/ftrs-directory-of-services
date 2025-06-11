@@ -19,7 +19,8 @@
                 "rds:CreateDBSubnetGroup",
                 "rds:DeleteDBSubnetGroup",
                 "rds:DescribeDBSubnetGroups",
-                "rds:AddTagsToResource"
+                "rds:AddTagsToResource",
+                "rds:ListTagsForResource"
             ],
             "Resource": "*"
         },

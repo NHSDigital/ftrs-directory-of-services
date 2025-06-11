@@ -58,12 +58,6 @@ variable "artefacts_bucket_name" {
   type        = string
 }
 
-variable "github_runner_role_name" {
-  description = "GitHub runner IAM role name"
-  type        = string
-  default     = "github-runner"
-}
-
 variable "account_github_runner_role_name" {
   description = "GitHub runner IAM role name for account"
   type        = string

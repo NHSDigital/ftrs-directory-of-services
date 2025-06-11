@@ -47,6 +47,7 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30
+      type: app
     secrets: inherit
 
   cleardown-artefacts:
@@ -59,6 +60,7 @@ jobs:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
+      type: app
     secrets: inherit
 
   slack-notifications:
