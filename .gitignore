@@ -26,6 +26,7 @@ build/
 .coverage
 *.log
 .env
+coverage-*.xml
 
 # all .idea folders
 .idea/
