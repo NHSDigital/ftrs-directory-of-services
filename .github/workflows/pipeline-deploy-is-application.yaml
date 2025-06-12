@@ -35,9 +35,7 @@ jobs:
   quality-checks:
     name: "Quality Check"
     needs:
-      [
-        metadata,
-      ]
+      - metadata
     if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/quality-checks.yaml
     with:
@@ -50,10 +48,8 @@ jobs:
   build-gp-search-service:
     name: "Build GP Search API Service"
     needs:
-      [
-        metadata,
-        quality-checks,
-      ]
+      - metadata
+      - quality-checks
     uses: ./.github/workflows/build-project.yaml
     with:
       name: "gp-search"
@@ -113,10 +109,8 @@ jobs:
   deploy-is-account-infrastructure-apply:
     name: "TFApply for IS  infrastructure"
     needs:
-      [
-        metadata,
-        manual-approval,
-      ]
+      - metadata
+      - manual-approval
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -133,9 +127,8 @@ jobs:
   service-automation-tests:
     name: Run service automation tests
     needs:
-      [ metadata,
-        deploy-is-account-infrastructure-apply,
-      ]
+      - metadata
+      - deploy-is-account-infrastructure-apply
     if: always() && !cancelled() && (needs.deploy-is-account-infrastructure-apply.result == 'success' || needs.manual-approval.result == 'skipped')
     uses: ./.github/workflows/service-automation-test.yaml
     with:
@@ -157,13 +150,12 @@ jobs:
 
   slack-notifications:
     name: "Send Notification to Slack"
-    needs: [
-      metadata,
-      quality-checks,
-      deploy-is-account-infrastructure-apply,
-      service-automation-tests,
-      check-pipeline-status,
-    ]
+    needs:
+      - metadata
+      - quality-checks
+      - deploy-is-account-infrastructure-apply
+      - service-automation-tests
+      - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
