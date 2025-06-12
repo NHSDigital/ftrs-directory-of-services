@@ -44,7 +44,7 @@ def test_doc_create() -> None:
         Item={
             "id": "1",
             "field": "document",
-            "value": {"id": "1", "name": "Test"},
+            "name": "Test",
             "some": "index",
         },
         ConditionExpression="attribute_not_exists(id)",
@@ -64,7 +64,7 @@ def test_doc_get() -> None:
 
     # Mock the get_item method
     repo.table.get_item = MagicMock(
-        return_value={"Item": {"id": "1", "value": {"id": "1", "name": "Test"}}}
+        return_value={"Item": {"id": "1",  "name": "Test"}}
     )
 
     # Call the get method
@@ -73,9 +73,6 @@ def test_doc_get() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1", "field": "document"},
-        ProjectionExpression="id, #val",
-        ExpressionAttributeNames={"#val": "value"},
-        ReturnConsumedCapacity="INDEXES",
     )
 
 
@@ -97,9 +94,6 @@ def test_doc_get_no_result() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1", "field": "document"},
-        ProjectionExpression="id, #val",
-        ExpressionAttributeNames={"#val": "value"},
-        ReturnConsumedCapacity="INDEXES",
     )
 
 
@@ -132,7 +126,7 @@ def test_doc_update() -> None:
         Item={
             "id": "1",
             "field": "document",
-            "value": {"id": "1", "name": "Test"},
+            "name": "Test",
             "some": "index",
         },
         ConditionExpression="attribute_exists(id)",
@@ -186,7 +180,7 @@ def test_doc_serialise_item() -> None:
     assert result == {
         "id": "1",
         "field": "document",
-        "value": {"id": "1", "name": "Test"},
+        "name": "Test",
         "some": "index",
     }
 
@@ -199,7 +193,7 @@ def test_doc_parse_item() -> None:
         table_name="test_table",
         model_cls=MockModel,
     )
-    item = {"id": "1", "field": "document", "value": {"id": "1", "name": "Test"}}
+    item = {"id": "1", "field": "document", "name": "Test"}
 
     # Call the _parse_item method
     result = repo._parse_item(item)
@@ -219,8 +213,8 @@ def test_iter_records_single_page() -> None:
     repo.table.scan = MagicMock(
         return_value={
             "Items": [
-                {"id": "1", "field": "document", "value": {"id": "1", "name": "Test1"}},
-                {"id": "2", "field": "document", "value": {"id": "2", "name": "Test2"}},
+                {"id": "1", "field": "document",  "name": "Test1"},
+                {"id": "2", "field": "document",  "name": "Test2"},
             ]
         }
     )
@@ -253,7 +247,7 @@ def test_iter_records_multiple_pages() -> None:
                     {
                         "id": "1",
                         "field": "document",
-                        "value": {"id": "1", "name": "Test1"},
+                        "name": "Test1",
                     },
                 ],
                 "LastEvaluatedKey": {"id": "1", "field": "document"},
@@ -263,7 +257,7 @@ def test_iter_records_multiple_pages() -> None:
                     {
                         "id": "2",
                         "field": "document",
-                        "value": {"id": "2", "name": "Test2"},
+                        "name": "Test2",
                     },
                 ]
             },
@@ -301,8 +295,8 @@ def test_iter_records_with_max_results() -> None:
     repo.table.scan = MagicMock(
         return_value={
             "Items": [
-                {"id": "1", "field": "document", "value": {"id": "1", "name": "Test1"}},
-                {"id": "2", "field": "document", "value": {"id": "2", "name": "Test2"}},
+                {"id": "1", "field": "document",  "name": "Test1"},
+                {"id": "2", "field": "document", "name": "Test2"},
             ]
         }
     )
