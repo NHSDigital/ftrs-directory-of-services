@@ -38,9 +38,9 @@ class DDBLogBase(LogBase):
     DDB_CORE_015 = LogReference(level=ERROR, message="Unprocessed items in batch write")
 
 
-class ETLPipelineLogBase(LogBase):
+class MigrationETLPipelineLogBase(LogBase):
     """
-    LogBase for ETL Pipeline operations
+    LogBase for Data Migration ETL Pipeline operations
     """
 
     ETL_EXTRACT_001 = LogReference(
@@ -162,4 +162,163 @@ class UtilsLogBase(LogBase):
     UTILS_VALIDATOR_010 = LogReference(
         level=ERROR,
         message="File already exists: {parsed_path}. Please provide a different path.",
+    )
+
+
+class OdsETLPipelineLogBase(LogBase):
+    """
+    LogBase for the ODS ETL Pipeline operations
+    """
+
+    ETL_PROCESSOR_001 = LogReference(
+        level=INFO, message="Fetching data from sync endpoint with params: {params}."
+    )
+    ETL_PROCESSOR_002 = LogReference(
+        level=INFO,
+        message="Fetching data from sync endpoint returned {total_orgs} outdated organisations.",
+    )
+    ETL_PROCESSOR_003 = LogReference(
+        level=INFO, message="Fetching organisation data for code: {ods_code}."
+    )
+    ETL_PROCESSOR_004 = LogReference(
+        level=WARNING,
+        message="No organisation found in the response for the given ODS code {ods_code}.",
+    )
+    ETL_PROCESSOR_005 = LogReference(
+        level=ERROR,
+        message="No primary role found in the roles list.",
+    )
+    ETL_PROCESSOR_006 = LogReference(
+        level=ERROR,
+        message="Fetching role data for ID: {primary_role_id}.",
+    )
+    ETL_PROCESSOR_007 = LogReference(
+        level=WARNING, message="Organisation not found in database."
+    )
+    ETL_PROCESSOR_008 = LogReference(
+        level=WARNING, message="Missing key in organisation payload: {key}."
+    )
+    ETL_PROCESSOR_009 = LogReference(
+        level=WARNING, message="Roles payload extraction failed: role is not a list."
+    )
+    ETL_PROCESSOR_0010 = LogReference(
+        level=WARNING, message="Invalid role format: {role}."
+    )
+    ETL_PROCESSOR_011 = LogReference(
+        level=WARNING, message="Invalid contact format: {contact}."
+    )
+    ETL_PROCESSOR_012 = LogReference(
+        level=WARNING, message="ODS code extraction failed: {e}."
+    )
+    ETL_PROCESSOR_013 = LogReference(
+        level=WARNING,
+        message="Error when requesting queue url with queue name: {queue_name} with error: {error_message}.",
+    )
+    ETL_PROCESSOR_014 = LogReference(
+        level=INFO,
+        message="Trying to send {number} messages to sqs queue.",
+    )
+    ETL_PROCESSOR_015 = LogReference(
+        level=WARNING,
+        message="Failed to send {failed} messages in batch.",
+    )
+    ETL_PROCESSOR_016 = LogReference(
+        level=WARNING,
+        message="Message {id}: {message} - {code}.",
+    )
+    ETL_PROCESSOR_017 = LogReference(
+        level=INFO,
+        message="Succeeded to send {successful} messages in batch.",
+    )
+    ETL_PROCESSOR_018 = LogReference(
+        level=WARNING,
+        message="Error sending data to queue with error: {error_message}.",
+    )
+    ETL_PROCESSOR_019 = LogReference(
+        level=WARNING,
+        message="Payload validation failed: {error_message}.",
+    )
+    ETL_PROCESSOR_020 = LogReference(
+        level=INFO,
+        message="No organisations found for the given date: {date}.",
+    )
+    ETL_PROCESSOR_021 = LogReference(
+        level=WARNING,
+        message="Organisation link is missing in the response.",
+    )
+    ETL_PROCESSOR_022 = LogReference(
+        level=WARNING,
+        message="Error fetching data: {error_message}.",
+    )
+    ETL_PROCESSOR_023 = LogReference(
+        level=WARNING,
+        message="Unexpected error: {error_message}.",
+    )
+    ETL_PROCESSOR_024 = LogReference(
+        level=INFO,
+        message="Successfully validated organisation data.",
+    )
+    ETL_PROCESSOR_025 = LogReference(
+        level=INFO,
+        message="Successfully validated role data.",
+    )
+    ETL_PROCESSOR_026 = LogReference(
+        level=INFO,
+        message="Successfully transformed data for ods_code: {ods_code}.",
+    )
+    ETL_PROCESSOR_027 = LogReference(
+        level=WARNING,
+        message="Error processing organisation with ods_code {ods_code}: {error_message}.",
+    )
+    ETL_CONSUMER_001 = LogReference(
+        level=INFO,
+        message="Received event for ODS ETL consumer lambda.",
+    )
+    ETL_CONSUMER_002 = LogReference(
+        level=INFO,
+        message="Records received: {total_records}.",
+    )
+    ETL_CONSUMER_003 = LogReference(
+        level=INFO,
+        message="Processing message id: {message_id} of {total_records} from ODS ETL queue.",
+    )
+    ETL_CONSUMER_004 = LogReference(
+        level=INFO,
+        message="Message id: {message_id} processed successfully.",
+    )
+    ETL_CONSUMER_005 = LogReference(
+        level=ERROR,
+        message="Failed to process message id: {message_id}.",
+    )
+    ETL_CONSUMER_006 = LogReference(
+        level=WARNING,
+        message="Message id: {message_id} is missing 'path' or 'body' fields.",
+    )
+    ETL_CONSUMER_007 = LogReference(
+        level=INFO,
+        message="Successfully sent request to API. Response status code: {status_code}.",
+    )
+    ETL_CONSUMER_008 = LogReference(
+        level=ERROR,
+        message="Bad request returned for message id: {message_id}. Not re-processing.",
+    )
+    ETL_CONSUMER_009 = LogReference(
+        level=ERROR,
+        message="Request failed for message id: {message_id}.",
+    )
+    ETL_UTILS_001 = LogReference(
+        level=INFO,
+        message="Running in local environment, using LOCAL_CRUD_API_URL environment variable.",
+    )
+    ETL_UTILS_002 = LogReference(
+        level=INFO,
+        message="Fetching base CRUD API URL from parameter store: {parameter_path}.",
+    )
+    ETL_UTILS_003 = LogReference(
+        level=WARNING,
+        message="HTTP error occurred: {http_err} - Status Code: {status_code}.",
+    )
+    ETL_UTILS_004 = LogReference(
+        level=WARNING,
+        message="Request to {method} {url} failed: {error_message}.",
     )

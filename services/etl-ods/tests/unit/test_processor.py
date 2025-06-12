@@ -2,6 +2,7 @@ import json
 from typing import NamedTuple
 
 import pytest
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 from requests_mock import (
     Mocker as RequestsMock,
@@ -239,7 +240,11 @@ def test_processor_continue_on_validation_failure(
     assert requests_mock.request_history[3] == crud_api_abc123_mock.last_request
 
     # Failure for ABC123 should be logged
-    assert "Error processing organisation with ods_code ABC123" in caplog.text
+    expected_failed_log = OdsETLPipelineLogBase.ETL_PROCESSOR_027.value.message.format(
+        ods_code="ABC123",
+        error_message="422 Client Error: None for url: http://test-crud-api/organisation/ods_code/ABC123",
+    )
+    assert expected_failed_log in caplog.text
 
     # Assert ODS Organisation Call for EFG456
     assert ods_efg456_mock.called_once
@@ -289,7 +294,10 @@ def test_processor_no_outdated_organisations(
     date = "2023-01-01"
     assert processor(date) is None
 
-    assert "No organisations found for the given date: 2023-01-01" in caplog.text
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_020.value.message.format(
+        date=date
+    )
+    assert expected_log in caplog.text
 
 
 def test_processor_missing_org_link(
@@ -305,7 +313,8 @@ def test_processor_missing_org_link(
     date = "2025-04-23"
     assert processor(date) is None
 
-    assert "Organisation link is missing in the response." in caplog.text
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_021.value.message.format()
+    assert expected_log in caplog.text
 
 
 def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
