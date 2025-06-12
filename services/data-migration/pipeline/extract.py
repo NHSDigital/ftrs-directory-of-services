@@ -155,7 +155,9 @@ def extract(
     path_type, output_path = validate_path(output, should_file_exist=False)
     extract_logger = Logger.get(service="extract")
 
-    extract_logger.log(MigrationETLPipelineLogBase.ETL_EXTRACT_001, output_path=output_path)
+    extract_logger.log(
+        MigrationETLPipelineLogBase.ETL_EXTRACT_001, output_path=output_path
+    )
     extract_gp_practice_df = extract_gp_practices(db_uri)
 
     write_parquet_file(path_type, output_path, extract_gp_practice_df)
