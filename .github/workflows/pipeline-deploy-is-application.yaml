@@ -80,11 +80,10 @@ jobs:
   deploy-infrastructure-plan:
     name: "TF Plan IS level infrastructure"
     needs:
-      [
-        metadata,
-        quality-checks,
-        build-gp-search-service,
-      ]
+      - metadata
+      - quality-checks
+      - build-gp-search-service
+      - perform-code-analysis
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -101,11 +100,10 @@ jobs:
     name: "Manual approval for IS level infrastructure deployment"
     if: ${{ needs.deploy-infrastructure-plan.outputs.plan_result == 'true' }}
     needs:
-      [
-        metadata,
-        deploy-infrastructure-plan,
-        build-gp-search-service,
-      ]
+      - metadata
+      - deploy-infrastructure-plan
+      - build-gp-search-service
+      - perform-code-analysis
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
