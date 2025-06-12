@@ -1,3 +1,6 @@
+import pytest
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+
 from pipeline.transform import transfrom_into_payload
 from pipeline.validators import (
     ContactItem,
@@ -27,7 +30,9 @@ def setup_role_data(display_name: str) -> RolesValidator:
     return RolesValidator(displayName=display_name)
 
 
-def test_transfrom_into_payload_activity_active() -> None:
+def test_transfrom_into_payload_activity_active(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     contact = ContactItem(type=ContactTypeEnum.tel, value="123456789")
 
     role_items = [
@@ -44,11 +49,18 @@ def test_transfrom_into_payload_activity_active() -> None:
         "modified_by": "ODS_ETL_PIPELINE",
     }
 
-    result = transfrom_into_payload(organisation_data, role_data)
+    result = transfrom_into_payload(organisation_data, role_data, "ODS123")
     assert result == expected_payload
 
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_026.value.message.format(
+        ods_code="ODS123",
+    )
+    assert expected_log in caplog.text
 
-def test_transfrom_into_payload_activity_inactive() -> None:
+
+def test_transfrom_into_payload_activity_inactive(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     contact = ContactItem(type=ContactTypeEnum.tel, value="123456789")
     role_items = [
         RoleItem(id="RO123", primaryRole=True),
@@ -65,11 +77,16 @@ def test_transfrom_into_payload_activity_inactive() -> None:
         "modified_by": "ODS_ETL_PIPELINE",
     }
 
-    result = transfrom_into_payload(organisation_data, role_data)
+    result = transfrom_into_payload(organisation_data, role_data, "ODS123")
     assert result == expected_payload
 
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_026.value.message.format(
+        ods_code="ODS123",
+    )
+    assert expected_log in caplog.text
 
-def test_transfrom_into_payload_no_contacts() -> None:
+
+def test_transfrom_into_payload_no_contacts(caplog: pytest.LogCaptureFixture) -> None:
     contact = None
     role_items = [
         RoleItem(id="RO123", primaryRole=True),
@@ -86,5 +103,10 @@ def test_transfrom_into_payload_no_contacts() -> None:
         "modified_by": "ODS_ETL_PIPELINE",
     }
 
-    result = transfrom_into_payload(organisation_data, role_data)
+    result = transfrom_into_payload(organisation_data, role_data, "ODS123")
     assert result == expected_payload
+
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_026.value.message.format(
+        ods_code="ODS123",
+    )
+    assert expected_log in caplog.text

@@ -104,11 +104,7 @@ def process_organisation(ods_code: str) -> None:
         org_uuid = fetch_organisation_uuid(ods_code)
 
         request_body = transfrom_into_payload(
-            validated_organisation_data, validated_primary_role_data
-        )
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_026,
-            ods_code=ods_code,
+            validated_organisation_data, validated_primary_role_data, ods_code
         )
         request = {"path": org_uuid, "body": request_body}
 
