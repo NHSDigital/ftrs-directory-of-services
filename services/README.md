@@ -23,7 +23,7 @@ The FtRS Read-Only Viewer is a test utility for the Find the Right Service datab
 ## Opensearch ingestion pipelines
 
 A github workflow is scheduled to run at the end of the day (currently 18:00) and stop any active opensearch
-ingestion pipelines in develop. This is to help keep costs down. If you need to restart an ingestion pipeline then
+ingestion pipelines in develop. This is to help keep costs down. If you need to restart an ingestion pipeline then either log into the AWS console (Amazon OpenSearch Ingestion Service> Ingestion Pipelines) and start from there or
 
 - assume a role in develop account
 - identify name of ingestion pipeline to restart (via console or using script below)
