@@ -14,9 +14,6 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
     updating, and deleting documents in DynamoDB.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def create(self, obj: ModelType) -> None:
         """
         Create a new document in DynamoDB.
@@ -30,9 +27,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         """
         Get a document from DynamoDB by ID.
         """
-        response = self.table.get_item(
-            Key={"id": str(id), "field": "document"}
-        )
+        response = self.table.get_item(Key={"id": str(id), "field": "document"})
         item = response.get("Item")
         if item is None:
             return None
@@ -60,7 +55,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
     def _serialise_item(self, item: ModelType) -> dict:
         base_item = {
             "id": str(item.id),
-            "field": "document"  # Required a sort key
+            "field": "document",  # Required a sort key
         }
         # Add model attributes
         model_data = item.model_dump(mode="json")
@@ -68,14 +63,12 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         base_item.update(item.indexes)
         return base_item
 
-
     def _parse_item(self, item: dict) -> ModelType:
         """
         Parse the item from DynamoDB into the model format.
         """
         parsed_item = item.copy()
         return self.model_cls.model_construct(**parsed_item)
-
 
     def iter_records(
         self, max_results: int | None = 100
