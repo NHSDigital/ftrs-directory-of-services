@@ -1,0 +1,55 @@
+name: Stop OpenSearch Ingestion Pipelines
+
+on:
+  # Run daily, at 18:00.
+  schedule:
+    - cron: '0 18 * * *'
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+
+jobs:
+
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+  stop_opensearch_ingestion_pipelines:
+    if: ${{ needs.metadata.outputs.environment != 'prod' }}
+    name: "Stop OpenSearch ingestion pipelines"
+    permissions:
+      actions: write
+      id-token: write
+      contents: read
+    timeout-minutes: 15
+    environment: ${{ needs.metadata.outputs.environment }}
+    needs:
+      - metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+      - name: "Stop active opensearch ingestion pipelines"
+        uses: ./.github/actions/stop-opensearch-ingestion-pipelines
+
+  slack-notifications:
+    needs:
+      - metadata
+      - stop_opensearch_ingestion_pipelines
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
