@@ -16,10 +16,6 @@ on:
         required: false
         default: "dos"
         type: string
-      domain:
-        description: "Name of the domain"
-        required: true
-        type: string
       stacks:
         description: "Name of the stacks"
         required: true

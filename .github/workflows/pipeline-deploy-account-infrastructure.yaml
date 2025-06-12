@@ -41,7 +41,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies']"
+      stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies','domain_name']"
       type: account
     secrets: inherit
 
@@ -52,11 +52,26 @@ jobs:
       - quality-checks
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      domain: ${{ needs.metadata.outputs.reponame }}
+      environment: ${{ needs.metadata.outputs.account_type }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','account_wide','account_policies','domain_name']"
+      stacks: "['github_runner','account_policies']"
+      action: plan
+      account_type: account
+      type: account
+    secrets: inherit
+
+  deploy-env-infrastructure-plan:
+    name: "Plan environment level infrastructure deployment"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "default"
+      tag: ${{ inputs.tag }}
+      stacks: "['terraform_management','account_wide','domain_name']"
       action: plan
       type: account
     secrets: inherit
@@ -69,7 +84,6 @@ jobs:
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      domain: ${{ needs.metadata.outputs.reponame }}
       workspace: "default"
       tag: ${{ inputs.tag }}
       stacks: "['terraform_management','github_runner', 'artefact_management','account_policies','domain_name']"
@@ -98,11 +112,27 @@ jobs:
       - manual-approval
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      domain: ${{ needs.metadata.outputs.reponame }}
+      environment: ${{ needs.metadata.outputs.account_type }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','account_wide','account_policies','domain_name']"
+      stacks: "['github_runner','account_policies']"
+      action: apply
+      account_type: account
+      type: account
+    secrets: inherit
+
+  deploy-env-infrastructure-apply:
+    name: "Deploy environment level infrastructure"
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "default"
+      tag: ${{ inputs.tag }}
+      stacks: "['terraform_management','account_wide','domain_name']"
       action: apply
       type: account
     secrets: inherit
@@ -116,10 +146,9 @@ jobs:
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      domain: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner', 'artefact_management','account_policies','domain_name']"
+      stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name']"
       action: apply
       type: account
     secrets: inherit
@@ -132,6 +161,8 @@ jobs:
       - manual-approval
       - deploy-account-infrastructure-plan
       - deploy-account-infrastructure-apply
+      - deploy-env-infrastructure-plan
+      - deploy-env-infrastructure-apply
       - mgmt-deploy-account-infrastructure-plan
       - mgmt-deploy-account-infrastructure-apply
     if: always()

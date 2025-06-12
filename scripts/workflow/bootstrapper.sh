@@ -50,11 +50,11 @@ else
 fi
 
 if [ -z "$ENVIRONMENT" ] ; then
-  echo Set ENVIRONMENT to identify if account is for dev, test, security, preprod or prod
+  echo Set ENVIRONMENT to identify if account is for mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
   EXPORTS_SET=1
 else
-  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|preprod|prod|security|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt dev test int preprod security or prod
+  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|sandpit|int|ref|non-prod|preprod|prod|prototype) ]]; then
+      echo ENVIRONMENT should be mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
       EXPORTS_SET=1
   fi
 fi
@@ -84,6 +84,8 @@ fi
 # ------------- Step one create tf state bucket, state locks and account alias -----------
 export ACTION=$ACTION
 export STACK=terraform_management
+TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
+export TF_VAR_stack_name
 
 # function to migrate state from local to remote
 function terraform-init-migrate {
@@ -118,6 +120,9 @@ function terraform-initialise {
 function github_runner_stack {
     #  now do account_wide stack for github runner and for oidc provider
   export STACK=github_runner
+  TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
+  export TF_VAR_stack_name
+
   # specific to stack
   STACK_TF_VARS_FILE="$STACK.tfvars"
   # the directory that holds the stack to terraform
