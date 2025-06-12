@@ -322,3 +322,46 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="Request to {method} {url} failed: {error_message}.",
     )
+
+
+class CrudApisLogBase(LogBase):
+    """
+    LogBase for the CRUD API operations
+    """
+
+    ORGANISATION_001 = LogReference(
+        level=INFO,
+        message="Received request to get organisation with ODS code: {ods_code}.",
+    )
+    ORGANISATION_002 = LogReference(
+        level=ERROR,
+        message="Organisation with ODS code {ods_code} not found.",
+    )
+    ORGANISATION_003 = LogReference(
+        level=INFO,
+        message="Received request to read organisation with ID: {organisation_id}.",
+    )
+    ORGANISATION_004 = LogReference(
+        level=INFO,
+        message="Received request to read all organisations.",
+    )
+    ORGANISATION_005 = LogReference(
+        level=INFO,
+        message="Received request to update organisation with ID: {organisation_id}.",
+    )
+    ORGANISATION_006 = LogReference(
+        level=INFO,
+        message="Computed outdated fields: {outdated_fields} for organisation {organisation_id}.",
+    )
+    ORGANISATION_007 = LogReference(
+        level=INFO,
+        message="No changes detected for organisation {organisation_id}.",
+    )
+    ORGANISATION_008 = LogReference(
+        level=INFO,
+        message="Successfully updated organisation {organisation_id}.",
+    )
+    ORGANISATION_009 = LogReference(
+        level=INFO,
+        message="Applying updates to organisation: {organisation_id}.",
+    )
