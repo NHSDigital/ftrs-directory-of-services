@@ -63,9 +63,7 @@ def test_doc_get() -> None:
     obj = MockModel(id="1", name="Test", indexes={"some_index": "value"})
 
     # Mock the get_item method
-    repo.table.get_item = MagicMock(
-        return_value={"Item": {"id": "1",  "name": "Test"}}
-    )
+    repo.table.get_item = MagicMock(return_value={"Item": {"id": "1", "name": "Test"}})
 
     # Call the get method
     result = repo.get("1")
@@ -213,8 +211,8 @@ def test_iter_records_single_page() -> None:
     repo.table.scan = MagicMock(
         return_value={
             "Items": [
-                {"id": "1", "field": "document",  "name": "Test1"},
-                {"id": "2", "field": "document",  "name": "Test2"},
+                {"id": "1", "field": "document", "name": "Test1"},
+                {"id": "2", "field": "document", "name": "Test2"},
             ]
         }
     )
@@ -295,7 +293,7 @@ def test_iter_records_with_max_results() -> None:
     repo.table.scan = MagicMock(
         return_value={
             "Items": [
-                {"id": "1", "field": "document",  "name": "Test1"},
+                {"id": "1", "field": "document", "name": "Test1"},
                 {"id": "2", "field": "document", "name": "Test2"},
             ]
         }
