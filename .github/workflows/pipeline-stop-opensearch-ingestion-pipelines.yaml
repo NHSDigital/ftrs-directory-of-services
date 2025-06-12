@@ -1,5 +1,6 @@
 name: Stop OpenSearch Ingestion Pipelines
 
+permissions: {}
 on:
   # Run daily, at 18:00.
   schedule:
