@@ -3,7 +3,7 @@ from typing import Annotated
 import numpy as np
 import pandas as pd
 from ftrs_common.logger import Logger
-from ftrs_data_layer.logbase import ETLPipelineLogBase
+from ftrs_data_layer.logbase import MigrationETLPipelineLogBase
 from typer import Option
 
 from pipeline.utils.db_config import DatabaseConfig
@@ -88,11 +88,11 @@ def logging_gp_practice_metrics(gp_practice_extract: pd.DataFrame, db_uri: str) 
 
     extract_logger = Logger.get(service="extract")
     extract_logger.log(
-        ETLPipelineLogBase.ETL_EXTRACT_002,
+        MigrationETLPipelineLogBase.ETL_EXTRACT_002,
         service_profiles_percentage=service_profiles_percentage,
     )
     extract_logger.log(
-        ETLPipelineLogBase.ETL_EXTRACT_003,
+        MigrationETLPipelineLogBase.ETL_EXTRACT_003,
         data_fields_percentage=data_fields_percentage,
     )
 
@@ -155,11 +155,11 @@ def extract(
     path_type, output_path = validate_path(output, should_file_exist=False)
     extract_logger = Logger.get(service="extract")
 
-    extract_logger.log(ETLPipelineLogBase.ETL_EXTRACT_001, output_path=output_path)
+    extract_logger.log(MigrationETLPipelineLogBase.ETL_EXTRACT_001, output_path=output_path)
     extract_gp_practice_df = extract_gp_practices(db_uri)
 
     write_parquet_file(path_type, output_path, extract_gp_practice_df)
-    extract_logger.log(ETLPipelineLogBase.ETL_EXTRACT_004)
+    extract_logger.log(MigrationETLPipelineLogBase.ETL_EXTRACT_004)
 
 
 def lambda_handler(event: dict, context: object) -> dict[str, any] | None:

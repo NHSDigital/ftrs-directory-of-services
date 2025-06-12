@@ -3,6 +3,7 @@ from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import pytest
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.consumer import (
@@ -27,10 +28,27 @@ def test_consumer_lambda_handler_success(
 
     assert response["batchItemFailures"] == []
     assert str(mock_process_message.call_count) == "2"
-    assert "Processing message id: 1 of 2 from ODS ETL queue." in caplog.text
-    assert "Message id: 1 processed successfully." in caplog.text
-    assert "Processing message id: 1 of 2 from ODS ETL queue." in caplog.text
-    assert "Message id: 2 processed successfully." in caplog.text
+
+    expected_processing_log_1 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
+            message_id="1", total_records=2
+        )
+    )
+    expected_success_log_1 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="1")
+    )
+    expected_processing_log_2 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
+            message_id="2", total_records=2
+        )
+    )
+    expected_success_log_2 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
+    )
+    assert expected_processing_log_1 in caplog.text
+    assert expected_success_log_1 in caplog.text
+    assert expected_processing_log_2 in caplog.text
+    assert expected_success_log_2 in caplog.text
 
 
 @patch("pipeline.consumer.process_message_and_send_request")
@@ -58,21 +76,27 @@ def test_consumer_lambda_handler_failure(
     assert response["batchItemFailures"] == [{"itemIdentifier": "1"}]
     assert str(mock_process_message.call_count) == "2"
 
-    assert any(
-        record.levelname == "INFO"
-        and "Processing message id: 1 of 2 from ODS ETL queue." in record.message
-        for record in caplog.records
+    expected_processing_log_1 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
+            message_id="1", total_records=2
+        )
     )
-    assert any(
-        record.levelname == "INFO"
-        and "Message id: 2 processed successfully." in record.message
-        for record in caplog.records
+    expected_failure_log_1 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_005.value.message.format(message_id="1")
     )
-    assert any(
-        record.levelname == "ERROR"
-        and "Failed to process message id: 1." in record.message
-        for record in caplog.records
+    expected_processing_log_2 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
+            message_id="2", total_records=2
+        )
     )
+    expected_success_log_2 = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
+    )
+
+    assert expected_processing_log_1 in caplog.text
+    assert expected_failure_log_1 in caplog.text
+    assert expected_processing_log_2 in caplog.text
+    assert expected_success_log_2 in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -128,7 +152,10 @@ def test_process_message_and_send_request_success(
 
     process_message_and_send_request(record)
 
-    assert "Successfully sent request. Response status code: 200" in caplog.text
+    expected_success_log = OdsETLPipelineLogBase.ETL_CONSUMER_007.value.message.format(
+        status_code=200
+    )
+    assert expected_success_log in caplog.text
 
     assert mock_call.called_once
     assert mock_call.last_request.path == "/organisation/uuid"
@@ -153,7 +180,10 @@ def test_process_message_and_send_request_unprocessable(
 
     process_message_and_send_request(record)
 
-    assert "Bad request returned for message id: 1. Not re-processing." in caplog.text
+    expected_bad_request_log = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_008.value.message.format(message_id="1")
+    )
+    assert expected_bad_request_log in caplog.text
 
     assert mock_call.called_once
     assert mock_call.last_request.path == "/organisation/uuid"
@@ -179,6 +209,9 @@ def test_process_message_and_send_request_failure(
     with pytest.raises(RequestProcessingError):
         process_message_and_send_request(record)
 
-    assert "Request failed for message id: 1" in caplog.text
+    expected_failure_log = OdsETLPipelineLogBase.ETL_CONSUMER_009.value.message.format(
+        message_id="1"
+    )
+    assert expected_failure_log in caplog.text
     assert mock_call.called_once
     assert mock_call.last_request.path == "/organisation/uuid"
