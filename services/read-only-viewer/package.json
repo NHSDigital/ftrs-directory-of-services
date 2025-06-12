@@ -15,7 +15,7 @@
   "dependencies": {
     "@tanstack/react-router": "^1.119.0",
     "@tanstack/react-router-devtools": "^1.114.3",
-    "@tanstack/react-start": "^1.119.0",
+    "@tanstack/react-start": "^1.120.11",
     "@tanstack/router-plugin": "^1.114.3",
     "nhsuk-frontend": "^9.4.1",
     "nhsuk-react-components": "^5.0.0",
