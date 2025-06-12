@@ -105,7 +105,7 @@ info:
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England.
   version: 1.0.0
 servers:
-  - url: 'https://usertest.directoryofservices.nhs.uk/app/controllers/api/v1.0/'
+  - url: 'https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4'
 paths:
   '/Organisation':
     post:
@@ -122,7 +122,7 @@ paths:
         * User Restricted - Healthcare worker access for authentication via UI
       parameters:
       - in: header
-        name: apiKey
+        name: X-API-KEY
         required: true
         description: |
           Use the unique api key provided to you during onboarding. This will be used to authorise API requests
@@ -155,7 +155,7 @@ paths:
                 active:
                   type: string
                   enum:
-                  - True
+                  - test
                   example: True
                 name:
                   type: string
@@ -240,6 +240,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/5XXError'
+      security:
+        - app-level0: []
   '/Organisation/{ODSCode}':
     put:
       operationId: putOrganisation
@@ -255,7 +257,7 @@ paths:
         * User Restricted - Healthcare worker access for authentication via UI
       parameters:
       - in: header
-        name: apiKey
+        name: X-API-KEY
         required: true
         description: |
           Use the unique api key provided to you during onboarding. This will be used to authorise API requests
@@ -295,7 +297,7 @@ paths:
                 active:
                   type: string
                   enum:
-                  - True
+                  - test
                   example: True
                 name:
                   type: string
@@ -347,6 +349,7 @@ paths:
                         type: boolean
                         example: False
       responses:
+
         '201':
           description: "The organisation resource has been  successfully created"
           headers:
@@ -380,6 +383,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/5XXError'
+      security:
+        - app-level0: []
 components:
   schemas:
     OrganisationResponse:
@@ -406,7 +411,7 @@ components:
                 active:
                   type: string
                   enum:
-                  - True
+                  - test
                   example: True
                 name:
                   type: string
@@ -499,3 +504,19 @@ components:
               type: string
               description: A human-readable error message.
               example: Internal Server Error
+  securitySchemes:
+    app-level0:
+      $ref: https://proxygen.ptl.api.platform.nhs.uk/components/securitySchemes/app-level0
+x-nhsd-apim:
+  access: []
+  target:
+    type: hosted
+    healthcheck: /_status
+    containers:
+    - name: uec-dos-ingestion
+      image:
+        name: uec-dos-ingestion
+        tag: latest
+      environment:
+        LOG_LEVEL: "info"
+        NODE_ENV: "sandbox"
