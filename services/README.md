@@ -23,7 +23,7 @@ The FtRS Read-Only Viewer is a test utility for the Find the Right Service datab
 ## Opensearch ingestion pipelines
 
 A github workflow is scheduled to run at the end of the day (currently 18:00) and stop any active opensearch
-ingestion pipelines in dev. This is to help keep costs down. If you need to restart an ingestion pipeline then
+ingestion pipelines in develop. This is to help keep costs down. If you need to restart an ingestion pipeline then
 
 - assume a role in dev account
 - identify name of ingestion pipeline to restart (via console or using script below)
