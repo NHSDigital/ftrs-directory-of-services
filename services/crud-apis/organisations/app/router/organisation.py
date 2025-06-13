@@ -58,7 +58,7 @@ def get_organisation_by_id(
 
     if not organisation:
         crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_004,
+            CrudApisLogBase.ORGANISATION_009,
             organisation_id=organisation_id,
         )
         raise HTTPException(status_code=404, detail="Organisation not found")
