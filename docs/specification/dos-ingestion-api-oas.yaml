@@ -367,9 +367,9 @@ paths:
 
             | HTTP status | Description |
             | ----------- | --------------------------------------------- |
-            | 500         | Internal Error |
-            | 502         | Bad Gateway |
-            | 504         | Gateway Timed Out |
+            | 500         | Internal error |
+            | 502         | Bad gateway |
+            | 504         | Gateway timed out |
           content:
             application/json:
               schema:
