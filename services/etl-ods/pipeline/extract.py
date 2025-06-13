@@ -103,7 +103,7 @@ def fetch_organisation_uuid(ods_code: str) -> str:
                 OdsETLPipelineLogBase.ETL_PROCESSOR_007,
             )
             raise ValueError(
-                OdsETLPipelineLogBase.ETL_PROCESSOR_007.value
+                OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message
             ) from http_err
 
         raise
