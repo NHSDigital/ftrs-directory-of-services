@@ -90,6 +90,10 @@ def fetch_organisation_uuid(ods_code: str) -> str:
     organisation_get_uuid_uri = base_url + "/organisation/ods_code/" + ods_code
 
     try:
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_028,
+            ods_code=ods_code,
+        )
         response = make_request(organisation_get_uuid_uri, sign=True)
         return response.json().get("id", None)
 
@@ -98,7 +102,9 @@ def fetch_organisation_uuid(ods_code: str) -> str:
             ods_processor_logger.log(
                 OdsETLPipelineLogBase.ETL_PROCESSOR_007,
             )
-            raise ValueError(OdsETLPipelineLogBase.ETL_PROCESSOR_007) from http_err
+            raise ValueError(
+                OdsETLPipelineLogBase.ETL_PROCESSOR_007.value
+            ) from http_err
 
         raise
 
