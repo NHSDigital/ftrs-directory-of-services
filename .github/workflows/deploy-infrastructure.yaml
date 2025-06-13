@@ -16,10 +16,10 @@ on:
         required: false
         default: "dos"
         type: string
-      domain:
-        description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
+      account_type:
+        description: "The type of account based on the environment"
         required: false
-        default: ""
+        default: "env"
         type: string
       stacks:
         description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
@@ -90,7 +90,7 @@ jobs:
         uses: actions/download-artifact@v4
         if: ${{ inputs.action == 'apply' }}
         with:
-          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.environment }}
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ./
 
       - name: "Deploy infrastructure stack"
@@ -109,5 +109,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ inputs.action == 'plan' }}
         with:
-          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.environment }}
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ${{ matrix.stack }}.tfplan
