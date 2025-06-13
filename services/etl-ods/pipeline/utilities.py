@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from functools import cache
 from urllib.parse import urlparse
@@ -9,8 +8,10 @@ import requests
 from aws_lambda_powertools.utilities.parameters import get_parameter
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-logger = logging.getLogger()
+ods_utils_logger = Logger.get(service="ods_utils")
 
 
 @cache
@@ -19,9 +20,7 @@ def get_base_crud_api_url() -> str:
     workspace = os.environ.get("WORKSPACE", None)
 
     if env == "local":
-        logging.info(
-            "Running in local environment, using LOCAL_CRUD_API_URL environment variable"
-        )
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_001)
         return os.environ["LOCAL_CRUD_API_URL"]
 
     base_parameter_path = f"/ftrs-dos-{env}-crud-apis"
@@ -29,7 +28,9 @@ def get_base_crud_api_url() -> str:
         base_parameter_path += f"-{workspace}"
 
     parameter_path = f"{base_parameter_path}/endpoint"
-    logging.info(f"Fetching base CRUD API URL from parameter store: {parameter_path}")
+    ods_utils_logger.log(
+        OdsETLPipelineLogBase.ETL_UTILS_002, parameter_path=parameter_path
+    )
     return get_parameter(name=parameter_path)
 
 
@@ -85,13 +86,20 @@ def make_request(
         response.raise_for_status()
 
     except requests.exceptions.HTTPError as http_err:
-        logger.warning(
-            f"HTTP error occurred: {http_err} - Status Code: {response.status_code}"
+        ods_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_UTILS_003,
+            http_err=http_err,
+            status_code=response.status_code,
         )
         raise
 
     except requests.exceptions.RequestException as e:
-        logger.warning(f"Request to {method} {url} failed: {e}")
+        ods_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_UTILS_004,
+            method=method,
+            url=url,
+            error_message=str(e),
+        )
         raise
 
     return response

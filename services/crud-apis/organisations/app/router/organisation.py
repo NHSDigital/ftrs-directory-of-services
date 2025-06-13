@@ -4,6 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Body, Path
 from fastapi.responses import JSONResponse
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import Organisation
 
 from organisations.app.services.organisation_helpers import (
@@ -16,22 +18,26 @@ from utils.db_service import get_service_repository
 router = APIRouter()
 org_repository = get_service_repository(Organisation, "organisation")
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+crud_organisation_logger = Logger.get(service="crud_organisation_logger")
 
 
 @router.get("/ods_code/{ods_code}", summary="Get an organisation by ODS code.")
 def get_org_by_ods_code(
     ods_code: str,
 ) -> JSONResponse:
-    logging.info(f"Received request to get organisation with ODS code: {ods_code}")
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_001,
+        ods_code=ods_code,
+    )
     records = org_repository.get_by_ods_code(ods_code)
 
     if not records:
-        logging.info(f"Organisation with ODS code {ods_code} not found.")
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_002,
+            ods_code=ods_code,
+        )
         raise HTTPException(status_code=404, detail="Organisation not found")
 
-    logging.info(f"Organisation: {records}")
     return JSONResponse(status_code=200, content={"id": records[0]})
 
 
@@ -43,12 +49,18 @@ def get_organisation_by_id(
         description="The internal id of the organisation",
     ),
 ) -> Organisation:
-    logging.info(f"Received request to read organisation with ID: {organisation_id}")
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_003,
+        organisation_id=organisation_id,
+    )
 
     organisation = org_repository.get(organisation_id)
 
     if not organisation:
-        logging.error(f"Organisation with ID {organisation_id} not found.")
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_009,
+            organisation_id=organisation_id,
+        )
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     return organisation
@@ -56,7 +68,9 @@ def get_organisation_by_id(
 
 @router.get("/", summary="Read all organisations")
 def get_all_organisations(limit: int = 10) -> list[Organisation]:
-    logging.info("Received request to read all organisations")
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_004,
+    )
     organisations = list(org_repository.iter_records(max_results=limit))
     if not organisations:
         logging.error("Unable to retrieve any organisations.")
@@ -76,7 +90,10 @@ def update_organisation(
     ),
     payload: UpdatePayloadValidator = Body(...),
 ) -> dict:
-    logging.info(f"Received request to update organisation with ID: {organisation_id}")
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_005,
+        organisation_id=organisation_id,
+    )
     organisation = org_repository.get(organisation_id)
 
     if not organisation:
@@ -84,17 +101,25 @@ def update_organisation(
         raise HTTPException(status_code=404, detail="Organisation not found")
 
     outdated_fields = get_outdated_fields(organisation, payload)
-    logging.info(
-        f"Computed outdated fields: {outdated_fields} for organisation {organisation_id}"
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_006,
+        outdated_fields=outdated_fields,
+        organisation_id=organisation_id,
     )
 
     if not outdated_fields:
-        logging.info(f"No changes detected for organisation {organisation_id}.")
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_007,
+            organisation_id=organisation_id,
+        )
         return JSONResponse(status_code=200, content={"message": "No changes detected"})
 
     apply_updates(organisation, outdated_fields)
     org_repository.update(id, organisation)
-    logging.info(f"Successfully updated organisation {organisation_id}")
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_008,
+        organisation_id=organisation_id,
+    )
 
     return JSONResponse(
         status_code=200, content={"message": "Data processed successfully"}

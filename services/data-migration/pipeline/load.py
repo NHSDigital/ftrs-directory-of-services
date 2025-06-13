@@ -4,7 +4,7 @@ from typing import Annotated
 
 import pandas as pd
 from ftrs_common.logger import Logger
-from ftrs_data_layer.logbase import ETLPipelineLogBase
+from ftrs_data_layer.logbase import MigrationETLPipelineLogBase
 from ftrs_data_layer.models import DBModel, HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
 from typer import Option
@@ -62,7 +62,7 @@ def save_to_table(
     len_input_df = len(input_df)
     table_value = table.value
     load_logger.log(
-        ETLPipelineLogBase.ETL_LOAD_001,
+        MigrationETLPipelineLogBase.ETL_LOAD_001,
         len_input_df=len_input_df,
         table_value=table_value,
     )
@@ -74,7 +74,7 @@ def save_to_table(
             count += 1
 
     load_logger.log(
-        ETLPipelineLogBase.ETL_LOAD_002, count=count, table_value=table_value
+        MigrationETLPipelineLogBase.ETL_LOAD_002, count=count, table_value=table_value
     )
 
 
@@ -105,7 +105,7 @@ def load(
     env_value = env.value
     workspace_value = workspace or "default"
     load_logger.log(
-        ETLPipelineLogBase.ETL_LOAD_003,
+        MigrationETLPipelineLogBase.ETL_LOAD_003,
         env_value=env_value,
         workspace_value=workspace_value,
     )

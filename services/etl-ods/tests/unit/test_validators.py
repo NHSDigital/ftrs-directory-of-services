@@ -1,4 +1,5 @@
 import pytest
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pydantic import ValidationError
 
 from pipeline.validators import (
@@ -139,4 +140,7 @@ def test_validate_payload_logs_error(caplog: pytest.LogCaptureFixture) -> None:
     with pytest.raises(ValidationError):
         validate_payload(payload, OrganisationValidator)
 
-    assert "Payload validation failed" in caplog.text
+    expected_failed_log = OdsETLPipelineLogBase.ETL_PROCESSOR_019.value.message.split(
+        "{error_message}"
+    )[0]
+    assert expected_failed_log in caplog.text
