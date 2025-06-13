@@ -18,6 +18,7 @@ from .extract import (
     extract_display_name,
     extract_ods_code,
     extract_organisation_data,
+    fetch_and_validate_organisation_data,
     fetch_organisation_data,
     fetch_organisation_role,
     fetch_organisation_uuid,
@@ -82,32 +83,13 @@ def process_organisation(ods_code: str) -> str | None:
     Process a single organisation by extracting data, transforming it, and logging the payload.
     """
     try:
-        raw_organisation_data = fetch_organisation_data(ods_code)
+        raw_organisation_data = fetch_and_validate_organisation_data(ods_code)
 
-        relevant_organisation_data = extract_organisation_data(raw_organisation_data)
-        validated_organisation_data = validate_payload(
-            relevant_organisation_data, OrganisationValidator
-        )
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_024,
-        )
-
-        role_list = validated_organisation_data.Roles.Role
-        raw_primary_role_data = fetch_organisation_role(role_list)
-        relevant_role_data = extract_display_name(raw_primary_role_data)
-        validated_primary_role_data = validate_payload(
-            relevant_role_data, RolesValidator
-        )
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_025,
-        )
         org_uuid = fetch_organisation_uuid(ods_code)
 
-        request_body = transfrom_into_payload(
-            validated_organisation_data, validated_primary_role_data, ods_code
-        )
-        request = {"path": org_uuid, "body": request_body}
+        request_body = transfrom_into_payload(raw_organisation_data, org_uuid)
 
+        request = {"path": org_uuid, "body": request_body}
         return json.dumps(request)
 
     except Exception as e:

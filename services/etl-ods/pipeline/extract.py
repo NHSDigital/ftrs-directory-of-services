@@ -3,9 +3,11 @@ from urllib.parse import urlparse
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from pipeline.validators import validate_fhir_organization
 from requests.exceptions import HTTPError
 
 from pipeline.utilities import get_base_crud_api_url, make_request
+from fhir.resources import FHIRValidationError
 
 STATUS_SUCCESSFUL = 200
 
@@ -33,12 +35,12 @@ def fetch_sync_data(date: str) -> dict:
     return organisations
 
 
-def fetch_organisation_data(ods_code: str) -> str:
+def fetch_and_validate_organisation_data(ods_code: str) -> str:
     """
     Returns a dataset of a single organisation for the specified ODS code.
     """
     ods_org_data_uri = (
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/" + ods_code
+        "https://uat.directory.spineservices.nhs.uk/STU3/Organization/" + ods_code
     )
     ods_processor_logger.log(
         OdsETLPipelineLogBase.ETL_PROCESSOR_003,
@@ -50,36 +52,21 @@ def fetch_organisation_data(ods_code: str) -> str:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_004,
             ods_code=ods_code,
+    organisation = response.json()
+
+    if not organisation or organisation.get("resourceType") != "Organization":
+        logger.warning(
+            f"No FHIR Organization found in the response for the given ODS code {ods_code}"
         )
+        return None
+
+    try:
+        validate_fhir_organization(organisation)
+    except FHIRValidationError as e:
+        logger.warning(f"FHIR Organization validation failed: {e}")
+        raise
 
     return organisation
-
-
-def fetch_organisation_role(roles: list) -> str:
-    """
-    Returns CodeSystems information i.e. display name for Roles when searched for a specified role id
-    """
-    for role in roles:
-        if role.primaryRole is True:
-            primary_role_id = role.id
-            break
-        else:
-            primary_role_id = None
-
-    if not primary_role_id:
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_005,
-        )
-        raise ValueError(OdsETLPipelineLogBase.ETL_PROCESSOR_005.value)
-    ods_role_data_uri = (
-        f"https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/{primary_role_id}"
-    )
-    ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_006,
-        primary_role_id=primary_role_id,
-    )
-    response = make_request(ods_role_data_uri)
-    return response.json()
 
 
 def fetch_organisation_uuid(ods_code: str) -> str:
@@ -157,6 +144,17 @@ def extract_contact(payload: dict) -> dict | None:
             )
         if contact.get("type") == "tel":
             return {"type": "tel", "value": contact.get("value")}
+
+def extract_primary_role_extension(org_resource: dict) -> dict | None:
+    extensions = org_resource.get("extension", [])
+    for ext in extensions:
+        sub_exts = ext.get("extension", [])
+        for sub_ext in sub_exts:
+            if sub_ext.get("url", "").startsWith("primaryRole") and sub_ext.get("valueBoolean") is True:
+                for sibling_ext in sub_exts:
+                    if sibling_ext.get("url", "").endswith("role"):
+                        return [sub_ext]
+    return None
 
 
 def extract_ods_code(link: str) -> str:
