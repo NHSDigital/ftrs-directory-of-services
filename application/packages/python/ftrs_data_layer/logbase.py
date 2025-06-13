@@ -369,3 +369,7 @@ class CrudApisLogBase(LogBase):
         level=INFO,
         message="Applying updates to organisation: {organisation_id}.",
     )
+    ORGANISATION_010 = LogReference(
+        level=INFO,
+        message="Organisation with ID {organisation_id} not found.",
+    )
