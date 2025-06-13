@@ -13,9 +13,9 @@ on:
         default: 5
         type: number
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: false
-        default: 'dev'
+        default: "dev"
         type: string
     outputs:
       reponame:
@@ -63,6 +63,9 @@ on:
       version:
         description: "Version of the repository or application"
         value: ${{ jobs.echo-metadata.outputs.version }}
+      account_type:
+        description: "Type of account based on the environment"
+        value: ${{ jobs.set-environment.outputs.account_type }}
 
 jobs:
   echo-metadata:
@@ -113,26 +116,42 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
+      account_type: ${{ steps.set-env.outputs.account_type }}
     steps:
       - name: "Determine environment"
         id: set-env
         run: |
           if [[ "${{ github.event.inputs.environment }}" != "" ]]; then
-            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+            environment="${{ github.event.inputs.environment }}"
           elif [[ "${{ github.event.label.name }}" == "Test Ready" ]]; then
-            echo "environment=test" >> $GITHUB_OUTPUT
+            environment="test"
           elif [[ "${{ github.event.label.name }}" == "Int Ready" ]]; then
-            echo "environment=int" >> $GITHUB_OUTPUT
+            environment="int"
           else
             # Handling pull request closed event
             if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.action }}" == "closed" ]]; then
-              echo "environment=[\"test\", \"int\"]" >> $GITHUB_OUTPUT
+              environment='["test", "int"]'
             # Handling branch deletion event
             elif [[ "${{ github.event_name }}" == "delete" && "${{ github.event.ref }}" =~ ^task/ ]]; then
-              echo "environment=dev" >> $GITHUB_OUTPUT
+              environment="dev"
             else
-              echo "environment=dev" >> $GITHUB_OUTPUT
+              environment="dev"
             fi
           fi
 
-          echo "The determined environment is: $(cat $GITHUB_OUTPUT | grep environment | cut -d '=' -f2)"
+          # Determine account type based on environment
+          # Handle JSON array environment (e.g. '["test", "int"]') as non-prod
+          if [[ "$environment" == "dev" || "$environment" == "test" ]]; then
+            account_type="dev"
+          elif [[ "$environment" == "prod" ]]; then
+            account_type="prod"
+          else
+            account_type="non-prod"
+          fi
+
+          # Output results
+          echo "environment=$environment" >> $GITHUB_OUTPUT
+          echo "account_type=$account_type" >> $GITHUB_OUTPUT
+
+          echo "The determined environment is: $environment"
+          echo "The determined account type is: $account_type"

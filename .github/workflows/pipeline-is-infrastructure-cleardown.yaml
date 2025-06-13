@@ -42,7 +42,6 @@ jobs:
     with:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.reponame }}
       stacks: "['gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
