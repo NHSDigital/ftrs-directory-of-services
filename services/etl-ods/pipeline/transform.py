@@ -5,8 +5,6 @@ from pipeline.validators import StatusEnum
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
-ods_processor_logger = Logger.get(service="ods_processor")
-
 
 def transfrom_into_payload(
     organisation_data: dict, primary_role_data: dict, ods_code: str
