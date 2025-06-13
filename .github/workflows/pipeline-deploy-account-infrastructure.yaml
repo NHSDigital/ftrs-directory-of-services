@@ -3,17 +3,17 @@ name: Pipeline Deploy Account Level Infrastructure
 on:
   push:
     branches:
-      - 'main'
-      - 'task/**'
+      - "main"
+      - "task/**"
     paths:
-      - 'infrastructure/stacks/account_wide/**'
-      - 'infrastructure/stacks/terraform_management/**'
-      - 'infrastructure/stacks/github_runner/**'
-      - 'infrastructure/stacks/artefact_management/**'
-      - 'infrastructure/stacks/account_policies/**'
-      - 'infrastructure/stacks/domain_name/**'
-      - 'infrastructure/modules/dynamodb/**'
-      - 'infrastructure/modules/s3/**'
+      - "infrastructure/stacks/account_wide/**"
+      - "infrastructure/stacks/terraform_management/**"
+      - "infrastructure/stacks/github_runner/**"
+      - "infrastructure/stacks/artefact_management/**"
+      - "infrastructure/stacks/account_policies/**"
+      - "infrastructure/stacks/domain_name/**"
+      - "infrastructure/modules/dynamodb/**"
+      - "infrastructure/modules/s3/**"
   workflow_dispatch:
     inputs:
       tag:
@@ -23,10 +23,14 @@ on:
       environment:
         description: "Deployment environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
+          - test
+          - sandpit
+          - int
+          - prod
 
 jobs:
   metadata:
@@ -45,110 +49,69 @@ jobs:
       type: account
     secrets: inherit
 
-  deploy-account-infrastructure-plan:
-    name: "Plan account level infrastructure deployment"
+  plan-infrastructure:
+    name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
     needs:
       - metadata
       - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "account"
+            environment: ${{ needs.metadata.outputs.account_type }}
+            stacks: "['github_runner','account_policies']"
+          - name: "env"
+            environment: ${{ needs.metadata.outputs.environment }}
+            stacks: "['terraform_management','account_wide','domain_name']"
+          - name: "mgmt"
+            environment: ${{ needs.metadata.outputs.mgmt_environment }}
+            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
-      environment: ${{ needs.metadata.outputs.account_type }}
+      environment: ${{ matrix.environment }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['github_runner','account_policies']"
-      action: plan
-      account_type: account
-      type: account
-    secrets: inherit
-
-  deploy-env-infrastructure-plan:
-    name: "Plan environment level infrastructure deployment"
-    needs:
-      - metadata
-      - quality-checks
-    uses: ./.github/workflows/deploy-infrastructure.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: "default"
-      tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','account_wide','domain_name']"
-      action: plan
-      type: account
-    secrets: inherit
-
-  mgmt-deploy-account-infrastructure-plan:
-    name: "Plan management account level infrastructure deployment"
-    needs:
-      - metadata
-      - quality-checks
-    uses: ./.github/workflows/deploy-infrastructure.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      workspace: "default"
-      tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner', 'artefact_management','account_policies','domain_name']"
+      stacks: ${{ matrix.stacks }}
       action: plan
       type: account
     secrets: inherit
 
   manual-approval:
-    name: "Manual approval for account level infrastructure deployment"
-    if: ${{ github.ref == 'refs/heads/main' && (needs.deploy-account-infrastructure-plan.outputs.plan_result == 'true' || needs.mgmt-deploy-account-infrastructure-plan.outputs.plan_result == 'true') }}
+    name: "Manual approval for infrastructure deployment"
+    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
-      - deploy-account-infrastructure-plan
-      - mgmt-deploy-account-infrastructure-plan
+      - plan-infrastructure
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
       - name: Approval required
         run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
 
-  deploy-account-infrastructure-apply:
-    name: "Deploy account level infrastructure"
+  apply-infrastructure:
+    name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
     if: github.ref == 'refs/heads/main'
     needs:
       - metadata
       - manual-approval
+    strategy:
+      matrix:
+        include:
+          - name: "account"
+            environment: ${{ needs.metadata.outputs.account_type }}
+            stacks: "['github_runner','account_policies']"
+          - name: "env"
+            environment: ${{ needs.metadata.outputs.environment }}
+            stacks: "['terraform_management','account_wide','domain_name']"
+          - name: "mgmt"
+            environment: ${{ needs.metadata.outputs.mgmt_environment }}
+            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
-      environment: ${{ needs.metadata.outputs.account_type }}
+      environment: ${{ matrix.environment }}
       workspace: "default"
       tag: ${{ inputs.tag }}
-      stacks: "['github_runner','account_policies']"
-      action: apply
-      account_type: account
-      type: account
-    secrets: inherit
-
-  deploy-env-infrastructure-apply:
-    name: "Deploy environment level infrastructure"
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - metadata
-      - manual-approval
-    uses: ./.github/workflows/deploy-infrastructure.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: "default"
-      tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','account_wide','domain_name']"
-      action: apply
-      type: account
-    secrets: inherit
-
-  mgmt-deploy-account-infrastructure-apply:
-    name: "Apply management account level infrastructure deployment"
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - metadata
-      - manual-approval
-    uses: ./.github/workflows/deploy-infrastructure.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      tag: ${{ inputs.tag }}
-      stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name']"
+      stacks: ${{ matrix.stacks }}
       action: apply
       type: account
     secrets: inherit
@@ -158,13 +121,9 @@ jobs:
     needs:
       - metadata
       - quality-checks
+      - plan-infrastructure
       - manual-approval
-      - deploy-account-infrastructure-plan
-      - deploy-account-infrastructure-apply
-      - deploy-env-infrastructure-plan
-      - deploy-env-infrastructure-apply
-      - mgmt-deploy-account-infrastructure-plan
-      - mgmt-deploy-account-infrastructure-apply
+      - apply-infrastructure
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:

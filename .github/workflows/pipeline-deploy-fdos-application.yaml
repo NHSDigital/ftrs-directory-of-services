@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-      - 'task/FDOS*'
-      - 'task/SIA*'
+      - "task/FDOS*"
+      - "task/SIA*"
   workflow_dispatch:
     inputs:
       tag:
@@ -17,12 +17,16 @@ on:
         required: true
         type: string
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
+          - test
+          - sandpit
+          - int
+          - prod
 
 jobs:
   metadata:
@@ -41,51 +45,28 @@ jobs:
       type: app
     secrets: inherit
 
-  build-python-package:
-    name: "Build python package"
+  build-services:
+    name: "Build ${{ matrix.name }}"
     needs:
       - metadata
       - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "python"
+            build_type: "package"
+          - name: "crud-apis"
+            build_type: "service"
+          - name: "data-migration"
+            build_type: "service"
+          - name: "read-only-viewer"
+            build_type: "service"
+          - name: "etl-ods"
+            build_type: "service"
     uses: ./.github/workflows/build-project.yaml
     with:
-      name: "python"
-      build_type: "package"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: app
-    secrets: inherit
-
-  build-crud-apis-service:
-    name: "Build crud apis service"
-    needs:
-      - metadata
-      - quality-checks
-    uses: ./.github/workflows/build-project.yaml
-    with:
-      name: "crud-apis"
-      build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: app
-    secrets: inherit
-
-  build-data-migration-service:
-    name: "Build data migration service"
-    needs:
-      - metadata
-      - quality-checks
-    uses: ./.github/workflows/build-project.yaml
-    with:
-      name: "data-migration"
-      build_type: "service"
+      name: ${{ matrix.name }}
+      build_type: ${{ matrix.build_type }}
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
@@ -99,62 +80,21 @@ jobs:
     name: "Perform static code analysis"
     needs:
       - metadata
-      - build-crud-apis-service
-      - build-data-migration-service
+      - build-services
     uses: ./.github/workflows/static-code-analysis.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
-  build-read-only-viewer-service:
-    name: "Build read only viewer service"
-    needs:
-      - metadata
-      - quality-checks
-    uses: ./.github/workflows/build-project.yaml
-    with:
-      name: "read-only-viewer"
-      build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: app
-    secrets: inherit
-
-  build-etl-ods-service:
-    name: "Build etl ods service"
-    needs:
-      - metadata
-      - quality-checks
-    uses: ./.github/workflows/build-project.yaml
-    with:
-      name: "etl-ods"
-      build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: app
-    secrets: inherit
-
-  deploy-infrastructure-plan:
+  plan-infrastructure:
     name: "Plan application infrastructure deployment"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-protected"
       cancel-in-progress: false
     needs:
       - metadata
-      - build-read-only-viewer-service
-      - build-crud-apis-service
+      - build-services
       - perform-code-analysis
-      - build-data-migration-service
-      - build-etl-ods-service
-      - build-python-package
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -167,19 +107,19 @@ jobs:
     secrets: inherit
 
   manual-approval:
-    name: "Manual approval for deployment"
-    if: ${{ needs.deploy-infrastructure-plan.outputs.plan_result == 'true' }}
+    name: "Manual approval for deployment deployment"
+    if: ${{ needs.plan-infrastructure.outputs.plan_result == 'true' }}
     needs:
       - metadata
-      - deploy-infrastructure-plan
+      - plan-infrastructure
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
       - name: Approval required
         run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
 
-  deploy-infrastructure-apply:
-    name: "Deploy application infrastructure"
+  apply-infrastructure:
+    name: "Apply application infrastructure"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-protected"
       cancel-in-progress: false
@@ -204,9 +144,8 @@ jobs:
       group: "${{ needs.metadata.outputs.environment }}-protected"
       cancel-in-progress: false
     needs:
-      - deploy-infrastructure-apply
-      - build-read-only-viewer-service
       - metadata
+      - apply-infrastructure
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
       name: "read-only-viewer"
@@ -232,14 +171,12 @@ jobs:
     needs:
       - metadata
       - quality-checks
-      - build-data-migration-service
-      - build-python-package
-      - build-read-only-viewer-service
-      - deploy-infrastructure-plan
+      - build-services
+      - plan-infrastructure
       - manual-approval
-      - deploy-infrastructure-apply
-      - check-pipeline-status
+      - apply-infrastructure
       - deploy-read-only-viewer-service
+      - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
