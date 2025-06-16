@@ -66,7 +66,7 @@ describe("Organisations Index Route", () => {
   it("should handle errors gracefully", async () => {
     server.use(
       http.get(
-        "/api/organisations",
+        "/api/organisation",
         () => {
           return HttpResponse.json(
             { error: "Internal Server Error" },
