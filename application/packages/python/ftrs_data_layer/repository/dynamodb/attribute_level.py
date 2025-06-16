@@ -8,7 +8,7 @@ from ftrs_data_layer.repository.dynamodb.repository import (
 )
 
 
-class DocumentLevelRepository(DynamoDBRepository[ModelType]):
+class AttributeLevelRepository(DynamoDBRepository[ModelType]):
     """
     DocumentLevelRepository is a class that provides methods for creating, reading,
     updating, and deleting documents in DynamoDB.

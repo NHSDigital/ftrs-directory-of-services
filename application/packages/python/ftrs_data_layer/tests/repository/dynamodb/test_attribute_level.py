@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pydantic import BaseModel
 
 
@@ -19,7 +19,7 @@ def test_doc_create() -> None:
     """
     Test the create method of the DocumentLevelRepository.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -56,7 +56,7 @@ def test_doc_get() -> None:
     """
     Test the get method of the DocumentLevelRepository.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -78,7 +78,7 @@ def test_doc_get_no_result() -> None:
     """
     Test the get method of the DocumentLevelRepository when no item is found.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -99,7 +99,7 @@ def test_doc_update() -> None:
     """
     Test the update method of the DocumentLevelRepository.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -136,7 +136,7 @@ def test_doc_delete() -> None:
     """
     Test the delete method of the DocumentLevelRepository.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -166,7 +166,7 @@ def test_doc_serialise_item() -> None:
     """
     Test the _serialise_item method of the DocumentLevelRepository.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -187,7 +187,7 @@ def test_doc_parse_item() -> None:
     """
     Test the _parse_item method of the DocumentLevelRepository.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -202,7 +202,7 @@ def test_iter_records_single_page() -> None:
     """
     Test the iter_records method of the DocumentLevelRepository when all records fit in a single page.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -232,7 +232,7 @@ def test_iter_records_multiple_pages() -> None:
     """
     Test the iter_records method of the DocumentLevelRepository when records span multiple pages.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -284,7 +284,7 @@ def test_iter_records_with_max_results() -> None:
     """
     Test the iter_records method of the DocumentLevelRepository with a max_results limit.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
@@ -313,7 +313,7 @@ def test_iter_records_no_results() -> None:
     """
     Test the iter_records method of the DocumentLevelRepository when no records are found.
     """
-    repo = DocumentLevelRepository(
+    repo = AttributeLevelRepository(
         table_name="test_table",
         model_cls=MockModel,
     )
