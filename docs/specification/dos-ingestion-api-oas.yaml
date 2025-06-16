@@ -204,6 +204,8 @@ paths:
                       isCompressionEnabled:
                         type: boolean
                         example: False
+      tags:
+        - Operations
       responses:
         '201':
           description: "The organisation resource has been  successfully created"
@@ -261,7 +263,7 @@ paths:
         name: X-Correlation-ID
         required: false
         description: |
-          Use an optional ID with which you can use to track transactions across multiple systems.
+          Use an optional ID to track transactions across multiple systems
 
           Mirrored back in a response header.
         schema:
@@ -340,6 +342,8 @@ paths:
                       isCompressionEnabled:
                         type: boolean
                         example: False
+      tags:
+        - Operations
       responses:
         '201':
           description: "The organisation resource has been  successfully created"
@@ -367,9 +371,9 @@ paths:
 
             | HTTP status | Description |
             | ----------- | --------------------------------------------- |
-            | 500         | Internal Error |
-            | 502         | Bad Gateway |
-            | 504         | Gateway Timed Out |
+            | 500         | Internal error |
+            | 502         | Bad gateway |
+            | 504         | Gateway timed out |
           content:
             application/json:
               schema:
