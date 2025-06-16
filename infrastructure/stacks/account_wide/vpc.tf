@@ -8,9 +8,10 @@ module "vpc" {
   single_nat_gateway     = var.single_nat_gateway
   one_nat_gateway_per_az = var.one_nat_gateway_per_az
 
-  create_database_subnet_group       = var.create_database_subnet_group
-  create_database_subnet_route_table = var.create_database_route_table
-  database_subnet_group_name         = "${local.account_prefix}-database-subnet-group"
+  create_database_subnet_group           = var.create_database_subnet_group
+  create_database_subnet_route_table     = var.create_database_route_table
+  create_database_internet_gateway_route = var.create_database_internet_gateway_route
+  database_subnet_group_name             = "${local.account_prefix}-database-subnet-group"
 
   azs              = slice(data.aws_availability_zones.available_azs.names, 0, 3)
   public_subnets   = [var.vpc["public_subnet_a"], var.vpc["public_subnet_b"], var.vpc["public_subnet_c"]]
