@@ -10,13 +10,13 @@ from ftrs_data_layer.repository.dynamodb.repository import (
 
 class AttributeLevelRepository(DynamoDBRepository[ModelType]):
     """
-    DocumentLevelRepository is a class that provides methods for creating, reading,
+    AttributeLevelRepository is a class that provides methods for creating, reading,
     updating, and deleting documents in DynamoDB.
     """
 
     def create(self, obj: ModelType) -> None:
         """
-        Create a new document in DynamoDB.
+        Create a new item in DynamoDB.
         """
         self._put_item(
             obj,
@@ -25,7 +25,7 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
 
     def get(self, id: str | UUID) -> ModelType | None:
         """
-        Get a document from DynamoDB by ID.
+        Get an item from DynamoDB by ID.
         """
         response = self.table.get_item(Key={"id": str(id), "field": "document"})
         item = response.get("Item")
@@ -36,7 +36,7 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
 
     def update(self, id: str | UUID, obj: ModelType) -> None:
         """
-        Update an existing document in DynamoDB.
+        Update an existing item in DynamoDB.
         """
         self._put_item(
             obj,
@@ -45,7 +45,7 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
 
     def delete(self, id: str | UUID) -> None:
         """
-        Delete a document from DynamoDB by ID.
+        Delete an item from DynamoDB by ID.
         """
         self.table.delete_item(
             Key={"id": str(id), "field": "document"},
