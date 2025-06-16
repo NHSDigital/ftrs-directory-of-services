@@ -62,3 +62,9 @@ variable "s3_trust_store_bucket_name" {
   description = "The name of the S3 bucket for the trust store used for MTLS Certificates"
   type        = string
 }
+
+variable "gateway_vpc_endpoint_type" {
+  description = "The VPC enpoint type"
+  type        = string
+  default     = "Gateway"
+}
