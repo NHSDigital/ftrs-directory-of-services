@@ -73,3 +73,18 @@ variable "gateway_vpc_endpoint_type" {
   type        = string
   default     = "Gateway"
 }
+
+variable "database_dedicated_network_acl" {
+  description = "Whether to use dedicated network ACL (not default) and custom rules for database subnets"
+  type        = bool
+}
+
+variable "private_dedicated_network_acl" {
+  description = "Whether to use dedicated network ACL (not default) and custom rules for private subnets"
+  type        = bool
+}
+
+variable "public_dedicated_network_acl" {
+  description = "Whether to use dedicated network ACL (not default) and custom rules for public subnets"
+  type        = bool
+}
