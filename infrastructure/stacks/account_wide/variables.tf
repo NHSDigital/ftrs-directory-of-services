@@ -62,3 +62,9 @@ variable "osis_apigw_log_group_policy_name" {
   description = "The OSIS & API Gateway log group policy name"
   type        = string
 }
+
+variable "gateway_vpc_endpoint_type" {
+  description = "The VPC enpoint type"
+  type        = string
+  default     = "Gateway"
+}
