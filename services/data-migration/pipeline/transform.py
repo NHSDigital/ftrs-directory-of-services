@@ -3,7 +3,7 @@ from typing import Annotated
 
 import pandas as pd
 from ftrs_common.logger import Logger
-from ftrs_data_layer.logbase import ETLPipelineLogBase
+from ftrs_data_layer.logbase import MigrationETLPipelineLogBase
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from typer import Option
 
@@ -77,7 +77,7 @@ def transform(
     output_type, output_path = validate_path(output, should_file_exist=False)
 
     transform_logger.log(
-        ETLPipelineLogBase.ETL_TRANSFORM_001,
+        MigrationETLPipelineLogBase.ETL_TRANSFORM_001,
         input_path=input_path,
         output_path=output_path,
     )
@@ -88,7 +88,7 @@ def transform(
 
     write_parquet_file(output_type, output_path, gp_practices_df)
 
-    transform_logger.log(ETLPipelineLogBase.ETL_TRANSFORM_002)
+    transform_logger.log(MigrationETLPipelineLogBase.ETL_TRANSFORM_002)
 
 
 def lambda_handler(event: dict, context: any) -> None:

@@ -14,8 +14,6 @@ from dynamodb.reset import (
     init_tables,
     reset,
 )
-from tests.utils.fixtures import mock_logging
-
 
 def test_reset_invalid_environment() -> None:
     with pytest.raises(ValueError):
@@ -163,7 +161,7 @@ def test_init_tables_invalid_env() -> None:
 
 
 def test_init_tables_existing_table(
-    mocker: MockerFixture, mock_logging: MagicMock
+    mocker: MockerFixture,
 ) -> None:
     """
     Test that the init_tables function handles the case where the table already exists.

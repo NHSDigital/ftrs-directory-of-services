@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 from requests_mock import Mocker as RequestsMock
 
@@ -14,11 +12,6 @@ from pipeline.extract import (
     fetch_sync_data,
 )
 from pipeline.validators import RoleItem
-
-
-@pytest.fixture(autouse=True)
-def set_log_level(caplog: pytest.LogCaptureFixture) -> None:
-    caplog.set_level(logging.WARNING)
 
 
 def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
