@@ -109,7 +109,6 @@ info:
 servers:
   - url: TBC
 paths:
-  title: Operations
   '/Organisation':
     post:
       operationId: postOrganisation
