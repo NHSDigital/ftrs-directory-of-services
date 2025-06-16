@@ -1,9 +1,6 @@
 import { makeSignedFetch } from "@/utils/authentication";
 import { json } from "@tanstack/react-start";
-import {
-  type StartAPIMethodCallback,
-  createAPIFileRoute,
-} from "@tanstack/react-start/api";
+import { createAPIFileRoute } from "@tanstack/react-start/api";
 
 export const APIRoute = createAPIFileRoute("/api/organisation/$organisationID")(
   {
