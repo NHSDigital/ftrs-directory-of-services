@@ -45,7 +45,6 @@ def test_doc_create() -> None:
             "id": "1",
             "field": "document",
             "name": "Test",
-            "some": "index",
         },
         ConditionExpression="attribute_not_exists(id)",
         ReturnConsumedCapacity="INDEXES",
@@ -71,6 +70,7 @@ def test_doc_get() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1", "field": "document"},
+        ReturnConsumedCapacity="INDEXES",
     )
 
 
@@ -92,6 +92,7 @@ def test_doc_get_no_result() -> None:
 
     repo.table.get_item.assert_called_once_with(
         Key={"id": "1", "field": "document"},
+        ReturnConsumedCapacity="INDEXES",
     )
 
 
@@ -125,7 +126,6 @@ def test_doc_update() -> None:
             "id": "1",
             "field": "document",
             "name": "Test",
-            "some": "index",
         },
         ConditionExpression="attribute_exists(id)",
         ReturnConsumedCapacity="INDEXES",
@@ -178,8 +178,7 @@ def test_doc_serialise_item() -> None:
     assert result == {
         "id": "1",
         "field": "document",
-        "name": "Test",
-        "some": "index",
+        "name": "Test"
     }
 
 
