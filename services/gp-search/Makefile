@@ -34,8 +34,10 @@ lint-fix:
 
 test: unit-test
 
-unit-test:
-	poetry run pytest tests/unit
+unit-test: coverage
+
+coverage:
+	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml tests/unit
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
