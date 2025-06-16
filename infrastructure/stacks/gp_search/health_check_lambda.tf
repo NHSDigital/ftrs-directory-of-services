@@ -1,4 +1,4 @@
-module "lambda" {
+module "health_check_lambda" {
   source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ebe96e5/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.health_check_lambda_name}"
   description            = "This lambda provides a health check for the search lambda"
@@ -25,52 +25,5 @@ module "lambda" {
     "PROJECT_NAME"        = var.project
     "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
     "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
-  }
-}
-
-resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
-  security_group_id = aws_security_group.health_check_lambda_security_group.id
-  from_port         = "443"
-  to_port           = "443"
-  ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
-  description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
-}
-
-module "search_api_gateway_permissions" {
-  source = "../../modules/api-gateway-permissions"
-
-  account_id           = local.account_id
-  aws_region           = var.aws_region
-  lambda_function_name = "${local.resource_prefix}-${var.lambda_name}"
-  rest_api_id          = module.search_rest_api.rest_api_id
-}
-
-data "aws_iam_policy_document" "vpc_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:GetItem",
-      "dynamodb:Scan",
-      "dynamodb:Query"
-    ]
-    resources = [
-      "${data.aws_dynamodb_table.dynamodb_organisation_table.arn}/",
-      "${data.aws_dynamodb_table.dynamodb_organisation_table.arn}/*"
-    ]
   }
 }
