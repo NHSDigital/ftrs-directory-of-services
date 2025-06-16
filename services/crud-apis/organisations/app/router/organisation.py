@@ -10,6 +10,7 @@ from ftrs_data_layer.models import Organisation
 
 from organisations.app.services.organisation_helpers import (
     apply_updates,
+    create_organisation,
     get_outdated_fields,
 )
 from organisations.app.services.validators import UpdatePayloadValidator
@@ -124,3 +125,34 @@ def update_organisation(
     return JSONResponse(
         status_code=200, content={"message": "Data processed successfully"}
     )
+
+
+@router.post("/", summary="Create a new organisation")
+def post_organisation(
+    organisation: Organisation = Body(...),
+) -> JSONResponse:
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_011,
+        ods_code=organisation.ods_code,
+    )
+    try:
+        organisation_id = create_organisation(organisation, org_repository)
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_015,
+            ods_code=organisation.ods_code,
+            organisation_id=organisation_id,
+        )
+        return JSONResponse(
+            status_code=201,
+            content={
+                "message": "Organisation created successfully",
+                "id": str(organisation.id),
+            },
+        )
+    except Exception as e:
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_016,
+            ods_code=organisation.ods_code,
+            error=str(e),
+        )
+        raise HTTPException(status_code=500, detail="Failed to create organisation")
