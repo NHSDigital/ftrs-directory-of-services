@@ -1,7 +1,8 @@
-import { StubData } from "@/__mocks__/mockServiceWorker";
+import { StubData, server } from "@/__mocks__/mockServiceWorker";
 import { routeTree } from "@/routeTree.gen";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { render, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import { act } from "react";
 
 describe("Organisation Details", () => {
@@ -164,5 +165,82 @@ describe("Organisation Details", () => {
       "No endpoints available for this organisation.",
     );
     expect(noEndpointsMessage).toBeInTheDocument();
+  });
+
+  it("handles organisation not found", async () => {
+    await act(() =>
+      router.navigate({
+        to: "/organisations/$organisationID",
+        params: {
+          organisationID: "non-existent-id",
+        },
+      }),
+    );
+
+    await waitFor(() =>
+      expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
+    );
+
+    const notFoundTitle = app.getByText("Organisation not found");
+    expect(notFoundTitle).toBeInTheDocument();
+
+    const notFoundMessage = app.getByText(
+      "The organisation you are looking for does not exist.",
+    );
+    expect(notFoundMessage).toBeInTheDocument();
+    const backLink = app.getByText("Back to Organisations");
+    expect(backLink).toBeInTheDocument();
+  });
+
+  it("handles server error gracefully", async () => {
+    server.use(
+      http.get(
+        "/api/organisation/32200d9e-fa54-43d4-8cb1-514aac0113a1",
+        () => {
+          return HttpResponse.json(
+            { error: "Internal Server Error" },
+            {
+              status: 500,
+              headers: { "X-Correlation-ID": "test-correlation-id" },
+            },
+          );
+        },
+        {
+          once: true,
+        },
+      ),
+    );
+
+    await act(() =>
+      router.navigate({
+        to: "/organisations/$organisationID",
+        params: {
+          organisationID: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
+        },
+      }),
+    );
+
+    await waitFor(() =>
+      expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
+    );
+
+    const errorTitle = app.getByText("Something went wrong");
+    expect(errorTitle).toBeInTheDocument();
+
+    const errorMessage = app.getByText(
+      "There was an error while processing your request. Please try again later.",
+    );
+    expect(errorMessage).toBeInTheDocument();
+
+    const correlationId = app.getByText("test-correlation-id");
+    expect(correlationId).toBeInTheDocument();
+
+    const statusCode = app.getByText("500");
+    expect(statusCode).toBeInTheDocument();
+
+    const apiError = app.getByText(
+      "Failed to fetch organisation data for ID: 32200d9e-fa54-43d4-8cb1-514aac0113a1",
+    );
+    expect(apiError).toBeInTheDocument();
   });
 });

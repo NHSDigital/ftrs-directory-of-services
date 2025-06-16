@@ -112,7 +112,7 @@ describe("makeSignedFetch", () => {
   it("makes a signed fetch request with correct options", async () => {
     server.use(
       http.get(
-        "https://example.com/api/organisations/",
+        "https://example.com/api/organisation/",
         () => {
           return HttpResponse.json([
             { id: "1", name: "Org 1" },
@@ -126,7 +126,7 @@ describe("makeSignedFetch", () => {
     );
 
     const options = {
-      pathname: "/api/organisations/",
+      pathname: "/api/organisation/",
       method: "GET",
       headers: { "Custom-Header": "value" },
       expectedStatus: [200],

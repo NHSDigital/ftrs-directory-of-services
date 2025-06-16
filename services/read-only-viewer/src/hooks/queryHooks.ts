@@ -6,7 +6,12 @@ export const useOrganisationQuery = (organisationId: string) => {
   return useQuery<Organisation>({
     queryKey: ["organisation", organisationId],
     queryFn: async () => {
-      const response = await fetch(`/api/organisations/${organisationId}/`);
+      const response = await fetch(`/api/organisation/${organisationId}/`);
+
+      if (response.status === 404) {
+        return null;
+      }
+
       if (!response.ok) {
         throw ResponseError.fromResponse(
           response,
@@ -22,7 +27,7 @@ export const useOrganisationsQuery = () => {
   return useQuery<Organisation[]>({
     queryKey: ["organisations"],
     queryFn: async () => {
-      const response = await fetch("/api/organisations/");
+      const response = await fetch("/api/organisation/");
       if (!response.ok) {
         throw ResponseError.fromResponse(
           response,

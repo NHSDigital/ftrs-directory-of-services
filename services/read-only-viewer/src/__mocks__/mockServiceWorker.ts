@@ -38,10 +38,10 @@ export const StubData = {
 };
 
 export const server = setupServer(
-  http.get("/api/organisations", () => {
+  http.get("/api/organisation", () => {
     return HttpResponse.json(organisations);
   }),
-  http.get("/api/organisations/:id", (req) => {
+  http.get("/api/organisation/:id", (req) => {
     const { id } = req.params;
     const organisation = StubData.organisations.find((org) => org.id === id);
     if (!organisation) {

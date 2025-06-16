@@ -7,7 +7,7 @@ import type { ResponseError } from "@/utils/errors";
 import type { Endpoint, Organisation } from "@/utils/types";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Card, Details } from "nhsuk-react-components";
+import { ActionLink, Card, Details } from "nhsuk-react-components";
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/organisations/$organisationID/")({
@@ -161,6 +161,7 @@ function OrganisationDetailsRoute() {
   const {
     data: organisation,
     isLoading,
+    isSuccess,
     error,
   } = useOrganisationQuery(organisationID);
 
@@ -185,6 +186,19 @@ function OrganisationDetailsRoute() {
           <h1 className="nhsuk-heading-l">{organisation.name}</h1>
           <OrganisationOverview organisation={organisation} />
           <OrganisationEndpointsList endpoints={organisation.endpoints} />
+        </>
+      )}
+      {isSuccess && !organisation && (
+        <>
+          <h2 className="nhsuk-heading-l">Organisation not found</h2>
+          <p>The organisation you are looking for does not exist.</p>
+          <ActionLink
+            asElement={Link}
+            to="/organisations"
+            className="nhsuk-link--no-visited-state"
+          >
+            Back to Organisations
+          </ActionLink>
         </>
       )}
     </>
