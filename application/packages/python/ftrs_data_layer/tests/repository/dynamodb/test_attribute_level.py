@@ -175,11 +175,7 @@ def test_doc_serialise_item() -> None:
     # Call the _serialise_item method
     result = repo._serialise_item(obj)
 
-    assert result == {
-        "id": "1",
-        "field": "document",
-        "name": "Test"
-    }
+    assert result == {"id": "1", "field": "document", "name": "Test"}
 
 
 def test_doc_parse_item() -> None:
