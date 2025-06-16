@@ -4,10 +4,14 @@ one_nat_gateway_per_az                 = true
 create_database_subnet_group           = true
 create_database_route_table            = true
 create_database_internet_gateway_route = false
-opensearch_type                        = "SEARCH"
-opensearch_standby_replicas            = "DISABLED"
-opensearch_create_access_policy        = false
-opensearch_create_network_policy       = false
-opensearch_collection_name             = "-osc"
+database_dedicated_network_acl         = true
+private_dedicated_network_acl          = true
+public_dedicated_network_acl           = true
+
+opensearch_type                  = "SEARCH"
+opensearch_standby_replicas      = "DISABLED"
+opensearch_create_access_policy  = false
+opensearch_create_network_policy = false
+opensearch_collection_name       = "-osc"
 
 s3_trust_store_bucket_name = "truststore"
