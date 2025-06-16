@@ -27,7 +27,9 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
         """
         Get an item from DynamoDB by ID.
         """
-        response = self.table.get_item(Key={"id": str(id), "field": "document"},ReturnConsumedCapacity="INDEXES")
+        response = self.table.get_item(
+            Key={"id": str(id), "field": "document"}, ReturnConsumedCapacity="INDEXES"
+        )
         item = response.get("Item")
         if item is None:
             return None
