@@ -1,11 +1,12 @@
-import logging
 from enum import Enum
 from typing import Self
 
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+ods_processor_logger = Logger.get(service="ods_processor")
+
 
 MAX_ODS_TEL_LENGTH = 20
 
@@ -89,5 +90,8 @@ def validate_payload(payload: dict, model: BaseModel) -> dict:
     try:
         return model(**payload)
     except ValidationError as e:
-        logger.warning(f"Payload validation failed: {e}")
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_019,
+            error_message=str(e),
+        )
         raise
