@@ -8,6 +8,11 @@ variable "single_nat_gateway" {
   type        = bool
 }
 
+variable "one_nat_gateway_per_az" {
+  description = "Whether to create only one NAT Gateway per AZ"
+  type        = bool
+}
+
 variable "create_database_subnet_group" {
   description = "Whether to create a database subnet group for RDS"
   type        = bool
