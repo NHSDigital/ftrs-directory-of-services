@@ -109,6 +109,7 @@ info:
 servers:
   - url: TBC
 paths:
+  title: Operations
   '/Organisation':
     post:
       operationId: postOrganisation
@@ -204,6 +205,8 @@ paths:
                       isCompressionEnabled:
                         type: boolean
                         example: False
+      tags:
+        - Operations
       responses:
         '201':
           description: "The organisation resource has been  successfully created"
@@ -340,6 +343,8 @@ paths:
                       isCompressionEnabled:
                         type: boolean
                         example: False
+      tags:
+        - Operations
       responses:
         '201':
           description: "The organisation resource has been  successfully created"
