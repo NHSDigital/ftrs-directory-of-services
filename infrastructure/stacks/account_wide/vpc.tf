@@ -2,10 +2,11 @@ module "vpc" {
   # Module version: 5.21.0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-vpc.git?ref=7c1f791efd61f326ed6102d564d1a65d1eceedf0"
 
-  name               = "${local.account_prefix}-${var.vpc["name"]}"
-  cidr               = var.vpc["cidr"]
-  enable_nat_gateway = var.enable_nat_gateway
-  single_nat_gateway = var.single_nat_gateway
+  name                   = "${local.account_prefix}-${var.vpc["name"]}"
+  cidr                   = var.vpc["cidr"]
+  enable_nat_gateway     = var.enable_nat_gateway
+  single_nat_gateway     = var.single_nat_gateway
+  one_nat_gateway_per_az = var.one_nat_gateway_per_az
 
   create_database_subnet_group       = var.create_database_subnet_group
   create_database_subnet_route_table = var.create_database_route_table
