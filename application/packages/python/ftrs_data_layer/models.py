@@ -13,9 +13,9 @@ class DBModel(BaseModel):
     """
 
     id: UUID = Field(default_factory=uuid4)
-    createdBy: str| None = "SYSTEM"
+    createdBy: str | None = "SYSTEM"
     createdDateTime: datetime = datetime.now(UTC)
-    modifiedBy: str| None = "SYSTEM"
+    modifiedBy: str | None = "SYSTEM"
     modifiedDateTime: datetime = datetime.now(UTC)
 
     @property
