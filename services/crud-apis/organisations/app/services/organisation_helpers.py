@@ -1,11 +1,11 @@
 from datetime import UTC, datetime
-from http.client import HTTPException
-from uuid import UUID
+from uuid import uuid4
 
+from fastapi import HTTPException
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import DBModel, Organisation
-from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.validators import UpdatePayloadValidator
 
@@ -44,26 +44,34 @@ def apply_updates(
 
 
 def create_organisation(
-    organisation: Organisation, org_repository: DocumentLevelRepository[DBModel]
-) -> UUID:
-    if not organisation.ods_code:
+    organisation: Organisation, org_repository: AttributeLevelRepository[DBModel]
+) -> Organisation:
+    # Check if the ODS code is provided, if not, then we log it and raise an error
+    if not organisation.identifier_ODS_ODSCode:
         crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_012, ods_code=organisation.ods_code
+            CrudApisLogBase.ORGANISATION_012,
+            ods_code=organisation.identifier_ODS_ODSCode,
         )
         raise HTTPException(status_code=400, detail="ODS code is required")
-    organisation = org_repository.get_by_ods_code(organisation.ods_code)
-    if organisation:
+
+    # if the organisation already exists, we log it and raise an error
+    existing_organisation = org_repository.get_by_ods_code(
+        organisation.identifier_ODS_ODSCode
+    )
+    if existing_organisation:
         crud_organisation_logger.log(
             CrudApisLogBase.ORGANISATION_013,
-            ods_code=organisation.ods_code,
+            ods_code=organisation.identifier_ODS_ODSCode,
         )
         raise HTTPException(
-            status_code=400, detail="Organisation with this ODS code already exists"
+            status_code=409, detail="Organisation with this ODS code already exists"
         )
-    if organisation.id:
+    # If the organisation already has an ID, we log it and generate a new one
+    if organisation.id is not None:
         crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_013,
+            CrudApisLogBase.ORGANISATION_014,
+            organisation_id=organisation.id,
         )
-        organisation.id = UUID()
+        organisation.id = uuid4()
     org_repository.create(organisation)
-    return organisation.id
+    return organisation

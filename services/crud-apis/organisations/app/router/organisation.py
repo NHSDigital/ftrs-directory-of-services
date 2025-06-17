@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
@@ -129,30 +130,27 @@ def update_organisation(
 
 @router.post("/", summary="Create a new organisation")
 def post_organisation(
-    organisation: Organisation = Body(...),
+    organisation_data: dict = Body(
+        ...,
+        examples=["organisation_example"],
+        description="The organisation to create",
+    ),
 ) -> JSONResponse:
+    organisation = Organisation(**organisation_data)
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_011,
-        ods_code=organisation.ods_code,
+        ods_code=organisation.identifier_ODS_ODSCode,
     )
-    try:
-        organisation_id = create_organisation(organisation, org_repository)
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_015,
-            ods_code=organisation.ods_code,
-            organisation_id=organisation_id,
-        )
-        return JSONResponse(
-            status_code=201,
-            content={
-                "message": "Organisation created successfully",
-                "id": str(organisation.id),
-            },
-        )
-    except Exception as e:
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_016,
-            ods_code=organisation.ods_code,
-            error=str(e),
-        )
-        raise HTTPException(status_code=500, detail="Failed to create organisation")
+    organisation = create_organisation(organisation, org_repository)
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_015,
+        ods_code=organisation.identifier_ODS_ODSCode,
+        organisation_id=organisation.id,
+    )
+    return JSONResponse(
+        status_code=HTTPStatus.CREATED,
+        content={
+            "message": "Organisation created successfully",
+            "organisation": organisation.model_dump(mode="json"),
+        },
+    )

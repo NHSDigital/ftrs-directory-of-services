@@ -121,3 +121,47 @@ The API will now be running on [http://localhost:8001]
 **Path Parameters**:
 
 - `ods_code` (string): The ODS code of the organisation.
+
+### Post Organisation
+
+**Endpoint**: `POST /`
+
+**Description**: Creates a new organisation.
+
+**Request Body**:
+
+- A JSON object containing the organisation details. Example:
+
+  ```json
+  {
+    "name": "New Organisation",
+    "ods_code": "ODS123",
+    "type": "NHS Trust"
+  }
+  ```
+
+**Response**:
+
+- Returns the created organisation object with its internal ID.
+
+  - Example response:
+
+    ```json
+    {
+      "message": "Organisation created successfully",
+      "organisation": {
+        "id": "UUID-1234-5678-9101",
+        "name": "New Organisation",
+        "ods_code": "ODS123",
+        "type": "NHS Trust"
+      }
+    }
+    ```
+
+    - Returns a 201 status code on success.
+
+    - Returns a 400 status code if the request body is invalid or missing required fields.
+
+    - Returns a 500 status code if there is an internal server error.
+
+    - Returns a 409 status code if an organisation with the same ODS code already exists.

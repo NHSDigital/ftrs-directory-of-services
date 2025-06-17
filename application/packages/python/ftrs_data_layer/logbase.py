@@ -384,11 +384,11 @@ class CrudApisLogBase(LogBase):
     )
     ORGANISATION_013 = LogReference(
         level=ERROR,
-        message="Organisation ID {organisation_id} provided for new organisations,Will be ignored.Creat",
+        message="Organisation with ODS code {ods_code} already exists.",
     )
     ORGANISATION_014 = LogReference(
-        level=ERROR,
-        message="Organisation with ODS code {ods_code} already exists.",
+        level=INFO,
+        message="Organisation ID {organisation_id} provided for new organisations,Will be ignored.Creating a new organisation with a new ID.",
     )
     ORGANISATION_015 = LogReference(
         level=INFO,
@@ -396,5 +396,5 @@ class CrudApisLogBase(LogBase):
     )
     ORGANISATION_016 = LogReference(
         level=ERROR,
-        message="Error creating organisation with ODS code {ods_code}: {error_message}.",
+        message="Error creating organisation with ODS code {ods_code}:{error_message}.",
     )
