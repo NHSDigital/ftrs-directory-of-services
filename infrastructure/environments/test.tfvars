@@ -17,3 +17,8 @@ vpc = {
   database_subnet_b = "10.171.202.0/24"
   database_subnet_c = "10.171.203.0/24"
 }
+
+enable_flow_log           = false
+flow_log_destination_type = "s3"
+flow_log_file_format      = "parquet"
+s3_versioning             = false
