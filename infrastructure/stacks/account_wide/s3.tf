@@ -8,6 +8,7 @@ module "vpc_flow_logs_s3_bucket" {
       id      = "delete_logs_older_than_x_days"
       enabled = true
       filter = {
+        prefix = "/"
       }
       expiration = {
         days = var.flow_logs_s3_expiration_days
@@ -32,7 +33,7 @@ data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:PutObject"]
 
-    resources = ["${module.vpc_flow_logs_s3_bucket.s3_bucket_arn}/AWSLogs/*"]
+    resources = ["${module.vpc_flow_logs_s3_bucket.s3_bucket_arn}/*"]
   }
 
   statement {
