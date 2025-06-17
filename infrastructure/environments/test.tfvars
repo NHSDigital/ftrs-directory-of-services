@@ -22,3 +22,8 @@ sso_roles = [
   "AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
   "AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
 ]
+
+enable_flow_log           = false
+flow_log_destination_type = "s3"
+flow_log_file_format      = "parquet"
+s3_versioning             = false
