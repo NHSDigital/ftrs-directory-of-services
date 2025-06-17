@@ -3,6 +3,17 @@ module "vpc_flow_logs_s3_bucket" {
   bucket_name   = "${local.resource_prefix}-${var.vpc_flow_logs_bucket_name}"
   versioning    = var.s3_versioning
   force_destroy = var.force_destroy
+  lifecycle_rule_inputs = [
+    {
+      id      = "delete_logs_older_than_x_days"
+      enabled = true
+      filter = {
+      }
+      expiration = {
+        days = var.flow_logs_s3_expiration_days
+      }
+    }
+  ]
 }
 
 resource "aws_s3_bucket_policy" "vpc_flow_logs_s3_bucket_policy" {
