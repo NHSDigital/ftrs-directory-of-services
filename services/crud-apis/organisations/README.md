@@ -108,7 +108,7 @@ The API will now be running on [http://localhost:8001]
 
   ```json
   {
-    "name": "New Organisation Name",
+    "name": "New Organisation Name"
   }
   ```
 
