@@ -1,2 +1,6 @@
-environment         = "mgmt"
-data_classification = "3"
+environment               = "mgmt"
+data_classification       = "3"
+enable_flow_log           = false
+flow_log_destination_type = "s3"
+flow_log_file_format      = "parquet"
+s3_versioning             = false
