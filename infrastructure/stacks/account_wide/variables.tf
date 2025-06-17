@@ -119,3 +119,8 @@ variable "force_destroy" {
   type        = bool
   default     = false
 }
+
+variable "flow_logs_s3_expiration_days" {
+  description = "The number of days before the VPC flow logs are deleted"
+  type        = number
+}
