@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Body, Path
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import Organisation
@@ -170,3 +170,33 @@ def post_organisation(
             "organisation": organisation.model_dump(mode="json"),
         },
     )
+
+
+@router.delete("/{organisation_id}", summary="Delete an organisation")
+def delete_organisation(
+    organisation_id: UUID = Path(
+        ...,
+        examples=["00000000-0000-0000-0000-11111111111"],
+        description="The internal id of the organisation",
+    ),
+) -> Response:
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_017,
+        organisation_id=organisation_id,
+    )
+    organisation = org_repository.get(organisation_id)
+
+    if not organisation:
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_010,
+            organisation_id=organisation_id,
+        )
+        raise HTTPException(status_code=404, detail="Organisation not found")
+
+    org_repository.delete(organisation_id)
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_018,
+        organisation_id=organisation_id,
+    )
+
+    return Response(status_code=204, content=None)
