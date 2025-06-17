@@ -88,3 +88,34 @@ variable "public_dedicated_network_acl" {
   description = "Whether to use dedicated network ACL (not default) and custom rules for public subnets"
   type        = bool
 }
+
+variable "enable_flow_log" {
+  description = "Whether VPC Flow logs are enabled or not"
+  type        = bool
+}
+
+variable "flow_log_destination_type" {
+  description = "THe destination type for the flow logs"
+  type        = string
+}
+
+variable "flow_log_file_format" {
+  description = "The file format for the flow logs"
+  type        = string
+}
+
+variable "vpc_flow_logs_bucket_name" {
+  description = "The VPC Flow logs bucket name"
+  type        = string
+}
+
+variable "s3_versioning" {
+  description = "Whether to enable versioning on the S3 bucket"
+  type        = bool
+}
+
+variable "force_destroy" {
+  description = "Whether to forcefully destroy the bucket when it contains objects"
+  type        = bool
+  default     = false
+}
