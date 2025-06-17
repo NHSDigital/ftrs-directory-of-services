@@ -30,6 +30,13 @@ module "vpc" {
   public_dedicated_network_acl = var.public_dedicated_network_acl
   public_inbound_acl_rules     = concat(local.network_acls["default_inbound"], local.network_acls["public_inbound"])
   public_outbound_acl_rules    = concat(local.network_acls["default_outbound"], local.network_acls["public_outbound"])
+
+  # VPC Flow Logs
+  enable_flow_log           = var.enable_flow_log
+  flow_log_destination_type = var.flow_log_destination_type
+  flow_log_destination_arn  = module.vpc_flow_logs_s3_bucket.s3_bucket_arn
+  flow_log_file_format      = var.flow_log_file_format
+
 }
 
 locals {
