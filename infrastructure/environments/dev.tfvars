@@ -20,10 +20,11 @@ vpc = {
   database_subnet_c = "10.170.203.0/24"
 }
 
-enable_flow_log           = false
-flow_log_destination_type = "s3"
-flow_log_file_format      = "parquet"
-s3_versioning             = false
+enable_flow_log              = false
+flow_log_destination_type    = "s3"
+flow_log_file_format         = "parquet"
+s3_versioning                = false
+flow_logs_s3_expiration_days = 10
 
 data_migration_rds_min_capacity = 1
 data_migration_rds_max_capacity = 1
