@@ -69,7 +69,7 @@ locals {
       },
     ]
 
-    public_inbound = [
+    public_inbound = concat([
       {
         rule_number = 100
         rule_action = "allow"
@@ -78,7 +78,17 @@ locals {
         protocol    = "tcp"
         cidr_block  = "0.0.0.0/0"
       },
-    ]
+      ],
+      [
+        for i, cidr_block in concat(local.private_subnets, local.database_subnets) : {
+          rule_number = 200 + i
+          rule_action = "allow"
+          from_port   = 0
+          to_port     = 65535
+          protocol    = "tcp"
+          cidr_block  = cidr_block
+        }
+    ])
 
     public_outbound = [
       {
@@ -92,7 +102,7 @@ locals {
     ]
 
     private_inbound = [
-      for i, cidr_block in local.public_subnets : {
+      for i, cidr_block in concat(local.public_subnets, local.database_subnets) : {
         rule_number = 200 + i
         rule_action = "allow"
         from_port   = 0
@@ -103,7 +113,7 @@ locals {
     ]
 
     private_outbound = [
-      for i, cidr_block in local.public_subnets : {
+      for i, cidr_block in concat(local.public_subnets, local.database_subnets) : {
         rule_number = 200 + i
         rule_action = "allow"
         from_port   = 0
@@ -114,7 +124,7 @@ locals {
     ]
 
     database_inbound = [
-      for i, cidr_block in local.public_subnets : {
+      for i, cidr_block in local.private_subnets : {
         rule_number = 300 + i
         rule_action = "allow"
         from_port   = 0
@@ -125,7 +135,7 @@ locals {
     ]
 
     database_outbound = [
-      for i, cidr_block in local.public_subnets : {
+      for i, cidr_block in concat(local.public_subnets, local.private_subnets) : {
         rule_number = 300 + i
         rule_action = "allow"
         from_port   = 0
