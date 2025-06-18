@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-      - 'task/FDOS*'
-      - 'task/SIA*'
+      # - 'task/FDOS*'
+      - "task/SIA*"
   workflow_dispatch:
     inputs:
       tag:
@@ -17,9 +17,9 @@ on:
         required: true
         type: string
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
