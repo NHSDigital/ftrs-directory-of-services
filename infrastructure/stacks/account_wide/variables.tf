@@ -104,17 +104,17 @@ variable "flow_log_file_format" {
   type        = string
 }
 
-variable "vpc_flow_logs_bucket_name" {
+variable "flow_logs_bucket_name" {
   description = "The VPC Flow logs bucket name"
   type        = string
 }
 
-variable "s3_versioning" {
+variable "flow_log_s3_versioning" {
   description = "Whether to enable versioning on the S3 bucket"
   type        = bool
 }
 
-variable "force_destroy" {
+variable "flow_log_s3_force_destroy" {
   description = "Whether to forcefully destroy the bucket when it contains objects"
   type        = bool
   default     = false
