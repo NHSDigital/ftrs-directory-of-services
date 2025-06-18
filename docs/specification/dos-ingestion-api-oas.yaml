@@ -263,7 +263,7 @@ paths:
         name: X-Correlation-ID
         required: false
         description: |
-          Use an optional ID to track transactions across multiple systems
+          Use an optional ID to track transactions across multiple systems.
 
           Mirrored back in a response header.
         schema:
