@@ -1,8 +1,8 @@
 module "vpc_flow_logs_s3_bucket" {
   source        = "../../modules/s3"
-  bucket_name   = "${local.resource_prefix}-${var.vpc_flow_logs_bucket_name}"
-  versioning    = var.s3_versioning
-  force_destroy = var.force_destroy
+  bucket_name   = "${local.resource_prefix}-${var.flow_logs_bucket_name}"
+  versioning    = var.flow_log_s3_versioning
+  force_destroy = var.flow_log_s3_force_destroy
   lifecycle_rule_inputs = [
     {
       id      = "delete_logs_older_than_x_days"
