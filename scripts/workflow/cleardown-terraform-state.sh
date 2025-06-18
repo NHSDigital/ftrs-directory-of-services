@@ -67,3 +67,26 @@ echo "Stack to have terraform state deleted is: $STACK"
     echo "Terraform State file not found for deletion or deletion failed for the following workspace --> $WORKSPACE"
   fi
 
+if [[ "${STACK}" == "opensearch" ]]; then
+  # Optional: Clean up orphaned OpenSearch Ingestion Network Policies
+  echo "Checking for OpenSearch Ingestion Network Policies to delete."
+
+  # Define pattern for network policy name — adjust as needed
+  NETWORK_POLICY_NAME="pipeline-${STACK}-nap-${WORKSPACE}"
+
+  # Fetch matching policy name(s)
+  policy_arn=$(aws opensearchserverless list-security-policies \
+    --type network \
+    --query "securityPolicySummaries[?name=='${NETWORK_POLICY_NAME}'].name" \
+    --output text)
+
+  if [ -n "$policy_arn" ]; then
+    echo "Found matching OpenSearch network policy: $policy_arn"
+    aws opensearchserverless delete-security-policy \
+      --type network \
+      --name "$policy_arn"
+    echo "Successfully deleted network policy: $policy_arn"
+  else
+    echo "No matching OpenSearch network policy found for deletion"
+  fi
+fi
