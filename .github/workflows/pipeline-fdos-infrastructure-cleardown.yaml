@@ -37,14 +37,13 @@ on:
 
 jobs:
   metadata:
-    # if: github.actor != 'github-merge-queue[bot]' && (
-    #       startsWith(github.event.ref, 'refs/heads/task/FDOS') ||
-    #       startsWith(github.event.ref, 'refs/heads/task/fdos') ||
-    #       startsWith(github.event.ref, 'refs/heads/task/SIA') ||
-    #       startsWith(github.event.ref, 'refs/heads/task/sia') ||
-    #       startsWith(github.event.ref, 'refs/heads/dependabot/')
-    #     )
-    if: github.actor != 'github-merge-queue[bot]'
+    if: github.actor != 'github-merge-queue[bot]' && (
+      startsWith(github.event.ref, 'refs/heads/task/FDOS') ||
+      startsWith(github.event.ref, 'refs/heads/task/fdos') ||
+      startsWith(github.event.ref, 'refs/heads/task/SIA') ||
+      startsWith(github.event.ref, 'refs/heads/task/sia') ||
+      startsWith(github.event.ref, 'refs/heads/dependabot/')
+      )
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
