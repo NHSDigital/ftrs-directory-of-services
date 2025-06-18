@@ -250,11 +250,11 @@ class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
     category: HealthcareServiceCategory
+    type: HealthcareServiceType
     providedBy: UUID | None
     location: UUID | None
     name: str
     telecom: Telecom | None
-    type: HealthcareServiceType
     openingTime: list[OpeningTime] | None
 
     @classmethod
@@ -277,11 +277,19 @@ class HealthcareService(DBModel):
         :return: An Service instance.
         """
         service_id = uuid4() or existing_identifier
+
+        match data["type"]:
+            case "GP Practice":
+                category = HealthcareServiceCategory.GP_SERVICES
+                type = HealthcareServiceType.GP_CONSULTATION_SERVICE
+
+
         return HealthcareService(
             id=service_id,
             identifier_oldDoS_uid=data["uid"],
             active=True,
-            category=HealthcareServiceCategory.GP_SERVICES,  # TODO: in future ticket we will map type to category
+            category=category,
+            type=type,
             providedBy=organisation_id,
             location=location_id,
             name=data["name"],
@@ -292,7 +300,6 @@ class HealthcareService(DBModel):
                 web=data["web"],
             ),
             openingTime=HealthcareService.assign_opening_times(data["availability"]),
-            type=data["type"],
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
             modifiedBy="ROBOT",
