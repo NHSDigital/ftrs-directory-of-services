@@ -16,4 +16,7 @@ opensearch_collection_name       = "-collection"
 
 s3_trust_store_bucket_name = "truststore"
 
-vpc_flow_logs_bucket_name = "flow-logs"
+flow_logs_bucket_name     = "flow-logs"
+flow_log_destination_type = "s3"
+flow_log_file_format      = "parquet"
+flow_log_s3_versioning    = false
