@@ -3,8 +3,15 @@ description: "Scan secrets"
 runs:
   using: "composite"
   steps:
-    - name: "Scan secrets"
+    - name: "Scan secrets on current branch"
       shell: bash
+      if: github.ref != 'refs/heads/main'
       run: |
         # Please do not change this `check=whole-history` setting, as new patterns may be added or history may be rewritten.
         check=single-branch ./scripts/githooks/scan-secrets.sh
+    - name: "Scan secrets"
+      shell: bash
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Please do not change this `check=whole-history` setting, as new patterns may be added or history may be rewritten.
+        check=whole-history ./scripts/githooks/scan-secrets.sh
