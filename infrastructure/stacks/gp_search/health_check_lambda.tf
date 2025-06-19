@@ -2,7 +2,7 @@ module "health_check_lambda" {
   source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ebe96e5/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.health_check_lambda_name}"
   description            = "This lambda provides a health check for the search lambda"
-  handler                = "functions/health_check_function.lambda_handler"
+  handler                = "health_check/health_check_function.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
   s3_key                 = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
