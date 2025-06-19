@@ -41,7 +41,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['databased', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods']"
       type: app
     secrets: inherit
 
