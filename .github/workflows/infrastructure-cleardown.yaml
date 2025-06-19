@@ -63,6 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
+    if: contains(inputs.stacks, 'opensearch')
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
@@ -71,6 +72,7 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
+        if: ${{ matrix.stack == 'opensearch' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
@@ -84,7 +86,6 @@ jobs:
 
       - name: "Check and delete OpenSearch network policies"
         id: cleanup_osis
-        if: ${{ matrix.stack == 'opensearch' }}
         uses: ./.github/actions/cleardown-opensearch-network-policy
         with:
           workspace: ${{ inputs.workspace }}
