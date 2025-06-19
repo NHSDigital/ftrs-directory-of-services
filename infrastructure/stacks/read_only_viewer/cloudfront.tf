@@ -19,7 +19,7 @@ module "read_only_viewer_cloudfront" {
 
   http_version = "http2and3"
 
-  aliases = ["viewer.${domain_name}"]
+  aliases = ["viewer.${var.domain_name}"]
 
   viewer_certificate = {
     acm_certificate_arn = module.cloudfront_certificate.acm_certificate_arn
