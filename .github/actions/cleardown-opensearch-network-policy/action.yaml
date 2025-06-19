@@ -1,0 +1,22 @@
+name: "Cleardown OpenSearch Network Policy"
+description: "Deletes orphaned OpenSearch Ingestion (OSIS) network policies left behind after Terraform destroys."
+
+inputs:
+  workspace:
+    description: "The name of the workspace"
+    required: true
+  stack:
+    description: "The stack to be cleared. Should be 'opensearch' to trigger network policy deletion."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Delete OpenSearch Network Policy
+      id: delete_os_policy
+      shell: bash
+      run: |
+        export WORKSPACE="${{ inputs.workspace }}"
+        export STACK="${{ inputs.stack }}"
+
+        ./scripts/workflow/cleardown-opensearch-network-policy.sh

@@ -14,8 +14,6 @@ from dynamodb.reset import (
     init_tables,
     reset,
 )
-from tests.utils.fixtures import mock_logging
-
 
 def test_reset_invalid_environment() -> None:
     with pytest.raises(ValueError):
@@ -44,7 +42,7 @@ def test_reset_user_aborts_with_exception(mocker: MockerFixture) -> None:
 def test_reset_success(mocker: MockerFixture) -> None:
     mock_confirm = mocker.patch("dynamodb.reset.confirm", return_value=True)
     mocker.patch("dynamodb.reset.track", side_effect=lambda *args, **_: args[0])
-    mock_repository = mocker.patch("dynamodb.reset.DocumentLevelRepository")
+    mock_repository = mocker.patch("dynamodb.reset.AttributeLevelRepository")
 
     mock_records: list[MagicMock] = [
         mocker.MagicMock(id="item1"),
@@ -163,7 +161,7 @@ def test_init_tables_invalid_env() -> None:
 
 
 def test_init_tables_existing_table(
-    mocker: MockerFixture, mock_logging: MagicMock
+    mocker: MockerFixture,
 ) -> None:
     """
     Test that the init_tables function handles the case where the table already exists.

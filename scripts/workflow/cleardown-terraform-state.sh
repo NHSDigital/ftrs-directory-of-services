@@ -66,4 +66,3 @@ echo "Stack to have terraform state deleted is: $STACK"
   else
     echo "Terraform State file not found for deletion or deletion failed for the following workspace --> $WORKSPACE"
   fi
-

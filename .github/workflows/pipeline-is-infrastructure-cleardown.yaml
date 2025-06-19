@@ -6,20 +6,17 @@ name: IS DOS Cleardown Workflow
 
 on:
   delete:
-    branches:
-      - 'task/DOSIS*'
-      - 'task/dosis*'
   workflow_dispatch:
     inputs:
       application_tag:
         description: "Specify the application tag to cleardown"
         required: true
-        default: 'latest'
+        default: "latest"
         type: string
       environment:
         description: "Specify the environment to cleardown"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
@@ -30,7 +27,10 @@ on:
 
 jobs:
   metadata:
-    if: github.actor != 'github-merge-queue[bot]'
+    if: github.actor != 'github-merge-queue[bot]' && (
+      startsWith(github.event.ref, 'task/DOSIS') ||
+      startsWith(github.event.ref, 'task/dosis')
+      )
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
