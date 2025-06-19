@@ -360,6 +360,7 @@ payloadMimeType_mapping = {
     "FHIR": "application/fhir",
     "email": "message/rfc822",
     "telno": "text/vcard",
+    "xml": "application/fhir",
     "CDA": "application/hl7-cda+xml",
 }
 
