@@ -122,7 +122,7 @@ paths:
         * User Restricted - Healthcare worker access for authentication via UI
       parameters:
       - in: header
-        name: X-API-KEY
+        name: apiKey
         required: true
         description: |
           Use the unique api key provided to you during onboarding. This will be used to authorise API requests
@@ -155,7 +155,7 @@ paths:
                 active:
                   type: string
                   enum:
-                  - test
+                  - True
                   example: True
                 name:
                   type: string
@@ -257,7 +257,7 @@ paths:
         * User Restricted - Healthcare worker access for authentication via UI
       parameters:
       - in: header
-        name: X-API-KEY
+        name: apiKey
         required: true
         description: |
           Use the unique api key provided to you during onboarding. This will be used to authorise API requests
@@ -297,7 +297,7 @@ paths:
                 active:
                   type: string
                   enum:
-                  - test
+                  - True
                   example: True
                 name:
                   type: string
@@ -411,7 +411,7 @@ components:
                 active:
                   type: string
                   enum:
-                  - test
+                  - True
                   example: True
                 name:
                   type: string
