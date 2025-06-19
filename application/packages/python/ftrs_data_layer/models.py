@@ -283,7 +283,6 @@ class HealthcareService(DBModel):
                 category = HealthcareServiceCategory.GP_SERVICES
                 type = HealthcareServiceType.GP_CONSULTATION_SERVICE
 
-
         return HealthcareService(
             id=service_id,
             identifier_oldDoS_uid=data["uid"],
@@ -361,7 +360,7 @@ payloadMimeType_mapping = {
     "FHIR": "application/fhir",
     "email": "message/rfc822",
     "telno": "text/vcard",
-    "CDA": "application/hl7-cda+xml"
+    "CDA": "application/hl7-cda+xml",
 }
 
 
