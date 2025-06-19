@@ -1,5 +1,5 @@
 [project]
-name = "functions"
+name = "gp-search"
 version = "0.1.0"
 description = ""
 authors = [
@@ -19,6 +19,12 @@ dependencies = [
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry]
+packages = [
+  { include = "functions" },
+  { include = "health_check" }
+]
+
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.6"
 boto3 = "^1.38.6"
@@ -31,6 +37,7 @@ pytest-cov = "^6.1.1"
 
 [tool.poetry.scripts]
 dos-gp-search-function = "functions.gp_search_function:lambda_handler"
+dos-gp-search-health-check = "health_check.health_check_function:lambda_handler"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
@@ -54,10 +61,9 @@ line-ending = "auto"
 docstring-code-format = true
 
 [tool.pytest.ini_options]
-pythonpath = "functions"
 python_files = "test_*.py"
 testpaths = "tests"
-addopts = "-v --cov=functions --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = "-v --cov=functions --cov=health_check --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 filterwarnings = [
     "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
 ]
