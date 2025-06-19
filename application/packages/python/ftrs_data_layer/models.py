@@ -361,6 +361,7 @@ payloadMimeType_mapping = {
     "FHIR": "application/fhir",
     "email": "message/rfc822",
     "telno": "text/vcard",
+    "CDA": "CDA" # TODO: confirm what this should be mapped to
 }
 
 

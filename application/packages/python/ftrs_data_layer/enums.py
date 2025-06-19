@@ -53,6 +53,8 @@ class EndpointPayloadType(str, Enum):
     GP_PRIMARY = "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
     GP_COPY = "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
     OTHER = "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0"
+    ambulance = "urn:nhs-itk:interaction:primaryNHS111RequestforAmbulance-v2-0" # TODO: review if this is real value
+    SCHEDULING = "scheduling" # TODO: review how to handle this
 
 
 class EndpointPayloadMimeType(str, Enum):
@@ -61,3 +63,4 @@ class EndpointPayloadMimeType(str, Enum):
     FHIR = "application/fhir"
     EMAIL = "message/rfc822"
     TELNO = "text/vcard"
+    CDA = "CDA" # TODO: confirm what this should be mapped to
