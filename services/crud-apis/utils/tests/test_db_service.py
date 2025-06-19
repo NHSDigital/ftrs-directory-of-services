@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from ftrs_data_layer.models import DBModel
-from ftrs_data_layer.repository.dynamodb.document_level import DocumentLevelRepository
+from ftrs_data_layer.repository.dynamodb.attribute_level import AttributeLevelRepository
 
 from utils.db_service import (
     env_variable_settings,
@@ -24,7 +24,7 @@ def test_get_service_repository_returns_repository() -> None:
     ):
         repository = get_service_repository(TestModel, "entity-name")
 
-        assert isinstance(repository, DocumentLevelRepository)
+        assert isinstance(repository, AttributeLevelRepository)
         assert repository.model_cls == TestModel
 
 
@@ -35,7 +35,7 @@ def test_get_service_repository_with_no_endpoint_url() -> None:
     ):
         repository = get_service_repository(TestModel, "entity-name")
 
-        assert isinstance(repository, DocumentLevelRepository)
+        assert isinstance(repository, AttributeLevelRepository)
         assert repository.model_cls == TestModel
 
 

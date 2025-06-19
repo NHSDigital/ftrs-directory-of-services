@@ -43,5 +43,11 @@ markers = [
     "is-api: mark test as IS API test",
     "is-infra: mark test as IS infra test",
     "is-pipeline: mark test to be run in the IS pipeline",
-    "is-lambda: marks test as IS lambda related"
+    "is-lambda: marks test as IS lambda related",
+    "is-s3: marks test as IS S3 related",
+    "gp-search-api: marks test as gp search related",
+    "test: marks test as generic test",
+]
+filterwarnings = [
+    'ignore:.*datetime.datetime.utcnow*',
 ]

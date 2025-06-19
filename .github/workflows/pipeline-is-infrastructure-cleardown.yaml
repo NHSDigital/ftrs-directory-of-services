@@ -6,20 +6,17 @@ name: IS DOS Cleardown Workflow
 
 on:
   delete:
-    branches:
-      - 'task/DOSIS*'
-      - 'task/dosis*'
   workflow_dispatch:
     inputs:
       application_tag:
         description: "Specify the application tag to cleardown"
         required: true
-        default: 'latest'
+        default: "latest"
         type: string
       environment:
         description: "Specify the environment to cleardown"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
@@ -30,7 +27,10 @@ on:
 
 jobs:
   metadata:
-    if: github.actor != 'github-merge-queue[bot]'
+    if: github.actor != 'github-merge-queue[bot]' && (
+      startsWith(github.event.ref, 'task/DOSIS') ||
+      startsWith(github.event.ref, 'task/dosis')
+      )
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
@@ -42,11 +42,11 @@ jobs:
     with:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.reponame }}
       stacks: "['gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30
+      type: app
     secrets: inherit
 
   cleardown-artefacts:
@@ -59,6 +59,7 @@ jobs:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
+      type: app
     secrets: inherit
 
   slack-notifications:

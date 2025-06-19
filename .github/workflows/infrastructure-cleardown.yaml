@@ -16,10 +16,6 @@ on:
         required: false
         default: "dos"
         type: string
-      domain:
-        description: "Name of the domain"
-        required: true
-        type: string
       stacks:
         description: "Name of the stacks"
         required: true
@@ -41,6 +37,10 @@ on:
         description: "The commit hash, set by the CI/CD pipeline workflow"
         required: false
         type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
 
 jobs:
   destroy-application-infrastructure:
@@ -55,7 +55,43 @@ jobs:
       application_tag: ${{ inputs.application_tag }}
       commit_hash: ${{ inputs.commit_hash }}
       action: destroy
+      type: ${{ inputs.type }}
     secrets: inherit
+
+  cleardown-os-policies:
+    name: "Cleardown OpenSearch Network Policies"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    if: contains(inputs.stacks, 'opensearch')
+    strategy:
+      matrix:
+        stack: ${{ fromJSON(inputs.stacks) }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        if: ${{ matrix.stack == 'opensearch' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        if: ${{ matrix.stack == 'opensearch' }}
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Check and delete OpenSearch network policies"
+        id: cleanup_osis
+        if: ${{ matrix.stack == 'opensearch' }}
+        uses: ./.github/actions/cleardown-opensearch-network-policy
+        with:
+          workspace: ${{ inputs.workspace }}
+          stack: ${{ matrix.stack }}
 
   delete-tf-state:
     name: "Delete terraform state file"
@@ -81,6 +117,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: "Delete terraform state file"
         id: delete_tf_state
@@ -111,6 +148,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: "Check terraform state file"
         id: check_tf_state

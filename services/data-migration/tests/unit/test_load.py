@@ -59,7 +59,7 @@ def test_save_to_table_organisation(
     """
 
     mock_repository_create = mocker.patch(
-        "pipeline.load.DocumentLevelRepository.create"
+        "pipeline.load.AttributeLevelRepository.create"
     )
 
     input_df = pd.DataFrame(
@@ -94,7 +94,7 @@ def test_save_to_table_empty_row(
     """
 
     mock_repository_create = mocker.patch(
-        "pipeline.load.DocumentLevelRepository.create"
+        "pipeline.load.AttributeLevelRepository.create"
     )
 
     input_df = pd.DataFrame(
@@ -131,7 +131,7 @@ def test_load(mocker: MockerFixture, mock_tmp_directory: Path) -> None:
     input_df.to_parquet(input_path, index=False)
 
     create_mock = mocker.patch(
-        "pipeline.load.DocumentLevelRepository.create",
+        "pipeline.load.AttributeLevelRepository.create",
         return_value=None,
     )
 

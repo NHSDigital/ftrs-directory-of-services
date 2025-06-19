@@ -35,6 +35,10 @@ on:
         required: false
         default: 5
         type: number
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
 
 jobs:
   service-automation-tests:
@@ -53,7 +57,7 @@ jobs:
           ref: ${{ inputs.tag }}
 
       - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v3.0.2
+        uses: asdf-vm/actions/setup@v4.0.0
         with:
           asdf_branch: v0.15.0
 
@@ -66,7 +70,7 @@ jobs:
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v3.0.2
+        uses: asdf-vm/actions/install@v4.0.0
 
       - name: "Cache Poetry dependencies"
         uses: actions/cache@v4
@@ -85,6 +89,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: "Install project"
         run: make install

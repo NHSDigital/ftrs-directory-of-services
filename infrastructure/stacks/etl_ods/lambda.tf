@@ -7,6 +7,15 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 
+resource "aws_lambda_layer_version" "common_packages_layer" {
+  layer_name          = "${local.resource_prefix}-common-packages-layer${local.workspace_suffix}"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common Python dependencies for Lambda functions"
+
+  s3_bucket = local.artefacts_bucket
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+}
+
 module "processor_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.processor_name}"
@@ -33,7 +42,9 @@ module "processor_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
+    [aws_lambda_layer_version.common_packages_layer.arn],
     var.aws_lambda_layers
+
   )
 
   environment_variables = {
@@ -58,11 +69,18 @@ module "consumer_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
-  policy_jsons           = [data.aws_iam_policy_document.s3_access_policy.json, data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.sqs_access_policy.json]
+  number_of_policy_jsons = "5"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.vpc_access_policy.json,
+    data.aws_iam_policy_document.sqs_access_policy.json,
+    data.aws_iam_policy_document.ssm_access_policy.json,
+    data.aws_iam_policy_document.execute_api_policy.json
+  ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
+    [aws_lambda_layer_version.common_packages_layer.arn],
     var.aws_lambda_layers
   )
 

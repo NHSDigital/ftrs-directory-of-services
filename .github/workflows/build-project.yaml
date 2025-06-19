@@ -35,6 +35,10 @@ on:
           description: "The application tag identifying the timeline in the repository to deploy from"
           required: false
           type: string
+      type:
+          description: "The type of permissions (e.g., account, app)"
+          required: true
+          type: string
 
 jobs:
   build-project:
@@ -49,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v3.0.2
+        uses: asdf-vm/actions/setup@v4.0.0
         with:
           asdf_branch: v0.15.0
 
@@ -62,14 +66,14 @@ jobs:
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v3.0.2
+        uses: asdf-vm/actions/install@v4.0.0
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: false
+          type: ${{ inputs.type }}
 
       - name: "Get directories"
         id: get-directories

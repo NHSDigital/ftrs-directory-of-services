@@ -16,15 +16,10 @@ on:
         required: false
         default: "dos"
         type: string
-      domain:
-        description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
+      account_type:
+        description: "The type of account based on the environment"
         required: false
-        default: ""
-        type: string
-      multi_domain:
-        description: "If true uses 'dos-management' github runner ; if false uses github runner for triggering repo"
-        required: false
-        default: 'false'
+        default: "env"
         type: string
       stacks:
         description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
@@ -52,6 +47,10 @@ on:
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
         required: false
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
         type: string
     outputs:
       plan_result:
@@ -85,13 +84,13 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          multi_domain: ${{ inputs.multi_domain }}
+          type: ${{ inputs.type }}
 
       - name: "Download Terraform Plan Artifact"
         uses: actions/download-artifact@v4
         if: ${{ inputs.action == 'apply' }}
         with:
-          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.environment }}
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ./
 
       - name: "Deploy infrastructure stack"
@@ -110,5 +109,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ inputs.action == 'plan' }}
         with:
-          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.environment }}
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ${{ matrix.stack }}.tfplan

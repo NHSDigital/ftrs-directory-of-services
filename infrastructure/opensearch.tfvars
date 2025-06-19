@@ -10,5 +10,5 @@ dynamodb_table_names_for_opensearch = [
 ]
 osis_pipeline_cloudwatch_log_group_name = "/aws/vendedlogs/OpenSearchIngestion/dynamodb-to-os"
 max_sink_retries                        = 1
-opensearch_pipieline_s3_dlq_bucket_name = "osis-pipiline-dlq"
-opensearch_pipieline_s3_dlq_prefix      = "osis-pipeline-errors/"
+opensearch_pipeline_s3_dlq_bucket_name  = "osis-pipiline-dlq"
+opensearch_pipeline_s3_dlq_prefix       = "osis-pipeline-errors/"

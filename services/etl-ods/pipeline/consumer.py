@@ -1,35 +1,44 @@
 import json
-import logging
 from http import HTTPStatus
 
 import requests
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.utilities import get_base_crud_api_url, make_request
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+ods_consumer_logger = Logger.get(service="ods_consumer")
 
 
 def consumer_lambda_handler(event: dict, context: any) -> None:
     if event:
-        logger.info("Received event for ODS ETL consumer lambda.")
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_001,
+        )
         batch_item_failures = []
         sqs_batch_response = {}
 
         records = event.get("Records")
-        logger.info(f"Records received: {records}")
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_002,
+            total_records=len(records) if records else 0,
+        )
         for record in records:
-            logger.info(
-                f"Processing message id: {record['messageId']} of {len(records)} from ODS ETL queue."
+            ods_consumer_logger.log(
+                OdsETLPipelineLogBase.ETL_CONSUMER_003,
+                message_id=record["messageId"],
+                total_records=len(records),
             )
             try:
                 process_message_and_send_request(record)
-                logger.info(
-                    f"Message id: {record['messageId']} processed successfully."
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_004,
+                    message_id=record["messageId"],
                 )
             except Exception:
-                logger.exception(
-                    f"Failed to process message id: {record['messageId']}."
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_005,
+                    message_id=record["messageId"],
                 )
                 batch_item_failures.append({"itemIdentifier": record["messageId"]})
 
@@ -47,31 +56,38 @@ def process_message_and_send_request(record: dict) -> None:
         path = record.get("path")
         body = record.get("body")
 
-    if not path or not body:
-        err_msg = (
-            f"Message id: {record['messageId']} is missing 'path' or 'body' fields."
-        )
-        logger.warning(err_msg)
-        raise ValueError(err_msg)
+    message_id = record["messageId"]
 
-    api_url = get_base_crud_api_url() + "/organisation" + path
+    if not path or not body:
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_006,
+            message_id=message_id,
+        )
+        raise ValueError(
+            OdsETLPipelineLogBase.ETL_CONSUMER_006.value.format(
+                message_id=record["messageId"]
+            )
+        )
+
+    api_url = get_base_crud_api_url() + "/organisation/" + path
 
     try:
         response = make_request(api_url, method="PUT", sign=True, json=body)
-        logger.info(
-            f"Successfully sent request. Response status code: {response.status_code}"
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_007,
+            status_code=response.status_code,
         )
-
     except requests.exceptions.HTTPError as http_error:
         if http_error.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-            logger.warning(
-                f"Bad request returned for message id: {record['messageId']}. Not re-processing."
+            ods_consumer_logger.log(
+                OdsETLPipelineLogBase.ETL_CONSUMER_008, message_id=message_id
             )
             return
-
-        logger.exception(f"Request failed for message id: {record['messageId']}.")
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_009, message_id=record["messageId"]
+        )
         raise RequestProcessingError(
-            message_id=record["messageId"],
+            message_id=message_id,
             status_code=(http_error.response.status_code),
             response_text=str(http_error),
         )

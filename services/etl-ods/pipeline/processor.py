@@ -1,8 +1,9 @@
 import json
-import logging
 import re
 
 import requests
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import (
     load_data,
@@ -24,11 +25,9 @@ from .extract import (
 )
 from .transform import transfrom_into_payload
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-STATUS_SUCCESSFUL = 200
 BATCH_SIZE = 10
+
+ods_processor_logger = Logger.get(service="ods_processor")
 
 
 def processor(date: str) -> None:
@@ -38,13 +37,18 @@ def processor(date: str) -> None:
     try:
         organisations = fetch_sync_data(date)
         if not organisations:
-            logger.info(f"No organisations found for the given date: {date}")
+            ods_processor_logger.log(
+                OdsETLPipelineLogBase.ETL_PROCESSOR_020,
+                date=date,
+            )
             return
         transformed_batch = []
         for organisation in organisations:
             org_link = organisation.get("OrgLink")
             if not org_link:
-                logger.warning("Organisation link is missing in the response.")
+                ods_processor_logger.log(
+                    OdsETLPipelineLogBase.ETL_PROCESSOR_021,
+                )
                 continue
             organisation_ods_code = extract_ods_code(org_link)
             transformed_request = process_organisation(organisation_ods_code)
@@ -59,11 +63,17 @@ def processor(date: str) -> None:
             load_data(transformed_batch)
 
     except requests.exceptions.RequestException as e:
-        logger.warning(f"Error fetching data: {e}")
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_022,
+            error_message=str(e),
+        )
         raise
 
     except Exception as e:
-        logger.warning(f"Unexpected error: {e}")
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_023,
+            error_message=str(e),
+        )
         raise
 
 
@@ -78,7 +88,9 @@ def process_organisation(ods_code: str) -> None:
         validated_organisation_data = validate_payload(
             relevant_organisation_data, OrganisationValidator
         )
-        logger.info("Successfully validated organisation data")
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_024,
+        )
 
         list = validated_organisation_data.Roles.Role
         raw_primary_role_data = fetch_organisation_role(list)
@@ -86,24 +98,27 @@ def process_organisation(ods_code: str) -> None:
         validated_primary_role_data = validate_payload(
             relevant_role_data, RolesValidator
         )
-        logger.info("Successfully validated role data")
-
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_025,
+        )
         org_uuid = fetch_organisation_uuid(ods_code)
 
         request_body = transfrom_into_payload(
-            validated_organisation_data, validated_primary_role_data
+            validated_organisation_data, validated_primary_role_data, ods_code
         )
         request = {"path": org_uuid, "body": request_body}
-        logger.info(f"Transformed request_body: {json.dumps(request)}")
 
         return json.dumps(request)
 
     except Exception as e:
-        logger.warning(f"Error processing organisation with ods_code {ods_code}: {e}")
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_027,
+            ods_code=ods_code,
+            error_message=str(e),
+        )
 
 
 def processor_lambda_handler(event: any, context: any) -> None:
-    logging.info("Executing lambda handler")
     try:
         date = event.get("date")
         if not date:
@@ -114,5 +129,8 @@ def processor_lambda_handler(event: any, context: any) -> None:
 
         processor(date=event["date"])
     except Exception as e:
-        logging.info(f"Unexpected error: {e}")
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_023,
+            error_message=str(e),
+        )
         return {"statusCode": 500, "body": f"Unexpected error: {e}"}

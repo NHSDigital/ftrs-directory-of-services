@@ -17,21 +17,23 @@ info:
     To use this API, both your organisation and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the DoS.
 
     Before access is granted, your organisation must:
-    * Contact our integration team to discuss your use case and technical approach.
-    * Undergo a technical and data assurance process to validate the structure, accuracy, and governance of the data source you plan to use.
-    * Receive approval that your system and data are fit for integration with the DoS Ingestion API.
+    * contact our integration team to discuss your use case and technical approach
+    * undergo a technical and data assurance process to validate the structure, accuracy, and governance of the data source you plan to use
+    * receive approval that your system and data are fit for integration with the DoS Ingestion API
 
     Use of this API is subject to data governance requirements and must align with approved use cases.
 
     ## Access modes
 
-    * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
-    * User Restricted - Healthcare worker access for authentication via UI
+    This API has two access modes. They are:
+      * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
+      * User Restricted - Healthcare worker access for authentication via a UI (User Interface)
+
 
     ## Roadmap
     We're currently finalising our roadmap and we'll update this content in due course.
 
-    ## Service Level
+    ## Service level
 
     TBC when service is in Beta.
 
@@ -101,11 +103,11 @@ info:
     ## Related APIs
 
     The following APIs are related to this one:
-    * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - Access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care REST API.
-    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England.
+    * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
+    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
   version: 1.0.0
 servers:
-  - url: 'https://usertest.directoryofservices.nhs.uk/app/controllers/api/v1.0/'
+  - url: TBC
 paths:
   '/Organisation':
     post:
@@ -116,16 +118,12 @@ paths:
 
         Use this endpoint to create a new Organisation entity.
 
-        ### Access Modes
-
-        * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
-        * User Restricted - Healthcare worker access for authentication via UI
       parameters:
       - in: header
         name: apiKey
         required: true
         description: |
-          Use the unique api key provided to you during onboarding. This will be used to authorise API requests
+          Use the unique api key provided to you during onboarding. This will be used to authorise API requests.
         schema:
           type: string
           pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
@@ -134,7 +132,7 @@ paths:
         name: X-Correlation-ID
         required: false
         description: |
-          Use an optional ID with which you can use to track transactions across multiple systems.
+          Use an optional ID to track transactions across multiple systems.
 
           Mirrored back in a response header.
         schema:
@@ -206,6 +204,8 @@ paths:
                       isCompressionEnabled:
                         type: boolean
                         example: False
+      tags:
+        - Operations
       responses:
         '201':
           description: "The organisation resource has been  successfully created"
@@ -229,13 +229,13 @@ paths:
                 $ref: '#/components/schemas/4XXError'
         5XX:
           description: |
-            These error types are typically raised for server processing errors, and should be reported back to our customer support Team:
+            These error types are typically raised for server processing errors, and should be reported back to our customer support team:
 
             | HTTP status | Description |
             | ----------- | --------------------------------------------- |
-            | 500         | Internal Error |
-            | 502         | Bad Gateway |
-            | 504         | Gateway Timed Out |
+            | 500         | Internal error |
+            | 502         | Bad gateway |
+            | 504         | Gateway timed out |
           content:
             application/json:
               schema:
@@ -249,10 +249,6 @@ paths:
 
         Use this endpoint to update an Organisation entity.
 
-        ### Access Modes
-
-        * Application Restricted - Addition of new resource allowed / replacement of organisation allowed
-        * User Restricted - Healthcare worker access for authentication via UI
       parameters:
       - in: header
         name: apiKey
@@ -267,7 +263,7 @@ paths:
         name: X-Correlation-ID
         required: false
         description: |
-          Use an optional ID with which you can use to track transactions across multiple systems.
+          Use an optional ID to track transactions across multiple systems.
 
           Mirrored back in a response header.
         schema:
@@ -346,6 +342,8 @@ paths:
                       isCompressionEnabled:
                         type: boolean
                         example: False
+      tags:
+        - Operations
       responses:
         '201':
           description: "The organisation resource has been  successfully created"
@@ -373,9 +371,9 @@ paths:
 
             | HTTP status | Description |
             | ----------- | --------------------------------------------- |
-            | 500         | Internal Error |
-            | 502         | Bad Gateway |
-            | 504         | Gateway Timed Out |
+            | 500         | Internal error |
+            | 502         | Bad gateway |
+            | 504         | Gateway timed out |
           content:
             application/json:
               schema:

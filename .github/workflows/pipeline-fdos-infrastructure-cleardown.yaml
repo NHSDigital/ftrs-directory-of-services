@@ -7,21 +7,17 @@ name: Future DOS Cleardown Workflow
 
 on:
   delete:
-    branches:
-      - 'task/FDOS*'
-      - 'task/fdos*'
-      - 'dependabot/*'
   workflow_dispatch:
     inputs:
       application_tag:
         description: "Specify the application tag to cleardown"
         required: true
-        default: 'latest'
+        default: "latest"
         type: string
       environment:
         description: "Specify the environment to cleardown"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
@@ -32,7 +28,13 @@ on:
 
 jobs:
   metadata:
-    if: github.actor != 'github-merge-queue[bot]'
+    if: github.actor != 'github-merge-queue[bot]' && (
+      startsWith(github.event.ref, 'task/FDOS') ||
+      startsWith(github.event.ref, 'task/fdos') ||
+      startsWith(github.event.ref, 'task/SIA') ||
+      startsWith(github.event.ref, 'task/sia') ||
+      startsWith(github.event.ref, 'dependabot/')
+      )
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
@@ -44,10 +46,10 @@ jobs:
     with:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.reponame }}
-      stacks: "['database', 'data_migration', 'crud_apis', 'read_only_viewer', 'opensearch']"
+      stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      type: app
       workflow_timeout: 30
     secrets: inherit
 
@@ -61,6 +63,7 @@ jobs:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
+      type: app
     secrets: inherit
 
   slack-notifications:
