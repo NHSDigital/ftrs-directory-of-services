@@ -19,6 +19,13 @@ module "read_only_viewer_cloudfront" {
 
   http_version = "http2and3"
 
+  aliases = ["viewer.${domain_name}"]
+
+  viewer_certificate = {
+    acm_certificate_arn = module.cloudfront_certificate.acm_certificate_arn
+    ssl_support_method  = "sni-only"
+  }
+
   geo_restriction = {
     restriction_type = "whitelist"
     locations        = ["GB", "JE", "IM"]
@@ -79,10 +86,6 @@ module "read_only_viewer_cloudfront" {
       viewer_protocol_policy = "redirect-to-https"
     }
   ]
-
-  viewer_certificate = {
-    cloudfront_default_certificate = true
-  }
 
   web_acl_id = aws_wafv2_web_acl.read_only_viewer_waf_web_acl.arn
 }
