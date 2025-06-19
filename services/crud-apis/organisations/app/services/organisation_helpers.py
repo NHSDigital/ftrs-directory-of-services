@@ -1,8 +1,11 @@
 from datetime import UTC, datetime
+from uuid import uuid4
 
+from fastapi import HTTPException
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.models import DBModel, Organisation
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.validators import UpdatePayloadValidator
 
@@ -38,3 +41,29 @@ def apply_updates(
         else:
             setattr(existing_organisation, field, value)
     existing_organisation.modifiedDateTime = datetime.now(UTC)
+
+
+def create_organisation(
+    organisation: Organisation, org_repository: AttributeLevelRepository[DBModel]
+) -> Organisation:
+    # if the organisation already exists, we log it and raise an error
+    existing_organisation = org_repository.get_by_ods_code(
+        organisation.identifier_ODS_ODSCode
+    )
+    if existing_organisation:
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_013,
+            ods_code=organisation.identifier_ODS_ODSCode,
+        )
+        raise HTTPException(
+            status_code=409, detail="Organisation with this ODS code already exists"
+        )
+    # If the organisation already has an ID, we log it and generate a new one
+    if organisation.id is not None:
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_014,
+            organisation_id=organisation.id,
+        )
+        organisation.id = uuid4()
+    org_repository.create(organisation)
+    return organisation

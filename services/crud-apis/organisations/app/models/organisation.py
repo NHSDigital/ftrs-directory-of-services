@@ -1,45 +1,26 @@
 from pydantic import BaseModel, Field
 
 
-class OrganisationPayload(BaseModel):
-    name: str = Field(
-        min_length=1,
-        max_length=100,
-        json_schema_extra={
-            "example": "Test Organisation",
-            "description": "The name of the organisation",
-        },
-    )
-    active: bool = Field(
-        ...,
-        json_schema_extra={
-            "example": "false",
-            "description": "If the service is active or not",
-        },
-    )
-    telecom: str | None = Field(
-        max_length=20,
-        json_schema_extra={
-            "example": "0123456789",
-            "description": "The telecom number of the organisation",
-        },
-    )
-    type: str = Field(
-        min_length=1,
-        max_length=100,
-        json_schema_extra={
-            "example": "GP Practice",
-            "description": "The type of the organisation",
-        },
-    )
-    modified_by: str = Field(
-        max_length=100,
-        min_length=1,
-        json_schema_extra={
-            "example": "ODS_ETL_PIPELINE",
-            "description": "Who modified the record",
-        },
-    )
+class Organisation(BaseModel):
+    name: str = Field(min_length=1, max_length=100, example="Test Organisation")
+    active: bool = Field(..., example=True)
+    telecom: str | None = Field(max_length=20, example="0123456789")
+    type: str = Field(min_length=1, max_length=100, example="GP Practice")
+
+
+class OrganisationUpdatePayload(Organisation):
+    modified_by: str = Field(max_length=100, min_length=1, example="ODS_ETL_PIPELINE")
 
     class Config:
         extra = "forbid"
+
+
+class OrganisationCreatePayload(Organisation):
+    id: str = Field(
+        default_factory=lambda: "generated-uuid",
+        example="d5a852ef-12c7-4014-b398-661716a63027",
+    )
+    identifier_ODS_ODSCode: str = Field(max_length=12, min_length=1, example="ABC123")
+    createdBy: str = Field(
+        max_length=100, min_length=1, example="ROBOT", pattern="^[a-zA-Z]+$"
+    )

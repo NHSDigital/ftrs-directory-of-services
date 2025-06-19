@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from organisations.app.models.organisation import OrganisationPayload
+from organisations.app.models.organisation import OrganisationUpdatePayload
 
 
 def test_valid_payload() -> None:
@@ -12,7 +12,7 @@ def test_valid_payload() -> None:
         "type": "GP Practice",
         "modified_by": "ROBOT",
     }
-    organisation = OrganisationPayload(**payload)
+    organisation = OrganisationUpdatePayload(**payload)
     assert organisation.name == "Test Organisation"
     assert organisation.active is False
     assert organisation.telecom == "0123456789"
@@ -38,7 +38,7 @@ def test_field_too_long(name: str, telecom: str, type: str, modified_by: str) ->
         "modified_by": modified_by,
     }
     with pytest.raises(ValidationError) as e:
-        OrganisationPayload(**payload)
+        OrganisationUpdatePayload(**payload)
     assert "string_too_long" in str(e.value)
 
 
@@ -50,7 +50,7 @@ def test_missing_required_field() -> None:
         "modified_by": "ROBOT",
     }
     with pytest.raises(ValidationError) as e:
-        OrganisationPayload(**payload)
+        OrganisationUpdatePayload(**payload)
     assert "validation error" in str(e.value)
 
 
@@ -64,5 +64,5 @@ def test_additional_field() -> None:
         "extra_field": "not allowed",
     }
     with pytest.raises(ValidationError) as e:
-        OrganisationPayload(**payload)
+        OrganisationUpdatePayload(**payload)
     assert "Extra inputs are not permitted" in str(e.value)
