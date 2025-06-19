@@ -142,7 +142,8 @@
             "route53:ChangeResourceRecordSets",
             "route53:ListResourceRecordSets",
             "route53:ListHostedZonesByName"
-          ]
+          ],
+          "Resource": "*"
         }
     ]
 }
