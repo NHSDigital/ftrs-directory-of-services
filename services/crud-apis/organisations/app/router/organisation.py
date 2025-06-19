@@ -14,7 +14,10 @@ from organisations.app.services.organisation_helpers import (
     create_organisation,
     get_outdated_fields,
 )
-from organisations.app.services.validators import UpdatePayloadValidator
+from organisations.app.services.validators import (
+    CreatePayloadValidator,
+    UpdatePayloadValidator,
+)
 from utils.db_service import get_service_repository
 
 router = APIRouter()
@@ -130,13 +133,24 @@ def update_organisation(
 
 @router.post("/", summary="Create a new organisation")
 def post_organisation(
-    organisation_data: dict = Body(
+    organisation_data: CreatePayloadValidator = Body(
         ...,
-        examples=["organisation_example"],
-        description="The organisation to create",
+        examples=[
+            {
+                "summary": "Create a new organisation",
+                "value": {
+                    "identifier_ODS_ODSCode": "ABC123",
+                    "active": True,
+                    "name": "Test Organisation",
+                    "telecom": "12345",
+                    "type": "Test Type",
+                    "endpoints": [],
+                },
+            }
+        ],
     ),
 ) -> JSONResponse:
-    organisation = Organisation(**organisation_data)
+    organisation = Organisation(**organisation_data.model_dump())
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_011,
         ods_code=organisation.identifier_ODS_ODSCode,

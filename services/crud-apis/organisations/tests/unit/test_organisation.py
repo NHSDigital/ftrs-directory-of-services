@@ -217,13 +217,10 @@ def test_create_organisation_validation_error(
 ) -> None:
     organisation_data = get_organisation()
     organisation_data["identifier_ODS_ODSCode"] = None  # Missing ODS code
-    mock_organisation_helpers.side_effect = HTTPException(
-        status_code=HTTPStatus.BAD_REQUEST, detail="ODS code is required"
-    )
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(RequestValidationError) as exc_info:
         client.post("/", json=organisation_data)
-    assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
-    assert exc_info.value.detail == "ODS code is required"
+    assert exc_info.type is RequestValidationError
+    assert "Input should be a valid string" in str(exc_info.value)
 
 
 def test_create_organisation_already_exists(

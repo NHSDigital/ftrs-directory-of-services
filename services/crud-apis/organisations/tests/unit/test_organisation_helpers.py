@@ -169,24 +169,6 @@ def test_creates_organisation_when_valid_data_provided() -> NoReturn:
     assert result.name == "Test Organisation"
 
 
-def test_raises_error_when_ods_code_missing() -> NoReturn:
-    org_repository = MagicMock(spec=AttributeLevelRepository)
-    organisation = Organisation(
-        identifier_ODS_ODSCode=None,
-        active=True,
-        name="Test Organisation",
-        telecom="12345",
-        type="Test Type",
-        endpoints=[],
-    )
-
-    with pytest.raises(HTTPException) as exc_info:
-        create_organisation(organisation, org_repository)
-
-    assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
-    assert exc_info.value.detail == "ODS code is required"
-
-
 def test_raises_error_when_organisation_already_exists() -> NoReturn:
     org_repository = MagicMock(spec=AttributeLevelRepository)
     org_repository.get_by_ods_code.return_value = Organisation(

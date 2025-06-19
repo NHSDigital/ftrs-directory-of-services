@@ -46,14 +46,6 @@ def apply_updates(
 def create_organisation(
     organisation: Organisation, org_repository: AttributeLevelRepository[DBModel]
 ) -> Organisation:
-    # Check if the ODS code is provided, if not, then we log it and raise an error
-    if not organisation.identifier_ODS_ODSCode:
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_012,
-            ods_code=organisation.identifier_ODS_ODSCode,
-        )
-        raise HTTPException(status_code=400, detail="ODS code is required")
-
     # if the organisation already exists, we log it and raise an error
     existing_organisation = org_repository.get_by_ods_code(
         organisation.identifier_ODS_ODSCode
