@@ -4,7 +4,7 @@ resource "aws_ec2_client_vpn_endpoint" "vpn" {
   description            = "${local.account_prefix}-vpn"
   vpc_id                 = module.vpc.vpc_id
   client_cidr_block      = var.vpc["vpn_subnet"]
-  server_certificate_arn = data.aws_acm_certificate.vpn_cert.arn
+  server_certificate_arn = data.aws_acm_certificate.vpn_cert[0].arn
 
   security_group_ids = [aws_security_group.vpn_security_group[0].id]
 
@@ -13,7 +13,7 @@ resource "aws_ec2_client_vpn_endpoint" "vpn" {
 
   authentication_options {
     type                       = "certificate-authentication"
-    root_certificate_chain_arn = data.aws_acm_certificate.vpn_cert.arn
+    root_certificate_chain_arn = data.aws_acm_certificate.vpn_cert[0].arn
   }
 
   connection_log_options {
