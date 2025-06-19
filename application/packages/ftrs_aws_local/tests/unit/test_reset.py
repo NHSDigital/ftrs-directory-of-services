@@ -42,7 +42,7 @@ def test_reset_user_aborts_with_exception(mocker: MockerFixture) -> None:
 def test_reset_success(mocker: MockerFixture) -> None:
     mock_confirm = mocker.patch("dynamodb.reset.confirm", return_value=True)
     mocker.patch("dynamodb.reset.track", side_effect=lambda *args, **_: args[0])
-    mock_repository = mocker.patch("dynamodb.reset.DocumentLevelRepository")
+    mock_repository = mocker.patch("dynamodb.reset.AttributeLevelRepository")
 
     mock_records: list[MagicMock] = [
         mocker.MagicMock(id="item1"),
