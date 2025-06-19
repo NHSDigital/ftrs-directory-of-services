@@ -361,7 +361,7 @@ payloadMimeType_mapping = {
     "FHIR": "application/fhir",
     "email": "message/rfc822",
     "telno": "text/vcard",
-    "CDA": "CDA" # TODO: confirm what this should be mapped to
+    "CDA": "application/hl7-cda+xml"
 }
 
 
@@ -409,7 +409,7 @@ class Endpoint(DBModel):
         return Endpoint(
             id=uuid4(),
             identifier_oldDoS_id=data["id"],
-            status="active",
+            status=EndpointStatus.ACTIVE,
             connectionType=data["transport"],
             name=None,
             description=data["businessscenario"],
