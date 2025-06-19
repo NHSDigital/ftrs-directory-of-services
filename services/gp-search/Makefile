@@ -5,7 +5,7 @@ DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
 PLATFORM ?= manylinux2014_x86_64
 S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 POETRY_VERSION := $(shell poetry version -s)
-WHEEL_NAME := functions-$(POETRY_VERSION)-py3-none-any.whl
+WHEEL_NAME := gp_search-$(POETRY_VERSION)-py3-none-any.whl
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
