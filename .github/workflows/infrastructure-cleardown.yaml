@@ -63,6 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
+    if: contains(inputs.stacks, 'opensearch')
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
@@ -71,12 +72,14 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
+        if: ${{ matrix.stack == 'opensearch' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
+        if: ${{ matrix.stack == 'opensearch' }}
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
