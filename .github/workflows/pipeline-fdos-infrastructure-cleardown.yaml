@@ -34,7 +34,7 @@ jobs:
       startsWith(github.event.ref, 'task/SIA') ||
       startsWith(github.event.ref, 'task/sia') ||
       startsWith(github.event.ref, 'dependabot/')
-    )
+      )
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
