@@ -28,8 +28,8 @@ on:
 jobs:
   metadata:
     if: github.actor != 'github-merge-queue[bot]' && (
-      startsWith(github.event.ref, 'refs/heads/task/DOSIS') ||
-      startsWith(github.event.ref, 'refs/heads/task/dosis')
+      startsWith(github.event.ref, 'task/DOSIS') ||
+      startsWith(github.event.ref, 'task/dosis')
       )
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
