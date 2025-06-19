@@ -15,7 +15,7 @@ def test_get_outdated_fields_no_changes() -> None:
         active=True,
         name="Test Organisation",
         telecom="12345",
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
         createdDateTime="2023-10-01T00:00:00Z",
@@ -29,7 +29,7 @@ def test_get_outdated_fields_no_changes() -> None:
             "active": True,
             "name": "Test Organisation",
             "telecom": "12345",
-            "type": "Test Type",
+            "type": "GP Practice",
             "endpoints": [],
         }
     )
@@ -45,7 +45,7 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         active=True,
         name="Test Organisation",
         telecom="12345",
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
         createdDateTime="2023-10-01T00:00:00Z",
@@ -77,7 +77,7 @@ def test_get_outdated_fields_with_changes() -> None:
         active=True,
         name="Test Organisation",
         telecom="12345",
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
         createdDateTime="2023-10-01T00:00:00Z",
@@ -112,7 +112,7 @@ def test_get_outdated_fields_modified_by_field_only() -> None:
         active=True,
         name="Test Organisation",
         telecom="12345",
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
         createdDateTime="2023-10-01T00:00:00Z",
@@ -127,7 +127,7 @@ def test_get_outdated_fields_modified_by_field_only() -> None:
             "active": True,
             "name": "Test Organisation",
             "telecom": "12345",
-            "type": "Test Type",
+            "type": "GP Practice",
             "endpoints": [],
         }
     )
