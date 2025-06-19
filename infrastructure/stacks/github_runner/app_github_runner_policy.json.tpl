@@ -132,6 +132,18 @@
                 "sts:GetCallerIdentity"
             ],
             "Resource": "*"
+        },
+        {
+          "Sid": "AllowRoute53Access",
+          "Effect": "Allow",
+          "Action": [
+            "route53:ListHostedZones",
+            "route53:GetHostedZone",
+            "route53:ChangeResourceRecordSets",
+            "route53:ListResourceRecordSets",
+            "route53:ListHostedZonesByName"
+          ],
+          "Resource": "*"
         }
     ]
 }

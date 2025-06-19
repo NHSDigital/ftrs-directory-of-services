@@ -12,11 +12,6 @@ resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
     is_logging_enabled = true
   }
 
-  vpc_options {
-    subnet_ids         = data.aws_subnets.private_subnets.ids
-    security_group_ids = [aws_security_group.opensearch_security_group.id]
-  }
-
   buffer_options {
     persistent_buffer_enabled = var.osis_pipeline_persistent_buffer_enabled
   }
@@ -32,6 +27,6 @@ resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
     network_policy_name  = "pipeline-${aws_opensearchserverless_security_policy.opensearch_serverless_network_access_policy.name}"
     max_sink_retries     = var.max_sink_retries
     s3_dlq_bucket        = module.s3_opensearch_pipeline_dlq_bucket.s3_bucket_id
-    s3_dlq_bucket_prefix = var.opensearch_pipieline_s3_dlq_prefix
+    s3_dlq_bucket_prefix = var.opensearch_pipeline_s3_dlq_prefix
   })
 }

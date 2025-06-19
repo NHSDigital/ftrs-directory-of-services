@@ -6,7 +6,7 @@ import pandas as pd
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import MigrationETLPipelineLogBase
 from ftrs_data_layer.models import DBModel, HealthcareService, Location, Organisation
-from ftrs_data_layer.repository.dynamodb import DocumentLevelRepository
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from typer import Option
 
 from pipeline.constants import TargetEnvironment
@@ -52,7 +52,7 @@ def save_to_table(
     """
     Load the organisations into the specified table.
     """
-    repository = DocumentLevelRepository[table.value](
+    repository = AttributeLevelRepository[table.value](
         table_name=table_name,
         model_cls=Organisation,
         endpoint_url=endpoint_url,

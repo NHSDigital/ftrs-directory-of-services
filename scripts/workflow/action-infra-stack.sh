@@ -46,8 +46,8 @@ if [ -z "$ENVIRONMENT" ] ; then
   echo Set ENVIRONMENT to the environment to action the terraform in - one of dev, test, preprod, prod
   EXPORTS_SET=1
 else
-  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|preprod|prod|security|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt dev test int preprod security or prod
+  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|sandpit|int|ref|non-prod|preprod|prod|prototype) ]]; then
+      echo ENVIRONMENT should be mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
       EXPORTS_SET=1
   fi
 fi

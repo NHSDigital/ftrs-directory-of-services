@@ -8,15 +8,15 @@ from ftrs_data_layer.repository.dynamodb.repository import (
 )
 
 
-class DocumentLevelRepository(DynamoDBRepository[ModelType]):
+class AttributeLevelRepository(DynamoDBRepository[ModelType]):
     """
-    DocumentLevelRepository is a class that provides methods for creating, reading,
+    AttributeLevelRepository is a class that provides methods for creating, reading,
     updating, and deleting documents in DynamoDB.
     """
 
     def create(self, obj: ModelType) -> None:
         """
-        Create a new document in DynamoDB.
+        Create a new item in DynamoDB.
         """
         self._put_item(
             obj,
@@ -25,13 +25,10 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
 
     def get(self, id: str | UUID) -> ModelType | None:
         """
-        Get a document from DynamoDB by ID.
+        Get an item from DynamoDB by ID.
         """
         response = self.table.get_item(
-            Key={"id": str(id), "field": "document"},
-            ProjectionExpression="id, #val",
-            ExpressionAttributeNames={"#val": "value"},
-            ReturnConsumedCapacity="INDEXES",
+            Key={"id": str(id), "field": "document"}, ReturnConsumedCapacity="INDEXES"
         )
         item = response.get("Item")
         if item is None:
@@ -41,7 +38,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
 
     def update(self, id: str | UUID, obj: ModelType) -> None:
         """
-        Update an existing document in DynamoDB.
+        Update an existing item in DynamoDB.
         """
         self._put_item(
             obj,
@@ -50,7 +47,7 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
 
     def delete(self, id: str | UUID) -> None:
         """
-        Delete a document from DynamoDB by ID.
+        Delete an item from DynamoDB by ID.
         """
         self.table.delete_item(
             Key={"id": str(id), "field": "document"},
@@ -58,26 +55,21 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
         )
 
     def _serialise_item(self, item: ModelType) -> dict:
-        """
-        Prepare the item for DynamoDB in a document-level format.
-        """
-        return {
+        base_item = {
             "id": str(item.id),
-            "field": "document",
-            "value": item.model_dump(mode="json"),
-            **item.indexes,
+            "field": "document",  # Required a sort key
         }
+        # Add model attributes
+        model_data = item.model_dump(mode="json")
+        base_item.update(model_data)
+        return base_item
 
     def _parse_item(self, item: dict) -> ModelType:
         """
         Parse the item from DynamoDB into the model format.
         """
-        return self.model_cls.model_construct(
-            **{
-                "id": item["id"],
-                **item["value"],
-            }
-        )
+        parsed_item = item.copy()
+        return self.model_cls.model_construct(**parsed_item)
 
     def iter_records(
         self, max_results: int | None = 100
@@ -96,7 +88,5 @@ class DocumentLevelRepository(DynamoDBRepository[ModelType]):
             key=ods_code_field,
             value=ods_code,
             IndexName="OdsCodeValueIndex",
-            ProjectionExpression="id, #val",
-            ExpressionAttributeNames={"#val": "value"},
         )
         return [record.id for record in records]

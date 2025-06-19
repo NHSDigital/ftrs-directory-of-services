@@ -7,7 +7,7 @@ from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.logbase import MigrationETLPipelineLogBase
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
-    DocumentLevelRepository,
+    AttributeLevelRepository,
     ModelType,
 )
 from rich.progress import track
@@ -186,7 +186,7 @@ def reset(
         entity_cls = get_entity_cls(entity_name)
         table_name = get_table_name(entity_name, env.value, workspace)
 
-        repository = DocumentLevelRepository(
+        repository = AttributeLevelRepository(
             table_name=table_name,
             model_cls=entity_cls,
             endpoint_url=endpoint_url,
