@@ -79,6 +79,7 @@ jobs:
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
+        if: ${{ matrix.stack == 'opensearch' }}
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
@@ -86,6 +87,7 @@ jobs:
 
       - name: "Check and delete OpenSearch network policies"
         id: cleanup_osis
+        if: ${{ matrix.stack == 'opensearch' }}
         uses: ./.github/actions/cleardown-opensearch-network-policy
         with:
           workspace: ${{ inputs.workspace }}
