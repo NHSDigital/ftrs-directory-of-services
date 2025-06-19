@@ -66,7 +66,7 @@ jobs:
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v@v4.0.0
+        uses: asdf-vm/actions/install@v4.0.0
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
