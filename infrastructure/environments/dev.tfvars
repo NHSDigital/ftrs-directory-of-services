@@ -22,3 +22,5 @@ vpc = {
 
 data_migration_rds_min_capacity = 1
 data_migration_rds_max_capacity = 1
+
+domain_name = "dev.ftrs.cloud.nhs.uk"

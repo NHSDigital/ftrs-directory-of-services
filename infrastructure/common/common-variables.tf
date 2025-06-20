@@ -79,3 +79,8 @@ variable "dynamodb_table_names" {
   description = "List of DynamoDB table names"
   type        = list(string)
 }
+
+variable "domain_name" {
+  description = "The base domain name for the environment (i.e. dev.ftrs.cloud.nhs.uk)"
+  type        = string
+}

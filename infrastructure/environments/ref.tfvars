@@ -17,3 +17,5 @@ vpc = {
   database_subnet_b = "10.178.202.0/24"
   database_subnet_c = "10.178.203.0/24"
 }
+
+domain_name = "ref.ftrs.cloud.nhs.uk"
