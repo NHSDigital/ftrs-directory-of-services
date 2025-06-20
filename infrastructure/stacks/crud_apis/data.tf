@@ -6,14 +6,11 @@ data "aws_vpc" "vpc" {
 }
 
 data "aws_ec2_client_vpn_endpoint" "client_vpn_endpoint" {
+  count = var.environment == "dev" ? 1 : 0
   filter {
     name   = "tag:Project"
     values = ["${var.project}"]
   }
-}
-
-data "aws_security_group" "vpn_security_group" {
-  name = "${local.account_prefix}-vpn-sg"
 }
 
 data "aws_subnets" "private_subnets" {
