@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from functions.ftrs_service.config import (
+from utils.config import (
     EnvironmentVariableNotFoundError,
     _get_env_var,
     get_config,

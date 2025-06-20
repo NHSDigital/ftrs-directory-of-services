@@ -22,7 +22,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 packages = [
   { include = "functions" },
-  { include = "health_check" }
+  { include = "health_check" },
+  { include = "utils" }
 ]
 
 [tool.poetry.group.dev.dependencies]
@@ -63,7 +64,16 @@ docstring-code-format = true
 [tool.pytest.ini_options]
 python_files = "test_*.py"
 testpaths = "tests"
-addopts = "-v --cov=functions --cov=health_check --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = [
+    "-v",
+    "--cov=functions",
+    "--cov=health_check",
+    "--cov=utils",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80",
+    "--cov-branch",
+    "--cov-context=test"
+]
 filterwarnings = [
     "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
 ]
