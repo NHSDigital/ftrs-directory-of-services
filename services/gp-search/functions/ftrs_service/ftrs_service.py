@@ -1,9 +1,9 @@
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.bundle import Bundle
 
-from functions.ftrs_service.config import get_config
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
 from functions.ftrs_service.repository.dynamo import DynamoRepository
+from utils.config import get_config
 
 logger = Logger()
 
