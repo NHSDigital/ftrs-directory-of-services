@@ -161,8 +161,8 @@ def test_update_organisation_validation_error(mock_repository: MockerFixture) ->
     }
     with pytest.raises(RequestValidationError) as exc_info:
         client.put(f"/{test_org_id}", json=update_payload)
-        assert exc_info.type == RequestValidationError
-        assert "field required" in str(exc_info.value)
+    assert exc_info.type == RequestValidationError
+    assert  exc_info.value.detail == "field required"
 
 
 def test_get_organisation_by_ods_code_success(mock_repository: MockerFixture) -> None:
