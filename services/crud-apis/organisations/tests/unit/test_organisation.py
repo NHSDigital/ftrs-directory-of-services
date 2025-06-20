@@ -164,6 +164,7 @@ def test_update_organisation_validation_error(mock_repository: MockerFixture) ->
         assert exc_info.type == RequestValidationError
     assert "field required" in str(exc_info.value)
 
+
 def test_get_organisation_by_ods_code_success(mock_repository: MockerFixture) -> None:
     mock_repository.get_by_ods_code.return_value = ["uuid"]
     ods_code = "12345"
