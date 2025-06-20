@@ -12,5 +12,9 @@
     "application"
   ],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "nhsdigital",
+    "projectKey": "nhsdigital_ftrs-directory-of-services"
+  }
 }

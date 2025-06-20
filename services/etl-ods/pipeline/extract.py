@@ -125,7 +125,7 @@ def extract_organisation_data(payload: dict) -> dict:
     return result
 
 
-def extract_display_name(payload: dict) -> str | None:
+def extract_display_name(payload: dict) -> dict | None:
     roles = payload.get("Roles")
 
     if not isinstance(roles, list):

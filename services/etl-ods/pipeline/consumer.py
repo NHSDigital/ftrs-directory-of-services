@@ -10,7 +10,7 @@ from pipeline.utilities import get_base_crud_api_url, make_request
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
 
-def consumer_lambda_handler(event: dict, context: any) -> None:
+def consumer_lambda_handler(event: dict, context: any) -> dict:
     if event:
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_001,
