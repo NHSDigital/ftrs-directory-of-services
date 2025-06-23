@@ -184,7 +184,7 @@ def test_raises_error_when_organisation_already_exists() -> NoReturn:
         name="Test Organisation",
         active=True,
         telecom="12345",
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
     )
 
