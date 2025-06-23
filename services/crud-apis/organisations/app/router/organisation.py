@@ -1,4 +1,5 @@
 import logging
+from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
@@ -10,9 +11,13 @@ from ftrs_data_layer.models import Organisation
 
 from organisations.app.services.organisation_helpers import (
     apply_updates,
+    create_organisation,
     get_outdated_fields,
 )
-from organisations.app.services.validators import UpdatePayloadValidator
+from organisations.app.services.validators import (
+    CreatePayloadValidator,
+    UpdatePayloadValidator,
+)
 from utils.db_service import get_service_repository
 
 ERROR_MESSAGE_404 = "Organisation not found"
@@ -125,4 +130,43 @@ def update_organisation(
 
     return JSONResponse(
         status_code=200, content={"message": "Data processed successfully"}
+    )
+
+
+@router.post("/", summary="Create a new organisation")
+def post_organisation(
+    organisation_data: CreatePayloadValidator = Body(
+        ...,
+        examples=[
+            {
+                "summary": "Create a new organisation",
+                "value": {
+                    "identifier_ODS_ODSCode": "ABC123",
+                    "active": True,
+                    "name": "Test Organisation",
+                    "telecom": "12345",
+                    "type": "Test Type",
+                    "endpoints": [],
+                },
+            }
+        ],
+    ),
+) -> JSONResponse:
+    organisation = Organisation(**organisation_data.model_dump())
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_011,
+        ods_code=organisation.identifier_ODS_ODSCode,
+    )
+    organisation = create_organisation(organisation, org_repository)
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_015,
+        ods_code=organisation.identifier_ODS_ODSCode,
+        organisation_id=organisation.id,
+    )
+    return JSONResponse(
+        status_code=HTTPStatus.CREATED,
+        content={
+            "message": "Organisation created successfully",
+            "organisation": organisation.model_dump(mode="json"),
+        },
     )

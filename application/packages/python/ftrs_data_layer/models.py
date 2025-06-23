@@ -12,11 +12,11 @@ class DBModel(BaseModel):
     Base model for all database models.
     """
 
-    id: UUID
-    createdBy: str
-    createdDateTime: datetime
-    modifiedBy: str
-    modifiedDateTime: datetime
+    id: UUID = Field(default_factory=uuid4)
+    createdBy: str | None = "SYSTEM"
+    createdDateTime: datetime = datetime.now(UTC)
+    modifiedBy: str | None = "SYSTEM"
+    modifiedDateTime: datetime = datetime.now(UTC)
 
     @property
     def indexes(self) -> dict:
