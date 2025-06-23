@@ -76,7 +76,6 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:GetItem",
       "dynamodb:Scan",
       "dynamodb:Query",
-      "dynamodb:DescribeTable"
     ]
     resources = [
       "${data.aws_dynamodb_table.dynamodb_organisation_table.arn}/",
