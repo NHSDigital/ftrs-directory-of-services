@@ -9,7 +9,7 @@ module "health_check_lambda" {
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.dynamodb_access_policy.json]
+  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.health_check_dynamodb_access_policy.json]
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
@@ -25,5 +25,17 @@ module "health_check_lambda" {
     "PROJECT_NAME"        = var.project
     "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
     "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
+  }
+}
+
+data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:DescribeTable",
+    ]
+    resources = [
+      data.aws_dynamodb_table.dynamodb_organisation_table.arn,
+    ]
   }
 }
