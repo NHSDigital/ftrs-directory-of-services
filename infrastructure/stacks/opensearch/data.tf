@@ -23,5 +23,5 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
-  name = "${var.project}-collection"
+  name = "${var.project}-${var.environment}-osc"
 }

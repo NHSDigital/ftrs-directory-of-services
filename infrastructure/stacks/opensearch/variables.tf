@@ -48,12 +48,12 @@ variable "max_sink_retries" {
   type        = number
 }
 
-variable "opensearch_pipieline_s3_dlq_bucket_name" {
+variable "opensearch_pipeline_s3_dlq_bucket_name" {
   description = "The DLQ bukcet name for OpenSearch Ingestion Service Pipeline"
   type        = string
 }
 
-variable "opensearch_pipieline_s3_dlq_prefix" {
+variable "opensearch_pipeline_s3_dlq_prefix" {
   description = "The DLQ bucket prefix for OpenSearch Ingestion Service Pipeline"
   type        = string
 }

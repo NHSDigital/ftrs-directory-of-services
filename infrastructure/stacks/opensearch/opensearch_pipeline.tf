@@ -1,7 +1,7 @@
 resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
   for_each = toset(var.dynamodb_table_names_for_opensearch)
 
-  pipeline_name = "${each.value}${local.workspace_suffix}"
+  pipeline_name = "${var.environment}-${each.value}${local.workspace_suffix}"
   min_units     = var.osis_pipeline_min_units
   max_units     = var.osis_pipeline_max_units
 
@@ -10,11 +10,6 @@ resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
       log_group = aws_cloudwatch_log_group.osis_pipeline_cloudwatch_log_group.name
     }
     is_logging_enabled = true
-  }
-
-  vpc_options {
-    subnet_ids         = data.aws_subnets.private_subnets.ids
-    security_group_ids = [aws_security_group.opensearch_security_group.id]
   }
 
   buffer_options {
@@ -32,6 +27,6 @@ resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
     network_policy_name  = "pipeline-${aws_opensearchserverless_security_policy.opensearch_serverless_network_access_policy.name}"
     max_sink_retries     = var.max_sink_retries
     s3_dlq_bucket        = module.s3_opensearch_pipeline_dlq_bucket.s3_bucket_id
-    s3_dlq_bucket_prefix = var.opensearch_pipieline_s3_dlq_prefix
+    s3_dlq_bucket_prefix = var.opensearch_pipeline_s3_dlq_prefix
   })
 }
