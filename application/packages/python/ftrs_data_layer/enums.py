@@ -36,7 +36,7 @@ class EndpointStatus(str, Enum):
     OFF = "off"
 
 
-class EndpointConnectType(str, Enum):
+class EndpointConnectionType(str, Enum):
     ITK = "itk"
     EMAIL = "email"
     TELNO = "telno"
