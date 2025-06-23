@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from ftrs_data_layer.enums import (
     DayOfWeek,
-    EndpointConnectType,
+    EndpointConnectionType,
     EndpointDescription,
     EndpointPayloadMimeType,
     EndpointPayloadType,
@@ -368,7 +368,7 @@ payloadMimeType_mapping = {
 class Endpoint(DBModel):
     identifier_oldDoS_id: int | None
     status: EndpointStatus
-    connectionType: EndpointConnectType
+    connectionType: EndpointConnectionType
     name: str | None
     payloadMimeType: EndpointPayloadMimeType | None
     description: EndpointDescription
