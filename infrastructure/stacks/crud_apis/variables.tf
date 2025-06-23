@@ -115,8 +115,3 @@ variable "api_gateway_throttling_rate_limit" {
   description = "The rate limit for API Gateway throttling"
   type        = number
 }
-
-variable "s3_bucket_name" {
-  description = "The s3 bucket name"
-  type        = string
-}
