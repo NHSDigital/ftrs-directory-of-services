@@ -235,3 +235,17 @@ def test_create_organisation_already_exists(
         client.post("/", json=organisation_data)
     assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
     assert exc_info.value.detail == "Organisation with this ODS code already exists"
+
+
+def test_delete_organisation_success(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = get_organisation()
+    response = client.delete(f"/{test_org_id}")
+    assert response.status_code == HTTPStatus.NO_CONTENT
+
+
+def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = None
+    with pytest.raises(HTTPException) as exc_info:
+        client.delete(f"/{test_org_id}")
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+    assert exc_info.value.detail == "Organisation not found"
