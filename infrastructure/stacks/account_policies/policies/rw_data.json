@@ -88,6 +88,14 @@
             "Resource": "*"
         },
         {
+            "Sid": "DMSFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "dms:*"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "PerformanceInsightsFullAccess",
             "Effect": "Allow",
             "Action": "pi:*",

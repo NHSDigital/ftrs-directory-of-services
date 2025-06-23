@@ -20,7 +20,8 @@
                 "kinesis:*",
                 "resource-groups:*",
                 "dynamodb:*",
-                "rds:*"
+                "rds:*",
+                "dms:*"
             ],
             "Resource": "*"
         },
