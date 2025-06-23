@@ -20,6 +20,8 @@ from organisations.app.services.validators import (
 )
 from utils.db_service import get_service_repository
 
+ERROR_MESSAGE_404 = "Organisation not found"
+
 router = APIRouter()
 org_repository = get_service_repository(Organisation, "organisation")
 
@@ -41,7 +43,7 @@ def get_org_by_ods_code(
             CrudApisLogBase.ORGANISATION_002,
             ods_code=ods_code,
         )
-        raise HTTPException(status_code=404, detail="Organisation not found")
+        raise HTTPException(status_code=404, detail=ERROR_MESSAGE_404)
 
     return JSONResponse(status_code=200, content={"id": records[0]})
 
@@ -66,7 +68,7 @@ def get_organisation_by_id(
             CrudApisLogBase.ORGANISATION_009,
             organisation_id=organisation_id,
         )
-        raise HTTPException(status_code=404, detail="Organisation not found")
+        raise HTTPException(status_code=404, detail=ERROR_MESSAGE_404)
 
     return organisation
 
@@ -94,7 +96,7 @@ def update_organisation(
         description="The internal id of the organisation",
     ),
     payload: UpdatePayloadValidator = Body(...),
-) -> dict:
+) -> JSONResponse:
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_005,
         organisation_id=organisation_id,
@@ -103,7 +105,7 @@ def update_organisation(
 
     if not organisation:
         logging.error(f"Organisation with ID {organisation_id} not found.")
-        raise HTTPException(status_code=404, detail="Organisation not found")
+        raise HTTPException(status_code=404, detail=ERROR_MESSAGE_404)
 
     outdated_fields = get_outdated_fields(organisation, payload)
     crud_organisation_logger.log(
