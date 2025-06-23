@@ -1,10 +1,17 @@
 from datetime import UTC, datetime
+from http import HTTPStatus
+from typing import NoReturn
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
+import pytest
+from fastapi import HTTPException
 from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.organisation_helpers import (
     apply_updates,
+    create_organisation,
     get_outdated_fields,
 )
 
@@ -137,3 +144,73 @@ def test_get_outdated_fields_modified_by_field_only() -> None:
     assert result == {
         "modified_by": "UserB",
     }
+
+
+def test_creates_organisation_when_valid_data_provided() -> NoReturn:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    org_repository.get_by_ods_code.return_value = None
+    org_repository.create = MagicMock()
+
+    organisation = Organisation(
+        identifier_ODS_ODSCode="ABC123",
+        active=True,
+        name="Test Organisation",
+        telecom="12345",
+        type="Test Type",
+        endpoints=[],
+    )
+    result = create_organisation(organisation, org_repository)
+
+    assert result == organisation
+    org_repository.create.assert_called_once_with(organisation)
+    assert result.createdBy == "SYSTEM"
+    assert result.identifier_ODS_ODSCode == "ABC123"
+    assert result.active is True
+    assert result.name == "Test Organisation"
+
+
+def test_raises_error_when_organisation_already_exists() -> NoReturn:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    org_repository.get_by_ods_code.return_value = Organisation(
+        identifier_ODS_ODSCode="M81094",
+        name="Existing Organisation",
+        active=True,
+        type="Test Type",
+        endpoints=[],
+    )
+
+    organisation = Organisation(
+        identifier_ODS_ODSCode="M81094",
+        name="Test Organisation",
+        active=True,
+        telecom="12345",
+        type="Test Type",
+        endpoints=[],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        create_organisation(organisation, org_repository)
+
+    assert exc_info.value.status_code == HTTPStatus.CONFLICT
+    assert exc_info.value.detail == "Organisation with this ODS code already exists"
+
+
+def test_generates_new_id_when_id_already_exists() -> NoReturn:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    org_repository.get_by_ods_code.return_value = None
+    org_repository.create = MagicMock()
+
+    existing_id = uuid4()
+    organisation = Organisation(
+        id=existing_id,
+        identifier_ODS_ODSCode="M81094",
+        name="Test Organisation",
+        active=True,
+        type="Test Type",
+        endpoints=[],
+    )
+
+    result = create_organisation(organisation, org_repository)
+
+    assert result.id != existing_id
+    org_repository.create.assert_called_once_with(organisation)
