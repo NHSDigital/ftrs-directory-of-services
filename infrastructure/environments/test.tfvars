@@ -17,6 +17,3 @@ vpc = {
   database_subnet_b = "10.171.202.0/24"
   database_subnet_c = "10.171.203.0/24"
 }
-
-data_migration_rds_min_capacity = 1
-data_migration_rds_max_capacity = 1

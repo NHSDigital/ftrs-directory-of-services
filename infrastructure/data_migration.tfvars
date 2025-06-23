@@ -29,3 +29,6 @@ load_lambda_memory_size             = 512
 aws_lambda_layers = [
   "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"
 ]
+
+data_migration_rds_min_capacity = 1
+data_migration_rds_max_capacity = 1
