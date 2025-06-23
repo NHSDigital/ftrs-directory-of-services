@@ -5,11 +5,21 @@ from utils.config import get_config
 
 
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    dynamodb = boto3.client("dynamodb")
-    table_name = get_config().get("DYNAMODB_TABLE_NAME")
+    table_active = _is_table_active()
 
-    response = dynamodb.describe_table(TableName=table_name)
+    return {"statusCode": 200 if table_active else 500}
 
-    table_active = response.get("Table", {}).get("TableStatus", None) == "ACTIVE"
 
-    return {"tableActive": table_active}
+def _is_table_active() -> bool:
+    try:
+        dynamodb = boto3.client("dynamodb")
+        table_name = get_config().get("DYNAMODB_TABLE_NAME")
+
+        response = dynamodb.describe_table(TableName=table_name)
+
+        table_active = response.get("Table", {}).get("TableStatus", None) == "ACTIVE"
+
+    except Exception:
+        return False
+
+    return table_active
