@@ -18,7 +18,7 @@ module "health_check_lambda" {
   )
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.health_check_lambda_security_group.id]
+  security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
 
   environment_variables = {
     "ENVIRONMENT"         = var.environment
