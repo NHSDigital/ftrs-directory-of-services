@@ -156,7 +156,7 @@ def test_creates_organisation_when_valid_data_provided() -> NoReturn:
         active=True,
         name="Test Organisation",
         telecom="12345",
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
     )
     result = create_organisation(organisation, org_repository)
@@ -175,7 +175,7 @@ def test_raises_error_when_organisation_already_exists() -> NoReturn:
         identifier_ODS_ODSCode="M81094",
         name="Existing Organisation",
         active=True,
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
     )
 
@@ -206,7 +206,7 @@ def test_generates_new_id_when_id_already_exists() -> NoReturn:
         identifier_ODS_ODSCode="M81094",
         name="Test Organisation",
         active=True,
-        type="Test Type",
+        type="GP Practice",
         endpoints=[],
     )
 
