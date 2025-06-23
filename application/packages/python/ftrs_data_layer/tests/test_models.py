@@ -688,7 +688,7 @@ def test_endpoint_from_dos_telno_transport() -> None:
         ("FHIR", "application/fhir"),
         ("email", "message/rfc822"),
         ("telno", "text/vcard"),
-        ("xml", "application/fhir"),
+        ("xml", "xml"),
     ],
 )
 def test_endpoint_from_dos_format_mapping(

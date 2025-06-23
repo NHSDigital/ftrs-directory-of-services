@@ -61,6 +61,7 @@ class EndpointPayloadMimeType(str, Enum):
     PDF = "application/pdf"
     HTML = "text/html"
     FHIR = "application/fhir"
+    XML = "xml"
     EMAIL = "message/rfc822"
     TELNO = "text/vcard"
     CDA = "application/hl7-cda+xml"
