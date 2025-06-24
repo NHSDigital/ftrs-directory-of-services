@@ -22,6 +22,12 @@ fi
 DELIM=$(echo ${RANDOM} | base64)
 
 {
+  echo "warnings<<${DELIM}"
+  echo -e "${WARNINGS}"
+  echo "${DELIM}"
+} >> "$GITHUB_OUTPUT"
+
+{
   echo "impacts<<${DELIM}"
   echo -e "${IMPACTS}"
   echo "${DELIM}"

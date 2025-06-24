@@ -66,7 +66,12 @@ on:
       account_type:
         description: "Type of account based on the environment"
         value: ${{ jobs.set-environment.outputs.account_type }}
-
+      impacts:
+        description: "Codeowner change"
+        value: ${{ jobs.impacts.outputs.impacts }}
+      warnings:
+        description: "Codeowner warnings"
+        value: ${{ jobs.impacts.outputs.warnings }}
 jobs:
   echo-metadata:
     name: "Get Metadata"
@@ -164,6 +169,7 @@ jobs:
       contents: read
     outputs:
       impacts: ${{ steps.impacts.outputs.impacts }}
+      warnings: ${{ steps.impacts.outputs.warnings }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
