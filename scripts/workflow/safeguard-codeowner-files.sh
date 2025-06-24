@@ -6,8 +6,8 @@ FILES="$(git diff --name-only origin/main..HEAD)"
 
 # check committed changes for updates to codeowner files
 for FILE in ${FILES}; do
-  echo "Processing file: ${FILE}"
   if [[ "${FILE}" == ".github/CODEOWNERS" ]]; then
+    echo "Processing file: ${FILE}"
     WARNINGS+="Governance|⚠️ Codeowners|Check carefully before approving!\n"
   fi
 done
