@@ -83,4 +83,5 @@ variable "dynamodb_table_names" {
 variable "vpc" {
   description = "A map of VPC configuration, including VPC ID, CIDR block, and other networking details"
   type        = map(any)
+  default     = {}
 }
