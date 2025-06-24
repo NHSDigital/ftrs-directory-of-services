@@ -160,23 +160,3 @@ jobs:
 
           echo "The determined environment is: $environment"
           echo "The determined account type is: $account_type"
-  impacts:
-    name: Impact Assessment
-    runs-on: ubuntu-latest
-    # if: github.event_name == 'pull_request'
-    permissions:
-      id-token: write
-      contents: read
-    outputs:
-      impacts: ${{ steps.impacts.outputs.impacts }}
-      warnings: ${{ steps.impacts.outputs.warnings }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Assess Codeowner changes
-        id: impacts
-        run: /bin/bash ./scripts/workflow/safeguard-codeowner-files.sh
-
