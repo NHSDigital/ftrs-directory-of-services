@@ -373,3 +373,36 @@ class CrudApisLogBase(LogBase):
         level=INFO,
         message="Organisation with ID {organisation_id} not found.",
     )
+
+    ORGANISATION_011 = LogReference(
+        level=INFO,
+        message="Received request to create a new organisation with ODS code: {ods_code}.",
+    )
+    ORGANISATION_012 = LogReference(
+        level=ERROR,
+        message="Please provide an ODS code for the organisation.",
+    )
+    ORGANISATION_013 = LogReference(
+        level=ERROR,
+        message="Organisation with ODS code {ods_code} already exists.",
+    )
+    ORGANISATION_014 = LogReference(
+        level=INFO,
+        message="Organisation ID {organisation_id} provided for new organisations,Will be ignored.Creating a new organisation with a new ID.",
+    )
+    ORGANISATION_015 = LogReference(
+        level=INFO,
+        message="Successfully created organisation with ODS code: {ods_code} & organisation ID {organisation_id}.",
+    )
+    ORGANISATION_016 = LogReference(
+        level=ERROR,
+        message="Error creating organisation with ODS code {ods_code}:{error_message}.",
+    )
+    ORGANISATION_017 = LogReference(
+        level=ERROR,
+        message="Received request to delete organisation with ID: {organisation_id}.",
+    )
+    ORGANISATION_018 = LogReference(
+        level=INFO,
+        message="Successfully deleted organisation with ID: {organisation_id}.",
+    )

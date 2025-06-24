@@ -5,6 +5,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
+from ftrs_data_layer.models import Organisation
 from pytest_mock import MockerFixture, mocker
 from starlette.responses import JSONResponse
 
@@ -18,7 +19,7 @@ test_org_id = uuid4()
 
 def get_organisation() -> dict:
     return {
-        "id": test_org_id,
+        "id": str(test_org_id),
         "identifier_ODS_ODSCode": "12345",
         "active": True,
         "name": "Test Organisation",
@@ -64,6 +65,15 @@ def mock_repository(mocker: mocker) -> None:
         {"message": "Data processed successfully"}, status_code=HTTPStatus.OK
     )
     return repository_mock
+
+
+@pytest.fixture
+def mock_organisation_helpers(mocker: mocker) -> None:
+    helpers_mock = mocker.patch(
+        "organisations.app.router.organisation.create_organisation"
+    )
+    helpers_mock.return_value = Organisation(**get_organisation())
+    return helpers_mock
 
 
 @pytest.fixture
@@ -190,3 +200,52 @@ def test_get_organisation_by_ods_code_unexpected_error(
     with pytest.raises(Exception) as exc_info:
         client.get(f"/ods_code/{ods_code}")
     assert "Unexpected error" in str(exc_info.value)
+
+
+def test_create_organisation_success(mock_organisation_helpers: MockerFixture) -> None:
+    organisation_data = get_organisation()
+    response = client.post("/", json=organisation_data)
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json() == {
+        "message": "Organisation created successfully",
+        "organisation": organisation_data,
+    }
+
+
+def test_create_organisation_validation_error(
+    mock_organisation_helpers: MockerFixture,
+) -> None:
+    organisation_data = get_organisation()
+    organisation_data["identifier_ODS_ODSCode"] = None  # Missing ODS code
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.post("/", json=organisation_data)
+    assert exc_info.type is RequestValidationError
+    assert "Input should be a valid string" in str(exc_info.value)
+
+
+def test_create_organisation_already_exists(
+    mock_organisation_helpers: MockerFixture,
+) -> None:
+    organisation_data = get_organisation()
+    mock_organisation_helpers.side_effect = HTTPException(
+        status_code=HTTPStatus.BAD_REQUEST,
+        detail="Organisation with this ODS code already exists",
+    )
+    with pytest.raises(HTTPException) as exc_info:
+        client.post("/", json=organisation_data)
+    assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
+    assert exc_info.value.detail == "Organisation with this ODS code already exists"
+
+
+def test_delete_organisation_success(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = get_organisation()
+    response = client.delete(f"/{test_org_id}")
+    assert response.status_code == HTTPStatus.NO_CONTENT
+
+
+def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = None
+    with pytest.raises(HTTPException) as exc_info:
+        client.delete(f"/{test_org_id}")
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+    assert exc_info.value.detail == "Organisation not found"
