@@ -128,21 +128,21 @@ module.exports = async ({ needs, github, context }) => {
 
   // 2d. Git-Secrets
   // interpret git-secrets output as a template literal (raw string)
-  var gitsecrets = unescape(String.raw`${needs.gitsecrets.outputs.response}`);
-  output += `#### Git-secrets Scanning 🔑\`${needs.gitsecrets.outputs.outcome}\`` + lb;
+  // var gitsecrets = unescape(String.raw`${needs.gitsecrets.outputs.response}`);
+  // output += `#### Git-secrets Scanning 🔑\`${needs.gitsecrets.outputs.outcome}\`` + lb;
 
-  if (needs.gitsecrets.outputs.outcome === "failure") {
-    // git-secrets only produces output when checks fail
-    output += dedent(`<details><summary>Show Errors</summary>
+  // if (needs.gitsecrets.outputs.outcome === "failure") {
+  //   // git-secrets only produces output when checks fail
+  //   output += dedent(`<details><summary>Show Errors</summary>
 
-    \`\`\`
-    ${indent(gitsecrets, 4)}
-    \`\`\`
+  //   \`\`\`
+  //   ${indent(gitsecrets, 4)}
+  //   \`\`\`
 
-    </details>
+  //   </details>
 
-    `);
-  }
+  //   `);
+  // }
 
 
   // 2e. Footer
