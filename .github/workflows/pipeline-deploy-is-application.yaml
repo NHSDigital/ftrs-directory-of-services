@@ -41,7 +41,6 @@ jobs:
     name: "Quality Check"
     needs:
       - metadata
-    if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
