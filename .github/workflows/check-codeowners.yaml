@@ -24,3 +24,29 @@ jobs:
         id: impacts
         run: /bin/bash ./scripts/workflow/safeguard-codeowner-files.sh
 
+  report:
+    name: Pull Request Bot Comment
+    needs: [impacts]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    if: ${{ ! cancelled() && github.event_name == 'pull_request' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Update the pull request with the validation outputs
+      - name: Update Pull Request
+        uses: actions/github-script@v7
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        with:
+          script: |
+            // Serialise (above) the entire 'needs' GitHub Actions context object so it can be passed to the external script
+            // Do this via an env var otherwise it will not be escaped properly, then parse it back into a JSON array
+            const needs = JSON.parse(`${process.env.NEEDS_JSON}`)
+            const script = require('scripts/workflow/update-pull-request.js')
+            // also pass the 'github' and 'context' objects which are intrinsic to github-script https://github.com/actions/github-script#actionsgithub-script
+            await script({needs, github, context})
