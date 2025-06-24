@@ -101,29 +101,29 @@ module.exports = async ({ needs, github, context }) => {
   }
 
 
-  // 2b. Terraform for programmes setup
-  tfreport(
-    "Programmes Setup",
-    needs.terraform.outputs.tfprogs_plan_outcome,
-    needs.terraform.outputs.tfprogs_plan_output,
-    needs.terraform.outputs.tfprogs_plan_summary
-  )
+  // // 2b. Terraform for programmes setup
+  // tfreport(
+  //   "Programmes Setup",
+  //   needs.terraform.outputs.tfprogs_plan_outcome,
+  //   needs.terraform.outputs.tfprogs_plan_output,
+  //   needs.terraform.outputs.tfprogs_plan_summary
+  // )
 
 
-  // 2c. Terraform for Permission Set config
-  tfreport(
-    "Permission Sets",
-    needs.terraform.outputs.tfpermsets_plan_outcome,
-    needs.terraform.outputs.tfpermsets_plan_output,
-    needs.terraform.outputs.tfpermsets_plan_summary
-  )
+  // // 2c. Terraform for Permission Set config
+  // tfreport(
+  //   "Permission Sets",
+  //   needs.terraform.outputs.tfpermsets_plan_outcome,
+  //   needs.terraform.outputs.tfpermsets_plan_output,
+  //   needs.terraform.outputs.tfpermsets_plan_summary
+  // )
 
-  tfreport(
-    "TEAM Config",
-    needs.terraform.outputs.tfteam_plan_outcome,
-    needs.terraform.outputs.tfteam_plan_output,
-    needs.terraform.outputs.tfteam_plan_summary
-  )
+  // tfreport(
+  //   "TEAM Config",
+  //   needs.terraform.outputs.tfteam_plan_outcome,
+  //   needs.terraform.outputs.tfteam_plan_output,
+  //   needs.terraform.outputs.tfteam_plan_summary
+  // )
 
 
   // 2d. Git-Secrets
