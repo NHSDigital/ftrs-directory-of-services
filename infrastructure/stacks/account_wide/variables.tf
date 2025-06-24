@@ -1,3 +1,8 @@
+variable "vpc" {
+  description = "A map of VPC configuration, including VPC ID, CIDR block, and other networking details"
+  type        = map(any)
+}
+
 variable "enable_nat_gateway" {
   description = "Whether to create a NAT Gateway for the VPC"
   type        = bool
