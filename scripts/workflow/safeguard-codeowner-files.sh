@@ -2,7 +2,7 @@
 git fetch origin main
 
 # Compare the new branch to main and return a list of changed files
-FILES="$(git diff --staged --name-only origin/main..HEAD)"
+FILES="$(git diff --name-only origin/main..HEAD)"
 
 # check committed changes for updates to codeowner files
 for FILE in ${FILES}; do
