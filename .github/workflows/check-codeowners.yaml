@@ -47,6 +47,6 @@ jobs:
             // Serialise (above) the entire 'needs' GitHub Actions context object so it can be passed to the external script
             // Do this via an env var otherwise it will not be escaped properly, then parse it back into a JSON array
             const needs = JSON.parse(`${process.env.NEEDS_JSON}`)
-            const script = require('.github/scripts/workflow/update-pull-request.js')
+            const script = require('.github/scripts/update-pull-request.js')
             // also pass the 'github' and 'context' objects which are intrinsic to github-script https://github.com/actions/github-script#actionsgithub-script
             await script({needs, github, context})
