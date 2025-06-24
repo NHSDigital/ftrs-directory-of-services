@@ -20,7 +20,8 @@ fi
 # randomize the Heredoc delimiter to reduce risk of an injection attack
 # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
 DELIM=$(echo ${RANDOM} | base64)
-
+echo "${WARNINGS}"
+echo "${IMPACTS}"
 {
   echo "warnings<<${DELIM}"
   echo -e "${WARNINGS}"
