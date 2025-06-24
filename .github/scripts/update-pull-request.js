@@ -101,51 +101,8 @@ module.exports = async ({ needs, github, context }) => {
   }
 
 
-  // // 2b. Terraform for programmes setup
-  // tfreport(
-  //   "Programmes Setup",
-  //   needs.terraform.outputs.tfprogs_plan_outcome,
-  //   needs.terraform.outputs.tfprogs_plan_output,
-  //   needs.terraform.outputs.tfprogs_plan_summary
-  // )
 
-
-  // // 2c. Terraform for Permission Set config
-  // tfreport(
-  //   "Permission Sets",
-  //   needs.terraform.outputs.tfpermsets_plan_outcome,
-  //   needs.terraform.outputs.tfpermsets_plan_output,
-  //   needs.terraform.outputs.tfpermsets_plan_summary
-  // )
-
-  // tfreport(
-  //   "TEAM Config",
-  //   needs.terraform.outputs.tfteam_plan_outcome,
-  //   needs.terraform.outputs.tfteam_plan_output,
-  //   needs.terraform.outputs.tfteam_plan_summary
-  // )
-
-
-  // 2d. Git-Secrets
-  // interpret git-secrets output as a template literal (raw string)
-  // var gitsecrets = unescape(String.raw`${needs.gitsecrets.outputs.response}`);
-  // output += `#### Git-secrets Scanning 🔑\`${needs.gitsecrets.outputs.outcome}\`` + lb;
-
-  // if (needs.gitsecrets.outputs.outcome === "failure") {
-  //   // git-secrets only produces output when checks fail
-  //   output += dedent(`<details><summary>Show Errors</summary>
-
-  //   \`\`\`
-  //   ${indent(gitsecrets, 4)}
-  //   \`\`\`
-
-  //   </details>
-
-  //   `);
-  // }
-
-
-  // 2e. Footer
+  // 2b. Footer
   output += dedent(`---
   *Triggered by: @${context.actor}, Action: \`${context.eventName}\`, Workflow: \`${context.workflow}\`*`);
   // The github-script 'context' object properties roughly correlate with the 'github' context in GitHub Actions
