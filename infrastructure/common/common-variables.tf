@@ -79,3 +79,9 @@ variable "dynamodb_table_names" {
   description = "List of DynamoDB table names"
   type        = list(string)
 }
+
+variable "vpc" {
+  description = "A map of VPC configuration, including VPC ID, CIDR block, and other networking details"
+  type        = map(any)
+  default     = {}
+}
