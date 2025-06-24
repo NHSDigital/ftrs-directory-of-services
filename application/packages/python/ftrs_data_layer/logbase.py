@@ -398,3 +398,11 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Error creating organisation with ODS code {ods_code}:{error_message}.",
     )
+    ORGANISATION_017 = LogReference(
+        level=ERROR,
+        message="Received request to delete organisation with ID: {organisation_id}.",
+    )
+    ORGANISATION_018 = LogReference(
+        level=INFO,
+        message="Successfully deleted organisation with ID: {organisation_id}.",
+    )
