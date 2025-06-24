@@ -172,5 +172,5 @@ jobs:
 
       - name: Assess Codeowner changes
         id: impacts
-        run: .github/scripts/safeguard-codeowner-files.sh
+        run: /bin/bash ./scripts/workflow/safeguard-codeowner-files.sh
 
