@@ -1,3 +1,6 @@
+import Banner from "@/components/Banner";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
   HeadContent,
   Outlet,
@@ -9,9 +12,19 @@ import { Container, Footer, Header } from "nhsuk-react-components";
 import type { PropsWithChildren } from "react";
 import appStylesUrl from "../styles/App.scss?url";
 
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
+      { title: "FtRS Read-Only Viewer" },
       {
         name: "viewport",
         content: "width=device-width, initial-scale=1.0",
@@ -31,10 +44,13 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
-        <RootDocument>
-          <Outlet />
-        </RootDocument>
-        <TanStackRouterDevtools />
+        <QueryClientProvider client={queryClient}>
+          <RootDocument>
+            <Outlet />
+          </RootDocument>
+          <TanStackRouterDevtools />
+          <ReactQueryDevtools />
+        </QueryClientProvider>
         <Scripts />
       </body>
     </html>
@@ -48,12 +64,21 @@ export const Route = createRootRoute({
       </p>
     </>
   ),
+  errorComponent: ({ error }) => (
+    <>
+      <h1 className="nhsuk-heading-l">An error occurred</h1>
+      <p>{error.message}</p>
+      <p>
+        <a href="/">Return to the homepage</a>
+      </p>
+    </>
+  ),
 });
 
 const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <>
-      <Header transactional>
+      <Header transactional={true}>
         <Header.Container>
           <Header.Logo href="/" />
           <Header.ServiceName href="/">
@@ -61,6 +86,9 @@ const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
           </Header.ServiceName>
         </Header.Container>
       </Header>
+      <Banner label="Test Utility">
+        This is an internal test tool for Find the Right Service (FtRS) teams.
+      </Banner>
       <Container className="ftrs-page-container">{children}</Container>
       <Footer>
         <Footer.List>
