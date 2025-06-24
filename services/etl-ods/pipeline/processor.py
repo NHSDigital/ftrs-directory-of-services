@@ -77,7 +77,7 @@ def processor(date: str) -> None:
         raise
 
 
-def process_organisation(ods_code: str) -> None:
+def process_organisation(ods_code: str) -> str | None:
     """
     Process a single organisation by extracting data, transforming it, and logging the payload.
     """
@@ -92,8 +92,8 @@ def process_organisation(ods_code: str) -> None:
             OdsETLPipelineLogBase.ETL_PROCESSOR_024,
         )
 
-        list = validated_organisation_data.Roles.Role
-        raw_primary_role_data = fetch_organisation_role(list)
+        role_list = validated_organisation_data.Roles.Role
+        raw_primary_role_data = fetch_organisation_role(role_list)
         relevant_role_data = extract_display_name(raw_primary_role_data)
         validated_primary_role_data = validate_payload(
             relevant_role_data, RolesValidator
@@ -118,7 +118,7 @@ def process_organisation(ods_code: str) -> None:
         )
 
 
-def processor_lambda_handler(event: any, context: any) -> None:
+def processor_lambda_handler(event: any, context: any) -> dict | None:
     try:
         date = event.get("date")
         if not date:
