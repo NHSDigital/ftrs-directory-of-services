@@ -2,7 +2,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from botocore.exceptions import ClientError
 
 from health_check.health_check_function import lambda_handler
 
@@ -38,68 +37,39 @@ def mock_config():
 
 
 class TestHealthCheckFunction:
-    def test_lambda_handler_dynamodb_client_error(
+    def test_lambda_handler_returns_200_when_table_active(
         self,
         lambda_event,
         lambda_context,
+        mock_boto3_client,
         mock_dynamodb,
         mock_config,
-        mock_boto3_client,
     ):
-        """
-        Test the lambda_handler function when the DynamoDB client raises a ClientError.
-        This is a negative test case to verify the behavior when the DynamoDB service is unavailable or returns an error.
-        """
-        # Simulate a ClientError from DynamoDB
-        mock_dynamodb.describe_table.side_effect = ClientError(
-            {
-                "Error": {
-                    "Code": "ResourceNotFoundException",
-                    "Message": "Table not found",
-                }
-            },
-            "DescribeTable",
-        )
-
-        # We expect the ClientError to be propagated
-        with pytest.raises(ClientError):
-            lambda_handler(lambda_event, lambda_context)
-
-    def test_lambda_handler_table_active(
-        self,
-        lambda_event,
-        lambda_context,
-        mock_dynamodb,
-        mock_config,
-        mock_boto3_client,
-    ):
-        """
-        Test that lambda_handler returns correct response when DynamoDB table is active.
-        """
         mock_dynamodb.describe_table.return_value = {"Table": {"TableStatus": "ACTIVE"}}
 
         result = lambda_handler(lambda_event, lambda_context)
 
-        assert result == {"tableActive": True}
+        assert result == {"statusCode": 200}
+        mock_dynamodb.describe_table.assert_called_once_with(TableName="test-table")
 
-    def test_lambda_handler_table_not_active(
-        self,
-        lambda_event,
-        lambda_context,
-        mock_dynamodb,
-        mock_config,
-        mock_boto3_client,
+    def test_lambda_handler_when_describe_table_fails(
+        self, lambda_event, lambda_context, mock_boto3_client, mock_config
     ):
-        """
-        Test the lambda_handler function when the DynamoDB table is not in ACTIVE state.
-        This is a negative test case to verify the behavior when the table exists but is not ready.
-        """
-        # Simulate a response where the table is in CREATING state
-        mock_dynamodb.describe_table.return_value = {
+        mock_boto3_client.return_value.describe_table.side_effect = Exception(
+            "Failed to describe table"
+        )
+
+        result = lambda_handler(lambda_event, lambda_context)
+
+        assert result == {"statusCode": 500}
+
+    def test_lambda_handler_when_table_inactive(
+        self, lambda_event, lambda_context, mock_boto3_client, mock_config
+    ):
+        mock_boto3_client.return_value.describe_table.return_value = {
             "Table": {"TableStatus": "CREATING"}
         }
 
         result = lambda_handler(lambda_event, lambda_context)
 
-        # Verify that the function returns False for tableActive
-        assert result == {"tableActive": False}
+        assert result == {"statusCode": 500}
