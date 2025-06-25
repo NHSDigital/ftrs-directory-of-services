@@ -1,5 +1,6 @@
 name: Metadata Workflow
 
+permissions: {}
 on:
   workflow_call:
     inputs:

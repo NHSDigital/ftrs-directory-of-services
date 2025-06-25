@@ -1,5 +1,6 @@
 name: Pipeline outcome check
 
+permissions: {}
 on:
   workflow_call:
 

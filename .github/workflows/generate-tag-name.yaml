@@ -1,5 +1,7 @@
 name: Generate tag name workflow
 
+permissions: {}
+
 on:
   workflow_call:
     inputs:

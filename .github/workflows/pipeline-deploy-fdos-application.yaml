@@ -1,5 +1,7 @@
 name: Future DoS Application Deployment Pipeline
 
+permissions: {}
+
 on:
   push:
     branches:

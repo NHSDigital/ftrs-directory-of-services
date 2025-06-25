@@ -5,6 +5,8 @@ name: Future DOS Cleardown Workflow
 # a task branch or
 # a dependabot branch
 
+permissions: {}
+
 on:
   delete:
   workflow_dispatch:

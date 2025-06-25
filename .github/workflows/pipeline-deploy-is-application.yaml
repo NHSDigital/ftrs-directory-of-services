@@ -3,6 +3,7 @@ name: Integrated Search Application Deployment Pipeline
 # - dependabot PR is labelled Test Ready
 # - changes pushed to task branch
 # - changes pushed to main branch
+permissions: {}
 on:
   push:
     branches:

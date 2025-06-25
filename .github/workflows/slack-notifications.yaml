@@ -1,5 +1,6 @@
 name: Slack Notification
 
+permissions: {}
 on:
   workflow_call:
     inputs:
