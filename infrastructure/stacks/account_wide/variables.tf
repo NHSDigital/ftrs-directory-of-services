@@ -28,6 +28,11 @@ variable "create_database_internet_gateway_route" {
   type        = bool
 }
 
+variable "create_database_nat_gateway_route" {
+  description = "Whether to create a NAT gateway route for the database"
+  type        = bool
+}
+
 variable "log_group_retention_in_days" {
   description = "Number of days to retain logs"
   default     = 7
