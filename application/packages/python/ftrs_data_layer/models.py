@@ -1,9 +1,20 @@
 from datetime import UTC, date, datetime, time
 from decimal import Decimal
-from enum import Enum
 from typing import Annotated, Literal, Optional, Union
 from uuid import UUID, uuid4
 
+from ftrs_data_layer.enums import (
+    DayOfWeek,
+    EndpointConnectionType,
+    EndpointDescription,
+    EndpointPayloadMimeType,
+    EndpointPayloadType,
+    EndpointStatus,
+    HealthcareServiceCategory,
+    HealthcareServiceType,
+    OpeningTimeCategory,
+    OrganisationType,
+)
 from pydantic import BaseModel, Field
 
 
@@ -50,7 +61,7 @@ class Organisation(DBModel):
     active: bool
     name: str
     telecom: str | None = None
-    type: str
+    type: OrganisationType
     endpoints: list["Endpoint"] = Field(default_factory=list)
 
     @property
@@ -188,23 +199,6 @@ class Telecom(BaseModel):
     web: str | None
 
 
-class OpeningTimeCategory(str, Enum):
-    AVAILABLE_TIME = "availableTime"
-    AVAILABLE_TIME_VARIATIONS = "availableTimeVariations"
-    AVAILABLE_TIME_PUBLIC_HOLIDAYS = "availableTimePublicHolidays"
-    NOT_AVAILABLE = "notAvailable"
-
-
-class DayOfWeek(str, Enum):
-    MONDAY = "mon"
-    TUESDAY = "tue"
-    WEDNESDAY = "wed"
-    THURSDAY = "thu"
-    FRIDAY = "fri"
-    SATURDAY = "sat"
-    SUNDAY = "sun"
-
-
 class AvailableTime(BaseModel):
     id: UUID = uuid4()
     category: Literal[OpeningTimeCategory.AVAILABLE_TIME] = (
@@ -255,12 +249,12 @@ OpeningTime = Annotated[
 class HealthcareService(DBModel):
     identifier_oldDoS_uid: str
     active: bool
-    category: str
+    category: HealthcareServiceCategory
+    type: HealthcareServiceType
     providedBy: UUID | None
     location: UUID | None
     name: str
     telecom: Telecom | None
-    type: str
     openingTime: list[OpeningTime] | None
 
     @classmethod
@@ -283,11 +277,18 @@ class HealthcareService(DBModel):
         :return: An Service instance.
         """
         service_id = uuid4() or existing_identifier
+
+        match data["type"]:
+            case "GP Practice":
+                category = HealthcareServiceCategory.GP_SERVICES
+                type = HealthcareServiceType.GP_CONSULTATION_SERVICE
+
         return HealthcareService(
             id=service_id,
             identifier_oldDoS_uid=data["uid"],
             active=True,
-            category="unknown",  # TODO: in future ticket we will map type to category
+            category=category,
+            type=type,
             providedBy=organisation_id,
             location=location_id,
             name=data["name"],
@@ -298,7 +299,6 @@ class HealthcareService(DBModel):
                 web=data["web"],
             ),
             openingTime=HealthcareService.assign_opening_times(data["availability"]),
-            type=data["type"],
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
             modifiedBy="ROBOT",
@@ -360,17 +360,19 @@ payloadMimeType_mapping = {
     "FHIR": "application/fhir",
     "email": "message/rfc822",
     "telno": "text/vcard",
+    "xml": "xml",
+    "CDA": "application/hl7-cda+xml",
 }
 
 
 class Endpoint(DBModel):
     identifier_oldDoS_id: int | None
-    status: str
-    connectionType: str
+    status: EndpointStatus
+    connectionType: EndpointConnectionType
     name: str | None
-    payloadMimeType: str | None
-    description: str
-    payloadType: str | None
+    payloadMimeType: EndpointPayloadMimeType | None
+    description: EndpointDescription
+    payloadType: EndpointPayloadType | None
     address: str
     managedByOrganisation: UUID
     service: UUID | None
@@ -407,7 +409,7 @@ class Endpoint(DBModel):
         return Endpoint(
             id=uuid4(),
             identifier_oldDoS_id=data["id"],
-            status="active",
+            status=EndpointStatus.ACTIVE,
             connectionType=data["transport"],
             name=None,
             description=data["businessscenario"],

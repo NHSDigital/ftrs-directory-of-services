@@ -22,7 +22,7 @@ def get_mock_service() -> dict:
         "modifiedDateTime": "2025-05-27T12:50:55.481233Z",
         "identifier_oldDoS_uid": "161799",
         "active": True,
-        "category": "test_category",
+        "category": "GP Services",
         "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
         "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
         "name": "test_service",
@@ -32,7 +32,7 @@ def get_mock_service() -> dict:
             "email": "example@nhs.gov.uk",
             "phone_public": "0208 883 5555",
         },
-        "type": "test_type",
+        "type": "Primary Care Network Enhanced Access Service",
         "openingTime": [
             {
                 "allDay": False,
