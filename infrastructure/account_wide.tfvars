@@ -4,6 +4,7 @@ one_nat_gateway_per_az                 = true
 create_database_subnet_group           = true
 create_database_route_table            = true
 create_database_internet_gateway_route = false
+create_database_nat_gateway_route      = true
 database_dedicated_network_acl         = true
 private_dedicated_network_acl          = true
 public_dedicated_network_acl           = true

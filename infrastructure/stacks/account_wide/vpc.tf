@@ -11,6 +11,7 @@ module "vpc" {
   create_database_subnet_group           = var.create_database_subnet_group
   create_database_subnet_route_table     = var.create_database_route_table
   create_database_internet_gateway_route = var.create_database_internet_gateway_route
+  create_database_nat_gateway_route      = var.create_database_nat_gateway_route
   database_subnet_group_name             = "${local.account_prefix}-database-subnet-group"
 
   azs              = slice(data.aws_availability_zones.available_azs.names, 0, 3)
