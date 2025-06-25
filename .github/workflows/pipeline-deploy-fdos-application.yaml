@@ -1,6 +1,8 @@
 name: Future DoS Application Deployment Pipeline
 
-permissions: {}
+permissions:
+  id-token: write
+  contents: read
 
 on:
   push:
