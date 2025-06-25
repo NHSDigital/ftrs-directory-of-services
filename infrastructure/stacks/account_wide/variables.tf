@@ -109,8 +109,13 @@ variable "flow_log_file_format" {
   type        = string
 }
 
-variable "flow_logs_bucket_name" {
+variable "vpc_flow_logs_bucket_name" {
   description = "The VPC Flow logs bucket name"
+  type        = string
+}
+
+variable "subnet_flow_logs_bucket_name" {
+  description = "The Subnet Flow logs bucket name"
   type        = string
 }
 

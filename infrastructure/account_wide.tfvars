@@ -19,7 +19,10 @@ waf_log_group_policy_name        = "waf-log-group-policy"
 osis_apigw_log_group_policy_name = "osis-apigw-log-group-policy"
 s3_trust_store_bucket_name = "truststore"
 
-flow_logs_bucket_name     = "flow-logs"
-flow_log_destination_type = "s3"
-flow_log_file_format      = "parquet"
-flow_log_s3_versioning    = false
+vpc_flow_logs_bucket_name    = "vpc-flow-logs"
+subnet_flow_logs_bucket_name = "subnet-flow-logs"
+flow_log_destination_type    = "s3"
+flow_log_file_format         = "parquet"
+flow_log_s3_versioning       = false
+enable_flow_log              = false
+flow_logs_s3_expiration_days = 10
