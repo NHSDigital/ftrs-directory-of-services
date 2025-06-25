@@ -38,6 +38,15 @@ module "vpc" {
   flow_log_destination_arn  = module.vpc_flow_logs_s3_bucket.s3_bucket_arn
   flow_log_file_format      = var.flow_log_file_format
 
+  # Reuse EIP
+  reuse_nat_ips       = true             # <= Skip creation of EIPs for the NAT Gateways
+  external_nat_ip_ids = aws_eip.nat.*.id # <= IPs specified here as input to the module
+}
+
+resource "aws_eip" "nat" {
+  count = 3
+
+  domain = "vpc"
 }
 
 locals {
