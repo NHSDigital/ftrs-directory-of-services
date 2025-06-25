@@ -1,5 +1,8 @@
 name: Code Quality Checks Workflow
 
+permissions:
+  id-token: write
+  contents: read
 on:
   workflow_call:
     inputs:
@@ -86,9 +89,7 @@ jobs:
   count-lines-of-code:
     name: "Count lines of code"
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
+
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
@@ -106,9 +107,6 @@ jobs:
   scan-dependencies:
     name: "Scan dependencies"
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
@@ -131,9 +129,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
-    permissions:
-      id-token: write
-      contents: read
     strategy:
       matrix:
         stack: ${{ fromJson(inputs.stacks) }}

@@ -1,5 +1,8 @@
 name: Deploy frontend project workflow
 run-name: Deploy ${{ inputs.build_type }} - ${{ inputs.name }}
+permissions:
+      id-token: write
+      contents: read
 on:
   workflow_call:
     inputs:
@@ -45,9 +48,7 @@ jobs:
     name: "Deploy step for ${{ inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    permissions:
-      id-token: write
-      contents: read
+
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4

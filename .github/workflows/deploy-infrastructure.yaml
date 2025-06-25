@@ -1,5 +1,8 @@
 name: Deploy Infrastructure Workflow
 
+permissions:
+      id-token: write
+      contents: read
 on:
   workflow_call:
     inputs:
@@ -62,9 +65,6 @@ jobs:
     name: "Deploy infrastructure"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    permissions:
-      id-token: write
-      contents: read
     timeout-minutes: ${{ inputs.workflow_timeout }}
     strategy:
       fail-fast: false

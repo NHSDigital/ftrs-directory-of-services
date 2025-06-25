@@ -1,5 +1,8 @@
 name: Cleardown Infrastructure
 
+permissions:
+      id-token: write
+      contents: read
 on:
   workflow_call:
     inputs:
@@ -67,9 +70,6 @@ jobs:
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - name: "Checkout code"
         if: ${{ matrix.stack == 'opensearch' }}
@@ -98,9 +98,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
-    permissions:
-      id-token: write
-      contents: read
     strategy:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
@@ -132,9 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
-    permissions:
-      id-token: write
-      contents: read
+
     needs:
       - delete-tf-state
     steps:

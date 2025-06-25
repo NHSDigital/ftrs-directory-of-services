@@ -1,5 +1,8 @@
 name: Deploy Application workflow
 
+permissions:
+      id-token: write
+      contents: read
 on:
   workflow_call:
     inputs:
@@ -93,9 +96,7 @@ jobs:
     name: "Deploy Application"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    permissions:
-      id-token: write
-      contents: read
+
     timeout-minutes: ${{ inputs.workflow_timeout }}
     needs:
       [

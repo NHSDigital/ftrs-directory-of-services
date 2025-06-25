@@ -1,5 +1,6 @@
 name: Pipeline Deploy Account Level Infrastructure
 
+permissions: {}
 on:
   push:
     branches:
