@@ -6,7 +6,7 @@ name: Integrated Search Application Deployment Pipeline
 on:
   push:
     branches:
-      # - main
+      - main
       # - "task/DOSIS*"
   workflow_dispatch:
     inputs:
