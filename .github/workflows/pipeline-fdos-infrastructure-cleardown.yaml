@@ -5,7 +5,9 @@ name: Future DOS Cleardown Workflow
 # a task branch or
 # a dependabot branch
 
-permissions: {}
+permissions:
+      id-token: write
+      contents: read
 
 on:
   delete:
