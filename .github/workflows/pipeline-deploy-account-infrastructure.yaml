@@ -96,7 +96,7 @@ jobs:
 
   apply-infrastructure:
     name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
-    if: github.ref == 'refs/heads/main'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/task/FDOS-362_Vpc_new_additions')
     needs:
       - metadata
       - manual-approval
