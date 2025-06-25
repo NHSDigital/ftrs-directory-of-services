@@ -37,16 +37,6 @@ module "vpc" {
   flow_log_destination_type = var.flow_log_destination_type
   flow_log_destination_arn  = module.vpc_flow_logs_s3_bucket.s3_bucket_arn
   flow_log_file_format      = var.flow_log_file_format
-
-  # Reuse EIP
-  reuse_nat_ips       = true             # <= Skip creation of EIPs for the NAT Gateways
-  external_nat_ip_ids = aws_eip.nat.*.id # <= IPs specified here as input to the module
-}
-
-resource "aws_eip" "nat" {
-  count = 3
-
-  domain = "vpc"
 }
 
 locals {
@@ -110,6 +100,14 @@ locals {
         protocol    = "tcp"
         cidr_block  = "0.0.0.0/0"
       },
+      {
+        rule_number     = 101
+        rule_action     = "allow"
+        from_port       = 443
+        to_port         = 443
+        protocol        = "tcp"
+        ipv6_cidr_block = "::/0"
+      }
     ]
 
     private_inbound = [
@@ -124,13 +122,21 @@ locals {
     ]
 
     private_outbound = [
-      for i, cidr_block in concat(local.public_subnets, local.database_subnets, aws_eip.nat.*.id) : {
-        rule_number = 200 + i
+      {
+        rule_number = 200
         rule_action = "allow"
         from_port   = 0
         to_port     = 65535
         protocol    = "tcp"
-        cidr_block  = cidr_block
+        cidr_block  = "0.0.0.0/0"
+      },
+      {
+        rule_number     = 201
+        rule_action     = "allow"
+        from_port       = 0
+        to_port         = 65535
+        protocol        = "tcp"
+        ipv6_cidr_block = "::/0"
       }
     ]
 
@@ -146,13 +152,21 @@ locals {
     ]
 
     database_outbound = [
-      for i, cidr_block in concat(local.public_subnets, local.private_subnets, local.vpn_subnets, aws_eip.nat.*.id) : {
-        rule_number = 300 + i
+      {
+        rule_number = 300
         rule_action = "allow"
         from_port   = 0
         to_port     = 65535
         protocol    = "tcp"
-        cidr_block  = cidr_block
+        cidr_block  = "0.0.0.0/0"
+      },
+      {
+        rule_number     = 301
+        rule_action     = "allow"
+        from_port       = 0
+        to_port         = 65535
+        protocol        = "tcp"
+        ipv6_cidr_block = "::/0"
       }
     ]
   }
