@@ -124,7 +124,7 @@ locals {
     ]
 
     private_outbound = [
-      for i, cidr_block in concat(local.public_subnets, local.database_subnets) : {
+      for i, cidr_block in concat(local.public_subnets, local.database_subnets, aws_eip.nat.*.id) : {
         rule_number = 200 + i
         rule_action = "allow"
         from_port   = 0
@@ -146,7 +146,7 @@ locals {
     ]
 
     database_outbound = [
-      for i, cidr_block in concat(local.public_subnets, local.private_subnets, local.vpn_subnets) : {
+      for i, cidr_block in concat(local.public_subnets, local.private_subnets, local.vpn_subnets, aws_eip.nat.*.id) : {
         rule_number = 300 + i
         rule_action = "allow"
         from_port   = 0
