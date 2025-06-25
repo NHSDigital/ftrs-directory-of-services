@@ -173,11 +173,12 @@ locals {
 }
 
 resource "aws_flow_log" "subnet_flow_log_s3" {
+  for_each             = toset(concat(module.vpc.public_subnets, module.vpc.private_subnets, module.vpc.database_subnets))
   log_destination      = module.subnet_flow_logs_s3_bucket.s3_bucket_arn
   log_destination_type = var.flow_log_destination_type
   traffic_type         = "ALL"
   destination_options {
     per_hour_partition = true
   }
-  subnet_id = concat(module.vpc.public_subnets, module.vpc.private_subnets, module.vpc.database_subnets)
+  subnet_id = each.value
 }
