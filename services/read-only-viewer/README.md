@@ -11,6 +11,22 @@ make install
 npm run start
 ```
 
+
+To run this application in local development mode
+
+- set up a .env file in the root of the project with the following variables:
+  - `ENVIRONMENT=dev`
+
+- assume the dev AWS role
+
+- run the following command to start the application:
+
+```bash
+npm run dev
+```
+
+The application reads the parameters from AWS Systems Manager Parameter Store, so you will need to ensure that the parameters(ftrs-dos-${environment}-crud-apis/endpoint) are set up correctly in the Parameter Store for the environment you are running in.
+
 ## Building For Production
 
 To build this application for production:
@@ -50,7 +66,7 @@ make lint
 
 ## Routing
 
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
+This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file-based router. Which means that the routes are managed as files in `src/routes`.
 
 ### Adding A Route
 
@@ -62,7 +78,7 @@ Now that you have two routes you can use a `Link` component to navigate between 
 
 ### Adding Links
 
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+To use SPA (Single Page Application) navigation, you will need to import the `Link` component from `@tanstack/react-router`.
 
 ```tsx
 import { Link } from "@tanstack/react-router";

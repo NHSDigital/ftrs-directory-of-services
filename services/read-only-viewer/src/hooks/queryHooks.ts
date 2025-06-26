@@ -1,5 +1,5 @@
 import { ResponseError } from "@/utils/errors";
-import type { Organisation } from "@/utils/types";
+import type {HealthcareService, Organisation} from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 
 export const useOrganisationQuery = (organisationId: string) => {
@@ -32,6 +32,44 @@ export const useOrganisationsQuery = () => {
         throw ResponseError.fromResponse(
           response,
           "Failed to fetch organisations data",
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    },
+  });
+};
+
+export const useHealthcareServiceQuery = (healthcareServiceId: string) => {
+  return useQuery<Organisation>({
+    queryKey: ["healthcareService", healthcareServiceId],
+    queryFn: async () => {
+      const response = await fetch(`/api/healthcareService/${healthcareServiceId}/`);
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      if (!response.ok) {
+        throw ResponseError.fromResponse(
+          response,
+          `Failed to fetch healthcare service data for ID: ${healthcareServiceId}`,
+        );
+      }
+      return await response.json();
+    },
+  });
+};
+export const useHealthcareServicesQuery = () => {
+  return useQuery<HealthcareService[]>({
+    queryKey: ["healthcareServices"],
+    queryFn: async () => {
+      const response = await fetch("/api/healthcareService/");
+      if (!response.ok) {
+        throw ResponseError.fromResponse(
+          response,
+          "Failed to fetch healthcare services data",
         );
       }
 
