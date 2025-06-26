@@ -1,6 +1,9 @@
 name: Pipeline Deploy Account Level Infrastructure
 
-permissions: {}
+permissions:
+  id-token: write
+  contents: read
+
 on:
   push:
     branches:

@@ -3,7 +3,9 @@ name: IS DOS Cleardown Workflow
 # actor is not the queue bot and
 # the branch deleted is
 # a task branch
-permissions: {}
+permissions:
+  id-token: write
+  contents: read
 
 on:
   delete:
