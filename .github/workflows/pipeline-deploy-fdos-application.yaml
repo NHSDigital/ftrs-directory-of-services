@@ -12,7 +12,7 @@ on:
       - "task/SIA*"
   workflow_dispatch:
 
-    inputs: # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
+    inputs:
       tag:
         description: "Specify the tag to be used for deployment"
         required: true
