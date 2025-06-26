@@ -15,3 +15,9 @@ dynamodb_table_names = [
   "location",
   "organisation"
 ]
+
+aws_accounts = [
+  "dev",
+  "test",
+  "prod"
+]
