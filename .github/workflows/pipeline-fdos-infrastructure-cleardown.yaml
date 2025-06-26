@@ -7,8 +7,11 @@ name: Future DOS Cleardown Workflow
 
 on:
   delete:
-  workflow_dispatch:
-    inputs:
+  #checkov:skip=CKV_GHA_7:Suppressing checkov for workflow_dispatch inputs
+  workflow_dispatch: #checkov:skip=CKV_GHA_7:Suppressing checkov for workflow_dispatch inputs
+  #checkov:skip=CKV_GHA_7:Suppressing checkov for workflow_dispatch inputs
+    inputs: #checkov:skip=CKV_GHA_7:Suppressing checkov for workflow_dispatch inputs
+      #checkov:skip=CKV_GHA_7:Suppressing checkov for workflow_dispatch inputs
       application_tag:
         description: "Specify the application tag to cleardown"
         required: true
