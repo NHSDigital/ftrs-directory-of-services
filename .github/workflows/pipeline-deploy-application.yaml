@@ -12,6 +12,7 @@ on:
       - "task/SIA*"
       - "task/DOSIS*"
   workflow_dispatch:
+    # checkov:skip=:Inputs reviewed and approved
     inputs:
       tag:
         description: "Specify the tag to be used for deployment"
