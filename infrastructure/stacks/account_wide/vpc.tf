@@ -111,7 +111,7 @@ locals {
     ]
 
     private_inbound = [
-      for i, cidr_block in concat(local.public_subnets, local.database_subnets) : {
+      for i, cidr_block in concat(local.public_subnets, local.database_subnets, aws_vpc_endpoint.s3_vpce.cidr_blocks, aws_vpc_endpoint.dynamodb_vpce.cidr_blocks) : {
         rule_number = 200 + i
         rule_action = "allow"
         from_port   = 0
@@ -176,7 +176,7 @@ resource "aws_flow_log" "subnet_flow_log_s3" {
   for_each             = toset(concat(module.vpc.public_subnets, module.vpc.private_subnets, module.vpc.database_subnets))
   log_destination      = module.subnet_flow_logs_s3_bucket.s3_bucket_arn
   log_destination_type = var.flow_log_destination_type
-  traffic_type         = "ALL"
+  traffic_type         = "REJECT"
   destination_options {
     per_hour_partition = true
   }
