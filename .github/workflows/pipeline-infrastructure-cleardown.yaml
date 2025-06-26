@@ -28,15 +28,7 @@ on:
 
 jobs:
   metadata:
-    if: github.actor != 'github-merge-queue[bot]' && (
-      startsWith(github.event.ref, 'task/FDOS') ||
-      startsWith(github.event.ref, 'task/fdos') ||
-      startsWith(github.event.ref, 'task/SIA') ||
-      startsWith(github.event.ref, 'task/sia') ||
-      startsWith(github.event.ref, 'task/DOSIS') ||
-      startsWith(github.event.ref, 'task/dosis') ||
-      startsWith(github.event.ref, 'dependabot/')
-      )
+    if: github.actor != 'github-merge-queue[bot]'
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
