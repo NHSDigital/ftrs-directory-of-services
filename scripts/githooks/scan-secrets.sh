@@ -43,6 +43,9 @@ function get-cmd-to-run() {
 
   check=${check:-staged-changes}
   case $check in
+    "single-branch")
+      cmd="detect --source $dir --verbose --redact --log-opts="origin/main..HEAD""
+      ;;
     "whole-history")
       cmd="detect --source $dir --verbose --redact"
       ;;
