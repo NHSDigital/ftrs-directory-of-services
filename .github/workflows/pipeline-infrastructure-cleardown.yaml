@@ -11,6 +11,7 @@ permissions:
 on:
   delete:
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       application_tag:
         description: "Specify the application tag to cleardown"

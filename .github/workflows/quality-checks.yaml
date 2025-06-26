@@ -187,7 +187,6 @@ jobs:
           quiet: true
           output_format: sarif
           output_file_path: checkov.sarif
-          skip_check: CKV_GHA_7
 
       - name: "Publish Checkov report"
         uses: actions/upload-artifact@v4.6.1

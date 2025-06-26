@@ -19,6 +19,7 @@ on:
       - "infrastructure/modules/dynamodb/**"
       - "infrastructure/modules/s3/**"
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       tag:
         description: "Specify the tag to be used for deployment"
