@@ -10,8 +10,8 @@ on:
       - main
       - "task/FDOS*"
       - "task/SIA*"
-  # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       tag:
         description: "Specify the tag to be used for deployment"
