@@ -11,8 +11,8 @@ on:
       - "task/FDOS*"
       - "task/SIA*"
       - "task/DOSIS*"
+  # checkov:skip=:Inputs reviewed and approved
   workflow_dispatch:
-    # checkov:skip=:Inputs reviewed and approved
     inputs:
       tag:
         description: "Specify the tag to be used for deployment"
