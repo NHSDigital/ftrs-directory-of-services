@@ -4,7 +4,9 @@ name: Cleardown Application Infrastructure Pipeline
 # the branch deleted is either
 # a task branch or
 # a dependabot branch
-permissions: {}
+permissions:
+  id-token: write
+  contents: read
 
 on:
   delete:

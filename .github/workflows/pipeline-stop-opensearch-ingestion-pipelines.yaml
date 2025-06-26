@@ -1,6 +1,9 @@
 name: Stop OpenSearch Ingestion Pipelines
 
-permissions: {}
+permissions:
+      actions: write
+      id-token: write
+      contents: read
 on:
   # Run daily, at 18:00.
   schedule:
@@ -24,10 +27,7 @@ jobs:
   stop_opensearch_ingestion_pipelines:
     if: ${{ needs.metadata.outputs.environment != 'prod' }}
     name: "Stop OpenSearch ingestion pipelines"
-    permissions:
-      actions: write
-      id-token: write
-      contents: read
+
     timeout-minutes: 15
     environment: ${{ needs.metadata.outputs.environment }}
     needs:

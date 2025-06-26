@@ -174,12 +174,15 @@ jobs:
     if: always() && !cancelled() && (needs.apply-infrastructure.result == 'success' || needs.manual-approval.result == 'skipped')
     uses: ./.github/workflows/service-automation-test.yaml
     with:
+      name: "read-only-viewer"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      tag: ${{ inputs.tag }}
-      test_tag: "is-pipeline"
-      test_type: "api"
-      type: app
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      type: "app"
     secrets: inherit
   check-pipeline-status:
     name: "Check Pipeline Status"
