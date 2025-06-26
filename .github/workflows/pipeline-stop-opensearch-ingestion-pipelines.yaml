@@ -10,6 +10,7 @@ on:
     - cron: '0 18 * * *'
 
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       environment:
         description: "Deployment environment"
