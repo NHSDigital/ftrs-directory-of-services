@@ -109,7 +109,7 @@ info:
 servers:
   - url: TBC
 paths:
-  '/Organisation':
+  '/Organization':
     post:
       operationId: postOrganisation
       summary: Create a new organisation
@@ -380,6 +380,62 @@ paths:
                 $ref: '#/components/schemas/5XXError'
 components:
   schemas:
+    FHIROrganizationSubset:
+      type: object
+      required:
+        - resourceType
+        - id
+        - active
+        - name
+        - type
+        - identifier
+      properties:
+        resourceType:
+          type: string
+          enum: [Organization]
+          example: Organization
+        id:
+          type: string
+          example: "12345"
+        active:
+          type: boolean
+          example: true
+        name:
+          type: string
+          example: Test Organisation
+        type:
+          type: array
+          items:
+            type: object
+            properties:
+              coding:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    system:
+                      type: string
+                      example: "http://terminology.hl7.org/CodeSystem/organization-type"
+                    code:
+                      type: string
+                      example: "prov"
+                    display:
+                      type: string
+                      example: "Healthcare Provider"
+        telecom:
+          type: array
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+                example: "phone"
+              value:
+                type: string
+                example: "+44 123 4567"
+              use:
+                type: string
+                example: "work"
     OrganisationResponse:
       type: object
       description: Successful response schema.

@@ -91,12 +91,13 @@ def test_get_organisation_by_id_success(mock_repository: mocker) -> None:
     assert response.json()["id"] == str(get_organisation()["id"])
 
 
-def test_returns_404_when_org_not_found(mock_repository: mocker) -> None:
-    mock_repository.get.return_value = None
-    with pytest.raises(HTTPException) as exc_info:
-        client.get(f"/{test_org_id}")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Organisation not found"
+def test_returns_404_when_org_not_found(
+    repository_mock: MockerFixture, service_mock: MockerFixture
+) -> None:
+    repository_mock.get.return_value = None
+    response = client.get(f"/{test_org_id}")
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response == "Organisation not found"
 
 
 def test_returns_500_on_unexpected_error(mock_repository: mocker) -> None:
