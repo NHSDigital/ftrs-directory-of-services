@@ -1,0 +1,48 @@
+resource "aws_iam_role" "route53_cross_account_role" {
+  count = var.environment == "mgmt" ? 1 : 0
+
+  name = "${local.resource_prefix}-cross-account-access"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = [
+            for account in var.aws_accounts : data.aws_ssm_parameter.account_id[account].value
+          ]
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "route53_cross_account_policy" {
+  count = var.environment == "mgmt" ? 1 : 0
+
+  name        = "${local.resource_prefix}-cross-account-access"
+  description = "Allow cross-account updates to root hosted zone records"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:GetHostedZone",
+          "route53:ChangeResourceRecordSets"
+        ]
+        Resource = aws_route53_zone.root_zone[0].arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_policy" {
+  count = var.environment == "mgmt" ? 1 : 0
+
+  role       = aws_iam_role.route53_cross_account_role[0].name
+  policy_arn = aws_iam_policy.route53_cross_account_policy[0].arn
+}
