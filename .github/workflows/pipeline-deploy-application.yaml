@@ -1,8 +1,8 @@
 name: Application Deployment Pipeline
 
 on:
-  push:
-    branches:
+  # push:
+  #   branches:
       # - main
       # - "task/FDOS*"
       # - "task/SIA*"
