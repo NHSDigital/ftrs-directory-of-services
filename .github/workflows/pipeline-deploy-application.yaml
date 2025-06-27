@@ -6,7 +6,7 @@ on:
       # - main
       # - "task/FDOS*"
       # - "task/SIA*"
-      - "task/DOSIS*"
+      # - "task/DOSIS*"
   workflow_dispatch:
     inputs:
       tag:
