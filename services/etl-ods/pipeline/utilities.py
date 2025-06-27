@@ -47,23 +47,18 @@ def get_signed_request_headers(
     return dict(request.headers)
 
 
-def make_request(
-    url: str,
-    method: str = "GET",
-    params: dict = None,
-    timeout: int = 20,
-    sign: bool = False,
-    **kwargs: dict,
-) -> requests.Response:
+def build_headers(json_data, json_string, fhir, sign, url, method):
     headers = {}
-
-    json_data = kwargs.get("json")
-    json_string = None
+    # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
-        json_string = json.dumps(json_data)
-
-    if sign is True:
+    # Set FHIR headers if needed
+    if fhir:
+        headers["Accept"] = "application/fhir+json"
+        if json_string is not None:
+            headers["Content-Type"] = "application/fhir+json"
+    # Handle AWS SigV4 signing if required
+    if sign:
         parsed_url = urlparse(url)
         host = parsed_url.netloc
         headers = get_signed_request_headers(
@@ -73,6 +68,37 @@ def make_request(
             data=json_string,
             region="eu-west-2",
         )
+    return headers
+
+
+def handle_fhir_response(data):
+    if data.get("resourceType") == "OperationOutcome":
+        issue = data.get("issue", [{}])[0]
+        diagnostics = issue.get("diagnostics", "Unknown error")
+        code = issue.get("code", "unknown")
+        ods_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_004,
+            code=code,
+            diagnostics=diagnostics,
+        )
+        raise Exception(f"FHIR OperationOutcome: {code} - {diagnostics}")
+    return data
+
+
+def make_request(
+    url: str,
+    method: str = "GET",
+    params: dict = None,
+    timeout: int = 20,
+    sign: bool = False,
+    fhir: bool = False,
+    **kwargs: dict,
+) -> requests.Response:
+
+    json_data = kwargs.get("json")
+    json_string = json.dumps(json_data) if json_data is not None else None
+
+    headers = build_headers(json_data, json_string, fhir, sign, url, method)
 
     try:
         response = requests.request(
@@ -85,11 +111,17 @@ def make_request(
         )
         response.raise_for_status()
 
+        if fhir:
+            data = response.json()
+            return handle_fhir_response(data)
+        return response
+
+
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(
             OdsETLPipelineLogBase.ETL_UTILS_003,
             http_err=http_err,
-            status_code=response.status_code,
+            status_code=getattr(response, "status_code", None),
         )
         raise
 
@@ -101,5 +133,3 @@ def make_request(
             error_message=str(e),
         )
         raise
-
-    return response

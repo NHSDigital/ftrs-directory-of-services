@@ -8,26 +8,16 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pipeline.load_data import (
     load_data,
 )
-from pipeline.validators import (
-    OrganisationValidator,
-    RolesValidator,
-    validate_payload,
-)
 
 from .extract import (
-    extract_display_name,
     extract_ods_code,
-    extract_organisation_data,
-    fetch_and_validate_organisation_data,
-    fetch_organisation_data,
-    fetch_organisation_role,
+    fetch_ods_organisation_data,
     fetch_organisation_uuid,
     fetch_sync_data,
 )
-from .transform import transfrom_into_payload
+from .transform import transform_to_payload
 
 BATCH_SIZE = 10
-
 ods_processor_logger = Logger.get(service="ods_processor")
 
 
@@ -58,9 +48,9 @@ def processor(date: str) -> None:
 
             if len(transformed_batch) == BATCH_SIZE:
                 load_data(transformed_batch)
-                transformed_batch = []
+                transformed_batch.clear()
 
-        if len(transformed_batch) > 0:
+        if transformed_batch:
             load_data(transformed_batch)
 
     except requests.exceptions.RequestException as e:
@@ -83,14 +73,11 @@ def process_organisation(ods_code: str) -> str | None:
     Process a single organisation by extracting data, transforming it, and logging the payload.
     """
     try:
-        raw_organisation_data = fetch_and_validate_organisation_data(ods_code)
-
+        organisation_data = fetch_ods_organisation_data(ods_code)
+        fhir_organisation = transform_to_payload(organisation_data, ods_code)
         org_uuid = fetch_organisation_uuid(ods_code)
 
-        request_body = transfrom_into_payload(raw_organisation_data, org_uuid)
-
-        request = {"path": org_uuid, "body": request_body}
-        return json.dumps(request)
+        return json.dumps({"path": org_uuid, "body": fhir_organisation})
 
     except Exception as e:
         ods_processor_logger.log(
@@ -110,6 +97,8 @@ def processor_lambda_handler(event: any, context: any) -> dict | None:
             return {"statusCode": 400, "body": "Date must be in YYYY-MM-DD format"}
 
         processor(date=event["date"])
+        return {"statusCode": 200, "body": "Processing complete"}
+
     except Exception as e:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_023,
