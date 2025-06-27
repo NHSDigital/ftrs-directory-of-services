@@ -47,7 +47,17 @@ def get_signed_request_headers(
     return dict(request.headers)
 
 
-def build_headers(json_data, json_string, fhir, sign, url, method):
+def build_headers(
+    json_data,
+    json_string,
+    fhir: bool,
+    sign: bool,
+    url: str,
+    method: str,
+) -> dict:
+    """
+    Builds headers for the outgoing HTTP request.
+    """
     headers = {}
     # Prepare JSON body if present
     if json_data is not None:
@@ -61,17 +71,21 @@ def build_headers(json_data, json_string, fhir, sign, url, method):
     if sign:
         parsed_url = urlparse(url)
         host = parsed_url.netloc
-        headers = get_signed_request_headers(
+        signed_headers = get_signed_request_headers(
             method=method,
             url=url,
             host=host,
             data=json_string,
             region="eu-west-2",
         )
+        headers.update(signed_headers)
     return headers
 
 
-def handle_fhir_response(data):
+def handle_fhir_response(data: dict) -> dict:
+    """
+    Checks for FHIR OperationOutcome and raises an exception if found.
+    """
     if data.get("resourceType") == "OperationOutcome":
         issue = data.get("issue", [{}])[0]
         diagnostics = issue.get("diagnostics", "Unknown error")
@@ -116,12 +130,11 @@ def make_request(
             return handle_fhir_response(data)
         return response
 
-
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(
             OdsETLPipelineLogBase.ETL_UTILS_003,
             http_err=http_err,
-            status_code=getattr(response, "status_code", None),
+            status_code=getattr(http_err.response, "status_code", None),
         )
         raise
 

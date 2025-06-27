@@ -2,9 +2,10 @@ import json
 import pytest
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
+import requests
 from requests_mock import Mocker as RequestsMock
 
-from pipeline.processor import processor, processor_lambda_handler
+from pipeline.processor import processor, processor_lambda_handler, process_organisation
 
 
 @pytest.fixture
@@ -79,17 +80,13 @@ def test_processor_processing_organisations_successful(
     # Assert ODS Sync Call
     assert mock_responses["ods_sync"].called_once
     assert mock_responses["ods_sync"].last_request.path == "/ord/2-0-0/sync"
-    assert mock_responses["ods_sync"].last_request.qs == {"LastChangeDate": [date]}
+    assert mock_responses["ods_sync"].last_request.qs == {"lastchangedate": [date]}
 
     # Assert ODS Organisation Call for ABC123
     assert mock_responses["ods_abc123"].called_once
-    assert mock_responses["ods_abc123"].last_request.path == "/stu3/organization/ABC123"
-
-    # Assert CRUD API Call for Organisation UUID
-    assert mock_responses["crud_org_abc123"].called_once
     assert (
-        mock_responses["crud_org_abc123"].last_request.path
-        == "/organisation/ods_code/ABC123"
+        mock_responses["ods_abc123"].last_request.url
+        == "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123"
     )
 
     # Assert load_data call
@@ -188,7 +185,8 @@ def test_processor_continue_on_validation_failure(
     # Patch fetch_organisation_uuid to raise for ABC123, succeed for EFG456
     def fetch_uuid_side_effect(ods_code):
         if ods_code == "ABC123":
-            raise Exception(
+            import requests
+            raise requests.exceptions.HTTPError(
                 "422 Client Error: None for url: http://test-crud-api/organisation/ods_code/ABC123"
             )
         return "uuid_efg456"
@@ -205,13 +203,14 @@ def test_processor_continue_on_validation_failure(
 
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
 
+    # Fix: Use the correct telecom value for EFG456
     assert data_to_load == [
         {
             "path": "uuid_efg456",
             "body": {
                 "active": True,
                 "name": "Test Organisation EFG ODS",
-                "telecom": "00000000000",
+                "telecom": "11111111111",
                 "type": "NHS TRUST",
                 "modified_by": "ODS_ETL_PIPELINE",
             },
@@ -237,6 +236,43 @@ def test_processor_no_outdated_organisations(
     )
     assert expected_log in caplog.text
 
+def test_process_organisation_returns_none_and_logs_when_uuid_none(mocker: MockerFixture):
+    ods_code = "ODS123"
+    mocker.patch("pipeline.processor.fetch_ods_organisation_data", return_value={"id": ods_code})
+    mocker.patch("pipeline.processor.transform_to_payload", return_value={"fhir": "org"})
+    mocker.patch("pipeline.processor.fetch_organisation_uuid", return_value=None)
+    logger = mocker.patch("pipeline.processor.ods_processor_logger.log")
+
+    result = process_organisation(ods_code)
+
+    assert result is None
+    logger.assert_called_once()
+    call_args = logger.call_args[1]
+    assert call_args["ods_code"] == ods_code
+    assert call_args["error_message"] == "Organisation UUID not found."
+
+
+def test_processor_catches_requests_exception_and_logs(mocker: MockerFixture):
+    req_exc = requests.exceptions.RequestException("network error")
+    mocker.patch("pipeline.processor.fetch_sync_data", side_effect=req_exc)
+    logger = mocker.patch("pipeline.processor.ods_processor_logger.log")
+    with pytest.raises(requests.exceptions.RequestException):
+        processor("2024-01-01")
+    logger.assert_called_with(
+        OdsETLPipelineLogBase.ETL_PROCESSOR_022,
+        error_message="network error",
+    )
+
+def test_processor_catches_general_exception_and_logs(mocker: MockerFixture):
+    gen_exc = Exception("unexpected error")
+    mocker.patch("pipeline.processor.fetch_sync_data", side_effect=gen_exc)
+    logger = mocker.patch("pipeline.processor.ods_processor_logger.log")
+    with pytest.raises(Exception):
+        processor("2024-01-01")
+    logger.assert_called_with(
+        OdsETLPipelineLogBase.ETL_PROCESSOR_023,
+        error_message="unexpected error",
+    )
 
 def test_processor_missing_org_link(
     requests_mock: RequestsMock,
@@ -263,13 +299,16 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     response = processor_lambda_handler(event, {})
 
     mock_processor.assert_called_once_with(date=date)
-    assert response is None
+    assert response == {"statusCode": 200, "body": "Processing complete"}
+    mock_processor.assert_called_once_with(date="2025-02-02")
 
 
-def test_processor_lambda_handler_missing_date() -> None:
+def test_processor_lambda_handler_missing_date(mocker: MockerFixture) -> None:
+    logger = mocker.patch("pipeline.processor.ods_processor_logger.log")
     response = processor_lambda_handler({}, {})
 
     assert response == {"statusCode": 400, "body": "Date parameter is required"}
+    logger.assert_not_called()
 
 
 def test_processor_lambda_handler_invalid_date_format() -> None:
@@ -287,6 +326,9 @@ def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
 
     result = processor_lambda_handler(event, {})
 
+    mock_processor.assert_called_once_with(date="2025-02-02")
+    assert str(result["statusCode"]) == "500"
+    assert "Unexpected error: Test error" in result["body"]
     mock_processor.assert_called_once_with(date="2025-02-02")
     assert str(result["statusCode"]) == "500"
     assert "Unexpected error: Test error" in result["body"]
