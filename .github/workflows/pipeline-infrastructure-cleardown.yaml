@@ -6,6 +6,9 @@ name: Application Cleardown Workflow
 # a dependabot branch
 
 on:
+  push:
+    branches:
+      - "task/DOSIS*"
   delete:
   workflow_dispatch:
     inputs:
