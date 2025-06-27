@@ -11,6 +11,8 @@ from pipeline.utilities import (
     get_base_crud_api_url,
     get_signed_request_headers,
     make_request,
+    handle_fhir_response,
+    build_headers,
 )
 
 
@@ -293,3 +295,106 @@ def test_make_request_request_exception(requests_mock: RequestsMock) -> None:
 
     assert mock_get.last_request.url == url
     assert mock_get.last_request.method == "GET"
+
+
+def test_make_request_fhir_operation_outcome(requests_mock: RequestsMock, caplog) -> None:
+    """
+    Test make_request raises Exception on FHIR OperationOutcome and logs error.
+    """
+    fhir_response = {
+        "resourceType": "OperationOutcome",
+        "issue": [
+            {
+                "severity": "error",
+                "code": "processing",
+                "diagnostics": "FHIR error details"
+            }
+        ]
+    }
+    requests_mock.get(
+        "https://api.example.com/fhir",
+        json=fhir_response,
+        status_code=200,
+    )
+    url = "https://api.example.com/fhir"
+    with caplog.at_level("INFO"):
+        with pytest.raises(Exception, match="FHIR OperationOutcome: processing - FHIR error details"):
+            make_request(url, fhir=True)
+        assert "failed" not in caplog.text
+
+
+def test_handle_fhir_response_no_operation_outcome(caplog):
+    """
+    Test handle_fhir_response returns data if not OperationOutcome.
+    """
+    data = {"resourceType": "Patient", "id": "123"}
+    with caplog.at_level("INFO"):
+        result = handle_fhir_response(data)
+    assert result == data
+
+
+def test_build_headers_fhir_and_json():
+    """
+    Test build_headers sets correct headers for FHIR and JSON.
+    """
+    headers = build_headers(
+        json_data={"foo": "bar"},
+        json_string='{"foo": "bar"}',
+        fhir=True,
+        sign=False,
+        url="https://api.example.com/fhir",
+        method="POST",
+    )
+    assert headers["Content-Type"] == "application/fhir+json"
+    assert headers["Accept"] == "application/fhir+json"
+
+
+@patch("pipeline.utilities.get_signed_request_headers")
+def test_build_headers_sign(mock_get_signed_request_headers):
+    """
+    Test build_headers calls get_signed_request_headers and merges headers.
+    """
+    mock_get_signed_request_headers.return_value = {"Authorization": "sigv4", "Host": "api.example.com"}
+    headers = build_headers(
+        json_data=None,
+        json_string=None,
+        fhir=False,
+        sign=True,
+        url="https://api.example.com/resource",
+        method="GET",
+    )
+    assert headers["Authorization"] == "sigv4"
+    assert headers["Host"] == "api.example.com"
+
+
+def test_make_request_logs_http_error(requests_mock: RequestsMock, caplog):
+    """
+    Test make_request logs HTTPError.
+    """
+    requests_mock.get(
+        "https://api.example.com/resource",
+        status_code=404,
+        json={"error": "not found"},
+    )
+    url = "https://api.example.com/resource"
+    with caplog.at_level("INFO"):
+        with pytest.raises(requests.exceptions.HTTPError):
+            make_request(url)
+        assert (
+            "HTTP error occurred: 404 Client Error: None for url: https://api.example.com/resource - Status Code: 404"
+            in caplog.text
+        )
+
+def test_make_request_logs_request_exception(requests_mock: RequestsMock, caplog):
+    """
+    Test make_request logs RequestException.
+    """
+    requests_mock.get(
+        "https://api.example.com/resource",
+        exc=requests.exceptions.RequestException("fail"),
+    )
+    url = "https://api.example.com/resource"
+    with caplog.at_level("INFO"):
+        with pytest.raises(requests.exceptions.RequestException):
+            make_request(url)
+        assert "Request to GET https://api.example.com/resource failed: fail." in caplog.text

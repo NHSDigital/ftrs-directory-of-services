@@ -10,7 +10,7 @@ from pipeline.utilities import get_base_crud_api_url, make_request
 ods_processor_logger = Logger.get(service="ods_processor")
 
 
-def fetch_sync_data(date: str) -> dict:
+def fetch_sync_data(date: str) -> list:
     """
     Returns a list of ods organisation records that have been modified since a specified date.
     """
@@ -47,7 +47,7 @@ def fetch_ods_organisation_data(ods_code: str) -> dict | None:
 
 def fetch_organisation_uuid(ods_code: str) -> str | None:
     """
-    Returns DoS UUID based on ODS code
+    Returns DoS UUID based on ODS code.
     """
     base_url = get_base_crud_api_url()
     organisation_get_uuid_uri = base_url + "/organisation/ods_code/" + ods_code
@@ -58,10 +58,10 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             ods_code=ods_code,
         )
         response = make_request(organisation_get_uuid_uri, sign=True, fhir=True)
-        return response.json().get("id", None)
+        return response.get("id", None) if isinstance(response, dict) else response.json().get("id", None)
 
     except HTTPError as http_err:
-        if http_err.response.status_code == HTTPStatus.NOT_FOUND:
+        if http_err.response is not None and http_err.response.status_code == HTTPStatus.NOT_FOUND:
             ods_processor_logger.log(
                 OdsETLPipelineLogBase.ETL_PROCESSOR_007,
             )
