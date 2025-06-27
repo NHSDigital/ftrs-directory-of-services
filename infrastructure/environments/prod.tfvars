@@ -17,3 +17,6 @@ vpc = {
   database_subnet_b = "10.179.202.0/24"
   database_subnet_c = "10.179.203.0/24"
 }
+
+enable_flow_log              = true
+flow_logs_s3_expiration_days = 30
