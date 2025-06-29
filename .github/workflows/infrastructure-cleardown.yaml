@@ -1,0 +1,159 @@
+name: Cleardown Infrastructure
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Defines the Github environment in which to pull environment variables from"
+        required: true
+        type: string
+      workspace:
+        description: "Name of the workspace"
+        required: true
+        type: string
+      project:
+        description: "The project - eg dos or cm."
+        required: false
+        default: "dos"
+        type: string
+      stacks:
+        description: "Name of the stacks"
+        required: true
+        type: string
+      tag:
+        description: "Name of the tag"
+        required: false
+        type: string
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 10
+        type: number
+      application_tag:
+        description: "The application tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+
+jobs:
+  destroy-application-infrastructure:
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: ${{ inputs.workspace }}
+      project: ${{ inputs.project }}
+      stacks: ${{ inputs.stacks }}
+      tag: ${{ inputs.tag }}
+      workflow_timeout: ${{ inputs.workflow_timeout }}
+      application_tag: ${{ inputs.application_tag }}
+      commit_hash: ${{ inputs.commit_hash }}
+      action: destroy
+      type: ${{ inputs.type }}
+    secrets: inherit
+
+  cleardown-os-policies:
+    name: "Cleardown OpenSearch Network Policies"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    if: contains(inputs.stacks, 'opensearch')
+    strategy:
+      matrix:
+        stack: ${{ fromJSON(inputs.stacks) }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        if: ${{ matrix.stack == 'opensearch' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        if: ${{ matrix.stack == 'opensearch' }}
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Check and delete OpenSearch network policies"
+        id: cleanup_osis
+        if: ${{ matrix.stack == 'opensearch' }}
+        uses: ./.github/actions/cleardown-opensearch-network-policy
+        with:
+          workspace: ${{ inputs.workspace }}
+          stack: ${{ matrix.stack }}
+
+  delete-tf-state:
+    name: "Delete terraform state file"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        stack: ${{ fromJSON(inputs.stacks) }}
+    needs:
+      - destroy-application-infrastructure
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Delete terraform state file"
+        id: delete_tf_state
+        uses: ./.github/actions/cleardown-tf-state
+        with:
+          workspace: ${{ inputs.workspace }}
+          environment: ${{ inputs.environment }}
+          stack: ${{ matrix.stack }}
+
+  check-tf-state:
+    name: "Check state files cleared down"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    needs:
+      - delete-tf-state
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Check terraform state file"
+        id: check_tf_state
+        uses: ./.github/actions/check-tf-state
+        with:
+          workspace: ${{ inputs.workspace }}
+          environment: ${{ inputs.environment }}
+          stack: ${{ matrix.stack }}
