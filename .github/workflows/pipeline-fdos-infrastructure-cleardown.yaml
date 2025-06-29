@@ -6,10 +6,6 @@ name: Cleardown Application Infrastructure
 # a dependabot branch
 
 on:
-  push:
-    branches:
-      # - main
-      - "task/DOSIS*"
   delete:
   workflow_dispatch:
     inputs:
