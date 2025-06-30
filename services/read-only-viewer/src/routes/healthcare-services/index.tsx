@@ -1,5 +1,5 @@
 import PageBreadcrumbs from "@/components/PageBreadcrumbs";
-import {createFileRoute} from "@tanstack/react-router";
+import {createFileRoute, Link} from "@tanstack/react-router";
 import {useHealthcareServicesQuery} from "@/hooks/queryHooks.ts";
 import type {HealthcareService,} from "@/utils/types.ts";
 import {useMemo} from "react";
@@ -32,7 +32,16 @@ const useHealthcareServicesTable = (healthcareServices: HealthcareService[]) => 
   return useReactTable({
     data: healthcareServices,
     columns: [
-      columnHelper.accessor("name", {
+      columnHelper.accessor("name",{
+        cell: (info) => (
+          <Link
+            to="/healthcare-services/$healthcareServiceID"
+            params={{ healthcareServiceID: info.row.id }}
+            className="nhsuk-link nhsuk-link--no-visited-state"
+          >
+            {info.getValue()}
+          </Link>
+        ),
         header: () => "Name",
         footer: (props) => props.column.id,
       }),

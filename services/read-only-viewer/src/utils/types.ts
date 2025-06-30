@@ -38,7 +38,7 @@ export const organisationSchema = zod.object({
 
 export type Organisation = zod.infer<typeof organisationSchema>;
 
-export const Telecom = zod.object({
+export const telecom = zod.object({
   phone_public: zod.string().optional(),
   phone_private: zod.string().optional(),
   email: zod.string().email().optional(),
@@ -84,9 +84,14 @@ export const healthcareServiceSchema = zod.object({
   location:  zod.string().uuid(),
   name: zod.string(),
   type: zod.string().optional(),
-  Telecom: Telecom,
-  openingTimes: zod.array(openingTimeSchema).optional(),
+  telecom: telecom,
+  openingTime: zod.array(openingTimeSchema).optional(),
+  createdBy: zod.string(),
+  createdDateTime: zod.string().datetime(),
+  modifiedBy: zod.string(),
+  modifiedDateTime: zod.string().datetime(),
 });
 export type HealthcareService = zod.infer<typeof healthcareServiceSchema>;
+export type OpeningTime = zod.infer<typeof openingTimeSchema>;
 
 

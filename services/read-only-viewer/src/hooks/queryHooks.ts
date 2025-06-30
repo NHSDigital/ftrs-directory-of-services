@@ -42,7 +42,7 @@ export const useOrganisationsQuery = () => {
 };
 
 export const useHealthcareServiceQuery = (healthcareServiceId: string) => {
-  return useQuery<Organisation>({
+  return useQuery<HealthcareService>({
     queryKey: ["healthcareService", healthcareServiceId],
     queryFn: async () => {
       const response = await fetch(`/api/healthcareService/${healthcareServiceId}/`);
