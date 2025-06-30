@@ -93,7 +93,7 @@ data "aws_iam_policy_document" "app_runner_domain_name_cross_account_doc" {
 }
 
 resource "aws_iam_policy" "app_runner_domain_name_cross_account_policy" {
-  name        = local.domain_cross_account_role
+  name        = "${local.domain_cross_account_role}_app_policy"
   description = "Allow cross-account AssumeRole into mgmt Route53 role"
   policy      = data.aws_iam_policy_document.app_runner_domain_name_cross_account_doc.json
 }
