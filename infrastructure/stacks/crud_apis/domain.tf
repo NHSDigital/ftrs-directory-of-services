@@ -8,6 +8,7 @@ data "aws_route53_zone" "main" {
 
 # Create ACM certificate if not provided
 resource "aws_acm_certificate" "api_cert" {
+  count             = var.create_certificate && var.certificate_arn == "" ? 1 : 0
   domain_name       = "TEMP-${local.workspace_suffix}.${var.environment}.ftrs.cloud.nhs.uk"
   validation_method = "DNS"
 
@@ -72,6 +73,7 @@ resource "aws_route53_record" "cert_validation" {
 
 # Validate the certificate
 resource "aws_acm_certificate_validation" "api_cert" {
+  count                   = var.create_certificate && var.certificate_arn == "" ? 1 : 0
   certificate_arn         = aws_acm_certificate.api_cert[0].arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 

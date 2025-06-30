@@ -125,3 +125,9 @@ variable "hosted_zone_id" {
   description = "Route53 hosted zone ID for the domain"
   type        = string
 }
+
+variable "create_certificate" {
+  description = "Whether to create a new ACM certificate"
+  type        = bool
+  default     = true
+}
