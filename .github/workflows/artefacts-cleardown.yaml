@@ -1,5 +1,8 @@
 name: Cleardown Artefacts
 
+permissions:
+      id-token: write
+      contents: read
 on:
   workflow_call:
     inputs:
@@ -31,9 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
-    permissions:
-      id-token: write
-      contents: read
+
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4

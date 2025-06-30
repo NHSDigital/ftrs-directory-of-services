@@ -4,10 +4,14 @@ name: Cleardown Application Infrastructure Pipeline
 # the branch deleted is either
 # a task branch or
 # a dependabot branch
+permissions:
+  id-token: write
+  contents: read
 
 on:
   delete:
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       application_tag:
         description: "Specify the application tag to cleardown"
@@ -43,8 +47,8 @@ jobs:
       stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      type: app
       workflow_timeout: 30
+      type: app
     secrets: inherit
 
   cleardown-artefacts:

@@ -1,5 +1,9 @@
 name: Application Deployment Pipeline
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   push:
     branches:
@@ -8,6 +12,7 @@ on:
       - "task/SIA*"
       - "task/DOSIS*"
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       tag:
         description: "Specify the tag to be used for deployment"
