@@ -1,12 +1,12 @@
 name: Application Deployment Pipeline
 
 on:
-  # push:
-  #   branches:
-      # - main
-      # - "task/FDOS*"
-      # - "task/SIA*"
-      # - "task/DOSIS*"
+  push:
+    branches:
+      - main
+      - "task/FDOS*"
+      - "task/SIA*"
+      - "task/DOSIS*"
   workflow_dispatch:
     inputs:
       tag:
