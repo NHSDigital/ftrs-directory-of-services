@@ -145,9 +145,7 @@ data "aws_iam_policy_document" "vpc_access_policy" {
       "ec2:DescribeNetworkInterfaces",
       "ec2:DeleteNetworkInterface"
     ]
-    resources = [
-      "*"
-    ]
+    resources = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   }
 }
 
