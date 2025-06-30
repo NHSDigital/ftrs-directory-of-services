@@ -1,8 +1,9 @@
-name: IS DOS Cleardown Workflow
+name: Cleardown Application Infrastructure Pipeline
 # Intended to run if
 # actor is not the queue bot and
-# the branch deleted is
-# a task branch
+# the branch deleted is either
+# a task branch or
+# a dependabot branch
 
 on:
   delete:
@@ -27,10 +28,7 @@ on:
 
 jobs:
   metadata:
-    if: github.actor != 'github-merge-queue[bot]' && (
-      startsWith(github.event.ref, 'task/DOSIS') ||
-      startsWith(github.event.ref, 'task/dosis')
-      )
+    if: github.actor != 'github-merge-queue[bot]'
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
 
@@ -42,11 +40,11 @@ jobs:
     with:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
-      stacks: "['gp_search', 'is_performance']"
+      stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      workflow_timeout: 30
       type: app
+      workflow_timeout: 30
     secrets: inherit
 
   cleardown-artefacts:

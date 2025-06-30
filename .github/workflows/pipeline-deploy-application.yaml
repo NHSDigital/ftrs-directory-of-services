@@ -1,4 +1,4 @@
-name: Future DoS Application Deployment Pipeline
+name: Application Deployment Pipeline
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
       - "task/FDOS*"
       - "task/SIA*"
+      - "task/DOSIS*"
   workflow_dispatch:
     inputs:
       tag:
@@ -41,7 +42,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
       type: app
     secrets: inherit
 
@@ -62,6 +63,8 @@ jobs:
           - name: "read-only-viewer"
             build_type: "service"
           - name: "etl-ods"
+            build_type: "service"
+          - name: "gp-search"
             build_type: "service"
     uses: ./.github/workflows/build-project.yaml
     with:
@@ -99,7 +102,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
@@ -130,7 +133,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
@@ -159,10 +162,26 @@ jobs:
       type: "app"
     secrets: inherit
 
+  service-automation-tests:
+    name: Run service automation tests
+    needs:
+      - metadata
+      - apply-infrastructure
+    if: always() && !cancelled() && (needs.apply-infrastructure.result == 'success' || needs.manual-approval.result == 'skipped')
+    uses: ./.github/workflows/service-automation-test.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
+      test_tag: "is-pipeline"
+      test_type: "api"
+      type: app
+    secrets: inherit
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
       - deploy-read-only-viewer-service
+      - service-automation-tests
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
@@ -176,6 +195,7 @@ jobs:
       - manual-approval
       - apply-infrastructure
       - deploy-read-only-viewer-service
+      - service-automation-tests
       - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
