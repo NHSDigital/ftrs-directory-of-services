@@ -1,4 +1,4 @@
-name: Cleardown Application Infrastructure
+name: Cleardown Application Infrastructure Pipeline
 # Intended to run if
 # actor is not the queue bot and
 # the branch deleted is either
