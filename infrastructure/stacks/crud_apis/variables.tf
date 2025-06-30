@@ -115,3 +115,13 @@ variable "api_gateway_throttling_rate_limit" {
   description = "The rate limit for API Gateway throttling"
   type        = number
 }
+
+# variable "domain_name" {
+#   description = "Custom domain name for the API Gateway"
+#   type        = string
+# }
+
+variable "hosted_zone_id" {
+  description = "Route53 hosted zone ID for the domain"
+  type        = string
+}
