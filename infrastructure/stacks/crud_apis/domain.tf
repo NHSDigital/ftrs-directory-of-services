@@ -46,10 +46,9 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
 }
 
 resource "aws_apigatewayv2_api_mapping" "api_mapping" {
-  api_id      = api_gateway.http_api.id
+  api_id      = module.api_gateway.aws_apigatewayv2_api.http_api.id
   domain_name = aws_apigatewayv2_domain_name.api_domain.id
-  stage       = api_gateway_stage.api_stage.name
-
+  stage       = module.api_gateway.aws_apigatewayv2_stage.stage.api_stage.name
 }
 
 
