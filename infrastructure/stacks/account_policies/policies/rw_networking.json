@@ -11,6 +11,12 @@
             "Resource": "*"
         },
         {
+            "Sid": "AllowAssumeMgmtR53Role",
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "arn:aws:iam::*:role/ftrs-directory-of-services-mgmt-domain-name-cross-account-access"
+        },
+        {
             "Sid": "ACMFullAccess",
             "Effect": "Allow",
             "Action": [

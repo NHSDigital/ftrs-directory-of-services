@@ -126,5 +126,3 @@ resource "aws_iam_policy" "infrastructure_resilience_rw" {
   description = "Read-write policies for aws resilience hub services"
   policy      = jsonencode(local.infrastructure_resilience_rw_policy)
 }
-
-

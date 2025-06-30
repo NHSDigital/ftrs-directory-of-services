@@ -90,3 +90,8 @@ variable "aws_accounts" {
   description = "List of AWS account environments"
   type        = list(string)
 }
+
+variable "mgmt_account_id" {
+  description = "Management account ID"
+  type        = string
+}

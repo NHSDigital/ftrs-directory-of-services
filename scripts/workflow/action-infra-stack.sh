@@ -24,6 +24,7 @@ export TF_VAR_application_tag="${APPLICATION_TAG:-""}"
 export TF_VAR_commit_hash="${COMMIT_HASH:-""}"
 TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
 export TF_VAR_stack_name
+export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
 
 # needed for terraform management stack
 export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
