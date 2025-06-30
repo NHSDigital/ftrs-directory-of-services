@@ -17,4 +17,6 @@ locals {
       arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${table_name}${local.workspace_suffix}"
     }
   }
+
+  domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
 }

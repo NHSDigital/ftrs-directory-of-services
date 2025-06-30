@@ -104,6 +104,7 @@ jobs:
           project: ${{ inputs.project }}
           application_tag: ${{ inputs.application_tag }}
           commit_hash: ${{ inputs.commit_hash }}
+          mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v4

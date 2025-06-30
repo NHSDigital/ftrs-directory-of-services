@@ -2,56 +2,58 @@ name: "Action infrastructure stack action"
 description: "Actions infrastructure stack of a given domain into a given environment and workspace."
 
 inputs:
-    environment:
-        description: "The name of the environment to action the infrastructure"
-        required: true
-    workspace:
-        description: "The name of the workspace to action the infrastructure into."
-        required: true
-    stack:
-        description: "The name of the infrastructure stack to action from the domain. If not supplied, no infrastructure will be actioned"
-        required: true
-    action:
-        description: "The type of action to perform with the stacks."
-        required: false
-        default: "plan"
-    project:
-        description: "The project - eg dos or cm."
-        required: true
-    application_tag:
-        description: "The application tag for deployment"
-        required: false
-    commit_hash:
-      description: "The commit hash, set by the CI/CD pipeline workflow"
-      required: true
+  environment:
+    description: "The name of the environment to action the infrastructure"
+    required: true
+  workspace:
+    description: "The name of the workspace to action the infrastructure into."
+    required: true
+  stack:
+    description: "The name of the infrastructure stack to action from the domain. If not supplied, no infrastructure will be actioned"
+    required: true
+  action:
+    description: "The type of action to perform with the stacks."
+    required: false
+    default: "plan"
+  project:
+    description: "The project - eg dos or cm."
+    required: true
+  application_tag:
+    description: "The application tag for deployment"
+    required: false
+  commit_hash:
+    description: "The commit hash, set by the CI/CD pipeline workflow"
+    required: true
+  mgmt_account_id:
+    description: "The management account ID for the action"
+    required: true
 outputs:
-    plan_result:
-        description: "The Terraform plan output"
-        value: ${{ steps.action_stack.outputs.plan_result }}
+  plan_result:
+    description: "The Terraform plan output"
+    value: ${{ steps.action_stack.outputs.plan_result }}
 
 runs:
   using: "composite"
   steps:
-      - name: "Derive TF Version"
-        id: "derive_tf_version"
-        uses: ./.github/actions/derive-tf-version
+    - name: "Derive TF Version"
+      id: "derive_tf_version"
+      uses: ./.github/actions/derive-tf-version
 
-      - name: "Install Terraform"
-        uses: ./.github/actions/install-terraform
-        with:
-          terraform_version: ${{ steps.derive_tf_version.outputs.terraform_version }}
+    - name: "Install Terraform"
+      uses: ./.github/actions/install-terraform
+      with:
+        terraform_version: ${{ steps.derive_tf_version.outputs.terraform_version }}
 
-      - name: "Action Infrastructure Stack"
-        id: "action_stack"
-        shell: bash
-        run: |
-          export TF_VAR_dev_account_number=${{ inputs.dos_dev_account_id }}
-          export TF_VAR_test_account_number=${{ inputs.dos_test_account_id }}
-          export ACTION=${{ inputs.action }}
-          export STACK=${{ inputs.stack }}
-          export ENVIRONMENT=${{ inputs.environment }}
-          export WORKSPACE=${{ inputs.workspace }}
-          export PROJECT=${{ inputs.project }}
-          export APPLICATION_TAG=${{ inputs.application_tag }}
-          export COMMIT_HASH=${{ inputs.commit_hash }}
-          /bin/bash ./scripts/workflow/action-infra-stack.sh
+    - name: "Action Infrastructure Stack"
+      id: "action_stack"
+      shell: bash
+      run: |
+        export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
+        export ACTION=${{ inputs.action }}
+        export STACK=${{ inputs.stack }}
+        export ENVIRONMENT=${{ inputs.environment }}
+        export WORKSPACE=${{ inputs.workspace }}
+        export PROJECT=${{ inputs.project }}
+        export APPLICATION_TAG=${{ inputs.application_tag }}
+        export COMMIT_HASH=${{ inputs.commit_hash }}
+        /bin/bash ./scripts/workflow/action-infra-stack.sh

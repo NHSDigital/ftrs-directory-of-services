@@ -157,6 +157,7 @@ jobs:
           workspace: ${{ inputs.workspace }}
           stack: ${{ matrix.stack }}
           action: validate
+          mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   check-terraform-format:
     name: "Check Terraform format"
