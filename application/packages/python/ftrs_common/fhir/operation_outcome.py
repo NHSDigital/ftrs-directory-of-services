@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 
 class OperationOutcomeException(Exception):
-    def __init__(self, outcome: dict):
+    def __init__(self, outcome: dict) -> None:
         self.outcome = outcome
         message = (
             outcome.get("issue", [{}])[0].get("diagnostics")
@@ -22,7 +22,6 @@ class OperationOutcomeHandler:
         diagnostics: str,
         code: str = "invalid",
         severity: str = "error",
-        status_code: int = 400,
         details: dict | None = None,
         issues: list | None = None,
     ) -> OperationOutcome:
@@ -45,7 +44,6 @@ class OperationOutcomeHandler:
         exc: Exception,
         code: str = "exception",
         severity: str = "fatal",
-        status_code: int = 500,
     ) -> OperationOutcome:
         """
         Build an OperationOutcome from an exception.
@@ -65,14 +63,12 @@ class OperationOutcomeHandler:
             diagnostics=str(exc),
             code=code,
             severity=severity,
-            status_code=status_code,
             details=details,
         )
 
     @staticmethod
     def from_validation_error(
         e: ValidationError,
-        status_code: int = 422,
     ) -> OperationOutcome:
         details = {
             "coding": [
@@ -89,6 +85,5 @@ class OperationOutcomeHandler:
             diagnostics="Validation failed for resource.",
             code="invalid",
             severity="error",
-            status_code=status_code,
             details=details,
         )

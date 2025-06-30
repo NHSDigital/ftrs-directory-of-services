@@ -1,147 +1,228 @@
-import pytest
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.organization import Organization
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_data_layer.models import Organisation
-from fhir.resources.R4B.organization import Organization
-from fhir.resources.R4B.contactpoint import ContactPoint
-from fhir.resources.R4B.codeableconcept import CodeableConcept
-from fhir.resources.R4B.coding import Coding
 
 
-def make_org(
-    id="ODS1",
-    name="Test Org",
-    active=True,
-    telecom=None,
-    type_=None,
-):
+def make_fhir_org(
+    id: str = "ODS1",
+    name: str = "Test Org",
+    active: bool = True,
+    telecom: list | None = None,
+    type: list | None = None,
+) -> Organization:
     kwargs = {
-        "id": id,
+        "identifier": [{"value": id}],
         "name": name,
         "active": active,
+        "type": type,
     }
     if telecom is not None:
         kwargs["telecom"] = telecom
-    if type_ is not None:
-        kwargs["type"] = type_
+
     return Organization(**kwargs)
 
-def test_from_fhir_maps_fields_correctly():
+
+def test_from_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
     telecom = [ContactPoint(system="phone", value="01234").model_dump()]
-    type_ = [CodeableConcept.model_dump(text="GP Practice")]
-    org = make_org(
-        id="ODS1", name="Test Org", active=True, telecom=telecom, type_=type_
+    org_type = [CodeableConcept(text="GP Practice").model_dump()]
+    org = make_fhir_org(
+        id="ODS1", name="Test Org", active=True, telecom=telecom, type=org_type
     )
-    result = mapper.from_fhir(org)
-    assert isinstance(result, Organisation)
-    assert result.identifier_ODS_ODSCode == "ODS1"
-    assert result.name == "Test Org"
-    assert result.active is True
-    assert result.telecom == "01234"
-    assert result.type == "GP Practice"
-    assert result.modified_by == "ODS_ETL_PIPELINE"
+    internal_organisation = mapper.from_fhir(org)
+    assert isinstance(internal_organisation, Organisation)
+    assert internal_organisation.identifier_ODS_ODSCode == "ODS1"
+    assert internal_organisation.name == "Test Org"
+    assert internal_organisation.active is True
+    assert internal_organisation.telecom == "01234"
+    assert internal_organisation.type == "GP Practice"
+    assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
 
-def test_from_fhir_handles_missing_fields():
+def test_from_fhir_handles_missing_telecom() -> None:
     mapper = OrganizationMapper()
-    org = make_org(id="ODS2", name=None, active=None, telecom=None, type_=None)
-    result = mapper.from_fhir(org)
-    assert result.identifier_ODS_ODSCode == "ODS2"
-    assert result.name is None
-    assert result.active is False
-    assert result.telecom is None
-    assert result.type is None
+    org_type = [CodeableConcept(text="GP Practice").model_dump()]
+    org = make_fhir_org(
+        id="ODS2", name="Test Org", active=True, telecom=None, type=org_type
+    )
+    internal_organisation = mapper.from_fhir(org)
+    assert internal_organisation.telecom is None
 
 
-def test_get_org_type_with_text():
+def test_get_org_type() -> None:
     mapper = OrganizationMapper()
-    type_ = [CodeableConcept(text="Hospital").model_dump()]
-    org = make_org(type_=type_)
-    assert mapper._get_org_type(org) == "Hospital"
+    org_type = [CodeableConcept(text="GP Practice").model_dump()]
+    org = make_fhir_org(
+        id="ODS1", name="Test Org", active=True, telecom=None, type=org_type
+    )
+    assert mapper._get_org_type(org) == "GP Practice"
 
 
-def test_get_org_type_with_coding_display():
+def test_get_org_type_type_no_text() -> None:
     mapper = OrganizationMapper()
-    coding = [Coding(display="Clinic", code="CLINIC").model_dump()]
-    type_ = [CodeableConcept(text=None, coding=coding).model_dump()]
-    org = make_org(type_=type_)
-    assert mapper._get_org_type(org) == "Clinic"
+
+    class DummyType:
+        text = None
+
+    class DummyOrg:
+        type = [DummyType()]
+
+    assert mapper._get_org_type(DummyOrg()) is None
 
 
-def test_get_org_type_with_coding_code():
+def test_get_org_type_no_type() -> None:
     mapper = OrganizationMapper()
-    coding = [Coding(display=None, code="CODEONLY").model_dump()]
-    type_ = [CodeableConcept(text=None, coding=coding).model_dump()]
-    org = make_org(type_=type_)
-    assert mapper._get_org_type(org) == "CODEONLY"
-
-
-def test_get_org_type_none():
-    mapper = OrganizationMapper()
-    org = make_org(type_=None)
+    org = make_fhir_org(
+        id="ODS1", name="Test Org", active=True, telecom=None, type=None
+    )
     assert mapper._get_org_type(org) is None
 
 
-def test_get_org_telecom_with_phone():
+def test_get_org_telecom_with_phone() -> None:
     mapper = OrganizationMapper()
     telecom = [ContactPoint(system="phone", value="01234").model_dump()]
-    org = make_org(telecom=telecom)
+    org = make_fhir_org(telecom=telecom)
     assert mapper._get_org_telecom(org) == "01234"
 
 
-def test_get_org_telecom_none():
+def test_get_org_telecom_none() -> None:
     mapper = OrganizationMapper()
     telecom = [ContactPoint(system="email", value="test@example.com").model_dump()]
-    org = make_org(telecom=telecom)
+    org = make_fhir_org(telecom=telecom)
     assert mapper._get_org_telecom(org) is None
 
 
-def test_from_ods_fhir_to_fhir_validates_and_returns(mocker):
+def test_get_org_telecom_with_no_phone() -> None:
     mapper = OrganizationMapper()
-    ods_organisation = {
-        "resourceType": "Organization",
-        "id": "C88037",
-        "meta": {
-            "lastUpdated": "2024-10-23T00:00:00+00:00",
-            "profile": "https://fhir.nhs.uk/STU3/StructureDefinition/ODSAPI-Organization-1",
-        },
-        "active": True,
-        "name": "Test Org",
-        "telecom": [{"system": "phone", "value": "01234"}],
-        "identifier": {"system": "test", "value": "ODS1"},
+    telecom = [
+        ContactPoint(system="email", value="test@example.com").model_dump(),
+        ContactPoint(system="fax", value="12345").model_dump(),
+    ]
+    org = make_fhir_org(telecom=telecom)
+    assert mapper._get_org_telecom(org) is None
+
+
+def test_get_org_telecom_empty() -> None:
+    mapper = OrganizationMapper()
+
+    class DummyOrg:
+        telecom = []
+
+    assert mapper._get_org_telecom(DummyOrg()) is None
+
+
+def test_get_org_telecom_missing() -> None:
+    mapper = OrganizationMapper()
+
+    class DummyOrg:
+        pass
+
+    assert mapper._get_org_telecom(DummyOrg()) is None
+
+
+def test_create_contact_point_from_telecom_only_phone() -> None:
+    mapper = OrganizationMapper()
+    telecom = [
+        {"system": "phone", "value": "01234"},
+        {"system": "url", "value": "http://example.com"},
+        {"system": "email", "value": "test@example.com"},
+    ]
+    result = mapper._create_contact_point_from_telecom(telecom)
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0]["system"] == "phone"
+    assert result[0]["value"] == "01234"
+    assert result[0]["use"] == "work"
+
+
+def test_create_contact_point_from_telecom_no_phone() -> None:
+    mapper = OrganizationMapper()
+    telecom = [
+        {"system": "email", "value": "test@example.com"},
+        {"system": "url", "value": "http://example.com"},
+    ]
+    result = mapper._create_contact_point_from_telecom(telecom)
+    assert result == []
+
+
+def test_create_contact_point_from_telecom_empty() -> None:
+    mapper = OrganizationMapper()
+    assert mapper._create_contact_point_from_telecom([]) == []
+
+
+def test_get_role_display_from_extension_missing_role() -> None:
+    mapper = OrganizationMapper()
+    ext = {"extension": [{"url": "notrole", "valueCoding": {"display": "GP PRACTICE"}}]}
+    assert mapper._get_role_display_from_extension(ext) is None
+
+
+def test_get_role_display_from_extension_role_no_display() -> None:
+    mapper = OrganizationMapper()
+    ext = {"extension": [{"url": "role", "valueCoding": {}}]}
+    assert mapper._get_role_display_from_extension(ext) is None
+
+
+def test_get_role_display_from_extension_role_with_display() -> None:
+    mapper = OrganizationMapper()
+    ext = {"extension": [{"url": "role", "valueCoding": {"display": "Test Role"}}]}
+    assert mapper._get_role_display_from_extension(ext) == "Test Role"
+
+
+def test_get_role_display_from_extension_role_with_display_missing_value_coding() -> (
+    None
+):
+    mapper = OrganizationMapper()
+    ext = {"extension": [{"url": "role"}]}
+    assert mapper._get_role_display_from_extension(ext) is None
+
+
+def test_is_primary_role_false_when_no_primary_role() -> None:
+    mapper = OrganizationMapper()
+    ext = {"extension": [{"url": "role", "valueCoding": {"display": "GP PRACTICE"}}]}
+    assert not mapper._is_primary_role(ext)
+
+
+def test_is_primary_role_false_when_primary_role_false() -> None:
+    mapper = OrganizationMapper()
+    ext = {"extension": [{"url": "primaryRole", "valueBoolean": False}]}
+    assert not mapper._is_primary_role(ext)
+
+
+def test_extract_role_from_extension_no_matching_extension() -> None:
+    mapper = OrganizationMapper()
+    ods_org = {
+        "extension": [
+            {
+                "url": "not-a-role-url",
+                "extension": [
+                    {"url": "role", "valueCoding": {"display": "GP PRACTICE"}},
+                    {"url": "primaryRole", "valueBoolean": True},
+                ],
+            }
+        ]
+    }
+    assert mapper._extract_role_from_extension(ods_org) is None
+
+
+def test_extract_role_from_extension_no_primary_role() -> None:
+    mapper = OrganizationMapper()
+    ods_org = {
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
                 "extension": [
-                    {
-                        "url": "role",
-                        "valueCoding": {
-                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
-                            "display": "GP PRACTICE",
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": True},
+                    {"url": "role", "valueCoding": {"display": "GP PRACTICE"}},
+                    # missing primaryRole
                 ],
-            },
-        ],
+            }
+        ]
     }
-    organisation = Organization(
-        id=="C88037",
-        name="Test Org",
-        active=True,
-        contact="01234",
-        type="GP PRACTICE",
-    )
-    mock_validator = mocker.patch(
-        "ftrs_common.fhir.r4b.organisation_mapper.FhirValidator.validate",
-        return_value=organisation,
-    )
-    result = mapper.from_ods_fhir_to_fhir(ods_organisation)
-    assert result is organisation
-    mock_validator.assert_called_once()
+    assert mapper._extract_role_from_extension(ods_org) is None
 
 
-def test_create_codable_concept_for_type_returns_list_of_dict():
+def test_create_codable_concept_for_type_returns_list_of_dict() -> None:
     mapper = OrganizationMapper()
     ods_org = {
         "extension": [
@@ -161,26 +242,71 @@ def test_create_codable_concept_for_type_returns_list_of_dict():
                     {"url": "role", "valueCoding": {"display": "GP PRACTICE"}},
                     {"url": "primaryRole", "valueBoolean": True},
                 ],
-            }
+            },
         ]
     }
     result = mapper._create_codable_concept_for_type(ods_org)
     assert isinstance(result, list)
     assert isinstance(result[0], CodeableConcept)
-    assert result[0].coding[0]["display"] == "GP PRACTICE"
-    assert result[0].coding[0]["code"] == "76"
+    assert result[0].coding[0].display == "GP PRACTICE"
+    assert result[0].coding[0].code == "76"
 
 
-def test_create_contact_point_from_telecom_only_phone():
+def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     mapper = OrganizationMapper()
-    telecom = [
-        {"system": "phone", "value": "01234"},
-        {"system": "url", "value": "http://example.com"},
-        {"system": "email", "value": "test@example.com"},
-    ]
-    result = mapper._create_contact_point_from_telecom(telecom)
-    assert isinstance(result, list)
-    assert len(result) == 1
-    assert result[0]["system"] == "phone"
-    assert result[0]["value"] == "01234"
-    assert result[0]["use"] == "work"
+    ods_fhir_organisation = {
+        "resourceType": "Organization",
+        "id": "C88037",
+        "meta": {
+            "lastUpdated": "2024-10-23T00:00:00+00:00",
+            "profile": "https://fhir.nhs.uk/STU3/StructureDefinition/ODSAPI-Organization-1",
+        },
+        "active": True,
+        "name": "Test Org",
+        "telecom": [{"system": "phone", "value": "01234"}],
+        "identifier": {
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "C88037",
+        },
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "extension": [
+                    {
+                        "url": "role",
+                        "valueCoding": {
+                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                            "display": "GP PRACTICE",
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                ],
+            },
+        ],
+    }
+    expected_fhir_organisation = Organization(
+        id="C88037",
+        name="Test Org",
+        active=True,
+        telecom=[ContactPoint(system="phone", value="01234", use="work").model_dump()],
+        type=[
+            CodeableConcept(
+                coding=[
+                    {
+                        "system": "todo",
+                        "code": "76",
+                        "display": "GP PRACTICE",
+                    }
+                ]
+            ).model_dump()
+        ],
+    )
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
+    assert result.model_dump(
+        exclude_none=True
+    ) == expected_fhir_organisation.model_dump(exclude_none=True)
+
+
+def test_to_fhir_calls_super_and_returns_none() -> None:
+    mapper = OrganizationMapper()
+    assert mapper.to_fhir(None) is None

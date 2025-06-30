@@ -1,43 +1,23 @@
-from pydantic import BaseModel, ValidationError
+import pytest
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-import pytest
+from pydantic import BaseModel
 
 
 class DummyModel(BaseModel):
-    @classmethod
-    def model_validate(cls, resource):
-        if resource.get("fail"):
-            raise ValidationError(
-                [
-                    {
-                        "loc": ("fail",),
-                        "msg": "Forced failure",
-                        "type": "value_error",
-                    }
-                ],
-                cls,
-            )
-        return "validated"
+    foo: str
 
 
-def test_validate_success():
+def test_validate_success() -> None:
     resource = {"foo": "bar"}
     result = FhirValidator.validate(resource, DummyModel)
-    assert result == "validated"
+    assert isinstance(result, DummyModel)
+    assert result.foo == "bar"
 
 
-def test_validate_failure(mocker):
-    resource = {"fail": True}
-    mock_outcome = object()
-    mock_handler = mocker.patch(
-        "ftrs_common.fhir.fhir_validator.OperationOutcomeHandler.from_validation_error",
-        return_value=mock_outcome,
-    )
-    fake_error = mocker.Mock()
-    fake_error.__str__ = lambda self: "Fake error"
-    mock_validate.side_effect = ValidationError([fake_error], model=SomeModel)
-    with pytest.raises(OperationOutcomeException) as exc:
-        FhirValidator.validate(resource, DummyModel)
-    assert exc.value.outcome is mock_outcome
-    mock_handler.assert_called_once()
+def test_validate_failure(caplog: pytest.LogCaptureFixture) -> None:
+    resource = {"foo": 123}
+    with caplog.at_level("WARNING"):
+        with pytest.raises(OperationOutcomeException):
+            FhirValidator.validate(resource, DummyModel)
+        assert "FHIR validation failed for resource DummyModel" in caplog.text
