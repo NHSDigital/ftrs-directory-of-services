@@ -111,7 +111,7 @@ locals {
     ]
 
     private_inbound = [
-      for i, cidr_block in concat(local.public_subnets, local.database_subnets, aws_vpc_endpoint.s3_vpce.cidr_blocks, aws_vpc_endpoint.dynamodb_vpce.cidr_blocks) : {
+      for i, cidr_block in concat(local.public_subnets, local.database_subnets, local.private_subnets) : {
         rule_number = 200 + i
         rule_action = "allow"
         from_port   = 0
