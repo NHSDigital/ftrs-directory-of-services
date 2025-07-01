@@ -1,15 +1,16 @@
 import json
+
 import pytest
+import requests
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
-import requests
 from requests_mock import Mocker as RequestsMock
 
-from pipeline.processor import processor, processor_lambda_handler, process_organisation
+from pipeline.processor import process_organisation, processor, processor_lambda_handler
 
 
 @pytest.fixture
-def mock_responses(requests_mock: RequestsMock):
+def mock_responses(requests_mock: RequestsMock) -> dict:
     ods_sync_data = {
         "Organisations": [
             {
@@ -51,7 +52,7 @@ def mock_responses(requests_mock: RequestsMock):
     }
 
 
-def test_processor_processing_organisations_successful(
+def test_processor_processing_organisations_success(
     mocker: MockerFixture,
     requests_mock: RequestsMock,
     mock_responses,
@@ -186,6 +187,7 @@ def test_processor_continue_on_validation_failure(
     def fetch_uuid_side_effect(ods_code):
         if ods_code == "ABC123":
             import requests
+
             raise requests.exceptions.HTTPError(
                 "422 Client Error: None for url: http://test-crud-api/organisation/ods_code/ABC123"
             )
@@ -236,10 +238,17 @@ def test_processor_no_outdated_organisations(
     )
     assert expected_log in caplog.text
 
-def test_process_organisation_returns_none_and_logs_when_uuid_none(mocker: MockerFixture):
+
+def test_process_organisation_returns_none_and_logs_when_uuid_none(
+    mocker: MockerFixture,
+) -> None:
     ods_code = "ODS123"
-    mocker.patch("pipeline.processor.fetch_ods_organisation_data", return_value={"id": ods_code})
-    mocker.patch("pipeline.processor.transform_to_payload", return_value={"fhir": "org"})
+    mocker.patch(
+        "pipeline.processor.fetch_ods_organisation_data", return_value={"id": ods_code}
+    )
+    mocker.patch(
+        "pipeline.processor.transform_to_payload", return_value={"fhir": "org"}
+    )
     mocker.patch("pipeline.processor.fetch_organisation_uuid", return_value=None)
     logger = mocker.patch("pipeline.processor.ods_processor_logger.log")
 
@@ -252,7 +261,7 @@ def test_process_organisation_returns_none_and_logs_when_uuid_none(mocker: Mocke
     assert call_args["error_message"] == "Organisation UUID not found."
 
 
-def test_processor_catches_requests_exception_and_logs(mocker: MockerFixture):
+def test_processor_catches_requests_exception_and_logs(mocker: MockerFixture) -> None:
     req_exc = requests.exceptions.RequestException("network error")
     mocker.patch("pipeline.processor.fetch_sync_data", side_effect=req_exc)
     logger = mocker.patch("pipeline.processor.ods_processor_logger.log")
@@ -263,7 +272,8 @@ def test_processor_catches_requests_exception_and_logs(mocker: MockerFixture):
         error_message="network error",
     )
 
-def test_processor_catches_general_exception_and_logs(mocker: MockerFixture):
+
+def test_processor_catches_general_exception_and_logs(mocker: MockerFixture) -> None:
     gen_exc = Exception("unexpected error")
     mocker.patch("pipeline.processor.fetch_sync_data", side_effect=gen_exc)
     logger = mocker.patch("pipeline.processor.ods_processor_logger.log")
@@ -273,6 +283,7 @@ def test_processor_catches_general_exception_and_logs(mocker: MockerFixture):
         OdsETLPipelineLogBase.ETL_PROCESSOR_023,
         error_message="unexpected error",
     )
+
 
 def test_processor_missing_org_link(
     requests_mock: RequestsMock,
