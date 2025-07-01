@@ -11,13 +11,12 @@ make install
 npm run start
 ```
 
-
 To run this application in local development mode
 
 - set up a .env file in the root of the project with the following variables:
   - `ENVIRONMENT=dev`
 
-- assume the dev AWS role
+- assume the DOS-FtRS-RW-Developer AWS role or export the AWS credentials for the role you want to use in your environment.
 
 - run the following command to start the application:
 
