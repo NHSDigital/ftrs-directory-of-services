@@ -35,7 +35,9 @@ resource "aws_iam_policy" "route53_cross_account_policy" {
           "route53:GetHostedZone",
           "route53:ChangeResourceRecordSets",
           "route53:ListHostedZones",
-          "route53:ListTagsForResource"
+          "route53:ListTagsForResource",
+          "route53:GetChange",
+          "route53:ListResourceRecordSets"
         ]
         Resource = "*"
       }
