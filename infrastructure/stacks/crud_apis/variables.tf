@@ -132,9 +132,9 @@ variable "create_certificate" {
   default     = true
 }
 
-variable "mtls_certificate_arn" {
-  description = "ACM certificate ARN for the domain (optional - will create one if not provided)"
-  type        = string
-  default     = ""
-}
+# variable "mtls_certificate_arn" {
+#   description = "ACM certificate ARN for the domain (optional - will create one if not provided)"
+#   type        = string
+#   default     = ""
+# }
 
