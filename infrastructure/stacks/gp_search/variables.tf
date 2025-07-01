@@ -39,3 +39,20 @@ variable "retention_in_days" {
   type        = number
   default     = 7
 }
+
+variable "dev_domain_name" {
+  description = "value of the domain name to use for the API Gateway"
+  type        = string
+  default     = "dev.ftrs.cloud.nhs.uk"
+}
+
+variable "subdomain_fqdn" {
+  description = "The fully qualified subdomain to delegate (e.g. dev.ftrs.cloud.nhs.uk)"
+  type        = string
+}
+
+variable "api_record_name" {
+  description = "The name of the API Gateway record in Route53 (e.g. gpsearch.dev.ftrs.cloud.nhs.uk)"
+  type        = string
+  default     = "gpsearch.dev.ftrs.cloud.nhs.uk"
+}
