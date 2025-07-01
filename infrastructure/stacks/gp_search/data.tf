@@ -25,3 +25,8 @@ data "aws_subnet" "private_subnets_details" {
 data "aws_dynamodb_table" "dynamodb_organisation_table" {
   name = var.dynamodb_organisation_table_name
 }
+
+data "aws_route53_zone" "dev_ftrs_cloud" {
+  name         = var.dev_domain_name
+  private_zone = false
+}
