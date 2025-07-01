@@ -32,3 +32,11 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
   name              = "/aws/apigateway/${local.resource_prefix}-api-gateway-execution-logs${local.workspace_suffix}/default"
   retention_in_days = var.retention_in_days
 }
+
+resource "aws_route53_record" "api_gateway_dev" {
+  zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
+  name    = "gpsearch.dev.ftrs.cloud.nhs.uk"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["<your-api-id>.execute-api.<region>.amazonaws.com"]
+}
