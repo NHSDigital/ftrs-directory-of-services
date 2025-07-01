@@ -1,0 +1,61 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "Extension-England-EndpointCompression",
+  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression",
+  "version": "1.0.0",
+  "name": "ExtensionEnglandEndpointCompression",
+  "title": "Extension England Endpoint Compression",
+  "status": "draft",
+  "date": "2025-07-01",
+  "publisher": "NHS England",
+  "contact": [
+    {
+      "name": "NHS England",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "interoperabilityteam@nhs.net",
+          "use": "work",
+          "rank": 1
+        }
+      ]
+    }
+  ],
+  "description": "The Endpoint Compression extension is used to signify if the message recipient is able to receive compressed data. This will translate to 'Compressed' or 'Uncompressed' respectively. Compression reduces bandwidth requirements and can reduce messaging delays and/or failure.",
+  "purpose": "The Endpoint Compression extension enables systems to determine whether an endpoint can accept compressed data, allowing for optimization of data transmission by reducing bandwidth requirements and potential messaging delays or failures.",
+  "copyright": "Copyright © 2023+ NHS England Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. HL7® FHIR® standard Copyright © 2011+ HL7 The HL7® FHIR® standard is used under the FHIR license. You may obtain a copy of the FHIR license at  https://www.hl7.org/fhir/license.html.",
+  "fhirVersion": "4.0.1",
+  "kind": "primitive-type",
+  "abstract": false,
+  "context": [
+    {
+      "type": "element",
+      "expression": "Endpoint"
+    }
+  ],
+  "type": "Extension",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Extension.url",
+        "path": "Extension.url",
+        "fixedUri": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
+      },
+      {
+        "id": "Extension.value[x]",
+        "path": "Extension.value[x]",
+        "short": "Indicates if endpoint supports compressed data",
+        "definition": "A boolean value indicating whether the message recipient is able to receive compressed data. True indicates 'Compressed' capability, false indicates 'Uncompressed' only. Compression reduces bandwidth requirements and can reduce messaging delays and/or failure.",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "boolean"
+          }
+        ]
+      }
+    ]
+  }
+}
