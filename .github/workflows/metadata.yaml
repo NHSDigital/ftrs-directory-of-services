@@ -67,7 +67,6 @@ on:
       account_type:
         description: "Type of account based on the environment"
         value: ${{ jobs.set-environment.outputs.account_type }}
-
 jobs:
   echo-metadata:
     name: "Get Metadata"
