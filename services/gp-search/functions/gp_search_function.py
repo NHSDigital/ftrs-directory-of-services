@@ -17,6 +17,9 @@ tracer = Tracer()
 @logger.inject_lambda_context(log_event=True, clear_state=True)
 @tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
+    logger.debug(
+        "Received event and context", extra={"event": event, "context": context}
+    )
     try:
         event = normalize_event(event)
         validate(event, json_schemas.INPUT_EVENT)
