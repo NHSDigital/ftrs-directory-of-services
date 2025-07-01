@@ -1,0 +1,65 @@
+{
+  "resourceType": "StructureDefinition",
+  "id": "Extension-England-EndpointBusinessScenario",
+  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
+  "version": "1.0.0",
+  "name": "ExtensionEnglandEndpointBusinessScenario",
+  "title": "Extension England Endpoint Business Scenario",
+  "status": "draft",
+  "date": "2025-07-01",
+  "publisher": "NHS England",
+  "contact": [
+    {
+      "name": "NHS England",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "interoperabilityteam@nhs.net",
+          "use": "work",
+          "rank": 1
+        }
+      ]
+    }
+  ],
+  "description": "The Endpoint Business Scenario extension indicates if the endpoint is the main recipient for the message. In most cases, except for Service type 'GP', the entry should be 'Primary'. For Service Type of 'GP' the Primary endpoint will be used to receive messages from dispositions where the patient is being directed to their own GP and the GP needs to have direct access to the call information. The 'Copy' endpoint is only used for Post Event Messaging (PEM) to GP services.",
+  "purpose": "The Endpoint Business Scenario extension enables differentiation between primary message recipients and copy recipients, particularly important for GP services where separate endpoints may be required for direct patient dispositions versus Post Event Messaging (PEM) scenarios.",
+  "copyright": "Copyright © 2023+ NHS England Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. HL7® FHIR® standard Copyright © 2011+ HL7 The HL7® FHIR® standard is used under the FHIR license. You may obtain a copy of the FHIR license at  https://www.hl7.org/fhir/license.html.",
+  "fhirVersion": "4.0.1",
+  "kind": "primitive-type",
+  "abstract": false,
+  "context": [
+    {
+      "type": "element",
+      "expression": "Endpoint"
+    }
+  ],
+  "type": "Extension",
+  "baseDefinition": "http://hl7.org/fhir/StructureDefinition/Extension",
+  "derivation": "constraint",
+  "differential": {
+    "element": [
+      {
+        "id": "Extension.url",
+        "path": "Extension.url",
+        "fixedUri": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+      },
+      {
+        "id": "Extension.value[x]",
+        "path": "Extension.value[x]",
+        "short": "Business scenario type for the endpoint",
+        "definition": "Indicates the business scenario for which this endpoint is intended. 'Primary' indicates the main recipient for messages (used for most services and for GP direct patient dispositions). 'Copy' indicates a copy recipient (used only for Post Event Messaging to GP services where patients have been treated by another service).",
+        "min": 1,
+        "max": "1",
+        "type": [
+          {
+            "code": "code"
+          }
+        ],
+        "binding": {
+          "strength": "required",
+          "valueSet": "https://fhir.nhs.uk/England/ValueSet/England-EndpointBusinessScenario"
+        }
+      }
+    ]
+  }
+}
