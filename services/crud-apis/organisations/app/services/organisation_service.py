@@ -2,42 +2,49 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi import HTTPException
-from ftrs_common.fhir.operation_outcome import OperationOutcomeException, OperationOutcomeHandler
+from fhir.resources.R4B.organization import Organization
+from ftrs_common.fhir.fhir_validator import FhirValidator
+from ftrs_common.fhir.operation_outcome import (
+    OperationOutcomeException,
+    OperationOutcomeHandler,
+)
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
-from fastapi.responses import JSONResponse
-from fhir.resources.R4B.organization import Organization
 
 class OrganisationService:
     def __init__(
         self,
         org_repository: AttributeLevelRepository[Organisation],
-        logger=None,
-        mapper=None,
-    ):
+        logger: Logger | None = None,
+        mapper: OrganizationMapper | None = None,
+    ) -> None:
         self.org_repository = org_repository
         self.logger = logger or Logger.get(service="crud_organisation_logger")
         self.organisation_mapper = mapper or OrganizationMapper()
 
     def process_organisation_update(
-        self, organisation_id, fhir_org,
+        self,
+        organisation_id: str,
+        fhir_org: Organization,
     ) -> bool:
         """
         Update an organisation from a FHIR Organisation resource.
         """
-        fhir_organisation = Organization.model_validate(fhir_org)
-        print("here1")
-        ods_code = fhir_org.get("identifier", [{}])[0].get("value") if isinstance(fhir_org.get("identifier"), list) else None
-        print("here1")
+        fhir_organisation = FhirValidator.validate(fhir_org, Organization)
+        ods_code = None
 
+        if (
+            hasattr(fhir_org, "identifier")
+            and fhir_org.identifier
+            and hasattr(fhir_org.identifier[0], "value")
+        ):
+            ods_code = fhir_org.identifier[0].value
         stored_organisation = self._get_stored_organisation(organisation_id, ods_code)
-        print("here2")
-        organisation = self.mapper.from_fhir(fhir_organisation)
-        ## update ^
+        organisation = self.organisation_mapper.from_fhir(fhir_organisation)
         outdated_fields = self._get_outdated_fields(stored_organisation, organisation)
 
         if not outdated_fields:
@@ -55,9 +62,7 @@ class OrganisationService:
         )
         return True
 
-    def create_organisation(
-        self, organisation: Organisation
-    ) -> Organisation:
+    def create_organisation(self, organisation: Organisation) -> Organisation:
         # if the organisation already exists, we log it and raise an error
         existing_organisation = self.org_repository.get_by_ods_code(
             organisation.identifier_ODS_ODSCode
@@ -97,7 +102,9 @@ class OrganisationService:
                 setattr(existing_organisation, field, value)
         existing_organisation.modifiedDateTime = datetime.now(UTC)
 
-    def _get_stored_organisation(self, organisation_id: str, ods_code: str) -> Organisation | None:
+    def _get_stored_organisation(
+        self, organisation_id: str, ods_code: str
+    ) -> Organisation | None:
         """
         Retrieve the stored organisation from the repository.
         """
@@ -111,7 +118,6 @@ class OrganisationService:
                 diagnostics="Organisation not found.",
                 code="not-found",
                 severity="error",
-                status_code=404,
             )
             raise OperationOutcomeException(outcome)
         return organisation

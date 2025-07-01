@@ -2,31 +2,32 @@ import logging
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
-from fastapi.params import Body, Path
+from fastapi import APIRouter, Body, HTTPException, Path
 from fastapi.responses import JSONResponse, Response
-from ftrs_common.fhir.operation_outcome import OperationOutcomeException
+from ftrs_common.fhir.operation_outcome import (
+    OperationOutcomeException,
+    OperationOutcomeHandler,
+)
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import Organisation
 
-from organisations.app.models.operation_outcomes import operation_outcome
-from organisations.app.services.organisation_helpers import (
-    process_organisation_update,
-    create_organisation,
-)
+from organisations.app.services.organisation_service import OrganisationService
 from organisations.app.services.validators import (
     CreatePayloadValidator,
-    UpdatePayloadValidator,
 )
 from utils.db_service import get_service_repository
 
 ERROR_MESSAGE_404 = "Organisation not found"
+FHIR_MEDIA_TYPE = "application/fhir+json"
 
 router = APIRouter()
 org_repository = get_service_repository(Organisation, "organisation")
-
 crud_organisation_logger = Logger.get(service="crud_organisation_logger")
+organisation_service = OrganisationService(
+    org_repository=org_repository, logger=crud_organisation_logger
+)
+
 
 @router.get("/ods_code/{ods_code}", summary="Get an organisation by ODS code.")
 def get_org_by_ods_code(
@@ -36,22 +37,38 @@ def get_org_by_ods_code(
         CrudApisLogBase.ORGANISATION_001,
         ods_code=ods_code,
     )
-    records = org_repository.get_by_ods_code(ods_code)
-
-    if not records:
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_002,
-            ods_code=ods_code,
+    try:
+        records = org_repository.get_by_ods_code(ods_code)
+        if not records:
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_002,
+                ods_code=ods_code,
+            )
+            return JSONResponse(
+                status_code=404,
+                content=OperationOutcomeHandler.build(
+                    diagnostics=ERROR_MESSAGE_404,
+                    code="not-found",
+                    severity="error",
+                ),
+                media_type=FHIR_MEDIA_TYPE,
+            )
+        org = records[0]
+        return JSONResponse(
+            status_code=200,
+            content=organisation_service.organisation_mapper.to_fhir(org),
+            media_type=FHIR_MEDIA_TYPE,
         )
-        return operation_outcome(
-            "Organisation not found", code="not-found",  severity="error", status_code=404
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content=OperationOutcomeHandler.build(
+                diagnostics=f"Unexpected error: {str(e)}",
+                code="exception",
+                severity="error",
+            ),
+            media_type=FHIR_MEDIA_TYPE,
         )
-    org = records[0]
-    return JSONResponse(
-        status_code=200,
-        content=org.to_fhir(),
-        media_type="application/fhir+json",
-    )
 
 
 @router.get("/{organisation_id}", summary="Read a single organisation by id")
@@ -96,7 +113,6 @@ def get_all_organisations(limit: int = 10) -> list[Organisation]:
 @router.put(
     "/{organisation_id}",
     summary="Update an organisation.",
-    response_model=JSONResponse,
     response_description="OperationOutcome",
 )
 def update_organisation(
@@ -105,43 +121,56 @@ def update_organisation(
         examples=["00000000-0000-0000-0000-11111111111"],
         description="The internal id of the organisation",
     ),
-    fhir_org: dict = Body(..., media_type="application/fhir+json")
-) -> dict:
+    fhir_org: dict = Body(..., media_type=FHIR_MEDIA_TYPE),
+) -> JSONResponse:
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_005,
         organisation_id=organisation_id,
     )
     try:
-        process_organisation_update(
+        processed = organisation_service.process_organisation_update(
             organisation_id=organisation_id,
             fhir_org=fhir_org,
-            org_repository=org_repository,
-            logger=crud_organisation_logger,
         )
+        if not processed:
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_007,
+                organisation_id=organisation_id,
+            )
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "message": "No changes made to the organisation",
+                },
+                media_type=FHIR_MEDIA_TYPE,
+            )
         return JSONResponse(
             status_code=200,
             content={"success": True, "message": "Organisation updated successfully"},
+            media_type=FHIR_MEDIA_TYPE,
         )
     except OperationOutcomeException as e:
         return JSONResponse(
-            status_code=e.outcome.status_code,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content=e.outcome,
-            media_type="application/fhir+json",
+            media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:
         crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_006,
+            CrudApisLogBase.ORGANISATION_019,
             organisation_id=organisation_id,
-            error=str(e),
-        )
-        outcome = OperationOutcomeHandler.from_exception(
-            exc=e,
+            error_message=str(e),
         )
         return JSONResponse(
             status_code=500,
-            content=outcome,
-            media_type="application/fhir+json",
+            content=OperationOutcomeHandler.build(
+                diagnostics=f"Unexpected error: {str(e)}",
+                code="exception",
+                severity="error",
+            ),
+            media_type=FHIR_MEDIA_TYPE,
         )
+
 
 @router.post("/", summary="Create a new organisation")
 def post_organisation(
@@ -167,7 +196,7 @@ def post_organisation(
         CrudApisLogBase.ORGANISATION_011,
         ods_code=organisation.identifier_ODS_ODSCode,
     )
-    organisation = create_organisation(organisation, org_repository)
+    organisation = organisation_service.create_organisation(organisation)
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_015,
         ods_code=organisation.identifier_ODS_ODSCode,
@@ -201,7 +230,7 @@ def delete_organisation(
             CrudApisLogBase.ORGANISATION_010,
             organisation_id=organisation_id,
         )
-        raise HTTPException(status_code=404, detail="Organisation not found")
+        raise HTTPException(status_code=404, detail=ERROR_MESSAGE_404)
 
     org_repository.delete(organisation_id)
     crud_organisation_logger.log(
