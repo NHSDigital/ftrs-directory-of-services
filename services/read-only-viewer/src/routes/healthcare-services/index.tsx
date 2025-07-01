@@ -20,7 +20,7 @@ const HealthCareServicePage: React.FC = () => {
         ]}
       />
       <h1 className="nhsuk-heading-l">Healthcare-Service</h1>
-      {isLoading && <p>Loading organisations...</p>}
+      {isLoading && <p>Loading health care service...</p>}
       {isError && <RequestErrorDetails error={error as ResponseError} />}
       {data && data.length > 0 && <HealthcareServiceDataTable data={data} />}
     </>
