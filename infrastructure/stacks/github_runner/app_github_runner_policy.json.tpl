@@ -147,6 +147,18 @@
             "route53:ChangeTagsForResource"
           ],
           "Resource": "*"
+        },
+        {
+            "Sid": "ACMCertificateManagement",
+            "Effect": "Allow",
+            "Action": [
+                "acm:RequestCertificate",
+                "acm:DescribeCertificate",
+                "acm:DeleteCertificate",
+                "acm:AddTagsToCertificate",
+                "acm:ListCertificates"
+            ],
+            "Resource": "*"
         }
     ]
 }
