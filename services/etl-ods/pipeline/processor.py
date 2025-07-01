@@ -6,6 +6,7 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import load_data
+
 from .extract import (
     extract_ods_code,
     fetch_ods_organisation_data,

@@ -8,11 +8,11 @@ from botocore.credentials import Credentials
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
+    build_headers,
     get_base_crud_api_url,
     get_signed_request_headers,
-    make_request,
     handle_fhir_response,
-    build_headers,
+    make_request,
 )
 
 
@@ -297,7 +297,9 @@ def test_make_request_request_exception(requests_mock: RequestsMock) -> None:
     assert mock_get.last_request.method == "GET"
 
 
-def test_make_request_fhir_operation_outcome(requests_mock: RequestsMock, caplog) -> None:
+def test_make_request_fhir_operation_outcome(
+    requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
+) -> None:
     """
     Test make_request raises Exception on FHIR OperationOutcome and logs error.
     """
@@ -307,9 +309,9 @@ def test_make_request_fhir_operation_outcome(requests_mock: RequestsMock, caplog
             {
                 "severity": "error",
                 "code": "processing",
-                "diagnostics": "FHIR error details"
+                "diagnostics": "FHIR error details",
             }
-        ]
+        ],
     }
     requests_mock.get(
         "https://api.example.com/fhir",
@@ -318,12 +320,14 @@ def test_make_request_fhir_operation_outcome(requests_mock: RequestsMock, caplog
     )
     url = "https://api.example.com/fhir"
     with caplog.at_level("INFO"):
-        with pytest.raises(Exception, match="FHIR OperationOutcome: processing - FHIR error details"):
+        with pytest.raises(
+            Exception, match="FHIR OperationOutcome: processing - FHIR error details"
+        ):
             make_request(url, fhir=True)
         assert "failed" not in caplog.text
 
 
-def test_handle_fhir_response_no_operation_outcome(caplog):
+def test_handle_fhir_response_no_operation_outcome(caplog: pytest.LogCaptureFixture) -> None:
     """
     Test handle_fhir_response returns data if not OperationOutcome.
     """
@@ -333,7 +337,7 @@ def test_handle_fhir_response_no_operation_outcome(caplog):
     assert result == data
 
 
-def test_build_headers_fhir_and_json():
+def test_build_headers_fhir_and_json() -> None:
     """
     Test build_headers sets correct headers for FHIR and JSON.
     """
@@ -350,11 +354,14 @@ def test_build_headers_fhir_and_json():
 
 
 @patch("pipeline.utilities.get_signed_request_headers")
-def test_build_headers_sign(mock_get_signed_request_headers):
+def test_build_headers_sign(mock_get_signed_request_headers: MagicMock) -> None:
     """
     Test build_headers calls get_signed_request_headers and merges headers.
     """
-    mock_get_signed_request_headers.return_value = {"Authorization": "sigv4", "Host": "api.example.com"}
+    mock_get_signed_request_headers.return_value = {
+        "Authorization": "sigv4",
+        "Host": "api.example.com",
+    }
     headers = build_headers(
         json_data=None,
         json_string=None,
@@ -367,7 +374,7 @@ def test_build_headers_sign(mock_get_signed_request_headers):
     assert headers["Host"] == "api.example.com"
 
 
-def test_make_request_logs_http_error(requests_mock: RequestsMock, caplog):
+def test_make_request_logs_http_error(requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture) -> None:
     """
     Test make_request logs HTTPError.
     """
@@ -385,7 +392,8 @@ def test_make_request_logs_http_error(requests_mock: RequestsMock, caplog):
             in caplog.text
         )
 
-def test_make_request_logs_request_exception(requests_mock: RequestsMock, caplog):
+
+def test_make_request_logs_request_exception(requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture) -> None:
     """
     Test make_request logs RequestException.
     """
@@ -397,4 +405,7 @@ def test_make_request_logs_request_exception(requests_mock: RequestsMock, caplog
     with caplog.at_level("INFO"):
         with pytest.raises(requests.exceptions.RequestException):
             make_request(url)
-        assert "Request to GET https://api.example.com/resource failed: fail." in caplog.text
+        assert (
+            "Request to GET https://api.example.com/resource failed: fail."
+            in caplog.text
+        )

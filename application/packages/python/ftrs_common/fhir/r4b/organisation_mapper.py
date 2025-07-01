@@ -1,7 +1,7 @@
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
-from fhir.resources.R4B.organization import Organization, OrganizationContact
 from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.organization import Organization, OrganizationContact
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_data_layer.models import Organisation
@@ -13,11 +13,17 @@ TYPE_TO_CODE = {
 
 class OrganizationMapper(FhirMapper):
     def to_fhir(self, organisation: Organisation) -> Organization:
-        organization_id = organisation.id
+        organization_id = str(organisation.id)  # ensure string
         name = organisation.name
         active = organisation.active
-        identifier = self._create_identifier(ods_code=organisation.identifier_ODS_ODSCode)
-        contact = [self._create_organization_contact_from_internal(organisation.telecom)] if organisation.telecom else None
+        identifier = self._create_identifier(
+            ods_code=organisation.identifier_ODS_ODSCode
+        )
+        contact = (
+            [self._create_organization_contact_from_internal(organisation.telecom)]
+            if organisation.telecom
+            else None
+        )
 
         org = Organization.model_validate(
             {
@@ -62,9 +68,12 @@ class OrganizationMapper(FhirMapper):
         }
         telecom = ods_fhir_organization.get("telecom")
         if telecom:
-            required_fields["contact"] = self._create_contact_point_from_ods(
-                telecom
-            )
+            # Wrap ContactPoint(s) in OrganizationContact as required by FHIR spec
+            contact_points = self._create_contact_point_from_ods(telecom)
+            if contact_points:
+                required_fields["contact"] = [
+                    OrganizationContact.model_validate({"telecom": contact_points})
+                ]
 
         fhir_organisation = FhirValidator.validate(required_fields, Organization)
         return fhir_organisation
@@ -85,7 +94,7 @@ class OrganizationMapper(FhirMapper):
                     return phone_value
         return None
 
-    def _find_phone_in_contact(self, contact) -> str | None:
+    def _find_phone_in_contact(self, contact: OrganizationContact) -> str | None:
         if hasattr(contact, "telecom") and contact.telecom:
             for t in contact.telecom:
                 if getattr(t, "system", None) == "phone":
@@ -134,8 +143,8 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
-    def _create_contact_point_from_ods(self, telecom: list[dict]) -> list[ContactPoint]:
-        """Create a list of ContactPoint objects from the telecom information in the ODS Organization resource.
+    def _create_organisation_contact_from_ods(self, telecom: list[dict]) -> list[OrganizationContact]:
+        """Create a list of OrganizationContact objects from the telecom information in the ODS Organization resource.
         This defaults to mapping all telecom entries with system "phone" from ODS to a 'work' ContactPoint.
         """
         contact_points = []
@@ -144,11 +153,11 @@ class OrganizationMapper(FhirMapper):
                 contact_point = t.copy()
                 contact_point["use"] = "work"
                 contact_points.append(ContactPoint.model_validate(contact_point))
-        return contact_points
+        if contact_points:
+            return [OrganizationContact.model_validate({"telecom": contact_points})]
+        return []
 
-    def _create_contact_point_from_internal(
-        self, telecom: str
-    ) -> ContactPoint:
+    def _create_contact_point_from_internal(self, telecom: str) -> ContactPoint:
         return ContactPoint.model_validate(
             {
                 "system": "phone",
@@ -156,7 +165,9 @@ class OrganizationMapper(FhirMapper):
             }
         )
 
-    def _create_organization_contact_from_internal(self, telecom: str) -> OrganizationContact:
+    def _create_organization_contact_from_internal(
+        self, telecom: str
+    ) -> OrganizationContact:
         return OrganizationContact.model_validate(
             {
                 "telecom": [

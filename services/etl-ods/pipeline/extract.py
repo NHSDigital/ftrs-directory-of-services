@@ -58,10 +58,17 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             ods_code=ods_code,
         )
         response = make_request(organisation_get_uuid_uri, sign=True, fhir=True)
-        return response.get("id", None) if isinstance(response, dict) else response.json().get("id", None)
+        return (
+            response.get("id", None)
+            if isinstance(response, dict)
+            else response.json().get("id", None)
+        )
 
     except HTTPError as http_err:
-        if http_err.response is not None and http_err.response.status_code == HTTPStatus.NOT_FOUND:
+        if (
+            http_err.response is not None
+            and http_err.response.status_code == HTTPStatus.NOT_FOUND
+        ):
             ods_processor_logger.log(
                 OdsETLPipelineLogBase.ETL_PROCESSOR_007,
             )
@@ -69,6 +76,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
                 OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message
             ) from http_err
         raise
+
 
 def extract_ods_code(link: str) -> str:
     try:

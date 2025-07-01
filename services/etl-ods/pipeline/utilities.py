@@ -48,8 +48,8 @@ def get_signed_request_headers(
 
 
 def build_headers(
-    json_data,
-    json_string,
+    json_data: dict,
+    json_string: str,
     fhir: bool,
     sign: bool,
     url: str,
@@ -108,7 +108,6 @@ def make_request(
     fhir: bool = False,
     **kwargs: dict,
 ) -> requests.Response:
-
     json_data = kwargs.get("json")
     json_string = json.dumps(json_data) if json_data is not None else None
 

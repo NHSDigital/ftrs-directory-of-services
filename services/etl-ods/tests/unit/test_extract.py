@@ -22,7 +22,9 @@ def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
     assert result == [{"OrgLink": "https:///organisations/ABC123"}]
     assert mock_call.called_once
     assert mock_call.last_request.path == "/ord/2-0-0/sync"
-    assert mock_call.last_request.qs == {"lastchangedate": [date]} # qs returns in lowercase
+    assert mock_call.last_request.qs == {
+        "lastchangedate": [date]
+    }  # qs returns in lowercase
 
 
 def test_fetch_ods_organisation_data(requests_mock: RequestsMock) -> None:
@@ -68,12 +70,10 @@ def test_fetch_organisation_uuid(requests_mock: RequestsMock, monkeypatch) -> No
 def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ):
-    from pipeline import extract
-    from requests.exceptions import HTTPError
-    from http import HTTPStatus
 
-    # Patch get_base_crud_api_url to return a test URL
-    mocker.patch("pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api")
+    mocker.patch(
+        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
+    )
 
     class MockResponse:
         status_code = HTTPStatus.NOT_FOUND
@@ -94,24 +94,17 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     assert calls[0][0][0] == extract.OdsETLPipelineLogBase.ETL_PROCESSOR_028
     assert calls[0][1]["ods_code"] == "ABC123"
     assert calls[1][0][0] == extract.OdsETLPipelineLogBase.ETL_PROCESSOR_007
-    assert extract.OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message in str(excinfo.value)
+    assert extract.OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message in str(
+        excinfo.value
+    )
 
 
 def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ):
-    from pipeline import extract
-    from requests.exceptions import HTTPError
-    from http import HTTPStatus
-
-    # Patch get_base_crud_api_url to return a test URL
     mocker.patch(
         "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
     )
-
-    class MockResponse:
-        status_code = HTTPStatus.BAD_REQUEST
-
     http_err = HTTPError()
     http_err.response = MockResponse()
 
