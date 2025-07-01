@@ -1,6 +1,7 @@
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
-from fhir.resources.R4B.organization import Organization
+from fhir.resources.R4B.organization import Organization, OrganizationContact
+from fhir.resources.R4B.identifier import Identifier
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_data_layer.models import Organisation
@@ -11,25 +12,38 @@ TYPE_TO_CODE = {
 
 
 class OrganizationMapper(FhirMapper):
-    def to_fhir(self, model_obj: dict) -> dict:
-        return super().to_fhir(model_obj)
+    def to_fhir(self, organisation: Organisation) -> Organization:
+        organization_id = organisation.id
+        name = organisation.name
+        active = organisation.active
+        identifier = self._create_identifier(ods_code=organisation.identifier_ODS_ODSCode)
+        contact = [self._create_organization_contact_from_internal(organisation.telecom)] if organisation.telecom else None
+
+        org = Organization.model_validate(
+            {
+                "id": organization_id,
+                "identifier": identifier,
+                "active": active,
+                "name": name,
+                "contact": contact,
+            }
+        )
+
+        return org
 
     def from_fhir(self, fhir_resource: Organization) -> Organisation:
         """
         Convert a FHIR Organization resource to the internal OrganisationPayload Pydantic model.
         """
-        name = fhir_resource.name if hasattr(fhir_resource, "name") else None
-        active = fhir_resource.active if hasattr(fhir_resource, "active") else None
         telecom = self._get_org_telecom(fhir_resource)
-
         org_type = self._get_org_type(fhir_resource)
+        id_value = str(fhir_resource.id)
 
         return Organisation(
-            identifier_ODS_ODSCode=fhir_resource.identifier[0].value
-            if fhir_resource.identifier
-            else None,
-            name=name,
-            active=active if active is not None else False,
+            identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
+            id=id_value,
+            name=fhir_resource.name,
+            active=fhir_resource.active,
             telecom=telecom,
             type=org_type,
             modifiedBy="ODS_ETL_PIPELINE",
@@ -48,7 +62,7 @@ class OrganizationMapper(FhirMapper):
         }
         telecom = ods_fhir_organization.get("telecom")
         if telecom:
-            required_fields["telecom"] = self._create_contact_point_from_telecom(
+            required_fields["contact"] = self._create_contact_point_from_ods(
                 telecom
             )
 
@@ -64,8 +78,16 @@ class OrganizationMapper(FhirMapper):
         return org_type
 
     def _get_org_telecom(self, fhir_org: Organization) -> str | None:
-        if hasattr(fhir_org, "telecom") and fhir_org.telecom:
-            for t in fhir_org.telecom:
+        if hasattr(fhir_org, "contact") and fhir_org.contact:
+            for contact in fhir_org.contact:
+                phone_value = self._find_phone_in_contact(contact)
+                if phone_value:
+                    return phone_value
+        return None
+
+    def _find_phone_in_contact(self, contact) -> str | None:
+        if hasattr(contact, "telecom") and contact.telecom:
+            for t in contact.telecom:
                 if getattr(t, "system", None) == "phone":
                     return t.value
         return None
@@ -112,18 +134,47 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
-    def _create_contact_point_from_telecom(self, telecom: list[dict]) -> list[dict]:
+    def _create_contact_point_from_ods(self, telecom: list[dict]) -> list[ContactPoint]:
         """Create a list of ContactPoint objects from the telecom information in the ODS Organization resource.
-        This deaults to that all telecom entries with system "phone" from ODS will be mapped to a 'work' ContactPoint.
+        This defaults to mapping all telecom entries with system "phone" from ODS to a 'work' ContactPoint.
         """
         contact_points = []
         for t in telecom:
             if t.get("system") == "phone":
                 contact_point = t.copy()
                 contact_point["use"] = "work"
-                contact_points.append(
-                    ContactPoint.model_validate(contact_point).model_dump(
-                        exclude_none=True
-                    )
-                )
+                contact_points.append(ContactPoint.model_validate(contact_point))
         return contact_points
+
+    def _create_contact_point_from_internal(
+        self, telecom: str
+    ) -> ContactPoint:
+        return ContactPoint.model_validate(
+            {
+                "system": "phone",
+                "value": telecom,
+            }
+        )
+
+    def _create_organization_contact_from_internal(self, telecom: str) -> OrganizationContact:
+        return OrganizationContact.model_validate(
+            {
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": telecom,
+                    }
+                ]
+            }
+        )
+
+    def _create_identifier(self, ods_code: str) -> list[Identifier]:
+        identifier = Identifier.model_validate(
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": ods_code,
+            }
+        )
+
+        return [identifier]
