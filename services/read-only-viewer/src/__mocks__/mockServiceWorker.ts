@@ -1,4 +1,4 @@
-import type {HealthcareService, Organisation} from "@/utils/types";
+import type { HealthcareService, Organisation } from "@/utils/types";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
@@ -41,7 +41,7 @@ const healthcareServices: HealthcareService[] = [
     modifiedBy: "user2",
     modifiedDateTime: "2023-01-02T00:00:00Z",
     location: "",
-    telecom: {}
+    telecom: {},
   },
   {
     id: "healthcare-service-2",
@@ -57,7 +57,7 @@ const healthcareServices: HealthcareService[] = [
     telecom: {
       email: "test@example.com",
       phone_public: "01234567890",
-      website: "https://example.com"
+      website: "https://example.com",
     },
     openingTime: [
       {
@@ -66,14 +66,12 @@ const healthcareServices: HealthcareService[] = [
         dayOfWeek: "mon",
         startTime: "09:00",
         endTime: "17:00",
-        allDay: false
-      }
+        allDay: false,
+      },
     ],
     location: "location-1",
   },
-  ] as const;
-
-
+] as const;
 
 export const StubData = {
   organisations: organisations,
@@ -106,7 +104,9 @@ export const server = setupServer(
   }),
   http.get("/api/healthcareService/:id", (req) => {
     const { id } = req.params;
-    const healthcareService = healthcareServices.find((service) => service.id === id);
+    const healthcareService = healthcareServices.find(
+      (service) => service.id === id,
+    );
     if (!healthcareService) {
       return HttpResponse.json(
         { error: "Healthcare Service not found" },

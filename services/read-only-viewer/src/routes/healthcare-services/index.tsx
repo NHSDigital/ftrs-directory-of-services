@@ -1,12 +1,16 @@
-import PageBreadcrumbs from "@/components/PageBreadcrumbs";
-import {createFileRoute, Link} from "@tanstack/react-router";
-import {useHealthcareServicesQuery} from "@/hooks/queryHooks.ts";
-import type {HealthcareService,} from "@/utils/types.ts";
-import {useMemo} from "react";
-import {createColumnHelper, getCoreRowModel, useReactTable} from "@tanstack/react-table";
 import DataTable from "@/components/DataTable.tsx";
+import PageBreadcrumbs from "@/components/PageBreadcrumbs";
 import RequestErrorDetails from "@/components/RequestErrorDetails.tsx";
-import type {ResponseError} from "@/utils/errors.ts";
+import { useHealthcareServicesQuery } from "@/hooks/queryHooks.ts";
+import type { ResponseError } from "@/utils/errors.ts";
+import type { HealthcareService } from "@/utils/types.ts";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { useMemo } from "react";
 
 const HealthCareServicePage: React.FC = () => {
   const { data, isLoading, isError, error } = useHealthcareServicesQuery();
@@ -27,12 +31,17 @@ const HealthCareServicePage: React.FC = () => {
   );
 };
 
-const useHealthcareServicesTable = (healthcareServices: HealthcareService[]) => {
-  const columnHelper = useMemo(() => createColumnHelper<HealthcareService>(), []);
+const useHealthcareServicesTable = (
+  healthcareServices: HealthcareService[],
+) => {
+  const columnHelper = useMemo(
+    () => createColumnHelper<HealthcareService>(),
+    [],
+  );
   return useReactTable({
     data: healthcareServices,
     columns: [
-      columnHelper.accessor("name",{
+      columnHelper.accessor("name", {
         cell: (info) => (
           <Link
             to="/healthcare-services/$healthcareServiceID"
@@ -54,11 +63,10 @@ const useHealthcareServicesTable = (healthcareServices: HealthcareService[]) => 
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
   });
-
-}
+};
 const HealthcareServiceDataTable: React.FC<{ data: HealthcareService[] }> = ({
-                                                                      data,
-                                                                    }) => {
+  data,
+}) => {
   const table = useHealthcareServicesTable(data);
   return <DataTable table={table} />;
 };

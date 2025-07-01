@@ -43,7 +43,7 @@ export const telecom = zod.object({
   phone_private: zod.string().optional(),
   email: zod.string().email().optional(),
   website: zod.string().url().optional(),
-})
+});
 
 const openingTimeSchema = zod.discriminatedUnion("category", [
   zod.object({
@@ -81,7 +81,7 @@ export const healthcareServiceSchema = zod.object({
   active: zod.boolean(),
   category: zod.string().optional(),
   providedBy: zod.string().uuid(),
-  location:  zod.string().uuid(),
+  location: zod.string().uuid(),
   name: zod.string(),
   type: zod.string().optional(),
   telecom: telecom,
@@ -93,5 +93,3 @@ export const healthcareServiceSchema = zod.object({
 });
 export type HealthcareService = zod.infer<typeof healthcareServiceSchema>;
 export type OpeningTime = zod.infer<typeof openingTimeSchema>;
-
-

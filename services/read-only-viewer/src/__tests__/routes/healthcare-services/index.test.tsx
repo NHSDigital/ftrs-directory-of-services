@@ -1,8 +1,8 @@
-import {act, render, screen, waitFor} from '@testing-library/react';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { routeTree } from '@/routeTree.gen';
-import { http, HttpResponse } from 'msw';
 import { server } from "@/__mocks__/mockServiceWorker";
+import { routeTree } from "@/routeTree.gen";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 
 describe("Healthcare Service Index Route", () => {
   let router: ReturnType<typeof createRouter>;
@@ -17,31 +17,33 @@ describe("Healthcare Service Index Route", () => {
     app = render(<RouterProvider<typeof router> router={router} />);
   });
 
-  it('should render healthcare services page with data', async () => {
-
-    await router.navigate({ to: '/healthcare-services' });
+  it("should render healthcare services page with data", async () => {
+    await router.navigate({ to: "/healthcare-services" });
 
     // Check loading state
-    expect(screen.getByText('Loading health care service...')).toBeInTheDocument();
+    expect(
+      screen.getByText("Loading health care service..."),
+    ).toBeInTheDocument();
 
     // Wait for data to load
     await waitFor(() => {
-      expect(screen.queryByText('Loading health care service...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading health care service..."),
+      ).not.toBeInTheDocument();
     });
 
     // Check table headers
-    expect(screen.getByText('Name')).toBeInTheDocument();
-    expect(screen.getByText('Type')).toBeInTheDocument();
+    expect(screen.getByText("Name")).toBeInTheDocument();
+    expect(screen.getByText("Type")).toBeInTheDocument();
 
     // Check data rows
-    expect(screen.getByText('Healthcare Service 1')).toBeInTheDocument();
-    expect(screen.getByText('Healthcare Service 2')).toBeInTheDocument();
-    expect(screen.getByText('Type A')).toBeInTheDocument();
-    expect(screen.getByText('Type B')).toBeInTheDocument();
-
+    expect(screen.getByText("Healthcare Service 1")).toBeInTheDocument();
+    expect(screen.getByText("Healthcare Service 2")).toBeInTheDocument();
+    expect(screen.getByText("Type A")).toBeInTheDocument();
+    expect(screen.getByText("Type B")).toBeInTheDocument();
   });
 
-  it('should handle error state', async () => {
+  it("should handle error state", async () => {
     server.use(
       http.get(
         "/api/healthcareService",
@@ -62,7 +64,9 @@ describe("Healthcare Service Index Route", () => {
     await act(() => router.navigate({ to: "/healthcare-services" }));
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading health care service...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading health care service..."),
+      ).not.toBeInTheDocument();
     });
 
     // Check an error message
@@ -77,20 +81,22 @@ describe("Healthcare Service Index Route", () => {
     expect(app.getByText("500")).toBeInTheDocument();
   });
 
-  it('should handle empty data state', async () => {
+  it("should handle empty data state", async () => {
     server.use(
-      http.get('/api/healthcareService', () => {
+      http.get("/api/healthcareService", () => {
         return HttpResponse.json([]);
-      })
+      }),
     );
 
-    await router.navigate({ to: '/healthcare-services' });
+    await router.navigate({ to: "/healthcare-services" });
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading health care service...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading health care service..."),
+      ).not.toBeInTheDocument();
     });
 
     // Verify that the table is not rendered when there's no data
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 });

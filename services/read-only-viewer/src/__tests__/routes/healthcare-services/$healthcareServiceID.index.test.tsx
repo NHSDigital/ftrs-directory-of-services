@@ -1,12 +1,12 @@
-import { describe, it, expect, afterEach, afterAll } from 'vitest';
-import { render, waitFor, screen } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
-import { createRouter, RouterProvider } from '@tanstack/react-router';
-import { routeTree } from "@/routeTree.gen.ts";
-import { act } from "react";
 import { server } from "@/__mocks__/mockServiceWorker.ts";
+import { routeTree } from "@/routeTree.gen.ts";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { render, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { act } from "react";
+import { afterAll, afterEach, describe, expect, it } from "vitest";
 
-describe('HealthCareServiceDetailsRoute', () => {
+describe("HealthCareServiceDetailsRoute", () => {
   let router: ReturnType<typeof createRouter>;
   let app: ReturnType<typeof render>;
 
@@ -27,7 +27,7 @@ describe('HealthCareServiceDetailsRoute', () => {
     server.close();
   });
 
-  it('should display loading state initially', async () => {
+  it("should display loading state initially", async () => {
     await act(() =>
       router.navigate({
         to: "/healthcare-services/$healthcareServiceID",
@@ -42,7 +42,7 @@ describe('HealthCareServiceDetailsRoute', () => {
     );
   });
 
-  it('should display healthcare service details when data is loaded', async () => {
+  it("should display healthcare service details when data is loaded", async () => {
     await act(() =>
       router.navigate({
         to: "/healthcare-services/$healthcareServiceID",
@@ -55,7 +55,9 @@ describe('HealthCareServiceDetailsRoute', () => {
     await waitFor(() =>
       expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
     );
-    const heading = app.getByText("HealthCare Service Details", { selector: "h2" });
+    const heading = app.getByText("HealthCare Service Details", {
+      selector: "h2",
+    });
     expect(heading).toBeInTheDocument();
 
     const expectedHCDetails = [
@@ -63,8 +65,15 @@ describe('HealthCareServiceDetailsRoute', () => {
       { key: "Name", value: "Healthcare Service 2" },
       { key: "Type", value: "Type B" },
       { key: "Active", value: "Yes" },
-      { key: "Contact Information", value: "Email: test@example.comPublic Phone: 01234567890Website: https://example.com" },
-      { key: "Provided By", value: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc (Organisation Link)" },
+      {
+        key: "Contact Information",
+        value:
+          "Email: test@example.comPublic Phone: 01234567890Website: https://example.com",
+      },
+      {
+        key: "Provided By",
+        value: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc (Organisation Link)",
+      },
       { key: "Location", value: "location-1" },
       { key: "Category", value: "Not Specified" },
       { key: "Opening Times", value: "AvailableTimemon 09:00 - 17:00" },
@@ -95,7 +104,10 @@ describe('HealthCareServiceDetailsRoute', () => {
         () => {
           return HttpResponse.json(
             { error: "Healthcare Service not found" },
-            { status: 404, headers: { "X-Correlation-ID": "test-correlation-id" } },
+            {
+              status: 404,
+              headers: { "X-Correlation-ID": "test-correlation-id" },
+            },
           );
         },
         {
@@ -117,8 +129,9 @@ describe('HealthCareServiceDetailsRoute', () => {
       expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
     );
 
-    const errorMessage = app.getByText("The healthcare service you are looking for does not exist.");
+    const errorMessage = app.getByText(
+      "The healthcare service you are looking for does not exist.",
+    );
     expect(errorMessage).toBeInTheDocument();
-
   });
 });

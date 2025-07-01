@@ -1,22 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useHealthcareServiceQuery } from "@/hooks/queryHooks.ts";
+import KeyValueTable from "@/components/KeyValueTable.tsx";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs.tsx";
 import RequestErrorDetails from "@/components/RequestErrorDetails.tsx";
+import { useHealthcareServiceQuery } from "@/hooks/queryHooks.ts";
 import type { ResponseError } from "@/utils/errors.ts";
-import { ActionLink, Card } from "nhsuk-react-components";
 import type { HealthcareService } from "@/utils/types.ts";
-import KeyValueTable from "@/components/KeyValueTable.tsx";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { ActionLink, Card } from "nhsuk-react-components";
 
-export const Route = createFileRoute("/healthcare-services/$healthcareServiceID/")({
+export const Route = createFileRoute(
+  "/healthcare-services/$healthcareServiceID/",
+)({
   component: HealthCareServiceDetailsRoute,
   head: () => ({
     meta: [{ title: "HealthCare Service Details - FtRS Read Only Viewer" }],
   }),
 });
 
-const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService }> = ({
-  healthcareService,
-}) => {
+const HealthCareServiceOverview: React.FC<{
+  healthcareService: HealthcareService;
+}> = ({ healthcareService }) => {
   return (
     <Card className="nhsuk-u-padding-5">
       <h2 className="nhsuk-heading-m">HealthCare Service Details</h2>
@@ -30,12 +32,18 @@ const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService
             key: "Contact Information",
             value: (
               <>
-                {healthcareService.telecom?.email && <div>Email: {healthcareService.telecom.email}</div>}
+                {healthcareService.telecom?.email && (
+                  <div>Email: {healthcareService.telecom.email}</div>
+                )}
                 {healthcareService.telecom?.phone_public && (
-                  <div>Public Phone: {healthcareService.telecom.phone_public}</div>
+                  <div>
+                    Public Phone: {healthcareService.telecom.phone_public}
+                  </div>
                 )}
                 {healthcareService.telecom?.phone_private && (
-                  <div>Private Phone: {healthcareService.telecom.phone_private}</div>
+                  <div>
+                    Private Phone: {healthcareService.telecom.phone_private}
+                  </div>
                 )}
                 {healthcareService.telecom?.website && (
                   <div>Website: {healthcareService.telecom.website}</div>
@@ -44,7 +52,8 @@ const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService
                   (!healthcareService.telecom.email &&
                     !healthcareService.telecom.phone_public &&
                     !healthcareService.telecom.phone_private &&
-                    !healthcareService.telecom.website)) && "None Provided"}
+                    !healthcareService.telecom.website)) &&
+                  "None Provided"}
               </>
             ),
           },
@@ -75,14 +84,17 @@ const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService
             value: healthcareService.openingTime?.length ? (
               <>
                 {Object.entries(
-                  healthcareService.openingTime.reduce((acc, time) => {
-                    const category = time.category;
-                    if (!acc[category]) {
-                      acc[category] = [];
-                    }
-                    acc[category].push(time);
-                    return acc;
-                  }, {} as Record<string, typeof healthcareService.openingTime>)
+                  healthcareService.openingTime.reduce(
+                    (acc, time) => {
+                      const category = time.category;
+                      if (!acc[category]) {
+                        acc[category] = [];
+                      }
+                      acc[category].push(time);
+                      return acc;
+                    },
+                    {} as Record<string, typeof healthcareService.openingTime>,
+                  ),
                 ).map(([category, times]) => (
                   <div key={category} className="nhsuk-u-margin-bottom-4">
                     <h4 className="nhsuk-heading-s nhsuk-u-margin-bottom-2">
@@ -91,11 +103,18 @@ const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService
                     <p className="nhsuk-u-font-size-16">
                       {category === "availableTime"
                         ? times
-                            .map((time) => `${time.dayOfWeek} ${time.startTime} - ${time.endTime}`)
+                            .map(
+                              (time) =>
+                                `${time.dayOfWeek} ${time.startTime} - ${time.endTime}`,
+                            )
                             .join(",")
                         : category === "notAvailable"
-                        ? times.map((time) => time.description).join(", ")
-                        : times.map((time) => `${time.startTime} - ${time.endTime}`).join("/")}
+                          ? times.map((time) => time.description).join(", ")
+                          : times
+                              .map(
+                                (time) => `${time.startTime} - ${time.endTime}`,
+                              )
+                              .join("/")}
                     </p>
                   </div>
                 ))}
@@ -109,7 +128,9 @@ const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService
             value: (
               <>
                 {healthcareService.createdBy}{" "}
-                <span className="nhsuk-u-font-size-16">({healthcareService.createdDateTime})</span>
+                <span className="nhsuk-u-font-size-16">
+                  ({healthcareService.createdDateTime})
+                </span>
               </>
             ),
           },
@@ -118,7 +139,9 @@ const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService
             value: (
               <>
                 {healthcareService.modifiedBy}{" "}
-                <span className="nhsuk-u-font-size-16">({healthcareService.modifiedDateTime})</span>
+                <span className="nhsuk-u-font-size-16">
+                  ({healthcareService.modifiedDateTime})
+                </span>
               </>
             ),
           },
@@ -130,9 +153,12 @@ const HealthCareServiceOverview: React.FC<{ healthcareService: HealthcareService
 
 function HealthCareServiceDetailsRoute() {
   const { healthcareServiceID } = Route.useParams();
-  const { data: healthcareService, isLoading, isSuccess, error } = useHealthcareServiceQuery(
-    healthcareServiceID
-  );
+  const {
+    data: healthcareService,
+    isLoading,
+    isSuccess,
+    error,
+  } = useHealthcareServiceQuery(healthcareServiceID);
 
   return (
     <>
@@ -142,7 +168,7 @@ function HealthCareServiceDetailsRoute() {
           { to: "/", label: "Home" },
           { to: "/healthcare-services", label: "HealthCare Services" },
           {
-            to: `/healthcare-services/$healthcareServiceID/`,
+            to: "/healthcare-services/$healthcareServiceID/",
             label: healthcareService?.name || "HealthCare Service Details",
           },
         ]}

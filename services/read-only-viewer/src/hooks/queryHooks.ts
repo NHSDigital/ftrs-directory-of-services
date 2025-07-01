@@ -1,5 +1,5 @@
 import { ResponseError } from "@/utils/errors";
-import type {HealthcareService, Organisation} from "@/utils/types";
+import type { HealthcareService, Organisation } from "@/utils/types";
 import { useQuery } from "@tanstack/react-query";
 
 export const useOrganisationQuery = (organisationId: string) => {
@@ -45,7 +45,9 @@ export const useHealthcareServiceQuery = (healthcareServiceId: string) => {
   return useQuery<HealthcareService>({
     queryKey: ["healthcareService", healthcareServiceId],
     queryFn: async () => {
-      const response = await fetch(`/api/healthcareService/${healthcareServiceId}/`);
+      const response = await fetch(
+        `/api/healthcareService/${healthcareServiceId}/`,
+      );
 
       if (response.status === 404) {
         return null;
