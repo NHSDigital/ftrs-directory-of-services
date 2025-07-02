@@ -93,6 +93,9 @@ module "consumer_lambda" {
     "PROJECT_NAME" = var.project
 
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
 }
 
 data "aws_iam_policy_document" "s3_access_policy" {
