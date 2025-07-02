@@ -11,6 +11,4 @@ locals {
     data.aws_iam_policy_document.deny_lambda_function_access_policy.json,
     data.aws_iam_policy_document.vpc_access_policy.json
   ]))
-
-  # var.attach_policy_jsons ? [for i in range(var.number_of_policy_jsons) : jsondecode(var.policy_jsons[i])] : []
 }

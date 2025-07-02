@@ -34,7 +34,6 @@ module "extract_lambda" {
   number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    # data.aws_iam_policy_document.vpc_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
   ]
 
@@ -71,7 +70,6 @@ module "transform_lambda" {
   number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    # data.aws_iam_policy_document.vpc_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
   ]
 
@@ -108,7 +106,6 @@ module "load_lambda" {
   number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    # data.aws_iam_policy_document.vpc_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
@@ -144,20 +141,6 @@ data "aws_iam_policy_document" "s3_access_policy" {
   }
 }
 
-# data "aws_iam_policy_document" "vpc_access_policy" {
-#   statement {
-#     effect = "Allow"
-#     actions = [
-#       "ec2:CreateNetworkInterface",
-#       "ec2:DescribeNetworkInterfaces",
-#       "ec2:DeleteNetworkInterface"
-#     ]
-#     resources = [
-#       "*"
-#     ]
-#   }
-# }
-
 data "aws_iam_policy_document" "secrets_access_policy" {
   statement {
     effect = "Allow"
@@ -165,7 +148,6 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      # aws_secretsmanager_secret.source_rds_credentials[0].arn
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${local.account_prefix}/source-rds-credentials-*"
     ]
   }
