@@ -48,10 +48,10 @@ resource "aws_acm_certificate_validation" "api_cert" {
   }
 }
 
-output "crud_domain_cert_arn" {
-  value = aws_acm_certificate.api_cert.arn
-}
+# output "crud_domain_cert_arn" {
+#   value = aws_acm_certificate.api_cert.arn
+# }
 
-output "aws_acm_certificate_validation_cert" {
-  value = aws_acm_certificate_validation.api_cert
-}
+# output "aws_acm_certificate_validation_cert" {
+#   value = aws_acm_certificate_validation.api_cert
+# }
