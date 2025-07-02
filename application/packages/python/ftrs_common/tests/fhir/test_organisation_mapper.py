@@ -1,19 +1,23 @@
+import uuid
+
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization, OrganizationContact
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_data_layer.models import Organisation
 
 
 def make_fhir_org(
-    id: str = "ODS1",
+    id: str = str(uuid.uuid4()),
     name: str = "Test Org",
     active: bool = True,
     contact: list | None = None,
     type: list | None = None,
 ) -> Organization:
     kwargs = {
-        "identifier": [{"value": id}],
+        "id": id,
+        "identifier": [Identifier.model_construct(value=id)],
         "name": name,
         "active": active,
         "type": type,
@@ -30,12 +34,13 @@ def test_from_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
     contact = OrganizationContact(telecom=[ContactPoint(system="phone", value="01234")])
     org_type = [CodeableConcept(text="GP Practice")]
+    valid_uuid = str(uuid.uuid4())
     org = make_fhir_org(
-        id="org1", name="Test Org", active=True, contact=contact, type=org_type
+        id=valid_uuid, name="Test Org", active=True, contact=contact, type=org_type
     )
     internal_organisation = mapper.from_fhir(org)
     assert isinstance(internal_organisation, Organisation)
-    assert internal_organisation.identifier_ODS_ODSCode == "ODS1"
+    assert internal_organisation.identifier_ODS_ODSCode == valid_uuid
     assert internal_organisation.name == "Test Org"
     assert internal_organisation.active is True
     assert internal_organisation.telecom == "01234"
@@ -47,7 +52,7 @@ def test_from_fhir_handles_missing_contact() -> None:
     mapper = OrganizationMapper()
     org_type = [CodeableConcept(text="GP Practice")]
     org = make_fhir_org(
-        id="ODS2", name="Test Org", active=True, contact=None, type=org_type
+        id= str(uuid.uuid4()), name="Test Org", active=True, contact=None, type=org_type
     )
     internal_organisation = mapper.from_fhir(org)
     assert internal_organisation.telecom is None
@@ -57,7 +62,7 @@ def test_get_org_type() -> None:
     mapper = OrganizationMapper()
     org_type = [CodeableConcept(text="GP Practice")]
     org = make_fhir_org(
-        id="ODS1", name="Test Org", active=True, contact=None, type=org_type
+        id= str(uuid.uuid4()), name="Test Org", active=True, contact=None, type=org_type
     )
     assert mapper._get_org_type(org) == "GP Practice"
 
@@ -244,9 +249,9 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
         id="C88037",
         name="Test Org",
         active=True,
-        contact=OrganizationContact(
-            telecom=[ContactPoint(system="phone", value="01234")]
-        ),
+        contact=[OrganizationContact(
+            telecom=[ContactPoint(system="phone", value="01234", use="work")]
+        )],
         type=[
             CodeableConcept(
                 coding=[
@@ -256,7 +261,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
                         "display": "GP PRACTICE",
                     }
                 ]
-            ).model_dump()
+            )
         ],
     )
     result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
