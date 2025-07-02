@@ -1,10 +1,10 @@
-data "aws_route53_zone" "main" {
-  name         = var.root_domain_name
-  private_zone = false
+data "aws_route53_zone" "environment_zone" {
+  count = var.environment == "mgmt" ? 0 : 1
+  name  = "${var.environment}.${var.root_domain_name}"
 }
 
 resource "aws_acm_certificate" "crud_api_cert" {
-  domain_name       = var.api_domain_name
+  domain_name       = "*.${var.environment}.${var.root_domain_name}"
   validation_method = "DNS"
 
   lifecycle {
