@@ -2,20 +2,18 @@ module "lambda" {
   # Module version: 7.21.0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=f1f06ed88f567ec75815bd37897d612092e7941c"
 
-  function_name       = "${var.function_name}${local.workspace_suffix}"
-  handler             = var.handler
-  runtime             = var.runtime
-  publish             = var.publish
-  attach_policy_jsons = var.attach_policy_jsons
-  # number_of_policy_jsons = var.number_of_policy_jsons
+  function_name          = "${var.function_name}${local.workspace_suffix}"
+  handler                = var.handler
+  runtime                = var.runtime
+  publish                = var.publish
+  attach_policy_jsons    = var.attach_policy_jsons
   number_of_policy_jsons = length(local.additional_json_policies)
   attach_tracing_policy  = var.attach_tracing_policy
   tracing_mode           = var.tracing_mode
   description            = var.description
-  # policy_jsons           = var.policy_jsons
-  policy_jsons = local.additional_json_policies
-  timeout      = var.timeout
-  memory_size  = var.memory_size
+  policy_jsons           = local.additional_json_policies
+  timeout                = var.timeout
+  memory_size            = var.memory_size
 
   create_package          = var.s3_bucket_name == "" ? var.create_package : false
   local_existing_package  = var.s3_bucket_name == "" ? var.local_existing_package : null
@@ -84,11 +82,11 @@ data "aws_iam_policy_document" "deny_lambda_function_access_policy" {
 }
 
 
-data "aws_iam_policy_document" "deny_non_private_subnet_policy" {
+data "aws_iam_policy_document" "allow_private_subnet_policy" {
 
   statement {
-    sid    = "DenyNonPrivateSubnetAccess"
-    effect = "Deny"
+    sid    = "AllowPrivateSubnetAccess"
+    effect = "Allow"
     actions = [
       "lambda:CreateFunction",
       "lambda:UpdateFunctionConfiguration"
