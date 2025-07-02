@@ -21,3 +21,5 @@ aws_accounts = [
   "test",
   "prod"
 ]
+
+api_domain_name = "api.${var.environment}.${var.root_domain_name}"

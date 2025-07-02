@@ -95,3 +95,8 @@ variable "mgmt_account_id" {
   description = "Management account ID"
   type        = string
 }
+
+variable "api_domain_name" {
+  description = "The custom domain name for mTLS enabled endpoint"
+  type        = string
+}
