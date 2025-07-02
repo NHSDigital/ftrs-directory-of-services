@@ -165,7 +165,8 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "*"
+      # aws_secretsmanager_secret.source_rds_credentials[0].arn
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${local.account_prefix}/source-rds-credentials-*"
     ]
   }
 }
