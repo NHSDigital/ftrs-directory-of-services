@@ -8,7 +8,7 @@ module "lambda" {
   publish             = var.publish
   attach_policy_jsons = var.attach_policy_jsons
   # number_of_policy_jsons = var.number_of_policy_jsons
-  number_of_policy_jsons = length(var.policy_jsons)
+  number_of_policy_jsons = length(local.additional_json_policies)
   attach_tracing_policy  = var.attach_tracing_policy
   tracing_mode           = var.tracing_mode
   description            = var.description
