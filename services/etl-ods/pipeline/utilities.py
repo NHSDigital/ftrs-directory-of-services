@@ -84,16 +84,8 @@ def build_headers(options: dict) -> dict:
 
 
 def handle_fhir_response(data: dict) -> dict:
-    if (
-        isinstance(data, dict)
-        and data.get("resourceType") == "OperationOutcome"
-        and "issue" in data
-        and data["issue"]
-    ):
-        issue = data["issue"][0]
-        code = issue.get("code", "unknown")
-        diagnostics = issue.get("diagnostics", "No diagnostics provided")
-        raise OperationOutcomeException(code, diagnostics)
+    if data.get("resourceType") == "OperationOutcome" and "issue" in data:
+        raise OperationOutcomeException(data)
     return data
 
 
