@@ -1,8 +1,3 @@
-data "aws_route53_zone" "environment_zone" {
-  count = var.environment == "mgmt" ? 0 : 1
-  name  = "${var.environment}.${var.root_domain_name}"
-}
-
 resource "aws_acm_certificate" "custom_domain_api_cert" {
   count             = var.environment == "mgmt" ? 0 : 1
   domain_name       = "*.${var.environment}.${var.root_domain_name}"
@@ -13,8 +8,7 @@ resource "aws_acm_certificate" "custom_domain_api_cert" {
   }
 
   tags = {
-    Name        = "${local.resource_prefix}-api${local.workspace_suffix}-certificate"
-    Environment = var.environment
+    Name = "${local.resource_prefix}-api${local.workspace_suffix}-certificate"
   }
 }
 
@@ -27,7 +21,7 @@ resource "aws_route53_record" "cert_validation" {
     }
   }
 
-  zone_id = data.aws_route53_zone.environment_zone[0].zone_id
+  zone_id = aws_route53_zone.environment_zone[0].zone_id
   name    = each.value.name
   type    = each.value.type
   ttl     = 60
