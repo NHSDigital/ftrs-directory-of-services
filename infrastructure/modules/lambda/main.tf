@@ -49,11 +49,12 @@ data "aws_iam_policy_document" "vpc_access_policy" {
     resources = [
       "*"
     ]
-    # condition {
-    #   test     = "StringEquals"
-    #   variable = "aws:SourceVpce"
-    #   values   = [var.vpc_endpoint_id]
-    # }
+    condition {
+      test     = "StringEquals"
+      variable = "lambda:VpcIds"
+      values   = [data.aws_vpc.vpc.id]
+
+    }
   }
 }
 
