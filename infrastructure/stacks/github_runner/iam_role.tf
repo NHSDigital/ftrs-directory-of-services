@@ -93,7 +93,7 @@ data "aws_iam_policy_document" "app_runner_domain_name_cross_account_doc" {
 }
 
 resource "aws_iam_policy" "app_runner_domain_name_cross_account_policy" {
-  name        = local.domain_cross_account_role
+  name        = "${local.domain_cross_account_role}-app-policy"
   description = "Allow cross-account AssumeRole into mgmt Route53 role"
   policy      = data.aws_iam_policy_document.app_runner_domain_name_cross_account_doc.json
 }
@@ -101,4 +101,25 @@ resource "aws_iam_policy" "app_runner_domain_name_cross_account_policy" {
 resource "aws_iam_role_policy_attachment" "app_runner_domain_name_cross_account_policy_attachment" {
   role       = aws_iam_role.app_github_runner_role.name
   policy_arn = aws_iam_policy.app_runner_domain_name_cross_account_policy.arn
+}
+
+data "aws_iam_policy_document" "account_runner_domain_name_cross_account_doc" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    resources = [
+      "arn:aws:iam::${var.mgmt_account_id}:role/${local.domain_cross_account_role}"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "account_runner_domain_name_cross_account_policy" {
+  name        = "${local.domain_cross_account_role}-account-policy"
+  description = "Allow cross-account AssumeRole into mgmt Route53 role"
+  policy      = data.aws_iam_policy_document.account_runner_domain_name_cross_account_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "account_runner_domain_name_cross_account_policy_attachment" {
+  role       = aws_iam_role.account_github_runner_role.name
+  policy_arn = aws_iam_policy.account_runner_domain_name_cross_account_policy.arn
 }
