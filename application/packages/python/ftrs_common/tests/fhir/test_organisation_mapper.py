@@ -52,7 +52,7 @@ def test_from_fhir_handles_missing_contact() -> None:
     mapper = OrganizationMapper()
     org_type = [CodeableConcept(text="GP Practice")]
     org = make_fhir_org(
-        id= str(uuid.uuid4()), name="Test Org", active=True, contact=None, type=org_type
+        id=str(uuid.uuid4()), name="Test Org", active=True, contact=None, type=org_type
     )
     internal_organisation = mapper.from_fhir(org)
     assert internal_organisation.telecom is None
@@ -62,7 +62,7 @@ def test_get_org_type() -> None:
     mapper = OrganizationMapper()
     org_type = [CodeableConcept(text="GP Practice")]
     org = make_fhir_org(
-        id= str(uuid.uuid4()), name="Test Org", active=True, contact=None, type=org_type
+        id=str(uuid.uuid4()), name="Test Org", active=True, contact=None, type=org_type
     )
     assert mapper._get_org_type(org) == "GP Practice"
 
@@ -249,9 +249,11 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
         id="C88037",
         name="Test Org",
         active=True,
-        contact=[OrganizationContact(
-            telecom=[ContactPoint(system="phone", value="01234", use="work")]
-        )],
+        contact=[
+            OrganizationContact(
+                telecom=[ContactPoint(system="phone", value="01234", use="work")]
+            )
+        ],
         type=[
             CodeableConcept(
                 coding=[
