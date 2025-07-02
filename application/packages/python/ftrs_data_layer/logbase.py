@@ -184,28 +184,8 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="OperationOutcome retrieved when fetching Organisation FHIR data - issue code: {code}, issue diagnostics: {diagnostics}.",
     )
-    ETL_PROCESSOR_005 = LogReference(
-        level=ERROR,
-        message="No primary role found in the roles list.",
-    )
-    ETL_PROCESSOR_006 = LogReference(
-        level=ERROR,
-        message="Fetching role data for ID: {primary_role_id}.",
-    )
     ETL_PROCESSOR_007 = LogReference(
         level=WARNING, message="Organisation not found in database."
-    )
-    ETL_PROCESSOR_008 = LogReference(
-        level=WARNING, message="Missing key in organisation payload: {key}."
-    )
-    ETL_PROCESSOR_009 = LogReference(
-        level=WARNING, message="Roles payload extraction failed: role is not a list."
-    )
-    ETL_PROCESSOR_0010 = LogReference(
-        level=WARNING, message="Invalid role format: {role}."
-    )
-    ETL_PROCESSOR_011 = LogReference(
-        level=WARNING, message="Invalid contact format: {contact}."
     )
     ETL_PROCESSOR_012 = LogReference(
         level=WARNING, message="ODS code extraction failed: {e}."
@@ -257,10 +237,6 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_PROCESSOR_024 = LogReference(
         level=INFO,
         message="Successfully validated organisation data.",
-    )
-    ETL_PROCESSOR_025 = LogReference(
-        level=INFO,
-        message="Successfully validated role data.",
     )
     ETL_PROCESSOR_026 = LogReference(
         level=INFO,
