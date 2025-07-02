@@ -48,7 +48,9 @@ variable "attach_tracing_policy" {
   default = false
 }
 variable "tracing_mode" {
-  default = null
+  description = "Tracing configuration for the Lambda function"
+  type        = string
+  default     = "PassThrough"
 }
 variable "attach_policy_jsons" {
   description = "Whether to attach the provided JSON policies to the Lambda role"
@@ -117,13 +119,4 @@ variable "account_id" {
 variable "aws_region" {
   description = "AWS region where the Lambda function will be deployed"
   type        = string
-}
-variable "tracing_config" {
-  description = "Tracing configuration for the Lambda function"
-  type = object({
-    mode = string
-  })
-  default = {
-    mode = "PassThrough"
-  }
 }
