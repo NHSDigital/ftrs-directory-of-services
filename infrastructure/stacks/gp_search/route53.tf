@@ -1,5 +1,5 @@
 resource "aws_route53_zone" "gp_search_subdomain" {
-  name = var.subdomain_fqdn
+  name = "servicesearch.${var.environment}.${local.root_domain_name}"
 }
 
 resource "aws_iam_policy" "route53_policy" {

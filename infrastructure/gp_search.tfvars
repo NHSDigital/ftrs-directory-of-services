@@ -17,4 +17,4 @@ dynamodb_organisation_table_name = "ftrs-dos-dev-database-organisation-is"
 
 #Route53
 api_record_name = "gpsearch.dev.ftrs.cloud.nhs.uk"
-subdomain_fqdn  = "dev.ftrs.cloud.nhs.uk"
+subdomain_fqdn  = "servicesearch.dev.ftrs.cloud.nhs.uk"
