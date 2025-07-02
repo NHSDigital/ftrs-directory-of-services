@@ -16,6 +16,7 @@ dependencies = [
     "httpx (>=0.28.1,<0.29.0)",
     "aws-lambda-powertools (>=3.11.0,<4.0.0)",
     "email-validator (>=2.1.0,<3.0.0)",
+    "fhir-resources (>=8.0.0,<9.0.0)"
 ]
 
 [build-system]
