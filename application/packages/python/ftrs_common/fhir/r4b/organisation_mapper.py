@@ -143,7 +143,9 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
-    def _create_organisation_contact_from_ods(self, telecom: list[dict]) -> list[OrganizationContact]:
+    def _create_organisation_contact_from_ods(
+        self, telecom: list[dict]
+    ) -> list[OrganizationContact]:
         """Create a list of OrganizationContact objects from the telecom information in the ODS Organization resource.
         This defaults to mapping all telecom entries with system "phone" from ODS to a 'work' ContactPoint.
         """

@@ -28,9 +28,7 @@ def make_fhir_org(
 
 def test_from_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
-    contact = OrganizationContact(
-        telecom=[ContactPoint(system="phone", value="01234")]
-    )
+    contact = OrganizationContact(telecom=[ContactPoint(system="phone", value="01234")])
     org_type = [CodeableConcept(text="GP Practice")]
     org = make_fhir_org(
         id="org1", name="Test Org", active=True, contact=contact, type=org_type
@@ -86,9 +84,7 @@ def test_get_org_type_no_type() -> None:
 
 def test_get_org_telecom_with_phone() -> None:
     mapper = OrganizationMapper()
-    contact = OrganizationContact(
-        telecom=[ContactPoint(system="phone", value="01234")]
-    )
+    contact = OrganizationContact(telecom=[ContactPoint(system="phone", value="01234")])
     org = make_fhir_org(contact=contact)
     assert mapper._get_org_telecom(org) == "01234"
 
@@ -111,6 +107,7 @@ def test_get_org_telecom_with_no_phone() -> None:
     org = make_fhir_org(contact=contact)
     assert mapper._get_org_telecom(org) is None
 
+
 def test_get_role_display_from_extension_missing_role() -> None:
     mapper = OrganizationMapper()
     ext = {"extension": [{"url": "notrole", "valueCoding": {"display": "GP PRACTICE"}}]}
@@ -129,7 +126,9 @@ def test_get_role_display_from_extension_role_with_display() -> None:
     assert mapper._get_role_display_from_extension(ext) == "Test Role"
 
 
-def test_get_role_display_from_extension_role_with_display_missing_value_coding() -> None:
+def test_get_role_display_from_extension_role_with_display_missing_value_coding() -> (
+    None
+):
     mapper = OrganizationMapper()
     ext = {"extension": [{"url": "role"}]}
     assert mapper._get_role_display_from_extension(ext) is None
@@ -245,7 +244,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
         id="C88037",
         name="Test Org",
         active=True,
-        contact = OrganizationContact(
+        contact=OrganizationContact(
             telecom=[ContactPoint(system="phone", value="01234")]
         ),
         type=[
@@ -268,23 +267,31 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
 
 def test_find_phone_in_contact_returns_phone() -> None:
     mapper = OrganizationMapper()
+
     class DummyTelecom:
         system = "phone"
         value = "01234"
+
     class DummyContact:
         telecom = [DummyTelecom()]
+
     contact = DummyContact()
     assert mapper._find_phone_in_contact(contact) == "01234"
 
+
 def test_find_phone_in_contact_returns_none_when_no_phone() -> None:
     mapper = OrganizationMapper()
+
     class DummyTelecom:
         system = "email"
         value = "test@example.com"
+
     class DummyContact:
         telecom = [DummyTelecom()]
+
     contact = DummyContact()
     assert mapper._find_phone_in_contact(contact) is None
+
 
 def test_create_contact_point_from_internal() -> None:
     mapper = OrganizationMapper()
@@ -293,6 +300,7 @@ def test_create_contact_point_from_internal() -> None:
     assert cp.system == "phone"
     assert cp.value == "01234"
 
+
 def test_create_organization_contact_from_internal() -> None:
     mapper = OrganizationMapper()
     org_contact = mapper._create_organization_contact_from_internal("01234")
@@ -300,12 +308,14 @@ def test_create_organization_contact_from_internal() -> None:
     assert org_contact.telecom[0].system == "phone"
     assert org_contact.telecom[0].value == "01234"
 
+
 def test_create_identifier() -> None:
     mapper = OrganizationMapper()
     identifiers = mapper._create_identifier("ODS123")
     assert isinstance(identifiers, list)
     assert identifiers[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
     assert identifiers[0].value == "ODS123"
+
 
 def test_to_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
@@ -327,6 +337,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
     assert fhir_org.contact[0].telecom[0].system == "phone"
     assert fhir_org.contact[0].telecom[0].value == "01234"
 
+
 def test_to_fhir_handles_missing_telecom() -> None:
     mapper = OrganizationMapper()
     org = Organisation(
@@ -346,6 +357,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
     assert fhir_org.identifier[0].value == "ODS2"
     assert fhir_org.contact is None
 
+
 def test_create_organisation_contact_from_ods_only_phone() -> None:
     mapper = OrganizationMapper()
     telecom = [
@@ -359,6 +371,7 @@ def test_create_organisation_contact_from_ods_only_phone() -> None:
     assert result[0].telecom[0].system == "phone"
     assert result[0].telecom[0].value == "01234"
     assert result[0].telecom[0].use == "work"
+
 
 def test_create_organisation_contact_from_ods_no_phone() -> None:
     mapper = OrganizationMapper()
