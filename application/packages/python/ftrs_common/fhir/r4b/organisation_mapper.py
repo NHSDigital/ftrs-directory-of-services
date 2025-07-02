@@ -13,7 +13,7 @@ TYPE_TO_CODE = {
 
 class OrganizationMapper(FhirMapper):
     def to_fhir(self, organisation: Organisation) -> Organization:
-        organization_id = str(organisation.id)  # ensure string
+        organization_id = str(organisation.id)
         name = organisation.name
         active = organisation.active
         identifier = self._create_identifier(
@@ -65,6 +65,9 @@ class OrganizationMapper(FhirMapper):
             "type": self._create_codable_concept_for_type(ods_fhir_organization),
             "name": ods_fhir_organization.get("name"),
             "id": ods_fhir_organization.get("identifier", {}).get("value"),
+            "identifier": self._create_identifier(
+                ods_fhir_organization.get("identifier", {}).get("value")
+            ),
         }
         telecom = ods_fhir_organization.get("telecom")
         if telecom:

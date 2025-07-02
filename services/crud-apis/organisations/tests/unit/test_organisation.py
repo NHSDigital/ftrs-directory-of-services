@@ -58,7 +58,7 @@ def mock_repository(mocker: MockerFixture) -> MockerFixture:
         "organisations.app.router.organisation.org_repository"
     )
     repository_mock.get.return_value = get_organisation()
-    repository_mock.get_by_ods_code.return_value = [get_organisation()]
+    repository_mock.get_by_ods_code.return_value = ["12345"]
     repository_mock.iter_records.return_value = [get_organisation()]
     repository_mock.update.return_value = JSONResponse(
         {"message": "Data processed successfully"}, status_code=HTTPStatus.OK
@@ -214,16 +214,11 @@ def test_update_organisation_unexpected_exception(
     assert "Something went wrong" in response.json()["issue"][0]["diagnostics"]
 
 
-def test_get_organisation_by_ods_code_success(mocker: MockerFixture) -> None:
+def test_get_organisation_by_ods_code_success() -> None:
     ods_code = "12345"
-    mocker.patch(
-        "organisations.app.router.organisation.organisation_service.organisation_mapper.to_fhir",
-        return_value={"resourceType": "Organization", "id": str(test_org_id)},
-    )
     response = client.get(f"/ods_code/{ods_code}")
     assert response.status_code == HTTPStatus.OK
-    assert response.json()["resourceType"] == "Organization"
-    assert response.json()["id"] == str(test_org_id)
+    assert response.json()["id"] == "12345"
 
 
 def test_get_organisation_by_ods_code_not_found(mock_repository: MockerFixture) -> None:

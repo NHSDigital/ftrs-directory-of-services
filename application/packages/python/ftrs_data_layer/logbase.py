@@ -244,7 +244,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_027 = LogReference(
         level=WARNING,
-        message="Error processing organisation with ods_code {ods_code}: {error_message}.",
+        message="Error processing organisation with ods_code {ods_code}: {error_message}",
     )
     ETL_PROCESSOR_028 = LogReference(
         level=INFO,
@@ -311,7 +311,7 @@ class CrudApisLogBase(LogBase):
 
     ORGANISATION_001 = LogReference(
         level=INFO,
-        message="Received request to get organisation with ODS code: {ods_code}.",
+        message="Received request to get organisation is with ODS code: {ods_code}.",
     )
     ORGANISATION_002 = LogReference(
         level=ERROR,

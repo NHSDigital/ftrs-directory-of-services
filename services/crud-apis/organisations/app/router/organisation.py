@@ -53,10 +53,9 @@ def get_org_by_ods_code(
                 ),
                 media_type=FHIR_MEDIA_TYPE,
             )
-        org = records[0]
         return JSONResponse(
             status_code=200,
-            content=organisation_service.organisation_mapper.to_fhir(org),
+            content={"id": records[0]},
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:

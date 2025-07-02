@@ -101,12 +101,12 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
         "pipeline.extract.make_request", side_effect=raise_http_error_not_found
     )
 
-    with caplog.at_level("ERROR"):
+    with caplog.at_level("WARNING"):
         with pytest.raises(ValueError) as excinfo:
             fetch_organisation_uuid("ABC123")
         assert str(excinfo.value) == "Organisation not found in database."
 
-    assert "Organisation not found in database" not in caplog.text
+    assert "Organisation not found in database" in caplog.text
 
 
 def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
