@@ -747,7 +747,7 @@ version = "1.0.1"
 description = "FHIR Core library"
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "fhir_core-1.0.1-py2.py3-none-any.whl", hash = "sha256:199af6d68dc85cd09c947ec6ecb02b109a3d116ef016d1b4903ec22c36bbe03a"},
     {file = "fhir_core-1.0.1.tar.gz", hash = "sha256:1f1b04027053e5a844f69d00bda6acfced555697778fa1a0cf58d38fd18ef39b"},
@@ -766,7 +766,7 @@ version = "8.0.0"
 description = "FHIR Resources as Model Class"
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["dev"]
 files = [
     {file = "fhir.resources-8.0.0-py2.py3-none-any.whl", hash = "sha256:9c46d6d79c6d6629c3bea6f244bcc6e8e0e4d15757a675f19d9d1c05c9ab2199"},
     {file = "fhir.resources-8.0.0.tar.gz", hash = "sha256:84dac3af31eaf90d5b0386cac21d26c50e6fb1526d68b88a2c42d112978e9cf9"},
@@ -793,6 +793,7 @@ files = []
 develop = true
 
 [package.dependencies]
+fhir-resources = ">=8.0.0,<9.0.0"
 pydantic = ">=2.11.1,<3.0.0"
 
 [package.source]
@@ -1356,4 +1357,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0.0"
-content-hash = "aa9cfc50f930f4b1dc5751e381eb0c827746af02522695e3cfec231f4bfa988c"
+content-hash = "cd6ee2a48fc6b550e810a13def300270ee3c7752ea64576da292adbce8b0ee1d"
