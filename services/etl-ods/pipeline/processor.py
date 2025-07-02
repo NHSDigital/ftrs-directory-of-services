@@ -81,7 +81,7 @@ def process_organisation(ods_code: str) -> str | None:
                 error_message="Organisation UUID not found.",
             )
             return None
-        return json.dumps({"path": org_uuid, "body": fhir_organisation})
+        return json.dumps({"path": org_uuid, "body": fhir_organisation.model_dump()})
 
     except Exception as e:
         ods_processor_logger.log(
@@ -89,7 +89,7 @@ def process_organisation(ods_code: str) -> str | None:
             ods_code=ods_code,
             error_message=str(e),
         )
-        return None  # Explicitly return None on error
+        return None
 
 
 def processor_lambda_handler(event: dict, context: any) -> dict:
@@ -103,9 +103,9 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
         date_pattern = r"^\d{4}-\d{2}-\d{2}$"
         if not re.match(date_pattern, date):
             return {"statusCode": 400, "body": "Date must be in YYYY-MM-DD format"}
-
-        processor(date=date)
-        return {"statusCode": 200, "body": "Processing complete"}
+        else:
+            processor(date=date)
+            return {"statusCode": 200, "body": "Processing complete"}
 
     except Exception as e:
         ods_processor_logger.log(

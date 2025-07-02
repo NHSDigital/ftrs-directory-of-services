@@ -8,6 +8,7 @@ import requests
 from aws_lambda_powertools.utilities.parameters import get_parameter
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
+from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
@@ -47,18 +48,18 @@ def get_signed_request_headers(
     return dict(request.headers)
 
 
-def build_headers(
-    json_data: dict,
-    json_string: str,
-    fhir: bool,
-    sign: bool,
-    url: str,
-    method: str,
-) -> dict:
+def build_headers(options: dict) -> dict:
     """
     Builds headers for the outgoing HTTP request.
+    Expects options dict with keys: json_data, json_string, fhir, sign, url, method
     """
     headers = {}
+    json_data = options.get("json_data")
+    json_string = options.get("json_string")
+    fhir = options.get("fhir")
+    sign = options.get("sign")
+    url = options.get("url")
+    method = options.get("method")
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
@@ -83,19 +84,16 @@ def build_headers(
 
 
 def handle_fhir_response(data: dict) -> dict:
-    """
-    Checks for FHIR OperationOutcome and raises an exception if found.
-    """
-    if data.get("resourceType") == "OperationOutcome":
-        issue = data.get("issue", [{}])[0]
-        diagnostics = issue.get("diagnostics", "Unknown error")
+    if (
+        isinstance(data, dict)
+        and data.get("resourceType") == "OperationOutcome"
+        and "issue" in data
+        and data["issue"]
+    ):
+        issue = data["issue"][0]
         code = issue.get("code", "unknown")
-        ods_utils_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_004,
-            code=code,
-            diagnostics=diagnostics,
-        )
-        raise Exception(f"FHIR OperationOutcome: {code} - {diagnostics}")
+        diagnostics = issue.get("diagnostics", "No diagnostics provided")
+        raise OperationOutcomeException(code, diagnostics)
     return data
 
 
@@ -111,7 +109,16 @@ def make_request(
     json_data = kwargs.get("json")
     json_string = json.dumps(json_data) if json_data is not None else None
 
-    headers = build_headers(json_data, json_string, fhir, sign, url, method)
+    headers = build_headers(
+        {
+            "json_data": json_data,
+            "json_string": json_string,
+            "fhir": fhir,
+            "sign": sign,
+            "url": url,
+            "method": method,
+        }
+    )
 
     try:
         response = requests.request(
@@ -127,7 +134,8 @@ def make_request(
         if fhir:
             data = response.json()
             return handle_fhir_response(data)
-        return response
+        else:
+            return response
 
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(

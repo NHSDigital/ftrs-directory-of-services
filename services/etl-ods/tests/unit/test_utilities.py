@@ -327,7 +327,9 @@ def test_make_request_fhir_operation_outcome(
         assert "failed" not in caplog.text
 
 
-def test_handle_fhir_response_no_operation_outcome(caplog: pytest.LogCaptureFixture) -> None:
+def test_handle_fhir_response_no_operation_outcome(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """
     Test handle_fhir_response returns data if not OperationOutcome.
     """
@@ -338,17 +340,15 @@ def test_handle_fhir_response_no_operation_outcome(caplog: pytest.LogCaptureFixt
 
 
 def test_build_headers_fhir_and_json() -> None:
-    """
-    Test build_headers sets correct headers for FHIR and JSON.
-    """
-    headers = build_headers(
-        json_data={"foo": "bar"},
-        json_string='{"foo": "bar"}',
-        fhir=True,
-        sign=False,
-        url="https://api.example.com/fhir",
-        method="POST",
-    )
+    options = {
+        "json_data": {"foo": "bar"},
+        "json_string": '{"foo": "bar"}',
+        "fhir": True,
+        "sign": False,
+        "url": "https://example.com",
+        "method": "POST",
+    }
+    headers = build_headers(options)
     assert headers["Content-Type"] == "application/fhir+json"
     assert headers["Accept"] == "application/fhir+json"
 
@@ -363,18 +363,22 @@ def test_build_headers_sign(mock_get_signed_request_headers: MagicMock) -> None:
         "Host": "api.example.com",
     }
     headers = build_headers(
-        json_data=None,
-        json_string=None,
-        fhir=False,
-        sign=True,
-        url="https://api.example.com/resource",
-        method="GET",
+        options={
+            "json_data": None,
+            "json_string": None,
+            "fhir": False,
+            "sign": True,
+            "url": "https://api.example.com/resource",
+            "method": "POST",
+        }
     )
     assert headers["Authorization"] == "sigv4"
     assert headers["Host"] == "api.example.com"
 
 
-def test_make_request_logs_http_error(requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture) -> None:
+def test_make_request_logs_http_error(
+    requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
+) -> None:
     """
     Test make_request logs HTTPError.
     """
@@ -393,7 +397,9 @@ def test_make_request_logs_http_error(requests_mock: RequestsMock, caplog: pytes
         )
 
 
-def test_make_request_logs_request_exception(requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture) -> None:
+def test_make_request_logs_request_exception(
+    requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
+) -> None:
     """
     Test make_request logs RequestException.
     """

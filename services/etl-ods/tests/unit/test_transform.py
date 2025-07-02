@@ -4,7 +4,9 @@ from pytest_mock import MockFixture
 from pipeline.transform import transform_to_payload
 
 
-def test_transform_to_payload_logs_and_returns_organization(mocker: MockFixture) -> None:
+def test_transform_to_payload_logs_and_returns_organization(
+    mocker: MockFixture,
+) -> None:
     ods_fhir = {"resourceType": "Organization", "id": "ODS123", "name": "Test Org"}
     ods_code = "ODS123"
     fake_organization = {

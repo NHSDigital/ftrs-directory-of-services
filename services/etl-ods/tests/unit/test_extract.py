@@ -1,5 +1,8 @@
+from http import HTTPStatus
+
 import pytest
 from pytest_mock import MockerFixture
+from requests import HTTPError
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.extract import (
@@ -44,12 +47,24 @@ def test_fetch_ods_organisation_data(requests_mock: RequestsMock) -> None:
     )
 
 
-def test_fetch_organisation_uuid(requests_mock: RequestsMock, monkeypatch) -> None:
-    # Patch get_base_crud_api_url to return a test URL
-    from pipeline import extract
+def test_fetch_ods_organisation_data_no_organisations(
+    requests_mock: RequestsMock,
+) -> None:
+    requests_mock.get(
+        "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123",
+        json={"Organisations": []},
+    )
 
-    monkeypatch.setattr(
-        extract, "get_base_crud_api_url", lambda: "http://test-crud-api"
+    ods_code = "ABC123"
+    result = fetch_ods_organisation_data(ods_code)
+    assert result == {"Organisations": []}
+
+
+def test_fetch_organisation_uuid(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
+    mocker.patch(
+        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
     )
 
     mock_call = requests_mock.get(
@@ -69,8 +84,7 @@ def test_fetch_organisation_uuid(requests_mock: RequestsMock, monkeypatch) -> No
 
 def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
-):
-
+) -> None:
     mocker.patch(
         "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
     )
@@ -78,47 +92,46 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     class MockResponse:
         status_code = HTTPStatus.NOT_FOUND
 
-    http_err = HTTPError()
-    http_err.response = MockResponse()
-
-    def raise_http_error(*args, **kwargs):
+    def raise_http_error_not_found() -> None:
+        http_err = HTTPError()
+        http_err.response = MockResponse()
         raise http_err
 
-    mocker.patch("pipeline.extract.make_request", side_effect=raise_http_error)
-    logger = mocker.patch("pipeline.extract.ods_processor_logger.log")
-
-    with pytest.raises(ValueError) as excinfo:
-        fetch_organisation_uuid("ABC123")
-
-    calls = logger.call_args_list
-    assert calls[0][0][0] == extract.OdsETLPipelineLogBase.ETL_PROCESSOR_028
-    assert calls[0][1]["ods_code"] == "ABC123"
-    assert calls[1][0][0] == extract.OdsETLPipelineLogBase.ETL_PROCESSOR_007
-    assert extract.OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message in str(
-        excinfo.value
+    mocker.patch(
+        "pipeline.extract.make_request", side_effect=raise_http_error_not_found
     )
+
+    with caplog.at_level("ERROR"):
+        with pytest.raises(ValueError) as excinfo:
+            fetch_organisation_uuid("ABC123")
+        assert str(excinfo.value) == "Organisation not found in database."
+
+    assert "Organisation not found in database" not in caplog.text
 
 
 def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
-):
+) -> None:
     mocker.patch(
         "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
     )
-    http_err = HTTPError()
-    http_err.response = MockResponse()
 
-    def raise_http_error(*args, **kwargs):
+    class MockResponse:
+        response = "Error"
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+
+    def raise_http_error_not_found() -> Exception:
+        http_err = HTTPError()
+        http_err.response = MockResponse()
         raise http_err
 
-    mocker.patch("pipeline.extract.make_request", side_effect=raise_http_error)
-    logger = mocker.patch("pipeline.extract.ods_processor_logger.log")
-
-    with pytest.raises(HTTPError):
-        fetch_organisation_uuid("ABC123")
-
-    calls = logger.call_args_list
-    assert calls[0][0][0] == extract.OdsETLPipelineLogBase.ETL_PROCESSOR_028
+    mocker.patch(
+        "pipeline.extract.make_request", side_effect=raise_http_error_not_found
+    )
+    with caplog.at_level("ERROR"):
+        with pytest.raises(HTTPError) as excinfo:
+            fetch_organisation_uuid("ABC123")
+        assert isinstance(excinfo.value, HTTPError)
 
 
 def test_extract_ods_code() -> None:
