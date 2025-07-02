@@ -31,11 +31,15 @@ module "organisation_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.organisation_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_access_policy.json
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
+    # data.aws_iam_policy_document.vpc_access_policy.json,
+    # data.aws_iam_policy_document.enforce_vpc_lambda_policy.json,
+    # data.aws_iam_policy_document.enforce_vpc_lambda_policy.json,
+    # data.aws_iam_policy_document.deny_non_private_subnet_policy.json,
+    # data.aws_iam_policy_document.deny_lambda_function_access_policy.json
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -54,6 +58,9 @@ module "organisation_api_lambda" {
       source_arn = "${module.api_gateway.api_execution_arn}/*/*"
     }
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
 }
 
 module "healthcare_service_api_lambda" {
@@ -71,11 +78,15 @@ module "healthcare_service_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.healthcare_service_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_access_policy.json
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
+    # data.aws_iam_policy_document.vpc_access_policy.json,
+    # data.aws_iam_policy_document.enforce_vpc_lambda_policy.json,
+    # data.aws_iam_policy_document.enforce_vpc_lambda_policy.json,
+    # data.aws_iam_policy_document.deny_non_private_subnet_policy.json,
+    # data.aws_iam_policy_document.deny_lambda_function_access_policy.json
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -95,6 +106,9 @@ module "healthcare_service_api_lambda" {
       source_arn = "${module.api_gateway.api_execution_arn}/*/*"
     }
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
 }
 
 module "location_api_lambda" {
@@ -112,11 +126,15 @@ module "location_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_access_policy.json
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
+    # data.aws_iam_policy_document.vpc_access_policy.json,
+    # data.aws_iam_policy_document.enforce_vpc_lambda_policy.json,
+    # data.aws_iam_policy_document.enforce_vpc_lambda_policy.json,
+    # data.aws_iam_policy_document.deny_non_private_subnet_policy.json,
+    # data.aws_iam_policy_document.deny_lambda_function_access_policy.json
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -135,19 +153,121 @@ module "location_api_lambda" {
       source_arn = "${module.api_gateway.api_execution_arn}/*/*"
     }
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
 }
 
-data "aws_iam_policy_document" "vpc_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
-    ]
-    resources = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  }
-}
+# ec2:DescribeNetworkInterfaces" only works if resources set to *
+# ec2.ec2:DeleteNetworkInterface specific resource or wildcarded resource (*?)
+# use managed policy AWSLambdaVPCAccessExecutionRole instead ?
+# data "aws_iam_policy_document" "vpc_access_policy" {
+#   statement {
+#     sid = "AllowVpcAccess"
+#     effect = "Allow"
+#     actions = [
+#       "ec2:CreateNetworkInterface",
+#       "ec2:DescribeNetworkInterfaces",
+#       "ec2:DeleteNetworkInterface",
+#       "ec2.DescribeSubnets",
+#       "ec2.AssignPrivateIpAddresses",
+#       "ec2:UnassignPrivateIpAddresses"
+#     ]
+#     resources = [
+#       "*"
+#     ]
+#     # condition {
+#     #   test     = "StringEquals"
+#     #   variable = "aws:SourceVpce"
+#     #   values   = [var.vpc_endpoint_id]
+#     # }
+#   }
+# }
+
+# data "aws_iam_policy_document" "deny_lambda_function_access_policy" {
+#   statement {
+#     sid = "DenyLambdaFunctionAccess"
+#     effect = "Deny"
+#     actions = [
+#       "ec2:CreateNetworkInterface",
+#       "ec2:DeleteNetworkInterface",
+#       "ec2:DescribeNetworkInterfaces",
+#       "ec2:DescribeSubnets",
+#       "ec2:DetachNetworkInterface",
+#       "ec2:AssignPrivateIpAddresses",
+#       "ec2:UnassignPrivateIpAddresses"
+#     ]
+#     resources = ["*"]
+#     condition {
+#       test     = "ArnEquals"
+#       variable = "lambda:SourceFunctionArn"
+#       values   = [
+#         "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${local.resource_prefix}-${var.healthcare_service_api_lambda_name}",
+#         "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${local.resource_prefix}-${var.location_api_lambda_name}",
+#         "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${local.resource_prefix}-${var.organisation_api_lambda_name}"
+#       ]
+#     }
+#   }
+# }
+
+
+# data "aws_iam_policy_document" "deny_non_private_subnet_policy" {
+
+#   statement {
+#     sid = "DenyNonPrivateSubnetAccess"
+#     effect = "Deny"
+#     actions = [
+#       "lambda:CreateFunction",
+#       "lambda:UpdateFunctionConfiguration"
+#     ]
+#     resources = [ "*" ]
+#     condition {
+#       test  = "StringEquals"
+#       variable = "lambda:SubnetIds"
+#       values = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+
+#     }
+#   }
+# }
+
+
+# data "aws_iam_policy_document" "limit_to_environment_vpc_policy" {
+
+#   statement {
+#     sid = "EnforceStayInSpecificVpc"
+#     effect = "Allow"
+#     actions = [
+#       "lambda:CreateFunction",
+#       "lambda:UpdateFunctionConfiguration"
+#     ]
+#     resources = [ "*" ]
+#     condition {
+#       test  = "StringEquals"
+#       variable = "lambda:VpcIds"
+#       values = [data.aws_vpc.vpc.id]
+
+#     }
+#   }
+# }
+
+# data "aws_iam_policy_document" "enforce_vpc_lambda_policy" {
+
+#   statement {
+#     sid = "EnforceVpcFunction"
+#     effect = "Deny"
+#     actions = [
+#       "lambda:CreateFunction",
+#       "lambda:UpdateFunctionConfiguration"
+#     ]
+#     resources = [ "*" ]
+#     condition {
+#       test  = "Null"
+#       variable = "lambda:VpcIds"
+#       values = ["true"]
+
+#     }
+#   }
+# }
 
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
