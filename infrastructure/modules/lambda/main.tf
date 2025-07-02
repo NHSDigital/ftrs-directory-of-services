@@ -42,8 +42,8 @@ data "aws_iam_policy_document" "vpc_access_policy" {
       "ec2:CreateNetworkInterface",
       "ec2:DescribeNetworkInterfaces",
       "ec2:DeleteNetworkInterface",
-      "ec2.DescribeSubnets",
-      "ec2.AssignPrivateIpAddresses",
+      "ec2:DescribeSubnets",
+      "ec2:AssignPrivateIpAddresses",
       "ec2:UnassignPrivateIpAddresses"
     ]
     resources = [
