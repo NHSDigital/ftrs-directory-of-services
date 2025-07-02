@@ -1,4 +1,6 @@
+import ContactInformation from "@/components/ContactInformation";
 import KeyValueTable from "@/components/KeyValueTable.tsx";
+import OpeningTimes from "@/components/OpeningTimes";
 import PageBreadcrumbs from "@/components/PageBreadcrumbs.tsx";
 import RequestErrorDetails from "@/components/RequestErrorDetails.tsx";
 import { useHealthcareServiceQuery } from "@/hooks/queryHooks.ts";
@@ -12,7 +14,7 @@ export const Route = createFileRoute(
 )({
   component: HealthCareServiceDetailsRoute,
   head: () => ({
-    meta: [{ title: "HealthCare Service Details - FtRS Read Only Viewer" }],
+    meta: [{ title: "Healthcare Service Details - FtRS Read Only Viewer" }],
   }),
 });
 
@@ -30,32 +32,7 @@ const HealthCareServiceOverview: React.FC<{
           { key: "Active", value: healthcareService.active ? "Yes" : "No" },
           {
             key: "Contact Information",
-            value: (
-              <>
-                {healthcareService.telecom?.email && (
-                  <div>Email: {healthcareService.telecom.email}</div>
-                )}
-                {healthcareService.telecom?.phone_public && (
-                  <div>
-                    Public Phone: {healthcareService.telecom.phone_public}
-                  </div>
-                )}
-                {healthcareService.telecom?.phone_private && (
-                  <div>
-                    Private Phone: {healthcareService.telecom.phone_private}
-                  </div>
-                )}
-                {healthcareService.telecom?.website && (
-                  <div>Website: {healthcareService.telecom.website}</div>
-                )}
-                {(!healthcareService.telecom ||
-                  (!healthcareService.telecom.email &&
-                    !healthcareService.telecom.phone_public &&
-                    !healthcareService.telecom.phone_private &&
-                    !healthcareService.telecom.website)) &&
-                  "None Provided"}
-              </>
-            ),
+            value: <ContactInformation telecom={healthcareService.telecom} />,
           },
           {
             key: "Provided By",
@@ -65,7 +42,7 @@ const HealthCareServiceOverview: React.FC<{
                 params={{ organisationID: healthcareService.providedBy }}
                 className="nhsuk-link nhsuk-link--no-visited-state"
               >
-                {healthcareService.providedBy} (Organisation Link)
+                {healthcareService.providedBy} (View Provider Organisation)
               </Link>
             ) : (
               "Not Specified"
@@ -82,45 +59,9 @@ const HealthCareServiceOverview: React.FC<{
           {
             key: "Opening Times",
             value: healthcareService.openingTime?.length ? (
-              <>
-                {Object.entries(
-                  healthcareService.openingTime.reduce(
-                    (acc, time) => {
-                      const category = time.category;
-                      if (!acc[category]) {
-                        acc[category] = [];
-                      }
-                      acc[category].push(time);
-                      return acc;
-                    },
-                    {} as Record<string, typeof healthcareService.openingTime>,
-                  ),
-                ).map(([category, times]) => (
-                  <div key={category} className="nhsuk-u-margin-bottom-4">
-                    <h4 className="nhsuk-heading-s nhsuk-u-margin-bottom-2">
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </h4>
-                    <p className="nhsuk-u-font-size-16">
-                      {category === "availableTime"
-                        ? times
-                            .map(
-                              (time) =>
-                                `${time.dayOfWeek} ${time.startTime} - ${time.endTime}`,
-                            )
-                            .join(",")
-                        : category === "notAvailable"
-                          ? times.map((time) => time.description).join(", ")
-                          : times
-                              .map(
-                                (time) => `${time.startTime} - ${time.endTime}`,
-                              )
-                              .join("/")}
-                    </p>
-                  </div>
-                ))}
-              </>
+              <OpeningTimes openingTime={healthcareService.openingTime} />
             ) : (
-              "No Opening Times Provided"
+              "Not Specified"
             ),
           },
           {

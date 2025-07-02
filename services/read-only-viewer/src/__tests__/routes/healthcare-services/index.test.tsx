@@ -22,13 +22,13 @@ describe("Healthcare Service Index Route", () => {
 
     // Check loading state
     expect(
-      screen.getByText("Loading health care service..."),
+      screen.getByText("Loading healthcare services..."),
     ).toBeInTheDocument();
 
     // Wait for data to load
     await waitFor(() => {
       expect(
-        screen.queryByText("Loading health care service..."),
+        screen.queryByText("Loading healthcare services..."),
       ).not.toBeInTheDocument();
     });
 

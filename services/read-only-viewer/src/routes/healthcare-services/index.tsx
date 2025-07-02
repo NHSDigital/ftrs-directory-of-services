@@ -20,11 +20,11 @@ const HealthCareServicePage: React.FC = () => {
         backTo="/"
         items={[
           { to: "/", label: "Home" },
-          { to: "/healthcare-services", label: "Healthcare-Service" },
+          { to: "/healthcare-services", label: "Healthcare Services" },
         ]}
       />
-      <h1 className="nhsuk-heading-l">Healthcare-Service</h1>
-      {isLoading && <p>Loading health care service...</p>}
+      <h1 className="nhsuk-heading-l">Healthcare Services</h1>
+      {isLoading && <p>Loading healthcare services...</p>}
       {isError && <RequestErrorDetails error={error as ResponseError} />}
       {data && data.length > 0 && <HealthcareServiceDataTable data={data} />}
     </>

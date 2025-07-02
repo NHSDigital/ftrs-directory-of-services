@@ -58,7 +58,7 @@ function HomePage() {
           },
           {
             title: "Healthcare Services",
-            description: "View and search services healthcare services.",
+            description: "View and search healthcare services",
             link: "/healthcare-services",
           },
           {

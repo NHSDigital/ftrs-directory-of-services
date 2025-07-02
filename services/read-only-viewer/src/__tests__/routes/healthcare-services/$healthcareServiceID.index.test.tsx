@@ -4,7 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { render, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { act } from "react";
-import { afterAll, afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 describe("HealthCareServiceDetailsRoute", () => {
   let router: ReturnType<typeof createRouter>;
@@ -19,14 +19,6 @@ describe("HealthCareServiceDetailsRoute", () => {
     app = render(<RouterProvider<typeof router> router={router} />);
   });
 
-  afterEach(() => {
-    server.resetHandlers();
-  });
-
-  afterAll(() => {
-    server.close();
-  });
-
   it("should display loading state initially", async () => {
     await act(() =>
       router.navigate({
@@ -38,7 +30,9 @@ describe("HealthCareServiceDetailsRoute", () => {
     );
 
     await waitFor(() =>
-      expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
+      expect(
+        app.queryByText("Loading healthcare services"),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -53,7 +47,9 @@ describe("HealthCareServiceDetailsRoute", () => {
     );
 
     await waitFor(() =>
-      expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
+      expect(
+        app.queryByText("Loading healthcare services"),
+      ).not.toBeInTheDocument(),
     );
     const heading = app.getByText("HealthCare Service Details", {
       selector: "h2",
@@ -72,7 +68,8 @@ describe("HealthCareServiceDetailsRoute", () => {
       },
       {
         key: "Provided By",
-        value: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc (Organisation Link)",
+        value:
+          "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc (View Provider Organisation)",
       },
       { key: "Location", value: "location-1" },
       { key: "Category", value: "Not Specified" },

@@ -93,3 +93,4 @@ export const healthcareServiceSchema = zod.object({
 });
 export type HealthcareService = zod.infer<typeof healthcareServiceSchema>;
 export type OpeningTime = zod.infer<typeof openingTimeSchema>;
+export type Telecom = zod.infer<typeof telecom>;
