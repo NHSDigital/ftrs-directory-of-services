@@ -18,19 +18,6 @@ on:
       - "infrastructure/stacks/domain_name/**"
       - "infrastructure/modules/dynamodb/**"
       - "infrastructure/modules/s3/**"
-  pull_request:
-    branches:
-      - "main"
-      - "task/**"
-    paths:
-      - "infrastructure/stacks/account_wide/**"
-      - "infrastructure/stacks/terraform_management/**"
-      - "infrastructure/stacks/github_runner/**"
-      - "infrastructure/stacks/artefact_management/**"
-      - "infrastructure/stacks/account_policies/**"
-      - "infrastructure/stacks/domain_name/**"
-      - "infrastructure/modules/dynamodb/**"
-      - "infrastructure/modules/s3/**"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
