@@ -135,6 +135,13 @@ def test_processor_processing_organisations_successful(
                 "active": True,
                 "type": [{"coding": [{"system": "todo", "display": "GP Service"}]}],
                 "name": "Test Organisation ABC ODS",
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "value": "ABC123",
+                    }
+                ],
             },
         }
     ]
@@ -172,6 +179,10 @@ def test_processor_continue_on_validation_failure(
             "id": "EFG456",
             "name": "Test Organisation EFG ODS",
             "active": True,
+            "identifier": {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "EFG456",
+            },
         },
     )
 
@@ -223,7 +234,6 @@ def test_processor_continue_on_validation_failure(
     # Assert load_data call
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
-    print(data_to_load)
     assert data_to_load == [
         {
             "path": "uuid_efg456",
@@ -232,6 +242,14 @@ def test_processor_continue_on_validation_failure(
                 "active": True,
                 "type": [{"coding": [{"system": "todo"}]}],
                 "name": "Test Organisation EFG ODS",
+                "id": "EFG456",
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "value": "EFG456",
+                    }
+                ],
             },
         }
     ]
