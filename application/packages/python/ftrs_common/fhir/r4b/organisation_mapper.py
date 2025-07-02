@@ -68,12 +68,9 @@ class OrganizationMapper(FhirMapper):
         }
         telecom = ods_fhir_organization.get("telecom")
         if telecom:
-            # Wrap ContactPoint(s) in OrganizationContact as required by FHIR spec
-            contact_points = self._create_contact_point_from_ods(telecom)
-            if contact_points:
-                required_fields["contact"] = [
-                    OrganizationContact.model_validate({"telecom": contact_points})
-                ]
+            org_contacts = self._create_organisation_contact_from_ods(telecom)
+            if org_contacts:
+                required_fields["contact"] = org_contacts
 
         fhir_organisation = FhirValidator.validate(required_fields, Organization)
         return fhir_organisation
