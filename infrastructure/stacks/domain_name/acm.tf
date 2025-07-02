@@ -1,3 +1,8 @@
+data "aws_route53_zone" "main" {
+  name         = var.root_domain_name
+  private_zone = false
+}
+
 resource "aws_acm_certificate" "crud_api_cert" {
   domain_name       = var.api_domain_name
   validation_method = "DNS"
@@ -21,7 +26,7 @@ resource "aws_route53_record" "cert_validation" {
     }
   }
 
-  zone_id = data.aws_route53_zone.dev_zone.zone_id
+  zone_id = data.aws_route53_zone.main.zone_id
   name    = each.value.name
   type    = each.value.type
   ttl     = 60
