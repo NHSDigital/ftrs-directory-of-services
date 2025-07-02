@@ -30,7 +30,6 @@ module "lambda" {
 
   environment_variables = merge(var.environment_variables, { WORKSPACE = "${local.environment_workspace}" })
   layers                = var.layers
-  tracing_config        = var.tracing_config
 }
 
 data "aws_iam_policy_document" "vpc_access_policy" {
