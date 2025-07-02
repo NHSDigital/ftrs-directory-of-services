@@ -106,3 +106,15 @@ variable "allowed_triggers" {
   type        = map(any)
   default     = {}
 }
+variable "account_prefix" {
+  description = "Prefix for the account resources, typically includes the repo name and environment"
+  type        = string
+}
+variable "account_id" {
+  description = "AWS account ID"
+  type        = string
+}
+variable "aws_region" {
+  description = "AWS region where the Lambda function will be deployed"
+  type        = string
+}
