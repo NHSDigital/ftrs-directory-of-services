@@ -33,10 +33,10 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
   retention_in_days = var.retention_in_days
 }
 
-resource "aws_route53_record" "gpsearch_api_cname" {
-  zone_id = aws_route53_zone.gp_search_subdomain.zone_id
-  name    = var.api_record_name # e.g., "api.dev.ftrs.cloud.nhs.uk"
-  type    = "CNAME"
-  ttl     = 300
-  records = [var.api_gateway_hostname]
-}
+# resource "aws_route53_record" "gpsearch_api_cname" {
+#   zone_id = aws_route53_zone.gp_search_subdomain.zone_id
+#   name    = var.api_record_name
+#   type    = "CNAME"
+#   ttl     = 300
+#   records = [var.api_gateway_hostname]
+# }
