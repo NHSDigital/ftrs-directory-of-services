@@ -118,3 +118,12 @@ variable "aws_region" {
   description = "AWS region where the Lambda function will be deployed"
   type        = string
 }
+variable "tracing_config" {
+  description = "Tracing configuration for the Lambda function"
+  type = object({
+    mode = string
+  })
+  default = {
+    mode = "PassThrough"
+  }
+}
