@@ -273,9 +273,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
             )
         ],
     )
-    print(expected_fhir_organisation.model_dump(exclude_none=True))
     result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
-    print(result.model_dump(exclude_none=True))
     assert result.model_dump(
         exclude_none=True
     ) == expected_fhir_organisation.model_dump(exclude_none=True)
