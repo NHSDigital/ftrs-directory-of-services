@@ -6,6 +6,7 @@ data "aws_iam_policy_document" "route53_policy" {
   statement {
     effect = "Allow"
     actions = [
+      "CreateHostedZone",
       "route53:ChangeResourceRecordSets",
       "route53:GetChange",
       "route53:ListResourceRecordSets",
