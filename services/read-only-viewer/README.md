@@ -4,11 +4,46 @@ The FtRS Read-Only Viewer is a test utility for the Find the Right Service datab
 
 ## Getting Started
 
-To run this application:
+### Installing the project
 
 ```bash
 make install
-npm run start
+```
+
+> **Note:** If you are not using `asdf` to manage your runtime versions, you will need to install the dependencies manually. Check the `.tool-version` file in the root of the project for the runtime versions used in this project.
+>
+> You will then need to run `npm install` manually to install the dependencies.
+
+### Setting Environment Variables
+
+To run the read-only viewer against a cloud deployed instance, you will need to first locally authenticate into the AWS account that the project is deployed to.
+
+```
+assume <role_name>
+
+export ENVIRONMENT=dev
+export WORKSPACE=fdos-000 # optional
+```
+
+> **Note:** There is an issue where the Node.js credential provider does not work correctly with the `assume` command. You may need to manually unset the `AWS_PROFILE` environment variable if you have it set.
+>
+> ```
+> unset AWS_PROFILE
+> ```
+
+To run the read-only viewer against a local instance, you will need to set the `ENVIRONMENT` variable to `local` and the `LOCAL_CRUD_API_ENDPOINT` variable to the URL of the local CRUD API instance.
+
+```bash
+export ENVIRONMENT=local
+export LOCAL_CRUD_API_ENDPOINT=http://localhost:3000
+```
+
+## Running the Application
+
+To run the application in development mode, you can use the following command:
+
+```bash
+npm run dev
 ```
 
 ## Building For Production

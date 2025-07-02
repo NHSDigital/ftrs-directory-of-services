@@ -30,7 +30,7 @@ describe("Organisation Endpoint Details", () => {
           status: "active",
           connectionType: "REST",
           managedByOrganisation: "9521a4ee-d0e6-4cca-9d8c-123bfbf43123",
-          format: "JSON",
+          payloadMimeType: "JSON",
           payloadType:
             "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
           isCompressionEnabled: false,
