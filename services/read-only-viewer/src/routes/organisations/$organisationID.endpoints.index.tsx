@@ -35,7 +35,8 @@ function OrganisationEndpointsPage() {
       />
       <span className="nhsuk-caption-l">Organisation Details</span>
       <h1 className="nhsuk-heading-l">Endpoints for {organisation?.name}</h1>
-      <p>This page has not yet been developed.</p>
+      {/* TODO: */}
+      <p>Is this page needed?</p>
     </>
   );
 }

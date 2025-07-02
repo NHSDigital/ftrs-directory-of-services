@@ -59,6 +59,28 @@ const OrganisationOverview: React.FC<{ organisation: Organisation }> = ({
   );
 };
 
+// TODO: all details of an endpoint
+// to do
+// - identifier_oldDOS_id
+// - name
+// - description
+// - payloadType
+// - isCompressionEnabled
+// - payloadMimeType
+// - createdBy
+// - createdDateTime
+// - modifiedBy
+// - modifiedDateTime
+//
+// done
+// - order
+// - status
+// - connectionType
+// - address
+// - id
+
+
+// endpoints table detailed
 const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
   const sortedEndpoints = useMemo(() => {
     return endpoints.sort((a, b) => a.order - b.order);
@@ -105,6 +127,7 @@ const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
   });
 };
 
+// table of endpoints (this is inside the card)
 const OrganisationEndpointsTable: React.FC<{ endpoints: Endpoint[] }> = ({
   endpoints,
 }) => {
@@ -113,6 +136,7 @@ const OrganisationEndpointsTable: React.FC<{ endpoints: Endpoint[] }> = ({
   return <DataTable table={table} />;
 };
 
+// card for each endpoint
 const OrganisationEndpointsList: React.FC<{ endpoints: Endpoint[] }> = ({
   endpoints,
 }) => {
@@ -185,6 +209,7 @@ function OrganisationDetailsRoute() {
         <>
           <h1 className="nhsuk-heading-l">{organisation.name}</h1>
           <OrganisationOverview organisation={organisation} />
+          {/* endpoints listed here */}
           <OrganisationEndpointsList endpoints={organisation.endpoints} />
         </>
       )}
