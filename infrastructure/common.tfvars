@@ -10,6 +10,8 @@ team_owner       = "ftrs"
 
 artefacts_bucket_name = "artefacts-bucket"
 
+root_domain_name = "ftrs.cloud.nhs.uk"
+
 dynamodb_table_names = [
   "healthcare-service",
   "location",
