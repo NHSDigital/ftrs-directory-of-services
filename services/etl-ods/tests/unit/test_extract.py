@@ -92,7 +92,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     class MockResponse:
         status_code = HTTPStatus.NOT_FOUND
 
-    def raise_http_error_not_found() -> None:
+    def raise_http_error_not_found(*args: object, **kwargs: object) -> None:
         http_err = HTTPError()
         http_err.response = MockResponse()
         raise http_err
@@ -120,7 +120,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         response = "Error"
         status_code = HTTPStatus.UNPROCESSABLE_ENTITY
 
-    def raise_http_error_not_found() -> Exception:
+    def raise_http_error_not_found(*args: object, **kwargs: object) -> Exception:
         http_err = HTTPError()
         http_err.response = MockResponse()
         raise http_err

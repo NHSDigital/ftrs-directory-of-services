@@ -2,6 +2,7 @@ import json
 from typing import NamedTuple
 
 import pytest
+import requests
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 from requests_mock import (
@@ -345,3 +346,38 @@ def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
     mock_processor.assert_called_once_with(date="2025-02-02")
     assert str(result["statusCode"]) == "500"
     assert "Unexpected error: Test error" in result["body"]
+
+
+def test_processor_logs_and_raises_request_exception(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch(
+        "pipeline.processor.fetch_sync_data",
+        side_effect=requests.exceptions.RequestException("network fail"),
+    )
+    date = "2023-01-01"
+    with caplog.at_level("INFO"):
+        with pytest.raises(requests.exceptions.RequestException, match="network fail"):
+            processor(date)
+        expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_022.value.message.format(
+            error_message="network fail"
+        )
+        assert expected_log in caplog.text
+
+
+def test_processor_logs_and_raises_generic_exception(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    # Patch fetch_sync_data to raise a generic Exception
+    mocker.patch(
+        "pipeline.processor.fetch_sync_data",
+        side_effect=Exception("unexpected error"),
+    )
+    date = "2023-01-01"
+    with caplog.at_level("INFO"):
+        with pytest.raises(Exception, match="unexpected error"):
+            processor(date)
+        expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_023.value.message.format(
+            error_message="unexpected error"
+        )
+        assert expected_log in caplog.text

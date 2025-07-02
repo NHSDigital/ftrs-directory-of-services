@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 from botocore.credentials import Credentials
+from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
@@ -320,10 +321,9 @@ def test_make_request_fhir_operation_outcome(
     )
     url = "https://api.example.com/fhir"
     with caplog.at_level("INFO"):
-        with pytest.raises(
-            Exception, match="FHIR OperationOutcome: processing - FHIR error details"
-        ):
+        with pytest.raises(OperationOutcomeException) as exc_info:
             make_request(url, fhir=True)
+        assert str(exc_info.value) == "FHIR error details"
         assert "failed" not in caplog.text
 
 
