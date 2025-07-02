@@ -1,30 +1,60 @@
 # FtRS Read-Only Viewer
 
-The FtRS Read-Only Viewer is a test utility for the Find the Right Service database. It allows users to view the data in the database and test the APIs that are available.
+The FtRS Read-Only Viewer is a test utility for the Find the Right Service database. It allows users to view the data from the dynamoDB table in a user-friendly way and test the Crud APIs. The application is designed to be used by developers and testers to ensure that the data in the database is correct and that the APIs are working as expected.
+
+The application is built using React and TypeScript, and it uses the TanStack Router for routing and data fetching.
+
+## Mapping of data from DynamoDB to the Read-Only Viewer
+
+The data from the DynamoDB table is mapped in 1:1 to the Read-Only Viewer in a way that allows users to view the data in a user-friendly way.
+
+Except the Create date and modify date fields are displayed along with Created By and Modified By fields.
+
+The data is displayed in a table format, with each row representing a field/each column representing in the table.
+
+For Healthcare Service, the opening Times and contact information are concatenated and displayed in a single field for more user-friendly view.
 
 ## Getting Started
 
-To run this application:
+## Prerequisites
 
-```bash
-make install
-npm run start
-```
+- [Node.js](https://nodejs.org/en/download/) version 18 or later
+- [NPM](https://www.npmjs.com/get-npm) version 8 or later
+- [Make](https://www.gnu.org/software/make/) version 3.82 or later
 
-To run this application in local development mode
+## To run this application in local development mode
 
 - set up a .env file in the root of the project with the following variables:
   - `ENVIRONMENT=dev`
+  - `WORKSPACE=fdos-000` optional variable
 
-- assume the DOS-FtRS-RW-Developer AWS role or export the AWS credentials for the role you want to use in your environment.
+- assume the **DOS-FtRS-RW-Developer** AWS role or export the AWS credentials for the role you want to use in your environment.
 
-- run the following command to start the application:
+- run the following command to install the dependencies:
+
+```bash
+npm install
+# or
+make install
+```
+
+- run the following command to start the application in development mode:
 
 ```bash
 npm run dev
+# or
+make dev
 ```
 
-The application reads the parameters from AWS Systems Manager Parameter Store, so you will need to ensure that the parameters(ftrs-dos-${environment}-crud-apis/endpoint) are set up correctly in the Parameter Store for the environment you are running in.
+- open your browser and navigate to `http://localhost:3000/` to view the application.
+
+## Configuration
+
+The application reads the parameters from AWS Systems Manager Parameter Store, so you will need to ensure that the parameter(ftrs-dos-${environment}-crud-apis/endpoint) is set up in the Parameter Store for the environment you are running the application in.
+
+- Make sure you have the correct permissions to access the Parameter Store and the APIs.
+
+- Create a parameter by clicking Create parameter in AWS System Manager > Parameter Store, give the name "**/ftrs-dos-dev-crud-apis/endpoint/**" and set the value to the API endpoint you want to use from API Gateway.
 
 ## Building For Production
 
@@ -69,9 +99,9 @@ This project uses [TanStack Router](https://tanstack.com/router). The initial se
 
 ### Adding A Route
 
-To add a new route to your application just add another a new file in the `./src/routes` directory.
+To add a new route, create a new file in the `src/routes` directory. The file name will determine the route path. For example, if you create a file named `about.tsx`, it will be accessible at `/about`.
 
-TanStack will automatically generate the content of the route file for you.
+TanStack will automatically generate the correct route for you based on the file structure. You can also create nested routes by creating a directory with an `index.tsx` file inside it.
 
 Now that you have two routes you can use a `Link` component to navigate between them.
 
