@@ -25,6 +25,9 @@ module "frontend_lambda" {
     "ENVIRONMENT" = var.environment
     "WORKSPACE"   = terraform.workspace == "default" ? "" : terraform.workspace
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
 }
 
 data "aws_iam_policy_document" "ssm_access_policy" {
