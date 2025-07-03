@@ -100,3 +100,19 @@ def test_returns_500_on_unexpected_error_in_get_all(
         client.get("/")
     assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert exc_info.value.detail == "Failed to fetch healthcare services"
+
+
+def test_delete_healthcare_service(mock_repository: mocker) -> None:
+    mock_repository.get.return_value = get_mock_service()
+    mock_repository.delete.return_value = None
+    response = client.delete(f"/{test_service_id}")
+    assert response.status_code == HTTPStatus.NO_CONTENT
+    mock_repository.delete.assert_called_once_with(test_service_id)
+
+
+def test_delete_healthcare_service_not_found(mock_repository: mocker) -> None:
+    mock_repository.get.return_value = None
+    with pytest.raises(HTTPException) as exc_info:
+        client.delete(f"/{test_service_id}")
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+    assert exc_info.value.detail == "No healthcare services found"
