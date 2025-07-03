@@ -1,3 +1,10 @@
+data "aws_vpc" "vpc" {
+  filter {
+    name   = "tag:Name"
+    values = ["${local.account_prefix}-vpc"]
+  }
+}
+
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.app_github_runner_role_name}"
 }
