@@ -96,66 +96,10 @@ module "consumer_lambda" {
   aws_region     = var.aws_region
 }
 
-data "aws_iam_policy_document" "s3_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject"
-    ]
-    resources = [
-      "${module.etl_ods_store_bucket.s3_bucket_arn}/",
-      "${module.etl_ods_store_bucket.s3_bucket_arn}/*",
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "sqs_access_policy" {
-  statement {
-    actions = [
-      "sqs:ReceiveMessage",
-      "sqs:DeleteMessage",
-      "sqs:GetQueueAttributes",
-      "sqs:SendMessage",
-      "sqs:GetQueueUrl"
-    ]
-    resources = [
-      aws_sqs_queue.transformed_queue.arn,
-    ]
-  }
-}
 
 resource "aws_lambda_event_source_mapping" "sqs_trigger" {
   event_source_arn = aws_sqs_queue.transformed_queue.arn
   function_name    = module.consumer_lambda.lambda_function_name
   batch_size       = 10
   enabled          = true
-}
-
-data "aws_iam_policy_document" "ssm_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssm:GetParameter",
-      "ssm:GetParameters",
-      "ssm:GetParametersByPath"
-    ]
-    resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint"
-    ]
-  }
-}
-
-# TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
-data "aws_iam_policy_document" "execute_api_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "execute-api:Invoke"
-    ]
-    resources = [
-      "arn:aws:execute-api:*:*:*/*/*/*/*"
-    ]
-  }
-
 }

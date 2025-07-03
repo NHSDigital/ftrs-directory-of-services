@@ -30,33 +30,6 @@ module "frontend_lambda" {
   aws_region     = var.aws_region
 }
 
-data "aws_iam_policy_document" "ssm_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssm:GetParameter",
-      "ssm:GetParameters",
-      "ssm:GetParametersByPath"
-    ]
-    resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint"
-    ]
-  }
-}
-
-# TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
-data "aws_iam_policy_document" "execute_api_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "execute-api:Invoke"
-    ]
-    resources = [
-      "arn:aws:execute-api:*:*:*/*/*/*/*"
-    ]
-  }
-}
-
 resource "aws_lambda_function_url" "frontend_lambda_url" {
   function_name      = module.frontend_lambda.lambda_function_name
   authorization_type = "NONE"
