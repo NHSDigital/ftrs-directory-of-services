@@ -68,11 +68,9 @@ def mock_responses(
         json=ods_data_abc123,
     )
 
-    # Setup CRUD API Mock for Organisation UUID (ABC123)
+    # Setup CRUD API Mock for Organisation UUID (00000000-0000-0000-0000-000000000abc)
     crud_api_data_abc123 = {
-        "resourceType": "Organization",
-        "id": "uuid_abc123",
-        "name": "Test Organisation",
+        "id": "00000000-0000-0000-0000-000000000abc",
     }
     crud_org_abc123_mock = requests_mock.get(
         "http://test-crud-api/organisation/ods_code/ABC123",
@@ -128,10 +126,10 @@ def test_processor_processing_organisations_successful(
     # Check the data struct
     assert data_to_load == [
         {
-            "path": "uuid_abc123",
+            "path": "00000000-0000-0000-0000-000000000abc",
             "body": {
                 "resourceType": "Organization",
-                "id": "ABC123",
+                "id": "00000000-0000-0000-0000-000000000abc",
                 "active": True,
                 "type": [{"coding": [{"system": "todo", "display": "GP Service"}]}],
                 "name": "Test Organisation ABC ODS",
@@ -188,7 +186,9 @@ def test_processor_continue_on_validation_failure(
 
     crud_efg456_mock = requests_mock.get(
         "http://test-crud-api/organisation/ods_code/EFG456",
-        json={"id": "uuid_efg456", "name": "Test Organisation EFG"},
+        json={
+            "id": "00000000-0000-0000-0000-000000000EFG",
+        },
     )
     expected_call_count = 5
 
@@ -209,7 +209,7 @@ def test_processor_continue_on_validation_failure(
     assert mock_responses.ods_abc123.last_request.path == "/stu3/organization/abc123"
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
 
-    # Assert CRUD API Call for Organisation UUID (ABC123)
+    # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000abc)
     assert crud_api_abc123_mock.called_once
     assert crud_api_abc123_mock.last_request.path == "/organisation/ods_code/abc123"
     assert requests_mock.request_history[2] == crud_api_abc123_mock.last_request
@@ -226,7 +226,7 @@ def test_processor_continue_on_validation_failure(
     assert ods_efg456_mock.last_request.path == "/stu3/organization/efg456"
     assert requests_mock.request_history[3] == ods_efg456_mock.last_request
 
-    # Assert CRUD API Call for Organisation UUID (EFG456)
+    # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000EFG)
     assert crud_efg456_mock.called_once
     assert crud_efg456_mock.last_request.path == "/organisation/ods_code/efg456"
     assert requests_mock.request_history[4] == crud_efg456_mock.last_request
@@ -236,13 +236,13 @@ def test_processor_continue_on_validation_failure(
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
     assert data_to_load == [
         {
-            "path": "uuid_efg456",
+            "path": "00000000-0000-0000-0000-000000000EFG",
             "body": {
                 "resourceType": "Organization",
                 "active": True,
                 "type": [{"coding": [{"system": "todo"}]}],
                 "name": "Test Organisation EFG ODS",
-                "id": "EFG456",
+                "id": "00000000-0000-0000-0000-000000000EFG",
                 "identifier": [
                     {
                         "use": "official",

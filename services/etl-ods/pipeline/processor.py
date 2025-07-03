@@ -74,6 +74,7 @@ def process_organisation(ods_code: str) -> str | None:
         organisation_data = fetch_ods_organisation_data(ods_code)
         fhir_organisation = transform_to_payload(organisation_data, ods_code)
         org_uuid = fetch_organisation_uuid(ods_code)
+        fhir_organisation.id = org_uuid
         if org_uuid is None:
             ods_processor_logger.log(
                 OdsETLPipelineLogBase.ETL_PROCESSOR_027,

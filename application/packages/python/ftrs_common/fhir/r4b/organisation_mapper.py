@@ -64,7 +64,7 @@ class OrganizationMapper(FhirMapper):
             "active": ods_fhir_organization.get("active"),
             "type": self._create_codable_concept_for_type(ods_fhir_organization),
             "name": ods_fhir_organization.get("name"),
-            "id": ods_fhir_organization.get("identifier", {}).get("value"),
+            "id": ods_fhir_organization.get("id"),
             "identifier": self._create_identifier(
                 ods_fhir_organization.get("identifier", {}).get("value")
             ),
