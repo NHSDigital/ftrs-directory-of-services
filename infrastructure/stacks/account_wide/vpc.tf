@@ -25,7 +25,7 @@ module "vpc" {
   database_outbound_acl_rules    = local.network_acls["database_outbound"]
 
   private_dedicated_network_acl = var.private_dedicated_network_acl
-  private_inbound_acl_rules     = local.network_acls["private_inbound"]
+  private_inbound_acl_rules     = concat(local.network_acls["private_inbound"], local.network_acls["private_inbound_managed_dynamodb_prefix_list"], local.network_acls["private_inbound_managed_s3_prefix_list"])
   private_outbound_acl_rules    = local.network_acls["private_outbound"]
 
   public_dedicated_network_acl = var.public_dedicated_network_acl
@@ -118,6 +118,34 @@ locals {
         to_port     = 65535
         protocol    = "tcp"
         cidr_block  = cidr_block
+      }
+    ]
+
+    private_inbound_managed_s3_prefix_list = [for i, cidr in zipmap(
+      range(length(data.aws_ec2_managed_prefix_list.s3_prefix_list.entries[*].cidr)),
+      data.aws_ec2_managed_prefix_list.s3_prefix_list.entries[*].cidr
+      ) :
+      {
+        rule_number = 300 + i
+        rule_action = "allow"
+        from_port   = 1024
+        to_port     = 65535
+        protocol    = "tcp"
+        cidr_block  = cidr
+      }
+    ]
+
+    private_inbound_managed_dynamodb_prefix_list = [for i, cidr in zipmap(
+      range(length(data.aws_ec2_managed_prefix_list.dynamodb_prefix_list.entries[*].cidr)),
+      data.aws_ec2_managed_prefix_list.dynamodb_prefix_list.entries[*].cidr
+      ) :
+      {
+        rule_number = 300 + i
+        rule_action = "allow"
+        from_port   = 1024
+        to_port     = 65535
+        protocol    = "tcp"
+        cidr_block  = cidr
       }
     ]
 
