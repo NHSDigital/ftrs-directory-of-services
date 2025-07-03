@@ -14,3 +14,11 @@ data "aws_availability_zones" "available_azs" {
     values = ["opt-in-not-required"]
   }
 }
+
+data "aws_ec2_managed_prefix_list" "s3_prefix_list" {
+  name = "com.amazonaws.${var.aws_region}.s3"
+}
+
+data "aws_ec2_managed_prefix_list" "dynamodb_prefix_list" {
+  name = "com.amazonaws.${var.aws_region}.dynamodb"
+}
