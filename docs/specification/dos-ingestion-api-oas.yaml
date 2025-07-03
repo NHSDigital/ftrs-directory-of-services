@@ -4,11 +4,11 @@ info:
   description: |
     ## Overview
 
-    Use this API to submit service data from your system to the NHS [Directory of Services (DoS)](https://digital.nhs.uk/services/directory-of-services-dos). This API enables data providers to send structured updates—such as service availability, contact details, or referral information—which are validated and prepared for inclusion in the national DoS.
+    Use this API to submit service data from your system to the NHS [Directory of Services (DoS)](https://digital.nhs.uk/services/directory-of-services-dos). This API enables data providers to send structured updates: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the national DoS.
 
     Once submitted, the data will either undergo manual assurance by DoS leads or, in applicable cases, be processed through an automated assurance workflow. If manual assurance is required, the sender will receive an acknowledgment confirming that the data has been successfully submitted and is pending review.
 
-    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission—helping ensure the DoS remains accurate and up to date for use across NHS systems.
+    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up to date for use across NHS systems.
 
     ## Who can use this API
 
