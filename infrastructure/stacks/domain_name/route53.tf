@@ -1,6 +1,6 @@
 resource "aws_route53_zone" "root_zone" {
   count = var.environment == "mgmt" ? 1 : 0
-  name  = var.root_domain_name
+  name  = local.root_domain_name
 }
 
 resource "aws_route53_zone" "environment_zone" {
@@ -11,7 +11,7 @@ resource "aws_route53_zone" "environment_zone" {
 data "aws_route53_zone" "root_zone" {
   provider = aws.mgmt
   count    = var.environment == "mgmt" ? 0 : 1
-  name     = var.root_domain_name
+  name     = local.root_domain_name
 }
 
 resource "aws_route53_record" "environment_zone_delegation" {
