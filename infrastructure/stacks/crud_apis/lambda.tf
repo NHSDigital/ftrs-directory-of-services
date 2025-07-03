@@ -83,7 +83,6 @@ module "healthcare_service_api_lambda" {
     aws_lambda_layer_version.common_packages_layer.arn,
   ]
 
-
   environment_variables = {
     "ENVIRONMENT"  = var.environment
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
@@ -141,38 +140,4 @@ module "location_api_lambda" {
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
-}
-
-data "aws_iam_policy_document" "s3_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject"
-    ]
-    resources = [
-      "${module.crud_apis_bucket.s3_bucket_arn}/",
-      "${module.crud_apis_bucket.s3_bucket_arn}/*",
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:PutItem",
-      "dynamodb:GetItem",
-      "dynamodb:UpdateItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:Scan",
-      "dynamodb:Query"
-    ]
-    resources = flatten([
-      for table in local.dynamodb_tables : [
-        table.arn,
-        "${table.arn}/index/*"
-      ]
-    ])
-  }
 }
