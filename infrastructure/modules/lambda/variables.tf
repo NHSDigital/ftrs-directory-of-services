@@ -50,7 +50,7 @@ variable "attach_tracing_policy" {
 variable "tracing_mode" {
   description = "Tracing configuration for the Lambda function"
   type        = string
-  default     = "PassThrough"
+  default     = "Active"
 }
 variable "attach_policy_jsons" {
   description = "Whether to attach the provided JSON policies to the Lambda role"
