@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "vpc_access_policy" {
     condition {
       test     = "StringEquals"
       variable = "lambda:VpcIds"
-      values   = [var.vpc.id]
+      values   = [var.vpc_id]
 
     }
   }
@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "allow_private_subnet_policy" {
     condition {
       test     = "StringEquals"
       variable = "lambda:SubnetIds"
-      values   = [for subnet in var.subnet_ids : subnet.id]
+      values   = var.subnet_ids
 
     }
   }
@@ -79,7 +79,7 @@ data "aws_iam_policy_document" "limit_to_environment_vpc_policy" {
     condition {
       test     = "StringEquals"
       variable = "lambda:VpcIds"
-      values   = [var.vpc.id]
+      values   = [var.vpc_id]
 
     }
   }
