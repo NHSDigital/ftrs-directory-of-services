@@ -111,7 +111,7 @@ locals {
     ]
 
     private_inbound = [
-      for i, cidr_block in concat(local.public_subnets, local.database_subnets, local.private_subnets) : {
+      for i, cidr_block in concat(local.public_subnets, local.database_subnets) : {
         rule_number = 200 + i
         rule_action = "allow"
         from_port   = 0
@@ -140,7 +140,7 @@ locals {
       data.aws_ec2_managed_prefix_list.dynamodb_prefix_list.entries[*].cidr
       ) :
       {
-        rule_number = 300 + i
+        rule_number = 400 + i
         rule_action = "allow"
         from_port   = 1024
         to_port     = 65535
