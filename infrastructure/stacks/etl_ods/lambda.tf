@@ -54,6 +54,7 @@ module "processor_lambda" {
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "consumer_lambda" {
@@ -94,6 +95,7 @@ module "consumer_lambda" {
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 
