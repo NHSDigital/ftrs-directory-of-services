@@ -20,6 +20,7 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
 
   tags = {
     Name        = "${local.resource_prefix}-api-gateway${local.workspace_suffix}-domain"
+    Environment = var.environment
   }
 }
 
