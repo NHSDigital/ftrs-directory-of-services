@@ -131,7 +131,12 @@ def test_processor_processing_organisations_successful(
                 "resourceType": "Organization",
                 "id": "00000000-0000-0000-0000-000000000abc",
                 "active": True,
-                "type": [{"coding": [{"system": "todo", "display": "GP Service"}]}],
+                "type": [
+                    {
+                        "coding": [{"system": "todo", "display": "GP Service"}],
+                        "text": "GP Service",
+                    }
+                ],
                 "name": "Test Organisation ABC ODS",
                 "identifier": [
                     {
