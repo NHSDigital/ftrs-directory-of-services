@@ -13,7 +13,7 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
 
   domain_name_configuration {
     # certificate_arn = var.mtls_certificate_arn != "" ? var.mtls_certificate_arn : aws_acm_certificate.api_cert[0].arn
-    certificate_arn = aws_acm_certificate.domain_cert.arn
+    certificate_arn = data.aws_acm_certificate.domain_cert.arn
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
