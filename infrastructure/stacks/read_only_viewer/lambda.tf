@@ -18,8 +18,8 @@ module "frontend_lambda" {
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.execute_api_policy.json
   ]
-  security_group_ids = null
-  subnet_ids         = null
+  security_group_ids = []
+  subnet_ids         = []
   layers             = []
   environment_variables = {
     "ENVIRONMENT" = var.environment
