@@ -140,6 +140,7 @@
           "Action": [
             "route53:ListHostedZones",
             "route53:GetHostedZone",
+            "route53:GetChange",
             "route53:ChangeResourceRecordSets",
             "route53:ListResourceRecordSets",
             "route53:ListHostedZonesByName",
