@@ -153,8 +153,10 @@
           "Sid": "AllowACMAccess",
           "Effect": "Allow",
           "Action": [
+            "acm:GetCertificate",
             "acm:ListCertificates",
-            "acm:DescribeCertificate"
+            "acm:DescribeCertificate",
+            "acm:ListTagsForCertificate"
           ],
           "Resource": "*"
         }
