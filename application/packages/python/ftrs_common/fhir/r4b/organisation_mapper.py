@@ -138,7 +138,8 @@ class OrganizationMapper(FhirMapper):
                             "code": TYPE_TO_CODE.get(org_type),
                             "display": org_type,
                         }
-                    ]
+                    ],
+                    "text": org_type,
                 }
             )
         ]

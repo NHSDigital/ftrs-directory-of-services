@@ -269,7 +269,8 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
                         "code": "76",
                         "display": "GP PRACTICE",
                     }
-                ]
+                ],
+                text="GP PRACTICE",
             )
         ],
     )
