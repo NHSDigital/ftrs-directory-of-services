@@ -138,3 +138,6 @@ variable "create_certificate" {
 #   default     = ""
 # }
 
+variable "s3_bucket_name" {
+  description = "Name of the S3 bucket where the Lambda package is stored"
+}
