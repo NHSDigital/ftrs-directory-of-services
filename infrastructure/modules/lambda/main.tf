@@ -25,6 +25,7 @@ module "lambda" {
     key    = var.s3_key
   } : null
 
+  vpc_id                 = var.vpc_id
   vpc_subnet_ids         = var.subnet_ids
   vpc_security_group_ids = var.security_group_ids
 

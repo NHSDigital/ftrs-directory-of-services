@@ -50,6 +50,7 @@ module "extract_lambda" {
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "transform_lambda" {
@@ -86,6 +87,7 @@ module "transform_lambda" {
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "load_lambda" {
@@ -123,6 +125,7 @@ module "load_lambda" {
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 resource "aws_lambda_permission" "allow_s3_to_invoke_load_lambda" {
