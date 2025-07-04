@@ -39,9 +39,3 @@ variable "retention_in_days" {
   type        = number
   default     = 7
 }
-
-variable "dev_domain_name" {
-  description = "value of the domain name to use for the API Gateway"
-  type        = string
-  default     = "dev.ftrs.cloud.nhs.uk"
-}
