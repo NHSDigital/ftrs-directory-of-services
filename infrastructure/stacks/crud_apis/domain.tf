@@ -30,6 +30,5 @@ resource "aws_apigatewayv2_api_mapping" "api_mapping" {
 }
 
 resource "aws_route53_zone" "api_record" {
-  zone_id = var.hosted_zone_id
-  name    = "TEMP-${local.workspace_suffix}.${local.root_domain_name}"
+  name = "TEMP-${local.workspace_suffix}.${local.root_domain_name}"
 }
