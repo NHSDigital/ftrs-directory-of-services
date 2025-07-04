@@ -1,15 +1,15 @@
 data "aws_route53_zone" "main" {
-  zone_id = var.hosted_zone_id
+  name = local.root_domain_name
 }
 
 data "aws_acm_certificate" "domain_cert" {
-  domain      = "*.dev.ftrs.cloud.nhs.uk"
+  domain      = "*.${local.root_domain_name}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
 
 resource "aws_apigatewayv2_domain_name" "api_domain" {
-  domain_name = "TEMP-${local.workspace_suffix}.${var.environment}.ftrs.cloud.nhs.uk"
+  domain_name = "TEMP-${local.workspace_suffix}.*.${local.root_domain_name}"
 
   domain_name_configuration {
     # certificate_arn = var.mtls_certificate_arn != "" ? var.mtls_certificate_arn : aws_acm_certificate.api_cert[0].arn
@@ -19,8 +19,7 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
   }
 
   tags = {
-    Name        = "${local.resource_prefix}-api-gateway${local.workspace_suffix}-domain"
-    Environment = var.environment
+    Name = "${local.resource_prefix}-api-gateway${local.workspace_suffix}-domain"
   }
 }
 
@@ -30,14 +29,7 @@ resource "aws_apigatewayv2_api_mapping" "api_mapping" {
   stage       = module.api_gateway.stage_id
 }
 
-resource "aws_route53_record" "api_record" {
+resource "aws_route53_zone" "api_record" {
   zone_id = var.hosted_zone_id
-  name    = "TEMP-${local.workspace_suffix}.${var.environment}.ftrs.cloud.nhs.uk"
-  type    = "A"
-
-  alias {
-    name                   = aws_apigatewayv2_domain_name.api_domain.domain_name_configuration[0].target_domain_name
-    zone_id                = aws_apigatewayv2_domain_name.api_domain.domain_name_configuration[0].hosted_zone_id
-    evaluate_target_health = false
-  }
+  name    = "TEMP-${local.workspace_suffix}.${local.root_domain_name}"
 }

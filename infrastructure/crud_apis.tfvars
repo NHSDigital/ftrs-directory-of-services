@@ -29,6 +29,3 @@ api_gateway_integration_timeout       = 10000
 api_gateway_access_log_retention_days = 7
 api_gateway_throttling_burst_limit    = 100
 api_gateway_throttling_rate_limit     = 10
-
-hosted_zone_id     = "Z1041066BVJJ75SAJKKV"
-create_certificate = true

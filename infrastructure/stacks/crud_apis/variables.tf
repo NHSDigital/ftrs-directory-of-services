@@ -116,11 +116,6 @@ variable "api_gateway_throttling_rate_limit" {
   type        = number
 }
 
-# variable "domain_name" {
-#   description = "Custom domain name for the API Gateway"
-#   type        = string
-# }
-
 variable "hosted_zone_id" {
   description = "Route53 hosted zone ID for the domain"
   type        = string
@@ -131,12 +126,6 @@ variable "create_certificate" {
   type        = bool
   default     = true
 }
-
-# variable "mtls_certificate_arn" {
-#   description = "ACM certificate ARN for the domain (optional - will create one if not provided)"
-#   type        = string
-#   default     = ""
-# }
 
 variable "s3_bucket_name" {
   description = "Name of the S3 bucket where the Lambda package is stored"
