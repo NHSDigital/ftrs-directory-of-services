@@ -110,7 +110,7 @@ const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
         header: "Action",
         cell: (info) => (
           <Link
-            to="/organisations/$organisationID/endpoints/$endpointID"
+            to="/organisations/$organisationID/endpoint/$endpointID"
             params={{
               organisationID: info.row.original.managedByOrganisation,
               endpointID: info.getValue(),
