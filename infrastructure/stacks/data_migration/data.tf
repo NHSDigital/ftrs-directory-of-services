@@ -38,3 +38,51 @@ data "aws_subnet" "private_subnets_details" {
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.app_github_runner_role_name}"
 }
+
+data "aws_iam_policy_document" "s3_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:HeadBucket",
+      "s3:ListBucket"
+    ]
+    resources = [
+      module.migration_store_bucket.s3_bucket_arn,
+      "${module.migration_store_bucket.s3_bucket_arn}/*",
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "secrets_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${local.account_prefix}/source-rds-credentials-*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "dynamodb_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem"
+    ]
+    resources = flatten([
+      for table in local.dynamodb_tables : [
+        table.arn,
+        "${table.arn}/index/*"
+      ]
+    ])
+  }
+}

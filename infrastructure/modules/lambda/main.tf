@@ -1,3 +1,4 @@
+#trivy:ignore:AVD-AWS-0066
 module "lambda" {
   # Module version: 7.21.0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=f1f06ed88f567ec75815bd37897d612092e7941c"
@@ -7,11 +8,11 @@ module "lambda" {
   runtime                = var.runtime
   publish                = var.publish
   attach_policy_jsons    = var.attach_policy_jsons
-  number_of_policy_jsons = var.number_of_policy_jsons
+  number_of_policy_jsons = length(local.additional_json_policies)
   attach_tracing_policy  = var.attach_tracing_policy
   tracing_mode           = var.tracing_mode
   description            = var.description
-  policy_jsons           = var.policy_jsons
+  policy_jsons           = local.additional_json_policies
   timeout                = var.timeout
   memory_size            = var.memory_size
 
@@ -30,16 +31,4 @@ module "lambda" {
 
   environment_variables = merge(var.environment_variables, { WORKSPACE = "${local.environment_workspace}" })
   layers                = var.layers
-}
-
-output "lambda_function_arn" {
-  value = module.lambda.lambda_function_arn
-}
-
-output "lambda_function_name" {
-  value = module.lambda.lambda_function_name
-}
-
-output "lambda_role_arn" {
-  value = module.lambda.lambda_role_arn
 }

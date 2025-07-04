@@ -31,11 +31,10 @@ module "organisation_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.organisation_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_access_policy.json
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -54,6 +53,10 @@ module "organisation_api_lambda" {
       source_arn = "${module.api_gateway.api_execution_arn}/*/*"
     }
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "healthcare_service_api_lambda" {
@@ -71,17 +74,15 @@ module "healthcare_service_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.healthcare_service_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_access_policy.json
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
   ]
-
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment
@@ -95,6 +96,10 @@ module "healthcare_service_api_lambda" {
       source_arn = "${module.api_gateway.api_execution_arn}/*/*"
     }
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "location_api_lambda" {
@@ -112,11 +117,10 @@ module "location_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_access_policy.json
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -135,52 +139,8 @@ module "location_api_lambda" {
       source_arn = "${module.api_gateway.api_execution_arn}/*/*"
     }
   }
-}
-
-data "aws_iam_policy_document" "vpc_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "s3_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject"
-    ]
-    resources = [
-      "${module.crud_apis_bucket.s3_bucket_arn}/",
-      "${module.crud_apis_bucket.s3_bucket_arn}/*",
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:PutItem",
-      "dynamodb:GetItem",
-      "dynamodb:UpdateItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:Scan",
-      "dynamodb:Query"
-    ]
-    resources = flatten([
-      for table in local.dynamodb_tables : [
-        table.arn,
-        "${table.arn}/index/*"
-      ]
-    ])
-  }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
