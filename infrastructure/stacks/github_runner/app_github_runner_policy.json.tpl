@@ -140,11 +140,23 @@
           "Action": [
             "route53:ListHostedZones",
             "route53:GetHostedZone",
+            "route53:GetChange",
             "route53:ChangeResourceRecordSets",
             "route53:ListResourceRecordSets",
             "route53:ListHostedZonesByName",
             "route53:ListTagsForResource",
             "route53:ChangeTagsForResource"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Sid": "AllowACMAccess",
+          "Effect": "Allow",
+          "Action": [
+            "acm:GetCertificate",
+            "acm:ListCertificates",
+            "acm:DescribeCertificate",
+            "acm:ListTagsForCertificate"
           ],
           "Resource": "*"
         }

@@ -8,9 +8,12 @@ resource "aws_iam_role" "route53_cross_account_role" {
       {
         Effect = "Allow"
         Principal = {
-          AWS = [
-            for account in var.aws_accounts : data.aws_ssm_parameter.account_id[account].value
-          ]
+          AWS = concat(
+            [var.mgmt_account_id],
+            [
+              for account in var.aws_accounts : data.aws_ssm_parameter.account_id[account].value
+            ]
+          )
         }
         Action = "sts:AssumeRole"
       }
@@ -32,7 +35,9 @@ resource "aws_iam_policy" "route53_cross_account_policy" {
           "route53:GetHostedZone",
           "route53:ChangeResourceRecordSets",
           "route53:ListHostedZones",
-          "route53:ListTagsForResource"
+          "route53:ListTagsForResource",
+          "route53:GetChange",
+          "route53:ListResourceRecordSets"
         ]
         Resource = "*"
       }

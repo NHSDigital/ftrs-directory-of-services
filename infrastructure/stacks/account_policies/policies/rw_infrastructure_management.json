@@ -99,6 +99,24 @@
                     "iam:AWSServiceName": "health.amazonaws.com"
                 }
             }
+        },
+        {
+            "Sid": "ServiceQuotasAccess",
+            "Effect": "Allow",
+            "Action": [
+                "servicequotas:ListServices",
+                "servicequotas:ListServiceQuotas",
+                "servicequotas:ListAWSDefaultServiceQuotas",
+                "servicequotas:ListRequestedServiceQuotaChangeHistory",
+                "servicequotas:ListRequestedServiceQuotaChangeHistoryByQuota",
+                "servicequotas:ListTagsForResource",
+                "servicequotas:GetServiceQuota",
+                "servicequotas:GetAWSDefaultServiceQuota",
+                "servicequotas:GetRequestedServiceQuotaChange",
+                "servicequotas:RequestServiceQuotaIncrease",
+                "servicequotas:CreateSupportCase"
+            ],
+            "Resource": "*"
         }
     ]
 }
