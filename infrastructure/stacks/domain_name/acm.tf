@@ -1,6 +1,6 @@
 resource "aws_acm_certificate" "custom_domain_api_cert" {
   count             = var.environment == "mgmt" ? 0 : 1
-  domain_name       = "*.${var.environment}.${local.root_domain_name}"
+  domain_name       = "*.${local.root_domain_name}"
   validation_method = "DNS"
 
   lifecycle {
