@@ -6,7 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "nhsuk-react-components";
 
 export const Route = createFileRoute(
-  "/organisations/$organisationID/endpoints/$endpointID",
+  "/organisations/$organisationID/endpoint/$endpointID",
 )({
   component: EndpointDetailsPage,
   head: () => ({
@@ -44,53 +44,50 @@ const EndpointOverview: React.FC<{ endpoints: Endpoint[], endpointID: string }> 
         <p>No endpoints available for this organisation.</p>
       </Card>
     );
-  } else {
-    endpoint = endpoint as Endpoint
-    return (
-      <Card className="nhsuk-u-padding-5">
-        <h2 className="nhsuk-heading-m">Endpoint Overview</h2>
-        <KeyValueTable
-          items={[
-            { key: "ID", value: endpoint.id },
-            { key: "Identifier Old DOS ID", value: endpoint.identifier_oldDoS_id},
-            { key: "Status", value: endpoint.status},
-            { key: "Connection Type", value: endpoint.connectionType },
-            { key: "Name", value: endpoint.name },
-            { key: "Description", value: endpoint.description },
-            { key: "Payload Type", value: endpoint.payloadType },
-            { key: "Address", value: endpoint.address },
-            { key: "Order", value: endpoint.order },
-            { key: "Is Compression Enabled", value: endpoint.isCompressionEnabled.toString() },
-            { key: "Payload Mime Type", value: endpoint.payloadMimeType },
-            {
-              key: "Created By",
-              value: (
-                <>
-                  {endpoint.createdBy}{" "}
-                  <span className="nhsuk-u-font-size-16">
-                    ({endpoint.createdDateTime})
-                  </span>
-                </>
-              ),
-            },
-            {
-              key: "Modified By",
-              value: (
-                <>
-                  {endpoint.modifiedBy}{" "}
-                  <span className="nhsuk-u-font-size-16">
-                    ({endpoint.modifiedDateTime})
-                  </span>
-                </>
-              ),
-            },
-          ]}
-        />
-      </Card>
-    );
   }
-
-
+  endpoint = endpoint as Endpoint
+  return (
+    <Card className="nhsuk-u-padding-5">
+      <h2 className="nhsuk-heading-m">Endpoint Overview</h2>
+      <KeyValueTable
+        items={[
+          { key: "ID", value: endpoint.id },
+          { key: "Identifier Old DOS ID", value: endpoint.identifier_oldDoS_id},
+          { key: "Status", value: endpoint.status},
+          { key: "Connection Type", value: endpoint.connectionType },
+          { key: "Name", value: endpoint.name },
+          { key: "Description", value: endpoint.description },
+          { key: "Payload Type", value: endpoint.payloadType },
+          { key: "Address", value: endpoint.address },
+          { key: "Order", value: endpoint.order },
+          { key: "Is Compression Enabled", value: endpoint.isCompressionEnabled.toString() },
+          { key: "Payload Mime Type", value: endpoint.payloadMimeType },
+          {
+            key: "Created By",
+            value: (
+              <>
+                {endpoint.createdBy}{" "}
+                <span className="nhsuk-u-font-size-16">
+                  ({endpoint.createdDateTime})
+                </span>
+              </>
+            ),
+          },
+          {
+            key: "Modified By",
+            value: (
+              <>
+                {endpoint.modifiedBy}{" "}
+                <span className="nhsuk-u-font-size-16">
+                  ({endpoint.modifiedDateTime})
+                </span>
+              </>
+            ),
+          },
+        ]}
+      />
+    </Card>
+  );
 };
 
 function getEndpoint(endpoints: Endpoint[], endpointID: string) {
@@ -120,13 +117,8 @@ function EndpointDetailsPage() {
             label: organisation?.name || "Organisation",
           },
           {
-            to: "/organisations/$organisationID/endpoints",
-            label: "Endpoints",
-            params: { organisationID },
-          },
-          {
-            to: "/organisations/$organisationID/endpoints/$endpointID",
-            label: endpointID,
+            to: "/organisations/$organisationID/$endpointID",
+            label: `Endpoint ${endpointID}`,
             params: { organisationID, endpointID },
           },
         ]}

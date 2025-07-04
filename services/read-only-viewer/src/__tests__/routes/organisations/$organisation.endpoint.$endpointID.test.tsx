@@ -51,7 +51,7 @@ describe("Organisation Endpoint Details", () => {
 
     await act(() =>
       router.navigate({
-        to: "/organisations/$organisationID/endpoints/$endpointID",
+        to: "/organisations/$organisationID/endpoint/$endpointID",
         params: {
           organisationID: "9521a4ee-d0e6-4cca-9d8c-123bfbf43123",
           endpointID: "db752ac7-d260-44c0-a36d-bd8939b3343e",
