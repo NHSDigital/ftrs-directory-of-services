@@ -95,3 +95,8 @@ variable "mgmt_account_id" {
   description = "Management account ID"
   type        = string
 }
+
+variable "root_domain_name" {
+  description = "Root domain name for the project"
+  type        = string
+}
