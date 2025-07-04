@@ -27,6 +27,6 @@ data "aws_dynamodb_table" "dynamodb_organisation_table" {
 }
 
 data "aws_route53_zone" "dev_ftrs_cloud" {
-  name         = var.dev_domain_name
+  name         = local.root_domain_name
   private_zone = false
 }
