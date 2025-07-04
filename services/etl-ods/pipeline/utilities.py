@@ -8,6 +8,7 @@ import requests
 from aws_lambda_powertools.utilities.parameters import get_parameter
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
+from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
@@ -47,32 +48,69 @@ def get_signed_request_headers(
     return dict(request.headers)
 
 
-def make_request(
-    url: str,
-    method: str = "GET",
-    params: dict = None,
-    timeout: int = 20,
-    sign: bool = False,
-    **kwargs: dict,
-) -> requests.Response:
+def build_headers(options: dict) -> dict:
+    """
+    Builds headers for the outgoing HTTP request.
+    Expects options dict with keys: json_data, json_string, fhir, sign, url, method
+    """
     headers = {}
-
-    json_data = kwargs.get("json")
-    json_string = None
+    json_data = options.get("json_data")
+    json_string = options.get("json_string")
+    fhir = options.get("fhir")
+    sign = options.get("sign")
+    url = options.get("url")
+    method = options.get("method")
+    # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
-        json_string = json.dumps(json_data)
-
-    if sign is True:
+    # Set FHIR headers if needed
+    if fhir:
+        headers["Accept"] = "application/fhir+json"
+        if json_string is not None:
+            headers["Content-Type"] = "application/fhir+json"
+    # Handle AWS SigV4 signing if required
+    if sign:
         parsed_url = urlparse(url)
         host = parsed_url.netloc
-        headers = get_signed_request_headers(
+        signed_headers = get_signed_request_headers(
             method=method,
             url=url,
             host=host,
             data=json_string,
             region="eu-west-2",
         )
+        headers.update(signed_headers)
+    return headers
+
+
+def handle_fhir_response(data: dict) -> dict:
+    if data.get("resourceType") == "OperationOutcome" and "issue" in data:
+        raise OperationOutcomeException(data)
+    return data
+
+
+def make_request(
+    url: str,
+    method: str = "GET",
+    params: dict = None,
+    timeout: int = 20,
+    sign: bool = False,
+    fhir: bool = False,
+    **kwargs: dict,
+) -> requests.Response:
+    json_data = kwargs.get("json")
+    json_string = json.dumps(json_data) if json_data is not None else None
+
+    headers = build_headers(
+        {
+            "json_data": json_data,
+            "json_string": json_string,
+            "fhir": fhir,
+            "sign": sign,
+            "url": url,
+            "method": method,
+        }
+    )
 
     try:
         response = requests.request(
@@ -85,11 +123,17 @@ def make_request(
         )
         response.raise_for_status()
 
+        if fhir:
+            data = response.json()
+            return handle_fhir_response(data)
+        else:
+            return response
+
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(
             OdsETLPipelineLogBase.ETL_UTILS_003,
             http_err=http_err,
-            status_code=response.status_code,
+            status_code=getattr(http_err.response, "status_code", None),
         )
         raise
 
@@ -101,5 +145,3 @@ def make_request(
             error_message=str(e),
         )
         raise
-
-    return response

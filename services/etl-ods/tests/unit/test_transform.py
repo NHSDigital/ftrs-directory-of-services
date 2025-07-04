@@ -1,112 +1,31 @@
-import pytest
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from pytest_mock import MockFixture
 
-from pipeline.transform import transfrom_into_payload
-from pipeline.validators import (
-    ContactItem,
-    ContactTypeEnum,
-    OrganisationValidator,
-    RoleItem,
-    RoleList,
-    RolesValidator,
-)
+from pipeline.transform import transform_to_payload
 
 
-def setup_organisation_data(
-    status: str, contact: ContactItem, roles: RoleItem
-) -> OrganisationValidator:
-    test_contacts = contact
-    test_roles = RoleList(Role=roles)
-
-    return OrganisationValidator(
-        Name="Test Organisation",
-        Status=status,
-        Contact=test_contacts,
-        Roles=test_roles,
-    )
-
-
-def setup_role_data(display_name: str) -> RolesValidator:
-    return RolesValidator(displayName=display_name)
-
-
-def test_transfrom_into_payload_activity_active(
-    caplog: pytest.LogCaptureFixture,
+def test_transform_to_payload_logs_and_returns_organization(
+    mocker: MockFixture,
 ) -> None:
-    contact = ContactItem(type=ContactTypeEnum.tel, value="123456789")
-
-    role_items = [
-        RoleItem(id="1", primaryRole=True),
-    ]
-
-    organisation_data = setup_organisation_data("Active", contact, role_items)
-    role_data = setup_role_data("Primary Role")
-    expected_payload = {
-        "active": True,
-        "name": "Test Organisation",
-        "telecom": "123456789",
-        "type": "Primary Role",
-        "modified_by": "ODS_ETL_PIPELINE",
+    ods_fhir = {"resourceType": "Organization", "id": "ODS123", "name": "Test Org"}
+    ods_code = "ODS123"
+    fake_organization = {
+        "resourceType": "Organization",
+        "id": "ODS123",
+        "name": "Test Org",
     }
 
-    result = transfrom_into_payload(organisation_data, role_data, "ODS123")
-    assert result == expected_payload
-
-    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_026.value.message.format(
-        ods_code="ODS123",
+    mock_mapper = mocker.patch(
+        "pipeline.transform.OrganizationMapper.from_ods_fhir_to_fhir",
+        return_value=fake_organization,
     )
-    assert expected_log in caplog.text
+    mock_logger = mocker.patch("pipeline.transform.ods_processor_logger.log")
 
+    result = transform_to_payload(ods_fhir, ods_code)
 
-def test_transfrom_into_payload_activity_inactive(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    contact = ContactItem(type=ContactTypeEnum.tel, value="123456789")
-    role_items = [
-        RoleItem(id="RO123", primaryRole=True),
-    ]
-
-    organisation_data = setup_organisation_data("Inactive", contact, role_items)
-    role_data = setup_role_data("Primary Role")
-
-    expected_payload = {
-        "active": False,
-        "name": "Test Organisation",
-        "telecom": "123456789",
-        "type": "Primary Role",
-        "modified_by": "ODS_ETL_PIPELINE",
-    }
-
-    result = transfrom_into_payload(organisation_data, role_data, "ODS123")
-    assert result == expected_payload
-
-    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_026.value.message.format(
-        ods_code="ODS123",
+    mock_mapper.assert_called_once_with(ods_fhir)
+    mock_logger.assert_called_once_with(
+        OdsETLPipelineLogBase.ETL_PROCESSOR_026,
+        ods_code=ods_code,
     )
-    assert expected_log in caplog.text
-
-
-def test_transfrom_into_payload_no_contacts(caplog: pytest.LogCaptureFixture) -> None:
-    contact = None
-    role_items = [
-        RoleItem(id="RO123", primaryRole=True),
-    ]
-
-    organisation_data = setup_organisation_data("Active", contact, role_items)
-    role_data = setup_role_data("Primary Role")
-
-    expected_payload = {
-        "active": True,
-        "name": "Test Organisation",
-        "telecom": None,
-        "type": "Primary Role",
-        "modified_by": "ODS_ETL_PIPELINE",
-    }
-
-    result = transfrom_into_payload(organisation_data, role_data, "ODS123")
-    assert result == expected_payload
-
-    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_026.value.message.format(
-        ods_code="ODS123",
-    )
-    assert expected_log in caplog.text
+    assert result == fake_organization

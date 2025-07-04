@@ -1,6 +1,5 @@
 from datetime import UTC, datetime
 from http import HTTPStatus
-from typing import NoReturn
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -9,11 +8,19 @@ from fastapi import HTTPException
 from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
-from organisations.app.services.organisation_helpers import (
-    apply_updates,
-    create_organisation,
-    get_outdated_fields,
-)
+from organisations.app.services.organisation_service import OrganisationService
+
+
+def make_service(
+    org_repository: AttributeLevelRepository | None = None,
+    logger: object | None = None,
+    mapper: object | None = None,
+) -> OrganisationService:
+    if org_repository is None:
+        org_repository = MagicMock(spec=AttributeLevelRepository)
+    return OrganisationService(
+        org_repository=org_repository, logger=logger, mapper=mapper
+    )
 
 
 def test_get_outdated_fields_no_changes() -> None:
@@ -40,9 +47,8 @@ def test_get_outdated_fields_no_changes() -> None:
             "endpoints": [],
         }
     )
-
-    result = get_outdated_fields(organisation, payload)
-
+    service = make_service()
+    result = service._get_outdated_fields(organisation, payload)
     assert result == {}
 
 
@@ -65,13 +71,12 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         "telecom": "99999",
         "modified_by": "UserX",
     }
-
+    service = make_service()
     with patch(
-        "organisations.app.services.organisation_helpers.datetime"
+        "organisations.app.services.organisation_service.datetime"
     ) as mock_datetime:
         mock_datetime.now.return_value = datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
-        apply_updates(organisation, updates)
-
+        service._apply_updates(organisation, updates)
     assert organisation.name == "Updated Org Name"
     assert organisation.telecom == "99999"
     assert organisation.modifiedBy == "UserX"
@@ -101,9 +106,8 @@ def test_get_outdated_fields_with_changes() -> None:
             "type": "Updated Type",
         }
     )
-
-    result = get_outdated_fields(organisation, payload)
-
+    service = make_service()
+    result = service._get_outdated_fields(organisation, payload)
     assert result == {
         "identifier_ODS_ODSCode": "DEF456",
         "active": False,
@@ -138,15 +142,14 @@ def test_get_outdated_fields_modified_by_field_only() -> None:
             "endpoints": [],
         }
     )
-
-    result = get_outdated_fields(organisation, payload)
-
+    service = make_service()
+    result = service._get_outdated_fields(organisation, payload)
     assert result == {
         "modified_by": "UserB",
     }
 
 
-def test_creates_organisation_when_valid_data_provided() -> NoReturn:
+def test_creates_organisation_when_valid_data_provided() -> None:
     org_repository = MagicMock(spec=AttributeLevelRepository)
     org_repository.get_by_ods_code.return_value = None
     org_repository.create = MagicMock()
@@ -159,7 +162,9 @@ def test_creates_organisation_when_valid_data_provided() -> NoReturn:
         type="GP Practice",
         endpoints=[],
     )
-    result = create_organisation(organisation, org_repository)
+
+    service = make_service(org_repository=org_repository)
+    result = service.create_organisation(organisation)
 
     assert result == organisation
     org_repository.create.assert_called_once_with(organisation)
@@ -169,7 +174,7 @@ def test_creates_organisation_when_valid_data_provided() -> NoReturn:
     assert result.name == "Test Organisation"
 
 
-def test_raises_error_when_organisation_already_exists() -> NoReturn:
+def test_raises_error_when_organisation_already_exists() -> None:
     org_repository = MagicMock(spec=AttributeLevelRepository)
     org_repository.get_by_ods_code.return_value = Organisation(
         identifier_ODS_ODSCode="M81094",
@@ -187,15 +192,14 @@ def test_raises_error_when_organisation_already_exists() -> NoReturn:
         type="GP Practice",
         endpoints=[],
     )
-
+    service = make_service(org_repository=org_repository)
     with pytest.raises(HTTPException) as exc_info:
-        create_organisation(organisation, org_repository)
-
+        service.create_organisation(organisation)
     assert exc_info.value.status_code == HTTPStatus.CONFLICT
     assert exc_info.value.detail == "Organisation with this ODS code already exists"
 
 
-def test_generates_new_id_when_id_already_exists() -> NoReturn:
+def test_generates_new_id_when_id_already_exists() -> None:
     org_repository = MagicMock(spec=AttributeLevelRepository)
     org_repository.get_by_ods_code.return_value = None
     org_repository.create = MagicMock()
@@ -210,7 +214,8 @@ def test_generates_new_id_when_id_already_exists() -> NoReturn:
         endpoints=[],
     )
 
-    result = create_organisation(organisation, org_repository)
+    service = make_service(org_repository=org_repository)
+    result = service.create_organisation(organisation)
 
     assert result.id != existing_id
     org_repository.create.assert_called_once_with(organisation)

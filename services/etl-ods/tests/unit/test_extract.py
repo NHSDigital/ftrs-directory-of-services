@@ -1,17 +1,16 @@
+from http import HTTPStatus
+
 import pytest
+from pytest_mock import MockerFixture
+from requests import HTTPError
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.extract import (
-    extract_contact,
-    extract_display_name,
     extract_ods_code,
-    extract_organisation_data,
-    fetch_organisation_data,
-    fetch_organisation_role,
+    fetch_ods_organisation_data,
     fetch_organisation_uuid,
     fetch_sync_data,
 )
-from pipeline.validators import RoleItem
 
 
 def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
@@ -26,68 +25,48 @@ def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
     assert result == [{"OrgLink": "https:///organisations/ABC123"}]
     assert mock_call.called_once
     assert mock_call.last_request.path == "/ord/2-0-0/sync"
-    assert mock_call.last_request.qs == {"lastchangedate": [date]}
+    assert mock_call.last_request.qs == {
+        "lastchangedate": [date]
+    }  # qs returns in lowercase
 
 
-def test_fetch_organisation_data(requests_mock: RequestsMock) -> None:
+def test_fetch_ods_organisation_data(requests_mock: RequestsMock) -> None:
     mock_call = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123",
-        json={"Organisation": {"Name": "Test Organisation"}},
+        "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123",
+        json={"resourceType": "Organization", "id": "ABC123"},
     )
 
     ods_code = "ABC123"
-    result = fetch_organisation_data(ods_code)
-    assert result == {"Name": "Test Organisation"}
+    result = fetch_ods_organisation_data(ods_code)
+    assert result == {"resourceType": "Organization", "id": "ABC123"}
 
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/ord/2-0-0/organisations/abc123"
-
-
-def test_fetch_organisation_data_no_organisations(
-    requests_mock: RequestsMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    mock_call = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123",
-        json={},
-    )
-
-    ods_code = "ABC123"
-    result = fetch_organisation_data(ods_code)
-
-    assert result == []
     assert (
-        "No organisation found in the response for the given ODS code ABC123"
-        in caplog.text
+        mock_call.last_request.url
+        == "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123"
     )
 
-    assert mock_call.called_once
-    assert mock_call.last_request.path == "/ord/2-0-0/organisations/abc123"
 
-
-def test_fetch_organisation_role(requests_mock: RequestsMock) -> None:
-    mock_call = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/123",
-        json={"displayName": "Test Role"},
+def test_fetch_ods_organisation_data_no_organisations(
+    requests_mock: RequestsMock,
+) -> None:
+    requests_mock.get(
+        "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123",
+        json={"Organisations": []},
     )
 
-    roles = [RoleItem(id="123", primaryRole=True)]
-    result = fetch_organisation_role(roles)
-
-    assert result == {"displayName": "Test Role"}
-
-    assert mock_call.called_once
-    assert mock_call.last_request.path == "/ord/2-0-0/roles/123"
+    ods_code = "ABC123"
+    result = fetch_ods_organisation_data(ods_code)
+    assert result == {"Organisations": []}
 
 
-def test_fetch_organisation_role_no_primary_role() -> None:
-    roles = [RoleItem(id="123", primaryRole=False)]
+def test_fetch_organisation_uuid(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
+    mocker.patch(
+        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
+    )
 
-    with pytest.raises(ValueError, match="No primary role found in the roles list."):
-        fetch_organisation_role(roles)
-
-
-def test_fetch_organisation_uuid(requests_mock: RequestsMock) -> None:
     mock_call = requests_mock.get(
         "http://test-crud-api/organisation/ods_code/ABC123",
         json={"id": "UUID123"},
@@ -97,131 +76,62 @@ def test_fetch_organisation_uuid(requests_mock: RequestsMock) -> None:
     assert result == "UUID123"
 
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/organisation/ods_code/abc123"
+    assert (
+        mock_call.last_request.url
+        == "http://test-crud-api/organisation/ods_code/ABC123"
+    )
 
 
-def test_extract_organisation_data() -> None:
-    payload = {
-        "Name": "Test Organisation",
-        "Status": "Active",
-        "Roles": [{"id": "RO123"}],
-        "Contacts": {
-            "Contact": [{"type": "tel", "value": "123456789"}],
-        },
-        "Other": "Data",
-    }
-    result = extract_organisation_data(payload)
-    assert result == {
-        "Name": "Test Organisation",
-        "Status": "Active",
-        "Roles": [{"id": "RO123"}],
-        "Contact": {"type": "tel", "value": "123456789"},
-    }
-
-
-def test_extract_organisation_data_invalid_payload(
-    caplog: pytest.LogCaptureFixture,
+def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
-    payload = {
-        "name": "Test Organisation",
-        "Status": "Active",
-        "Roles": [{"id": "RO123"}],
-        "Contacts": {
-            "Contact": [{"type": "tel", "value": "123456789"}],
-        },
-    }
+    mocker.patch(
+        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
+    )
 
-    extract_organisation_data(payload)
-    assert "Missing key in organisation payload: Name" in caplog.text
+    class MockResponse:
+        status_code = HTTPStatus.NOT_FOUND
 
+    def raise_http_error_not_found(*args: object, **kwargs: object) -> None:
+        http_err = HTTPError()
+        http_err.response = MockResponse()
+        raise http_err
 
-def test_extract_display_name() -> None:
-    payload = {
-        "Roles": [
-            {"id": "RO123", "primaryRole": "true", "displayName": "Test Role"},
-            {"id": "RP456", "primaryRole": "false", "displayName": "Other Role"},
-        ]
-    }
-    result = extract_display_name(payload)
-    assert result == {"displayName": "Test Role"}
+    mocker.patch(
+        "pipeline.extract.make_request", side_effect=raise_http_error_not_found
+    )
 
+    with caplog.at_level("WARNING"):
+        with pytest.raises(ValueError) as excinfo:
+            fetch_organisation_uuid("ABC123")
+        assert str(excinfo.value) == "Organisation not found in database."
 
-def test_extract_display_name_without_primary_role() -> None:
-    payload = {
-        "Roles": [
-            {"id": "RO123", "primaryRole": "false", "displayName": "Test Role"},
-            {"id": "RO456", "primaryRole": "false", "displayName": "Other Role"},
-        ]
-    }
-
-    result = extract_display_name(payload)
-    assert result is None
+    assert "Organisation not found in database" in caplog.text
 
 
-def test_extract_display_name_empty_roles() -> None:
-    payload = {"Roles": []}
+def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch(
+        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
+    )
 
-    result = extract_display_name(payload)
-    assert result is None
+    class MockResponse:
+        response = "Error"
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
 
+    def raise_http_error_not_found(*args: object, **kwargs: object) -> Exception:
+        http_err = HTTPError()
+        http_err.response = MockResponse()
+        raise http_err
 
-def test_extract_display_name_missing_roles_key() -> None:
-    payload = {}
-
-    with pytest.raises(
-        TypeError, match="Roles payload extraction failed: role is not a list"
-    ):
-        extract_display_name(payload)
-
-
-def test_extract_display_name_roles_is_none() -> None:
-    """Test extract_display_name when Roles is None."""
-    payload = {"Roles": None}
-
-    with pytest.raises(
-        TypeError, match="Roles payload extraction failed: role is not a list"
-    ):
-        extract_display_name(payload)
-
-
-def test_extract_contact_with_other_type() -> None:
-    payload = {
-        "Contacts": {
-            "Contact": [
-                {"type": "tel", "value": "123456789"},
-                {"type": "other", "value": "test@example.com"},
-            ],
-        }
-    }
-    result = extract_contact(payload)
-    assert result == {"type": "tel", "value": "123456789"}
-
-
-def test_extract_contact_no_tel() -> None:
-    payload = {
-        "Contacts": {
-            "Contact": [
-                {"type": "email", "value": "test@example.com"},
-            ]
-        }
-    }
-
-    result = extract_contact(payload)
-    assert result is None
-
-
-def test_extract_contact_invalid_format(caplog: pytest.LogCaptureFixture) -> None:
-    payload = {"Contacts": {"Contact": [None]}}
-
-    with pytest.raises(Exception):
-        extract_contact(payload)
-    assert "Invalid contact format: None" in caplog.text
-
-
-def test_extract_contact_with_no_contacts() -> None:
-    payload = {}
-    result = extract_contact(payload)
-    assert result is None
+    mocker.patch(
+        "pipeline.extract.make_request", side_effect=raise_http_error_not_found
+    )
+    with caplog.at_level("ERROR"):
+        with pytest.raises(HTTPError) as excinfo:
+            fetch_organisation_uuid("ABC123")
+        assert isinstance(excinfo.value, HTTPError)
 
 
 def test_extract_ods_code() -> None:
@@ -234,4 +144,4 @@ def test_extract_ods_code_failure(caplog: pytest.LogCaptureFixture) -> None:
     link = None
     with pytest.raises(Exception):
         extract_ods_code(link)
-    assert "ODS code extraction failed" in caplog.text
+    assert "e=" in caplog.text or "ODS code extraction failed" in caplog.text

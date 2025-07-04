@@ -2,6 +2,7 @@ import json
 from typing import NamedTuple
 
 import pytest
+import requests
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 from requests_mock import (
@@ -15,20 +16,18 @@ from pipeline.processor import processor, processor_lambda_handler
 class MockResponses(NamedTuple):
     ods_sync: Matcher
     ods_abc123: Matcher
-    ods_role_ro157: Matcher
-
     crud_org_abc123: Matcher
 
 
 @pytest.fixture
 def mock_responses(
     requests_mock: RequestsMock,
-) -> None:
+) -> MockResponses:
     # Setup ODS Sync Data Mock
     ods_sync_data = {
         "Organisations": [
             {
-                "OrgLink": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123"
+                "OrgLink": "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123"
             }
         ]
     }
@@ -39,46 +38,39 @@ def mock_responses(
 
     # Setup ODS Organisation Data Mock for ABC123
     ods_data_abc123 = {
-        "Organisation": {
-            "Name": "Test Organisation",
-            "Status": "Active",
-            "Contacts": {"Contact": [{"type": "tel", "value": "00000000000"}]},
-            "Roles": {
-                "Role": [
+        "resourceType": "Organization",
+        "id": "ABC123",
+        "name": "Test Organisation ABC ODS",
+        "active": True,
+        "identifier": {
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "ABC123",
+        },
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "extension": [
                     {
-                        "id": "RO157",
-                        "primaryRole": True,
+                        "url": "role",
+                        "valueCoding": {
+                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                            "code": "197",
+                            "display": "GP Service",
+                        },
                     },
-                    {
-                        "id": "RO7",
-                    },
-                ]
-            },
-        }
+                    {"url": "primaryRole", "valueBoolean": True},
+                ],
+            }
+        ],
     }
     ods_abc123_mock = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123",
+        "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123",
         json=ods_data_abc123,
     )
 
-    # Setup ODS Role Data Mock for RO157
-    ods_role_data = {
-        "Roles": [
-            {
-                "primaryRole": "true",
-                "displayName": "NHS TRUST",
-            }
-        ]
-    }
-    ods_role_ro157_mock = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/roles/RO157",
-        json=ods_role_data,
-    )
-
-    # Setup CRUD API Mock for Organisation UUID (ABC123)
+    # Setup CRUD API Mock for Organisation UUID (00000000-0000-0000-0000-000000000abc)
     crud_api_data_abc123 = {
-        "id": "uuid_abc123",
-        "name": "Test Organisation",
+        "id": "00000000-0000-0000-0000-000000000abc",
     }
     crud_org_abc123_mock = requests_mock.get(
         "http://test-crud-api/organisation/ods_code/ABC123",
@@ -88,7 +80,6 @@ def mock_responses(
     return MockResponses(
         ods_sync=ods_sync_mock,
         ods_abc123=ods_abc123_mock,
-        ods_role_ro157=ods_role_ro157_mock,
         crud_org_abc123=crud_org_abc123_mock,
     )
 
@@ -98,7 +89,7 @@ def test_processor_processing_organisations_successful(
     requests_mock: RequestsMock,
     mock_responses: MockResponses,
 ) -> None:
-    expected_call_count = 4
+    expected_call_count = 3
 
     date = "2023-01-01"
 
@@ -110,22 +101,13 @@ def test_processor_processing_organisations_successful(
     # Assert ODS Sync Call
     assert mock_responses.ods_sync.called_once
     assert mock_responses.ods_sync.last_request.path == "/ord/2-0-0/sync"
-    assert mock_responses.ods_sync.last_request.query == "lastchangedate=2023-01-01"
+    assert mock_responses.ods_sync.last_request.qs == {"lastchangedate": [date]}
     assert requests_mock.request_history[0] == mock_responses.ods_sync.last_request
 
     # Assert ODS Organisation Call for ABC123
     assert mock_responses.ods_abc123.called_once
-    assert (
-        mock_responses.ods_abc123.last_request.path == "/ord/2-0-0/organisations/abc123"
-    )
+    assert mock_responses.ods_abc123.last_request.path == "/stu3/organization/abc123"
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
-
-    # Assert ODS Role Call for RO157
-    assert mock_responses.ods_role_ro157.called_once
-    assert mock_responses.ods_role_ro157.last_request.path == "/ord/2-0-0/roles/ro157"
-    assert (
-        requests_mock.request_history[2] == mock_responses.ods_role_ro157.last_request
-    )
 
     # Assert CRUD API Call for Organisation UUID
     assert mock_responses.crud_org_abc123.called_once
@@ -134,22 +116,35 @@ def test_processor_processing_organisations_successful(
         == "/organisation/ods_code/abc123"
     )
     assert (
-        requests_mock.request_history[3] == mock_responses.crud_org_abc123.last_request
+        requests_mock.request_history[2] == mock_responses.crud_org_abc123.last_request
     )
 
     # Assert load_data call
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
 
+    # Check the data struct
     assert data_to_load == [
         {
-            "path": "uuid_abc123",
+            "path": "00000000-0000-0000-0000-000000000abc",
             "body": {
+                "resourceType": "Organization",
+                "id": "00000000-0000-0000-0000-000000000abc",
                 "active": True,
-                "name": "Test Organisation",
-                "telecom": "00000000000",
-                "type": "NHS TRUST",
-                "modified_by": "ODS_ETL_PIPELINE",
+                "type": [
+                    {
+                        "coding": [{"system": "todo", "display": "GP Service"}],
+                        "text": "GP Service",
+                    }
+                ],
+                "name": "Test Organisation ABC ODS",
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "value": "ABC123",
+                    }
+                ],
             },
         }
     ]
@@ -166,10 +161,10 @@ def test_processor_continue_on_validation_failure(
         json={
             "Organisations": [
                 {
-                    "OrgLink": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/ABC123"
+                    "OrgLink": "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123"
                 },
                 {
-                    "OrgLink": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/EFG456"
+                    "OrgLink": "https://directory.spineservices.nhs.uk/STU3/Organization/EFG456"
                 },
             ]
         },
@@ -181,32 +176,26 @@ def test_processor_continue_on_validation_failure(
     )
 
     ods_efg456_mock = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/EFG456",
+        "https://directory.spineservices.nhs.uk/STU3/Organization/EFG456",
         json={
-            "Organisation": {
-                "Name": "Test Organisation EFG ODS",
-                "Status": "Active",
-                "Contacts": {"Contact": [{"type": "tel", "value": "00000000000"}]},
-                "Roles": {
-                    "Role": [
-                        {
-                            "id": "RO157",
-                            "primaryRole": True,
-                        },
-                        {
-                            "id": "RO7",
-                        },
-                    ]
-                },
-            }
+            "resourceType": "Organization",
+            "id": "EFG456",
+            "name": "Test Organisation EFG ODS",
+            "active": True,
+            "identifier": {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "EFG456",
+            },
         },
     )
 
     crud_efg456_mock = requests_mock.get(
         "http://test-crud-api/organisation/ods_code/EFG456",
-        json={"id": "uuid_efg456", "name": "Test Organisation EFG"},
+        json={
+            "id": "00000000-0000-0000-0000-000000000EFG",
+        },
     )
-    expected_call_count = 7
+    expected_call_count = 5
 
     date = "2023-01-01"
 
@@ -217,27 +206,18 @@ def test_processor_continue_on_validation_failure(
     # Assert ODS Sync Call
     assert ods_sync_mock.called_once
     assert ods_sync_mock.last_request.path == "/ord/2-0-0/sync"
-    assert ods_sync_mock.last_request.query == "lastchangedate=2023-01-01"
+    assert ods_sync_mock.last_request.qs == {"lastchangedate": [date]}
     assert requests_mock.request_history[0] == ods_sync_mock.last_request
 
     # Assert ODS Organisation Call for ABC123
     assert mock_responses.ods_abc123.called_once
-    assert (
-        mock_responses.ods_abc123.last_request.path == "/ord/2-0-0/organisations/abc123"
-    )
+    assert mock_responses.ods_abc123.last_request.path == "/stu3/organization/abc123"
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
 
-    # Assert Role Call for RO157
-    assert mock_responses.ods_role_ro157.last_request.path == "/ord/2-0-0/roles/ro157"
-    assert (
-        requests_mock.request_history[2]
-        == mock_responses.ods_role_ro157.request_history[0]
-    )
-
-    # Assert CRUD API Call for Organisation UUID (ABC123)
+    # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000abc)
     assert crud_api_abc123_mock.called_once
     assert crud_api_abc123_mock.last_request.path == "/organisation/ods_code/abc123"
-    assert requests_mock.request_history[3] == crud_api_abc123_mock.last_request
+    assert requests_mock.request_history[2] == crud_api_abc123_mock.last_request
 
     # Failure for ABC123 should be logged
     expected_failed_log = OdsETLPipelineLogBase.ETL_PROCESSOR_027.value.message.format(
@@ -248,34 +228,33 @@ def test_processor_continue_on_validation_failure(
 
     # Assert ODS Organisation Call for EFG456
     assert ods_efg456_mock.called_once
-    assert ods_efg456_mock.last_request.path == "/ord/2-0-0/organisations/efg456"
-    assert requests_mock.request_history[4] == ods_efg456_mock.last_request
+    assert ods_efg456_mock.last_request.path == "/stu3/organization/efg456"
+    assert requests_mock.request_history[3] == ods_efg456_mock.last_request
 
-    # Assert Role Call for RO157 (again)
-    assert mock_responses.ods_role_ro157.last_request.path == "/ord/2-0-0/roles/ro157"
-    assert (
-        requests_mock.request_history[5]
-        == mock_responses.ods_role_ro157.request_history[1]
-    )
-
-    # Assert CRUD API Call for Organisation UUID (EFG456)
+    # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000EFG)
     assert crud_efg456_mock.called_once
     assert crud_efg456_mock.last_request.path == "/organisation/ods_code/efg456"
-    assert requests_mock.request_history[6] == crud_efg456_mock.last_request
+    assert requests_mock.request_history[4] == crud_efg456_mock.last_request
 
     # Assert load_data call
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
-
     assert data_to_load == [
         {
-            "path": "uuid_efg456",
+            "path": "00000000-0000-0000-0000-000000000EFG",
             "body": {
+                "resourceType": "Organization",
                 "active": True,
+                "type": [{"coding": [{"system": "todo"}]}],
                 "name": "Test Organisation EFG ODS",
-                "telecom": "00000000000",
-                "type": "NHS TRUST",
-                "modified_by": "ODS_ETL_PIPELINE",
+                "id": "00000000-0000-0000-0000-000000000EFG",
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "value": "EFG456",
+                    }
+                ],
             },
         }
     ]
@@ -317,6 +296,44 @@ def test_processor_missing_org_link(
     assert expected_log in caplog.text
 
 
+def test_processor_no_organisations_logs_and_returns(
+    mocker: MockerFixture, requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch("pipeline.processor.fetch_sync_data", return_value=[])
+    date = "2023-01-01"
+    assert processor(date) is None
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_020.value.message.format(
+        date=date
+    )
+    assert expected_log in caplog.text
+
+
+def test_processor_skips_when_orglink_missing(
+    mocker: MockerFixture, requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch(
+        "pipeline.processor.fetch_sync_data", return_value=[{"NotOrgLink": "missing"}]
+    )
+    date = "2023-01-01"
+    assert processor(date) is None
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_021.value.message.format()
+    assert expected_log in caplog.text
+
+
+def test_process_organisation_exception_logs_and_returns_none(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch(
+        "pipeline.processor.fetch_ods_organisation_data", side_effect=Exception("fail")
+    )
+    result = processor.__globals__["process_organisation"]("ANYCODE")
+    assert result is None
+    expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_027.value.message.format(
+        ods_code="ANYCODE", error_message="fail"
+    )
+    assert expected_log in caplog.text
+
+
 def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     mock_processor = mocker.patch("pipeline.processor.processor")
     date = "2025-02-02"
@@ -325,7 +342,7 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     response = processor_lambda_handler(event, {})
 
     mock_processor.assert_called_once_with(date=date)
-    assert response is None
+    assert response == {"statusCode": 200, "body": "Processing complete"}
 
 
 def test_processor_lambda_handler_missing_date() -> None:
@@ -350,6 +367,40 @@ def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
     result = processor_lambda_handler(event, {})
 
     mock_processor.assert_called_once_with(date="2025-02-02")
-    # assert "Unexpected error" in mock_logging.call_args[0][0]
     assert str(result["statusCode"]) == "500"
     assert "Unexpected error: Test error" in result["body"]
+
+
+def test_processor_logs_and_raises_request_exception(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch(
+        "pipeline.processor.fetch_sync_data",
+        side_effect=requests.exceptions.RequestException("network fail"),
+    )
+    date = "2023-01-01"
+    with caplog.at_level("INFO"):
+        with pytest.raises(requests.exceptions.RequestException, match="network fail"):
+            processor(date)
+        expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_022.value.message.format(
+            error_message="network fail"
+        )
+        assert expected_log in caplog.text
+
+
+def test_processor_logs_and_raises_generic_exception(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    # Patch fetch_sync_data to raise a generic Exception
+    mocker.patch(
+        "pipeline.processor.fetch_sync_data",
+        side_effect=Exception("unexpected error"),
+    )
+    date = "2023-01-01"
+    with caplog.at_level("INFO"):
+        with pytest.raises(Exception, match="unexpected error"):
+            processor(date)
+        expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_023.value.message.format(
+            error_message="unexpected error"
+        )
+        assert expected_log in caplog.text
