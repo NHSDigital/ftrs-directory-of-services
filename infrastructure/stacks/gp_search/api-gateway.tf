@@ -36,8 +36,7 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
 resource "aws_route53_record" "gpsearch_api_cname" {
   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
   name    = "servicesearch.${local.root_domain_name}"
-  type    = "CNAME"
-  ttl     = 300
+  type    = "A"
   records = [
     aws_api_gateway_stage.stage.invoke_url
   ]
