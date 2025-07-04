@@ -187,3 +187,11 @@ class TestLambdaHandler:
             expected_status_code=500,
             expected_body=mock_error_util.create_resource_internal_server_error.return_value.model_dump_json(),
         )
+
+    def test_lambda_handler_with_empty_event(self, lambda_context):
+        # Arrange
+        empty_event = {}
+
+        # Act & Assert
+        with pytest.raises(KeyError, match="httpMethod"):
+            lambda_handler(empty_event, lambda_context)
