@@ -1,0 +1,93 @@
+{
+  "resourceType": "Bundle",
+  "id": "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe",
+  "type": "searchset",
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://example.org/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "https://example.org/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96",
+      "resource": {
+        "resourceType": "Organization",
+        "id": "04393ec4-198f-42dd-9507-f4fa5e9ebf96",
+        "identifier": [
+          {
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "ABC123"
+          }
+        ],
+        "active": true,
+        "name": "Example Organization",
+        "telecom": [
+          {
+            "system": "phone",
+            "value": "01234 567890"
+          },
+          {
+            "system": "email",
+            "value": "example@example.com"
+          }
+        ],
+        "address": [
+          {
+            "line": ["Example Medical Practice", "Example Street"],
+            "city": "Example City",
+            "postalCode": "AB12 3CD",
+            "country": "ENGLAND"
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://example.org/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76",
+      "resource": {
+        "resourceType": "Endpoint",
+        "id": "1b62110d-4db5-4230-bf37-cbe948aecf76",
+        "extension": [
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder",
+            "valueInteger": 1
+          },
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression",
+            "valueBoolean": true
+          },
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
+            "valueCode": "Primary"
+          }
+        ],
+        "status": "active",
+        "connectionType": {
+          "system": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+          "code": "hl7-fhir-rest"
+        },
+        "managingOrganization": {
+          "reference": "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+        },
+        "payloadType": [
+          {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/ValueSet/endpoint-payload-type",
+                "code": "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
+              }
+            ]
+          }
+        ],
+        "payloadMimeType": ["application/fhir+json"],
+        "address": "https://nhs.provided.service.uk/endpoint"
+      },
+      "search": {
+        "mode": "include"
+      }
+    }
+  ]
+}

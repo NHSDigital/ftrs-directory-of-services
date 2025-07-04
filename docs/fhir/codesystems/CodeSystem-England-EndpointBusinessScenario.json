@@ -1,0 +1,40 @@
+{
+  "resourceType": "CodeSystem",
+  "id": "England-EndpointBusinessScenario",
+  "url": "https://fhir.nhs.uk/England/CodeSystem/England-EndpointBusinessScenario",
+  "version": "1.0.0",
+  "name": "EnglandEndpointBusinessScenario",
+  "title": "England Endpoint Business Scenario",
+  "status": "draft",
+  "date": "2025-07-01",
+  "publisher": "NHS England",
+  "contact": [
+    {
+      "name": "NHS England",
+      "telecom": [
+        {
+          "system": "email",
+          "value": "interoperabilityteam@nhs.net",
+          "use": "work",
+          "rank": 1
+        }
+      ]
+    }
+  ],
+  "description": "Codes to indicate the business scenario for which an endpoint is intended, particularly distinguishing between primary message recipients and copy recipients for NHS England messaging scenarios.",
+  "copyright": "Copyright © 2023+ NHS England Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License. HL7® FHIR® standard Copyright © 2011+ HL7 The HL7® FHIR® standard is used under the FHIR license. You may obtain a copy of the FHIR license at  https://www.hl7.org/fhir/license.html.",
+  "caseSensitive": true,
+  "content": "complete",
+  "concept": [
+    {
+      "code": "Primary",
+      "display": "Primary Recipient",
+      "definition": "The main recipient for the message. Used for most services and for GP direct patient dispositions where the patient is being directed to their own GP and the GP needs to have direct access to the call information."
+    },
+    {
+      "code": "Copy",
+      "display": "Copy Recipient",
+      "definition": "A copy recipient for the message. Only used for Post Event Messaging (PEM) to GP services where GPs receive a copy of a call report when a patient has been treated by another service as a result of a call to 111."
+    }
+  ]
+}

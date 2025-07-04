@@ -1,0 +1,22 @@
+{
+  "resourceType": "OperationOutcome",
+  "id": "ods-code-validation-error",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "invalid",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.nhs.uk/CodeSystem/Spine-ErrorOrWarningCode",
+            "code": "INVALID_ODS_CODE_FORMAT",
+            "display": "Invalid ODS Code Format"
+          }
+        ],
+        "text": "The organization.identifier ODS code provided in the search parameter does not match the required format"
+      },
+      "diagnostics": "ODS Code 'invalid@code!here' must match the pattern ^[A-Z0-9]{1,12}$",
+      "expression": ["organization.identifier"]
+    }
+  ]
+}
