@@ -46,6 +46,9 @@ start-healthcare-api:
 start-location-api:
 	poetry run poe start-location-api
 
+start-all-apis:
+	poetry run poe start-all-apis
+
 build: ensure-build-dir build-dependency-layer
 	poetry build -f wheel -o $(BUILD_DIR)
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
