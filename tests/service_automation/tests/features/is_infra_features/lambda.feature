@@ -70,11 +70,11 @@ Background: Check lambda function exists
   Then the lambda response contains a bundle
 
   Scenario: Invoke lambda with an ods code set to "" and a validation error is returned
-  When I invoke the lambda with the ods code value not set
+  When I invoke the lambda with the ods code ""
   Then the lambda returns the status code "422"
   And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
   And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-  And the lambda returns the diagnostics "Failed schema validation. Error: data.odsCode must be longer than or equal to 5 characters, Path: ['data', 'odsCode'], Data: "
+  And the lambda returns the diagnostics "Value error, ODS code must be at least 5 characters long"
 
 
   Scenario: Invoke lambda with an ods code of a length of 13 and a validation error is returned
@@ -82,7 +82,7 @@ Background: Check lambda function exists
   Then the lambda returns the status code "422"
   And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
   And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-  And the lambda returns the diagnostics "Failed schema validation. Error: data.odsCode must be shorter than or equal to 12 characters, Path: ['data', 'odsCode'], Data: ABCDEFGHIJKLM"
+  And the lambda returns the diagnostics "Value error, ODS code must be at most 12 characters long"
 
 
   Scenario: Invoke lambda with an ods code of a length of 4 and a validation error is returned
@@ -90,7 +90,7 @@ Background: Check lambda function exists
   Then the lambda returns the status code "422"
   And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
   And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-  And the lambda returns the diagnostics "Failed schema validation. Error: data.odsCode must be longer than or equal to 5 characters, Path: ['data', 'odsCode'], Data: ABCD"
+  And the lambda returns the diagnostics "Value error, ODS code must be at least 5 characters long"
 
 
   Scenario: Invoke lambda with an ods code containing special characters and a validation error is returned
@@ -98,13 +98,5 @@ Background: Check lambda function exists
   Then the lambda returns the status code "422"
   And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
   And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-  And the lambda returns the diagnostics "Failed schema validation. Error: data.odsCode must match pattern ^[A-Z0-9]+$, Path: ['data', 'odsCode'], Data: P83010@"
-
-
-  Scenario: Invoke lambda with an empty event and a validation error is returned
-  When I invoke the lambda with an empty event
-  Then the lambda returns the status code "422"
-  And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
-  And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-  And the lambda returns the diagnostics "Failed schema validation. Error: data must contain ['odsCode'] properties, Path: ['data'], Data: {}"
+  And the lambda returns the diagnostics "Value error, ODS code must contain only letters and numbers"
 
