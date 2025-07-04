@@ -148,6 +148,17 @@
             "route53:ChangeTagsForResource"
           ],
           "Resource": "*"
+        },
+        {
+          "Sid": "AllowACMAccess",
+          "Effect": "Allow",
+          "Action": [
+            "acm:GetCertificate",
+            "acm:ListCertificates",
+            "acm:DescribeCertificate",
+            "acm:ListTagsForCertificate"
+          ],
+          "Resource": "*"
         }
     ]
 }
