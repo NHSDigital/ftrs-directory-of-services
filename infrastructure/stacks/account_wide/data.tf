@@ -22,3 +22,9 @@ data "aws_ec2_managed_prefix_list" "s3_prefix_list" {
 data "aws_ec2_managed_prefix_list" "dynamodb_prefix_list" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
+
+# Fetch AWS public IP ranges for eu-west-2
+data "aws_ip_ranges" "eu_west_2_public" {
+  regions  = ["eu-west-2"]
+  services = ["AMAZON"]
+}
