@@ -149,6 +149,17 @@ locals {
       }
     ]
 
+    private_aws_ip_address_range_inbound = [
+      for i, cidr_block in local.eu_west_2_public_cidrs_merged : {
+        rule_number = 500 + i
+        rule_action = "allow"
+        from_port   = 1024
+        to_port     = 65535
+        protocol    = "tcp"
+        cidr_block  = cidr_block
+      }
+    ]
+
     private_outbound = [
       {
         rule_number = 200
@@ -205,17 +216,6 @@ locals {
     for octet in local.ip_first_octets :
     "${octet}.0.0.0/8"
   ]
-
-  private_aws_ip_address_range_inbound = concat([
-    for i, cidr_block in local.eu_west_2_public_cidrs_merged : {
-      rule_number = 500 + i
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 65535
-      protocol    = "tcp"
-      cidr_block  = cidr_block
-    }
-  ])
 }
 
 resource "aws_flow_log" "subnet_flow_log_s3" {
