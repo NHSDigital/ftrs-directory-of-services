@@ -25,7 +25,7 @@ module "vpc" {
   database_outbound_acl_rules    = local.network_acls["database_outbound"]
 
   private_dedicated_network_acl = var.private_dedicated_network_acl
-  private_inbound_acl_rules     = concat(local.network_acls["private_inbound"], local.network_acls["private_inbound_managed_dynamodb_prefix_list"], local.network_acls["private_inbound_managed_s3_prefix_list"], local.network_acls["private_aws_ip_address_range_inbound"])
+  private_inbound_acl_rules     = local.network_acls["private_aws_ip_address_range_inbound"]
   private_outbound_acl_rules    = local.network_acls["private_outbound"]
 
   public_dedicated_network_acl = var.public_dedicated_network_acl
@@ -212,8 +212,10 @@ locals {
 
   # Use merged eu-west-2 public CIDRs from the cidr_merge module
   ip_first_octets = distinct([for cidr in data.aws_ip_ranges.eu_west_2_public.cidr_blocks : split(".", cidr)[0]])
+
+  private_inbound_ip_first_octets = distinct([for cidr in concat(local.public_subnets, local.database_subnets, data.aws_ip_ranges.eu_west_2_public.cidr_blocks, data.aws_ec2_managed_prefix_list.dynamodb_prefix_list.entries[*].cidr, data.aws_ec2_managed_prefix_list.s3_prefix_list.entries[*].cidr) : split(".", cidr)[0]])
   eu_west_2_public_cidrs_merged = [
-    for octet in local.ip_first_octets :
+    for octet in local.private_inbound_ip_first_octets :
     "${octet}.0.0.0/8"
   ]
 }
