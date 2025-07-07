@@ -105,3 +105,16 @@ The API routing happens at the API gateway level, routing will happen for the /h
 **Description**: Retrieves all healthcare services.
 
 **Responses**: 200 OK: Returns a list of healthcare services.
+
+### Create Healthcare Service
+
+**Endpoint**: POST /
+
+**Description**: Creates a new healthcare service.
+
+**Request Body**: JSON object containing the healthcare service details.
+
+**Responses**:
+
+ 201 Created: Returns the created healthcare service.
+ 422 Unprocessable Entity: Invalid request body.

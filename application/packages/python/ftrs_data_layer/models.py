@@ -22,7 +22,6 @@ class DBModel(BaseModel):
     """
     Base model for all database models.
     """
-
     id: UUID = Field(default_factory=uuid4)
     createdBy: str | None = "SYSTEM"
     createdDateTime: datetime = datetime.now(UTC)
@@ -247,7 +246,7 @@ OpeningTime = Annotated[
 
 
 class HealthcareService(DBModel):
-    identifier_oldDoS_uid: str
+    identifier_oldDoS_uid: str | None = None
     active: bool
     category: HealthcareServiceCategory
     type: HealthcareServiceType
