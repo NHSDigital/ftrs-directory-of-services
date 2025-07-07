@@ -37,3 +37,60 @@ export const organisationSchema = zod.object({
 });
 
 export type Organisation = zod.infer<typeof organisationSchema>;
+
+export const telecom = zod.object({
+  phone_public: zod.string().optional(),
+  phone_private: zod.string().optional(),
+  email: zod.string().email().optional(),
+  website: zod.string().url().optional(),
+});
+
+const openingTimeSchema = zod.discriminatedUnion("category", [
+  zod.object({
+    id: zod.string().uuid(),
+    category: zod.literal("availableTime"),
+    dayOfWeek: zod.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+    startTime: zod.string(),
+    endTime: zod.string(),
+    allDay: zod.boolean().default(false),
+  }),
+  zod.object({
+    id: zod.string().uuid(),
+    category: zod.literal("availableTimeVariations"),
+    description: zod.string(),
+    startTime: zod.string().datetime(),
+    endTime: zod.string().datetime(),
+  }),
+  zod.object({
+    id: zod.string().uuid(),
+    category: zod.literal("availableTimePublicHolidays"),
+    startTime: zod.string(),
+    endTime: zod.string(),
+  }),
+  zod.object({
+    id: zod.string().uuid(),
+    category: zod.literal("notAvailable"),
+    description: zod.string(),
+    unavailableDate: zod.string(),
+  }),
+]);
+
+export const healthcareServiceSchema = zod.object({
+  id: zod.string().uuid(),
+  identifier_oldDoS_uid: zod.string().uuid().optional(),
+  active: zod.boolean(),
+  category: zod.string().optional(),
+  providedBy: zod.string().uuid(),
+  location: zod.string().uuid(),
+  name: zod.string(),
+  type: zod.string().optional(),
+  telecom: telecom,
+  openingTime: zod.array(openingTimeSchema).optional(),
+  createdBy: zod.string(),
+  createdDateTime: zod.string().datetime(),
+  modifiedBy: zod.string(),
+  modifiedDateTime: zod.string().datetime(),
+});
+export type HealthcareService = zod.infer<typeof healthcareServiceSchema>;
+export type OpeningTime = zod.infer<typeof openingTimeSchema>;
+export type Telecom = zod.infer<typeof telecom>;

@@ -58,9 +58,8 @@ function HomePage() {
           },
           {
             title: "Healthcare Services",
-            description: "View and search services (coming soon).",
+            description: "View and search healthcare services",
             link: "/healthcare-services",
-            disabled: true,
           },
           {
             title: "Locations",
