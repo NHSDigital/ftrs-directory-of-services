@@ -29,7 +29,7 @@ class OrganisationService:
     def process_organisation_update(
         self,
         organisation_id: str,
-        fhir_org: FhirOrganisation,
+        fhir_org: dict,
     ) -> bool:
         """
         Update an organisation from a FHIR Organisation resource.
