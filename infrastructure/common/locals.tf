@@ -20,5 +20,5 @@ locals {
 
   domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
 
-  root_domain_name = "${var.root_domain_name}-${var.environment}"
+  root_domain_name = "${var.environment}.${var.root_domain_name}"
 }

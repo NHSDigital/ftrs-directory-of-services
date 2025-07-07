@@ -18,6 +18,11 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
     security_policy = "TLS_1_2"
   }
 
+  # mutual_tls_authentication {
+  #   truststore_uri     = "s3://my-bucket/client-ca.pem"
+  #   truststore_version = "1"
+  # }
+
   tags = {
     Name = "${local.resource_prefix}-api-gateway${local.workspace_suffix}-domain"
   }
