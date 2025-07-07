@@ -33,11 +33,13 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
   retention_in_days = var.retention_in_days
 }
 
-resource "aws_route53_record" "gpsearch_api_cname" {
+resource "aws_route53_record" "gpsearch_api_a_alias" {
   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
   name    = "servicesearch.${local.root_domain_name}"
   type    = "A"
-  records = [
-    aws_api_gateway_stage.stage.invoke_url
-  ]
+  alias {
+    name                   = aws_api_gateway_stage.stage.invoke_url
+    zone_id                = module.search_rest_api.rest_api_id
+    evaluate_target_health = false
+  }
 }
