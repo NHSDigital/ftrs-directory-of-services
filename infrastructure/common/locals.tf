@@ -22,5 +22,7 @@ locals {
 
   root_domain_name = "${var.environment}.${var.root_domain_name}"
 
+  s3_trust_store_bucket_name = "${local.account_prefix}-${var.s3_trust_store_bucket_name}"
 
+  trust_store_file_path = "${var.environment}/truststore.pem"
 }
