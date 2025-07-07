@@ -17,6 +17,11 @@ class FhirValidator:
     def validate(
         resource: dict, fhir_model: Type[FHIRAbstractModel]
     ) -> FHIRAbstractModel:
+        """
+        Validates the given resource against the provided FHIR model.
+        Returns an instance of the model if validation is successful.
+        Raises OperationOutcomeException if validation fails.
+        """
         try:
             return fhir_model.model_validate(resource)
         except ValidationError as e:

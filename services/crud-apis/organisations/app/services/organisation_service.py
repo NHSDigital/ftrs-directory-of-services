@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi import HTTPException
-from fhir.resources.R4B.organization import Organization
+from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
@@ -29,12 +29,12 @@ class OrganisationService:
     def process_organisation_update(
         self,
         organisation_id: str,
-        fhir_org: Organization,
+        fhir_org: FhirOrganisation,
     ) -> bool:
         """
         Update an organisation from a FHIR Organisation resource.
         """
-        fhir_organisation = FhirValidator.validate(fhir_org, Organization)
+        fhir_organisation = FhirValidator.validate(fhir_org, FhirOrganisation)
         ods_code = None
 
         if (

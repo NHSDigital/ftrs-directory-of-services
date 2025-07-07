@@ -1,7 +1,8 @@
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
-from fhir.resources.R4B.organization import Organization, OrganizationContact
+from fhir.resources.R4B.organization import Organization as FhirOrganisation
+from fhir.resources.R4B.organization import OrganizationContact
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_data_layer.models import Organisation
@@ -12,7 +13,7 @@ TYPE_TO_CODE = {
 
 
 class OrganizationMapper(FhirMapper):
-    def to_fhir(self, organisation: Organisation) -> Organization:
+    def to_fhir(self, organisation: Organisation) -> FhirOrganisation:
         organization_id = str(organisation.id)
         name = organisation.name
         active = organisation.active
@@ -25,7 +26,7 @@ class OrganizationMapper(FhirMapper):
             else None
         )
 
-        org = Organization.model_validate(
+        org = FhirOrganisation.model_validate(
             {
                 "id": organization_id,
                 "identifier": identifier,
@@ -37,9 +38,9 @@ class OrganizationMapper(FhirMapper):
 
         return org
 
-    def from_fhir(self, fhir_resource: Organization) -> Organisation:
+    def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
         """
-        Convert a FHIR Organization resource to the internal OrganisationPayload Pydantic model.
+        Convert a FhirOrganisation resource to the internal OrganisationPayload Pydantic model.
         """
         telecom = self._get_org_telecom(fhir_resource)
         org_type = self._get_org_type(fhir_resource)
@@ -55,9 +56,9 @@ class OrganizationMapper(FhirMapper):
             modifiedBy="ODS_ETL_PIPELINE",
         )
 
-    def from_ods_fhir_to_fhir(self, ods_fhir_organization: dict) -> Organization:
+    def from_ods_fhir_to_fhir(self, ods_fhir_organization: dict) -> FhirOrganisation:
         """
-        Convert a FHIR ODS Organization resource a FHIR Organization resource.
+        Convert a FHIR ODS FhirOrganisation resource to a FHIR FhirOrganisation resource.
         """
         required_fields = {
             "resourceType": "Organization",
@@ -75,10 +76,10 @@ class OrganizationMapper(FhirMapper):
             if org_contacts:
                 required_fields["contact"] = org_contacts
 
-        fhir_organisation = FhirValidator.validate(required_fields, Organization)
+        fhir_organisation = FhirValidator.validate(required_fields, FhirOrganisation)
         return fhir_organisation
 
-    def _get_org_type(self, fhir_org: Organization) -> str | None:
+    def _get_org_type(self, fhir_org: FhirOrganisation) -> str | None:
         org_type = None
         if hasattr(fhir_org, "type") and fhir_org.type:
             type_obj = fhir_org.type[0]
@@ -86,7 +87,7 @@ class OrganizationMapper(FhirMapper):
                 org_type = type_obj.text
         return org_type
 
-    def _get_org_telecom(self, fhir_org: Organization) -> str | None:
+    def _get_org_telecom(self, fhir_org: FhirOrganisation) -> str | None:
         if hasattr(fhir_org, "contact") and fhir_org.contact:
             for contact in fhir_org.contact:
                 phone_value = self._find_phone_in_contact(contact)

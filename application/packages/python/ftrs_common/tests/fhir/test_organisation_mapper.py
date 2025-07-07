@@ -3,7 +3,12 @@ import uuid
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
-from fhir.resources.R4B.organization import Organization, OrganizationContact
+from fhir.resources.R4B.organization import (
+    Organization as FhirOrganisation,
+)
+from fhir.resources.R4B.organization import (
+    OrganizationContact,
+)
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_data_layer.models import Organisation
 
@@ -14,7 +19,7 @@ def make_fhir_org(
     active: bool = True,
     contact: list | None = None,
     type: list | None = None,
-) -> Organization:
+) -> FhirOrganisation:
     kwargs = {
         "id": id,
         "identifier": [Identifier.model_construct(value=id)],
@@ -27,7 +32,7 @@ def make_fhir_org(
             contact = [contact]
         kwargs["contact"] = contact
 
-    return Organization(**kwargs)
+    return FhirOrganisation(**kwargs)
 
 
 def test_from_fhir_maps_fields_correctly() -> None:
@@ -183,6 +188,22 @@ def test_extract_role_from_extension_no_primary_role() -> None:
     assert mapper._extract_role_from_extension(ods_org) is None
 
 
+def test_extract_role_from_extension_success() -> None:
+    mapper = OrganizationMapper()
+    ods_org = {
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "extension": [
+                    {"url": "role", "valueCoding": {"display": "GP PRACTICE"}},
+                    {"url": "primaryRole", "valueBoolean": True},
+                ],
+            }
+        ]
+    }
+    assert mapper._extract_role_from_extension(ods_org) == "GP PRACTICE"
+
+
 def test_create_codable_concept_for_type_returns_list_of_dict() -> None:
     mapper = OrganizationMapper()
     ods_org = {
@@ -245,7 +266,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
             },
         ],
     }
-    expected_fhir_organisation = Organization(
+    expected_fhir_organisation = FhirOrganisation(
         id="C88037",
         name="Test Org",
         active=True,
@@ -344,7 +365,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
         modifiedBy="ODS_ETL_PIPELINE",
     )
     fhir_org = mapper.to_fhir(org)
-    assert isinstance(fhir_org, Organization)
+    assert isinstance(fhir_org, FhirOrganisation)
     assert fhir_org.id == "123e4567-e89b-12d3-a456-42661417400a"
     assert fhir_org.name == "Test Org"
     assert fhir_org.active is True
@@ -365,7 +386,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
         modifiedBy="ODS_ETL_PIPELINE",
     )
     fhir_org = mapper.to_fhir(org)
-    assert isinstance(fhir_org, Organization)
+    assert isinstance(fhir_org, FhirOrganisation)
     assert fhir_org.id == "123e4567-e89b-12d3-a456-42661417400a"
     assert fhir_org.name == "Test Org 2"
     assert fhir_org.active is False
