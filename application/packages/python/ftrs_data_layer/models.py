@@ -22,6 +22,7 @@ class DBModel(BaseModel):
     """
     Base model for all database models.
     """
+
     id: UUID = Field(default_factory=uuid4)
     createdBy: str | None = "SYSTEM"
     createdDateTime: datetime = datetime.now(UTC)
