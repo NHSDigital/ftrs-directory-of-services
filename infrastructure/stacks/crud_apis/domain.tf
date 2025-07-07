@@ -36,7 +36,7 @@ resource "aws_apigatewayv2_api_mapping" "api_mapping" {
 
 resource "aws_route53_record" "api_record" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = "TEMP-${local.workspace_suffix}.${local.root_domain_name}"
+  name    = "temp${local.workspace_suffix}.${local.root_domain_name}"
   type    = "A"
   alias {
     name                   = aws_apigatewayv2_domain_name.api_domain.domain_name_configuration[0].target_domain_name
