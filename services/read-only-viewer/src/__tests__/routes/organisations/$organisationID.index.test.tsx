@@ -32,7 +32,7 @@ describe("Organisation Details", () => {
           status: "active",
           connectionType: "REST",
           managedByOrganisation: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
-          format: "JSON",
+          payloadMimeType: "JSON",
           payloadType:
             "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
           isCompressionEnabled: false,
@@ -127,7 +127,7 @@ describe("Organisation Details", () => {
     expect(actionLink?.textContent).toBe("View");
     expect(actionLink).toHaveAttribute(
       "href",
-      "/organisations/32200d9e-fa54-43d4-8cb1-514aac0113a1/endpoints/endpoint1",
+      "/organisations/32200d9e-fa54-43d4-8cb1-514aac0113a1/endpoint/endpoint1",
     );
   });
 
