@@ -9,7 +9,7 @@ data "aws_acm_certificate" "domain_cert" {
 }
 
 resource "aws_apigatewayv2_domain_name" "api_domain" {
-  domain_name = "TEMP-${local.workspace_suffix}.*.${local.root_domain_name}"
+  domain_name = "temp${local.workspace_suffix}.${local.root_domain_name}"
 
   domain_name_configuration {
     # certificate_arn = var.mtls_certificate_arn != "" ? var.mtls_certificate_arn : aws_acm_certificate.api_cert[0].arn
@@ -18,10 +18,10 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
     security_policy = "TLS_1_2"
   }
 
-  # mutual_tls_authentication {
-  #   truststore_uri     = "s3://my-bucket/client-ca.pem"
-  #   truststore_version = "1"
-  # }
+  mutual_tls_authentication {
+    truststore_uri     = "s3://ftrs-directory-of-services-dev-truststore/dev/truststore.pem"
+    truststore_version = "EpDjR6hSPsWm10QColTqhzY61Vi8lLkC"
+  }
 
   tags = {
     Name = "${local.resource_prefix}-api-gateway${local.workspace_suffix}-domain"
