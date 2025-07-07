@@ -19,7 +19,6 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
 
   mutual_tls_authentication {
     truststore_uri = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
-    # truststore_version = "EpDjR6hSPsWm10QColTqhzY61Vi8lLkC"
   }
 
   tags = {
