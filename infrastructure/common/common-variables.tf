@@ -100,3 +100,8 @@ variable "root_domain_name" {
   description = "Root domain name for the project"
   type        = string
 }
+
+variable "s3_trust_store_bucket_name" {
+  description = "The name of the S3 bucket for the trust store used for MTLS Certificates"
+  type        = string
+}
