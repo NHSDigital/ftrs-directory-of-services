@@ -59,28 +59,6 @@ const OrganisationOverview: React.FC<{ organisation: Organisation }> = ({
   );
 };
 
-// TODO: all details of an endpoint
-// to do
-// - identifier_oldDOS_id
-// - name
-// - description
-// - payloadType
-// - isCompressionEnabled
-// - payloadMimeType
-// - createdBy
-// - createdDateTime
-// - modifiedBy
-// - modifiedDateTime
-//
-// done
-// - order
-// - status
-// - connectionType
-// - address
-// - id
-
-
-// endpoints table detailed
 const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
   const sortedEndpoints = useMemo(() => {
     return endpoints.sort((a, b) => a.order - b.order);
