@@ -12,7 +12,6 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
   domain_name = "api${local.workspace_suffix}.${local.root_domain_name}"
 
   domain_name_configuration {
-    # certificate_arn = var.mtls_certificate_arn != "" ? var.mtls_certificate_arn : aws_acm_certificate.api_cert[0].arn
     certificate_arn = data.aws_acm_certificate.domain_cert.arn
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
@@ -37,7 +36,7 @@ resource "aws_apigatewayv2_api_mapping" "api_mapping" {
 
 resource "aws_route53_record" "api_record" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = "$api${local.workspace_suffix}.${local.root_domain_name}"
+  name    = "api${local.workspace_suffix}.${local.root_domain_name}"
   type    = "A"
   alias {
     name                   = aws_apigatewayv2_domain_name.api_domain.domain_name_configuration[0].target_domain_name
