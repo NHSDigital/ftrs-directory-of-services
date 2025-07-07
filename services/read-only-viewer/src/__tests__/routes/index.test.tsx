@@ -31,7 +31,7 @@ describe("Index Route", () => {
 
     const healthcareServicesCardLink = getByText("Healthcare Services");
     expect(healthcareServicesCardLink).toBeInTheDocument();
-    expect(healthcareServicesCardLink).not.toHaveAttribute(
+    expect(healthcareServicesCardLink.closest("a")).toHaveAttribute(
       "href",
       "/healthcare-services",
     );
