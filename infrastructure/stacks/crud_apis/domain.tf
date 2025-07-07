@@ -8,12 +8,6 @@ data "aws_acm_certificate" "domain_cert" {
   most_recent = true
 }
 
-data "aws_acm_certificate" "domain_cert" {
-  domain      = "*.${local.root_domain_name}"
-  statuses    = ["ISSUED"]
-  most_recent = true
-}
-
 resource "aws_apigatewayv2_domain_name" "api_domain" {
   domain_name = "api${local.workspace_suffix}.${local.root_domain_name}"
 
