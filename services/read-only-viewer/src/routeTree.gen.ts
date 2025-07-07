@@ -13,7 +13,9 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as OrganisationsIndexImport } from './routes/organisations/index'
+import { Route as HealthcareServicesIndexImport } from './routes/healthcare-services/index'
 import { Route as OrganisationsOrganisationIDIndexImport } from './routes/organisations/$organisationID.index'
+import { Route as HealthcareServicesHealthcareServiceIDIndexImport } from './routes/healthcare-services/$healthcareServiceID.index'
 import { Route as OrganisationsOrganisationIDEndpointsIndexImport } from './routes/organisations/$organisationID.endpoints.index'
 import { Route as OrganisationsOrganisationIDEndpointsEndpointIDImport } from './routes/organisations/$organisationID.endpoints.$endpointID'
 
@@ -31,10 +33,23 @@ const OrganisationsIndexRoute = OrganisationsIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const HealthcareServicesIndexRoute = HealthcareServicesIndexImport.update({
+  id: '/healthcare-services/',
+  path: '/healthcare-services/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const OrganisationsOrganisationIDIndexRoute =
   OrganisationsOrganisationIDIndexImport.update({
     id: '/organisations/$organisationID/',
     path: '/organisations/$organisationID/',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const HealthcareServicesHealthcareServiceIDIndexRoute =
+  HealthcareServicesHealthcareServiceIDIndexImport.update({
+    id: '/healthcare-services/$healthcareServiceID/',
+    path: '/healthcare-services/$healthcareServiceID/',
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -63,11 +78,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/healthcare-services/': {
+      id: '/healthcare-services/'
+      path: '/healthcare-services'
+      fullPath: '/healthcare-services'
+      preLoaderRoute: typeof HealthcareServicesIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/organisations/': {
       id: '/organisations/'
       path: '/organisations'
       fullPath: '/organisations'
       preLoaderRoute: typeof OrganisationsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/healthcare-services/$healthcareServiceID/': {
+      id: '/healthcare-services/$healthcareServiceID/'
+      path: '/healthcare-services/$healthcareServiceID'
+      fullPath: '/healthcare-services/$healthcareServiceID'
+      preLoaderRoute: typeof HealthcareServicesHealthcareServiceIDIndexImport
       parentRoute: typeof rootRoute
     }
     '/organisations/$organisationID/': {
@@ -98,7 +127,9 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/healthcare-services': typeof HealthcareServicesIndexRoute
   '/organisations': typeof OrganisationsIndexRoute
+  '/healthcare-services/$healthcareServiceID': typeof HealthcareServicesHealthcareServiceIDIndexRoute
   '/organisations/$organisationID': typeof OrganisationsOrganisationIDIndexRoute
   '/organisations/$organisationID/endpoints/$endpointID': typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
   '/organisations/$organisationID/endpoints': typeof OrganisationsOrganisationIDEndpointsIndexRoute
@@ -106,7 +137,9 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/healthcare-services': typeof HealthcareServicesIndexRoute
   '/organisations': typeof OrganisationsIndexRoute
+  '/healthcare-services/$healthcareServiceID': typeof HealthcareServicesHealthcareServiceIDIndexRoute
   '/organisations/$organisationID': typeof OrganisationsOrganisationIDIndexRoute
   '/organisations/$organisationID/endpoints/$endpointID': typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
   '/organisations/$organisationID/endpoints': typeof OrganisationsOrganisationIDEndpointsIndexRoute
@@ -115,7 +148,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/healthcare-services/': typeof HealthcareServicesIndexRoute
   '/organisations/': typeof OrganisationsIndexRoute
+  '/healthcare-services/$healthcareServiceID/': typeof HealthcareServicesHealthcareServiceIDIndexRoute
   '/organisations/$organisationID/': typeof OrganisationsOrganisationIDIndexRoute
   '/organisations/$organisationID/endpoints/$endpointID': typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
   '/organisations/$organisationID/endpoints/': typeof OrganisationsOrganisationIDEndpointsIndexRoute
@@ -125,21 +160,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/healthcare-services'
     | '/organisations'
+    | '/healthcare-services/$healthcareServiceID'
     | '/organisations/$organisationID'
     | '/organisations/$organisationID/endpoints/$endpointID'
     | '/organisations/$organisationID/endpoints'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/healthcare-services'
     | '/organisations'
+    | '/healthcare-services/$healthcareServiceID'
     | '/organisations/$organisationID'
     | '/organisations/$organisationID/endpoints/$endpointID'
     | '/organisations/$organisationID/endpoints'
   id:
     | '__root__'
     | '/'
+    | '/healthcare-services/'
     | '/organisations/'
+    | '/healthcare-services/$healthcareServiceID/'
     | '/organisations/$organisationID/'
     | '/organisations/$organisationID/endpoints/$endpointID'
     | '/organisations/$organisationID/endpoints/'
@@ -148,7 +189,9 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HealthcareServicesIndexRoute: typeof HealthcareServicesIndexRoute
   OrganisationsIndexRoute: typeof OrganisationsIndexRoute
+  HealthcareServicesHealthcareServiceIDIndexRoute: typeof HealthcareServicesHealthcareServiceIDIndexRoute
   OrganisationsOrganisationIDIndexRoute: typeof OrganisationsOrganisationIDIndexRoute
   OrganisationsOrganisationIDEndpointsEndpointIDRoute: typeof OrganisationsOrganisationIDEndpointsEndpointIDRoute
   OrganisationsOrganisationIDEndpointsIndexRoute: typeof OrganisationsOrganisationIDEndpointsIndexRoute
@@ -156,7 +199,10 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HealthcareServicesIndexRoute: HealthcareServicesIndexRoute,
   OrganisationsIndexRoute: OrganisationsIndexRoute,
+  HealthcareServicesHealthcareServiceIDIndexRoute:
+    HealthcareServicesHealthcareServiceIDIndexRoute,
   OrganisationsOrganisationIDIndexRoute: OrganisationsOrganisationIDIndexRoute,
   OrganisationsOrganisationIDEndpointsEndpointIDRoute:
     OrganisationsOrganisationIDEndpointsEndpointIDRoute,
@@ -175,7 +221,9 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/healthcare-services/",
         "/organisations/",
+        "/healthcare-services/$healthcareServiceID/",
         "/organisations/$organisationID/",
         "/organisations/$organisationID/endpoints/$endpointID",
         "/organisations/$organisationID/endpoints/"
@@ -184,8 +232,14 @@ export const routeTree = rootRoute
     "/": {
       "filePath": "index.tsx"
     },
+    "/healthcare-services/": {
+      "filePath": "healthcare-services/index.tsx"
+    },
     "/organisations/": {
       "filePath": "organisations/index.tsx"
+    },
+    "/healthcare-services/$healthcareServiceID/": {
+      "filePath": "healthcare-services/$healthcareServiceID.index.tsx"
     },
     "/organisations/$organisationID/": {
       "filePath": "organisations/$organisationID.index.tsx"
