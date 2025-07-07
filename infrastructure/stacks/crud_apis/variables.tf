@@ -115,3 +115,13 @@ variable "api_gateway_throttling_rate_limit" {
   description = "The rate limit for API Gateway throttling"
   type        = number
 }
+
+variable "s3_trust_store_bucket_name" {
+  description = "Truststore bucket name for mTLS certificates"
+  type        = number
+}
+
+variable "trust_store_file_path" {
+  description = "Filepath for truststore"
+  type        = number
+}
