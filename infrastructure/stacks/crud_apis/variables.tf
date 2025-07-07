@@ -115,18 +115,3 @@ variable "api_gateway_throttling_rate_limit" {
   description = "The rate limit for API Gateway throttling"
   type        = number
 }
-
-variable "hosted_zone_id" {
-  description = "Route53 hosted zone ID for the domain"
-  type        = string
-}
-
-variable "create_certificate" {
-  description = "Whether to create a new ACM certificate"
-  type        = bool
-  default     = true
-}
-
-variable "s3_bucket_name" {
-  description = "Name of the S3 bucket where the Lambda package is stored"
-}
