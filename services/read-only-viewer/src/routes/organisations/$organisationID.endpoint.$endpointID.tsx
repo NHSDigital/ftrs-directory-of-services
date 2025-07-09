@@ -120,7 +120,7 @@ function EndpointDetailsPage() {
           },
         ]}
       />
-      <span className="nhsuk-caption-l">Organisation Details</span>
+      <span className="nhsuk-caption-l">Endpoint Details</span>
       <h1 className="nhsuk-heading-l">Endpoint: {endpointID}</h1>
       {isLoading && <p>Loading...</p>}
       {error && <RequestErrorDetails error={error as ResponseError} />}
