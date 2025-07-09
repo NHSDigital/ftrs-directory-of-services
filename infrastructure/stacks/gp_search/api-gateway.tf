@@ -33,13 +33,23 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
   retention_in_days = var.retention_in_days
 }
 
+resource "aws_apigatewayv2_domain_name" "api_custom_domain" {
+  domain_name = "servicesearch.${local.root_domain_name}"
+
+  domain_name_configuration {
+    certificate_arn = data.aws_acm_certificate.domain_cert.arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+
 resource "aws_route53_record" "gpsearch_api_a_alias" {
   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
   name    = "servicesearch.${local.root_domain_name}"
   type    = "A"
   alias {
-    name                   = aws_api_gateway_stage.stage.invoke_url
-    zone_id                = var.eu_west_2_api_gateway_zone_id
+    name                   = aws_apigatewayv2_domain_name.api_custom_domain.domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.api_custom_domain.domain_name_configuration[0].hosted_zone_id
     evaluate_target_health = false
   }
 }
