@@ -39,7 +39,7 @@ resource "aws_route53_record" "gpsearch_api_a_alias" {
   type    = "A"
   alias {
     name                   = aws_api_gateway_stage.stage.invoke_url
-    zone_id                = "Z2OJLYMUO9EFXC"
+    zone_id                = var.eu_west_2_api_gateway_zone_id
     evaluate_target_health = false
   }
 }
