@@ -109,7 +109,7 @@ describe("Organisation Endpoint Details", () => {
     });
   });
 
-  it("handles null endpoint gracefully", async () => {
+  it("handles endpoint not found", async () => {
     await act(() =>
       router.navigate({
         to: "/organisations/$organisationID/endpoint/$endpointID",
@@ -124,14 +124,15 @@ describe("Organisation Endpoint Details", () => {
       expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
     );
 
-    const notFoundTitle = app.getByText("Endpoint");
+    const notFoundTitle = app.getByText("Endpoint not found");
     expect(notFoundTitle).toBeInTheDocument();
 
     const notFoundMessage = app.getByText(
-      "No endpoint of id: non-existent-id retrieved for this organisation.",
+      "The endpoint you are looking for does not exist.",
     );
-
     expect(notFoundMessage).toBeInTheDocument();
+    const backLink = app.getByText("Back to Organisation Overview");
+    expect(backLink).toBeInTheDocument();
   });
 
   it("handles organisation not found", async () => {
@@ -153,7 +154,7 @@ describe("Organisation Endpoint Details", () => {
     expect(notFoundTitle).toBeInTheDocument();
 
     const notFoundMessage = app.getByText(
-      "The organisation you are looking for does not exist.",
+      "The organisation for this endpoint does not exist.",
     );
     expect(notFoundMessage).toBeInTheDocument();
     const backLink = app.getByText("Back to Organisations");
