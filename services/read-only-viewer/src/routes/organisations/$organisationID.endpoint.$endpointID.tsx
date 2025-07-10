@@ -17,20 +17,8 @@ export const Route = createFileRoute(
 });
 
 const EndpointOverview: React.FC<{
-  endpoints: Endpoint[];
-  endpointID: string;
-}> = ({ endpoints, endpointID }) => {
-  let endpoint: Endpoint | null = getEndpoint(endpoints, endpointID);
-
-  if (!endpoint) {
-    return (
-      <Card className="nhsuk-u-padding-5">
-        <h2 className="nhsuk-heading-m">Endpoint</h2>
-        <p>No endpoint of id: {endpointID} retrieved for this organisation.</p>
-      </Card>
-    );
-  }
-  endpoint = endpoint as Endpoint;
+  endpoint: Endpoint;
+}> = ({ endpoint }) => {
   return (
     <Card className="nhsuk-u-padding-5">
       <h2 className="nhsuk-heading-m">Endpoint Overview</h2>
@@ -81,20 +69,7 @@ const EndpointOverview: React.FC<{
   );
 };
 
-function getEndpoint(endpoints: Endpoint[], endpointID: string) {
-  let ep = null;
-
-  for (const endpoint of endpoints) {
-    if (endpoint.id === endpointID) {
-      ep = endpoint;
-      break;
-    }
-  }
-
-  return ep;
-}
-
-function EndpointDetailsPage() {
+function getEndpoint() {
   const { organisationID, endpointID } = Route.useParams();
   const {
     data: organisation,
@@ -102,6 +77,16 @@ function EndpointDetailsPage() {
     isSuccess,
     error,
   } = useOrganisationQuery(organisationID);
+
+  const endpoint = organisation?.endpoints.find(
+    (endpoint) => endpoint.id === endpointID,
+  );
+
+  return { organisation, endpoint, isLoading, isSuccess, error };
+}
+
+function EndpointDetailsPage() {
+  const { organisation, endpoint, isLoading, isSuccess, error } = getEndpoint();
 
   return (
     <>
@@ -115,31 +100,42 @@ function EndpointDetailsPage() {
           },
           {
             to: "/organisations/$organisationID/$endpointID",
-            label: `Endpoint ${endpointID}`,
-            params: { organisationID, endpointID },
+            label: `Endpoint ${endpoint?.id}`,
+            params: {
+              organisationID: organisation?.id ?? "",
+              endpointID: endpoint?.id ?? "",
+            },
           },
         ]}
       />
       <span className="nhsuk-caption-l">Endpoint Details</span>
-      <h1 className="nhsuk-heading-l">Endpoint: {endpointID}</h1>
+      <h1 className="nhsuk-heading-l">Endpoint: {endpoint?.id}</h1>
       {isLoading && <p>Loading...</p>}
       {error && <RequestErrorDetails error={error as ResponseError} />}
-      {organisation && (
-        <EndpointOverview
-          endpoints={organisation.endpoints}
-          endpointID={endpointID}
-        />
-      )}
+      {endpoint && <EndpointOverview endpoint={endpoint} />}
       {isSuccess && !organisation && (
         <>
           <h2 className="nhsuk-heading-l">Organisation not found</h2>
-          <p>The organisation you are looking for does not exist.</p>
+          <p>The organisation for this endpoint does not exist.</p>
           <ActionLink
             asElement={Link}
             to="/organisations"
             className="nhsuk-link--no-visited-state"
           >
             Back to Organisations
+          </ActionLink>
+        </>
+      )}
+      {isSuccess && organisation && !endpoint && (
+        <>
+          <h2 className="nhsuk-heading-l">Endpoint not found</h2>
+          <p>The endpoint you are looking for does not exist.</p>
+          <ActionLink
+            asElement={Link}
+            to={`/organisations/${organisation.id}`}
+            className="nhsuk-link--no-visited-state"
+          >
+            Back to Organisation Overview
           </ActionLink>
         </>
       )}
