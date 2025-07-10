@@ -20,7 +20,8 @@ logger.add(
 )
 logger.remove(0)
 
-
+# Load base .env first
+load_dotenv(".env")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -75,23 +76,23 @@ def _get_env_var(varname: str) -> str:
     assert value, f"{varname} is not set"
     return value
 
+
 @pytest.fixture(scope="session")
 def env() -> str:
-    logger.info("Fetching env  {}", _get_env_var("ENVIRONMENT"))
     return _get_env_var("ENVIRONMENT")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_env_file(env):
+    load_dotenv(f".env.{env}", override=True)
 
 
 @pytest.fixture(scope="session")
 def workspace() -> str:
-    logger.info("Fetching workspace  {}", _get_env_var("WORKSPACE"))
     return _get_env_var("WORKSPACE")
 
 
 @pytest.fixture(scope="session")
 def project() -> str:
-    env = os.getenv("ENVIRONMENT")
-    dotenv_file = f".env.{env}"
-    logger.info("Loading environment variables from {}", dotenv_file)
-    load_dotenv(dotenv_file)
-    project = os.getenv("project")
+    project = _get_env_var("project")
     return project

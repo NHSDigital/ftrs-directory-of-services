@@ -7,6 +7,5 @@ def get_resource_name(project, workspace, env, stack, resource):
         resource_name = project + "-" + env + "-" + stack + "-" + resource
     else:
         resource_name = project + "-" + env + "-" + stack + "-" + resource + "-" + workspace
-    logger.info("resource name {}", resource_name)
     return resource_name
 
