@@ -51,7 +51,7 @@ resource "aws_api_gateway_base_path_mapping" "mapping" {
 resource "aws_apigatewayv2_api_mapping" "mapping" {
   api_id      = module.search_rest_api.rest_api_id
   domain_name = aws_apigatewayv2_domain_name.api_custom_domain.domain_name
-  stage       = "$default"
+  stage       = "default"
 }
 
 resource "aws_route53_record" "gpsearch_api_a_alias" {
