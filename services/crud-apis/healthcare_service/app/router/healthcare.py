@@ -1,11 +1,19 @@
 import logging
 from http import HTTPStatus
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Path
+from fastapi.params import Body
 from fastapi.responses import Response
 from ftrs_data_layer.models import HealthcareService
+from starlette.responses import JSONResponse
 
+from healthcare_service.app.services.healthcare_service_helper import (
+    create_healthcare_service,
+)
+from healthcare_service.app.services.validators import (
+    HealthcareServiceCreatePayloadValidator,
+)
 from utils.db_service import get_service_repository
 
 # Constants
@@ -68,6 +76,40 @@ async def delete_healthcare_service(
     repository.delete(service_id)
     logging.info(f"Healthcare Service with ID {service_id} deleted successfully")
     return Response(status_code=HTTPStatus.NO_CONTENT, content=None)
+
+
+@router.post("/", summary="Create a healthcare service.")
+async def post_healthcare_service(
+    healthcare_service_data: HealthcareServiceCreatePayloadValidator = Body(
+        ...,
+        examples=[
+            {
+                "name": "Test Healthcare Service",
+                "type": "General Practice",
+                "identifier_ODS_ODSCode": "12345",
+            }
+        ],
+    ),
+) -> JSONResponse:
+    """
+    Create a new healthcare service.
+    """
+    healthcare_service_data.id = uuid4()  # Assign a new UUID for the healthcare service
+    healthcare_service = HealthcareService(**healthcare_service_data.model_dump())
+
+    created_healthcare_service = create_healthcare_service(
+        healthcare_service, repository
+    )
+    logging.info(
+        f"Healthcare Service created successfully: {created_healthcare_service}"
+    )
+    return JSONResponse(
+        status_code=HTTPStatus.CREATED,
+        content={
+            "message": "Healthcare Service created successfully",
+            "healthcare_service": created_healthcare_service.model_dump(mode="json"),
+        },
+    )
 
 
 def get_healthcare_services() -> list[HealthcareService]:

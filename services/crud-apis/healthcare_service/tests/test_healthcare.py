@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 from pytest_mock import mocker
 
@@ -116,3 +117,50 @@ def test_delete_healthcare_service_not_found(mock_repository: mocker) -> None:
         client.delete(f"/{test_service_id}")
     assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
     assert exc_info.value.detail == "No healthcare services found"
+
+
+def test_create_healthcare_service(mock_repository: mocker) -> None:
+    mock_repository.create.return_value = get_mock_service()
+    response = client.post(
+        "/",
+        json={
+            "name": "New Healthcare Service",
+            "type": "GP Consultation Service",
+            "category": "GP Services",
+            "createdBy": "test_user",
+            "active": True,
+            "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
+            "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
+            "telecom": {
+                "phone_private": "99999 000000",
+                "web": "https://www.example.com/",
+                "email": "testmail@testmail.com",
+            },
+            "openingTime": [
+                {
+                    "allDay": False,
+                    "startTime": "08:00:00",
+                    "endTime": "18:30:00",
+                    "dayOfWeek": "mon",
+                    "category": "availableTime",
+                }
+            ],
+        },
+    )
+    assert response.status_code == HTTPStatus.CREATED
+    mock_repository.create.assert_called_once()
+    assert response.json()["message"] == "Healthcare Service created successfully"
+
+
+def test_create_healthcare_service_invalid_data(mock_repository: mocker) -> None:
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.post(
+            "/",
+            json={
+                "name": "Invalid Healthcare Service",
+                "type": "General Practice",
+                # Missing the required field 'category'
+            },
+        )
+    assert exc_info.type == RequestValidationError
+    assert "Field required" in exc_info.value.errors()[0]["msg"]

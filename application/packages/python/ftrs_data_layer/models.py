@@ -247,7 +247,7 @@ OpeningTime = Annotated[
 
 
 class HealthcareService(DBModel):
-    identifier_oldDoS_uid: str
+    identifier_oldDoS_uid: str | None = None
     active: bool
     category: HealthcareServiceCategory
     type: HealthcareServiceType
