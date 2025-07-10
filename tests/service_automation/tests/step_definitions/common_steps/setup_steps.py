@@ -1,6 +1,5 @@
-import pytest
-from pytest_bdd import scenarios, given, when, then, parsers
 from loguru import logger
+from pytest_bdd import given, parsers, scenarios
 
 scenarios("./is_api_features/gp_search_api.feature")
 
