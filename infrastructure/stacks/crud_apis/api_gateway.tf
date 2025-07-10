@@ -3,6 +3,7 @@ module "api_gateway" {
 
   name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
   protocol_type = "HTTP"
+  disable_execute_api_endpoint = true
 
   create_domain_name    = false
   create_domain_records = false
