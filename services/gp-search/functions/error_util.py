@@ -1,5 +1,5 @@
-from aws_lambda_powertools.utilities.validation import SchemaValidationError
 from fhir.resources.R4B.operationoutcome import OperationOutcome
+from pydantic import ValidationError
 
 
 def create_resource_internal_server_error() -> OperationOutcome:
@@ -26,7 +26,7 @@ def create_resource_internal_server_error() -> OperationOutcome:
 
 
 def create_resource_validation_error(
-    exception: SchemaValidationError,
+    exception: ValidationError,
 ) -> OperationOutcome:
     # assumes that the exception is related to the ODS code format
     return OperationOutcome.model_validate(
@@ -46,8 +46,8 @@ def create_resource_validation_error(
                         ],
                         "text": "The organization.identifier ODS code provided in the search parameter does not match the required format",
                     },
-                    "diagnostics": exception.message,
-                    "expression": [exception.name],
+                    "diagnostics": exception.errors()[0]["msg"],
+                    "expression": [exception.errors()[0]["input"]],
                 },
             ],
         }
