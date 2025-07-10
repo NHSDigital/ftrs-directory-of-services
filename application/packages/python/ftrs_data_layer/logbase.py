@@ -406,3 +406,11 @@ class CrudApisLogBase(LogBase):
         level=INFO,
         message="Successfully deleted organisation with ID: {organisation_id}.",
     )
+    HEALTHCARESERVICE_001 = LogReference(
+        level=INFO,
+        message="Received request to create healthcare service with name: {name} and type: {type}.",
+    )
+    HEALTHCARESERVICE_002 = LogReference(
+        level=INFO,
+        message="Successfully created healthcare service with ID: {id}.",
+    )
