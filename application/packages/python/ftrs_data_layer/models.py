@@ -61,7 +61,7 @@ class Organisation(DBModel):
     active: bool
     name: str
     telecom: str | None = None
-    type: OrganisationType
+    type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
 
     @property

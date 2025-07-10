@@ -5,34 +5,23 @@ import requests
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.load_data import (
-    load_data,
-)
-from pipeline.validators import (
-    OrganisationValidator,
-    RolesValidator,
-    validate_payload,
-)
+from pipeline.load_data import load_data
 
 from .extract import (
-    extract_display_name,
     extract_ods_code,
-    extract_organisation_data,
-    fetch_organisation_data,
-    fetch_organisation_role,
+    fetch_ods_organisation_data,
     fetch_organisation_uuid,
     fetch_sync_data,
 )
-from .transform import transfrom_into_payload
+from .transform import transform_to_payload
 
 BATCH_SIZE = 10
-
 ods_processor_logger = Logger.get(service="ods_processor")
 
 
 def processor(date: str) -> None:
     """
-    Extract GP practice data from the source, transform to payload and log it out.
+    Extract GP practice data from the source, transform to payload, and load in batches.
     """
     try:
         organisations = fetch_sync_data(date)
@@ -57,9 +46,9 @@ def processor(date: str) -> None:
 
             if len(transformed_batch) == BATCH_SIZE:
                 load_data(transformed_batch)
-                transformed_batch = []
+                transformed_batch.clear()
 
-        if len(transformed_batch) > 0:
+        if transformed_batch:
             load_data(transformed_batch)
 
     except requests.exceptions.RequestException as e:
@@ -79,36 +68,21 @@ def processor(date: str) -> None:
 
 def process_organisation(ods_code: str) -> str | None:
     """
-    Process a single organisation by extracting data, transforming it, and logging the payload.
+    Process a single organisation by extracting data, transforming it, and returning the payload.
     """
     try:
-        raw_organisation_data = fetch_organisation_data(ods_code)
-
-        relevant_organisation_data = extract_organisation_data(raw_organisation_data)
-        validated_organisation_data = validate_payload(
-            relevant_organisation_data, OrganisationValidator
-        )
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_024,
-        )
-
-        role_list = validated_organisation_data.Roles.Role
-        raw_primary_role_data = fetch_organisation_role(role_list)
-        relevant_role_data = extract_display_name(raw_primary_role_data)
-        validated_primary_role_data = validate_payload(
-            relevant_role_data, RolesValidator
-        )
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_025,
-        )
+        organisation_data = fetch_ods_organisation_data(ods_code)
+        fhir_organisation = transform_to_payload(organisation_data, ods_code)
         org_uuid = fetch_organisation_uuid(ods_code)
-
-        request_body = transfrom_into_payload(
-            validated_organisation_data, validated_primary_role_data, ods_code
-        )
-        request = {"path": org_uuid, "body": request_body}
-
-        return json.dumps(request)
+        fhir_organisation.id = org_uuid
+        if org_uuid is None:
+            ods_processor_logger.log(
+                OdsETLPipelineLogBase.ETL_PROCESSOR_027,
+                ods_code=ods_code,
+                error_message="Organisation UUID not found.",
+            )
+            return None
+        return json.dumps({"path": org_uuid, "body": fhir_organisation.model_dump()})
 
     except Exception as e:
         ods_processor_logger.log(
@@ -116,18 +90,24 @@ def process_organisation(ods_code: str) -> str | None:
             ods_code=ods_code,
             error_message=str(e),
         )
+        return None
 
 
-def processor_lambda_handler(event: any, context: any) -> dict | None:
+def processor_lambda_handler(event: dict, context: any) -> dict:
+    """
+    Lambda handler for triggering the processor with a date parameter.
+    """
     try:
         date = event.get("date")
         if not date:
-            return {"statusCode": 400, "body": ("Date parameter is required")}
+            return {"statusCode": 400, "body": "Date parameter is required"}
         date_pattern = r"^\d{4}-\d{2}-\d{2}$"
         if not re.match(date_pattern, date):
             return {"statusCode": 400, "body": "Date must be in YYYY-MM-DD format"}
+        else:
+            processor(date=date)
+            return {"statusCode": 200, "body": "Processing complete"}
 
-        processor(date=event["date"])
     except Exception as e:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_023,

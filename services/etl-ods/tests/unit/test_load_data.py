@@ -122,7 +122,6 @@ def test_load_data_get_queue_url_exception(caplog: pytest.LogCaptureFixture) -> 
         test_data = ["message1"]
         with pytest.raises(Exception):
             load_data(test_data)
-        print(caplog.text)
         expected_log_template = (
             OdsETLPipelineLogBase.ETL_PROCESSOR_018.value.message.split(
                 "{error_message}"
