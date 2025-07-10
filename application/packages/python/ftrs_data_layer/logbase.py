@@ -182,30 +182,10 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_004 = LogReference(
         level=WARNING,
-        message="No organisation found in the response for the given ODS code {ods_code}.",
-    )
-    ETL_PROCESSOR_005 = LogReference(
-        level=ERROR,
-        message="No primary role found in the roles list.",
-    )
-    ETL_PROCESSOR_006 = LogReference(
-        level=ERROR,
-        message="Fetching role data for ID: {primary_role_id}.",
+        message="OperationOutcome retrieved when fetching Organisation FHIR data - issue code: {code}, issue diagnostics: {diagnostics}.",
     )
     ETL_PROCESSOR_007 = LogReference(
         level=WARNING, message="Organisation not found in database."
-    )
-    ETL_PROCESSOR_008 = LogReference(
-        level=WARNING, message="Missing key in organisation payload: {key}."
-    )
-    ETL_PROCESSOR_009 = LogReference(
-        level=WARNING, message="Roles payload extraction failed: role is not a list."
-    )
-    ETL_PROCESSOR_0010 = LogReference(
-        level=WARNING, message="Invalid role format: {role}."
-    )
-    ETL_PROCESSOR_011 = LogReference(
-        level=WARNING, message="Invalid contact format: {contact}."
     )
     ETL_PROCESSOR_012 = LogReference(
         level=WARNING, message="ODS code extraction failed: {e}."
@@ -258,20 +238,16 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Successfully validated organisation data.",
     )
-    ETL_PROCESSOR_025 = LogReference(
-        level=INFO,
-        message="Successfully validated role data.",
-    )
     ETL_PROCESSOR_026 = LogReference(
         level=INFO,
         message="Successfully transformed data for ods_code: {ods_code}.",
     )
     ETL_PROCESSOR_027 = LogReference(
         level=WARNING,
-        message="Error processing organisation with ods_code {ods_code}: {error_message}.",
+        message="Error processing organisation with ods_code {ods_code}: {error_message}",
     )
     ETL_PROCESSOR_028 = LogReference(
-        level=WARNING,
+        level=INFO,
         message="Fetching organisation uuid for ods code {ods_code}.",
     )
     ETL_CONSUMER_001 = LogReference(
@@ -335,7 +311,7 @@ class CrudApisLogBase(LogBase):
 
     ORGANISATION_001 = LogReference(
         level=INFO,
-        message="Received request to get organisation with ODS code: {ods_code}.",
+        message="Received request to get organisation is with ODS code: {ods_code}.",
     )
     ORGANISATION_002 = LogReference(
         level=ERROR,
@@ -405,6 +381,10 @@ class CrudApisLogBase(LogBase):
     ORGANISATION_018 = LogReference(
         level=INFO,
         message="Successfully deleted organisation with ID: {organisation_id}.",
+    )
+    ORGANISATION_019 = LogReference(
+        level=ERROR,
+        message="Error updating organisation with organisation_id {organisation_id}:{error_message}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
