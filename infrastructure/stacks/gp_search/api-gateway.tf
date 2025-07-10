@@ -32,3 +32,49 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
   name              = "/aws/apigateway/${local.resource_prefix}-api-gateway-execution-logs${local.workspace_suffix}/default"
   retention_in_days = var.retention_in_days
 }
+
+resource "aws_api_gateway_api_key" "services_search_api_key" {
+  name    = "service_search_api_key"
+  enabled = true
+}
+
+resource "aws_api_gateway_usage_plan" "service_search_usage_plan" {
+  name = "my-usage-plan"
+
+  api_stages {
+    api_id = module.search_rest_api.rest_api_id
+    stage  = aws_api_gateway_stage.stage.stage_name
+  }
+}
+
+resource "aws_api_gateway_usage_plan_key" "usage_plan_key" {
+  key_id        = aws_api_gateway_api_key.services_search_api_key.id
+  key_type      = "API_KEY"
+  usage_plan_id = aws_api_gateway_usage_plan.service_search_usage_plan.id
+}
+resource "aws_apigatewayv2_domain_name" "api_custom_domain" {
+  domain_name = "servicesearch.${local.root_domain_name}"
+
+  domain_name_configuration {
+    certificate_arn = data.aws_acm_certificate.domain_cert.arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+
+resource "aws_apigatewayv2_api_mapping" "mapping" {
+  api_id      = module.search_rest_api.rest_api_id
+  domain_name = aws_apigatewayv2_domain_name.api_custom_domain.domain_name
+  stage       = "default"
+}
+
+resource "aws_route53_record" "gpsearch_api_a_alias" {
+  zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
+  name    = "servicesearch.${local.root_domain_name}"
+  type    = "A"
+  alias {
+    name                   = aws_apigatewayv2_domain_name.api_custom_domain.domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.api_custom_domain.domain_name_configuration[0].hosted_zone_id
+    evaluate_target_health = false
+  }
+}

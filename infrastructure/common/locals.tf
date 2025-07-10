@@ -4,6 +4,7 @@ locals {
   artefacts_bucket = "${var.repo_name}-mgmt-${var.artefacts_bucket_name}"
   resource_prefix  = "${var.project}-${var.environment}-${var.stack_name}"
   account_prefix   = "${var.repo_name}-${var.environment}"
+  root_domain_name = "${var.environment}.${var.root_domain_name}"
 
   # TODO remove once no longer used - use resource_prefix instead
   prefix = "${var.project}-${var.environment}"

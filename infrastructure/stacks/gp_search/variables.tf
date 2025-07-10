@@ -39,3 +39,8 @@ variable "retention_in_days" {
   type        = number
   default     = 7
 }
+
+variable "eu_west_2_api_gateway_zone_id" {
+  description = "The zone ID for the API Gateway in eu-west-2"
+  type        = string
+}
