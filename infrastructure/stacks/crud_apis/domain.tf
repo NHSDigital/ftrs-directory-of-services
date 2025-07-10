@@ -1,15 +1,15 @@
 data "aws_route53_zone" "main" {
-  name = local.root_domain_name
+  name = local.env_domain_name
 }
 
 data "aws_acm_certificate" "domain_cert" {
-  domain      = "*.${local.root_domain_name}"
+  domain      = "*.${local.env_domain_name}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
 
 resource "aws_apigatewayv2_domain_name" "crud_api_domain" {
-  domain_name = "crud${local.workspace_suffix}.${local.root_domain_name}"
+  domain_name = "crud${local.workspace_suffix}.${local.env_domain_name}"
 
   domain_name_configuration {
     certificate_arn = data.aws_acm_certificate.domain_cert.arn
@@ -34,7 +34,7 @@ resource "aws_apigatewayv2_api_mapping" "api_mapping" {
 
 resource "aws_route53_record" "api_record" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = "crud${local.workspace_suffix}.${local.root_domain_name}"
+  name    = "crud${local.workspace_suffix}.${local.env_domain_name}"
   type    = "A"
   alias {
     name                   = aws_apigatewayv2_domain_name.crud_api_domain.domain_name_configuration[0].target_domain_name
