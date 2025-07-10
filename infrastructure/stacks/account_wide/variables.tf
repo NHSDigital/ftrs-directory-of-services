@@ -47,8 +47,3 @@ variable "opensearch_collection_name" {
   description = "The OpenSearch Collection name"
   type        = string
 }
-
-variable "s3_trust_store_bucket_name" {
-  description = "The name of the S3 bucket for the trust store used for MTLS Certificates"
-  type        = string
-}

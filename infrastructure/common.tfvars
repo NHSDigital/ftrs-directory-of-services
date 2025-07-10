@@ -21,3 +21,7 @@ aws_accounts = [
   "test",
   "prod"
 ]
+
+root_domain_name = "ftrs.cloud.nhs.uk"
+
+s3_trust_store_bucket_name = "truststore"
