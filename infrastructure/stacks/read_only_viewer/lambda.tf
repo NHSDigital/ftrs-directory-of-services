@@ -18,40 +18,17 @@ module "frontend_lambda" {
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.execute_api_policy.json
   ]
-  security_group_ids = null
-  subnet_ids         = null
+  security_group_ids = []
+  subnet_ids         = []
   layers             = []
   environment_variables = {
     "ENVIRONMENT" = var.environment
     "WORKSPACE"   = terraform.workspace == "default" ? "" : terraform.workspace
   }
-}
-
-data "aws_iam_policy_document" "ssm_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssm:GetParameter",
-      "ssm:GetParameters",
-      "ssm:GetParametersByPath"
-    ]
-    resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint"
-    ]
-  }
-}
-
-# TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
-data "aws_iam_policy_document" "execute_api_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "execute-api:Invoke"
-    ]
-    resources = [
-      "arn:aws:execute-api:*:*:*/*/*/*/*"
-    ]
-  }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 resource "aws_lambda_function_url" "frontend_lambda_url" {
