@@ -4,8 +4,19 @@ import os
 from gp_search_function import lambda_handler
 
 if __name__ == "__main__":
+    ods_code = os.environ.get("ODS_CODE")
+
     test_event = {
-        "odsCode": os.environ.get("ODS_CODE"),
+        "path": "/organization",
+        "httpMethod": "GET",
+        "queryStringParameters": {
+            "identifier": f"odsOrganisationCode|{ods_code}",
+            "_revinclude": "Endpoint:organization",
+        },
+        "requestContext": {
+            "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
+        },
+        "body": None,
     }
 
     # Create mock Lambda context for testing

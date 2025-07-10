@@ -1,12 +1,10 @@
-import pytest
-import boto3
 import json
-from pytest_bdd import scenarios, given, when, then, parsers
-from loguru import logger
-from utilities.infra.lambda_util import LambdaWrapper
+
+import boto3
+import pytest
+from pytest_bdd import given, parsers, scenarios, then, when
 from utilities.common.resource_name import get_resource_name
-
-
+from utilities.infra.lambda_util import LambdaWrapper
 
 # Load feature file
 scenarios("./is_infra_features/lambda.feature")
@@ -27,26 +25,14 @@ def confirm_lambda_exists(aws_lambda_client, project, lambda_function, stack, wo
     assert lambda_exists is True
     return lambda_name
 
-
-@when(parsers.parse('I invoke the lambda with the ods code "{odscode}"'), target_fixture='fLambda_payload')
+@when(parsers.re(r'I invoke the lambda with the ods code "(?P<odscode>.*)"'), target_fixture='fLambda_payload')
 def invoke_lambda(aws_lambda_client, odscode, flambda_name):
-    lambda_params = {
-        "odsCode": odscode
-    }
+    lambda_params = create_lambda_params(odscode)
     lambda_payload = aws_lambda_client.invoke_function(flambda_name, lambda_params)
     return lambda_payload
 
 
-@when(('I invoke the lambda with the ods code value not set'), target_fixture='fLambda_payload')
-def invoke_lambda_no_odscode(aws_lambda_client, flambda_name):
-    lambda_params = {
-        "odsCode": ""
-    }
-    lambda_payload = aws_lambda_client.invoke_function(flambda_name, lambda_params)
-    return lambda_payload
-
-
-@when(('I invoke the lambda with an empty event'), target_fixture='fLambda_payload')
+@when('I invoke the lambda with an empty event', target_fixture='fLambda_payload')
 def invoke_lambda_empty_event(aws_lambda_client, flambda_name):
     lambda_params = {
     }
@@ -117,3 +103,17 @@ def countResources(lambda_response, resource_type):
         entry.get("resource", {}).get("resourceType") == resource_type
         for entry in lambda_response.get("entry", [])
         )
+
+def create_lambda_params(odscode):
+    return {
+        "path": "/organization",
+        "httpMethod": "GET",
+        "queryStringParameters": {
+            "identifier": f"odsOrganisationCode|{odscode}",
+            "_revinclude": "Endpoint:organization",
+        },
+        "requestContext": {
+            "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
+        },
+        "body": None,
+    }
