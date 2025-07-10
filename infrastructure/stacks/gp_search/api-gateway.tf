@@ -48,6 +48,12 @@ resource "aws_api_gateway_base_path_mapping" "mapping" {
   domain_name = aws_api_gateway_domain_name.api_custom_domain.domain_name
 }
 
+resource "aws_apigatewayv2_api_mapping" "mapping" {
+  api_id      = module.search_rest_api.rest_api_id
+  domain_name = aws_apigatewayv2_domain_name.api_custom_domain.domain_name
+  stage       = "$default"
+}
+
 resource "aws_route53_record" "gpsearch_api_a_alias" {
   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
   name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
