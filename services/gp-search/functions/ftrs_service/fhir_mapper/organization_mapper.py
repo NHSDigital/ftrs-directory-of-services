@@ -1,7 +1,7 @@
 from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
-from fhir.resources.R4B.organization import Organization as FhirOrganisation
+from fhir.resources.R4B.organization import Organization
 
 from functions.ftrs_service.repository.dynamo import (
     OrganizationRecord,
@@ -12,7 +12,7 @@ from functions.ftrs_service.repository.dynamo import (
 class OrganizationMapper:
     def map_to_organization_resource(
         self, organization_record: OrganizationRecord
-    ) -> FhirOrganisation:
+    ) -> Organization:
         organization_value = organization_record.value
 
         organization_id = organization_value.id
@@ -22,7 +22,7 @@ class OrganizationMapper:
         telecom = self._create_telecom(organization_value)
         address = self._create_dummy_address()
 
-        org = FhirOrganisation.model_validate(
+        org = Organization.model_validate(
             {
                 "id": organization_id,
                 "identifier": identifier,
