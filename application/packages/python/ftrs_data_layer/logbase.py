@@ -393,3 +393,4 @@ class CrudApisLogBase(LogBase):
     HEALTHCARESERVICE_002 = LogReference(
         level=INFO,
         message="Successfully created healthcare service with ID: {id}.",
+    )
