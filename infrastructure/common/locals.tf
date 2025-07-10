@@ -20,7 +20,7 @@ locals {
 
   domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
 
-  root_domain_name = "${var.environment}.${var.root_domain_name}"
+  env_domain_name = "${var.environment}.${var.root_domain_name}"
 
   s3_trust_store_bucket_name = "${local.account_prefix}-${var.s3_trust_store_bucket_name}"
 
