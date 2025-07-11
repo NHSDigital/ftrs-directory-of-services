@@ -97,7 +97,8 @@
                 "kms:PutKeyPolicy",
                 "kms:List*",
                 "kms:TagResource",
-                "kms:EnableKeyRotation"
+                "kms:EnableKeyRotation",
+                "kms:GetKeyPolicy"
             ],
             "Resource": "*"
         },
