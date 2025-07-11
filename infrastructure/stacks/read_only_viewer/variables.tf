@@ -55,11 +55,6 @@ variable "read_only_viewer_log_group_class" {
   type        = string
 }
 
-variable "read_only_viewer_waf_web_acl_log_group_policy_name" {
-  description = "The log group policy name"
-  type        = string
-}
-
 variable "read_only_viewer_log_group_name_prefix" {
   description = "Prefix for WAF CloudWatch Log Group Name"
   type        = string
