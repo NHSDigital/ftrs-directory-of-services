@@ -6,7 +6,3 @@ data "aws_acm_certificate" "vpn_cert" {
   statuses    = ["ISSUED"]
   most_recent = true
 }
-
-data "aws_iam_role" "account_github_runner_role_name" {
-  name = "${var.repo_name}-${var.account_github_runner_role_name}"
-}
