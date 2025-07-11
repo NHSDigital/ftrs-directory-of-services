@@ -1,7 +1,7 @@
 resource "aws_kms_key" "secrets_key" {
-  count               = contains(["dev", "test"], var.environment) ? 1 : 0
-  description         = "KMS CMK for encrypting Secrets Manager secrets"
-  enable_key_rotation = true
+  count       = contains(["dev", "test"], var.environment) ? 1 : 0
+  description = "KMS CMK for encrypting Secrets Manager secrets"
+  # enable_key_rotation = true
 
   policy = jsonencode({
     Version = "2012-10-17"
