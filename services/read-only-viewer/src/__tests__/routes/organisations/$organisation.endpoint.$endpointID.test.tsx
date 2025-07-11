@@ -1,11 +1,10 @@
 import { StubData, server } from "@/__mocks__/mockServiceWorker";
 import { routeTree } from "@/routeTree.gen";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { render, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { act } from "react";
 
-describe("Organisation Details", () => {
+describe("Organisation Endpoint Details", () => {
   let router: ReturnType<typeof createRouter>;
   let app: ReturnType<typeof render>;
 
@@ -18,44 +17,48 @@ describe("Organisation Details", () => {
     app = render(<RouterProvider<typeof router> router={router} />);
   });
 
-  it("renders organisation details correctly", async () => {
+  it("should render the Endpoint Details page for an organisation", async () => {
     StubData.organisations.push({
       id: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
-      name: "Organisation 1",
-      identifier_ODS_ODSCode: "ODS1",
+      identifier_ODS_ODSCode: "12345",
       active: true,
-      type: "Type A",
+      createdBy: "ROBOT",
+      createdDateTime: "2023-10-01T00:00:00Z",
+      modifiedBy: "ROBOT",
+      modifiedDateTime: "2023-10-01T00:00:00Z",
+      name: "Test Organisation",
+      telecom: undefined,
+      type: "GP Practice",
       endpoints: [
         {
-          id: "endpoint1",
-          name: "Primary Endpoint",
-          status: "active",
-          connectionType: "REST",
+          id: "d5a852ef-12c7-4014-b398-661716a63027",
+          address: "https://example.com/endpoint",
+          connectionType: "itk",
+          description: "Primary",
+          payloadMimeType: "application/fhir",
+          identifier_oldDoS_id: 67890,
+          isCompressionEnabled: true,
           managedByOrganisation: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
-          payloadMimeType: "JSON",
-          payloadType:
-            "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
-          isCompressionEnabled: false,
-          address: "https://api.organisation1.example.com",
-          order: 1,
-          description: "Primary endpoint for Organisation 1",
           createdBy: "user1",
           createdDateTime: "2023-01-01T00:00:00Z",
           modifiedBy: "user2",
           modifiedDateTime: "2023-01-02T00:00:00Z",
+          name: "Test Endpoint",
+          order: 1,
+          payloadType:
+            "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
+          service: undefined,
+          status: "active",
         },
       ],
-      createdBy: "user1",
-      createdDateTime: "2023-01-01T00:00:00Z",
-      modifiedBy: "user2",
-      modifiedDateTime: "2023-01-02T00:00:00Z",
     });
 
     await act(() =>
       router.navigate({
-        to: "/organisations/$organisationID",
+        to: "/organisations/$organisationID/endpoint/$endpointID",
         params: {
           organisationID: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
+          endpointID: "d5a852ef-12c7-4014-b398-661716a63027",
         },
       }),
     );
@@ -64,16 +67,28 @@ describe("Organisation Details", () => {
       expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
     );
 
-    const heading = app.getByText("Organisation 1", { selector: "h1" });
+    const heading = app.getByText(
+      "Endpoint: d5a852ef-12c7-4014-b398-661716a63027",
+      { selector: "h1" },
+    );
     expect(heading).toBeInTheDocument();
 
     const expectedDetails = [
-      { key: "ID", value: "32200d9e-fa54-43d4-8cb1-514aac0113a1" },
-      { key: "Name", value: "Organisation 1" },
-      { key: "ODS Code", value: "ODS1" },
-      { key: "Type", value: "Type A" },
-      { key: "Active", value: "Yes" },
-      { key: "Telecom", value: "None Provided" },
+      { key: "ID", value: "d5a852ef-12c7-4014-b398-661716a63027" },
+      { key: "Identifier Old DOS ID", value: "67890" },
+      { key: "Status", value: "active" },
+      { key: "Connection Type", value: "itk" },
+      { key: "Name", value: "Test Endpoint" },
+      { key: "Description", value: "Primary" },
+      {
+        key: "Payload Type",
+        value:
+          "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
+      },
+      { key: "Address", value: "https://example.com/endpoint" },
+      { key: "Order", value: "1" },
+      { key: "Is Compression Enabled", value: "true" },
+      { key: "Payload Mime Type", value: "application/fhir" },
       { key: "Created By", value: "user1 (2023-01-01T00:00:00Z)" },
       { key: "Modified By", value: "user2 (2023-01-02T00:00:00Z)" },
     ];
@@ -92,64 +107,15 @@ describe("Organisation Details", () => {
       expect(key.textContent).toBe(item.key);
       expect(value.textContent).toBe(item.value);
     });
-
-    const endpointDetailsSummary = app.getByText(
-      "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
-    );
-    expect(endpointDetailsSummary).toBeInTheDocument();
-
-    const endpointDetails = endpointDetailsSummary.closest("details")!;
-    expect(endpointDetails).toBeInTheDocument();
-
-    const tableHeadings = endpointDetails.querySelectorAll("th");
-    expect(tableHeadings.length).toBe(5);
-    expect(tableHeadings[0].textContent).toBe("Order");
-    expect(tableHeadings[1].textContent).toBe("Status");
-    expect(tableHeadings[2].textContent).toBe("Type");
-    expect(tableHeadings[3].textContent).toBe("Address");
-    expect(tableHeadings[4].textContent).toBe("Action");
-
-    const tableRows = endpointDetails.querySelectorAll("tbody tr");
-    expect(tableRows.length).toBe(1);
-
-    const firstRowCells = tableRows[0].querySelectorAll("td");
-    expect(firstRowCells.length).toBe(5);
-
-    expect(firstRowCells[0].textContent).toBe("1");
-    expect(firstRowCells[1].textContent).toBe("active");
-    expect(firstRowCells[2].textContent).toBe("REST");
-    expect(firstRowCells[3].textContent).toBe(
-      "https://api.organisation1.example.com",
-    );
-
-    const actionLink = firstRowCells[4].querySelector("a");
-    expect(actionLink).toBeInTheDocument();
-    expect(actionLink?.textContent).toBe("View");
-    expect(actionLink).toHaveAttribute(
-      "href",
-      "/organisations/32200d9e-fa54-43d4-8cb1-514aac0113a1/endpoint/endpoint1",
-    );
   });
 
-  it("handles no endpoints gracefully", async () => {
-    StubData.organisations.push({
-      id: "d8a60e97-d77d-4331-85b3-5e378f83f9cd",
-      name: "Organisation 2",
-      identifier_ODS_ODSCode: "ODS2",
-      active: true,
-      type: "Type B",
-      endpoints: [],
-      createdBy: "user3",
-      createdDateTime: "2023-01-03T00:00:00Z",
-      modifiedBy: "user4",
-      modifiedDateTime: "2023-01-04T00:00:00Z",
-    });
-
+  it("handles endpoint not found", async () => {
     await act(() =>
       router.navigate({
-        to: "/organisations/$organisationID",
+        to: "/organisations/$organisationID/endpoint/$endpointID",
         params: {
-          organisationID: "d8a60e97-d77d-4331-85b3-5e378f83f9cd",
+          organisationID: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
+          endpointID: "non-existent-id",
         },
       }),
     );
@@ -158,21 +124,24 @@ describe("Organisation Details", () => {
       expect(app.queryByText("Loading...")).not.toBeInTheDocument(),
     );
 
-    const heading = app.getByText("Organisation 2", { selector: "h1" });
-    expect(heading).toBeInTheDocument();
+    const notFoundTitle = app.getByText("Endpoint not found");
+    expect(notFoundTitle).toBeInTheDocument();
 
-    const noEndpointsMessage = app.getByText(
-      "No endpoints available for this organisation.",
+    const notFoundMessage = app.getByText(
+      "The endpoint you are looking for does not exist.",
     );
-    expect(noEndpointsMessage).toBeInTheDocument();
+    expect(notFoundMessage).toBeInTheDocument();
+    const backLink = app.getByText("Back to Organisation Overview");
+    expect(backLink).toBeInTheDocument();
   });
 
   it("handles organisation not found", async () => {
     await act(() =>
       router.navigate({
-        to: "/organisations/$organisationID",
+        to: "/organisations/$organisationID/endpoint/$endpointID",
         params: {
           organisationID: "non-existent-id",
+          endpointID: "d5a852ef-12c7-4014-b398-661716a63027",
         },
       }),
     );
@@ -185,7 +154,7 @@ describe("Organisation Details", () => {
     expect(notFoundTitle).toBeInTheDocument();
 
     const notFoundMessage = app.getByText(
-      "The organisation you are looking for does not exist.",
+      "The organisation for this endpoint does not exist.",
     );
     expect(notFoundMessage).toBeInTheDocument();
     const backLink = app.getByText("Back to Organisations");
@@ -213,9 +182,10 @@ describe("Organisation Details", () => {
 
     await act(() =>
       router.navigate({
-        to: "/organisations/$organisationID",
+        to: "/organisations/$organisationID/endpoint/$endpointID",
         params: {
           organisationID: "32200d9e-fa54-43d4-8cb1-514aac0113a1",
+          endpointID: "d5a852ef-12c7-4014-b398-661716a63027",
         },
       }),
     );

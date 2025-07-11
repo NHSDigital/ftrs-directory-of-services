@@ -93,6 +93,14 @@ make format
 make lint
 ```
 
+If you would like format/lint suggestions to be automatically applied the run:
+
+```bash
+npm run lint -- --write
+npm run format -- --write
+npm run check -- --write
+```
+
 ## Routing
 
 This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file-based router. Which means that the routes are managed as files in `src/routes`.
