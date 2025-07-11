@@ -63,9 +63,8 @@ function HomePage() {
           },
           {
             title: "Locations",
-            description: "View and search locations (coming soon).",
+            description: "View and search locations",
             link: "/locations",
-            disabled: true,
           },
         ]}
       />
