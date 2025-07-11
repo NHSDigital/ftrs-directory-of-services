@@ -52,3 +52,8 @@ variable "s3_trust_store_bucket_name" {
   description = "The name of the S3 bucket for the trust store used for MTLS Certificates"
   type        = string
 }
+
+variable "waf_log_group_policy_name" {
+  description = "The log group policy name"
+  type        = string
+}

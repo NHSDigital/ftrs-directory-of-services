@@ -9,3 +9,5 @@ opensearch_create_network_policy = false
 opensearch_collection_name       = "-osc"
 
 s3_trust_store_bucket_name = "truststore"
+
+waf_log_group_policy_name = "waf_log_group_policy"
