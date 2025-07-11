@@ -54,6 +54,11 @@ variable "s3_trust_store_bucket_name" {
 }
 
 variable "waf_log_group_policy_name" {
-  description = "The log group policy name"
+  description = "The WAF log group policy name"
+  type        = string
+}
+
+variable "osis_apigw_log_group_policy_name" {
+  description = "The OSIS & API Gateway log group policy name"
   type        = string
 }
