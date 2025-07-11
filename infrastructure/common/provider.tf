@@ -39,7 +39,7 @@ provider "aws" {
 
 provider "aws" {
   region = var.aws_region_us_east_1
-  alias  = var.aws_region_us_east_1
+  alias  = "us-east-1"
 
   skip_metadata_api_check     = true
   skip_region_validation      = true
