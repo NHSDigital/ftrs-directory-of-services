@@ -38,7 +38,7 @@ describe("Index Route", () => {
 
     const locationsCardLink = getByText("Locations");
     expect(locationsCardLink).toBeInTheDocument();
-    expect(locationsCardLink.closest("a")).not.toHaveAttribute(
+    expect(locationsCardLink.closest("a")).toHaveAttribute(
       "href",
       "/locations",
     );
