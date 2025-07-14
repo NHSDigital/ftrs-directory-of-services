@@ -96,7 +96,8 @@
                 "kms:DescribeKey",
                 "kms:PutKeyPolicy",
                 "kms:List*",
-                "kms:TagResource"
+                "kms:TagResource",
+                "kms:GetKeyPolicy"
             ],
             "Resource": "*"
         },
