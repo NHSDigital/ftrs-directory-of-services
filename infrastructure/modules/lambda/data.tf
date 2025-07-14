@@ -13,12 +13,6 @@ data "aws_iam_policy_document" "vpc_access_policy" {
     resources = [
       "*"
     ]
-    condition {
-      test     = "StringEquals"
-      variable = "lambda:VpcIds"
-      values   = [var.vpc_id]
-
-    }
   }
 }
 
@@ -41,12 +35,10 @@ data "aws_iam_policy_document" "deny_lambda_function_access_policy" {
       variable = "lambda:SourceFunctionArn"
       values = [
         "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:${var.function_name}${local.workspace_suffix}"
-
       ]
     }
   }
 }
-
 
 data "aws_iam_policy_document" "allow_private_subnet_policy" {
   statement {
