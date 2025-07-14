@@ -104,7 +104,14 @@
                 "kms:UntagResource",
                 "kms:CreateAlias",
                 "kms:DeleteAlias",
-                "kms:UpdateAlias"
+                "kms:UpdateAlias",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion",
+                "kms:UpdateKeyDescription",
+                "kms:CreateGrant",
+                "kms:ListGrants",
+                "kms:RevokeGrant",
+                "kms:RetireGrant"
             ],
             "Resource": "*"
         },
