@@ -52,20 +52,20 @@ resource "aws_api_gateway_usage_plan_key" "usage_plan_key" {
   key_type      = "API_KEY"
   usage_plan_id = aws_api_gateway_usage_plan.service_search_usage_plan.id
 }
-resource "aws_apigatewayv2_domain_name" "api_custom_domain" {
+
+resource "aws_api_gateway_domain_name" "api_custom_domain" {
   domain_name = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
 
-  domain_name_configuration {
-    certificate_arn = data.aws_acm_certificate.domain_cert.arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+  regional_certificate_arn = data.aws_acm_certificate.domain_cert.arn
+  endpoint_configuration {
+    types = ["REGIONAL"]
   }
 }
 
-resource "aws_apigatewayv2_api_mapping" "mapping" {
+resource "aws_api_gateway_base_path_mapping" "mapping" {
   api_id      = module.search_rest_api.rest_api_id
-  domain_name = aws_apigatewayv2_domain_name.api_custom_domain.domain_name
-  stage       = "default"
+  stage_name  = aws_api_gateway_stage.stage.stage_name
+  domain_name = aws_api_gateway_domain_name.api_custom_domain.domain_name
 }
 
 resource "aws_route53_record" "gpsearch_api_a_alias" {
@@ -73,8 +73,8 @@ resource "aws_route53_record" "gpsearch_api_a_alias" {
   name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
   type    = "A"
   alias {
-    name                   = aws_apigatewayv2_domain_name.api_custom_domain.domain_name_configuration[0].target_domain_name
-    zone_id                = aws_apigatewayv2_domain_name.api_custom_domain.domain_name_configuration[0].hosted_zone_id
+    name                   = aws_api_gateway_domain_name.api_custom_domain.regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.api_custom_domain.regional_zone_id
     evaluate_target_health = false
   }
 }
