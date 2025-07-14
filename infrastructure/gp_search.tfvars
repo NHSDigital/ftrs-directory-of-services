@@ -12,5 +12,3 @@ lambda_memory_size = 512
 
 #DynamoDB
 dynamodb_organisation_table_name = "ftrs-dos-dev-database-organisation-is"
-
-eu_west_2_api_gateway_zone_id = "ZJ5UAJN8Y3Z2Q"
