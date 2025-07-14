@@ -48,7 +48,9 @@ variable "attach_tracing_policy" {
   default = false
 }
 variable "tracing_mode" {
-  default = null
+  description = "Tracing configuration for the Lambda function"
+  type        = string
+  default     = "PassThrough"
 }
 variable "attach_policy_jsons" {
   description = "Whether to attach the provided JSON policies to the Lambda role"
@@ -105,4 +107,21 @@ variable "allowed_triggers" {
   description = "List of allowed triggers for the Lambda function"
   type        = map(any)
   default     = {}
+}
+variable "account_prefix" {
+  description = "Prefix for the account resources, typically includes the repo name and environment"
+  type        = string
+}
+variable "account_id" {
+  description = "AWS account ID"
+  type        = string
+}
+variable "aws_region" {
+  description = "AWS region where the Lambda function will be deployed"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "Id of the VPC into which the Lambda function will be deployed"
+  type        = string
 }

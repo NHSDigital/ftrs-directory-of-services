@@ -31,10 +31,9 @@ module "extract_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.extract_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
   ]
 
@@ -48,6 +47,10 @@ module "extract_lambda" {
     "ENVIRONMENT"  = var.environment
     "PROJECT_NAME" = var.project
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "transform_lambda" {
@@ -65,10 +68,9 @@ module "transform_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.extract_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
   ]
 
@@ -82,6 +84,10 @@ module "transform_lambda" {
     "ENVIRONMENT"  = var.environment
     "PROJECT_NAME" = var.project
   }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "load_lambda" {
@@ -99,10 +105,9 @@ module "load_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.load_lambda_security_group.id]
 
-  number_of_policy_jsons = "4"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
-    data.aws_iam_policy_document.vpc_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
@@ -117,68 +122,10 @@ module "load_lambda" {
     "ENVIRONMENT"  = var.environment
     "PROJECT_NAME" = var.project
   }
-}
-
-data "aws_iam_policy_document" "s3_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:HeadBucket",
-      "s3:ListBucket"
-    ]
-    resources = [
-      module.migration_store_bucket.s3_bucket_arn,
-      "${module.migration_store_bucket.s3_bucket_arn}/*",
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "vpc_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "secrets_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:GetItem",
-      "dynamodb:Query",
-      "dynamodb:Scan",
-      "dynamodb:PutItem",
-      "dynamodb:UpdateItem",
-      "dynamodb:DeleteItem"
-    ]
-    resources = flatten([
-      for table in local.dynamodb_tables : [
-        table.arn,
-        "${table.arn}/index/*"
-      ]
-    ])
-  }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 resource "aws_lambda_permission" "allow_s3_to_invoke_load_lambda" {
