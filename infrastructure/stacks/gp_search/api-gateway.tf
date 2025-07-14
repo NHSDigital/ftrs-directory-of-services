@@ -41,6 +41,8 @@ resource "aws_api_gateway_domain_name" "api_custom_domain" {
     types = ["REGIONAL"]
   }
 
+  security_policy = "TLS_1_2"
+
   mutual_tls_authentication {
     truststore_uri = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
   }
