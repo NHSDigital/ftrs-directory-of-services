@@ -27,6 +27,7 @@ config:
 test:
 	@for marker in $(MARKERS); do \
 		echo "Running tests for marker: $$marker"; \
+		echo "Running tests for env: $$ENVIRONMENT"; \
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
 		else \
