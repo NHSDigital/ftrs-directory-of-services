@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "allow_private_subnet_policy" {
     ]
     resources = ["*"]
     condition {
-      test     = "StringEquals"
+      test     = "ForAnyValue:StringEquals"
       variable = "lambda:SubnetIds"
       values   = var.subnet_ids
 
