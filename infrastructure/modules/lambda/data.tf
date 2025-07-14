@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "deny_lambda_function_access_policy" {
     resources = ["*"]
     condition {
       test     = "ArnEquals"
-      variable = "lambda:FunctionArn"
+      variable = "lambda:SourceFunctionArn"
       values = [
         "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:${var.function_name}${local.workspace_suffix}"
 
