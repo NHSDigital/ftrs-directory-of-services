@@ -33,26 +33,6 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
   retention_in_days = var.retention_in_days
 }
 
-resource "aws_api_gateway_api_key" "services_search_api_key" {
-  name    = "service_search_api_key"
-  enabled = true
-}
-
-resource "aws_api_gateway_usage_plan" "service_search_usage_plan" {
-  name = "my-usage-plan"
-
-  api_stages {
-    api_id = module.search_rest_api.rest_api_id
-    stage  = aws_api_gateway_stage.stage.stage_name
-  }
-}
-
-resource "aws_api_gateway_usage_plan_key" "usage_plan_key" {
-  key_id        = aws_api_gateway_api_key.services_search_api_key.id
-  key_type      = "API_KEY"
-  usage_plan_id = aws_api_gateway_usage_plan.service_search_usage_plan.id
-}
-
 resource "aws_api_gateway_domain_name" "api_custom_domain" {
   domain_name = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
 
