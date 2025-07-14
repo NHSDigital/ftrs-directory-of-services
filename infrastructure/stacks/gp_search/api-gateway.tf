@@ -53,7 +53,7 @@ resource "aws_api_gateway_usage_plan_key" "usage_plan_key" {
   usage_plan_id = aws_api_gateway_usage_plan.service_search_usage_plan.id
 }
 resource "aws_apigatewayv2_domain_name" "api_custom_domain" {
-  domain_name = "servicesearch.${local.root_domain_name}"
+  domain_name = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
 
   domain_name_configuration {
     certificate_arn = data.aws_acm_certificate.domain_cert.arn
@@ -70,7 +70,7 @@ resource "aws_apigatewayv2_api_mapping" "mapping" {
 
 resource "aws_route53_record" "gpsearch_api_a_alias" {
   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
-  name    = "servicesearch.${local.root_domain_name}"
+  name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
   type    = "A"
   alias {
     name                   = aws_apigatewayv2_domain_name.api_custom_domain.domain_name_configuration[0].target_domain_name
