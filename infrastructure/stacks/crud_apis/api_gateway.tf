@@ -3,7 +3,7 @@ module "api_gateway" {
 
   name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
   protocol_type = "HTTP"
-  # TODO: To be disabled after APIM, ETL and Dos Reader integration start using mTLS endpoint (SIA-647 & SIA-649)
+  # TODO: To be disabled after APIM, ETL and Dos Reader integration start using mTLS endpoint (SIA-647 & SIA-649 & TBC )
   # disable_execute_api_endpoint = true
 
   create_domain_name    = false
