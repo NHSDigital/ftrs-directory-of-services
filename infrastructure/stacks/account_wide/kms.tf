@@ -5,7 +5,8 @@ resource "aws_kms_key" "secrets_manager_key" {
 }
 
 resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
-  key_id = aws_kms_key.secrets_manager_key.id
+  count  = contains(["dev", "test"], var.environment) ? 1 : 0
+  key_id = aws_kms_key.secrets_manager_key[0].id
   policy = jsonencode(
     {
       Version = "2012-10-17"
@@ -31,7 +32,7 @@ resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
             "kms:ReEncrypt*",
             "kms:GenerateDataKey*",
           "kms:Describe*"]
-          Resource = [aws_kms_key.secrets_manager_key.arn]
+          Resource = [aws_kms_key.secrets_manager_key[0].arn]
           condition = {
             StringEquals = {
               "kms:ViaService"    = "secretsmanager.${var.region}.amazonaws.com"
