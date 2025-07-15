@@ -10,7 +10,7 @@ resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
   policy = jsonencode(
     {
       Version = "2012-10-17"
-      Id      = "key-Secrets-Manager"
+      Id      = "Key-Policy-For-Secrets-Manager"
       Statement = [
         {
           Sid    = "Enable IAM User Permissions"
@@ -27,11 +27,13 @@ resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
           Principal = {
             Service = "secretsmanager.amazonaws.com"
           },
-          Action = ["kms:Encrypt*",
+          Action = [
+            "kms:Encrypt*",
             "kms:Decrypt*",
             "kms:ReEncrypt*",
             "kms:GenerateDataKey*",
-          "kms:Describe*"]
+            "kms:Describe*"
+          ]
           Resource = [aws_kms_key.secrets_manager_key[0].arn]
           condition = {
             StringEquals = {
