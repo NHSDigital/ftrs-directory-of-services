@@ -35,7 +35,7 @@ resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
           Resource = [aws_kms_key.secrets_manager_key[0].arn]
           condition = {
             StringEquals = {
-              "kms:ViaService"    = "secretsmanager.${var.region}.amazonaws.com"
+              "kms:ViaService"    = "secretsmanager.${var.aws_region}.amazonaws.com"
               "kms:CallerAccount" = local.account_id
             }
           }
