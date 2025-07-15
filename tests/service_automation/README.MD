@@ -87,12 +87,7 @@ Change aws config file with values listed in Service Teams - Set up SSO for AWS 
 
 ### Service Test Configuration
 
-Make a copy of config_template.yaml and name it config.yaml, and update it with details as explained below:
-
-```yaml
-project: "aws project name"
-workspace: "workspace"
-```
+Dotenv files set up for both Dev and Test environments, both inherit any variables set in the top level dotenv file
 
 The workspace is defined as
 

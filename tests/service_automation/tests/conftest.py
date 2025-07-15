@@ -1,7 +1,7 @@
 import pytest
 import os
 import boto3
-from utilities.common.config import config
+from dotenv import load_dotenv
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
 from pages.ui_pages.search import LoginPage
@@ -18,6 +18,9 @@ logger.add(
     mode="w",
 )
 logger.remove(0)
+
+# Load base .env first
+load_dotenv(".env")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -74,17 +77,21 @@ def _get_env_var(varname: str) -> str:
 
 
 @pytest.fixture(scope="session")
-def workspace() -> str:
-    logger.info("Fetching workspace  {}", _get_env_var("WORKSPACE"))
-    return _get_env_var("WORKSPACE")
+def env() -> str:
+    return _get_env_var("ENVIRONMENT")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_env_file(env):
+    load_dotenv(f".env.{env}", override=True)
+
 
 @pytest.fixture(scope="session")
-def env() -> str:
-    env = config.get_environment()
-    return env
+def workspace() -> str:
+    return _get_env_var("WORKSPACE")
 
 
 @pytest.fixture(scope="session")
 def project() -> str:
-    project = config.get("project")
+    project = _get_env_var("project")
     return project
