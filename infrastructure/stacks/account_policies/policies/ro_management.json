@@ -4,8 +4,19 @@
     {
       "Sid": "ApiGatewayReadOnly",
       "Effect": "Allow",
-      "Action": "apigateway:GET",
+      "Action": [
+        "apigateway:GET",
+        "apigateway:ListRoutingRules"
+      ],
       "Resource": "arn:aws:apigateway:*::/*"
+    },
+    {
+      "Sid": "ApiGatewayDomainNameAccess",
+      "Effect": "Allow",
+      "Action": [
+          "apigateway:GET:*"
+      ],
+      "Resource": "arn:aws:apigateway:*::/domainnameassociations/*"
     },
     {
       "Sid": "EventBridgeAndSchedulerReadOnly",
