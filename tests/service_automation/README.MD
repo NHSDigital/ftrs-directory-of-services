@@ -87,6 +87,8 @@ Change aws config file with values listed in Service Teams - Set up SSO for AWS 
 
 ### Service Test Configuration
 
+Dotenv files set up for both Dev and Test environments, both inherit any variables set in the top level dotenv file
+
 The workspace is defined as
 
 ```plain
