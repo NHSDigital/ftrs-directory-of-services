@@ -10,12 +10,12 @@
             "Resource": "arn:aws:apigateway:*::/*"
         },
         {
-            "Sid": "ApiGatewayDomainNameAccess",
-            "Effect": "Allow",
-            "Action": [
-                "apigateway:GET:*"
-            ],
-            "Resource": "arn:aws:apigateway:*::/domainnameassociations/*"
+          "Sid": "ApiGatewayDomainNameAccess",
+          "Effect": "Allow",
+          "Action": [
+            "apigateway:GET"
+          ],
+          "Resource": "arn:aws:apigateway:*::/domainnameaccessassociations"
         },
         {
             "Sid": "ApiGatewayExecuteFullAccess",
