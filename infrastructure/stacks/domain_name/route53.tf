@@ -5,7 +5,7 @@ resource "aws_route53_zone" "root_zone" {
 
 resource "aws_route53_zone" "environment_zone" {
   count = var.environment == "mgmt" ? 0 : 1
-  name  = "${var.environment}.${var.root_domain_name}"
+  name  = local.root_domain_name
 }
 
 data "aws_route53_zone" "root_zone" {
