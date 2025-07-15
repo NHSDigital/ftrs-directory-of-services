@@ -36,17 +36,27 @@ const useLocationsTable = (data: Location[]) => {
   return useReactTable({
     data: data,
     columns: [
-      columnHelper.accessor("name", {
+      columnHelper.accessor("address.street", {
         cell: (info) => (
           <Link
             to="/locations/$locationID"
             params={{ locationID: info.row.id }}
             className="nhsuk-link nhsuk-link--no-visited-state"
           >
-            {info.getValue()}
+            {info.getValue().replace(/\$/g, ", ")}
           </Link>
         ),
-        header: () => "Name",
+        header: () => "Street",
+        footer: (props) => props.column.id,
+      }),
+      columnHelper.accessor("address.town", {
+        cell: (info) => info.getValue(),
+        header: () => "Town",
+        footer: (props) => props.column.id,
+      }),
+      columnHelper.accessor("address.postcode", {
+        cell: (info) => info.getValue(),
+        header: () => "Postcode",
         footer: (props) => props.column.id,
       }),
     ],
@@ -54,6 +64,7 @@ const useLocationsTable = (data: Location[]) => {
     getRowId: (row) => row.id,
   });
 };
+
 const LocationsDataTable: React.FC<{ data: Location[] }> = ({ data }) => {
   const table = useLocationsTable(data);
   return <DataTable table={table} />;
