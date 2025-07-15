@@ -13,12 +13,6 @@ data "aws_iam_policy_document" "vpc_access_policy" {
     resources = [
       "*"
     ]
-    condition {
-      test     = "StringEquals"
-      variable = "lambda:VpcIds"
-      values   = [var.vpc_id]
-
-    }
   }
 }
 
@@ -38,15 +32,13 @@ data "aws_iam_policy_document" "deny_lambda_function_access_policy" {
     resources = ["*"]
     condition {
       test     = "ArnEquals"
-      variable = "lambda:FunctionArn"
+      variable = "lambda:SourceFunctionArn"
       values = [
         "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:${var.function_name}${local.workspace_suffix}"
-
       ]
     }
   }
 }
-
 
 data "aws_iam_policy_document" "allow_private_subnet_policy" {
   statement {
@@ -58,10 +50,9 @@ data "aws_iam_policy_document" "allow_private_subnet_policy" {
     ]
     resources = ["*"]
     condition {
-      test     = "StringEquals"
+      test     = "ForAllValues:StringEquals"
       variable = "lambda:SubnetIds"
       values   = var.subnet_ids
-
     }
   }
 }
@@ -80,7 +71,6 @@ data "aws_iam_policy_document" "limit_to_environment_vpc_policy" {
       test     = "StringEquals"
       variable = "lambda:VpcIds"
       values   = [var.vpc_id]
-
     }
   }
 }
@@ -99,7 +89,6 @@ data "aws_iam_policy_document" "enforce_vpc_lambda_policy" {
       test     = "Null"
       variable = "lambda:VpcIds"
       values   = ["true"]
-
     }
   }
 }
