@@ -13,11 +13,6 @@ data "aws_iam_policy_document" "vpc_access_policy" {
     resources = [
       "*"
     ]
-    condition {
-      test     = "StringEquals"
-      variable = "aws:Service"
-      values   = ["lambda.amazonaws.com"]
-    }
   }
 }
 
