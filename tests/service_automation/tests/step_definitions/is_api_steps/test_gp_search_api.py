@@ -6,13 +6,13 @@ from utilities.infra.api_util import get_url
 scenarios("./is_api_features/gp_search_api.feature")
 
 @given(
-    parsers.re(r'I request data from endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
+    parsers.re(r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
     target_fixture="fresponse",
 )
 def send_get_with_params(
-    api_request_context, workspace, fstack_name, project, env, params, resource_name
+    api_request_context, workspace, api_name, env, params, resource_name
 ):
-    url = get_url(workspace, fstack_name, project, env) + "/" + resource_name
+    url = get_url(workspace, api_name, env) + "/" + resource_name
 
     # Handle None or empty params
     if params is None or not params.strip():
