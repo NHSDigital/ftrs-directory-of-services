@@ -31,11 +31,18 @@ describe("Location Index Route", () => {
     });
 
     // Check table headers
-    expect(screen.getByText("Name")).toBeInTheDocument();
+    expect(screen.getByText("Street")).toBeInTheDocument();
+    expect(screen.getByText("Town")).toBeInTheDocument();
+    expect(screen.getByText("Postcode")).toBeInTheDocument();
 
     // Check data rows
-    expect(screen.getByText("Test Location 1")).toBeInTheDocument();
-    expect(screen.getByText("Test Location 2")).toBeInTheDocument();
+    expect(screen.getByText("123 Main St")).toBeInTheDocument();
+    expect(screen.getByText("Test Town")).toBeInTheDocument();
+    expect(screen.getByText("AB12 3CD")).toBeInTheDocument();
+
+    expect(screen.getByText("321 Secondary St, Borough")).toBeInTheDocument();
+    expect(screen.getByText("Second Town")).toBeInTheDocument();
+    expect(screen.getByText("YZ12 3VX")).toBeInTheDocument();
   });
 
   it("should handle error state", async () => {
