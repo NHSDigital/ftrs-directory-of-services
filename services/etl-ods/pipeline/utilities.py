@@ -152,7 +152,7 @@ def make_request(
         raise
 
 
-def get_resource_prefix():
+def get_resource_prefix() -> str:
     project = os.environ.get("PROJECT_NAME")
     environment = os.environ.get("ENVIRONMENT")
     stack_name = os.environ.get("STACK_NAME")
@@ -160,7 +160,7 @@ def get_resource_prefix():
     workspace_suffix = f"-{workspace}" if workspace and workspace != "default" else ""
     return f"{project}-{environment}-{stack_name}{workspace_suffix}"
 
-def get_api_key():
+def get_api_key() -> str:
     resource_prefix = get_resource_prefix()
     parameter_path = f"/{resource_prefix}/crud_api_key"
     ssm = boto3.client("ssm")
