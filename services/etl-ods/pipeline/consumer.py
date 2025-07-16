@@ -68,7 +68,7 @@ def process_message_and_send_request(record: dict) -> None:
                 message_id=record["messageId"]
             )
         )
-# replace this:
+    # replace this:
     api_url = get_base_crud_api_url() + "/organisation/" + path
 
     try:
