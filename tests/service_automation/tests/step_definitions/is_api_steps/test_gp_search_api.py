@@ -1,9 +1,19 @@
 from pytest_bdd import given, parsers, scenarios, then
 from step_definitions.common_steps.setup_steps import *
-from utilities.infra.api_util import get_url
+from pytest_bdd import given, parsers, scenarios, then
+from step_definitions.common_steps.setup_steps import *
+from utilities.infra.api_util import get_url, get_r53
+from utilities.infra.dns_util import wait_for_dns
 
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")
+
+
+@given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
+def dns_resolvable(api_name, env, workspace):
+    r53 = get_r53(workspace, api_name, env)
+    wait_for_dns(r53)
+
 
 @given(
     parsers.re(r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
@@ -13,7 +23,6 @@ def send_get_with_params(
     api_request_context, workspace, api_name, env, params, resource_name
 ):
     url = get_url(workspace, api_name, env) + "/" + resource_name
-
     # Handle None or empty params
     if params is None or not params.strip():
         param_dict = {}
