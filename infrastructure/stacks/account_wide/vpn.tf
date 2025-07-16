@@ -55,21 +55,21 @@ resource "aws_security_group" "vpn_security_group" {
     protocol    = "tcp"
     from_port   = 443
     to_port     = 443
-    cidr_blocks = module.vpc.private_subnet_cidr_blocks
+    cidr_blocks = module.vpc.private_subnets_cidr_blocks
   }
 
   egress {
     protocol    = "tcp"
     from_port   = 80
     to_port     = 80
-    cidr_blocks = module.vpc.private_subnet_cidr_blocks
+    cidr_blocks = module.vpc.private_subnets_cidr_blocks
   }
 
   egress {
     protocol    = "tcp"
     from_port   = 5432
     to_port     = 5432
-    cidr_blocks = module.vpc.database_subnet_cidr_blocks
+    cidr_blocks = module.vpc.database_subnets_cidr_blocks
   }
 }
 
