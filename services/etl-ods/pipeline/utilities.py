@@ -60,9 +60,12 @@ def build_headers(options: dict) -> dict:
     sign = options.get("sign")
     url = options.get("url")
     method = options.get("method")
+    api_key = options.get("apikey")
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
+    if api_key is not None:
+        headers["x-api-key"] = api_key
     # Set FHIR headers if needed
     if fhir:
         headers["Accept"] = "application/fhir+json"
@@ -96,6 +99,7 @@ def make_request(
     timeout: int = 20,
     sign: bool = False,
     fhir: bool = False,
+    api_key: str = None,
     **kwargs: dict,
 ) -> requests.Response:
     json_data = kwargs.get("json")
@@ -109,6 +113,7 @@ def make_request(
             "sign": sign,
             "url": url,
             "method": method,
+            "apikey": api_key,
         }
     )
 
@@ -145,3 +150,20 @@ def make_request(
             error_message=str(e),
         )
         raise
+
+
+def get_resource_prefix():
+    project = os.environ.get("PROJECT_NAME")
+    environment = os.environ.get("ENVIRONMENT")
+    stack_name = os.environ.get("STACK_NAME")
+    workspace = os.environ.get("WORKSPACE", None)
+    workspace_suffix = f"-{workspace}" if workspace and workspace != "default" else ""
+    return f"{project}-{environment}-{stack_name}{workspace_suffix}"
+
+def get_api_key():
+    resource_prefix = get_resource_prefix()
+    parameter_path = f"/{resource_prefix}/crud_api_key"
+    ssm = boto3.client("ssm")
+    response = ssm.get_parameter(Name=parameter_path, WithDecryption=True)
+    return response["Parameter"]["Value"]
+
