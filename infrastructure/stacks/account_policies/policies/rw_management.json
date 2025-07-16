@@ -15,7 +15,7 @@
           "Action": [
             "apigateway:GET"
           ],
-          "Resource": "arn:aws:apigateway:*::/domainnameaccessassociations"
+          "Resource": "arn:aws:apigateway:*:*:/domainnameaccessassociations"
         },
         {
             "Sid": "ApiGatewayExecuteFullAccess",
