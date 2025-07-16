@@ -16,6 +16,15 @@ Feature: API GP Endpoint Search
     Given I request data from the "servicesearch" endpoint "organization" with query params "<params>"
     Then I receive a status code "502" in response
     And the response body contains JSON with a key "message" and value "Internal server error"
+    Examples:
+      | params                                    |
+      | identifier=odsOrganisationCode\|M81046    |
+      | _revinclude=Endpoint:organization         |
+      |                                           |
+      | identifier=                               |
+      | _revinclude=                              |
+      | _revinclude=invalid                       |
+      | _revinclude=Endpoint:                     |
 
 
   Scenario Outline: I search for GP Endpoint with invalid ODS code
