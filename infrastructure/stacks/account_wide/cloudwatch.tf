@@ -13,8 +13,10 @@ data "aws_iam_policy_document" "waf_log_group_policy_document" {
       identifiers = ["delivery.logs.amazonaws.com"]
       type        = "Service"
     }
-    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
-    resources = ["arn:aws:logs:${var.aws_region_us_east_1}:${data.aws_caller_identity.current.account_id}:log-group:aws-waf-logs-ftrs-dos-${var.environment}*:log-stream:*"]
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = [
+      "arn:aws:logs:${var.aws_region_us_east_1}:${data.aws_caller_identity.current.account_id}:log-group:aws-waf-logs-ftrs-dos-${var.environment}*:log-stream:*"
+    ]
     condition {
       test     = "ArnLike"
       values   = ["arn:aws:logs:${var.aws_region_us_east_1}:${data.aws_caller_identity.current.account_id}:*"]
@@ -44,8 +46,10 @@ data "aws_iam_policy_document" "osis_apigw_log_group_policy_document" {
       type        = "Service"
     }
     actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
-    resources = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/vendedlogs/OpenSearchIngestion/dynamodb-to-os-${var.environment}*:log-stream:*",
-    "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/ftrs-dos-${var.environment}*/default:log-stream:*"]
+    resources = [
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/vendedlogs/OpenSearchIngestion/dynamodb-to-os-${var.environment}*:log-stream:*",
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/ftrs-dos-${var.environment}*/default:log-stream:*"
+    ]
     condition {
       test     = "ArnLike"
       values   = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
