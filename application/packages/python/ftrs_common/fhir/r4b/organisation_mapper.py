@@ -79,13 +79,15 @@ class OrganizationMapper(FhirMapper):
         )
 
     def from_ods_fhir_to_fhir(self, ods_fhir_organization: dict) -> FhirOrganisation:
+        org_type_value = self._extract_role_from_extension(ods_fhir_organization)
+
         required_fields = {
             "resourceType": "Organization",
             "id": ods_fhir_organization.get("id"),
             "meta": self._build_meta_profile(),
             "active": ods_fhir_organization.get("active"),
             "name": ods_fhir_organization.get("name"),
-            "type": self._build_type(ods_fhir_organization.get("type")),
+            "type": self._build_type(org_type_value),
             "identifier": self._build_identifier(
                 ods_fhir_organization.get("identifier", {}).get("value")
             ),

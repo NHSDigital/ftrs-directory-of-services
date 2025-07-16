@@ -148,18 +148,88 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     ods_fhir_organisation = {
         "resourceType": "Organization",
         "id": "C88037",
-        "meta": {
-            "lastUpdated": "2024-10-23T00:00:00+00:00",
-            "profile": "https://fhir.nhs.uk/STU3/StructureDefinition/ODSAPI-Organization-1",
-        },
         "active": True,
         "name": "Test Org",
         "telecom": [{"system": "phone", "value": "01234"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-ActivePeriod-1",
+                "valuePeriod": {
+                    "extension": [
+                        {
+                            "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-DateType-1",
+                            "valueString": "Operational",
+                        }
+                    ],
+                    "start": "1974-04-01",
+                },
+            },
+            {
+                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "extension": [
+                    {
+                        "url": "role",
+                        "valueCoding": {
+                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                            "code": "177",
+                            "display": "PRESCRIBING COST CENTRE",
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                    {
+                        "url": "activePeriod",
+                        "valuePeriod": {
+                            "extension": [
+                                {
+                                    "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-DateType-1",
+                                    "valueString": "Operational",
+                                }
+                            ],
+                            "start": "1974-04-01",
+                        },
+                    },
+                    {"url": "status", "valueString": "Active"},
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "extension": [
+                    {
+                        "url": "role",
+                        "valueCoding": {
+                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                            "code": "76",
+                            "display": "GP PRACTICE",
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                    {
+                        "url": "activePeriod",
+                        "valuePeriod": {
+                            "extension": [
+                                {
+                                    "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-DateType-1",
+                                    "valueString": "Operational",
+                                }
+                            ],
+                            "start": "2014-04-15",
+                        },
+                    },
+                    {"url": "status", "valueString": "Active"},
+                ],
+            },
+        ],
         "identifier": {
             "system": "https://fhir.nhs.uk/Id/ods-organization-code",
             "value": "C88037",
         },
-        "type": [],
+        "type": {
+            "coding": {
+                "system": "https://fhir.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRecordClass-1",
+                "code": "1",
+                "display": "HSCOrg",
+            }
+        },
     }
     result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
     assert isinstance(result, FhirOrganisation)
@@ -169,6 +239,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     assert result.identifier[0].value == "C88037"
     assert result.telecom[0].system == "phone"
     assert result.telecom[0].value == "01234"
+    assert result.type[0].coding[0].display == "PRESCRIBING COST CENTRE"
 
 
 def test__get_org_type() -> None:
