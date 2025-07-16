@@ -5,10 +5,14 @@ from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
+from freezegun import freeze_time
 from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.organisation_service import OrganisationService
+
+FIXED_CREATED_TIME = datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
+FIXED_MODIFIED_TIME = datetime(2023, 12, 16, 12, 0, 0, tzinfo=UTC)
 
 
 def make_service(
@@ -23,6 +27,7 @@ def make_service(
     )
 
 
+@freeze_time(FIXED_MODIFIED_TIME)
 def test_get_outdated_fields_no_changes() -> None:
     organisation = Organisation(
         identifier_ODS_ODSCode="ABC123",
@@ -32,9 +37,9 @@ def test_get_outdated_fields_no_changes() -> None:
         type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime="2023-10-01T00:00:00Z",
+        createdDateTime=FIXED_CREATED_TIME,
         modifiedBy="ROBOT",
-        modifiedDateTime="2023-11-01T00:00:00Z",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
     )
     payload = MagicMock(
@@ -61,9 +66,9 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime="2023-10-01T00:00:00Z",
+        createdDateTime=FIXED_CREATED_TIME,
         modifiedBy="ROBOT",
-        modifiedDateTime="2023-11-01T00:00:00Z",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
     )
     updates = {
@@ -75,14 +80,15 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
     with patch(
         "organisations.app.services.organisation_service.datetime"
     ) as mock_datetime:
-        mock_datetime.now.return_value = datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
+        mock_datetime.now.return_value = FIXED_MODIFIED_TIME
         service._apply_updates(organisation, updates)
     assert organisation.name == "Updated Org Name"
     assert organisation.telecom == "99999"
     assert organisation.modifiedBy == "UserX"
-    assert organisation.modifiedDateTime == datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
+    assert organisation.modifiedDateTime == FIXED_MODIFIED_TIME
 
 
+@freeze_time(FIXED_MODIFIED_TIME)
 def test_get_outdated_fields_with_changes() -> None:
     organisation = Organisation(
         identifier_ODS_ODSCode="ABC123",
@@ -92,9 +98,9 @@ def test_get_outdated_fields_with_changes() -> None:
         type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime="2023-10-01T00:00:00Z",
+        createdDateTime=FIXED_CREATED_TIME,
         modifiedBy="ROBOT",
-        modifiedDateTime="2023-11-01T00:00:00Z",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
     )
     payload = MagicMock(
@@ -114,38 +120,8 @@ def test_get_outdated_fields_with_changes() -> None:
         "name": "Updated Organisation",
         "telecom": "67890",
         "type": "Updated Type",
-    }
-
-
-def test_get_outdated_fields_modified_by_field_only() -> None:
-    organisation = Organisation(
-        identifier_ODS_ODSCode="ABC123",
-        active=True,
-        name="Test Organisation",
-        telecom="12345",
-        type="GP Practice",
-        endpoints=[],
-        createdBy="ROBOT",
-        createdDateTime="2023-10-01T00:00:00Z",
-        modifiedDateTime="2023-11-01T00:00:00Z",
-        id="d5a852ef-12c7-4014-b398-661716a63027",
-        modifiedBy="UserA",
-    )
-    payload = MagicMock(
-        model_dump=lambda: {
-            "modified_by": "UserB",
-            "identifier_ODS_ODSCode": "ABC123",
-            "active": True,
-            "name": "Test Organisation",
-            "telecom": "12345",
-            "type": "GP Practice",
-            "endpoints": [],
-        }
-    )
-    service = make_service()
-    result = service._get_outdated_fields(organisation, payload)
-    assert result == {
-        "modified_by": "UserB",
+        "modified_by": "ROBOT",
+        "modifiedDateTime": FIXED_MODIFIED_TIME,
     }
 
 
@@ -161,6 +137,10 @@ def test_creates_organisation_when_valid_data_provided() -> None:
         telecom="12345",
         type="GP Practice",
         endpoints=[],
+        createdBy="ROBOT",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="ROBOT",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
     )
 
     service = make_service(org_repository=org_repository)
@@ -168,7 +148,7 @@ def test_creates_organisation_when_valid_data_provided() -> None:
 
     assert result == organisation
     org_repository.create.assert_called_once_with(organisation)
-    assert result.createdBy == "SYSTEM"
+    assert result.createdBy == "ROBOT"
     assert result.identifier_ODS_ODSCode == "ABC123"
     assert result.active is True
     assert result.name == "Test Organisation"
@@ -212,6 +192,10 @@ def test_generates_new_id_when_id_already_exists() -> None:
         active=True,
         type="GP Practice",
         endpoints=[],
+        createdBy="ROBOT",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="ROBOT",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
     )
 
     service = make_service(org_repository=org_repository)
@@ -219,3 +203,92 @@ def test_generates_new_id_when_id_already_exists() -> None:
 
     assert result.id != existing_id
     org_repository.create.assert_called_once_with(organisation)
+
+
+def test_process_organisation_update_no_changes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    fhir_org = {
+        "resourceType": "Organization",
+        "id": organisation_id,
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Test Org",
+        "type": [
+            {
+                "coding": [
+                    {"system": "TO-DO", "code": "GP Practice", "display": "GP Practice"}
+                ],
+                "text": "GP Practice",
+            }
+        ],
+        "telecom": [{"system": "phone", "value": "12345", "use": "work"}],
+    }
+    stored_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Test Org",
+        telecom="12345",
+        type="GP Practice",
+        endpoints=[],
+        id=organisation_id,
+        createdBy="test",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="ODS_ETL_PIPELINE",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
+    )
+    org_repository.get.return_value = stored_organisation
+    with caplog.at_level("INFO"):
+        result = service.process_organisation_update(organisation_id, fhir_org)
+        assert result is False
+        assert f"No changes detected for organisation {organisation_id}" in caplog.text
+
+
+def test_process_organisation_update_with_changes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    fhir_org = {
+        "resourceType": "Organization",
+        "id": organisation_id,
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Changed Name",
+        "type": [
+            {
+                "coding": [
+                    {"system": "TO-DO", "code": "GP Practice", "display": "GP Practice"}
+                ],
+                "text": "GP Practice",
+            }
+        ],
+        "telecom": [{"system": "phone", "value": "12345", "use": "work"}],
+    }
+    stored_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Test Org",
+        telecom="12345",
+        type="GP Practice",
+        endpoints=[],
+        id=organisation_id,
+        createdBy="test",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="test",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
+    )
+    org_repository.get.return_value = stored_organisation
+    with caplog.at_level("INFO"):
+        result = service.process_organisation_update(organisation_id, fhir_org)
+        assert result is True
+        org_repository.update.assert_called_once()
+        assert f"Successfully updated organisation {organisation_id}" in caplog.text

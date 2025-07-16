@@ -130,10 +130,21 @@ def test_processor_processing_organisations_successful(
             "body": {
                 "resourceType": "Organization",
                 "id": "00000000-0000-0000-0000-000000000abc",
+                "meta": {
+                    "profile": [
+                        "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                    ]
+                },
                 "active": True,
                 "type": [
                     {
-                        "coding": [{"system": "todo", "display": "GP Service"}],
+                        "coding": [
+                            {
+                                "system": "TO-DO",
+                                "code": "GP Service",
+                                "display": "GP Service",
+                            }
+                        ],
                         "text": "GP Service",
                     }
                 ],
@@ -145,6 +156,7 @@ def test_processor_processing_organisations_successful(
                         "value": "ABC123",
                     }
                 ],
+                "telecom": [],
             },
         }
     ]
@@ -179,6 +191,11 @@ def test_processor_continue_on_validation_failure(
         "https://directory.spineservices.nhs.uk/STU3/Organization/EFG456",
         json={
             "resourceType": "Organization",
+            "meta": {
+                "profile": [
+                    "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                ]
+            },
             "id": "EFG456",
             "name": "Test Organisation EFG ODS",
             "active": True,
@@ -186,6 +203,7 @@ def test_processor_continue_on_validation_failure(
                 "system": "https://fhir.nhs.uk/Id/ods-organization-code",
                 "value": "EFG456",
             },
+            "telecom": [],
         },
     )
 
@@ -244,8 +262,24 @@ def test_processor_continue_on_validation_failure(
             "path": "00000000-0000-0000-0000-000000000EFG",
             "body": {
                 "resourceType": "Organization",
+                "meta": {
+                    "profile": [
+                        "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                    ]
+                },
                 "active": True,
-                "type": [{"coding": [{"system": "todo"}]}],
+                "type": [
+                    {
+                        "coding": [
+                            {
+                                "system": "TO-DO",
+                                "code": "GP Service",
+                                "display": "GP Service",
+                            }
+                        ],
+                        "text": "GP Service",
+                    }
+                ],
                 "name": "Test Organisation EFG ODS",
                 "id": "00000000-0000-0000-0000-000000000EFG",
                 "identifier": [
@@ -255,6 +289,7 @@ def test_processor_continue_on_validation_failure(
                         "value": "EFG456",
                     }
                 ],
+                "telecom": [],
             },
         }
     ]
@@ -391,7 +426,6 @@ def test_processor_logs_and_raises_request_exception(
 def test_processor_logs_and_raises_generic_exception(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
-    # Patch fetch_sync_data to raise a generic Exception
     mocker.patch(
         "pipeline.processor.fetch_sync_data",
         side_effect=Exception("unexpected error"),
