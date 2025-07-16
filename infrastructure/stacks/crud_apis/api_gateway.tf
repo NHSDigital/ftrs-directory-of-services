@@ -80,3 +80,11 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   type        = "String"
   value       = module.api_gateway.api_endpoint
 }
+
+# may need to change to APIM key, need to load with actual value
+resource "aws_ssm_parameter" "crud_api_key" {
+  name        = "/${local.resource_prefix}${local.workspace_suffix}/crud_api_key"
+  description = "API Key for CRUD API Gateway"
+  type        = "SecureString"
+  value       = "your-api-key-value" # Replace with your actual key or use a variable
+}
