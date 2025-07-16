@@ -103,14 +103,13 @@ def test_get_outdated_fields_with_changes() -> None:
         modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
     )
-    payload = MagicMock(
-        model_dump=lambda: {
-            "identifier_ODS_ODSCode": "DEF456",
-            "active": False,
-            "name": "Updated Organisation",
-            "telecom": "67890",
-            "type": "Updated Type",
-        }
+    payload = Organisation(
+        identifier_ODS_ODSCode="DEF456",
+        active=False,
+        name="Updated Organisation",
+        telecom="67890",
+        type="Updated Type",
+        modifiedBy="ETL_ODS_PIPELINE",
     )
     service = make_service()
     result = service._get_outdated_fields(organisation, payload)
@@ -120,7 +119,7 @@ def test_get_outdated_fields_with_changes() -> None:
         "name": "Updated Organisation",
         "telecom": "67890",
         "type": "Updated Type",
-        "modified_by": "ROBOT",
+        "modified_by": "ETL_ODS_PIPELINE",
         "modifiedDateTime": FIXED_MODIFIED_TIME,
     }
 
