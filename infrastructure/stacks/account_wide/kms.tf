@@ -17,7 +17,7 @@ resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
           Effect = "Allow"
           Principal = {
             AWS = "arn:aws:iam::${local.account_id}:root"
-          },
+          }
           Action   = "kms:*"
           Resource = "*"
         },
@@ -26,7 +26,7 @@ resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
           Effect = "Allow"
           Principal = {
             Service = "secretsmanager.amazonaws.com"
-          },
+          }
           Action = [
             "kms:Encrypt*",
             "kms:Decrypt*",
@@ -35,7 +35,7 @@ resource "aws_kms_key_policy" "secrets_manager_kms_key_policy" {
             "kms:Describe*"
           ]
           Resource = [aws_kms_key.secrets_manager_key[0].arn]
-          condition = {
+          Condition = {
             StringEquals = {
               "kms:ViaService"    = "secretsmanager.${var.aws_region}.amazonaws.com"
               "kms:CallerAccount" = local.account_id
