@@ -9,7 +9,6 @@ def get_api_gateway_url(workspace, stack, project, env):
     logger.info("Fetching API Gateway ID for: {}", apigateway_name)
     agts = ApiGatewayToService()
     apigatewayid = agts.get_rest_api_id(apigateway_name)
-
     # set the URL for the api-gateway stage identified by the workspace and api gateway id
     return (
         "https://" + str(apigatewayid) + ".execute-api.eu-west-2.amazonaws.com/default"
@@ -19,9 +18,18 @@ def get_api_gateway_url(workspace, stack, project, env):
 def get_url(workspace, api_name, env):
     # set the URL for the R53 record for the env
     if workspace == "default":
-        r53 =  "https://" + api_name + "." + env + ".ftrs.cloud.nhs.uk"
+        url =  "https://" + api_name + "." + env + ".ftrs.cloud.nhs.uk"
     else:
-        r53 =  "https://" + api_name + "-" + workspace + "." + env + ".ftrs.cloud.nhs.uk"
+        url =  "https://" + api_name + "-" + workspace + "." + env + ".ftrs.cloud.nhs.uk"
+    logger.info("URL: {}", url)
+    return url
+
+
+def get_r53(workspace, api_name, env):
+    # set the URL for the R53 record for the env
+    if workspace == "default":
+        r53 =  api_name + "." + env + ".ftrs.cloud.nhs.uk"
+    else:
+        r53 =  api_name + "-" + workspace + "." + env + ".ftrs.cloud.nhs.uk"
     logger.info("R53 URL: {}", r53)
     return r53
-

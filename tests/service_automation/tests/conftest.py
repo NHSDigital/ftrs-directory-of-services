@@ -95,3 +95,20 @@ def workspace() -> str:
 def project() -> str:
     project = _get_env_var("project")
     return project
+
+
+@pytest.fixture(scope="session")
+def commit_hash() -> str:
+    commit_hash = _get_env_var("COMMIT_HASH")
+    return commit_hash
+
+
+@pytest.fixture(scope="session", autouse=True)
+def write_allure_environment(env, workspace, project, commit_hash):
+    allure_dir = os.getenv("ALLURE_RESULTS", "allure-results")
+    os.makedirs(allure_dir, exist_ok=True)
+    with open(os.path.join(allure_dir, "environment.properties"), "w") as f:
+        f.write(f"ENVIRONMENT={env}\n")
+        f.write(f"WORKSPACE={workspace}\n")
+        f.write(f"PROJECT={project}\n")
+        f.write(f"COMMIT_HASH={commit_hash}\n")

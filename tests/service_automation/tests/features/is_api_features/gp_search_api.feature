@@ -1,8 +1,8 @@
 @is-api @is-pipeline @gp-search-api
-
 Feature: API GP Endpoint Search
   Background: Set stack
     Given that the stack is "gp-search"
+    And the dns for "servicesearch" is resolvable
 
 
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters
@@ -16,7 +16,6 @@ Feature: API GP Endpoint Search
     Given I request data from the "servicesearch" endpoint "organization" with query params "<params>"
     Then I receive a status code "502" in response
     And the response body contains JSON with a key "message" and value "Internal server error"
-
     Examples:
       | params                                    |
       | identifier=odsOrganisationCode\|M81046    |
@@ -33,7 +32,6 @@ Feature: API GP Endpoint Search
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the resource has an id of "ods-code-validation-error"
-
     Examples:
       | params                                    |
       | identifier=invalid                        |

@@ -31,6 +31,11 @@ if [ -z "$TEST_TYPE" ] ; then
   EXPORTS_SET=1
 fi
 
+if [ -z "$COMMIT_HASH" ] ; then
+  echo Set COMMIT_HASH
+  EXPORTS_SET=1
+fi
+
 if [ $EXPORTS_SET = 1 ] ; then
   echo One or more exports not set
   exit 1
@@ -41,7 +46,7 @@ echo "Now running $TEST_TAG automated tests under $APPLICATION_TEST_DIR for work
 
 cd "$APPLICATION_TEST_DIR" || exit
 
-make test MARKERS="${TEST_TAG}" TEST_TYPE="${TEST_TYPE}"
+make test MARKERS="${TEST_TAG}" TEST_TYPE="${TEST_TYPE}" COMMIT_HASH="${COMMIT_HASH}"
 
 TEST_RESULTS=$?
 
