@@ -12,8 +12,8 @@ def test_logger_create() -> None:
     logger = Logger.get(service="test_service")
     assert isinstance(logger, Logger)
     assert logger.service == "test_service"
-    assert logger.level == DEBUG
-    assert logger.child is True
+    assert logger.level == INFO
+    assert logger.child is False
 
     other_logger = Logger.get(service="test_service")
     assert logger is other_logger
