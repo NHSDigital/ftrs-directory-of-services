@@ -246,7 +246,7 @@ def test_healthcare_service() -> None:
             NotAvailable(
                 id=id1,
                 description="special",
-                unavailableDate=to_datetime("2025-07-15T00:00:00"),
+                startTime=to_datetime("2025-07-15T00:00:00"),
             ),
         ],
     )
@@ -522,7 +522,7 @@ def test_healthcare_service_from_json() -> None:
             NotAvailable(
                 id=id1,
                 description="special",
-                unavailableDate=to_datetime("2025-07-15T00:00:00"),
+                startTime=to_datetime("2025-07-15T00:00:00"),
             ),
         ],
     )
