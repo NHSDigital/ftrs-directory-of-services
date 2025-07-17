@@ -79,16 +79,14 @@ data "aws_iam_policy_document" "execute_api_policy" {
 
 }
 
-data "aws_iam_policy_document" "ssm_api_key_access_policy" {
+data "aws_iam_policy_document" "secretsmanager_api_key_access_policy" {
   statement {
     effect = "Allow"
     actions = [
-      "ssm:GetParameter",
-      "ssm:GetParameters",
-      "ssm:GetParametersByPath"
+      "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/crud_api-key"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/ftrs-dos-dev-etl_ods*/apim_api_key*"
     ]
   }
 }
