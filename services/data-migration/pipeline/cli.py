@@ -1,8 +1,6 @@
-import logging
-
 from typer import Typer
 
-from pipeline.recordlevel import local_handler
+from pipeline.processor import local_handler
 
 typer_app = Typer(
     name="dos-etl",
