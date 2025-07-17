@@ -72,4 +72,4 @@ class Logger(PowertoolsLogger):
         """
         Create a new instance of the Logger class.
         """
-        return cls(service=service, level="DEBUG", child=True)
+        return cls(service=service, level="INFO")
