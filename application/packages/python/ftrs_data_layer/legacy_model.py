@@ -1,8 +1,9 @@
-from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import MetaData, Column, Enum as EnumType, INTEGER
-from enum import IntEnum
+from datetime import date, datetime, time
 from decimal import Decimal
-from datetime import time, date, datetime
+from enum import IntEnum
+
+from sqlalchemy import MetaData
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class LegacyDoSModel(SQLModel):
