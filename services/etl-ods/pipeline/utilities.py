@@ -163,7 +163,12 @@ def get_resource_prefix() -> str:
 
 def get_api_key() -> str:
     resource_prefix = get_resource_prefix()
-    parameter_path = f"/{resource_prefix}/apim_api_key"
-    ssm = boto3.client("ssm")
-    response = ssm.get_parameter(Name=parameter_path, WithDecryption=True)
-    return response["Parameter"]["Value"]
+    secret_name = f"/{resource_prefix}/apim_api_key"
+    client = boto3.client("secretsmanager")
+    response = client.get_secret_value(SecretId=secret_name)
+    secret = response["SecretString"]
+    try:
+        secret_dict = json.loads(secret)
+        return secret_dict.get("api_key", secret)
+    except json.JSONDecodeError:
+        return secret

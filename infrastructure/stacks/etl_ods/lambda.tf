@@ -78,7 +78,7 @@ module "consumer_lambda" {
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.execute_api_policy.json,
-    data.aws_iam_policy_document.ssm_api_key_access_policy.json
+    data.aws_iam_policy_document.secretsmanager_api_key_access_policy.json
   ]
 
   layers = concat(
