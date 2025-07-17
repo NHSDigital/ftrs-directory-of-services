@@ -91,6 +91,36 @@ export const healthcareServiceSchema = zod.object({
   modifiedBy: zod.string(),
   modifiedDateTime: zod.string().datetime(),
 });
+
+const address = zod.object({
+  street: zod.string().optional(),
+  town: zod.string().optional(),
+  postcode: zod.string().optional(),
+});
+
+const positionGCS = zod.object({
+  latitude: zod.string(),
+  longitude: zod.string(),
+});
+
+export const locationSchema = zod.object({
+  id: zod.string().uuid(),
+  active: zod.boolean(),
+  managedByOrganisation: zod.string().uuid(),
+  address: address,
+  name: zod.string(),
+  positionGCS: positionGCS,
+  positionReferenceNumber_UPRN: zod.number().optional(),
+  positionReferenceNumber_UBRN: zod.number().optional(),
+  primaryAddress: zod.boolean(),
+  partOf: zod.string().uuid().optional(),
+  createdBy: zod.string(),
+  createdDateTime: zod.string().datetime(),
+  modifiedBy: zod.string(),
+  modifiedDateTime: zod.string().datetime(),
+});
+
+export type Location = zod.infer<typeof locationSchema>;
 export type HealthcareService = zod.infer<typeof healthcareServiceSchema>;
 export type OpeningTime = zod.infer<typeof openingTimeSchema>;
 export type Telecom = zod.infer<typeof telecom>;

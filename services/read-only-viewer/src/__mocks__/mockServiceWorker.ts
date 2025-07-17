@@ -1,4 +1,4 @@
-import type { HealthcareService, Organisation } from "@/utils/types";
+import type { HealthcareService, Location, Organisation } from "@/utils/types";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
@@ -73,11 +73,58 @@ const healthcareServices: HealthcareService[] = [
   },
 ] as const;
 
+const locations: Location[] = [
+  {
+    id: "l2f1d47c-a72b-431c-ad99-5e943d450f65",
+    active: true,
+    address: {
+      street: "123 Main St",
+      town: "Test Town",
+      postcode: "AB12 3CD",
+    },
+    createdBy: "test_user",
+    createdDateTime: "2023-10-01T00:00:00Z",
+    managedByOrganisation: "e2f1d47c-a72b-431c-ad99-5e943d450f34",
+    modifiedBy: "test_user",
+    modifiedDateTime: "2023-10-01T00:00:00Z",
+    name: "Test Location 1",
+    positionGCS: { latitude: "51.5074", longitude: "-0.1278" },
+    positionReferenceNumber_UPRN: 1234567890,
+    positionReferenceNumber_UBRN: 9876543210,
+    primaryAddress: true,
+    partOf: "",
+  },
+  {
+    id: "g6f1d47c-a72b-431c-ad99-5e943d450f777",
+    active: true,
+    address: {
+      street: "321 Secondary St$Borough",
+      town: "Second Town",
+      postcode: "YZ12 3VX",
+    },
+    createdBy: "test_user",
+    createdDateTime: "2023-10-01T00:00:00Z",
+    managedByOrganisation: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc",
+    modifiedBy: "test_user",
+    modifiedDateTime: "2023-10-01T00:00:00Z",
+    name: "Test Location 2",
+    positionGCS: { latitude: "51.5072", longitude: "-0.3287" },
+    positionReferenceNumber_UPRN: 1234567567,
+    positionReferenceNumber_UBRN: 9879873210,
+    primaryAddress: true,
+    partOf: "",
+  },
+] as const;
+
 export const StubData = {
   organisations: organisations,
+  healthcareServices: healthcareServices,
+  locations: locations,
 
   reset() {
     this.organisations = organisations;
+    this.healthcareServices = healthcareServices;
+    this.locations = locations;
   },
 };
 
@@ -117,5 +164,8 @@ export const server = setupServer(
     return HttpResponse.json(healthcareService, {
       headers: { "X-Correlation-ID": "test-correlation-id" },
     });
+  }),
+  http.get("/api/location/", () => {
+    return HttpResponse.json(locations);
   }),
 );
