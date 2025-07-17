@@ -163,7 +163,7 @@ def get_resource_prefix() -> str:
 
 def get_api_key() -> str:
     resource_prefix = get_resource_prefix()
-    parameter_path = f"/{resource_prefix}/crud_api_key"
+    parameter_path = f"/{resource_prefix}/apim_api_key"
     ssm = boto3.client("ssm")
     response = ssm.get_parameter(Name=parameter_path, WithDecryption=True)
     return response["Parameter"]["Value"]
