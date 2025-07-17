@@ -69,7 +69,7 @@ describe("endpointSchema", () => {
       status: "active",
       connectionType: "type1",
       name: "Endpoint 1",
-      format: "json",
+      payloadMimeType: "json",
       description: "Test endpoint",
       payloadType: "application/json",
       address: "https://example.com/endpoint",
@@ -92,7 +92,7 @@ describe("endpointSchema", () => {
       status: 123, // Invalid type
       connectionType: null, // Invalid type
       name: undefined, // Invalid type
-      format: null, // Invalid type
+      payloadMimeType: null, // Invalid type
       description: "Test endpoint",
       payloadType: undefined, // Invalid type
       address: "https://example.com/endpoint",

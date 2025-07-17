@@ -88,7 +88,7 @@ const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
         header: "Action",
         cell: (info) => (
           <Link
-            to="/organisations/$organisationID/endpoints/$endpointID"
+            to="/organisations/$organisationID/endpoint/$endpointID"
             params={{
               organisationID: info.row.original.managedByOrganisation,
               endpointID: info.getValue(),
@@ -105,6 +105,7 @@ const useOrganisationEndpointsTable = (endpoints: Endpoint[]) => {
   });
 };
 
+// table of endpoints (this is inside the card)
 const OrganisationEndpointsTable: React.FC<{ endpoints: Endpoint[] }> = ({
   endpoints,
 }) => {
@@ -113,6 +114,7 @@ const OrganisationEndpointsTable: React.FC<{ endpoints: Endpoint[] }> = ({
   return <DataTable table={table} />;
 };
 
+// card for each endpoint
 const OrganisationEndpointsList: React.FC<{ endpoints: Endpoint[] }> = ({
   endpoints,
 }) => {
@@ -185,6 +187,7 @@ function OrganisationDetailsRoute() {
         <>
           <h1 className="nhsuk-heading-l">{organisation.name}</h1>
           <OrganisationOverview organisation={organisation} />
+          {/* endpoints listed here */}
           <OrganisationEndpointsList endpoints={organisation.endpoints} />
         </>
       )}
