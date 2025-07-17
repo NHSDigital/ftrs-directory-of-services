@@ -49,6 +49,8 @@ module "rds" {
   vpc_security_group_ids = [aws_security_group.rds_security_group[0].id]
 
   final_snapshot_identifier = "${local.resource_prefix}-rds"
+
+  deletion_protection = true
 }
 
 resource "aws_secretsmanager_secret" "rds_username" {
