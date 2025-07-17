@@ -4,7 +4,7 @@ from typing import Annotated, List
 import boto3
 from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
-from ftrs_data_layer.logbase import MigrationETLPipelineLogBase
+from ftrs_data_layer.logbase import DataMigrationLogBase
 from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
     AttributeLevelRepository,
@@ -48,8 +48,10 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
         case ClearableEntityTypes.location:
             return Location
         case _:
-            reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_007, entity_type=entity_type)
-            err_msg = MigrationETLPipelineLogBase.ETL_RESET_007.value.message.format(
+            reset_logger.log(
+                DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
+            )
+            err_msg = DataMigrationLogBase.ETL_RESET_007.value.message.format(
                 entity_type=entity_type
             )
             raise ValueError(err_msg)
@@ -71,7 +73,7 @@ def create_table(
     if global_secondary_indexes:
         table_params["GlobalSecondaryIndexes"] = global_secondary_indexes
     client.create_table(**table_params)
-    reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_003, table_name=table_name)
+    reset_logger.log(DataMigrationLogBase.ETL_RESET_003, table_name=table_name)
 
 
 def init_tables(
@@ -80,11 +82,11 @@ def init_tables(
     workspace: str | None,
     entity_type: List[ClearableEntityTypes],
 ) -> None:
-    reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_001)
+    reset_logger.log(DataMigrationLogBase.ETL_RESET_001)
 
     if env != TargetEnvironment.local:
-        reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_002)
-        raise ValueError(MigrationETLPipelineLogBase.ETL_RESET_002.value.message)
+        reset_logger.log(DataMigrationLogBase.ETL_RESET_002)
+        raise ValueError(DataMigrationLogBase.ETL_RESET_002.value.message)
 
     client = get_dynamodb_client(endpoint_url)
     for entity_name in entity_type:
@@ -136,7 +138,7 @@ def init_tables(
                 )
 
         except client.exceptions.ResourceInUseException:
-            reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_004, table_name=table_name)
+            reset_logger.log(DataMigrationLogBase.ETL_RESET_004, table_name=table_name)
 
 
 def reset(
@@ -166,7 +168,7 @@ def reset(
         entity_type = DEFAULT_CLEARABLE_ENTITY_TYPES
 
     if env not in [TargetEnvironment.dev, TargetEnvironment.local]:
-        reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_005, env=env)
+        reset_logger.log(DataMigrationLogBase.ETL_RESET_005, env=env)
         raise ValueError()
 
     if init:
@@ -202,5 +204,5 @@ def reset(
             count += 1
 
         reset_logger.log(
-            MigrationETLPipelineLogBase.ETL_RESET_006, count=count, table_name=table_name
+            DataMigrationLogBase.ETL_RESET_006, count=count, table_name=table_name
         )
