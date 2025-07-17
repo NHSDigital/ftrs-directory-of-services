@@ -97,7 +97,7 @@ jobs:
   plan-infrastructure:
     name: "Plan application infrastructure deployment"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-protected"
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-protected"
       cancel-in-progress: false
     needs:
       - metadata
@@ -129,7 +129,7 @@ jobs:
   apply-infrastructure:
     name: "Apply application infrastructure"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-protected"
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-protected"
       cancel-in-progress: false
     needs:
       - metadata
@@ -149,7 +149,7 @@ jobs:
   deploy-read-only-viewer-service:
     name: "Deploy read only viewer service"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-protected"
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-protected"
       cancel-in-progress: false
     needs:
       - metadata
