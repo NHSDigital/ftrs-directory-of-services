@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import MetaData, Column, Enum as EnumType, INTEGER
 from enum import IntEnum
 from decimal import Decimal
-from datetime import time, date
+from datetime import time, date, datetime
 
 
 class LegacyDoSModel(SQLModel):
@@ -119,9 +119,9 @@ class Service(LegacyDoSModel, table=True):
     email: str | None
     web: str | None
     createdby: str | None
-    createdtime: str | None
+    createdtime: datetime | None
     modifiedby: str | None
-    modifiedtime: str | None
+    modifiedtime: datetime | None
     lasttemplatename: str | None
     lasttemplateid: int | None
     typeid: int = Field(foreign_key="servicetypes.id")

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, SecretStr
-from aws_lambda_powertools.utilities.parameters import get_secret
+
+from pipeline.utils.secret_utils import get_secret
 
 
 class DatabaseConfig(BaseModel):

@@ -21,7 +21,7 @@ from ftrs_data_layer.enums import (
     OpeningTimeCategory,
     OrganisationType,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class DBModel(BaseModel):
@@ -31,9 +31,9 @@ class DBModel(BaseModel):
 
     id: UUID = Field(default_factory=uuid4)
     createdBy: str | None = "SYSTEM"
-    createdDateTime: datetime = datetime.now(UTC)
+    createdDateTime: datetime = Field(default_factory=lambda: datetime.now(UTC))
     modifiedBy: str | None = "SYSTEM"
-    modifiedDateTime: datetime = datetime.now(UTC)
+    modifiedDateTime: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Organisation(DBModel):
