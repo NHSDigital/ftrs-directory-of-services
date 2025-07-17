@@ -7,3 +7,5 @@ class TargetEnvironment(StrEnum):
     test = "test"
     int = "int"
     sandpit = "sandpit"
+    ref = "ref"
+    prod = "prod"

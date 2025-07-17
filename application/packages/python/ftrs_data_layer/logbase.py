@@ -38,7 +38,7 @@ class DDBLogBase(LogBase):
     DDB_CORE_015 = LogReference(level=ERROR, message="Unprocessed items in batch write")
 
 
-class MigrationETLPipelineLogBase(LogBase):
+class DataMigrationLogBase(LogBase):
     """
     LogBase for Data Migration ETL Pipeline operations
     """
@@ -95,6 +95,38 @@ class MigrationETLPipelineLogBase(LogBase):
     )
     ETL_RESET_007 = LogReference(
         level=ERROR, message="Unsupported entity type: {entity_type}"
+    )
+
+    DM_ETL_000 = LogReference(
+        level=INFO, message="Starting Data Migration ETL Pipeline in mode: {mode}"
+    )
+    DM_ETL_001 = LogReference(level=DEBUG, message="Starting to process record")
+    DM_ETL_002 = LogReference(
+        level=DEBUG,
+        message="Transformer {transformer_name} is not valid for record: {reason}",
+    )
+    DM_ETL_003 = LogReference(
+        level=INFO, message="Transformer {transformer_name} selected for record"
+    )
+    DM_ETL_004 = LogReference(
+        level=INFO,
+        message="Record {record_id} was not migrated due to reason: {reason}",
+    )
+    DM_ETL_005 = LogReference(
+        level=DEBUG,
+        message="Record {record_id} successfully transformed into future data model",
+    )
+    DM_ETL_006 = LogReference(
+        level=INFO,
+        message="Record {record_id} successfully migrated",
+    )
+    DM_ETL_007 = LogReference(
+        level=ERROR,
+        message="Error processing record {record_id}: {error_message}",
+    )
+
+    DM_ETL_999 = LogReference(
+        level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )
 
 

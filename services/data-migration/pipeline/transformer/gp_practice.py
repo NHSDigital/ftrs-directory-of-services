@@ -1,7 +1,9 @@
-from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
-from ftrs_data_layer import legacy_model
 import re
+
+from ftrs_data_layer import legacy_model
 from ftrs_data_layer.models import HealthcareServiceCategory, HealthcareServiceType
+
+from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
 
 
 class GPPracticeTransformer(ServiceTransformer):
@@ -23,7 +25,9 @@ class GPPracticeTransformer(ServiceTransformer):
     """
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
-        """ """
+        """
+        Transform the given GP practice service into the new data model format.
+        """
         organisation = self.build_organisation(service)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(

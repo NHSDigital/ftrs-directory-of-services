@@ -1,26 +1,28 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
-from ftrs_data_layer.models import Organisation, HealthcareService, Location, Telecom
+from datetime import UTC, datetime
+from uuid import UUID, uuid5
+
+from ftrs_common.logger import Logger
 from ftrs_data_layer import legacy_model
 from ftrs_data_layer.models import (
-    Organisation,
-    Endpoint,
     PAYLOAD_MIMETYPE_MAPPING,
-    EndpointStatus,
     Address,
-    PositionGCS,
+    AvailableTime,
+    AvailableTimePublicHolidays,
+    AvailableTimeVariation,
+    Endpoint,
+    EndpointStatus,
     HealthcareService,
     HealthcareServiceCategory,
     HealthcareServiceType,
-    OpeningTime,
-    AvailableTime,
-    AvailableTimePublicHolidays,
+    Location,
     NotAvailable,
-    AvailableTimeVariation,
-    OpeningTimeCategory,
+    OpeningTime,
+    Organisation,
+    PositionGCS,
+    Telecom,
 )
-from uuid import UUID, uuid5
-from datetime import datetime, UTC
+from pydantic import BaseModel
 
 
 class ServiceTransformOutput(BaseModel):
@@ -43,8 +45,9 @@ class ServiceTransformer(ABC):
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
     MIGRATION_USER = "DATA_MIGRATION"
 
-    def __init__(self) -> None:
+    def __init__(self, logger: Logger) -> None:
         self.start_time = datetime.now(UTC)
+        self.logger = logger
 
     @abstractmethod
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
