@@ -10,6 +10,7 @@ from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
     build_headers,
+    get_api_key,
     get_base_crud_api_url,
     get_signed_request_headers,
     handle_fhir_response,
@@ -24,14 +25,18 @@ from pipeline.utilities import (
         "WORKSPACE": "test-workspace",
     },
 )
+@patch("pipeline.utilities.get_api_key")
 def test_get_base_crud_api_url(
+    mock_get_api_key: MagicMock,
     mock_get_parameter: MagicMock,
 ) -> None:
     get_base_crud_api_url.cache_clear()
+    mock_get_api_key.return_value = "test-api-key"
     expected_url = "http://test-crud-api"
-    url = get_base_crud_api_url()
+    url, api_key = get_base_crud_api_url()
 
     assert url == expected_url
+    assert api_key == "test-api-key"
 
     assert mock_get_parameter.call_count == 1
     mock_get_parameter.assert_called_once_with(
@@ -44,18 +49,22 @@ def test_get_base_crud_api_url(
     {"ENVIRONMENT": "dev", "WORKSPACE": ""},
 )
 @patch("pipeline.utilities.get_parameter")
+@patch("pipeline.utilities.get_api_key")
 def test_get_base_crud_api_url_no_workspace(
+    mock_get_api_key: MagicMock,
     get_parameter_mock: MagicMock,
 ) -> None:
     get_base_crud_api_url.cache_clear()
 
+    mock_get_api_key.return_value = "test-api-key"
+
     get_parameter_mock.return_value = "https://api.example.com"
     expected_url = "https://api.example.com"
 
-    url = get_base_crud_api_url()
+    url, api_key = get_base_crud_api_url()
 
     assert url == expected_url
-
+    assert api_key == "test-api-key"
     assert get_parameter_mock.call_count == 1
     get_parameter_mock.assert_called_once_with(name="/ftrs-dos-dev-crud-apis/endpoint")
 
@@ -75,9 +84,10 @@ def test_get_base_crud_api_url_local_workspace(
     get_base_crud_api_url.cache_clear()
     expected_url = "https://localhost:8001/"
 
-    url = get_base_crud_api_url()
+    url, api_key = get_base_crud_api_url()
 
     assert url == expected_url
+    assert api_key == ""
     assert get_parameter_mock.call_count == 0
 
 
@@ -415,3 +425,57 @@ def test_make_request_logs_request_exception(
             "Request to GET https://api.example.com/resource failed: fail."
             in caplog.text
         )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "STACK_NAME": "etl_ods",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test_get_api_key_returns_value_from_json_secret(
+    mock_boto_client: MagicMock,
+) -> None:
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    mock_secretsmanager.get_secret_value.return_value = {
+        "SecretString": '{"api_key": "super-secret-key"}'
+    }
+
+    api_key = get_api_key()
+    expected_secret_name = "/ftrs-dos-dev-etl_ods-test-workspace/apim_api_key"
+    mock_secretsmanager.get_secret_value.assert_called_once_with(
+        SecretId=expected_secret_name
+    )
+    assert api_key == "super-secret-key"
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "STACK_NAME": "etl_ods",
+        "WORKSPACE": "default",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test_get_api_key_returns_value_from_plain_secret(
+    mock_boto_client: MagicMock,
+) -> None:
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    mock_secretsmanager.get_secret_value.return_value = {
+        "SecretString": "plain-secret-value"
+    }
+
+    api_key = get_api_key()
+    expected_secret_name = "/ftrs-dos-dev-etl_ods/apim_api_key"
+    mock_secretsmanager.get_secret_value.assert_called_once_with(
+        SecretId=expected_secret_name
+    )
+    assert api_key == "plain-secret-value"
