@@ -127,20 +127,13 @@ class OrganisationService:
     ) -> dict:
         """
         Compare two Organisation objects and return a dict of fields that are outdated.
+        Containing which fields can be updated for now will dedpend on business validation definitions.
         """
+        allowed_fields = {"name", "type", "active", "identifier_ODS_ODSCode", "telecom"}
         outdated_fields = {
             field: value
             for field, value in payload.model_dump().items()
-            if (
-                (
-                    field == "modified_by"
-                    and getattr(organisation, "modifiedBy", None) != value
-                )
-                or (
-                    field != "modified_by"
-                    and getattr(organisation, field, None) != value
-                )
-            )
+            if (field in allowed_fields and getattr(organisation, field, None) != value)
         }
         if outdated_fields:
             self.logger.log(
@@ -148,4 +141,6 @@ class OrganisationService:
                 outdated_fields=outdated_fields,
                 organisation_id=getattr(organisation, "id", None),
             )
+            outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
+            outdated_fields["modifiedDateTime"] = datetime.now(UTC)
         return outdated_fields
