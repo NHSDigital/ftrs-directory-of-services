@@ -116,6 +116,7 @@ jobs:
 
   manual-approval:
     name: "Manual approval for deployment deployment"
+    timeout-minutes: 5
     if: ${{ needs.plan-infrastructure.outputs.plan_result == 'true' }}
     needs:
       - metadata
