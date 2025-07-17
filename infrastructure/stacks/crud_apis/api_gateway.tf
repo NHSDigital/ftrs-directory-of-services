@@ -81,11 +81,3 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   value       = module.api_gateway.api_endpoint
 }
 
-# may need to change to APIM key, need to load with actual value, keeping this heer for now
-# will need to manually add the key to a secret in aws
-# resource "aws_secretsmanager_secret" "apim_api_key" {
-#   name        = "/${local.resource_prefix}${local.workspace_suffix}/apim_api_key"
-#   description = "API Key for APIM"
-#   type        = "SecureString"
-#   value       = "your-api-key-value" # Replace with your actual key or use a variable
-# }
