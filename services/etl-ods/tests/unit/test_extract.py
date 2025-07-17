@@ -64,7 +64,8 @@ def test_fetch_organisation_uuid(
     requests_mock: RequestsMock, mocker: MockerFixture
 ) -> None:
     mocker.patch(
-        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
+        "pipeline.extract.get_base_crud_api_url",
+        return_value=["http://test-crud-api", ""],
     )
 
     mock_call = requests_mock.get(
@@ -86,7 +87,8 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
+        "pipeline.extract.get_base_crud_api_url",
+        return_value=["http://test-crud-api", ""],
     )
 
     class MockResponse:
@@ -113,7 +115,8 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.extract.get_base_crud_api_url", return_value="http://test-crud-api"
+        "pipeline.extract.get_base_crud_api_url",
+        return_value=["http://test-crud-api", ""],
     )
 
     class MockResponse:
