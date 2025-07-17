@@ -36,6 +36,13 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
 
         return self._parse_item(item)
 
+    def upsert(self, obj: ModelType) -> None:
+        """
+        Upsert an item in DynamoDB.
+        If the item exists, it will be updated; if not, it will be created.
+        """
+        self._put_item(obj)
+
     def update(self, id: str | UUID, obj: ModelType) -> None:
         """
         Update an existing item in DynamoDB.
