@@ -52,12 +52,13 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
           }
         ]
       ),
-      Principal = [
-        data.aws_caller_identity.current.arn,
-        aws_iam_role.osis_pipelines_role.arn,
-        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
-        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
-      ]
+      Principal = concat(
+        [
+          data.aws_caller_identity.current.arn,
+          aws_iam_role.osis_pipelines_role.arn,
+        ],
+        data.aws_iam_role.sso_role[*].arn
+      )
     }
   ])
 }

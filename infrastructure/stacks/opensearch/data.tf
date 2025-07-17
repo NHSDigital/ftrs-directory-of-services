@@ -25,3 +25,8 @@ data "aws_subnet" "private_subnets_details" {
 data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
   name = "${var.project}-${var.environment}-osc"
 }
+
+data "aws_iam_role" "sso_role" {
+  for_each = toset(local.sso_roles)
+  name     = each.value
+}
