@@ -1,8 +1,7 @@
-from datetime import UTC, date, datetime, time
+from datetime import UTC, datetime, time
 from decimal import Decimal
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Literal
 from uuid import UUID, uuid4
-import ftrs_data_layer.legacy_model as legacy_model
 
 from ftrs_data_layer.domain.clinical_code import (
     ClinicalCodeConverter,
@@ -21,7 +20,7 @@ from ftrs_data_layer.enums import (
     OpeningTimeCategory,
     OrganisationType,
 )
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 
 
 class DBModel(BaseModel):
