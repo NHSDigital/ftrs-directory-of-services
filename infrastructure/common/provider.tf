@@ -3,6 +3,11 @@ variable "aws_region" {
   default = "eu-west-2"
 }
 
+variable "aws_region_us_east_1" {
+  type    = string
+  default = "us-east-1"
+}
+
 data "aws_caller_identity" "current" {}
 
 provider "aws" {
@@ -33,7 +38,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region_us_east_1
   alias  = "us-east-1"
 
   skip_metadata_api_check     = true

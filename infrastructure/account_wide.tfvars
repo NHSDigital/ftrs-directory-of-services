@@ -7,3 +7,6 @@ opensearch_standby_replicas      = "DISABLED"
 opensearch_create_access_policy  = false
 opensearch_create_network_policy = false
 opensearch_collection_name       = "-osc"
+
+waf_log_group_policy_name        = "waf-log-group-policy"
+osis_apigw_log_group_policy_name = "osis-apigw-log-group-policy"

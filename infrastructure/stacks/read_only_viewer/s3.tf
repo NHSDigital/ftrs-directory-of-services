@@ -9,12 +9,12 @@ module "read_only_viewer_bucket" {
       enabled                                = true
       abort_incomplete_multipart_upload_days = 7
       filter = {
+        prefix = ""
       }
       noncurrent_version_expiration = {
         noncurrent_days           = 30,
         newer_noncurrent_versions = 2
       }
-
     }
   ]
 }

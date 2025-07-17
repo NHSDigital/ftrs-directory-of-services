@@ -47,3 +47,13 @@ variable "opensearch_collection_name" {
   description = "The OpenSearch Collection name"
   type        = string
 }
+
+variable "waf_log_group_policy_name" {
+  description = "The WAF log group policy name"
+  type        = string
+}
+
+variable "osis_apigw_log_group_policy_name" {
+  description = "The OSIS & API Gateway log group policy name"
+  type        = string
+}
