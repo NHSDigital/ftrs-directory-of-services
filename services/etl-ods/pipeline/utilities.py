@@ -16,13 +16,13 @@ ods_utils_logger = Logger.get(service="ods_utils")
 
 
 @cache
-def get_base_crud_api_url() -> str:
+def get_base_crud_api_url() -> tuple[str, str]:
     env = os.environ.get("ENVIRONMENT", "local")
     workspace = os.environ.get("WORKSPACE", None)
 
     if env == "local":
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_001)
-        return os.environ["LOCAL_CRUD_API_URL"]
+        return os.environ["LOCAL_CRUD_API_URL"], ""
 
     base_parameter_path = f"/ftrs-dos-{env}-crud-apis"
     if workspace:
@@ -32,7 +32,7 @@ def get_base_crud_api_url() -> str:
     ods_utils_logger.log(
         OdsETLPipelineLogBase.ETL_UTILS_002, parameter_path=parameter_path
     )
-    return get_parameter(name=parameter_path)
+    return get_parameter(name=parameter_path), get_api_key()
 
 
 def get_signed_request_headers(

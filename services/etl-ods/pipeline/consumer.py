@@ -68,12 +68,14 @@ def process_message_and_send_request(record: dict) -> None:
                 message_id=record["messageId"]
             )
         )
-    # replace this:
-    api_url = get_base_crud_api_url() + "/organisation/" + path
+
+    api_url, api_key = get_base_crud_api_url()
+    api_url = api_url + "/organisation/" + path
 
     try:
-        # modify this
-        response = make_request(api_url, method="PUT", sign=True, json=body)
+        response = make_request(
+            api_url, method="PUT", sign=True, json=body, api_key=api_key
+        )
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_007,
             status_code=response.status_code,
