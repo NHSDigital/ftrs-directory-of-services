@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "sqs_access_policy" {
     ]
   }
 }
-
+# may need to change to APIM from crud
 data "aws_iam_policy_document" "ssm_access_policy" {
   statement {
     effect = "Allow"
@@ -77,4 +77,16 @@ data "aws_iam_policy_document" "execute_api_policy" {
     ]
   }
 
+}
+
+data "aws_iam_policy_document" "secretsmanager_api_key_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/ftrs-dos-dev-etl_ods*/apim_api_key*"
+    ]
+  }
 }
