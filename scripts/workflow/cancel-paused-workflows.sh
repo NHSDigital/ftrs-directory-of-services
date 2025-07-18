@@ -28,10 +28,15 @@ export MAX_RUNS="${MAX_RUNS:-1}"  # Default to 1 runs if not set
 echo "List a maximum of $MAX_RUNS workflows in repository $REPO that have been paused more than $THRESHOLD_SECONDS seconds : "
 
 NOW=$(date +%s) # Current time in seconds since epoch
+echo "$NOW"
 
 gh run list --repo "$REPO" --limit "$MAX_RUNS" --json databaseId,status,createdAt,displayTitle,name \
-  | jq -c '.[]| select(.status == "waiting")' | while read -r run; do ID=$(echo "$run" | jq -r '.databaseId')
-  TITLE=$(echo "$run" | jq -r '.displayTitle')
+  | jq -c '.[]| select(.status == "waiting")' \
+  | while read -r run; \
+  do \
+  echo "Processing workflow run: $run"; \
+  ID=$(echo "$run" | jq -r '.databaseId') \
+  TITLE=$(echo "$run" | jq -r '.displayTitle') \
   CREATED_AT=$(echo "$run" | jq -r '.createdAt')
 
 echo "List obtained"
