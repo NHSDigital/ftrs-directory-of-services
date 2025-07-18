@@ -84,7 +84,7 @@ const locations: Location[] = [
     },
     createdBy: "test_user",
     createdDateTime: "2023-10-01T00:00:00Z",
-    managedByOrganisation: "e2f1d47c-a72b-431c-ad99-5e943d450f34",
+    managingOrganisation: "e2f1d47c-a72b-431c-ad99-5e943d450f34",
     modifiedBy: "test_user",
     modifiedDateTime: "2023-10-01T00:00:00Z",
     name: "Test Location 1",
@@ -104,7 +104,7 @@ const locations: Location[] = [
     },
     createdBy: "test_user",
     createdDateTime: "2023-10-01T00:00:00Z",
-    managedByOrganisation: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc",
+    managingOrganisation: "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc",
     modifiedBy: "test_user",
     modifiedDateTime: "2023-10-01T00:00:00Z",
     name: "Test Location 2",
@@ -167,5 +167,19 @@ export const server = setupServer(
   }),
   http.get("/api/location/", () => {
     return HttpResponse.json(locations);
+  }),
+  http.get("/api/location/:id", (req) => {
+    const { id } = req.params;
+    const location = locations.find((location) => location.id === id);
+    if (!location) {
+      return HttpResponse.json(
+        { error: "Location not found" },
+        { status: 404, headers: { "X-Correlation-ID": "test-correlation-id" } },
+      );
+    }
+
+    return HttpResponse.json(location, {
+      headers: { "X-Correlation-ID": "test-correlation-id" },
+    });
   }),
 );

@@ -81,6 +81,27 @@ export const useHealthcareServicesQuery = () => {
   });
 };
 
+export const useLocationQuery = (locationId: string) => {
+  return useQuery<Location>({
+    queryKey: ["location", locationId],
+    queryFn: async () => {
+      const response = await fetch(`/api/location/${locationId}/`);
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      if (!response.ok) {
+        throw ResponseError.fromResponse(
+          response,
+          `Failed to fetch location data for ID: ${locationId}`,
+        );
+      }
+      return await response.json();
+    },
+  });
+};
+
 export const useLocationsQuery = () => {
   return useQuery<Location[]>({
     queryKey: ["locations"],

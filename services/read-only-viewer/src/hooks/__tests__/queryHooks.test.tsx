@@ -5,6 +5,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import type { PropsWithChildren } from "react";
 import {
+  useLocationQuery,
   useLocationsQuery,
   useOrganisationQuery,
   useOrganisationsQuery,
@@ -170,6 +171,54 @@ describe("useOrganisationsQuery", () => {
       "x-correlation-id": "test-correlation-id",
     });
     expect(error.correlationId).toBe("test-correlation-id");
+  });
+});
+
+describe("useLocationQuery", () => {
+  it("should return location data", async () => {
+    const queryHook = renderHook(
+      () => useLocationQuery("l2f1d47c-a72b-431c-ad99-5e943d450f65"),
+      { wrapper: QueryClientWrapper },
+    );
+
+    expect(queryHook.result.current.status).toBe("pending");
+    expect(queryHook.result.current.data).toBeUndefined();
+    expect(queryHook.result.current.error).toBeNull();
+
+    await waitFor(() => queryHook.result.current.isLoading === true);
+    expect(queryHook.result.current.isLoading).toBe(true);
+    expect(queryHook.result.current.data).toBeUndefined();
+    expect(queryHook.result.current.error).toBeNull();
+
+    await waitFor(() => queryHook.result.current.isSuccess === true);
+    expect(queryHook.result.current.isSuccess).toBe(true);
+    expect(queryHook.result.current.data).toEqual(StubData.locations[0]);
+
+    // Check data is stored in query cache
+    const cachedData = queryClient.getQueryData([
+      "location",
+      "l2f1d47c-a72b-431c-ad99-5e943d450f65",
+    ]);
+    expect(cachedData).toEqual(StubData.locations[0]);
+  });
+
+  it("should handle error when location not found", async () => {
+    const queryHook = renderHook(() => useLocationQuery("non-existent-id"), {
+      wrapper: QueryClientWrapper,
+    });
+
+    expect(queryHook.result.current.status).toBe("pending");
+    expect(queryHook.result.current.data).toBeUndefined();
+    expect(queryHook.result.current.error).toBeNull();
+
+    await waitFor(() => queryHook.result.current.isLoading === true);
+    expect(queryHook.result.current.isLoading).toBe(true);
+    expect(queryHook.result.current.data).toBeUndefined();
+    expect(queryHook.result.current.error).toBeNull();
+
+    await waitFor(() => queryHook.result.current.isError === true);
+    expect(queryHook.result.current.isError).toBe(false);
+    expect(queryHook.result.current.data).toBeNull();
   });
 });
 
