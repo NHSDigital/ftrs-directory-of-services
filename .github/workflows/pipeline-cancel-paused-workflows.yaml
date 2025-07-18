@@ -1,0 +1,46 @@
+name: Truncate Workflow History
+
+permissions:
+      actions: write
+      id-token: write
+      contents: read
+# on:
+#   # Run daily, at 01:00.
+#   schedule:
+#     - cron: '0 1 * * *'
+
+on:
+  push:
+    branches:
+      - task/FDOS-434_Wip_cancel_workflow
+
+jobs:
+  list_paused_runs:
+    name: "List paused workflow runs"
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Install jq"
+        run: sudo apt-get install -y jq
+
+      - name: "List workflow runs"
+        id: "list_runs"
+        shell: bash
+        run: |
+          export TOKEN: "${{ github.token }}"
+          export REPO="${{ github.repository }}"
+          /bin/bash ./scripts/workflow/cancel-paused-workflows.sh
+
+  slack-notifications:
+    needs:
+      - list_paused_runs
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: dev
+    secrets: inherit
