@@ -46,6 +46,7 @@ AGE_IN_SECONDS=$((NOW - CREATED_AT_SECONDS))
 
 if (( AGE_IN_SECONDS > THRESHOLD_SECONDS )); then
   echo "Cancelling workflow $ID ($TITLE) has been paused for more than $THRESHOLD_SECONDS seconds."
+  # TODO Uncomment the next line to actually cancel the workflow
   # gh run cancel "$ID" --repo "$REPO"
 else
   echo "Workflow $ID ($TITLE) has been paused for $AGE_IN_SECONDS seconds, which is within the threshold of $THRESHOLD_SECONDS seconds."
