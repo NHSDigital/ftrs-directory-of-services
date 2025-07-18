@@ -36,10 +36,12 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
   statement {
     principals {
       type = "AWS"
-      identifiers = concat([
+      identifiers = concat(
         local.env_sso_roles,
-        data.aws_iam_role.app_github_runner_iam_role.arn
-      ])
+        [
+          data.aws_iam_role.app_github_runner_iam_role.arn
+        ]
+      )
     }
 
     actions = [
