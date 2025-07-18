@@ -21,16 +21,16 @@ module "vpc" {
 
   # NACL configuration
   database_dedicated_network_acl = var.database_dedicated_network_acl
-  database_inbound_acl_rules     = local.network_acls["database_inbound"]
-  database_outbound_acl_rules    = local.network_acls["database_outbound"]
+  database_inbound_acl_rules     = local.network_acls["default_inbound"]
+  database_outbound_acl_rules    = local.network_acls["default_outbound"]
 
   private_dedicated_network_acl = var.private_dedicated_network_acl
-  private_inbound_acl_rules     = local.network_acls["private_aws_ip_address_range_inbound"]
-  private_outbound_acl_rules    = local.network_acls["private_outbound"]
+  private_inbound_acl_rules     = local.network_acls["default_inbound"]
+  private_outbound_acl_rules    = local.network_acls["default_outbound"]
 
   public_dedicated_network_acl = var.public_dedicated_network_acl
-  public_inbound_acl_rules     = concat(local.network_acls["default_inbound"], local.network_acls["public_inbound"])
-  public_outbound_acl_rules    = concat(local.network_acls["default_outbound"], local.network_acls["public_outbound"])
+  public_inbound_acl_rules     = local.network_acls["default_inbound"]
+  public_outbound_acl_rules    = local.network_acls["default_outbound"]
 
   # VPC Flow Logs
   enable_flow_log           = var.enable_flow_log
@@ -52,172 +52,40 @@ locals {
       {
         rule_number = 900
         rule_action = "allow"
-        from_port   = 1024
+        from_port   = 0
         to_port     = 65535
         protocol    = "tcp"
         cidr_block  = "0.0.0.0/0"
       },
+      {
+        rule_number = 901
+        rule_action = "allow"
+        from_port   = 0
+        to_port     = 65535
+        protocol    = "tcp"
+        cidr_block  = "::/0"
+      }
     ]
 
     default_outbound = [
       {
         rule_number = 900
         rule_action = "allow"
-        from_port   = 1024
-        to_port     = 65535
-        protocol    = "tcp"
-        cidr_block  = "0.0.0.0/0"
-      },
-    ]
-
-    public_inbound = concat([
-      {
-        rule_number = 100
-        rule_action = "allow"
-        from_port   = 443
-        to_port     = 443
-        protocol    = "tcp"
-        cidr_block  = "0.0.0.0/0"
-      },
-      ],
-      [
-        for i, cidr_block in concat(local.private_subnets, local.database_subnets) : {
-          rule_number = 200 + i
-          rule_action = "allow"
-          from_port   = 0
-          to_port     = 65535
-          protocol    = "tcp"
-          cidr_block  = cidr_block
-        }
-    ])
-
-    public_outbound = [
-      {
-        rule_number = 100
-        rule_action = "allow"
-        from_port   = 443
-        to_port     = 443
-        protocol    = "tcp"
-        cidr_block  = "0.0.0.0/0"
-      },
-      {
-        rule_number     = 101
-        rule_action     = "allow"
-        from_port       = 443
-        to_port         = 443
-        protocol        = "tcp"
-        ipv6_cidr_block = "::/0"
-      }
-    ]
-
-    private_inbound = [
-      for i, cidr_block in concat(local.public_subnets, local.database_subnets) : {
-        rule_number = 200 + i
-        rule_action = "allow"
-        from_port   = 0
-        to_port     = 65535
-        protocol    = "tcp"
-        cidr_block  = cidr_block
-      }
-    ]
-
-    private_inbound_managed_s3_prefix_list = [for i, cidr in zipmap(
-      range(length(data.aws_ec2_managed_prefix_list.s3_prefix_list.entries[*].cidr)),
-      data.aws_ec2_managed_prefix_list.s3_prefix_list.entries[*].cidr
-      ) :
-      {
-        rule_number = 300 + i
-        rule_action = "allow"
-        from_port   = 1024
-        to_port     = 65535
-        protocol    = "tcp"
-        cidr_block  = cidr
-      }
-    ]
-
-    private_inbound_managed_dynamodb_prefix_list = [for i, cidr in zipmap(
-      range(length(data.aws_ec2_managed_prefix_list.dynamodb_prefix_list.entries[*].cidr)),
-      data.aws_ec2_managed_prefix_list.dynamodb_prefix_list.entries[*].cidr
-      ) :
-      {
-        rule_number = 400 + i
-        rule_action = "allow"
-        from_port   = 1024
-        to_port     = 65535
-        protocol    = "tcp"
-        cidr_block  = cidr
-      }
-    ]
-
-    private_aws_ip_address_range_inbound = [
-      for i, cidr_block in local.eu_west_2_public_cidrs_merged : {
-        rule_number = 500 + i
-        rule_action = "allow"
-        from_port   = 1024
-        to_port     = 65535
-        protocol    = "tcp"
-        cidr_block  = cidr_block
-      }
-    ]
-
-    private_outbound = [
-      {
-        rule_number = 200
-        rule_action = "allow"
         from_port   = 0
         to_port     = 65535
         protocol    = "tcp"
         cidr_block  = "0.0.0.0/0"
       },
       {
-        rule_number     = 201
-        rule_action     = "allow"
-        from_port       = 0
-        to_port         = 65535
-        protocol        = "tcp"
-        ipv6_cidr_block = "::/0"
-      }
-    ]
-
-    database_inbound = [
-      for i, cidr_block in concat(local.private_subnets, local.vpn_subnets) : {
-        rule_number = 300 + i
+        rule_number = 901
         rule_action = "allow"
         from_port   = 0
         to_port     = 65535
         protocol    = "tcp"
-        cidr_block  = cidr_block
-      }
-    ]
-
-    database_outbound = [
-      {
-        rule_number = 300
-        rule_action = "allow"
-        from_port   = 0
-        to_port     = 65535
-        protocol    = "tcp"
-        cidr_block  = "0.0.0.0/0"
-      },
-      {
-        rule_number     = 301
-        rule_action     = "allow"
-        from_port       = 0
-        to_port         = 65535
-        protocol        = "tcp"
-        ipv6_cidr_block = "::/0"
+        cidr_block  = "::/0"
       }
     ]
   }
-
-  # Use merged eu-west-2 public CIDRs from the cidr_merge module
-  ip_first_octets = distinct([for cidr in data.aws_ip_ranges.eu_west_2_public.cidr_blocks : split(".", cidr)[0]])
-
-  private_inbound_ip_first_octets = distinct([for cidr in concat(local.public_subnets, local.database_subnets, data.aws_ip_ranges.eu_west_2_public.cidr_blocks, data.aws_ec2_managed_prefix_list.dynamodb_prefix_list.entries[*].cidr, data.aws_ec2_managed_prefix_list.s3_prefix_list.entries[*].cidr) : split(".", cidr)[0]])
-  eu_west_2_public_cidrs_merged = [
-    for octet in local.private_inbound_ip_first_octets :
-    "${octet}.0.0.0/8"
-  ]
 }
 
 resource "aws_flow_log" "subnet_flow_log_s3" {
