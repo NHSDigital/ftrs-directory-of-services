@@ -35,8 +35,13 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
 
   statement {
     principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-PowerUser_735fb053a5c7dd27", data.aws_iam_role.app_github_runner_iam_role.arn]
+      type = "AWS"
+      identifiers = concat(
+        local.env_sso_roles,
+        [
+          data.aws_iam_role.app_github_runner_iam_role.arn
+        ]
+      )
     }
 
     actions = [

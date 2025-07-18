@@ -15,7 +15,8 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        "arn:aws:iam::${data.aws_caller_identity.current.id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-PowerUser_f7f1ace556f4a062",
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
         "${data.aws_iam_role.app_github_runner_iam_role.arn}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-${var.app_github_runner_role_name}"
       ]
@@ -32,7 +33,8 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        "arn:aws:iam::${data.aws_caller_identity.current.id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-PowerUser_f7f1ace556f4a062",
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
+        "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
         "${data.aws_iam_role.app_github_runner_iam_role.arn}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-${var.app_github_runner_role_name}"
       ]
