@@ -32,7 +32,7 @@ jobs:
         id: "list_runs"
         shell: bash
         run: |
-          export TOKEN: "${{ github.token }}"
+          export TOKEN="${{ github.token }}"
           export REPO="${{ github.repository }}"
           /bin/bash ./scripts/workflow/cancel-paused-workflows.sh
 
