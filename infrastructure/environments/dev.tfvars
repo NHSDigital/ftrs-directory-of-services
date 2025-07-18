@@ -19,3 +19,8 @@ vpc = {
   database_subnet_b = "10.170.202.0/24"
   database_subnet_c = "10.170.203.0/24"
 }
+
+sso_roles = [
+  "AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
+  "AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
+]

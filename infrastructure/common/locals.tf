@@ -27,8 +27,7 @@ locals {
 
   trust_store_file_path = "${var.environment}/truststore.pem"
 
-  sso_roles = [
-    "AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
-    "AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
+  env_sso_roles = [
+    for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
   ]
 }
