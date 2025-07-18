@@ -30,9 +30,10 @@ jobs:
 
       - name: "List workflow runs"
         id: "list_runs"
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          export TOKEN="${{ github.token }}"
           export REPO="${{ github.repository }}"
           /bin/bash ./scripts/workflow/cancel-paused-workflows.sh
 
