@@ -30,11 +30,16 @@ echo "List a maximum of $MAX_RUNS workflows in repository $REPO that have been p
 NOW=$(date +%s) # Current time in seconds since epoch
 echo "$NOW"
 # run="[{\"createdAt\":\"2025-07-18T20:54:43Z\",\"databaseId\":16380132133,\"displayTitle\":\"FDOS-362 Some text\",\"name\":\"Application Deployment Pipeline\",\"status\":\"waiting\"}]"
-echo "$run"
+# echo "$run"
 
 # ID=$(echo "$run" | jq -r '.[0].databaseId')
 # TITLE=$(echo "$run" | jq -r  '.[0].displayTitle')
 # CREATED_AT=$(echo "$run" | jq -r '.[0].createdAt')
+# CREATED_AT_SECONDS=$(date -d "$CREATED_AT" +%s)
+# AGE_IN_SECONDS=$((NOW - CREATED_AT_SECONDS))
+# echo "Created at seconds: $CREATED_AT_SECONDS"
+# echo "Age in seconds: $AGE_IN_SECONDS"
+
 # exit 0
 # | jq -c '.[]| select(.status == "waiting")' \
 gh run list --status "waiting" --repo "$REPO" --limit "$MAX_RUNS" --json databaseId,status,createdAt,displayTitle,name \
@@ -47,7 +52,7 @@ gh run list --status "waiting" --repo "$REPO" --limit "$MAX_RUNS" --json databas
     echo "$ID - $TITLE - $CREATED_AT"
 
     # Convert createdAt to seconds since epoch
-    CREATED_AT_SECONDS=$(date -d "$CREATED_AT" +%s 2>dev/null)
+    CREATED_AT_SECONDS=$(date -d "$CREATED_AT" +%s)
 
     if [[ -z "$CREATED_AT_SECONDS" ]]; then
       echo "Error: Unable to parse createdAt for workflow $ID. Please check the date format."
