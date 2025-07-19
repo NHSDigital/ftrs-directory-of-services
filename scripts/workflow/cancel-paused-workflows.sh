@@ -59,10 +59,10 @@ runs=$(gh run list --status "waiting" --repo "$REPO" --limit "$MAX_RUNS" --json 
 
 items=$(echo "$runs" | jq -c -r '.[]')
 for run in "${items[@]}"; do
-      echo "Processing workflow run: $run"; \
-      ID=$(echo "$run" | jq -r '.[0].databaseId') \
-      TITLE=$(echo "$run" | jq -r '.[0].displayTitle') \
-      CREATED_AT=$(echo "$run" | jq -r '.[0].createdAt')
+      echo "Processing workflow run: $run";
+      ID=$(echo "$run" | jq -r '.databaseId')
+      TITLE=$(echo "$run" | jq -r '.displayTitle')
+      CREATED_AT=$(echo "$run" | jq -r '.createdAt')
       echo "$ID - $TITLE - $CREATED_AT"
 
       # Convert createdAt to seconds since epoch
