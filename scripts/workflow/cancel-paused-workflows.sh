@@ -53,37 +53,93 @@ echo "$NOW"
 #     echo "Processing workflow run: $run"
 #   done
 
+
+# runs="[
+# {\"createdAt\":\"2025-07-19T10:56:36Z\",\"databaseId\":16387973262,\"displayTitle\":\"FDOS-001 One\",\"name\":\"Application Deployment Pipeline\",\"status\":\"waiting\"},
+# {\"createdAt\":\"2025-07-19T10:53:55Z\",\"databaseId\":16387953712,\"displayTitle\":\"FDOS-002 Two\",\"name\":\"Application Deployment Pipeline\",\"status\":\"waiting\"},
+# {\"createdAt\":\"2025-07-19T10:34:57Z\",\"databaseId\":16387813640,\"displayTitle\":\"FDOS-003 Three\",\"name\":\"Application Deployment Pipeline\",\"status\":\"waiting\"}
+# ]"
+
+# echo "Runs: $runs"
+# echo "${runs}" | jq -r '.[]'
+
+# for run in $(echo "${runs}" | jq -r '.[] | @base64'); do
+#     _jq() {
+#       echo ${run} | base64 --decode | jq -r ${1}
+#     }
+
+#     ID=$( _jq '.databaseId')
+#     TITLE=$( _jq  '.displayTitle')
+#     CREATED_AT=$( _jq '.createdAt')
+#     echo "ID: $ID, Title: $TITLE"
+
+# done
+
+
 # exit 0
 # ==========
 
 # ==========
+runs="$(gh run list --status "waiting" --repo "$REPO" --limit "$MAX_RUNS" --json databaseId,status,createdAt,displayTitle,name)"
 
-gh run list --status "waiting" --repo "$REPO" --limit "$MAX_RUNS" --json databaseId,status,createdAt,displayTitle,name \
-  | while read -r run; \
-    do \
-      echo "Processing workflow run: $run"; \
-      ID=$(echo "$run" | jq -r '.[].databaseId') \
-      TITLE=$(echo "$run" | jq -r '.[].displayTitle') \
-      CREATED_AT=$(echo "$run" | jq -r '.[].createdAt')
-      echo "$ID - $TITLE - $CREATED_AT"
+for run in $(echo "${runs}" | jq -r '.[] | @base64'); do
+    _jq() {
+      echo ${run} | base64 --decode | jq -r ${1}
+    }
 
-      # Convert createdAt to seconds since epoch
-      CREATED_AT_SECONDS=$(date -d "$CREATED_AT" +%s)
+    ID=$( _jq '.databaseId')
+    TITLE=$( _jq  '.displayTitle')
+    CREATED_AT=$( _jq '.createdAt')
+    echo "ID: $ID, Title: $TITLE, Created At: $CREATED_AT"
 
-      if [[ -z "$CREATED_AT_SECONDS" ]]; then
-        echo "Error: Unable to parse createdAt for workflow $ID. Please check the date format."
-        continue
-      fi
+    # Convert createdAt to seconds since epoch
+    CREATED_AT_SECONDS=$(date -d "$CREATED_AT" +%s)
 
-      AGE_IN_SECONDS=$((NOW - CREATED_AT_SECONDS))
-      echo "$AGE_IN_SECONDS seconds since workflow $ID ($TITLE) was created."
+    if [[ -z "$CREATED_AT_SECONDS" ]]; then
+      echo "Error: Unable to parse createdAt for workflow $ID. Please check the date format."
+      continue
+    fi
 
-      if (( AGE_IN_SECONDS > THRESHOLD_SECONDS )); then
-        echo "Cancelling workflow $ID ($TITLE) has been paused for more than $THRESHOLD_SECONDS seconds."
-        # TODO Uncomment the next line to actually cancel the workflow
-        # gh run cancel "$ID" --repo "$REPO"
-      else
-        echo "Workflow $ID ($TITLE) has been paused for $AGE_IN_SECONDS seconds, which is within the threshold of $THRESHOLD_SECONDS seconds."
-      fi
-    done
+    AGE_IN_SECONDS=$((NOW - CREATED_AT_SECONDS))
+    echo "$AGE_IN_SECONDS seconds since workflow $ID ($TITLE) was created."
+
+    if (( AGE_IN_SECONDS > THRESHOLD_SECONDS )); then
+      echo "Cancelling workflow $ID ($TITLE) has been paused for more than $THRESHOLD_SECONDS seconds."
+      # TODO Uncomment the next line to actually cancel the workflow
+      # gh run cancel "$ID" --repo "$REPO"
+    else
+      echo "Workflow $ID ($TITLE) has been paused for $AGE_IN_SECONDS seconds, which is within the threshold of $THRESHOLD_SECONDS seconds."
+    fi
+done
+
+
+# --
+# gh run list --status "waiting" --repo "$REPO" --limit "$MAX_RUNS" --json databaseId,status,createdAt,displayTitle,name \
+#   | while read -r run; \
+#     do \
+#       echo "Processing workflow run: $run"; \
+#       ID=$(echo "$run" | jq -r '.[].databaseId') \
+#       TITLE=$(echo "$run" | jq -r '.[].displayTitle') \
+#       CREATED_AT=$(echo "$run" | jq -r '.[].createdAt')
+#       echo "$ID - $TITLE - $CREATED_AT"
+
+#       # Convert createdAt to seconds since epoch
+#       CREATED_AT_SECONDS=$(date -d "$CREATED_AT" +%s)
+
+#       if [[ -z "$CREATED_AT_SECONDS" ]]; then
+#         echo "Error: Unable to parse createdAt for workflow $ID. Please check the date format."
+#         continue
+#       fi
+
+#       AGE_IN_SECONDS=$((NOW - CREATED_AT_SECONDS))
+#       echo "$AGE_IN_SECONDS seconds since workflow $ID ($TITLE) was created."
+
+#       if (( AGE_IN_SECONDS > THRESHOLD_SECONDS )); then
+#         echo "Cancelling workflow $ID ($TITLE) has been paused for more than $THRESHOLD_SECONDS seconds."
+#         # TODO Uncomment the next line to actually cancel the workflow
+#         # gh run cancel "$ID" --repo "$REPO"
+#       else
+#         echo "Workflow $ID ($TITLE) has been paused for $AGE_IN_SECONDS seconds, which is within the threshold of $THRESHOLD_SECONDS seconds."
+#       fi
+#     done
 echo "End"
