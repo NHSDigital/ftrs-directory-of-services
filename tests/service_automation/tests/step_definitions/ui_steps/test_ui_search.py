@@ -7,7 +7,7 @@ from pages.ui_pages.result import NewAccountPage
 from pages.ui_pages.search import LoginPage
 from playwright.sync_api import sync_playwright, expect, Page
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def api_request_context():
     """Initialize Playwright APIRequestContext"""
     with sync_playwright() as p:
@@ -21,7 +21,6 @@ def api_request_context():
 @pytest.mark.ui
 def test_basic_ui_search(
     page: Page,
-    search_page: LoginPage,
     result_page: NewAccountPage) -> None:
 
     # Given the UserTest home page is displayed
@@ -35,3 +34,5 @@ def test_basic_ui_search(
     # Then the Request account form is displayed
     with allure.step("Then  Request account is displayed"):
         expect(result_page.page.get_by_text("Request account")).to_be_visible
+
+

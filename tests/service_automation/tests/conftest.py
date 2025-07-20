@@ -6,6 +6,8 @@ from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
 from pages.ui_pages.search import LoginPage
 from pages.ui_pages.result import NewAccountPage
+from pages.ui_pages.rov_home import HomePage
+from pages.ui_pages.rov_organisations import OrganisationsPage
 
 
 # Configure Loguru to log into a file and console
@@ -62,6 +64,14 @@ def result_page(page: Page) -> NewAccountPage:
 @pytest.fixture
 def search_page(page: Page) -> LoginPage:
     return LoginPage(page)
+
+@pytest.fixture
+def home_page(page: Page) -> HomePage:
+    return HomePage(page)
+
+@pytest.fixture
+def organisation_page(page: Page) -> OrganisationsPage:
+    return OrganisationsPage(page)
 
 
 @pytest.fixture
