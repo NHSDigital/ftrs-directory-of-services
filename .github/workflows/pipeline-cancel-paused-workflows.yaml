@@ -1,4 +1,4 @@
-name: Truncate Workflow History
+name: Cleardown paused workflow runs
 
 permissions:
       actions: write
@@ -15,8 +15,8 @@ on:
       - task/FDOS-434_Wip_cancel_workflow
 
 jobs:
-  list_paused_runs:
-    name: "List paused workflow runs"
+  cancel_paused_runs:
+    name: "Cancel paused workflow runs"
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: "Install jq"
         run: sudo apt-get install -y jq
 
-      - name: "List workflow runs"
+      - name: "Cancel workflow runs"
         id: "list_runs"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -39,7 +39,7 @@ jobs:
 
   slack-notifications:
     needs:
-      - list_paused_runs
+      - cancel_paused_runs
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:

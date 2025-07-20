@@ -47,14 +47,12 @@ for run in $(echo "${runs}" | jq -r '.[] | @base64'); do
     fi
 
     AGE_IN_SECONDS=$((NOW - CREATED_AT_SECONDS))
-    echo "$AGE_IN_SECONDS seconds since workflow $ID ($TITLE) was created."
 
     if (( AGE_IN_SECONDS > THRESHOLD_SECONDS )); then
-      echo "Cancelling workflow $ID ($TITLE) has been paused for more than $THRESHOLD_DAYS days."
-      # TODO Uncomment the next line to actually cancel the workflow
-      # gh run cancel "$ID" --repo "$REPO"
+      echo "Cancelling workflow $ID ($TITLE) which has been paused for more than $THRESHOLD_DAYS days."
+      gh run cancel "$ID" --repo "$REPO"
     else
-      echo "Workflow $ID ($TITLE) has been paused for $AGE_IN_SECONDS seconds, which is within the threshold of $THRESHOLD_SECONDS seconds ($THRESHOLD_DAYS days)."
+      echo "Workflow $ID ($TITLE) has been paused for $AGE_IN_SECONDS seconds, which is below the threshold of $THRESHOLD_SECONDS seconds ($THRESHOLD_DAYS days)."
     fi
 done
 
