@@ -22,14 +22,12 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.tag }}
 
       - name: "Install jq"
         run: sudo apt-get install -y jq
 
       - name: "Cancel workflow runs"
-        id: "list_runs"
+        id: "cancel_runs"
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash

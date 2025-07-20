@@ -19,7 +19,7 @@ if [ $EXPORTS_SET = 1 ] ; then
 fi
 
 export THRESHOLD_DAYS="${THRESHOLD_DAYS:-1}"  # Default to 24 hours if not set
-export MAX_RUNS="${MAX_RUNS:-10}"  # Default to 1 runs if not set
+export MAX_RUNS="${MAX_RUNS:-15}"  # Default to 15 runs if not set
 
 THRESHOLD_SECONDS=$((THRESHOLD_DAYS * 24 * 60 * 60))  # Convert days to seconds
 echo "Review a maximum of $MAX_RUNS workflows in repository $REPO that are waiting more than $THRESHOLD_SECONDS seconds since they were started "
