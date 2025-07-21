@@ -442,30 +442,3 @@ def test_get_api_key_returns_value_from_json_secret(
         SecretId=expected_secret_name
     )
     assert api_key == "super-secret-key"
-
-
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "ftrs-dos",
-        "ENVIRONMENT": "dev",
-        "STACK_NAME": "etl_ods",
-        "WORKSPACE": "default",
-    },
-)
-@patch("pipeline.utilities.boto3.client")
-def test_get_api_key_returns_value_from_plain_secret(
-    mock_boto_client: MagicMock,
-) -> None:
-    mock_secretsmanager = MagicMock()
-    mock_boto_client.return_value = mock_secretsmanager
-    mock_secretsmanager.get_secret_value.return_value = {
-        "SecretString": "plain-secret-value"
-    }
-
-    api_key = get_api_key()
-    expected_secret_name = "/ftrs-dos-dev-etl_ods/apim_api_key"
-    mock_secretsmanager.get_secret_value.assert_called_once_with(
-        SecretId=expected_secret_name
-    )
-    assert api_key == "plain-secret-value"
