@@ -65,7 +65,7 @@ def test_fetch_organisation_uuid(
 ) -> None:
     mocker.patch(
         "pipeline.extract.get_base_crud_api_url",
-        return_value=["http://test-crud-api", ""],
+        return_value="http://test-crud-api",
     )
 
     mock_call = requests_mock.get(
@@ -88,7 +88,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
 ) -> None:
     mocker.patch(
         "pipeline.extract.get_base_crud_api_url",
-        return_value=["http://test-crud-api", ""],
+        return_value="http://test-crud-api",
     )
 
     class MockResponse:
@@ -116,7 +116,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
 ) -> None:
     mocker.patch(
         "pipeline.extract.get_base_crud_api_url",
-        return_value=["http://test-crud-api", ""],
+        return_value="http://test-crud-api",
     )
 
     class MockResponse:
