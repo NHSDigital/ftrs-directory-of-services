@@ -36,6 +36,17 @@
             "Resource": "*"
         },
         {
+            "Sid": "AllowOpenSearchServerlessServiceLinkedRoleCreation",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                "iam:AWSServiceName": "observability.aoss.amazonaws.com"
+                }
+            }
+        },
+        {
             "Sid": "MonitoringFullAccess",
             "Effect": "Allow",
             "Action": [
