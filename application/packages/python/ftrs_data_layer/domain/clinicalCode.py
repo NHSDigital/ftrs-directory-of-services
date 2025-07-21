@@ -62,7 +62,7 @@ class ClinicalCodeConverter:
         disposition_list: List[Disposition] = []
         for item in all_data:
             if not isinstance(item, dict):
-                raise TypeError({INVALID_DISPOSITION_ITEM})
+                raise TypeError(INVALID_DISPOSITION_ITEM)
 
             validated_disposition = Disposition(
                 id=item.get("id"),
