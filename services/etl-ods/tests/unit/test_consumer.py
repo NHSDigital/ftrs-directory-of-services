@@ -140,7 +140,7 @@ def test_process_message_and_send_request_success(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_call = requests_mock.put(
-        "http://test-crud-api/organisation/uuid",
+        "http://test-crud-api/Organization/uuid",
         json={"status": "success"},
         status_code=HTTPStatus.OK,
     )
@@ -158,7 +158,7 @@ def test_process_message_and_send_request_success(
     assert expected_success_log in caplog.text
 
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/organisation/uuid"
+    assert mock_call.last_request.path == "/Organization/uuid"
     assert mock_call.last_request.json() == {"name": "Organisation Name"}
 
 
@@ -167,7 +167,7 @@ def test_process_message_and_send_request_unprocessable(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_call = requests_mock.put(
-        "http://test-crud-api/organisation/uuid",
+        "http://test-crud-api/Organization/uuid",
         json={"error": "Unprocessable Entity"},
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
     )
@@ -186,7 +186,7 @@ def test_process_message_and_send_request_unprocessable(
     assert expected_bad_request_log in caplog.text
 
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/organisation/uuid"
+    assert mock_call.last_request.path == "/Organization/uuid"
 
 
 def test_process_message_and_send_request_failure(
@@ -194,7 +194,7 @@ def test_process_message_and_send_request_failure(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_call = requests_mock.put(
-        "http://test-crud-api/organisation/uuid",
+        "http://test-crud-api/Organization/uuid",
         json={"error": "Internal Server Error"},
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
     )
@@ -214,4 +214,4 @@ def test_process_message_and_send_request_failure(
     )
     assert expected_failure_log in caplog.text
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/organisation/uuid"
+    assert mock_call.last_request.path == "/Organization/uuid"
