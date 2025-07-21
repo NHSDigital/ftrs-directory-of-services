@@ -93,6 +93,88 @@ AND table_name = 'serviceendpoints';
 """
 
 
+QUERY_CLINICAL_CODES = f"""
+-- Define the WITH clause for GP practice
+WITH{WITH_GP_PRACTICE},
+
+-- Create a CTE for synonyms
+synonyms AS (
+SELECT
+    symptomdiscriminatorid,
+    ARRAY_AGG(name) as synonym_value
+FROM pathwaysdos.symptomdiscriminatorsynonyms
+GROUP BY symptomdiscriminatorid
+),
+
+-- Create a CTE for symptom group and symptom discriminator pairs
+sg_sd_pairs AS (
+SELECT
+    sgsds.serviceid,
+    json_build_object(
+    'sg', json_build_object(
+    'id', 'SG' || sg.id,
+    'source', 'pathways',
+    'codeType', 'Symptom Group (SG)',
+    'codeID', sg.id,
+    'codeValue', sg.name,
+    'zCodeExists', COALESCE(sg.zcodeexists, false)
+    ),
+    'sd', json_build_object(
+    'id', 'SD' || sd.id,
+    'source', 'pathways',
+    'codeType', 'Symptom Discriminator (SD)',
+    'codeID', sd.id,
+    'codeValue', sd.description,
+    'synonyms', syn.synonym_value
+    )
+    )::text AS sg_sd_pair
+FROM pathwaysdos.servicesgsds sgsds
+    LEFT JOIN pathwaysdos.symptomgroups sg ON sgsds.sgid = sg.id
+    LEFT JOIN pathwaysdos.symptomdiscriminators sd ON sgsds.sdid = sd.id
+    LEFT JOIN synonyms syn ON sd.id = syn.symptomdiscriminatorid
+WHERE sgsds.sgid IS NOT NULL AND sgsds.sdid IS NOT NULL
+),
+
+-- Aggregate symptom group and symptom discriminator pairs by service ID
+sg_sd_aggregated AS (
+SELECT
+    serviceid,
+    ARRAY_AGG(DISTINCT sg_sd_pair) AS sg_sd_array
+FROM sg_sd_pairs
+GROUP BY serviceid
+),
+
+-- Create a CTE for dispositions
+dispositions AS (
+SELECT
+    sd_join.serviceid,
+    ARRAY_AGG(DISTINCT
+    json_build_object(
+    'id', d.dxcode,
+    'source', 'pathways',
+    'codeType', 'Disposition (Dx)',
+    'codeID', d.dxcode,
+    'codeValue', d.name,
+    'dispositiontime', d.dispositiontime
+    )::text
+    ) AS dx_array
+FROM pathwaysdos.servicedispositions sd_join
+    JOIN pathwaysdos.dispositions d ON sd_join.dispositionid = d.id
+WHERE d.dxcode IS NOT NULL
+GROUP BY sd_join.serviceid
+),
+-- Final query to join everything together
+SELECT
+    gp.serviceid,
+    COALESCE(sg_sd.sg_sd_array, ARRAY[]::text[]) AS sg_sd_pairs,
+    COALESCE(dx.dx_array, ARRAY[]::text[]) AS dispositions
+FROM gp_practice gp
+    LEFT JOIN sg_sd_aggregated sg_sd ON gp.serviceid = sg_sd.serviceid
+    LEFT JOIN dispositions dx ON gp.serviceid = dx.serviceid
+ORDER BY gp.serviceid;
+"""
+
+
 def get_gp_practices(db_uri: str) -> pd.DataFrame:
     return pd.read_sql(QUERY_GP_PRACTICE, db_uri)
 
@@ -119,3 +201,7 @@ def get_services_columns_count(db_uri: str) -> int:
 
 def get_serviceendpoints_columns_count(db_uri: str) -> int:
     return pd.read_sql(QUERY_SERVICEENDPOINTS_COLUMNS, db_uri)["count"][0]
+
+
+def get_clinical_codes(db_uri: str) -> pd.DataFrame:
+    return pd.read_sql(QUERY_CLINICAL_CODES, db_uri)
