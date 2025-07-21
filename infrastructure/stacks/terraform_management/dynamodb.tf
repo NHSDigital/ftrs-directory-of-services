@@ -7,4 +7,5 @@ module "terraform_lock_dynamodb" {
     name = "LockID"
     type = "S"
   }]
+  point_in_time_recovery_enabled = true
 }
