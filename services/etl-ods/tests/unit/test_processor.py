@@ -251,7 +251,7 @@ def test_processor_continue_on_validation_failure(
 
     # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000EFG)
     assert crud_efg456_mock.called_once
-    assert crud_efg456_mock.last_request.path == "/Organization/ods_code/efg456"
+    assert crud_efg456_mock.last_request.path == "/organization/ods_code/efg456"
     assert requests_mock.request_history[4] == crud_efg456_mock.last_request
 
     # Assert load_data call

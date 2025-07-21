@@ -186,7 +186,7 @@ def test_process_message_and_send_request_unprocessable(
     assert expected_bad_request_log in caplog.text
 
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/Organization/uuid"
+    assert mock_call.last_request.path == "/organization/uuid"
 
 
 def test_process_message_and_send_request_failure(
