@@ -18,7 +18,7 @@ def api_request_context():
 @allure.id(1)
 @allure.story("Sample UI Tests")
 @allure.title("Test to demonstrate accessing a web page")
-@pytest.mark.ui
+@pytest.mark.uiX
 def test_basic_ui_search(
     page: Page,
     result_page: NewAccountPage) -> None:
