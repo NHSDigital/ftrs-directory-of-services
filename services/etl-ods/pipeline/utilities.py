@@ -16,13 +16,13 @@ ods_utils_logger = Logger.get(service="ods_utils")
 
 
 @cache
-def get_base_crud_api_url() -> tuple[str, str]:
+def get_base_crud_api_url() -> str:
     env = os.environ.get("ENVIRONMENT", "local")
     workspace = os.environ.get("WORKSPACE", None)
 
     if env == "local":
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_001)
-        return os.environ["LOCAL_CRUD_API_URL"], ""
+        return os.environ["LOCAL_CRUD_API_URL"]
 
     base_parameter_path = f"/ftrs-dos-{env}-crud-apis"
     if workspace:
@@ -32,7 +32,30 @@ def get_base_crud_api_url() -> tuple[str, str]:
     ods_utils_logger.log(
         OdsETLPipelineLogBase.ETL_UTILS_002, parameter_path=parameter_path
     )
-    return get_parameter(name=parameter_path), get_api_key()
+    return get_parameter(name=parameter_path)
+
+
+@cache
+def get_api_key() -> str:
+    resource_prefix = get_resource_prefix()
+    secret_name = f"/{resource_prefix}/apim_api_key"
+    client = boto3.client("secretsmanager")
+    response = client.get_secret_value(SecretId=secret_name)
+    secret = response["SecretString"]
+    try:
+        secret_dict = json.loads(secret)
+        return secret_dict.get("api_key", secret)
+    except json.JSONDecodeError:
+        return secret
+
+
+def get_resource_prefix() -> str:
+    project = os.environ.get("PROJECT_NAME")
+    environment = os.environ.get("ENVIRONMENT")
+    stack_name = os.environ.get("STACK_NAME")
+    workspace = os.environ.get("WORKSPACE", None)
+    workspace_suffix = f"-{workspace}" if workspace and workspace != "default" else ""
+    return f"{project}-{environment}-{stack_name}{workspace_suffix}"
 
 
 def get_signed_request_headers(
@@ -150,25 +173,3 @@ def make_request(
             error_message=str(e),
         )
         raise
-
-
-def get_resource_prefix() -> str:
-    project = os.environ.get("PROJECT_NAME")
-    environment = os.environ.get("ENVIRONMENT")
-    stack_name = os.environ.get("STACK_NAME")
-    workspace = os.environ.get("WORKSPACE", None)
-    workspace_suffix = f"-{workspace}" if workspace and workspace != "default" else ""
-    return f"{project}-{environment}-{stack_name}{workspace_suffix}"
-
-
-def get_api_key() -> str:
-    resource_prefix = get_resource_prefix()
-    secret_name = f"/{resource_prefix}/apim_api_key"
-    client = boto3.client("secretsmanager")
-    response = client.get_secret_value(SecretId=secret_name)
-    secret = response["SecretString"]
-    try:
-        secret_dict = json.loads(secret)
-        return secret_dict.get("api_key", secret)
-    except json.JSONDecodeError:
-        return secret

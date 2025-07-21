@@ -49,7 +49,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     """
     Returns DoS UUID based on ODS code.
     """
-    base_url, api_key = get_base_crud_api_url()
+    base_url = get_base_crud_api_url()
     organisation_get_uuid_uri = base_url + "/organisation/ods_code/" + ods_code
 
     try:
@@ -57,9 +57,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             OdsETLPipelineLogBase.ETL_PROCESSOR_028,
             ods_code=ods_code,
         )
-        response = make_request(
-            organisation_get_uuid_uri, sign=True, fhir=True, api_key=api_key
-        )
+        response = make_request(organisation_get_uuid_uri, sign=True, fhir=True)
         return (
             response.get("id", None)
             if isinstance(response, dict)
