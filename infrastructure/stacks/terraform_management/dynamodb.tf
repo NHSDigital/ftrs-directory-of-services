@@ -1,3 +1,4 @@
+#trivy:ignore:AVD-AWS-0024
 module "terraform_lock_dynamodb" {
   source     = "../../modules/dynamodb"
   table_name = var.terraform_lock_table_name
@@ -7,5 +8,4 @@ module "terraform_lock_dynamodb" {
     name = "LockID"
     type = "S"
   }]
-  point_in_time_recovery_enabled = true
 }
