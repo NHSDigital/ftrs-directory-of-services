@@ -4,9 +4,9 @@ from typing import Annotated, Literal, Optional, Union
 from uuid import UUID, uuid4
 
 from ftrs_data_layer.domain.clinicalCode import (
-    SymptomGroupSymptomDiscriminatorPair,
     ClinicalCodeConverter,
     Disposition,
+    SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.enums import (
     DayOfWeek,

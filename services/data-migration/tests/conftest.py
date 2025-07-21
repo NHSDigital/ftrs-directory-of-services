@@ -3,8 +3,6 @@ from typing import Any
 from pydantic._internal._generate_schema import GenerateSchema
 from pydantic_core import core_schema
 
-from tests.util.fixtures import *  # noqa: F403
-
 initial_match_type = GenerateSchema.match_type
 
 
