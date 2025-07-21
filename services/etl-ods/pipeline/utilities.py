@@ -35,11 +35,16 @@ def get_base_crud_api_url() -> str:
     return get_parameter(name=parameter_path)
 
 
-@cache
 def get_api_key() -> str:
+    env = os.environ.get("ENVIRONMENT")
+
+    if env == "local":
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
+        return os.environ["LOCAL_API_KEY"]
+
     resource_prefix = get_resource_prefix()
     secret_name = f"/{resource_prefix}/apim_api_key"
-    client = boto3.client("secretsmanager")
+    client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
     response = client.get_secret_value(SecretId=secret_name)
     secret = response["SecretString"]
     try:
@@ -83,7 +88,7 @@ def build_headers(options: dict) -> dict:
     sign = options.get("sign")
     url = options.get("url")
     method = options.get("method")
-    api_key = options.get("apikey")
+    api_key = options.get("api_key")
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
@@ -136,7 +141,7 @@ def make_request(
             "sign": sign,
             "url": url,
             "method": method,
-            "apikey": api_key,
+            "api_key": api_key,
         }
     )
 
