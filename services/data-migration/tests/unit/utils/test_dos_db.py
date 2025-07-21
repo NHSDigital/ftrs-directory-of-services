@@ -1,13 +1,14 @@
 import pandas as pd
-import pytest
-from pytest_mock import MockerFixture, mocker
+from pytest_mock import MockerFixture
 
 from pipeline.utils.dos_db import (
+    QUERY_CLINICAL_CODES,
+    get_clinical_codes,
     get_gp_endpoints,
     get_gp_practices,
     get_serviceendpoints_columns_count,
     get_services_columns_count,
-    get_services_size, get_clinical_codes, QUERY_CLINICAL_CODES,
+    get_services_size,
 )
 
 # Mock database URI
@@ -162,7 +163,7 @@ AND table_name = 'serviceendpoints';
     )
     assert result == expected_serviceendpoints_columns_count
 
-def test_returns_dataframe_with_clinical_codes(mocker: MockerFixture):
+def test_returns_dataframe_with_clinical_codes(mocker: MockerFixture)-> None:
     db_uri = "mock_db_uri"
     mock_result = pd.DataFrame({
         "serviceid": [1, 2],
@@ -177,7 +178,7 @@ def test_returns_dataframe_with_clinical_codes(mocker: MockerFixture):
     mock_read_sql.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
 
 
-def test_handles_empty_result_from_database(mocker: MockerFixture):
+def test_handles_empty_result_from_database(mocker: MockerFixture)-> None:
     db_uri = "mock_db_uri"
     mock_result = pd.DataFrame(columns=["serviceid", "sg_sd_pairs", "dispositions"])
     mock_read_sql = mocker.patch(
