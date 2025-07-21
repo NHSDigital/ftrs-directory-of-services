@@ -12,7 +12,6 @@ module "api_gateway" {
   # TODO: FDOS-370 - Setup to use mTLS or API Keys
   routes = {
     "ANY /organisation/{proxy+}" = {
-      authorization_type = var.api_gateway_authorization_type
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
