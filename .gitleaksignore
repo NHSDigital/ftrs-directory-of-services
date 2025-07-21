@@ -1,3 +1,4 @@
 # SEE: https://github.com/gitleaks/gitleaks/blob/master/README.md#gitleaksignore
 
 cd9c0efec38c5d63053dd865e5d4e207c0760d91:docs/guides/Perform_static_analysis.md:generic-api-key:37
+bbff5814c684b5d2b05619db96d302f6f6d038fc:application/packages/python/ftrs_data_layer/legacy_model.py:apikey:200
