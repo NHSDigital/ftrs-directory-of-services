@@ -5,7 +5,7 @@ import requests
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.utilities import get_base_crud_api_url, make_request
+from pipeline.utilities import get_api_key, get_base_crud_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
@@ -70,6 +70,8 @@ def process_message_and_send_request(record: dict) -> None:
         )
 
     api_url = get_base_crud_api_url() + "/Organization/" + path
+
+    api_key = get_api_key()
 
     try:
         response = make_request(
