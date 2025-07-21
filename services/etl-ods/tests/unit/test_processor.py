@@ -113,7 +113,7 @@ def test_processor_processing_organisations_successful(
     assert mock_responses.crud_org_abc123.called_once
     assert (
         mock_responses.crud_org_abc123.last_request.path
-        == "/Organization/ods_code/abc123"
+        == "/organization/ods_code/abc123"
     )
     assert (
         requests_mock.request_history[2] == mock_responses.crud_org_abc123.last_request
@@ -234,7 +234,7 @@ def test_processor_continue_on_validation_failure(
 
     # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000abc)
     assert crud_api_abc123_mock.called_once
-    assert crud_api_abc123_mock.last_request.path == "/Organization/ods_code/abc123"
+    assert crud_api_abc123_mock.last_request.path == "/organization/ods_code/abc123"
     assert requests_mock.request_history[2] == crud_api_abc123_mock.last_request
 
     # Failure for ABC123 should be logged

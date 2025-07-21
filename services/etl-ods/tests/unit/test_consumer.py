@@ -102,9 +102,9 @@ def test_consumer_lambda_handler_failure(
 @pytest.mark.parametrize(
     ("path", "body"),
     [
-        (None, {"name": "Organisation Name"}),
+        (None, {"name": "Organization Name"}),
         ("uuid", None),
-        ("", {"name": "Organisation Name"}),
+        ("", {"name": "Organization Name"}),
         ("uuid", {}),
     ],
 )
@@ -147,7 +147,7 @@ def test_process_message_and_send_request_success(
 
     record = {
         "messageId": "1",
-        "body": '"{\\"path\\": \\"uuid\\", \\"body\\": {\\"name\\": \\"Organisation Name\\"}}"',
+        "body": '"{\\"path\\": \\"uuid\\", \\"body\\": {\\"name\\": \\"Organization Name\\"}}"',
     }
 
     process_message_and_send_request(record)
@@ -158,8 +158,8 @@ def test_process_message_and_send_request_success(
     assert expected_success_log in caplog.text
 
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/Organization/uuid"
-    assert mock_call.last_request.json() == {"name": "Organisation Name"}
+    assert mock_call.last_request.path == "/organization/uuid"
+    assert mock_call.last_request.json() == {"name": "Organization Name"}
 
 
 def test_process_message_and_send_request_unprocessable(
@@ -167,7 +167,7 @@ def test_process_message_and_send_request_unprocessable(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_call = requests_mock.put(
-        "http://test-crud-api/Organization/uuid",
+        "http://test-crud-api/organization/uuid",
         json={"error": "Unprocessable Entity"},
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
     )
@@ -175,7 +175,7 @@ def test_process_message_and_send_request_unprocessable(
     record = {
         "messageId": "1",
         "path": "uuid",
-        "body": {"name": "Organisation Name"},
+        "body": {"name": "Organization Name"},
     }
 
     process_message_and_send_request(record)
@@ -202,7 +202,7 @@ def test_process_message_and_send_request_failure(
     record = {
         "messageId": "1",
         "path": "uuid",
-        "body": {"name": "Organisation Name"},
+        "body": {"name": "Organization Name"},
     }
     caplog.set_level(logging.ERROR)
 
@@ -214,4 +214,4 @@ def test_process_message_and_send_request_failure(
     )
     assert expected_failure_log in caplog.text
     assert mock_call.called_once
-    assert mock_call.last_request.path == "/Organization/uuid"
+    assert mock_call.last_request.path == "/organization/uuid"
