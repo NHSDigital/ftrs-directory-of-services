@@ -4,15 +4,10 @@ permissions:
       actions: write
       id-token: write
       contents: read
-# on:
-#   # Run daily, at 01:00.
-#   schedule:
-#     - cron: '0 1 * * *'
-
 on:
-  push:
-    branches:
-      - task/FDOS-434_Wip_cancel_workflow
+  # Run daily, at 19:00.
+  schedule:
+    - cron: '0 19 * * *'
 
 jobs:
   cancel_paused_runs:
