@@ -43,7 +43,7 @@ jobs:
     uses: ./.github/workflows/metadata.yaml
 
   quality-checks:
-    name: "Quality check"
+    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
       - metadata
     uses: ./.github/workflows/quality-checks.yaml
@@ -60,6 +60,7 @@ jobs:
       - metadata
       - quality-checks
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "account"
@@ -82,7 +83,7 @@ jobs:
     secrets: inherit
 
   manual-approval:
-    name: "Manual approval for infrastructure deployment"
+    name: "Manual approval for ${{ needs.metadata.outputs.environment }} infrastructure deployment"
     if: ${{ github.ref == 'refs/heads/main' && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
@@ -91,7 +92,7 @@ jobs:
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
       - name: Approval required
-        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+        run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
 
   apply-infrastructure:
     name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
@@ -100,6 +101,7 @@ jobs:
       - metadata
       - manual-approval
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "account"
