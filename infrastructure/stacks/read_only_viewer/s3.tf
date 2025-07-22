@@ -72,3 +72,11 @@ module "access_logging_bucket" {
   force_destroy = var.force_destroy
 
 }
+
+resource "aws_s3_bucket_ownership_controls" "access_logging_bucket_ownership_controls" {
+  bucket = module.access_logging_bucket.s3_bucket_id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
