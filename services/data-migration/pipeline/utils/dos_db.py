@@ -103,8 +103,7 @@ SELECT
     symptomdiscriminatorid,
     ARRAY_AGG(name) as synonym_value
 FROM pathwaysdos.symptomdiscriminatorsynonyms
-GROUP BY symptomdiscriminatorid
-),
+GROUP BY symptomdiscriminatorid ),
 
 -- Create a CTE for symptom group and symptom discriminator pairs
 sg_sd_pairs AS (
@@ -125,15 +124,12 @@ SELECT
     'codeType', 'Symptom Discriminator (SD)',
     'codeID', sd.id,
     'codeValue', sd.description,
-    'synonyms', syn.synonym_value
-    )
-    )::text AS sg_sd_pair
+    'synonyms', syn.synonym_value ) )::text AS sg_sd_pair
 FROM pathwaysdos.servicesgsds sgsds
     LEFT JOIN pathwaysdos.symptomgroups sg ON sgsds.sgid = sg.id
     LEFT JOIN pathwaysdos.symptomdiscriminators sd ON sgsds.sdid = sd.id
     LEFT JOIN synonyms syn ON sd.id = syn.symptomdiscriminatorid
-WHERE sgsds.sgid IS NOT NULL AND sgsds.sdid IS NOT NULL
-),
+WHERE sgsds.sgid IS NOT NULL AND sgsds.sdid IS NOT NULL ),
 
 -- Aggregate symptom group and symptom discriminator pairs by service ID
 sg_sd_aggregated AS (
@@ -141,8 +137,7 @@ SELECT
     serviceid,
     ARRAY_AGG(DISTINCT sg_sd_pair) AS sg_sd_array
 FROM sg_sd_pairs
-GROUP BY serviceid
-),
+GROUP BY serviceid ),
 
 -- Create a CTE for dispositions
 dispositions AS (
@@ -155,14 +150,12 @@ SELECT
     'codeType', 'Disposition (Dx)',
     'codeID', d.dxcode,
     'codeValue', d.name,
-    'dispositiontime', d.dispositiontime
-    )::text
-    ) AS dx_array
+    'dispositiontime', d.dispositiontime )::text ) AS dx_array
 FROM pathwaysdos.servicedispositions sd_join
     JOIN pathwaysdos.dispositions d ON sd_join.dispositionid = d.id
 WHERE d.dxcode IS NOT NULL
-GROUP BY sd_join.serviceid
-),
+GROUP BY sd_join.serviceid )
+
 -- Final query to join everything together
 SELECT
     gp.serviceid,
