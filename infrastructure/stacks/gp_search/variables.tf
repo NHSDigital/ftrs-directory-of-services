@@ -29,7 +29,7 @@ variable "commit_hash" {
   description = "The commit hash of the gp search application"
   type        = string
 }
-variable "dynamodb_organisation_table_name" {
+variable "gp_search_organisation_table_name" {
   description = "The dynamodb table name for gp search"
   type        = string
 }

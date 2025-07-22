@@ -33,7 +33,7 @@ module "lambda" {
     "ENVIRONMENT"         = var.environment
     "PROJECT_NAME"        = var.project
     "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
-    "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
+    "DYNAMODB_TABLE_NAME" = var.gp_search_organisation_table_name
   }
 }
 
@@ -69,8 +69,8 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:Query",
     ]
     resources = [
-      "${local.organisation_table_arn}/",
-      "${local.organisation_table_arn}/*"
+      "${local.gp_search_organisation_table_arn}/",
+      "${local.gp_search_organisation_table_arn}/*"
     ]
   }
 }
