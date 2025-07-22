@@ -388,6 +388,5 @@ x-nhsd-apim:
     $ref: x-nhsd-apim/target.yaml
   access:
     - title: Application-restricted with API key
-      description: Organisation api
       grants:
         app-level0: []
