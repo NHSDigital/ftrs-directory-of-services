@@ -89,3 +89,9 @@ variable "frontend_lambda_runtime" {
   type        = string
   default     = "nodejs20.x"
 }
+
+variable "access_logs_bucket_name" {
+  description = "The name of the S3 bucket for access logs"
+  type        = string
+  default     = "cloudfront-access-logs"
+}

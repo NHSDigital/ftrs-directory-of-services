@@ -63,3 +63,12 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     ]
   }
 }
+
+
+module "access_logging_bucket" {
+  source        = "../../modules/s3"
+  bucket_name   = "${local.resource_prefix}-logs-${var.access_logs_bucket_name}"
+  versioning    = var.s3_versioning
+  force_destroy = var.force_destroy
+
+}
