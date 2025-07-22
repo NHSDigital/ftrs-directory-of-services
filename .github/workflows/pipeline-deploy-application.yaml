@@ -40,7 +40,7 @@ jobs:
     uses: ./.github/workflows/metadata.yaml
 
   quality-checks:
-    name: "Quality check"
+    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
       - metadata
     uses: ./.github/workflows/quality-checks.yaml
@@ -95,7 +95,7 @@ jobs:
     secrets: inherit
 
   plan-infrastructure:
-    name: "Plan application infrastructure deployment"
+    name: "Plan ${{ needs.metadata.outputs.environment }} application infrastructure deployment"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-protected"
       cancel-in-progress: false
@@ -115,7 +115,7 @@ jobs:
     secrets: inherit
 
   manual-approval:
-    name: "Manual approval for deployment deployment"
+    name: "Manual approval for ${{ needs.metadata.outputs.environment }} deployment"
     if: ${{ needs.plan-infrastructure.outputs.plan_result == 'true' }}
     needs:
       - metadata
@@ -124,10 +124,10 @@ jobs:
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
       - name: Approval required
-        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+        run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
 
   apply-infrastructure:
-    name: "Apply application infrastructure"
+    name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-protected"
       cancel-in-progress: false
@@ -147,7 +147,7 @@ jobs:
     secrets: inherit
 
   deploy-read-only-viewer-service:
-    name: "Deploy read only viewer service"
+    name: "Deploy read only viewer service to ${{ needs.metadata.outputs.environment }}"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-protected"
       cancel-in-progress: false
@@ -168,7 +168,7 @@ jobs:
     secrets: inherit
 
   service-automation-tests:
-    name: Run service automation tests
+    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
       - apply-infrastructure
