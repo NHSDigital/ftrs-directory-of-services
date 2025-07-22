@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
       "dynamodb:DescribeTable",
     ]
     resources = [
-      data.aws_dynamodb_table.dynamodb_organisation_table.arn,
+      local.organisation_table_arn
     ]
   }
 }

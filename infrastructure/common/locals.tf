@@ -19,6 +19,8 @@ locals {
     }
   }
 
+  organisation_table_arn = local.dynamodb_tables["organisation"].arn
+
   domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
 
   env_domain_name = "${var.environment}.${var.root_domain_name}"
