@@ -10,6 +10,7 @@ from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 
 from pipeline.utils.dos_db import (
+    QUERY_CLINICAL_CODES,
     QUERY_GP_ENDPOINTS,
     QUERY_GP_PRACTICE,
     QUERY_GP_SERVICEDAYOPENINGTIMES,
@@ -19,6 +20,7 @@ from pipeline.utils.dos_db import (
     QUERY_SERVICES_SIZE,
 )
 from tests.util.stub_data import (
+    mock_clinical_code_df,
     mock_gp_endpoints_df,
     mock_gp_practices_df,
     mock_service_endpoint_columns_df,
@@ -44,6 +46,7 @@ class StubData:
             QUERY_SERVICEENDPOINTS_COLUMNS: mock_service_endpoint_columns_df.copy(),
             QUERY_GP_SERVICEDAYOPENINGTIMES: mock_service_opening_times_df.copy(),
             QUERY_GP_SERVICESPECIFIEDOPENINGTIMES: mock_service_specified_opening_times_df.copy(),
+            QUERY_CLINICAL_CODES: mock_clinical_code_df.copy(),
         }
 
     def set_query_result(self, query: str, result: pd.DataFrame) -> None:
