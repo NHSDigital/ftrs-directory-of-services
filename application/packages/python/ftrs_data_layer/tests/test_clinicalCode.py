@@ -3,8 +3,6 @@ from json import JSONDecodeError
 import numpy as np
 import pydantic_core
 import pytest
-from moto.iam.exceptions import ValidationError
-
 from ftrs_data_layer.domain.clinicalCode import ClinicalCodeConverter
 
 
@@ -17,7 +15,9 @@ def test_converts_valid_sg_sd_pair_string() -> None:
 
 def test_raises_error_for_invalid_json_string() -> None:
     sg_sd_pair = '{"sg": {"id": "1", "source": "pathways", "codeType": "Symptom Group (SG)", "codeID": 101, "codeValue": "SG1", "zCodeExists": true}, "sd": {"id": "2", "source": "pathways", "codeType": "Symptom Discriminator (SD)", "codeID": 201, "codeValue": "SD1", "synonyms": ["syn1", "syn2"]}'
-    with pytest.raises(JSONDecodeError, match="Expecting ',' delimiter: line 1 column 279"):
+    with pytest.raises(
+        JSONDecodeError, match="Expecting ',' delimiter: line 1 column 279"
+    ):
         ClinicalCodeConverter.convert_sg_sd_pair(sg_sd_pair)
 
 
@@ -29,13 +29,17 @@ def test_raises_error_for_missing_sg_or_sd() -> None:
 
 def test_raises_error_for_invalid_codeType_in_sg() -> None:
     sg_sd_pair = '{"sg": {"id": "1", "source": "pathways", "codeType": "Invalid Type", "codeID": 101, "codeValue": "SG1", "zCodeExists": true}, "sd": {"id": "2", "source": "pathways", "codeType": "Symptom Discriminator (SD)", "codeID": 201, "codeValue": "SD1", "synonyms": ["syn1", "syn2"]}}'
-    with pytest.raises(TypeError, match="Invalid codeType for symptom group:Invalid Type"):
+    with pytest.raises(
+        TypeError, match="Invalid codeType for symptom group:Invalid Type"
+    ):
         ClinicalCodeConverter.convert_sg_sd_pair(sg_sd_pair)
 
 
 def test_raises_error_for_invalid_codeType_in_sd() -> None:
     sg_sd_pair = '{"sg": {"id": "1", "source": "pathways", "codeType": "Symptom Group (SG)", "codeID": 101, "codeValue": "SG1", "zCodeExists": true}, "sd": {"id": "2", "source": "pathways", "codeType": "Invalid Type", "codeID": 201, "codeValue": "SD1", "synonyms": ["syn1", "syn2"]}}'
-    with pytest.raises(TypeError, match="Invalid codeType for symptom discriminator:Invalid Type"):
+    with pytest.raises(
+        TypeError, match="Invalid codeType for symptom discriminator:Invalid Type"
+    ):
         ClinicalCodeConverter.convert_sg_sd_pair(sg_sd_pair)
 
 
@@ -73,7 +77,9 @@ def test_converts_valid_dispositions_ndarray() -> None:
 
 def test_raises_error_for_invalid_json_string_in_dispositions() -> None:
     dispositions = '[{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "time": 10}'
-    with pytest.raises(JSONDecodeError, match="Expecting ',' delimiter: line 1 column 114"):
+    with pytest.raises(
+        JSONDecodeError, match="Expecting ',' delimiter: line 1 column 114"
+    ):
         ClinicalCodeConverter.convert_dispositions(dispositions)
 
 
@@ -85,5 +91,8 @@ def test_raises_error_for_invalid_disposition_format() -> None:
 
 def test_raises_error_for_missing_required_fields_in_disposition() -> None:
     dispositions = '[{"source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1"}]'
-    with pytest.raises(pydantic_core._pydantic_core.ValidationError, match="1 validation error for Disposition"):
+    with pytest.raises(
+        pydantic_core._pydantic_core.ValidationError,
+        match="1 validation error for Disposition",
+    ):
         ClinicalCodeConverter.convert_dispositions(dispositions)
