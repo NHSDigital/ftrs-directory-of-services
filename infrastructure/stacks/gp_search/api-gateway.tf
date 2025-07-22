@@ -20,8 +20,7 @@ resource "aws_api_gateway_deployment" "deployment" {
 }
 
 resource "aws_api_gateway_stage" "stage" {
-  depends_on = [aws_cloudwatch_log_group.api_gateway_execution_logs]
-
+  depends_on           = [aws_cloudwatch_log_group.api_gateway_execution_logs]
   deployment_id        = aws_api_gateway_deployment.deployment.id
   rest_api_id          = module.search_rest_api.rest_api_id
   stage_name           = "default"
@@ -34,15 +33,12 @@ resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
 }
 
 resource "aws_api_gateway_domain_name" "api_custom_domain" {
-  domain_name = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-
+  domain_name              = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
   regional_certificate_arn = data.aws_acm_certificate.domain_cert.arn
+  security_policy          = "TLS_1_2"
   endpoint_configuration {
     types = ["REGIONAL"]
   }
-
-  security_policy = "TLS_1_2"
-
   mutual_tls_authentication {
     truststore_uri = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
   }
