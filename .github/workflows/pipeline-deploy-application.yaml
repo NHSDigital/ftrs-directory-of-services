@@ -51,16 +51,33 @@ jobs:
       type: app
     secrets: inherit
 
+  build-python-services:
+    name: "Build python services"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: "python"
+      build_type: "package"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      type: app
+    secrets: inherit
+
   build-services:
     name: "Build ${{ matrix.name }}"
     needs:
       - metadata
       - quality-checks
+      - build-python-services
     strategy:
       matrix:
         include:
-          - name: "python"
-            build_type: "package"
           - name: "crud-apis"
             build_type: "service"
           - name: "data-migration"
