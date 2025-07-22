@@ -1,6 +1,6 @@
 type: external
     healthcheck: /_status
-    url: https://crud-sia-647.dev.ftrs.cloud.nhs.uk
+    url: https://crud.dev.ftrs.cloud.nhs.uk
     security:
       type: mtls
       secret: uec-dos-ingestion-api-mtls-secret
