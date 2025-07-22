@@ -4,7 +4,6 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel
-from sqlalchemy import false
 
 INVALID_DISPOSITION_ITEM = "Each disposition item must be a JSON object"
 INVALID_SG_SD_PAIR = "Both 'sg' and 'sd' components are required in the pair"
@@ -31,7 +30,7 @@ class BaseClinicalCode(BaseModel):
 
 
 class SymptomGroup(BaseClinicalCode):
-    zCodeExists: bool | None = false
+    zCodeExists: bool | None = False
 
 
 class SymptomDiscriminator(BaseClinicalCode):
