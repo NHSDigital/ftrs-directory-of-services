@@ -37,15 +37,6 @@ module "lambda" {
   }
 }
 
-resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
-  security_group_id = aws_security_group.gp_search_lambda_security_group.id
-  from_port         = "443"
-  to_port           = "443"
-  ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
-  description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
-}
-
 module "search_api_gateway_permissions" {
   source = "../../modules/api-gateway-permissions"
 
