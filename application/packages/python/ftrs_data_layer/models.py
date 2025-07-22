@@ -262,7 +262,7 @@ class HealthcareService(DBModel):
     telecom: Telecom | None
     openingTime: list[OpeningTime] | None
     symptomGroupSymptomDiscriminator: SymptomGroupSymptomDiscriminatorPair | None = None
-    dispositions: list[Disposition] | None
+    dispositions: list[Disposition] | None = None
 
     @classmethod
     def from_dos(  # noqa: PLR0913
