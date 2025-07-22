@@ -6,7 +6,9 @@ ddb_export_bucket_name                  = "ddb-export"
 s3_versioning                           = true
 ddb_export_s3_prefix                    = "ddb-to-opensearch-export/"
 dynamodb_table_names_for_opensearch = [
-  "organisation"
+  "organisation",
+  "healthcare-service",
+  "location"
 ]
 osis_pipeline_cloudwatch_log_group_name = "/aws/vendedlogs/OpenSearchIngestion/dynamodb-to-os"
 max_sink_retries                        = 1
