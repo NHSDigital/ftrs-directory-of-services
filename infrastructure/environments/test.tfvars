@@ -23,5 +23,4 @@ sso_roles = [
   "AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
 ]
 
-enable_flow_log              = true
-flow_logs_s3_expiration_days = 10
+enable_flow_log = true
