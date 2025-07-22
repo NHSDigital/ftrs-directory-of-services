@@ -25,3 +25,5 @@ sso_roles = [
 
 enable_flow_log           = true
 flow_log_s3_force_destroy = true
+
+gp_search_organisation_table_name = "organisation-is"

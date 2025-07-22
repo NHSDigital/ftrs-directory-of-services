@@ -24,7 +24,7 @@ module "health_check_lambda" {
     "ENVIRONMENT"         = var.environment
     "PROJECT_NAME"        = var.project
     "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
-    "DYNAMODB_TABLE_NAME" = var.dynamodb_organisation_table_name
+    "DYNAMODB_TABLE_NAME" = "${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
   }
 }
 
@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
       "dynamodb:DescribeTable",
     ]
     resources = [
-      data.aws_dynamodb_table.dynamodb_organisation_table.arn,
+      local.gp_search_organisation_table_arn
     ]
   }
 }
