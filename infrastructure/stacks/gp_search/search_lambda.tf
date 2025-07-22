@@ -33,7 +33,7 @@ module "lambda" {
     "ENVIRONMENT"         = var.environment
     "PROJECT_NAME"        = var.project
     "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
-    "DYNAMODB_TABLE_NAME" = var.gp_search_organisation_table_name
+    "DYNAMODB_TABLE_NAME" = "${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
   }
 }
 
