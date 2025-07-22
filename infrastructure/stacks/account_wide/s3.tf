@@ -9,7 +9,7 @@ module "vpc_flow_logs_s3_bucket" {
       id      = "delete_logs_older_than_x_days"
       enabled = true
       filter = {
-        prefix = "/"
+        prefix = ""
       }
       expiration = {
         days = var.flow_logs_s3_expiration_days
@@ -62,7 +62,7 @@ module "subnet_flow_logs_s3_bucket" {
       id      = "delete_logs_older_than_x_days"
       enabled = true
       filter = {
-        prefix = "/"
+        prefix = ""
       }
       expiration = {
         days = var.flow_logs_s3_expiration_days

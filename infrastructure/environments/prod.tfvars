@@ -24,4 +24,5 @@ sso_roles = [
 ]
 
 enable_flow_log              = true
+flow_log_s3_force_destroy    = false
 flow_logs_s3_expiration_days = 30
