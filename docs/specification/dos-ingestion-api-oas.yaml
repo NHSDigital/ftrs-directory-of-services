@@ -106,10 +106,12 @@ info:
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
   version: 1.0.0
 servers:
-  - url: TBC
+  - url: 'https://internal-dev.api.service.nhs.uk/dos-ingestion/FHIR/R4'
 paths:
-  '/Organization':
+  '/Organization/':
     post:
+      security:
+        - app-level0: []
       summary: Create a new Organization
       description: Create a new Organization resource.
       parameters:
@@ -152,6 +154,8 @@ paths:
                 $ref: '#/components/schemas/OperationOutcome'
   '/Organization/{id}':
     put:
+      security:
+        - app-level0: []
       summary: Update/overwrite an Organization resource
       description: Update or overwrite an existing Organization resource by ID.
       parameters:
@@ -376,3 +380,14 @@ components:
               diagnostics:
                 type: string
                 example: 'Invalid resource.'
+  securitySchemes:
+    app-level0:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level0
+x-nhsd-apim:
+  target:
+    $ref: x-nhsd-apim/target.yaml
+  access:
+    - title: Application-restricted with API key
+      description: Organisation api
+      grants:
+        app-level0: []
