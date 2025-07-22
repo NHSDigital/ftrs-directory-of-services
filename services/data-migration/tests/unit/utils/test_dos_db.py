@@ -163,29 +163,26 @@ AND table_name = 'serviceendpoints';
     )
     assert result == expected_serviceendpoints_columns_count
 
-def test_returns_dataframe_with_clinical_codes(mocker: MockerFixture)-> None:
+
+def test_returns_dataframe_with_clinical_codes(mocker: MockerFixture) -> None:
     db_uri = "mock_db_uri"
-    mock_result = pd.DataFrame({
-        "serviceid": [1, 2],
-        "sg_sd_pairs": [["pair1", "pair2"], ["pair3"]],
-        "dispositions": [["disposition1"], ["disposition2", "disposition3"]]
-    })
-    mock_read_sql = mocker.patch(
-        "pandas.read_sql", return_value=mock_result
+    mock_result = pd.DataFrame(
+        {
+            "serviceid": [1, 2],
+            "sg_sd_pairs": [["pair1", "pair2"], ["pair3"]],
+            "dispositions": [["disposition1"], ["disposition2", "disposition3"]],
+        }
     )
+    mock_read_sql = mocker.patch("pandas.read_sql", return_value=mock_result)
     result = get_clinical_codes(db_uri)
     assert result.equals(mock_result)
     mock_read_sql.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
 
 
-def test_handles_empty_result_from_database(mocker: MockerFixture)-> None:
+def test_handles_empty_result_from_database(mocker: MockerFixture) -> None:
     db_uri = "mock_db_uri"
     mock_result = pd.DataFrame(columns=["serviceid", "sg_sd_pairs", "dispositions"])
-    mock_read_sql = mocker.patch(
-        "pandas.read_sql", return_value= mock_result
-    )
+    mock_read_sql = mocker.patch("pandas.read_sql", return_value=mock_result)
     result = get_clinical_codes(db_uri)
     assert result.empty
     mock_read_sql.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
-
-
