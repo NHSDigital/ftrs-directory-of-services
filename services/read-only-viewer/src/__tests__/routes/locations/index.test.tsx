@@ -30,22 +30,44 @@ describe("Location Index Route", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Check table headers
-    expect(screen.getByText("Street")).toBeInTheDocument();
-    expect(screen.getByText("Town")).toBeInTheDocument();
-    expect(screen.getByText("Postcode")).toBeInTheDocument();
+    const heading = app.getByText("Locations", { selector: "h1" });
+    expect(heading).toBeInTheDocument();
 
-    // Check data rows
-    expect(screen.getByText("123 Main St")).toBeInTheDocument();
-    expect(screen.getByText("Test Town")).toBeInTheDocument();
-    expect(screen.getByText("AB12 3CD")).toBeInTheDocument();
+    const table = app.container.querySelector("table.nhsuk-table")!;
+    expect(table).toBeInTheDocument();
 
-    expect(screen.getByText("321 Secondary St, Borough")).toBeInTheDocument();
-    expect(screen.getByText("Second Town")).toBeInTheDocument();
-    expect(screen.getByText("YZ12 3VX")).toBeInTheDocument();
+    const headings = table.querySelectorAll("th");
+    expect(headings.length).toBe(3);
+    expect(headings[0].textContent).toBe("Street");
+    expect(headings[1].textContent).toBe("Town");
+    expect(headings[2].textContent).toBe("Postcode");
+
+    const rows = table.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(2);
+
+    const firstRowCells = rows[0].querySelectorAll("td");
+    expect(firstRowCells.length).toBe(3);
+
+    expect(firstRowCells[0].textContent).toBe("123 Main St");
+    expect(firstRowCells[0].querySelector("a")).toHaveAttribute(
+      "href",
+      "/locations/l2f1d47c-a72b-431c-ad99-5e943d450f65",
+    );
+    expect(firstRowCells[1].textContent).toBe("Test Town");
+    expect(firstRowCells[2].textContent).toBe("AB12 3CD");
+
+    const secondRowCells = rows[1].querySelectorAll("td");
+    expect(secondRowCells.length).toBe(3);
+    expect(secondRowCells[0].textContent).toBe("321 Secondary St, Borough");
+    expect(secondRowCells[0].querySelector("a")).toHaveAttribute(
+      "href",
+      "/locations/g6f1d47c-a72b-431c-ad99-5e943d450f777",
+    );
+    expect(secondRowCells[1].textContent).toBe("Second Town");
+    expect(secondRowCells[2].textContent).toBe("YZ12 3VX");
   });
 
-  it("should handle error state", async () => {
+  it("should handle errors gracefully", async () => {
     server.use(
       http.get(
         "/api/location",
