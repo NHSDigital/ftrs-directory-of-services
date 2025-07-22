@@ -9,6 +9,3 @@ health_check_lambda_name = "health-check-lambda"
 lambda_runtime     = "python3.12"
 lambda_timeout     = 900
 lambda_memory_size = 512
-
-#DynamoDB
-dynamodb_organisation_table_name = "ftrs-dos-dev-database-organisation-is"
