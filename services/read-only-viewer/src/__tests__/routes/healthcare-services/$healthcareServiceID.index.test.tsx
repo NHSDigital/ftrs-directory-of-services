@@ -71,7 +71,7 @@ describe("HealthCareServiceDetailsRoute", () => {
         value:
           "763fdc39-1e9f-4e3d-bb69-9d1e398d0fdc (View Provider Organisation)",
       },
-      { key: "Location", value: "location-1" },
+      { key: "Location", value: "location-1 (View Location)" },
       { key: "Category", value: "Not Specified" },
       { key: "Opening Times", value: "AvailableTimemon 09:00 - 17:00" },
       { key: "Created By", value: "user3 (2023-01-03T00:00:00Z)" },

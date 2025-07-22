@@ -50,7 +50,17 @@ const HealthCareServiceOverview: React.FC<{
           },
           {
             key: "Location",
-            value: healthcareService.location || "Not Specified",
+            value: healthcareService.location ? (
+              <Link
+                to="/locations/$locationID"
+                params={{ locationID: healthcareService.location }}
+                className="nhsuk-link nhsuk-link--no-visited-state"
+              >
+                {healthcareService.location} (View Location)
+              </Link>
+            ) : (
+              "Not Specified"
+            ),
           },
           {
             key: "Category",

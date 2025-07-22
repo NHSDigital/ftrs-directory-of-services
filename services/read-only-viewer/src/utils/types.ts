@@ -106,7 +106,7 @@ const positionGCS = zod.object({
 export const locationSchema = zod.object({
   id: zod.string().uuid(),
   active: zod.boolean(),
-  managedByOrganisation: zod.string().uuid(),
+  managingOrganisation: zod.string().uuid(),
   address: address,
   name: zod.string(),
   positionGCS: positionGCS,
