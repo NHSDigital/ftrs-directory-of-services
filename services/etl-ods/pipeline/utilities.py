@@ -35,6 +35,17 @@ def get_base_crud_api_url() -> str:
     return get_parameter(name=parameter_path)
 
 
+# will need to change to fit different branches
+@cache
+def get_base_fhir_api_url() -> str:
+    env = os.environ.get("ENVIRONMENT", "local")
+
+    if env == "local":
+        return os.environ["LOCAL_FHIR_API_URL"]
+
+    return f"https://internal-{env}.api.service.nhs.uk/dos-ingestion/FHIR/R4"
+
+
 def get_api_key() -> str:
     env = os.environ.get("ENVIRONMENT")
 
