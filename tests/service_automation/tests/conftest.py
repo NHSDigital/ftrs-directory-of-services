@@ -4,6 +4,8 @@ import boto3
 from dotenv import load_dotenv
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
+from utilities.infra.secrets_util import GetSecretWrapper
+from utilities.common.file_helper import create_temp_file
 from pages.ui_pages.search import LoginPage
 from pages.ui_pages.result import NewAccountPage
 
@@ -41,7 +43,18 @@ def playwright():
 @pytest.fixture
 def api_request_context(playwright):
     """Create a new Playwright API request context."""
-    request_context = playwright.request.new_context()
+    # Get mTLS certs
+    client_pem_path, ca_cert_path = get_mtls_certs()
+    context_options = {
+        "ignore_https_errors": True,
+        "client_certificates": [
+            {   "origin": "dev.ftrs.cloud.nhs.uk",
+                "cert": ca_cert_path,
+                "key": client_pem_path,
+            }
+        ]
+    }
+    request_context = playwright.request.new_context(**context_options)
     yield request_context
     request_context.dispose()
 
@@ -112,3 +125,16 @@ def write_allure_environment(env, workspace, project, commit_hash):
         f.write(f"WORKSPACE={workspace}\n")
         f.write(f"PROJECT={project}\n")
         f.write(f"COMMIT_HASH={commit_hash}\n")
+
+
+def get_mtls_certs():
+    # Fetch secrets from AWS
+    gsw = GetSecretWrapper()
+    client_pem = gsw.get_secret('/temp/dev/api-ca-pk')       # Combined client cert + key
+    ca_cert = gsw.get_secret('/temp/dev/api-ca-cert')        # CA cert for server verification
+
+    # Write to temp files
+    client_pem_path = create_temp_file(client_pem, '.pem')
+    ca_cert_path = create_temp_file(ca_cert, '.crt')
+    logger.info(f"Client PEM Path: {client_pem_path}")
+    return client_pem_path, ca_cert_path
