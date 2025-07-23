@@ -437,7 +437,7 @@ def test_get_api_key_returns_value_from_json_secret(
     }
 
     api_key = get_api_key()
-    expected_secret_name = "/ftrs-dos-dev-etl_ods-test-workspace/apim_api_key"
+    expected_secret_name = "/ftrs-dos-dev-etl_ods-test-workspace/apim-api-key"
     mock_secretsmanager.get_secret_value.assert_called_once_with(
         SecretId=expected_secret_name
     )
