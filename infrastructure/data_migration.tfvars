@@ -4,7 +4,7 @@ migration_pipeline_store_bucket_name = "pipeline-store"
 s3_versioning                        = false
 
 source_rds_database = "data_migration"
-target_rds_database = "Core"
+target_rds_database = "dos"
 rds_port            = 5432
 rds_engine          = "aurora-postgresql"
 rds_engine_version  = "16.6"
@@ -32,3 +32,9 @@ aws_lambda_layers = [
 
 data_migration_rds_min_capacity = 1
 data_migration_rds_max_capacity = 1
+
+dms_replication_instance_class = "dms.t3.micro"
+dms_engine                     = "aurora-postgresql"
+dms_allocated_storage          = 50
+migration_type                 = "full-load-and-cdc"
+rds_event_listener_name        = "rds-event-listener"

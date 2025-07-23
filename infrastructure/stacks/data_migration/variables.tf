@@ -132,3 +132,27 @@ variable "load_lambda_handler" {
   description = "The handler for the load Lambda function"
   type        = string
 }
+
+variable "dms_replication_instance_class" {
+  description = "The instance class for the DMS replication instance"
+  type        = string
+}
+
+variable "dms_engine" {
+  description = "The engine for the DMS replication instance"
+  type        = string
+}
+
+variable "dms_allocated_storage" {
+  description = "The allocated storage for the DMS replication instance"
+  type        = number
+}
+
+variable "migration_type" {
+  description = "The type of migration for DMS"
+  type        = string
+}
+
+variable "rds_event_listener_name" {
+  description = "The name of the RDS event listener Lambda function"
+}
