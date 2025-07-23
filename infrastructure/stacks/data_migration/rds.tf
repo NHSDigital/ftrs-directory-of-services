@@ -132,7 +132,7 @@ module "rds_replication" {
 
   final_snapshot_identifier = "${local.resource_prefix}-rds-etl"
 
-  # deletion_protection = true
+  deletion_protection = true
 }
 
 resource "aws_rds_cluster_role_association" "rds_associate_lambda_role" {
@@ -144,6 +144,8 @@ resource "aws_rds_cluster_role_association" "rds_associate_lambda_role" {
 }
 
 resource "null_resource" "create_dms_user" {
+  count = local.deploy_databases ? 1 : 0
+
   provisioner "local-exec" {
     command = <<EOT
       PGPASSWORD='${data.aws_secretsmanager_secret_version.rds_password.secret_string}' psql \
@@ -167,6 +169,8 @@ resource "null_resource" "create_dms_user" {
 }
 
 resource "null_resource" "create_dms_trigger" {
+  count = local.deploy_databases ? 1 : 0
+
   provisioner "local-exec" {
     environment = {
       PGPASSWORD = data.aws_secretsmanager_secret_version.rds_password.secret_string
@@ -176,7 +180,6 @@ resource "null_resource" "create_dms_trigger" {
       set -euo pipefail
 
       # Generate the SQL trigger file from template
-
       echo '${templatefile("${path.module}/templates/trigger.sql.tmpl", {
     user       = data.aws_secretsmanager_secret_version.rds_username.secret_string
     table_name = "pathwaysdos.services",
@@ -194,5 +197,5 @@ resource "null_resource" "create_dms_trigger" {
     EOT
 }
 
-depends_on = [aws_dms_replication_instance.dms_replication_instance, module.rds_replication[0].cluster_endpoint]
+depends_on = [aws_dms_replication_instance.dms_replication_instance, module.rds_replication[0]]
 }

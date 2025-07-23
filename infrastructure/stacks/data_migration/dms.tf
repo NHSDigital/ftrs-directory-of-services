@@ -1,5 +1,5 @@
 resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
-  count = local.deploy_databases && (var.environment == "dev" || var.environment == "test") ? 1 : 0
+  count = local.deploy_databases ? 1 : 0
 
   replication_subnet_group_id          = "${local.resource_prefix}-etl-replication-subnet-group"
   replication_subnet_group_description = "Subnet group for DMS ETL replication instance"
@@ -7,7 +7,7 @@ resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
 }
 
 resource "aws_dms_replication_instance" "dms_replication_instance" {
-  count = local.deploy_databases && (var.environment == "dev" || var.environment == "test") ? 1 : 0
+  count = local.deploy_databases ? 1 : 0
 
   replication_instance_id     = "${local.resource_prefix}-etl-replication-instance"
   replication_instance_class  = var.dms_replication_instance_class
@@ -17,7 +17,7 @@ resource "aws_dms_replication_instance" "dms_replication_instance" {
 }
 
 resource "aws_dms_endpoint" "dms_source_endpoint" {
-  count = local.deploy_databases && (var.environment == "dev" || var.environment == "test") ? 1 : 0
+  count = local.deploy_databases ? 1 : 0
 
   endpoint_id   = "${local.resource_prefix}-etl-live-source"
   endpoint_type = "source"
@@ -30,7 +30,7 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
 }
 
 resource "aws_dms_endpoint" "dms_target_endpoint" {
-  count = local.deploy_databases && (var.environment == "dev" || var.environment == "test") ? 1 : 0
+  count = local.deploy_databases ? 1 : 0
 
   endpoint_id   = "${local.resource_prefix}-etl-copy-target"
   endpoint_type = "target"
@@ -43,14 +43,14 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
 }
 
 resource "aws_dms_replication_task" "dms_replication_task" {
-  count = local.deploy_databases && (var.environment == "dev" || var.environment == "test") ? 1 : 0
+  count = local.deploy_databases ? 1 : 0
 
   replication_task_id      = "${local.resource_prefix}-etl-replication-task"
   migration_type           = var.migration_type
   replication_instance_arn = aws_dms_replication_instance.dms_replication_instance[0].replication_instance_arn
   source_endpoint_arn      = aws_dms_endpoint.dms_source_endpoint[0].endpoint_arn
   target_endpoint_arn      = aws_dms_endpoint.dms_target_endpoint[0].endpoint_arn
-  table_mappings           = file("table-mappings.json")
+  table_mappings           = file("${path.module}/templates/table-mappings.json")
 
   replication_task_settings = jsonencode({
     Logging = {
