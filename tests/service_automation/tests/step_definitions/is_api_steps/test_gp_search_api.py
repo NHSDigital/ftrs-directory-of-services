@@ -6,6 +6,7 @@ from utilities.infra.api_util import get_url, get_r53
 from utilities.infra.dns_util import wait_for_dns
 from utilities.infra.secrets_util import GetSecretWrapper
 from utilities.common.file_helper import create_temp_file
+from loguru import logger
 
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")
@@ -34,10 +35,14 @@ def send_get_with_params(
 
     # # Get mTLS certs
     # client_pem_path, ca_cert_path = get_mtls_certs()
-
-    response = api_request_context().get(
+    logger.info(f"URL: {url}")
+    logger.info(f"Params: {param_dict}")
+    response = api_request_context.get(
             url,  params=param_dict
         )
+    logger.info(f"URL: {url}")
+    logger.info(f"Params: {param_dict}")
+    logger.info(f"Response: {response.status_code} - {response.text}")
     return response
 
 

@@ -44,16 +44,17 @@ def playwright():
 def api_request_context(playwright):
     """Create a new Playwright API request context."""
     # Get mTLS certs
-    client_pem_path, ca_cert_path = get_mtls_certs()
+    # client_pem_path, ca_cert_path = get_mtls_certs()
     context_options = {
         "ignore_https_errors": True,
         "client_certificates": [
-            {   "origin": "dev.ftrs.cloud.nhs.uk",
-                "cert": ca_cert_path,
-                "key": client_pem_path,
+            {   "origin": "https://servicesearch-dosis-16711.dev.ftrs.cloud.nhs.uk",
+                "certPath": "tests/cert.crt",
+                "keyPath": "tests/key.pem",
             }
         ]
     }
+    logger.info(f"Creating API request context with options: {context_options}")
     request_context = playwright.request.new_context(**context_options)
     yield request_context
     request_context.dispose()

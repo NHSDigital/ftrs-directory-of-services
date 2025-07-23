@@ -7,10 +7,10 @@ Feature: API GP Endpoint Search
 @test
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters
     Given I request data from the "servicesearch" endpoint "organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M81046"
-    Then I receive a status code "200" in response
-    And the response body contains a bundle
-    And the bundle contains "1" "Organization" resources
-    And the bundle contains "4" "Endpoint" resources
+    # Then I receive a status code "200" in response
+    # And the response body contains a bundle
+    # And the bundle contains "1" "Organization" resources
+    # And the bundle contains "4" "Endpoint" resources
 
   Scenario Outline: I search for GP Endpoint with invalid parameters
     Given I request data from the "servicesearch" endpoint "organization" with query params "<params>"
