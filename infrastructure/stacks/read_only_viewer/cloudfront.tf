@@ -88,6 +88,6 @@ module "read_only_viewer_cloudfront" {
   logging_config = {
     include_cookies = false
     bucket          = module.access_logging_bucket.s3_bucket_bucket_domain_name
-    prefix          = "cloudfront"
+    prefix          = var.access_logs_prefix
   }
 }

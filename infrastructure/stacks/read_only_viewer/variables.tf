@@ -95,3 +95,15 @@ variable "access_logs_bucket_name" {
   type        = string
   default     = "cf-access-logs"
 }
+
+variable "force_destroy_access_logging_bucket" {
+  description = "Whether to forcefully destroy the bucket when it contains objects"
+  type        = bool
+  default     = false
+}
+
+variable "access_logs_prefix" {
+  description = "The prefix for the access logs in the S3 bucket"
+  type        = string
+  default     = "cloudfront"
+}

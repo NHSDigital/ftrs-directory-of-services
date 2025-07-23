@@ -64,13 +64,11 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
   }
 }
 
-
 module "access_logging_bucket" {
   source        = "../../modules/s3"
   bucket_name   = "${local.resource_prefix}-${var.access_logs_bucket_name}"
   versioning    = var.s3_versioning
-  force_destroy = var.force_destroy
-
+  force_destroy = var.force_destroy_access_logging_bucket
 }
 
 data "aws_iam_policy_document" "access_logging_bucket_policy" {
@@ -99,7 +97,6 @@ data "aws_iam_policy_document" "access_logging_bucket_policy" {
       type = "AWS"
       identifiers = [
         data.aws_iam_role.app_github_runner_iam_role.arn,
-        "arn:aws:iam::${data.aws_ssm_parameter.dos_aws_account_id_mgmt.value}:role/${var.repo_name}-${var.app_github_runner_role_name}"
       ]
     }
 
@@ -118,5 +115,23 @@ resource "aws_s3_bucket_ownership_controls" "access_logging_bucket_ownership_con
 
   rule {
     object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "access_logs_lifecycle" {
+  bucket = module.access_logging_bucket.s3_bucket_id
+
+  rule {
+    id     = "expire-logs-after-30-days"
+    status = "Enabled"
+
+    filter {
+      prefix = var.access_logs_prefix
+    }
+
+    expiration {
+      days = 30
+    }
+
   }
 }
