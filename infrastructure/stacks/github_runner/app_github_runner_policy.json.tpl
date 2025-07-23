@@ -26,6 +26,17 @@
             "Resource": "*"
         },
         {
+            "Sid": "AllowRDSServiceLinkedRoleCreation",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                "iam:AWSServiceName": "rds.amazonaws.com"
+                }
+            }
+        },
+        {
             "Sid": "ManagementFullAccess",
             "Effect": "Allow",
             "Action": [
@@ -45,6 +56,17 @@
                 "secretsmanager:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "AllowOpenSearchServiceLinkedRoleCreation",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                "iam:AWSServiceName": "osis.amazonaws.com"
+                }
+            }
         },
         {
             "Sid": "MonitoringFullAccess",
