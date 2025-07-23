@@ -44,7 +44,7 @@ class EndpointMapper:
         payload_type = self._create_payload_type(endpoint_value)
         payload_mime_type = self._create_payload_mime_type(endpoint_value)
         address = self._create_address(endpoint_value)
-        header = self._create_header(endpoint_value)
+        extension = self._create_extensions(endpoint_value)
 
         endpoint = Endpoint.model_validate(
             {
@@ -55,7 +55,7 @@ class EndpointMapper:
                 "payloadType": payload_type,
                 "payloadMimeType": payload_mime_type,
                 "address": address,
-                "header": header,
+                "extension": extension,
             }
         )
 
@@ -106,20 +106,41 @@ class EndpointMapper:
 
         return [self.PAYLOAD_MIME_TYPE_BY_FORMAT_MAP[format_value]]
 
-    def _create_header(self, endpoint_value: EndpointValue) -> list[str]:
-        header_data = {
-            "order": endpoint_value.order,
-            "is_compression_enabled": endpoint_value.isCompressionEnabled,
-            "business_scenario": endpoint_value.description,
+    def _create_extensions(self, endpoint_value: EndpointValue) -> list[dict]:
+        extensions = []
+
+        if endpoint_value.order is not None:
+            extensions.append(self._create_order_extension(endpoint_value.order))
+
+        if endpoint_value.isCompressionEnabled is not None:
+            extensions.append(
+                self._create_compression_extension(endpoint_value.isCompressionEnabled)
+            )
+
+        if endpoint_value.description is not None:
+            extensions.append(
+                self._create_business_scenario_extension(endpoint_value.description)
+            )
+
+        return extensions
+
+    def _create_order_extension(self, order: int) -> dict:
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder",
+            "valueInteger": order,
         }
 
-        headers = [
-            f"header_{key} {value}"
-            for key, value in header_data.items()
-            if value is not None
-        ]
+    def _create_compression_extension(self, is_compression_enabled: bool) -> dict:
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression",
+            "valueBoolean": is_compression_enabled,
+        }
 
-        return headers
+    def _create_business_scenario_extension(self, business_scenario: str) -> dict:
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
+            "valueCode": business_scenario,
+        }
 
     def _create_connection_type(self, endpoint_value: EndpointValue) -> Coding | None:
         db_conn_type = endpoint_value.connectionType.lower()
