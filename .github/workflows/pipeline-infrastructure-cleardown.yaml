@@ -37,7 +37,7 @@ jobs:
     uses: ./.github/workflows/metadata.yaml
 
   cleardown-infrastructure:
-    name: "Cleardown Infrastructure"
+    name: "Cleardown ${{ inputs.environment || needs.metadata.outputs.environment }} infrastructure"
     needs:
       - metadata
     uses: ./.github/workflows/infrastructure-cleardown.yaml
@@ -52,7 +52,7 @@ jobs:
     secrets: inherit
 
   cleardown-artefacts:
-    name: "Cleardown Artefacts"
+    name: "Cleardown ${{ inputs.workspace || needs.metadata.outputs.workspace }} artefacts"
     needs:
       - metadata
       - cleardown-infrastructure

@@ -1,50 +1,56 @@
 name: Stop OpenSearch Ingestion Pipelines
 
 permissions:
-      actions: write
-      id-token: write
-      contents: read
+  actions: write
+  id-token: write
+  contents: read
+
 on:
   # Run daily, at 18:00.
   schedule:
-    - cron: '0 18 * * *'
-
+    - cron: "0 18 * * *"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       environment:
         description: "Deployment environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
+          - test
+          - sandpit
+          - int
 
 jobs:
-
   metadata:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
-  stop_opensearch_ingestion_pipelines:
-    if: ${{ needs.metadata.outputs.environment != 'prod' }}
-    name: "Stop OpenSearch ingestion pipelines"
 
+  stop_opensearch_ingestion_pipelines:
+    name: "Stop OpenSearch ingestion pipelines"
     timeout-minutes: 15
-    environment: ${{ needs.metadata.outputs.environment }}
-    needs:
-      - metadata
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: ${{ fromJson(inputs.environment != '' && format('["{0}"]', inputs.environment) || '["dev", "test", "sandpit", "int"]') }}
+    environment: ${{ matrix.env}}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: app
-      - name: "Stop active opensearch ingestion pipelines"
+
+      - name: "Stop active opensearch ingestion pipelines in ${{ matrix.env}}"
         uses: ./.github/actions/stop-opensearch-ingestion-pipelines
+        with:
+          environment: ${{ matrix.env}}
 
   slack-notifications:
     needs:
