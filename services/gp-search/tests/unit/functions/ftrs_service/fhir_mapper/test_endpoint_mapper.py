@@ -122,7 +122,7 @@ class TestEndpointMapper:
         assert len(endpoint.payloadType) == 1
         assert endpoint.payloadType[0].coding[0].code == "document"
         assert endpoint.payloadMimeType == ["application/pdf"]
-        assert len(endpoint.header) == 3
+        assert len(endpoint.extension) == 3
 
     def test_create_endpoint_with_unsupported_connection_type(
         self, endpoint_mapper, create_endpoint_value
@@ -165,50 +165,76 @@ class TestEndpointMapper:
         # Assert
         assert result == "active"
 
+    def test_create_order_extension(self, endpoint_mapper):
+        # Act
+        result = endpoint_mapper._create_order_extension(1)
+
+        # Assert
+        assert result == {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder",
+            "valueInteger": 1,
+        }
+
+    def test_create_compression_extension(self, endpoint_mapper):
+        # Act
+        result = endpoint_mapper._create_compression_extension(True)
+
+        # Assert
+        assert result == {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression",
+            "valueBoolean": True,
+        }
+
+    def test_create_business_scenario_extension(self, endpoint_mapper):
+        # Act
+        result = endpoint_mapper._create_business_scenario_extension("Primary")
+
+        # Assert
+        assert result == {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
+            "valueCode": "Primary",
+        }
+
     @pytest.mark.parametrize(
-        ("order", "is_compression_enabled", "description", "expected_headers"),
+        ("order", "is_compression_enabled", "description", "expected_count"),
         [
-            (
-                1,
-                True,
-                "Test",
-                [
-                    "header_order 1",
-                    "header_is_compression_enabled True",
-                    "header_business_scenario Test",
-                ],
-            ),
-            (
-                None,
-                True,
-                "Test",
-                ["header_is_compression_enabled True", "header_business_scenario Test"],
-            ),
-            (1, None, "Test", ["header_order 1", "header_business_scenario Test"]),
-            (1, True, None, ["header_order 1", "header_is_compression_enabled True"]),
-            (None, None, None, []),
+            (1, True, "Test", 3),
+            (None, True, "Test", 2),
+            (1, None, "Test", 2),
+            (1, True, None, 2),
+            (None, None, None, 0),
         ],
     )
-    def test_create_header(
+    def test_create_extensions(
         self,
         endpoint_mapper,
         order,
         is_compression_enabled,
         description,
-        expected_headers,
+        expected_count,
         mocker,
     ):
-        # Create a mock endpoint with the specified values
+        # Arrange
         mock_endpoint = mocker.MagicMock()
         mock_endpoint.order = order
         mock_endpoint.isCompressionEnabled = is_compression_enabled
         mock_endpoint.description = description
 
         # Act
-        headers = endpoint_mapper._create_header(mock_endpoint)
+        extensions = endpoint_mapper._create_extensions(mock_endpoint)
 
         # Assert
-        assert sorted(headers) == sorted(expected_headers)
+        assert len(extensions) == expected_count
+        if order is not None:
+            assert any(
+                ext["url"].endswith("OrganizationEndpointOrder") for ext in extensions
+            )
+        if is_compression_enabled is not None:
+            assert any(ext["url"].endswith("EndpointCompression") for ext in extensions)
+        if description is not None:
+            assert any(
+                ext["url"].endswith("EndpointBusinessScenario") for ext in extensions
+            )
 
     def test_map_to_endpoints_empty_list(
         self, endpoint_mapper, create_organization_record, create_organization_value
