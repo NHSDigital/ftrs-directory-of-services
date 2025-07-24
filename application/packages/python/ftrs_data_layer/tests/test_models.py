@@ -188,7 +188,7 @@ def test_healthcare_service() -> None:
             email="example@mail.com",
             web="www.example.com",
         ),
-        symptomGroupSymptomDiscriminator={
+        symptomGroupSymptomDiscriminators={
             "SG_SD": [
                 {
                     "sd": {
@@ -464,7 +464,7 @@ def test_healthcare_service_from_json() -> None:
             email="example@mail.com",
             web="www.example.com",
         ),
-        symptomGroupSymptomDiscriminator={
+        symptomGroupSymptomDiscriminators={
             "SG_SD": [
                 {
                     "sd": {

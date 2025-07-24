@@ -261,7 +261,7 @@ class HealthcareService(DBModel):
     name: str
     telecom: Telecom | None
     openingTime: list[OpeningTime] | None
-    symptomGroupSymptomDiscriminator: SymptomGroupSymptomDiscriminatorPair | None = None
+    symptomGroupSymptomDiscriminators: SymptomGroupSymptomDiscriminatorPair | None = None
     dispositions: list[Disposition] | None = None
 
     @classmethod
@@ -306,7 +306,7 @@ class HealthcareService(DBModel):
                 web=data["web"],
             ),
             openingTime=HealthcareService.assign_opening_times(data["availability"]),
-            symptomGroupSymptomDiscriminator=ClinicalCodeConverter.convert_sg_sd_pair(
+            symptomGroupSymptomDiscriminators=ClinicalCodeConverter.convert_sg_sd_pair(
                 data["sg_sd_pairs"]
             ),
             dispositions=ClinicalCodeConverter.convert_dispositions(

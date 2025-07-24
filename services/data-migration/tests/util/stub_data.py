@@ -432,7 +432,7 @@ transformed_GP_Practice_HS = {
     },
     "type": "GP Consultation Service",
     "openingTime": None,
-    "symptomGroupSymptomDiscriminator": {
+    "symptomGroupSymptomDiscriminators": {
         "SG_SD": [
             {
                 "sg": {
