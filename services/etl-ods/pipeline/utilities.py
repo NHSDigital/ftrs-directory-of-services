@@ -35,6 +35,44 @@ def get_base_crud_api_url() -> str:
     return get_parameter(name=parameter_path)
 
 
+# will need to change to fit different branches
+@cache
+def get_base_fhir_api_url() -> str:
+    env = os.environ.get("ENVIRONMENT", "local")
+
+    if env == "local":
+        return os.environ["LOCAL_FHIR_API_URL"]
+
+    return f"https://internal-{env}.api.service.nhs.uk/dos-ingestion/FHIR/R4"
+
+
+def get_api_key() -> str:
+    env = os.environ.get("ENVIRONMENT")
+
+    if env == "local":
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
+        return os.environ["LOCAL_API_KEY"]
+
+    resource_prefix = get_resource_prefix()
+    secret_name = f"/{resource_prefix}/apim-api-key"
+    client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
+    response = client.get_secret_value(SecretId=secret_name)
+    secret = response["SecretString"]
+    try:
+        secret_dict = json.loads(secret)
+        return secret_dict.get("api_key", secret)
+    except json.JSONDecodeError:
+        return secret
+
+
+def get_resource_prefix() -> str:
+    project = os.environ.get("PROJECT_NAME")
+    environment = os.environ.get("ENVIRONMENT")
+    workspace = os.environ.get("WORKSPACE", None)
+    workspace_suffix = f"-{workspace}" if workspace and workspace != "default" else ""
+    return f"{project}-{environment}-etl-ods{workspace_suffix}"
+
+
 def get_signed_request_headers(
     method: str,
     url: str,
@@ -60,9 +98,12 @@ def build_headers(options: dict) -> dict:
     sign = options.get("sign")
     url = options.get("url")
     method = options.get("method")
+    api_key = options.get("api_key")
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
+    if api_key is not None:
+        headers["apikey"] = api_key
     # Set FHIR headers if needed
     if fhir:
         headers["Accept"] = "application/fhir+json"
@@ -96,6 +137,7 @@ def make_request(
     timeout: int = 20,
     sign: bool = False,
     fhir: bool = False,
+    api_key: str = None,
     **kwargs: dict,
 ) -> requests.Response:
     json_data = kwargs.get("json")
@@ -109,6 +151,7 @@ def make_request(
             "sign": sign,
             "url": url,
             "method": method,
+            "api_key": api_key,
         }
     )
 
