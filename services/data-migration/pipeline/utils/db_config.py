@@ -1,5 +1,7 @@
 from pydantic import BaseModel, SecretStr
 
+from pipeline.utils.secret_utils import get_secret
+
 
 class DatabaseConfig(BaseModel):
     """
@@ -28,3 +30,11 @@ class DatabaseConfig(BaseModel):
     @classmethod
     def source_db_credentials(cls) -> str:
         return "source-rds-credentials"
+
+    @classmethod
+    def from_secretsmanager(cls) -> "DatabaseConfig":
+        """
+        Fetches the database credentials from AWS Secrets Manager and returns a DatabaseConfig instance.
+        """
+        db_credentials = get_secret(cls.source_db_credentials(), transform="json")
+        return cls(**db_credentials)
