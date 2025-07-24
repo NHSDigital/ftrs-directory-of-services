@@ -315,6 +315,21 @@ mock_gp_endpoint_json_dump_C = {
 mock_services_size_df = pd.DataFrame({"count": [100]})
 mock_services_columns_df = pd.DataFrame({"count": [37]})
 mock_service_endpoint_columns_df = pd.DataFrame({"count": [5]})
+mock_clinical_code_df = pd.DataFrame(
+    {
+        "serviceid": [1, 2],
+        "sg_sd_pairs": [
+            [
+                "{'sg': {'id': 'SG1', 'codeValue': 'Group1'}, 'sd': {'id': 'SD1', 'codeValue': 'Disc1'}}"
+            ],
+            [],
+        ],
+        "dispositions": [
+            ["{'id': 'DX1', 'codeValue': 'Disp1', 'dispositiontime': 15}"],
+            ["{'id': 'DX2', 'codeValue': 'Disp2', 'dispositiontime': 30}"],
+        ],
+    }
+)
 
 
 extracted_GP_Practice = {
@@ -333,6 +348,8 @@ extracted_GP_Practice = {
     "latitude": "0.000003",
     "longitude": "-1.000005",
     "endpoints": [[mock_gp_endpoints_formatted_A]],
+    "sg_sd_pairs": '{"sg" : {"id" : "SG1000", "source" : "pathways", "codeType" : "Symptom Group (SG)", "codeID" : 1000, "codeValue" : "Abdominal or Flank Injury, Blunt", "zCodeExists" : false}, "sd" : {"id" : "SD4003", "source" : "pathways", "codeType" : "Symptom Discriminator (SD)", "codeID" : 4003, "codeValue" : "PC full Primary Care assessment and prescribing capability", "synonyms" : null}}',
+    "dispositions": '{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "time": 10}',
     "availability": None,
 }
 
@@ -415,4 +432,36 @@ transformed_GP_Practice_HS = {
     },
     "type": "GP Consultation Service",
     "openingTime": None,
+    "symptomGroupSymptomDiscriminators": {
+        "SG_SD": [
+            {
+                "sg": {
+                    "id": "SG1000",
+                    "source": "pathways",
+                    "codeType": "Symptom Group (SG)",
+                    "codeID": 1000,
+                    "codeValue": "Abdominal or Flank Injury, Blunt",
+                    "zCodeExists": False,
+                },
+                "sd": {
+                    "id": "SD4003",
+                    "source": "pathways",
+                    "codeType": "Symptom Discriminator (SD)",
+                    "codeID": 4003,
+                    "codeValue": "PC full Primary Care assessment and prescribing capability",
+                    "synonyms": None,
+                },
+            }
+        ]
+    },
+    "dispositions": [
+        {
+            "id": "1",
+            "source": "pathways",
+            "codeType": "Disposition (Dx)",
+            "codeID": 301,
+            "codeValue": "Dx1",
+            "time": 10,
+        }
+    ],
 }

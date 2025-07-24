@@ -1,13 +1,18 @@
+from unittest.mock import Mock
+
 import pandas as pd
 from pytest_mock import MockerFixture
 
 from pipeline.utils.dos_db import (
+    QUERY_CLINICAL_CODES,
+    get_clinical_codes,
     get_gp_endpoints,
     get_gp_practices,
     get_serviceendpoints_columns_count,
     get_services_columns_count,
     get_services_size,
 )
+from tests.util.stub_data import mock_clinical_code_df
 
 # Mock database URI
 db_uri = "postgresql://username:password@localhost:5432/test_db"
@@ -160,3 +165,22 @@ AND table_name = 'serviceendpoints';
         db_uri,
     )
     assert result == expected_serviceendpoints_columns_count
+
+
+def test_returns_dataframe_with_clinical_codes(mock_sql_data: Mock) -> None:
+    db_uri = "mock_db_uri"
+    result = get_clinical_codes(db_uri)
+    assert result.equals(mock_clinical_code_df)
+    mock_sql_data.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
+
+
+def test_handles_empty_result_from_database(mock_sql_data: Mock) -> None:
+    db_uri = "mock_db_uri"
+
+    def empty_result(query: str, conn: str) -> pd.DataFrame:
+        return pd.DataFrame()
+
+    mock_sql_data.side_effect = empty_result
+    result = get_clinical_codes(db_uri)
+    assert result.empty
+    mock_sql_data.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)

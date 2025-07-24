@@ -3,6 +3,11 @@ from decimal import Decimal
 from typing import Annotated, Literal, Optional, Union
 from uuid import UUID, uuid4
 
+from ftrs_data_layer.domain.clinical_code import (
+    ClinicalCodeConverter,
+    Disposition,
+    SymptomGroupSymptomDiscriminatorPair,
+)
 from ftrs_data_layer.enums import (
     DayOfWeek,
     EndpointConnectionType,
@@ -256,6 +261,10 @@ class HealthcareService(DBModel):
     name: str
     telecom: Telecom | None
     openingTime: list[OpeningTime] | None
+    symptomGroupSymptomDiscriminators: SymptomGroupSymptomDiscriminatorPair | None = (
+        None
+    )
+    dispositions: list[Disposition] | None = None
 
     @classmethod
     def from_dos(  # noqa: PLR0913
@@ -266,9 +275,9 @@ class HealthcareService(DBModel):
         updated_datetime: datetime | None = None,
         organisation_id: UUID | str | None = None,
         location_id: UUID | str | None = None,
-    ) -> "Organisation":
+    ) -> "HealthcareService":
         """
-        Create an HealthcareService instance from source DoS data.
+        Create a HealthcareService instance from source DoS data.
 
         :param data: The source data dictionary from the 'services' DoS table.
         :param created_datetime: The datetime when the service was created.
@@ -299,6 +308,12 @@ class HealthcareService(DBModel):
                 web=data["web"],
             ),
             openingTime=HealthcareService.assign_opening_times(data["availability"]),
+            symptomGroupSymptomDiscriminators=ClinicalCodeConverter.convert_sg_sd_pair(
+                data["sg_sd_pairs"]
+            ),
+            dispositions=ClinicalCodeConverter.convert_dispositions(
+                data["dispositions"]
+            ),
             createdBy="ROBOT",
             createdDateTime=created_datetime or datetime.now(UTC),
             modifiedBy="ROBOT",
