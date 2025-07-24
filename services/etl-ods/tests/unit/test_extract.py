@@ -68,7 +68,7 @@ def test_fetch_organisation_uuid(
     )
 
     mock_call = requests_mock.get(
-        "http://test-crud-api/organisation/ods_code/ABC123",
+        "http://test-crud-api/Organization/ods_code/ABC123",
         json={"id": "UUID123"},
     )
 
@@ -78,7 +78,7 @@ def test_fetch_organisation_uuid(
     assert mock_call.called_once
     assert (
         mock_call.last_request.url
-        == "http://test-crud-api/organisation/ods_code/ABC123"
+        == "http://test-crud-api/Organization/ods_code/ABC123"
     )
 
 

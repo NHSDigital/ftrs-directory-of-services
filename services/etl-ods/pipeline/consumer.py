@@ -69,7 +69,7 @@ def process_message_and_send_request(record: dict) -> None:
             )
         )
 
-    api_url = get_base_crud_api_url() + "/organisation/" + path
+    api_url = get_base_crud_api_url() + "/Organization/" + path
 
     try:
         response = make_request(api_url, method="PUT", sign=True, json=body)

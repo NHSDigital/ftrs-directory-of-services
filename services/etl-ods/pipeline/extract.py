@@ -50,7 +50,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     Returns DoS UUID based on ODS code.
     """
     base_url = get_base_crud_api_url()
-    organisation_get_uuid_uri = base_url + "/organisation/ods_code/" + ods_code
+    organisation_get_uuid_uri = base_url + "/Organization/ods_code/" + ods_code
 
     try:
         ods_processor_logger.log(
