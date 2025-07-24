@@ -89,3 +89,21 @@ variable "frontend_lambda_runtime" {
   type        = string
   default     = "nodejs20.x"
 }
+
+variable "access_logs_bucket_name" {
+  description = "The name of the S3 bucket for access logs"
+  type        = string
+  default     = "cf-access-logs"
+}
+
+variable "force_destroy_access_logging_bucket" {
+  description = "Whether to forcefully destroy the bucket when it contains objects"
+  type        = bool
+  default     = false
+}
+
+variable "access_logs_prefix" {
+  description = "The prefix for the access logs in the S3 bucket"
+  type        = string
+  default     = "cloudfront"
+}

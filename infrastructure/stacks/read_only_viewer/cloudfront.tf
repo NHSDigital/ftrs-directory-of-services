@@ -1,3 +1,4 @@
+#trivy:ignore:AVD-AWS-0010
 module "read_only_viewer_cloudfront" {
   # Module version: v4.1.0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git?ref=d66669f42ec922cb4b1acea8e4a17e5f6c6c9a15"
@@ -85,4 +86,9 @@ module "read_only_viewer_cloudfront" {
   }
 
   web_acl_id = aws_wafv2_web_acl.read_only_viewer_waf_web_acl.arn
+  logging_config = {
+    include_cookies = false
+    bucket          = module.access_logging_bucket.s3_bucket_bucket_domain_name
+    prefix          = var.access_logs_prefix
+  }
 }

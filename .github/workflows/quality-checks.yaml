@@ -213,7 +213,7 @@ jobs:
 
       - name: "Trivy scan"
         id: "trivy"
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@0.32.0
         continue-on-error: true
         with:
           scan-type: 'fs'
