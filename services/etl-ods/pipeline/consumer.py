@@ -76,7 +76,7 @@ def process_message_and_send_request(record: dict) -> None:
 
     try:
         response = make_request(
-            api_url, method="PUT", sign=True, json=body, api_key=api_key
+            api_url, method="PUT", sign=False, json=body, api_key=api_key
         )
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_007,
