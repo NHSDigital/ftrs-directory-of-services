@@ -103,7 +103,7 @@ def build_headers(options: dict) -> dict:
     if json_data is not None:
         headers["Content-Type"] = "application/json"
     if api_key is not None:
-        headers["x-api-key"] = api_key
+        headers["apikey"] = api_key
     # Set FHIR headers if needed
     if fhir:
         headers["Accept"] = "application/fhir+json"
