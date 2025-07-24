@@ -261,7 +261,9 @@ class HealthcareService(DBModel):
     name: str
     telecom: Telecom | None
     openingTime: list[OpeningTime] | None
-    symptomGroupSymptomDiscriminators: SymptomGroupSymptomDiscriminatorPair | None = None
+    symptomGroupSymptomDiscriminators: SymptomGroupSymptomDiscriminatorPair | None = (
+        None
+    )
     dispositions: list[Disposition] | None = None
 
     @classmethod
