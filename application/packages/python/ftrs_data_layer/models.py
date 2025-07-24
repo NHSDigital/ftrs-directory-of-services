@@ -4,7 +4,6 @@ from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 from ftrs_data_layer.domain.clinical_code import (
-    ClinicalCodeConverter,
     Disposition,
     SymptomGroupSymptomDiscriminatorPair,
 )
@@ -130,10 +129,8 @@ class HealthcareService(DBModel):
     name: str
     telecom: Telecom | None
     openingTime: list[OpeningTime] | None
-    symptomGroupSymptomDiscriminators: SymptomGroupSymptomDiscriminatorPair | None = (
-        None
-    )
-    dispositions: list[Disposition] | None = None
+    symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
+    dispositions: list[Disposition]
 
 
 PAYLOAD_MIMETYPE_MAPPING = {

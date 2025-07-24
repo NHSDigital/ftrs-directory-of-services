@@ -122,7 +122,13 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_007 = LogReference(
         level=ERROR,
-        message="Error processing record {record_id}: {error_message}",
+        message="Error processing record {record_id}: {error}",
+    )
+
+    DM_ETL_008 = LogReference(level=DEBUG, message="Loading DoS reference data")
+    DM_ETL_009 = LogReference(
+        level=INFO,
+        message="Successfully loaded {count} records from reference data table: {table_name}",
     )
 
     DM_ETL_999 = LogReference(
