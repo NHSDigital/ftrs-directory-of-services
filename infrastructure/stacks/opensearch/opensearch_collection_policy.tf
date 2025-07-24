@@ -18,7 +18,9 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
 }
 
 resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_access_policy" {
-  name        = "${var.environment}-${var.stack_name}-dap${local.workspace_suffix}"
+  for_each = toset(var.dynamodb_table_names_for_opensearch)
+
+  name        = "${var.environment}-${var.stack_name}-dap-${substr(each.key, 0, 3)}${local.workspace_suffix}"
   type        = "data"
   description = "Allow index and collection access"
   policy = jsonencode([
@@ -37,10 +39,9 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
           }
         ],
         [
-          for name in var.dynamodb_table_names_for_opensearch :
           {
             ResourceType = "index"
-            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${name}${local.workspace_suffix}"]
+            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${each.key}${local.workspace_suffix}"]
             Permission = [
               "aoss:CreateIndex",
               "aoss:UpdateIndex",
