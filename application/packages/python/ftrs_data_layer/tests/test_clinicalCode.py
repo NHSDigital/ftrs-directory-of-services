@@ -1,9 +1,15 @@
+import json
 from json import JSONDecodeError
 
 import numpy as np
 import pydantic_core
 import pytest
-from ftrs_data_layer.domain.clinicalCode import ClinicalCodeConverter
+from ftrs_data_layer.domain.clinical_code import (
+    ClinicalCodeConverter,
+    Disposition,
+    SymptomDiscriminator,
+    SymptomGroup,
+)
 
 
 def test_converts_valid_sg_sd_pair_string() -> None:
@@ -11,6 +17,22 @@ def test_converts_valid_sg_sd_pair_string() -> None:
     result = ClinicalCodeConverter.convert_sg_sd_pair(sg_sd_pair)
     assert result.SG_SD[0]["sg"].id == "1"
     assert result.SG_SD[0]["sd"].id == "2"
+    assert result.SG_SD[0]["sg"] == SymptomGroup(
+        id="1",
+        source="pathways",
+        codeType="Symptom Group (SG)",
+        codeID=101,
+        codeValue="SG1",
+        zCodeExists=True,
+    )
+    assert result.SG_SD[0]["sd"] == SymptomDiscriminator(
+        id="2",
+        source="pathways",
+        codeType="Symptom Discriminator (SD)",
+        codeID=201,
+        codeValue="SD1",
+        synonyms=["syn1", "syn2"],
+    )
 
 
 def test_raises_error_for_invalid_json_string() -> None:
@@ -59,8 +81,14 @@ def test_converts_valid_dispositions_string() -> None:
     result = ClinicalCodeConverter.convert_dispositions(dispositions)
 
     assert len(result) == 1
-    assert result[0].id == "1"
-    assert result[0].codeType == "Disposition (Dx)"
+    assert result[0] == Disposition(
+        id="1",
+        source="pathways",
+        codeType="Disposition (Dx)",
+        codeID=301,
+        codeValue="Dx1",
+        time=10,
+    )
 
 
 def test_converts_valid_dispositions_ndarray() -> None:
@@ -71,8 +99,7 @@ def test_converts_valid_dispositions_ndarray() -> None:
     )
     result = ClinicalCodeConverter.convert_dispositions(dispositions)
     assert len(result) == 1
-    assert result[0].id == "1"
-    assert result[0].codeValue == "Dx1"
+    assert result[0] == Disposition(**json.loads(dispositions[0]))
 
 
 def test_raises_error_for_invalid_json_string_in_dispositions() -> None:

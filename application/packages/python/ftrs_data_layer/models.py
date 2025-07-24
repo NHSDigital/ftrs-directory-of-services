@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Annotated, Literal, Optional, Union
 from uuid import UUID, uuid4
 
-from ftrs_data_layer.domain.clinicalCode import (
+from ftrs_data_layer.domain.clinical_code import (
     ClinicalCodeConverter,
     Disposition,
     SymptomGroupSymptomDiscriminatorPair,

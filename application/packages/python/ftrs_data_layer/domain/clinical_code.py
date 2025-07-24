@@ -1,6 +1,5 @@
 import json
 from enum import Enum
-from typing import Dict, List, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel
@@ -25,7 +24,7 @@ class BaseClinicalCode(BaseModel):
     id: str
     source: ClinicalCodeSource
     codeType: ClinicalCodeType
-    codeID: Union[int, str]
+    codeID: int | str
     codeValue: str | None
 
 
@@ -34,7 +33,7 @@ class SymptomGroup(BaseClinicalCode):
 
 
 class SymptomDiscriminator(BaseClinicalCode):
-    synonyms: Optional[List[str]] = None
+    synonyms: list[str] | None = None
 
 
 class Disposition(BaseClinicalCode):
@@ -42,12 +41,12 @@ class Disposition(BaseClinicalCode):
 
 
 class SymptomGroupSymptomDiscriminatorPair(BaseModel):
-    SG_SD: Optional[List[Dict[str, Union[SymptomGroup, SymptomDiscriminator]]]] = None
+    SG_SD: list[dict[str, SymptomGroup | SymptomDiscriminator]] | None = None
 
 
 class ClinicalCodeConverter:
     @staticmethod
-    def convert_dispositions(dispositions: str | np.ndarray) -> List[Disposition]:
+    def convert_dispositions(dispositions: str | np.ndarray) -> list[Disposition]:
         if isinstance(dispositions, np.ndarray):
             all_data = []
             for disp in dispositions:
@@ -58,7 +57,7 @@ class ClinicalCodeConverter:
             data = json.loads(dispositions)
             all_data = data if isinstance(data, list) else [data]
 
-        disposition_list: List[Disposition] = []
+        disposition_list: list[Disposition] = []
         for item in all_data:
             if not isinstance(item, dict):
                 raise TypeError(INVALID_DISPOSITION_ITEM)

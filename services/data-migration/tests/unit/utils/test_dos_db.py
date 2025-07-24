@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pandas as pd
 from pytest_mock import MockerFixture
 
@@ -10,6 +12,7 @@ from pipeline.utils.dos_db import (
     get_services_columns_count,
     get_services_size,
 )
+from tests.util.stub_data import mock_clinical_code_df
 
 # Mock database URI
 db_uri = "postgresql://username:password@localhost:5432/test_db"
@@ -164,25 +167,20 @@ AND table_name = 'serviceendpoints';
     assert result == expected_serviceendpoints_columns_count
 
 
-def test_returns_dataframe_with_clinical_codes(mocker: MockerFixture) -> None:
+def test_returns_dataframe_with_clinical_codes(mock_sql_data: Mock) -> None:
     db_uri = "mock_db_uri"
-    mock_result = pd.DataFrame(
-        {
-            "serviceid": [1, 2],
-            "sg_sd_pairs": [["pair1", "pair2"], ["pair3"]],
-            "dispositions": [["disposition1"], ["disposition2", "disposition3"]],
-        }
-    )
-    mock_read_sql = mocker.patch("pandas.read_sql", return_value=mock_result)
     result = get_clinical_codes(db_uri)
-    assert result.equals(mock_result)
-    mock_read_sql.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
+    assert result.equals(mock_clinical_code_df)
+    mock_sql_data.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
 
 
-def test_handles_empty_result_from_database(mocker: MockerFixture) -> None:
+def test_handles_empty_result_from_database(mock_sql_data: Mock) -> None:
     db_uri = "mock_db_uri"
-    mock_result = pd.DataFrame(columns=["serviceid", "sg_sd_pairs", "dispositions"])
-    mock_read_sql = mocker.patch("pandas.read_sql", return_value=mock_result)
+
+    def empty_result(query: str, conn: str) -> pd.DataFrame:
+        return pd.DataFrame()
+
+    mock_sql_data.side_effect = empty_result
     result = get_clinical_codes(db_uri)
     assert result.empty
-    mock_read_sql.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
+    mock_sql_data.assert_called_once_with(QUERY_CLINICAL_CODES, db_uri)
