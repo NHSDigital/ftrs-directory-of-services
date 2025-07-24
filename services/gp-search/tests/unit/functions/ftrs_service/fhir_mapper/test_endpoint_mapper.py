@@ -185,22 +185,43 @@ class TestEndpointMapper:
             "valueBoolean": True,
         }
 
-    def test_create_business_scenario_extension(self, endpoint_mapper):
+    @pytest.mark.parametrize(
+        ("business_scenario", "expected_result"),
+        [
+            (
+                "Primary",
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
+                    "valueCode": "primary-recipient",
+                },
+            ),
+            (
+                "Copy",
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
+                    "valueCode": "copy-recipient",
+                },
+            ),
+            ("Unknown", None),
+            ("", None),
+            (None, None),
+        ],
+    )
+    def test_create_business_scenario_extension(
+        self, endpoint_mapper, business_scenario, expected_result
+    ):
         # Act
-        result = endpoint_mapper._create_business_scenario_extension("Primary")
+        result = endpoint_mapper._create_business_scenario_extension(business_scenario)
 
         # Assert
-        assert result == {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
-            "valueCode": "Primary",
-        }
+        assert result == expected_result
 
     @pytest.mark.parametrize(
         ("order", "is_compression_enabled", "description", "expected_count"),
         [
-            (1, True, "Test", 3),
-            (None, True, "Test", 2),
-            (1, None, "Test", 2),
+            (1, True, "Primary", 3),
+            (None, True, "Primary", 2),
+            (1, None, "Primary", 2),
             (1, True, None, 2),
             (None, None, None, 0),
         ],

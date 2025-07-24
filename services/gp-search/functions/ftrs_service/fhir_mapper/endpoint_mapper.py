@@ -24,6 +24,11 @@ class EndpointMapper:
         "fhir": "hl7-fhir-rest",
     }
 
+    BUSINESS_SCENARIO_MAP = {
+        "Primary": "primary-recipient",
+        "Copy": "copy-recipient",
+    }
+
     def map_to_endpoints(
         self, organization_record: OrganizationRecord
     ) -> list[Endpoint]:
@@ -109,18 +114,19 @@ class EndpointMapper:
     def _create_extensions(self, endpoint_value: EndpointValue) -> list[dict]:
         extensions = []
 
-        if endpoint_value.order is not None:
+        if endpoint_value.order:
             extensions.append(self._create_order_extension(endpoint_value.order))
 
-        if endpoint_value.isCompressionEnabled is not None:
+        if endpoint_value.isCompressionEnabled:
             extensions.append(
                 self._create_compression_extension(endpoint_value.isCompressionEnabled)
             )
 
-        if endpoint_value.description is not None:
-            extensions.append(
-                self._create_business_scenario_extension(endpoint_value.description)
-            )
+        if endpoint_value.description:
+            if extension := self._create_business_scenario_extension(
+                endpoint_value.description
+            ):
+                extensions.append(extension)
 
         return extensions
 
@@ -136,16 +142,25 @@ class EndpointMapper:
             "valueBoolean": is_compression_enabled,
         }
 
-    def _create_business_scenario_extension(self, business_scenario: str) -> dict:
+    def _create_business_scenario_extension(
+        self, business_scenario: str
+    ) -> dict | None:
+        business_scenario_code = self.BUSINESS_SCENARIO_MAP.get(business_scenario)
+
+        if not business_scenario_code:
+            logger.error(f"Unknown business scenario: {business_scenario}")
+            return None
+
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
-            "valueCode": business_scenario,
+            "valueCode": business_scenario_code,
         }
 
     def _create_connection_type(self, endpoint_value: EndpointValue) -> Coding | None:
         db_conn_type = endpoint_value.connectionType.lower()
 
         if db_conn_type not in self.CONNECTION_TYPE_MAP:
+            logger.error(f"Unknown connection type: {db_conn_type}")
             return None
 
         return Coding.model_validate(
