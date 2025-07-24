@@ -1,7 +1,7 @@
 services:
   postgres:
     build:
-      context: ../../../infrastructure/images/postgres
+      context: ../../infrastructure/images/postgres
       dockerfile: ../../../infrastructure/images/postgres/Dockerfile.local
     volumes:
       - ./.tmp/pg_data:/var/lib/postgresql/data
@@ -14,7 +14,7 @@ services:
     image: amazon/dynamodb-local
     ports:
       - "8000:8000"
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /data"
+    command: "-Xms4g -Xmx6g -jar DynamoDBLocal.jar -sharedDb -dbPath /data"
     volumes:
       - ./.tmp/dynamodb:/data
 
