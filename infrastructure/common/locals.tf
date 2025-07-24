@@ -19,6 +19,8 @@ locals {
     }
   }
 
+  gp_search_organisation_table_arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
+
   domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
 
   env_domain_name = "${var.environment}.${var.root_domain_name}"

@@ -1,4 +1,5 @@
 resource "aws_security_group" "rds_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
   count = local.deploy_databases ? 1 : 0
 
   name        = "${local.resource_prefix}-rds-sg"
@@ -14,6 +15,7 @@ data "aws_security_group" "rds_security_group" {
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
   count                        = (local.deploy_databases && var.environment == "dev") ? 1 : 0
+  description                  = "Allow RDS ingress from VPN"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = data.aws_security_group.vpn_security_group[0].id
   from_port                    = var.rds_port
@@ -23,6 +25,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" {
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description                  = "Allow RDS ingress from lambdas"
   referenced_security_group_id = aws_security_group.extract_lambda_security_group.id
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
@@ -30,6 +33,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambdas" 
 }
 
 resource "aws_security_group" "extract_lambda_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.extract_name}${local.workspace_suffix}-sg"
   description = "Security group for extract lambda"
 
@@ -38,6 +42,7 @@ resource "aws_security_group" "extract_lambda_security_group" {
 
 resource "aws_vpc_security_group_egress_rule" "extract_lambda_allow_egress_to_rds" {
   security_group_id            = aws_security_group.extract_lambda_security_group.id
+  description                  = "Allow extract lambda egress to rds"
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
@@ -45,6 +50,7 @@ resource "aws_vpc_security_group_egress_rule" "extract_lambda_allow_egress_to_rd
 }
 
 resource "aws_security_group" "transform_lambda_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.transform_name}${local.workspace_suffix}-sg"
   description = "Security group for transform lambda"
 
@@ -53,6 +59,7 @@ resource "aws_security_group" "transform_lambda_security_group" {
 
 resource "aws_vpc_security_group_egress_rule" "transform_lambda_allow_egress_to_rds" {
   security_group_id            = aws_security_group.transform_lambda_security_group.id
+  description                  = "Allow transform lambda egress to rds"
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
@@ -60,6 +67,7 @@ resource "aws_vpc_security_group_egress_rule" "transform_lambda_allow_egress_to_
 }
 
 resource "aws_security_group" "load_lambda_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.load_name}${local.workspace_suffix}-sg"
   description = "Security group for load lambda"
 
@@ -72,7 +80,7 @@ resource "aws_vpc_security_group_egress_rule" "lambdas_allow_egress_to_internet"
     transform_lambda = aws_security_group.transform_lambda_security_group.id,
     load_lambda      = aws_security_group.load_lambda_security_group.id
   }
-
+  description       = "Allow egress to internet"
   security_group_id = each.value
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 443
