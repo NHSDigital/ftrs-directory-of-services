@@ -1,30 +1,27 @@
-from pipeline.transformer.base import ServiceTransformer
+from datetime import UTC, date, datetime, time
+from decimal import Decimal
+
 import pytest
-from ftrs_common.mocks.mock_logger import MockLogger
 from freezegun import freeze_time
-from datetime import datetime, UTC
+from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.legacy_model import (
+    OpeningTimeDay,
     Service,
-    ServiceType,
-    ServiceEndpoint,
     ServiceDayOpening,
     ServiceDayOpeningTime,
-    OpeningTimeDay,
+    ServiceEndpoint,
     ServiceSpecifiedOpeningDate,
     ServiceSpecifiedOpeningTime,
 )
 from ftrs_data_layer.models import (
-    HealthcareService,
-    Organisation,
     Endpoint,
+    HealthcareService,
     Location,
+    Organisation,
     PositionGCS,
 )
-from decimal import Decimal
-from datetime import date, time, datetime
 
-
-
+from pipeline.transformer.base import ServiceTransformer
 
 
 class BasicServiceTransformer(ServiceTransformer):

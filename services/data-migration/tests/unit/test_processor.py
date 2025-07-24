@@ -1,13 +1,15 @@
-from pipeline.processor import DataMigrationProcessor
-from ftrs_common.mocks.mock_logger import MockLogger
 from unittest.mock import patch
+from uuid import UUID
+
+import pytest
+from ftrs_common.mocks.mock_logger import MockLogger
+from ftrs_data_layer.legacy_model import Service, ServiceStatusEnum, ServiceType
 from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_mock import MockerFixture
-from ftrs_data_layer.legacy_model import Service, ServiceType, ServiceStatusEnum
 from sqlmodel import Session
-import pytest
-from uuid import UUID
+
+from pipeline.processor import DataMigrationProcessor
 from pipeline.transformer.gp_practice import GPPracticeTransformer
 
 
@@ -302,7 +304,7 @@ def test_process_record_skipped_record(
     mock_service: Service,
     mock_logger: MockLogger,
     mocker: MockerFixture,
-):
+) -> None:
     processor = DataMigrationProcessor(
         db_uri="sqlite:///:memory:",
         env="test",

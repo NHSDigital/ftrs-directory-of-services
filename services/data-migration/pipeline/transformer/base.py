@@ -5,11 +5,11 @@ from uuid import UUID, uuid5
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.domain.clinical_code import (
-    SymptomGroupSymptomDiscriminatorPair,
+    ClinicalCodeSource,
+    Disposition,
     SymptomDiscriminator,
     SymptomGroup,
-    Disposition,
-    ClinicalCodeSource,
+    SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.models import (
     PAYLOAD_MIMETYPE_MAPPING,
@@ -30,7 +30,6 @@ from ftrs_data_layer.models import (
     Telecom,
 )
 from pydantic import BaseModel
-from pipeline.utils.metadata import DoSReferenceData
 
 
 class ServiceTransformOutput(BaseModel):
@@ -53,10 +52,9 @@ class ServiceTransformer(ABC):
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
     MIGRATION_USER = "DATA_MIGRATION"
 
-    def __init__(self, reference_data: DoSReferenceData, logger: Logger) -> None:
+    def __init__(self, logger: Logger) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
-        self.reference_data = reference_data
 
     @abstractmethod
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:

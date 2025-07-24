@@ -1,5 +1,5 @@
-import os
-from typing import Annotated, Iterable, TypeVar
+from time import perf_counter
+from typing import Iterable
 from uuid import uuid4
 
 from ftrs_common.logger import Logger
@@ -9,16 +9,12 @@ from ftrs_data_layer.logbase import DataMigrationLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository, ModelType
 from pydantic import BaseModel
 from sqlmodel import Session, create_engine, select
-from typer import Option
-from time import perf_counter
-from pipeline.utils.metadata import DoSReferenceData
 
 from pipeline.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
     ServiceTransformOutput,
 )
-from pipeline.utils.db_config import DatabaseConfig
 
 
 class DataMigrationProcessor:
@@ -52,7 +48,6 @@ class DataMigrationProcessor:
 
         self.engine = create_engine(db_uri, echo=False)
         self.metrics = self.Metrics()
-        self.reference_data = DoSReferenceData(self.engine, self.logger)
 
         self.env = env
         self.workspace = workspace
@@ -255,85 +250,3 @@ class DataMigrationProcessor:
             "healthcare-service", models.HealthcareService
         )
         service_repo.upsert(result.healthcare_service)
-
-
-def lambda_handler(event: dict, context: dict) -> None:
-    """
-    AWS Lambda entrypoint for transforming data.
-    This function will be triggered by an S3 event.
-    """
-    db_config = DatabaseConfig.from_secretsmanager()
-    app = DataMigrationProcessor(
-        db_uri=db_config.connection_string,
-        env=os.getenv("ENVIRONMENT"),
-        workspace=os.getenv("WORKSPACE", None),
-    )
-    if app.is_full_sync(event):
-        return app.run_full_sync(event, context)
-
-    return app.run_single_service_sync(event, context)
-
-
-def local_handler(
-    db_uri: Annotated[
-        str | None, Option(..., help="URI to connect to the source database")
-    ],
-    env: Annotated[str, Option(..., help="Environment to run the migration in")],
-    workspace: Annotated[
-        str | None, Option(help="Workspace to run the migration in")
-    ] = None,
-    ddb_endpoint_url: Annotated[
-        str | None, Option(help="URL to connect to local DynamoDB")
-    ] = None,
-    service_id: Annotated[
-        str | None, Option(help="Service ID to migrate (for single record sync)")
-    ] = None,
-    output_dir: Annotated[
-        str | None, Option(help="Directory to save transformed records (dry run only)")
-    ] = None,
-) -> None:
-    """
-    Local entrypoint for testing the data migration.
-    This function can be used to run the full or single sync process locally.
-    """
-    app = DataMigrationProcessor(
-        db_uri=db_uri,
-        env=env,
-        workspace=workspace,
-        dynamodb_endpoint=ddb_endpoint_url,
-    )
-
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
-        hs_file = open(os.path.join(output_dir, "healthcare_service.jsonl"), "w")
-        org_file = open(os.path.join(output_dir, "organisation.jsonl"), "w")
-        loc_file = open(os.path.join(output_dir, "location.jsonl"), "w")
-
-        def _local_save(result: ServiceTransformOutput) -> None:
-            """
-            Save the transformed result to local files instead of DynamoDB.
-            """
-            hs_file.write(result.healthcare_service.model_dump_json(exclude_none=True))
-            hs_file.write("\n")
-
-            org_file.write(result.organisation.model_dump_json(exclude_none=True))
-            org_file.write("\n")
-
-            loc_file.write(result.location.model_dump_json(exclude_none=True))
-            loc_file.write("\n")
-
-        app._save = _local_save  # Override save method to prevent actual saving
-
-    if service_id:
-        event = {"record_id": service_id}
-        app.run_single_service_sync(event)
-
-    else:
-        event = {"full_sync": True}
-        app.run_full_sync(event, None)
-
-    if output_dir:
-        hs_file.close()
-        org_file.close()
-        loc_file.close()
-        print(f"Transformed records saved to {output_dir}")

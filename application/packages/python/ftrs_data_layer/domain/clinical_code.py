@@ -1,9 +1,7 @@
-import json
 from enum import Enum
-
-import numpy as np
-from pydantic import BaseModel
 from uuid import UUID
+
+from pydantic import BaseModel
 from sqlmodel import Field
 
 INVALID_DISPOSITION_ITEM = "Each disposition item must be a JSON object"
@@ -32,10 +30,6 @@ class BaseClinicalCode(BaseModel):
 
 
 class SymptomGroup(BaseClinicalCode):
-    codeType: ClinicalCodeType = ClinicalCodeType.SYMPTOM_GROUP
-
-
-class SymptomDiscriminator(BaseClinicalCode):
     codeType: ClinicalCodeType = ClinicalCodeType.SYMPTOM_GROUP
 
 

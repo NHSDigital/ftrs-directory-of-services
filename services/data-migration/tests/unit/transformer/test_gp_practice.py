@@ -1,9 +1,9 @@
-from ftrs_data_layer.legacy_model import Service
 import pytest
-from pipeline.transformer.gp_practice import GPPracticeTransformer
-from ftrs_data_layer.legacy_model import ServiceStatusEnum
-from ftrs_data_layer.models import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_common.mocks.mock_logger import MockLogger
+from ftrs_data_layer.legacy_model import Service, ServiceStatusEnum
+from ftrs_data_layer.models import HealthcareServiceCategory, HealthcareServiceType
+
+from pipeline.transformer.gp_practice import GPPracticeTransformer
 
 
 @pytest.mark.parametrize(
