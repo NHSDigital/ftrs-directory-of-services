@@ -3,7 +3,14 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid5
 
 from ftrs_common.logger import Logger
-from ftrs_data_layer import legacy_model
+from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.clinical_code import (
+    SymptomGroupSymptomDiscriminatorPair,
+    SymptomDiscriminator,
+    SymptomGroup,
+    Disposition,
+    ClinicalCodeSource,
+)
 from ftrs_data_layer.models import (
     PAYLOAD_MIMETYPE_MAPPING,
     Address,
@@ -23,6 +30,7 @@ from ftrs_data_layer.models import (
     Telecom,
 )
 from pydantic import BaseModel
+from pipeline.utils.metadata import DoSReferenceData
 
 
 class ServiceTransformOutput(BaseModel):
@@ -45,9 +53,10 @@ class ServiceTransformer(ABC):
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
     MIGRATION_USER = "DATA_MIGRATION"
 
-    def __init__(self, logger: Logger) -> None:
+    def __init__(self, reference_data: DoSReferenceData, logger: Logger) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
+        self.reference_data = reference_data
 
     @abstractmethod
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
@@ -217,6 +226,8 @@ class ServiceTransformer(ABC):
             modifiedBy=self.MIGRATION_USER,
             modifiedDateTime=self.start_time,
             openingTime=self.build_opening_times(service),
+            symptomGroupSymptomDiscriminators=self.build_sgsds(service),
+            dispositions=self.build_dispositions(service),
         )
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:
@@ -286,6 +297,51 @@ class ServiceTransformer(ABC):
                 )
 
         return items
+
+    def build_sgsds(
+        self, service: legacy_model.Service
+    ) -> list[SymptomGroupSymptomDiscriminatorPair]:
+        return [
+            SymptomGroupSymptomDiscriminatorPair(
+                sg=SymptomGroup(
+                    id=self.generate_id(code.id, "pathways:sg"),
+                    codeID=code.sgid,
+                    codeValue=code.group.name,
+                    source=(
+                        ClinicalCodeSource.SERVICE_FINDER
+                        if code.group.zcodeexists
+                        else ClinicalCodeSource.PATHWAYS
+                    ),
+                ),
+                sd=SymptomDiscriminator(
+                    id=self.generate_id(code.id, "pathways:sd"),
+                    codeID=code.sdid,
+                    codeValue=code.discriminator.description,
+                    source=(
+                        ClinicalCodeSource.SERVICE_FINDER
+                        if code.group.zcodeexists
+                        else ClinicalCodeSource.PATHWAYS
+                    ),
+                    synonyms=[syn.name for syn in code.discriminator.synonyms],
+                ),
+            )
+            for code in service.sgsds
+        ]
+
+    def build_dispositions(self, service: legacy_model.Service) -> list[Disposition]:
+        """
+        Build dispositions from the service's dispositions.
+        """
+        return [
+            Disposition(
+                id=self.generate_id(code.id, "pathways:disposition"),
+                codeID=code.dispositionid,
+                codeValue=code.disposition.name,
+                source=ClinicalCodeSource.PATHWAYS,
+                time=code.disposition.dispositiontime,
+            )
+            for code in service.dispositions
+        ]
 
     def generate_id(self, service_id: int, namespace: str) -> UUID:
         """
