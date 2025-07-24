@@ -3,12 +3,15 @@ from typing import Annotated, Iterable, TypeVar
 from uuid import uuid4
 
 from ftrs_common.logger import Logger
-from ftrs_data_layer import legacy_model, models
+from ftrs_data_layer import models
+from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.logbase import DataMigrationLogBase
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository, ModelType
 from pydantic import BaseModel
 from sqlmodel import Session, create_engine, select
 from typer import Option
+from time import perf_counter
+from pipeline.utils.metadata import DoSReferenceData
 
 from pipeline.transformer import (
     SUPPORTED_TRANSFORMERS,
@@ -16,8 +19,6 @@ from pipeline.transformer import (
     ServiceTransformOutput,
 )
 from pipeline.utils.db_config import DatabaseConfig
-
-T = TypeVar("T", bound=BaseModel)
 
 
 class DataMigrationProcessor:
@@ -42,10 +43,16 @@ class DataMigrationProcessor:
         workspace: str | None = None,
         dynamodb_endpoint: str | None = None,
     ) -> None:
+        self.logger = Logger.get(service="data-migration")
+        self.logger.append_keys(
+            run_id=str(uuid4()),
+            env=env,
+            workspace=workspace,
+        )
+
         self.engine = create_engine(db_uri, echo=False)
         self.metrics = self.Metrics()
-        self.logger = Logger.get(service="data-migration")
-        self.logger.append_keys(run_id=str(uuid4()), env=env, workspace=workspace)
+        self.reference_data = DoSReferenceData(self.engine, self.logger)
 
         self.env = env
         self.workspace = workspace
@@ -53,8 +60,8 @@ class DataMigrationProcessor:
         self._repository_cache: dict[str, AttributeLevelRepository] = {}
 
     def get_repository(
-        self, entity_type: str, model_cls: T
-    ) -> AttributeLevelRepository[T]:
+        self, entity_type: str, model_cls: ModelType
+    ) -> AttributeLevelRepository[ModelType]:
         """
         Get a DynamoDB repository for the specified table and model class.
         Caches the repository to avoid creating multiple instances for the same table.
@@ -64,7 +71,7 @@ class DataMigrationProcessor:
             table_name = f"{table_name}-{self.workspace}"
 
         if table_name not in self._repository_cache:
-            self._repository_cache[table_name] = AttributeLevelRepository[T](
+            self._repository_cache[table_name] = AttributeLevelRepository[ModelType](
                 table_name=table_name,
                 model_cls=model_cls,
                 endpoint_url=self.dynamodb_endpoint,
@@ -123,6 +130,7 @@ class DataMigrationProcessor:
         """
         Process a single record by transforming it using the appropriate transformer.
         """
+
         self.logger.append_keys(record_id=service.id)
         self.logger.log(
             DataMigrationLogBase.DM_ETL_001,
@@ -130,6 +138,8 @@ class DataMigrationProcessor:
         )
 
         try:
+            start_time = perf_counter()
+
             self.metrics.total_records += 1
 
             transformer = self.get_transformer(service)
@@ -168,12 +178,15 @@ class DataMigrationProcessor:
                 ),
             )
 
-            self._save_to_dynamo(result)
+            self._save(result)
             self.metrics.migrated_records += 1
+
+            elapsed_time = perf_counter() - start_time
 
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_006,
                 record_id=service.id,
+                elapsed_time=elapsed_time,
                 transformer_name=transformer.__class__.__name__,
                 healthcare_service_id=result.healthcare_service.id,
                 organisation_id=result.organisation.id,
@@ -216,18 +229,19 @@ class DataMigrationProcessor:
                 DataMigrationLogBase.DM_ETL_003,
                 transformer_name=TransformerClass.__name__,
             )
-            return TransformerClass(self.logger)
+            return TransformerClass(
+                reference_data=self.reference_data,
+                logger=self.logger,
+            )
 
     def _iter_records(self) -> Iterable[legacy_model.Service]:
         """
         Iterate over records in the database.
         """
         with Session(self.engine) as session:
-            records = session.exec(select(legacy_model.Service)).all()
-            for record in records:
-                yield record
+            yield from session.exec(select(legacy_model.Service)).all()
 
-    def _save_to_dynamo(self, result: ServiceTransformOutput) -> None:
+    def _save(self, result: ServiceTransformOutput) -> None:
         """
         Save the transformed result to DynamoDB.
         """
@@ -274,6 +288,9 @@ def local_handler(
     service_id: Annotated[
         str | None, Option(help="Service ID to migrate (for single record sync)")
     ] = None,
+    output_dir: Annotated[
+        str | None, Option(help="Directory to save transformed records (dry run only)")
+    ] = None,
 ) -> None:
     """
     Local entrypoint for testing the data migration.
@@ -286,9 +303,37 @@ def local_handler(
         dynamodb_endpoint=ddb_endpoint_url,
     )
 
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        hs_file = open(os.path.join(output_dir, "healthcare_service.jsonl"), "w")
+        org_file = open(os.path.join(output_dir, "organisation.jsonl"), "w")
+        loc_file = open(os.path.join(output_dir, "location.jsonl"), "w")
+
+        def _local_save(result: ServiceTransformOutput) -> None:
+            """
+            Save the transformed result to local files instead of DynamoDB.
+            """
+            hs_file.write(result.healthcare_service.model_dump_json(exclude_none=True))
+            hs_file.write("\n")
+
+            org_file.write(result.organisation.model_dump_json(exclude_none=True))
+            org_file.write("\n")
+
+            loc_file.write(result.location.model_dump_json(exclude_none=True))
+            loc_file.write("\n")
+
+        app._save = _local_save  # Override save method to prevent actual saving
+
     if service_id:
         event = {"record_id": service_id}
-        return app.run_single_service_sync(event)
+        app.run_single_service_sync(event)
 
-    event = {"full_sync": True}
-    return app.run_full_sync(event, None)
+    else:
+        event = {"full_sync": True}
+        app.run_full_sync(event, None)
+
+    if output_dir:
+        hs_file.close()
+        org_file.close()
+        loc_file.close()
+        print(f"Transformed records saved to {output_dir}")

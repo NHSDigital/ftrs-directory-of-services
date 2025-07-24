@@ -2,12 +2,13 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from enum import IntEnum
 
-from sqlalchemy import MetaData
-from sqlmodel import Field, Relationship, SQLModel
-
-
-class LegacyDoSModel(SQLModel):
-    metadata = MetaData(schema="pathwaysdos")
+from ftrs_data_layer.domain.legacy.base import LegacyDoSModel
+from ftrs_data_layer.domain.legacy.clinical_codes import (
+    Disposition,
+    SymptomDiscriminator,
+    SymptomGroup,
+)
+from sqlmodel import Field, Relationship
 
 
 class ServiceTypeEnum(IntEnum):
@@ -142,32 +143,8 @@ class Service(LegacyDoSModel, table=True):
     endpoints: list["ServiceEndpoint"] = Relationship()
     scheduled_opening_times: list["ServiceDayOpening"] = Relationship()
     specified_opening_times: list["ServiceSpecifiedOpeningDate"] = Relationship()
-
-
-class OpeningTimeDay(LegacyDoSModel, table=True):
-    __tablename__ = "openingtimedays"
-
-    id: int = Field(primary_key=True)
-    name: str
-
-
-class ServiceDayOpening(LegacyDoSModel, table=True):
-    __tablename__ = "servicedayopenings"
-
-    id: int = Field(primary_key=True)
-    serviceid: int = Field(foreign_key="services.id")
-    dayid: int = Field(foreign_key="openingtimedays.id")
-    day: OpeningTimeDay = Relationship()
-    times: list["ServiceDayOpeningTime"] = Relationship()
-
-
-class ServiceDayOpeningTime(LegacyDoSModel, table=True):
-    __tablename__ = "servicedayopeningtimes"
-
-    id: int = Field(primary_key=True)
-    starttime: time
-    endtime: time
-    servicedayopeningid: int = Field(foreign_key="servicedayopenings.id")
+    sgsds: list["ServiceSGSD"] = Relationship()
+    dispositions: list["ServiceDisposition"] = Relationship()
 
 
 class ServiceType(LegacyDoSModel, table=True):
@@ -179,6 +156,30 @@ class ServiceType(LegacyDoSModel, table=True):
     searchcapacitystatus: bool | None
     capacitymodel: str | None
     capacityreset: str | None
+
+
+class ServiceEndpoint(LegacyDoSModel, table=True):
+    __tablename__ = "serviceendpoints"
+
+    id: int = Field(primary_key=True)
+    endpointorder: int
+    transport: str | None
+    format: str | None
+    interaction: str | None
+    businessscenario: str | None
+    address: str | None
+    comment: str | None
+    iscompressionenabled: bool | None
+    serviceid: int = Field(foreign_key="services.id")
+
+
+class ServiceDayOpeningTime(LegacyDoSModel, table=True):
+    __tablename__ = "servicedayopeningtimes"
+
+    id: int = Field(primary_key=True)
+    starttime: time
+    endtime: time
+    servicedayopeningid: int = Field(foreign_key="servicedayopenings.id")
 
 
 class ServiceSpecifiedOpeningDate(LegacyDoSModel, table=True):
@@ -202,16 +203,40 @@ class ServiceSpecifiedOpeningTime(LegacyDoSModel, table=True):
     )
 
 
-class ServiceEndpoint(LegacyDoSModel, table=True):
-    __tablename__ = "serviceendpoints"
+class OpeningTimeDay(LegacyDoSModel, table=True):
+    __tablename__ = "openingtimedays"
 
     id: int = Field(primary_key=True)
-    endpointorder: int
-    transport: str | None
-    format: str | None
-    interaction: str | None
-    businessscenario: str | None
-    address: str | None
-    comment: str | None
-    iscompressionenabled: bool | None
+    name: str
+
+
+class ServiceDayOpening(LegacyDoSModel, table=True):
+    __tablename__ = "servicedayopenings"
+
+    id: int = Field(primary_key=True)
     serviceid: int = Field(foreign_key="services.id")
+    dayid: int = Field(foreign_key="openingtimedays.id")
+    day: OpeningTimeDay = Relationship()
+    times: list["ServiceDayOpeningTime"] = Relationship()
+
+
+class ServiceSGSD(LegacyDoSModel, table=True):
+    __tablename__ = "servicesgsds"
+
+    id: int = Field(primary_key=True)
+    serviceid: int = Field(foreign_key="services.id")
+    sdid: int = Field(foreign_key="symptomdiscriminators.id")
+    sgid: int = Field(foreign_key="symptomgroups.id")
+
+    discriminator: "SymptomDiscriminator" = Relationship()
+    group: "SymptomGroup" = Relationship()
+
+
+class ServiceDisposition(LegacyDoSModel, table=True):
+    __tablename__ = "servicedispositions"
+
+    id: int = Field(primary_key=True)
+    serviceid: int = Field(foreign_key="services.id")
+    dispositionid: int = Field(foreign_key="dispositions.id")
+
+    disposition: "Disposition" = Relationship()

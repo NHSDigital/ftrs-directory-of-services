@@ -1,6 +1,6 @@
 import re
 
-from ftrs_data_layer import legacy_model
+from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.models import HealthcareServiceCategory, HealthcareServiceType
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
