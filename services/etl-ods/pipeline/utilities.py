@@ -68,10 +68,9 @@ def get_api_key() -> str:
 def get_resource_prefix() -> str:
     project = os.environ.get("PROJECT_NAME")
     environment = os.environ.get("ENVIRONMENT")
-    stack_name = os.environ.get("STACK_NAME")
     workspace = os.environ.get("WORKSPACE", None)
     workspace_suffix = f"-{workspace}" if workspace and workspace != "default" else ""
-    return f"{project}-{environment}-{stack_name}{workspace_suffix}"
+    return f"{project}-{environment}-etl-ods{workspace_suffix}"
 
 
 def get_signed_request_headers(
