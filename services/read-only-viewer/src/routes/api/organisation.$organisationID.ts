@@ -9,7 +9,7 @@ export const APIRoute = createAPIFileRoute("/api/organisation/$organisationID")(
 
       const response = await makeSignedFetch({
         method: "GET",
-        pathname: `/organisation/${organisationID}`,
+        pathname: `/Organization/${organisationID}`,
         expectedStatus: [200, 404],
         headers: {
           "X-Correlation-ID": request.headers.get("X-Correlation-ID") || "",
