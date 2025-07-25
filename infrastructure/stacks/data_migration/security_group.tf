@@ -102,6 +102,7 @@ resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_i
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
+  count                        = local.deploy_databases ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = aws_security_group.dms_replication_security_group[0].id
   from_port                    = var.rds_port
@@ -110,6 +111,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
+  count             = local.deploy_databases ? 1 : 0
   security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 443
@@ -153,6 +155,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_i
 
 
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {
+  count       = local.deploy_databases ? 1 : 0
   name        = "${local.resource_prefix}-${var.rds_event_listener_name}${local.workspace_suffix}-sg"
   description = "Security group for RDS event listener lambda"
 
