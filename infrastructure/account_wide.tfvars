@@ -23,5 +23,4 @@ subnet_flow_logs_bucket_name = "subnet-flow-logs"
 flow_log_destination_type    = "s3"
 flow_log_file_format         = "parquet"
 flow_log_s3_versioning       = false
-enable_flow_log              = false
 flow_logs_s3_expiration_days = 10
