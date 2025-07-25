@@ -116,3 +116,35 @@ variable "gp_search_organisation_table_name" {
   description = "The dynamodb table name for gp search"
   type        = string
 }
+
+variable "dms_replication_instance_class" {
+  description = "The instance class for the DMS replication instance"
+  type        = string
+}
+
+variable "dms_engine" {
+  description = "The engine for the DMS replication instance"
+  type        = string
+}
+
+variable "dms_allocated_storage" {
+  description = "The allocated storage for the DMS replication instance"
+  type        = number
+}
+
+variable "migration_type" {
+  description = "The type of migration for DMS"
+  type        = string
+}
+
+variable "dms_instance_multi_az" {
+  description = "Is DMS instance set up in multi-AZ mode"
+  type        = bool
+  default     = false
+}
+
+variable "dms_task_logging_enabled" {
+  description = "Enable logging for DMS tasks"
+  type        = bool
+  default     = true
+}

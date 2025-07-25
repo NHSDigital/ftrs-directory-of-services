@@ -142,3 +142,12 @@ variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string
 }
+
+variable "rds_event_listener_name" {
+  description = "The name of the RDS event listener Lambda function"
+}
+
+variable "schema_name" {
+  description = "The schema name to use in table mappings"
+  type        = string
+}

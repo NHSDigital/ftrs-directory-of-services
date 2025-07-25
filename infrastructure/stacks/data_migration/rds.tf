@@ -14,6 +14,44 @@ resource "random_password" "rds_password" {
   lower   = true
 }
 
+resource "aws_rds_cluster_parameter_group" "rds_pglogical_parameter_group" {
+  count = local.deploy_databases ? 1 : 0
+
+  name        = "${local.resource_prefix}-rds-pglogical"
+  family      = "aurora-postgresql16"
+  description = "Parameter group for DMS logical replication"
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "rds.logical_replication"
+    value        = "1"
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "shared_preload_libraries"
+    value        = "pglogical"
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "max_replication_slots"
+    value        = "20"
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "max_wal_senders"
+    value        = "20"
+  }
+
+  parameter {
+    apply_method = "pending-reboot"
+    name         = "wal_sender_timeout"
+    value        = "12000"
+  }
+}
+
 module "rds" {
   count = local.is_primary_environment && local.rds_environments ? 1 : 0
   # Module version: 9.13.0
@@ -42,11 +80,12 @@ module "rds" {
 
   iam_database_authentication_enabled = true
 
-  create_db_subnet_group = false
-  create_security_group  = false
-  vpc_id                 = data.aws_vpc.vpc.id
-  db_subnet_group_name   = "${local.account_prefix}-database-subnet-group"
-  vpc_security_group_ids = [aws_security_group.rds_security_group[0].id]
+  create_db_subnet_group          = false
+  create_security_group           = false
+  vpc_id                          = data.aws_vpc.vpc.id
+  db_subnet_group_name            = "${local.account_prefix}-database-subnet-group"
+  vpc_security_group_ids          = [aws_security_group.rds_security_group[0].id]
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pglogical_parameter_group[0].name
 
   final_snapshot_identifier = "${local.resource_prefix}-rds"
 
@@ -54,7 +93,7 @@ module "rds" {
 }
 
 resource "aws_secretsmanager_secret" "rds_username" {
-  # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+    # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count = local.is_primary_environment && local.rds_environments ? 1 : 0
 
@@ -69,7 +108,7 @@ resource "aws_secretsmanager_secret_version" "rds_username" {
 }
 
 resource "aws_secretsmanager_secret" "rds_password" {
-  # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+    # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count = local.is_primary_environment && local.rds_environments ? 1 : 0
 
@@ -84,7 +123,7 @@ resource "aws_secretsmanager_secret_version" "rds_password" {
 }
 
 resource "aws_secretsmanager_secret" "source_rds_credentials" {
-  # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+    # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count = local.is_primary_environment ? 1 : 0
 
@@ -105,14 +144,14 @@ resource "aws_secretsmanager_secret_version" "source_rds_credentials" {
 }
 
 resource "aws_secretsmanager_secret" "target_rds_credentials" {
-  # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
-  # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count = local.is_primary_environment ? 1 : 0
 
   name = "/${var.project}/${var.environment}/target-rds-credentials"
 }
 
 resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
+    # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count = local.is_primary_environment ? 1 : 0
 
   secret_id = aws_secretsmanager_secret.target_rds_credentials[0].id
@@ -123,4 +162,108 @@ resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
     password = "NOT_SET",
     dbname   = var.target_rds_database
   })
+
+}
+## DMS Replication Instance
+
+module "rds_replication" {
+  count  = local.deploy_databases ? 1 : 0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=592cb15809bde8eed2a641ba5971ec665c9b4397"
+
+  name           = "${local.resource_prefix}-rds-etl-target"
+  engine         = var.rds_engine
+  engine_version = var.rds_engine_version
+  engine_mode    = var.rds_engine_mode
+  port           = var.rds_port
+
+  instance_class = var.rds_instance_class
+  instances = {
+    one = {}
+  }
+
+  serverlessv2_scaling_configuration = {
+    min_capacity = var.data_migration_rds_min_capacity
+    max_capacity = var.data_migration_rds_max_capacity
+  }
+
+  manage_master_user_password = false
+  master_username             = random_pet.rds_username[0].id
+  master_password             = random_password.rds_password[0].result
+  database_name               = var.target_rds_database
+
+  iam_database_authentication_enabled = true
+
+  create_db_subnet_group          = false
+  create_security_group           = false
+  vpc_id                          = data.aws_vpc.vpc.id
+  db_subnet_group_name            = "${local.account_prefix}-database-subnet-group"
+  vpc_security_group_ids          = [try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)]
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pglogical_parameter_group[0].name
+
+  final_snapshot_identifier = "${local.resource_prefix}-rds-etl"
+
+  deletion_protection = true
+}
+
+resource "aws_rds_cluster_role_association" "rds_associate_lambda_role" {
+  count = local.deploy_databases ? 1 : 0
+
+  db_cluster_identifier = module.rds_replication[0].cluster_id
+  role_arn              = aws_iam_role.rds_lambda_invoke_role.arn
+  feature_name          = "Lambda"
+}
+
+resource "null_resource" "create_dms_user" {
+  count = local.deploy_databases ? 1 : 0
+
+  provisioner "local-exec" {
+    command = <<EOT
+      PGPASSWORD='${data.aws_secretsmanager_secret_version.rds_password.secret_string}' psql \
+        --host=${module.rds[0].cluster_endpoint} \
+        --port=${var.rds_port} \
+        --username=${data.aws_secretsmanager_secret_version.rds_username.secret_string} \
+        --dbname=${var.source_rds_database} \
+        --command="DO \$\$ BEGIN
+                  IF NOT EXISTS (
+                    SELECT FROM pg_catalog.pg_roles WHERE rolname = '${random_pet.rds_username[0].id}'
+                  ) THEN
+                    CREATE ROLE ${random_pet.rds_username[0].id} LOGIN PASSWORD '${random_password.rds_password[0].result}';
+                    GRANT rds_replication TO ${random_pet.rds_username[0].id};
+                    GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${random_pet.rds_username[0].id};
+                  END IF;
+                  END \$\$;"
+    EOT
+  }
+
+  depends_on = [aws_dms_replication_instance.dms_replication_instance]
+}
+
+resource "null_resource" "create_dms_trigger" {
+  count = local.deploy_databases ? 1 : 0
+
+  provisioner "local-exec" {
+    environment = {
+      PGPASSWORD = data.aws_secretsmanager_secret_version.rds_password.secret_string
+    }
+
+    command = <<EOT
+      set -euo pipefail
+      # Generate the SQL trigger file from template
+      echo '${templatefile("${path.module}/templates/trigger.sql.tmpl", {
+    user       = data.aws_secretsmanager_secret_version.rds_username.secret_string
+    table_name = "pathwaysdos.services",
+    lambda_arn = module.rds_event_listener.lambda_function_arn
+    aws_region = var.aws_region
+})}' > /tmp/create_trigger.sql
+      # Apply the trigger to the target database
+      psql \
+        --host=${module.rds_replication[0].cluster_endpoint} \
+        --port=${var.rds_port} \
+        --username=${data.aws_secretsmanager_secret_version.rds_username.secret_string} \
+        --dbname=${var.target_rds_database} \
+        -f /tmp/create_trigger.sql
+    EOT
+}
+
+depends_on = [aws_dms_replication_instance.dms_replication_instance, module.rds_replication[0]]
 }
