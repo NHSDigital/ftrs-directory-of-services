@@ -61,7 +61,7 @@
           },
           {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario",
-            "valueCode": "Primary"
+            "valueCode": "primary-recipient"
           }
         ],
         "status": "active",

@@ -28,7 +28,7 @@ def create_endpoint_value():
         address: str = "https://example.org/fhir",
         order: int = 1,
         is_compression_enabled: bool = True,
-        description: str = "Test scenario",
+        description: str = "Primary",
         managed_by_organisation: str = "org-123",
     ) -> EndpointValue:
         return EndpointValue(
