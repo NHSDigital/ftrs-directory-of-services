@@ -123,3 +123,45 @@ module "queue_populator_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 }
+
+module "rds_event_listener" {
+  source                 = "../../modules/lambda"
+  function_name          = "${local.resource_prefix}-${var.rds_event_listener_name}"
+  description            = "Lambda to listen for database events and send notifications"
+  handler                = "lambda_function.lambda_handler"
+  runtime                = var.lambda_runtime
+  local_existing_package = "lambdav1.zip"
+  timeout                = var.load_lambda_connection_timeout
+  memory_size            = var.load_lambda_memory_size
+  s3_bucket_name         = ""
+  s3_key                 = ""
+  subnet_ids             = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids     = [aws_security_group.rds_event_listener_lambda_security_group.id]
+
+  number_of_policy_jsons = "5"
+  policy_jsons = [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.secrets_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy_document.rds_event_listener_sqs_access_policy.json
+  ]
+
+  environment_variables = {
+    "ENVIRONMENT"   = var.environment
+    "PROJECT_NAME"  = var.project
+    "SQS_QUEUE_URL" = aws_sqs_queue.rds_event_listener.id
+  }
+
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
+}
+
+resource "aws_lambda_permission" "allow_rds_event_lambda_to_invoke_sqs" {
+  statement_id  = "AllowExecutionFromSQS"
+  action        = "lambda:InvokeFunction"
+  function_name = module.rds_event_listener.lambda_function_name
+  principal     = "sqs.amazonaws.com"
+  source_arn    = aws_sqs_queue.rds_event_listener.arn
+}

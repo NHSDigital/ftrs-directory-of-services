@@ -87,6 +87,18 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
   }
 }
 
+data "aws_secretsmanager_secret_version" "rds_username" {
+  secret_id = "${var.project}/${var.environment}/rds-username"
+}
+
+data "aws_secretsmanager_secret_version" "rds_password" {
+  secret_id = "${var.project}/${var.environment}/rds-password"
+}
+
+data "aws_rds_cluster" "rds" {
+  cluster_identifier = "${local.resource_prefix}-rds"
+}
+
 data "aws_iam_policy_document" "sqs_access_policy" {
   statement {
     effect = "Allow"
