@@ -155,7 +155,6 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_i
 
 
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {
-  count       = local.deploy_databases ? 1 : 0
   name        = "${local.resource_prefix}-${var.rds_event_listener_name}${local.workspace_suffix}-sg"
   description = "Security group for RDS event listener lambda"
 
