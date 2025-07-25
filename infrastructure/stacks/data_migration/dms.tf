@@ -51,7 +51,7 @@ resource "aws_dms_replication_task" "dms_replication_task" {
   replication_instance_arn = aws_dms_replication_instance.dms_replication_instance[0].replication_instance_arn
   source_endpoint_arn      = aws_dms_endpoint.dms_source_endpoint[0].endpoint_arn
   target_endpoint_arn      = aws_dms_endpoint.dms_target_endpoint[0].endpoint_arn
-  table_mappings = templatefile("${path.module}/templates/table-mappings.json", {
+  table_mappings = templatefile("${path.module}/table-mappings.json", {
     schema_name = var.schema_name
   })
 

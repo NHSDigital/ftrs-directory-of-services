@@ -249,7 +249,7 @@ resource "null_resource" "create_dms_trigger" {
     command = <<EOT
       set -euo pipefail
       # Generate the SQL trigger file from template
-      echo '${templatefile("${path.module}/templates/trigger.sql.tmpl", {
+      echo '${templatefile("${path.module}/trigger.sql.tmpl", {
     user       = data.aws_secretsmanager_secret_version.rds_username.secret_string
     table_name = "pathwaysdos.services",
     lambda_arn = module.rds_event_listener.lambda_function_arn
