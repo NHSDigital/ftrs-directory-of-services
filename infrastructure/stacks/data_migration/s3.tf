@@ -14,9 +14,7 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
     principals {
       type = "AWS"
       identifiers = [
-        module.extract_lambda.lambda_role_arn,
-        module.transform_lambda.lambda_role_arn,
-        module.load_lambda.lambda_role_arn
+        module.migration_lambda.lambda_role_arn,
       ]
     }
 
@@ -53,24 +51,4 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
       "${module.migration_store_bucket.s3_bucket_arn}/*",
     ]
   }
-}
-
-resource "aws_s3_bucket_notification" "lambda_trigger" {
-  bucket = module.migration_store_bucket.s3_bucket_id
-
-  lambda_function {
-    events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "extract/"
-    filter_suffix       = ".parquet"
-    lambda_function_arn = module.transform_lambda.lambda_function_arn
-  }
-
-  lambda_function {
-    events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "transform/"
-    filter_suffix       = ".parquet"
-    lambda_function_arn = module.load_lambda.lambda_function_arn
-  }
-
-  depends_on = [module.transform_lambda, module.load_lambda]
 }
