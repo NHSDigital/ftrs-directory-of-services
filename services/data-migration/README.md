@@ -102,6 +102,7 @@ The migration command accepts the following mandatory options:
 - `--env`: The environment to run the migration in. This should be either `local` or `dev`.
 
 The following options are also available:
+
 - `--workspace`: The workspace to run the migration in, for example `fdos-000`.
 - `--ddb-endpoint-url`: The endpoint URL for the DynamoDB instance. This is required for local DynamoDB testing.
 - `--service-id`: Only migrate data for a specific service ID. This is optional and can be used to limit the migration to a single service.
