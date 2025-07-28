@@ -76,3 +76,7 @@ regex = '''(AWS|aws|Aws)?_?(ACCOUNT|account|Account)_?(ID|id|Id)?\s*(:|=>|=)\s*[
 id = "apikey"
 description = "Generic API Key"
 regex = '''(?i)(api|apikey|key|token)[=:]['"]?[A-Za-z0-9-_]{20,}['"]?'''
+
+[rules.allowlist]
+description = "Allow foreign_key assignments"
+regexes = ['''(?i)foreign_key''']
