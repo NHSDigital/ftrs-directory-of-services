@@ -87,7 +87,7 @@ psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
 
-### Running Pipeline Steps Locally
+### Running the pipeline locally
 
 The pipeline can be run locally using the `dos-etl` command. Ensure you are in the correct directory and have activated the Poetry environment.
 
@@ -96,62 +96,41 @@ The pipeline can be run locally using the `dos-etl` command. Ensure you are in t
 eval $(poetry env activate)
 ```
 
-#### Extract
-
-The extract step accepts the following options:
+The migration command accepts the following mandatory options:
 
 - `--db-uri`: The URI of the source database. This should be in the format `postgresql://<user>:<password>@<host>:<port>/<database>`.
-- `--output`: The output path for the extracted data. This can be a local path or an S3 URI.
+- `--env`: The environment to run the migration in. This should be either `local` or `dev`.
+
+The following options are also available:
+- `--workspace`: The workspace to run the migration in, for example `fdos-000`.
+- `--ddb-endpoint-url`: The endpoint URL for the DynamoDB instance. This is required for local DynamoDB testing.
+- `--service-id`: Only migrate data for a specific service ID. This is optional and can be used to limit the migration to a single service.
+- `--output-dir`: Store output files in a specific directory. This skips loading into DynamoDB and is useful for debugging.
 
 ```bash
 # Store output locally
-dos-etl extract \
+dos-etl \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
-    --output /tmp/out/extract.parquet
-
-# Store output in S3
-dos-etl extract \
-    --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
-    --output s3://<s3_bucket_name>/<s3_bucket_path>/extract.parquet
-```
-
-#### Transform
-
-The transform step accepts the following options:
-
-- `--input`: The input path for the extracted data. This can be a local file path or an S3 URI.
-- `--output`: The output path for the transformed data. This can be a local file path or an S3 URI.
-
-```bash
-# Store output locally
-dos-etl transform \
-    --input /tmp/out/extract.parquet \
-    --output /tmp/out/transform.parquet
-
-# Store output in S3
-dos-etl transform \
-    --input s3://<s3_bucket_name>/<s3_bucket_path>/extract.parquet \
-    --output s3://<s3_bucket_name>/<s3_bucket_path>/transform.parquet
-```
-
-#### Load
-
-The load step accepts the following options:
-
-- `--env`: The environment to load the data into. This can currently only be `local` or `dev`.
-- `--workspace`: The workspace to load the data into. This is optional.
-- `--endpoint-uri`: The endpoint URI for the DynamoDB instance. This is required for local testing.
-- `--input`: The input path for the transformed data. This can be a local file path or an S3 URI.
-
-```bash
-# Load data from local directory into local DynamoDB
-dos-etl load \
     --env local \
-    --endpoint-url http://localhost:8000 \
-    --input /tmp/out/transform.parquet
+    --output-dir /tmp/out/extract.parquet
 
-# Load data from S3 into dev DynamoDB
-dos-etl load \
+# Migrate all services directly into local DynamoDB
+dos-etl \
+    --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
+    --env local \
+    --ddb-endpoint-url http://localhost:8000
+
+
+# Migrate a specific service directly into dev DynamoDB
+dos-etl \
+    --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env dev \
-    --input s3://<s3_bucket_name>/<s3_bucket_path>/transform.parquet
+    --service-id <service_id>
+
+# Migrate all services directly into workspaced DynamoDB
+dos-etl \
+    --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
+    --env local \
+    --workspace fdos-000 \
+    --ddb-endpoint-url http://localhost:8000
 ```
