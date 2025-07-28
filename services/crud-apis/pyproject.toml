@@ -35,7 +35,6 @@ uvicorn = "^0.34.2"
 boto3 = "^1.37.33"
 poethepoet = "^0.34.0"
 numpy = "^1.26.4"
-sqlmodel = "^0.0.24"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"

@@ -1,8 +1,7 @@
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
-from sqlmodel import Field
+from pydantic import BaseModel, Field
 
 
 class DBModel(BaseModel):

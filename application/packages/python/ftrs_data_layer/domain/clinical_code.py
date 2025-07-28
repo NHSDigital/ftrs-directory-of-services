@@ -1,8 +1,7 @@
 from uuid import UUID
 
 from ftrs_data_layer.domain.enums import ClinicalCodeSource, ClinicalCodeType
-from pydantic import BaseModel
-from sqlmodel import Field
+from pydantic import BaseModel, Field
 
 INVALID_DISPOSITION_ITEM = "Each disposition item must be a JSON object"
 INVALID_SG_SD_PAIR = "Both 'sg' and 'sd' components are required in the pair"
