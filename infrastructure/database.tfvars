@@ -5,9 +5,23 @@ dynamodb_tables = {
     range_key = "field"
     attributes = [
       { name = "id", type = "S" },
-      { name = "field", type = "S" }
+      { name = "field", type = "S" },
+      { name = "location", type = "S" },
+      { name = "providedBy", type = "S" },
     ]
-    global_secondary_indexes = []
+    global_secondary_indexes = [
+      {
+        name            = "LocationIndex"
+        hash_key        = "location"
+        projection_type = "ALL"
+      },
+      {
+        name            = "ProvidedByIndex"
+        hash_key        = "providedBy"
+        projection_type = "ALL"
+      }
+
+    ]
   }
   "organisation" = {
     hash_key  = "id"
@@ -30,9 +44,16 @@ dynamodb_tables = {
     range_key = "field"
     attributes = [
       { name = "id", type = "S" },
-      { name = "field", type = "S" }
+      { name = "field", type = "S" },
+      { name = "managingOrganisation", type = "S" }
     ]
-    global_secondary_indexes = []
+    global_secondary_indexes = [
+      {
+        name            = "ManagingOrganisationIndex"
+        hash_key        = "managingOrganisation"
+        projection_type = "ALL"
+      }
+    ]
   }
 }
 
