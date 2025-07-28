@@ -89,11 +89,11 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
             max_results,
         )
 
-    def get_by_ods_code(self, ods_code: str) -> list[str]:
+    def get_by_ods_code(self, ods_code: str) -> list[ModelType]:
         ods_code_field = "identifier_ODS_ODSCode"
         records = self._query(
             key=ods_code_field,
             value=ods_code,
             IndexName="OdsCodeValueIndex",
         )
-        return [record.id for record in records]
+        return list(records)

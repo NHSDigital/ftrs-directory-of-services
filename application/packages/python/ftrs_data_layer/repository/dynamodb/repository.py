@@ -62,7 +62,6 @@ class DynamoDBRepository(BaseRepository[ModelType]):
         self.logger.log(
             DDBLogBase.DDB_CORE_002, request=ddb_request, table=self.table.name
         )
-
         try:
             result = self.table.put_item(**ddb_request)
             self.logger.log(

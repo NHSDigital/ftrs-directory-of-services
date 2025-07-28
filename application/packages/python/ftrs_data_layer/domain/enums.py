@@ -65,3 +65,14 @@ class EndpointPayloadMimeType(str, Enum):
     EMAIL = "message/rfc822"
     TELNO = "text/vcard"
     CDA = "application/hl7-cda+xml"
+
+
+class ClinicalCodeSource(str, Enum):
+    PATHWAYS = "pathways"
+    SERVICE_FINDER = "servicefinder"
+
+
+class ClinicalCodeType(str, Enum):
+    SYMPTOM_GROUP = "Symptom Group (SG)"
+    SYMPTOM_DISCRIMINATOR = "Symptom Discriminator (SD)"
+    DISPOSITION = "Disposition (Dx)"

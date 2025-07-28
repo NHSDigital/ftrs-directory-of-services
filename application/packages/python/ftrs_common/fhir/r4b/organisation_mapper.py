@@ -3,7 +3,7 @@ from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.domain import Organisation
 
 TYPE_TO_CODE = {
     "GP PRACTICE": "76",

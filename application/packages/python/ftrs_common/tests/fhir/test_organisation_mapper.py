@@ -5,7 +5,7 @@ from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.domain import Organisation
 
 
 def make_fhir_org(

@@ -14,7 +14,7 @@ services:
     image: amazon/dynamodb-local
     ports:
       - "8000:8000"
-    command: "-Xms4g -Xmx6g -jar DynamoDBLocal.jar -sharedDb -dbPath /data"
+    command: "-Xmx6g -jar DynamoDBLocal.jar -sharedDb -dbPath /data"
     volumes:
       - ./.tmp/dynamodb:/data
 

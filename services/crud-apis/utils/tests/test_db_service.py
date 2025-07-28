@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from ftrs_data_layer.models import DBModel
+from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb.attribute_level import AttributeLevelRepository
 
 from utils.db_service import (

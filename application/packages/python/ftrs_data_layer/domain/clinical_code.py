@@ -1,6 +1,6 @@
-from enum import Enum
 from uuid import UUID
 
+from ftrs_data_layer.domain.enums import ClinicalCodeSource, ClinicalCodeType
 from pydantic import BaseModel
 from sqlmodel import Field
 
@@ -8,17 +8,6 @@ INVALID_DISPOSITION_ITEM = "Each disposition item must be a JSON object"
 INVALID_SG_SD_PAIR = "Both 'sg' and 'sd' components are required in the pair"
 INVALID_CODE_TYPE = "Invalid codeType for symptom group:"
 INVALID_CODE_TYPE_SD = "Invalid codeType for symptom discriminator:"
-
-
-class ClinicalCodeSource(str, Enum):
-    PATHWAYS = "pathways"
-    SERVICE_FINDER = "servicefinder"
-
-
-class ClinicalCodeType(str, Enum):
-    SYMPTOM_GROUP = "Symptom Group (SG)"
-    SYMPTOM_DISCRIMINATOR = "Symptom Discriminator (SD)"
-    DISPOSITION = "Disposition (Dx)"
 
 
 class BaseClinicalCode(BaseModel):

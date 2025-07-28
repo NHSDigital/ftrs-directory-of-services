@@ -98,7 +98,7 @@ class DataMigrationLogBase(LogBase):
     )
 
     DM_ETL_000 = LogReference(
-        level=INFO, message="Starting Data Migration ETL Pipeline in mode: {mode}"
+        level=INFO, message="Starting Data Migration ETL Pipeline"
     )
     DM_ETL_001 = LogReference(level=DEBUG, message="Starting to process record")
     DM_ETL_002 = LogReference(
@@ -110,19 +110,34 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_004 = LogReference(
         level=INFO,
-        message="Record {record_id} was not migrated due to reason: {reason}",
+        message="Record was not migrated due to reason: {reason}",
     )
     DM_ETL_005 = LogReference(
-        level=DEBUG,
-        message="Record {record_id} successfully transformed into future data model",
+        level=INFO,
+        message="Record skipped due to condition: {reason}",
     )
     DM_ETL_006 = LogReference(
-        level=INFO,
-        message="Record {record_id} successfully migrated",
+        level=DEBUG,
+        message="Record successfully transformed into future data model",
     )
     DM_ETL_007 = LogReference(
+        level=INFO,
+        message="Record successfully migrated",
+    )
+    DM_ETL_008 = LogReference(
         level=ERROR,
-        message="Error processing record {record_id}: {error}",
+        message="Error processing record: {error}",
+    )
+    DM_ETL_009 = LogReference(
+        level=ERROR,
+        message="Error parsing event: {error}",
+    )
+    DM_ETL_010 = LogReference(
+        level=WARNING, message="Unsupported event method: {method}"
+    )
+    DM_ETL_011 = LogReference(
+        level=WARNING,
+        message="Table {table_name} not supported for event method: {method}",
     )
 
     DM_ETL_999 = LogReference(

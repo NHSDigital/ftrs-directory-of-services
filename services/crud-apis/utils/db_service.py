@@ -1,4 +1,4 @@
-from ftrs_data_layer.models import DBModel
+from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from utils.config import Settings
