@@ -71,64 +71,26 @@ variable "aws_lambda_layers" {
   type        = list(string)
 }
 
-variable "extract_name" {
-  description = "The extract name of the Lambda function"
+variable "migration_lambda_name" {
+  description = "The name of the migration lambda function"
 }
 
-variable "extract_lambda_connection_timeout" {
-  description = "The timeout for the extract Lambda function"
+variable "migration_lambda_connection_timeout" {
+  description = "The timeout for the migration Lambda function"
   type        = number
 }
 
-variable "extract_lambda_memory_size" {
-  description = "The memory size for the extract Lambda function"
+variable "migration_lambda_memory_size" {
+  description = "The memory size for the migration Lambda function"
   type        = number
 }
 
-variable "extract_lambda_handler" {
-  description = "The handler for the extract Lambda function"
-  type        = string
-}
-
-variable "transform_name" {
-  description = "The transform name of the Lambda function"
-}
-
-variable "transform_lambda_connection_timeout" {
-  description = "The timeout for the transform Lambda function"
-  type        = number
-}
-
-variable "transform_lambda_memory_size" {
-  description = "The memory size for the transform Lambda function"
-  type        = number
-}
-
-variable "transform_lambda_handler" {
-  description = "The handler for the transform Lambda function"
+variable "migration_lambda_handler" {
+  description = "The handler for the migration Lambda function"
   type        = string
 }
 
 variable "data_collection_date" {
   description = "The date the data has been collected"
-  type        = string
-}
-
-variable "load_name" {
-  description = "The load name of the Lambda function"
-}
-
-variable "load_lambda_connection_timeout" {
-  description = "The timeout for the load Lambda function"
-  type        = number
-}
-
-variable "load_lambda_memory_size" {
-  description = "The memory size for the load Lambda function"
-  type        = number
-}
-
-variable "load_lambda_handler" {
-  description = "The handler for the load Lambda function"
   type        = string
 }
