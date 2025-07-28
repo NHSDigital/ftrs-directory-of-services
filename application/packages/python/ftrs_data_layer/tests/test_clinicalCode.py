@@ -77,7 +77,7 @@ def test_converts_valid_sg_sd_pair_ndarray() -> None:
 
 
 def test_converts_valid_dispositions_string() -> None:
-    dispositions = '[{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "time": 10}]'
+    dispositions = '[{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "dispositiontime": 10}]'
     result = ClinicalCodeConverter.convert_dispositions(dispositions)
 
     assert len(result) == 1
@@ -94,12 +94,19 @@ def test_converts_valid_dispositions_string() -> None:
 def test_converts_valid_dispositions_ndarray() -> None:
     dispositions = np.array(
         [
-            '{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "time": 10}'
+            '{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "dispositiontime": 10}'
         ]
     )
     result = ClinicalCodeConverter.convert_dispositions(dispositions)
     assert len(result) == 1
-    assert result[0] == Disposition(**json.loads(dispositions[0]))
+    assert result[0] == Disposition(
+        id="1",
+        source="pathways",
+        codeType="Disposition (Dx)",
+        codeID=301,
+        codeValue="Dx1",
+        time=10,
+    )
 
 
 def test_raises_error_for_invalid_json_string_in_dispositions() -> None:
