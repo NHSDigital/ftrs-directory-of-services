@@ -3,15 +3,7 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid5
 
 from ftrs_common.logger import Logger
-from ftrs_data_layer.domain import legacy as legacy_model
-from ftrs_data_layer.domain.clinical_code import (
-    ClinicalCodeSource,
-    Disposition,
-    SymptomDiscriminator,
-    SymptomGroup,
-    SymptomGroupSymptomDiscriminatorPair,
-)
-from ftrs_data_layer.models import (
+from ftrs_data_layer.domain import (
     PAYLOAD_MIMETYPE_MAPPING,
     Address,
     AvailableTime,
@@ -28,6 +20,14 @@ from ftrs_data_layer.models import (
     Organisation,
     PositionGCS,
     Telecom,
+)
+from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.clinical_code import (
+    ClinicalCodeSource,
+    Disposition,
+    SymptomDiscriminator,
+    SymptomGroup,
+    SymptomGroupSymptomDiscriminatorPair,
 )
 from pydantic import BaseModel
 

@@ -1,7 +1,7 @@
 import pytest
 from ftrs_common.mocks.mock_logger import MockLogger
-from ftrs_data_layer.legacy_model import Service, ServiceStatusEnum
-from ftrs_data_layer.models import HealthcareServiceCategory, HealthcareServiceType
+from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
+from ftrs_data_layer.domain.legacy import Service, ServiceStatusEnum
 
 from pipeline.transformer.gp_practice import GPPracticeTransformer
 
@@ -17,7 +17,7 @@ from pipeline.transformer.gp_practice import GPPracticeTransformer
     ],
 )
 def test_is_service_supported(
-    mock_service: Service,
+    mock_legacy_service: Service,
     service_type_id: int,
     ods_code: str | None,
     expected_result: bool,
@@ -26,10 +26,12 @@ def test_is_service_supported(
     """
     Test that is_service_supported returns True for a valid GP profile
     """
-    mock_service.type.id = service_type_id
-    mock_service.odscode = ods_code
+    mock_legacy_service.type.id = service_type_id
+    mock_legacy_service.odscode = ods_code
 
-    is_supported, message = GPPracticeTransformer.is_service_supported(mock_service)
+    is_supported, message = GPPracticeTransformer.is_service_supported(
+        mock_legacy_service
+    )
 
     assert is_supported == expected_result
     assert message == expected_message
@@ -44,7 +46,7 @@ def test_is_service_supported(
     ],
 )
 def test_should_include_service(
-    mock_service: Service,
+    mock_legacy_service: Service,
     status_id: ServiceStatusEnum,
     expected_result: bool,
     expected_message: str | None,
@@ -52,26 +54,28 @@ def test_should_include_service(
     """
     Test that should_include_service returns True for a valid GP profile
     """
-    mock_service.type.id = 100  # GP Practice type ID
-    mock_service.odscode = "A12345"  # Valid ODS code
-    mock_service.statusid = status_id
+    mock_legacy_service.type.id = 100  # GP Practice type ID
+    mock_legacy_service.odscode = "A12345"  # Valid ODS code
+    mock_legacy_service.statusid = status_id
 
-    should_include, message = GPPracticeTransformer.should_include_service(mock_service)
+    should_include, message = GPPracticeTransformer.should_include_service(
+        mock_legacy_service
+    )
 
     assert should_include == expected_result
     assert message == expected_message
 
 
-def test_transform(mock_service: Service) -> None:
+def test_transform(mock_legacy_service: Service) -> None:
     """
     Test that transform method correctly transforms a GP practice service.
     """
-    mock_service.type.id = 100  # GP Practice type ID
-    mock_service.odscode = "A12345"  # Valid ODS code
-    mock_service.statusid = ServiceStatusEnum.ACTIVE
+    mock_legacy_service.type.id = 100  # GP Practice type ID
+    mock_legacy_service.odscode = "A12345"  # Valid ODS code
+    mock_legacy_service.statusid = ServiceStatusEnum.ACTIVE
 
     transformer = GPPracticeTransformer(MockLogger())
-    result = transformer.transform(mock_service)
+    result = transformer.transform(mock_legacy_service)
 
     assert result.organisation.identifier_ODS_ODSCode == "A12345"
     assert result.healthcare_service.category == HealthcareServiceCategory.GP_SERVICES

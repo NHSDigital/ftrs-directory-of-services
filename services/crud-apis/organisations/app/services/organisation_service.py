@@ -10,8 +10,8 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
-from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 

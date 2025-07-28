@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.domain import Organisation
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
@@ -59,7 +59,9 @@ def mock_repository(mocker: MockerFixture) -> MockerFixture:
         "organisations.app.router.organisation.org_repository"
     )
     repository_mock.get.return_value = get_organisation()
-    repository_mock.get_by_ods_code.return_value = ["12345"]
+    repository_mock.get_by_ods_code.return_value = [
+        Organisation.model_construct(id="12345")
+    ]
     repository_mock.iter_records.return_value = [get_organisation()]
     repository_mock.update.return_value = JSONResponse(
         {"message": "Data processed successfully"}, status_code=HTTPStatus.OK

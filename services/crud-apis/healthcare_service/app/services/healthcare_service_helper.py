@@ -1,6 +1,6 @@
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain import DBModel, HealthcareService
 from ftrs_data_layer.logbase import CrudApisLogBase
-from ftrs_data_layer.models import DBModel, HealthcareService
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 crud_healthcareservice_logger = Logger.get(service="crud_healthcareservice_logger")

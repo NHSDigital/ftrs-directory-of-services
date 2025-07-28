@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
+
 from ftrs_common.utils.db_service import (
     env_variable_settings,
     get_service_repository,
     get_table_name,
 )
-from ftrs_data_layer.models import DBModel
+from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb.attribute_level import AttributeLevelRepository
 
 

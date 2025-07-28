@@ -45,6 +45,8 @@ def get_mock_service() -> HealthcareService:
                 "category": "availableTime",
             }
         ],
+        "symptomGroupSymptomDiscriminators": [],
+        "dispositions": [],
     }
 
 

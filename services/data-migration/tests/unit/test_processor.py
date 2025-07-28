@@ -1,361 +1,602 @@
-from unittest.mock import patch
-from uuid import UUID
+from decimal import Decimal
 
 import pytest
+from freezegun import freeze_time
 from ftrs_common.mocks.mock_logger import MockLogger
-from ftrs_data_layer.legacy_model import Service, ServiceStatusEnum, ServiceType
-from ftrs_data_layer.models import Organisation
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from ftrs_data_layer.domain import (
+    Address,
+    AvailableTime,
+    AvailableTimePublicHolidays,
+    Disposition,
+    Endpoint,
+    HealthcareService,
+    Location,
+    Organisation,
+    PositionGCS,
+    SymptomDiscriminator,
+    SymptomGroup,
+    SymptomGroupSymptomDiscriminatorPair,
+    Telecom,
+)
+from ftrs_data_layer.domain.legacy.service import (
+    Service,
+    ServiceType,
+)
 from pytest_mock import MockerFixture
-from sqlmodel import Session
+from sqlalchemy import Engine
 
-from pipeline.processor import DataMigrationProcessor
-from pipeline.transformer.gp_practice import GPPracticeTransformer
-
-
-@patch("pipeline.processor.uuid4", return_value="test-uuid")
-def test_processor_init(mock_logger: MockLogger) -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    assert processor.env == "test"
-    assert processor.workspace == "test_workspace"
-    assert processor.dry_run is True
-
-    log_keys = processor.logger.get_current_keys()
-
-    assert log_keys["run_id"] == "test-uuid"
-    assert log_keys["service"] == "data-migration"
-    assert log_keys["env"] == "test"
-    assert log_keys["workspace"] == "test_workspace"
-    assert log_keys["dry_run"] is True
+from pipeline.processor import DataMigrationProcessor, ServiceTransformOutput
+from pipeline.utils.config import DataMigrationConfig
 
 
-def test_processor_get_repository() -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    repository = processor.get_repository(
-        entity_type="organisation",
-        model_cls=Organisation,
-    )
-
-    assert repository is not None
-    assert isinstance(repository, AttributeLevelRepository)
-    assert repository.table.name == "ftrs-dos-test-database-organisation-test_workspace"
-
-    assert processor._repository_cache[repository.table.name] is repository
-    assert (
-        processor.get_repository(
-            entity_type="organisation",
-            model_cls=Organisation,
-        )
-        is repository
-    )
-
-
-def test_processor_get_repository_no_workspace() -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace=None,
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    repository = processor.get_repository(
-        entity_type="organisation",
-        model_cls=Organisation,
-    )
-
-    assert repository is not None
-    assert isinstance(repository, AttributeLevelRepository)
-    assert repository.table.name == "ftrs-dos-test-database-organisation"
-
-    assert processor._repository_cache[repository.table.name] is repository
-    assert (
-        processor.get_repository(
-            entity_type="organisation",
-            model_cls=Organisation,
-        )
-        is repository
-    )
-
-
-def test_processor_is_full_sync() -> None:
-    assert DataMigrationProcessor.is_full_sync({}) is True
-
-
-def test_full_service_sync(
-    mock_logger: MockLogger, mocker: MockerFixture, mock_service: Service
-) -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    processor._iter_records = mocker.MagicMock(return_value=iter([mock_service]))
-    processor.run_full_service_sync({}, {})
-
-    assert processor._iter_records.call_count == 1
-    assert mock_logger.get_log("DM_ETL_000") == [
-        {
-            "detail": {"mode": "full_sync"},
-            "msg": "Starting Data Migration ETL Pipeline in mode: full_sync",
-            "reference": "DM_ETL_000",
-        }
-    ]
-
-    assert mock_logger.get_log("DM_ETL_999") == [
-        {
-            "detail": {
-                "metrics": {
-                    "errors": 0,
-                    "migrated_records": 0,
-                    "skipped_records": 0,
-                    "supported_records": 1,
-                    "total_records": 1,
-                    "transformed_records": 1,
-                    "unsupported_records": 0,
-                },
-                "mode": "full_sync",
-            },
-            "msg": "Data Migration ETL Pipeline completed successfully.",
-            "reference": "DM_ETL_999",
-        }
-    ]
-
-
-def test_run_single_service_sync(
-    mock_service: Service,
-    mock_logger: MockLogger,
-    mocker: MockerFixture,
-) -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    with patch.object(Session, "get") as mock_get:
-        mock_get.return_value = mock_service
-        processor.run_single_service_sync({"record_id": "test-id"})
-
-    mock_get.assert_called_once_with(Service, "test-id")
-
-    assert mock_logger.get_log("DM_ETL_000") == [
-        {
-            "detail": {"mode": "single_service_sync"},
-            "msg": "Starting Data Migration ETL Pipeline in mode: single_service_sync",
-            "reference": "DM_ETL_000",
-        }
-    ]
-    assert mock_logger.get_log("DM_ETL_999") == [
-        {
-            "detail": {
-                "metrics": {
-                    "errors": 0,
-                    "migrated_records": 0,
-                    "skipped_records": 0,
-                    "supported_records": 1,
-                    "total_records": 1,
-                    "transformed_records": 1,
-                    "unsupported_records": 0,
-                },
-                "mode": "single_service_sync",
-            },
-            "msg": "Data Migration ETL Pipeline completed successfully.",
-            "reference": "DM_ETL_999",
-        }
-    ]
-
-
-def test_run_single_service_sync_no_record_id(
+def test_processor_init(
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
 ) -> None:
     processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
+        config=mock_config,
+        logger=mock_logger,
     )
 
-    with pytest.raises(ValueError, match="No record_id provided in the event"):
-        processor.run_single_service_sync({})
-
-
-def test_run_single_service_sync_record_not_found(
-    mock_logger: MockLogger,
-    mocker: MockerFixture,
-) -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    with patch.object(Session, "get") as mock_get:
-        mock_get.return_value = None
-        with pytest.raises(ValueError, match="Service with ID test-id not found"):
-            processor.run_single_service_sync({"record_id": "test-id"})
-
-
-def test_process_service(
-    mock_service: Service,
-    mock_logger: MockLogger,
-    mocker: MockerFixture,
-) -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    mock_logger.append_keys = mocker.MagicMock()
-    mock_logger.remove_keys = mocker.MagicMock()
-
-    processor._process_service(mock_service)
-
-    mock_logger.append_keys.assert_called_once_with(record_id=mock_service.id)
-    mock_logger.remove_keys.assert_called_once_with(["record_id"])
-
-    assert mock_logger.was_logged("DM_ETL_001") is True
-    assert mock_logger.was_logged("DM_ETL_004") is False
-
-    assert mock_logger.get_log("DM_ETL_006") == [
-        {
-            "reference": "DM_ETL_006",
-            "msg": "Record 123456 successfully migrated",
-            "detail": {
-                "record_id": 123456,
-                "transformer_name": "GPPracticeTransformer",
-                "healthcare_service_id": UUID("39ff9286-3313-5970-ba22-0ab84c58c5ad"),
-                "organisation_id": UUID("0fd917b6-608a-59a0-ba62-eba57ec06a0e"),
-                "location_id": UUID("65f34381-acc8-5315-9b81-ff4e4dbef8d2"),
-            },
-        }
-    ]
-
-
-def test_process_record_no_transformer(
-    mock_service: Service,
-    mock_logger: MockLogger,
-    mocker: MockerFixture,
-) -> None:
-    processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
-    )
-
-    mock_service.typeid = 1000  # Simulate no transformer available
-    mock_service.type = ServiceType(id=1000, name="Unknown Service Type")
-
-    processor._process_service(mock_service)
-
-    assert mock_logger.was_logged("DM_ETL_001") is True
-    assert mock_logger.was_logged("DM_ETL_004") is True
-
-    assert mock_logger.get_log("DM_ETL_004") == [
-        {
-            "reference": "DM_ETL_004",
-            "msg": "Record 123456 was not migrated due to reason: No suitable transformer found",
-            "detail": {
-                "record_id": mock_service.id,
-                "reason": "No suitable transformer found",
-            },
-        }
-    ]
-
+    assert processor.logger == mock_logger
+    assert processor.config == mock_config
+    assert isinstance(processor.engine, Engine)
     assert processor.metrics.model_dump() == {
         "errors": 0,
         "migrated_records": 0,
         "skipped_records": 0,
         "supported_records": 0,
-        "total_records": 1,
+        "total_records": 0,
         "transformed_records": 0,
-        "unsupported_records": 1,
+        "unsupported_records": 0,
     }
 
 
-def test_process_record_skipped_record(
-    mock_service: Service,
-    mock_logger: MockLogger,
+def test_sync_all_services(
     mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
 ) -> None:
     processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
+        config=mock_config,
+        logger=mock_logger,
     )
 
-    mock_service.id = 123456
-    mock_service.statusid = ServiceStatusEnum.CLOSED
+    processor._process_service = mocker.MagicMock()
 
-    processor._process_service(mock_service)
+    mock_session = mocker.MagicMock()
+    mock_session.__enter__.return_value = mock_session
+    mock_session.exec.return_value = mocker.MagicMock(
+        all=mocker.MagicMock(return_value=[mock_legacy_service])
+    )
 
-    assert mock_logger.was_logged("DM_ETL_001") is True
-    assert mock_logger.was_logged("DM_ETL_004") is True
+    mocker.patch("pipeline.processor.Session", return_value=mock_session)
+
+    assert processor.sync_all_services() is None
+
+    assert processor._process_service.call_count == 1
+    processor._process_service.assert_called_once_with(mock_legacy_service)
+
+
+def test_sync_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    processor._process_service = mocker.MagicMock()
+
+    mock_session = mocker.MagicMock()
+    mock_session.__enter__.return_value = mock_session
+    mock_session.get.return_value = mock_legacy_service
+
+    mocker.patch("pipeline.processor.Session", return_value=mock_session)
+
+    record_id = 1
+    method = "test_method"
+
+    assert processor.sync_service(record_id, method) is None
+
+    assert processor._process_service.call_count == 1
+    processor._process_service.assert_called_once_with(mock_legacy_service)
+
+    assert mock_session.get.call_count == 1
+    mock_session.get.assert_called_once_with(Service, record_id)
+
+
+def test_sync_service_record_not_found(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    mock_session = mocker.MagicMock()
+    mock_session.__enter__.return_value = mock_session
+    mock_session.get.return_value = None
+
+    mocker.patch("pipeline.processor.Session", return_value=mock_session)
+
+    record_id = 1
+    method = "test_method"
+
+    with pytest.raises(ValueError, match=f"Service with ID {record_id} not found"):
+        processor.sync_service(record_id, method)
+
+
+@freeze_time("2025-07-25 12:00:00")
+def test_process_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._save = mocker.MagicMock()
+
+    assert processor.metrics == processor.Metrics(
+        total_records=0,
+        supported_records=0,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        errors=0,
+    )
+
+    processor._process_service(service=mock_legacy_service)
+
+    assert processor.metrics == processor.Metrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=1,
+        migrated_records=1,
+        skipped_records=0,
+        errors=0,
+    )
+
+    assert mock_logger.was_logged("DM_ETL_004") is False
+    assert mock_logger.was_logged("DM_ETL_005") is False
+    assert mock_logger.was_logged("DM_ETL_006") is True
+
+    assert processor._save.call_count == 1
+
+    output = processor._save.call_args[0][0]
+    assert isinstance(output, ServiceTransformOutput)
+    assert output.organisation == Organisation(
+        id="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        createdBy="DATA_MIGRATION",
+        createdDateTime="2025-07-25T12:00:00+00:00",
+        modifiedBy="DATA_MIGRATION",
+        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        identifier_ODS_ODSCode="A12345",
+        active=True,
+        name="Test Service",
+        telecom=None,
+        type="GP Practice",
+        endpoints=[
+            Endpoint(
+                id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
+                createdBy="DATA_MIGRATION",
+                createdDateTime="2025-07-25T12:00:00+00:00",
+                modifiedBy="DATA_MIGRATION",
+                modifiedDateTime="2025-07-25T12:00:00+00:00",
+                identifier_oldDoS_id=1,
+                status="active",
+                connectionType="http",
+                name=None,
+                payloadMimeType=None,
+                description="Primary",
+                payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
+                address="http://example.com/endpoint",
+                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                service=None,
+                order=1,
+                isCompressionEnabled=True,
+            ),
+            Endpoint(
+                id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
+                createdBy="DATA_MIGRATION",
+                createdDateTime="2025-07-25T12:00:00+00:00",
+                modifiedBy="DATA_MIGRATION",
+                modifiedDateTime="2025-07-25T12:00:00+00:00",
+                identifier_oldDoS_id=2,
+                status="active",
+                connectionType="email",
+                name=None,
+                payloadMimeType=None,
+                description="Copy",
+                payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
+                address="mailto:test@example.com",
+                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                service=None,
+                order=2,
+                isCompressionEnabled=False,
+            ),
+        ],
+    )
+    assert output.healthcare_service == HealthcareService(
+        id="903cd48b-5d0f-532f-94f4-937a4517b14d",
+        createdBy="DATA_MIGRATION",
+        createdDateTime="2025-07-25T12:00:00+00:00",
+        modifiedBy="DATA_MIGRATION",
+        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        identifier_oldDoS_uid="test-uid",
+        active=True,
+        category="GP Services",
+        type="GP Consultation Service",
+        providedBy="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        name="Test Service",
+        telecom=Telecom(
+            phone_public="01234 567890",
+            phone_private="09876 543210",
+            email="test@example.com",
+            web="http://example.com",
+        ),
+        openingTime=[
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="mon",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="tue",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="wed",
+                startTime="09:00:00",
+                endTime="12:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="wed",
+                startTime="13:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="thu",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="fri",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="sat",
+                startTime="10:00:00",
+                endTime="14:00:00",
+                allDay=False,
+            ),
+            AvailableTimePublicHolidays(
+                category="availableTimePublicHolidays",
+                startTime="10:00:00",
+                endTime="14:00:00",
+            ),
+        ],
+        symptomGroupSymptomDiscriminators=[
+            SymptomGroupSymptomDiscriminatorPair(
+                sg=SymptomGroup(
+                    id="d99da436-4a6f-57d9-828d-7a21b8d62a07",
+                    source="pathways",
+                    codeType="Symptom Group (SG)",
+                    codeID=1035,
+                    codeValue="Breathing Problems, Breathlessness or Wheeze, Pregnant",
+                ),
+                sd=SymptomDiscriminator(
+                    id="8cf9af7f-d476-5f27-bc40-47c7826a4a17",
+                    source="pathways",
+                    codeType="Symptom Discriminator (SD)",
+                    codeID=4003,
+                    codeValue="PC full Primary Care assessment and prescribing capability",
+                    synonyms=[],
+                ),
+            ),
+            SymptomGroupSymptomDiscriminatorPair(
+                sg=SymptomGroup(
+                    id="56138625-05bc-5575-9c9c-b1d390d054d2",
+                    source="servicefinder",
+                    codeType="Symptom Group (SG)",
+                    codeID=360,
+                    codeValue="z2.0 - Service Types",
+                ),
+                sd=SymptomDiscriminator(
+                    id="7ff7cb87-baf5-541a-9139-f85eab0bc312",
+                    source="servicefinder",
+                    codeType="Symptom Discriminator (SD)",
+                    codeID=14023,
+                    codeValue="GP Practice",
+                    synonyms=["General Practice"],
+                ),
+            ),
+        ],
+        dispositions=[
+            Disposition(
+                id="4443b15a-26a3-517f-8a93-eb7c2539d4fc",
+                source="pathways",
+                codeType="Disposition (Dx)",
+                codeID=126,
+                codeValue="Contact Own GP Practice next working day for appointment",
+                time=7200,
+            ),
+            Disposition(
+                id="ae7a129f-cda2-51f6-aff6-88a94f7f36de",
+                source="pathways",
+                codeType="Disposition (Dx)",
+                codeID=10,
+                codeValue="Speak to a Primary Care Service within 2 hours",
+                time=120,
+            ),
+        ],
+    )
+    assert output.location == Location(
+        id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        createdBy="DATA_MIGRATION",
+        createdDateTime="2025-07-25T12:00:00+00:00",
+        modifiedBy="DATA_MIGRATION",
+        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        active=True,
+        address=Address(
+            street="123 Test Street$Test City",
+            town="Test City",
+            postcode="AB12 3CD",
+        ),
+        managingOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        name=None,
+        positionGCS=PositionGCS(
+            latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+        ),
+        positionReferenceNumber_UPRN=None,
+        positionReferenceNumber_UBRN=None,
+        primaryAddress=True,
+        partOf=None,
+    )
+
+
+def test_process_service_unsupported_service(
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    mock_legacy_service.typeid = 1000
+    mock_legacy_service.type = ServiceType(
+        id=1000,
+        name="Unsupported Service Type",
+        nationalranking=None,
+        searchcapacitystatus=None,
+        capacitymodel=None,
+        capacityreset=None,
+    )
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics == processor.Metrics(
+        total_records=1,
+        supported_records=0,
+        unsupported_records=1,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        errors=0,
+    )
 
     assert mock_logger.get_log("DM_ETL_004") == [
         {
+            "msg": "Record was not migrated due to reason: No suitable transformer found",
+            "detail": {"reason": "No suitable transformer found"},
             "reference": "DM_ETL_004",
-            "msg": "Record 123456 was not migrated due to reason: Transformer indicated to skip this record - Service is not active",
-            "detail": {
-                "record_id": mock_service.id,
-                "reason": "Transformer indicated to skip this record - Service is not active",
-            },
         }
     ]
 
 
-def test_process_service_unexpected_error(
-    mock_service: Service,
+def test_process_service_skipped_service(
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
+    mock_legacy_service: Service,
 ) -> None:
     processor = DataMigrationProcessor(
-        db_uri="sqlite:///:memory:",
-        env="test",
-        workspace="test_workspace",
-        dynamodb_endpoint="http://localhost:8000",
-        dry_run=True,
+        config=mock_config,
+        logger=mock_logger,
     )
 
-    with patch.object(GPPracticeTransformer, "transform") as mock_transform:
-        mock_transform.side_effect = Exception("Unexpected error")
-        processor._process_service(mock_service)
+    mock_legacy_service.statusid = 2  # Closed status
 
-    assert mock_logger.was_logged("DM_ETL_001") is True
-    assert mock_logger.was_logged("DM_ETL_007") is True
+    processor._process_service(mock_legacy_service)
 
-    assert mock_logger.get_log("DM_ETL_007") == [
+    assert processor.metrics == processor.Metrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=1,
+        errors=0,
+    )
+
+    assert mock_logger.get_log("DM_ETL_005") == [
         {
-            "reference": "DM_ETL_007",
-            "msg": "Error processing record 123456: Unexpected error",
-            "detail": {"record_id": mock_service.id, "error": "Unexpected error"},
+            "msg": "Record skipped due to condition: Service is not active",
+            "detail": {"reason": "Service is not active"},
+            "reference": "DM_ETL_005",
         }
     ]
+
+
+def test_process_service_error(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    processor._save = mocker.MagicMock(side_effect=Exception("Test error"))
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics == processor.Metrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=1,
+        migrated_records=0,
+        skipped_records=0,
+        errors=1,
+    )
+
+    assert mock_logger.get_log("DM_ETL_008") == [
+        {
+            "msg": "Error processing record: Test error",
+            "detail": {"error": "Test error"},
+            "reference": "DM_ETL_008",
+        }
+    ]
+
+
+def test_get_transformer(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (True, None)
+    mock_transformer.return_value = mock_transformer
+
+    mocker.patch("pipeline.processor.SUPPORTED_TRANSFORMERS", [mock_transformer])
+
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    transformer = processor.get_transformer(mock_legacy_service)
+
+    assert transformer == mock_transformer
+
+    mock_transformer.assert_called_once_with(logger=processor.logger)
+    assert mock_transformer.is_service_supported.call_count == 1
+    mock_transformer.is_service_supported.assert_called_once_with(mock_legacy_service)
+
+    assert mock_logger.was_logged("DM_ETL_002") is False
+    assert mock_logger.get_log("DM_ETL_003") == [
+        {
+            "msg": "Transformer MockTransformer selected for record",
+            "detail": {"transformer_name": "MockTransformer"},
+            "reference": "DM_ETL_003",
+        }
+    ]
+
+
+def test_get_transformer_not_supported(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (False, "Unsupported type")
+
+    mocker.patch("pipeline.processor.SUPPORTED_TRANSFORMERS", [mock_transformer])
+
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    transformer = processor.get_transformer(mock_legacy_service)
+
+    assert transformer is None
+
+    assert mock_transformer.is_service_supported.call_count == 1
+    mock_transformer.is_service_supported.assert_called_once_with(mock_legacy_service)
+
+    assert mock_logger.was_logged("DM_ETL_003") is False
+    assert mock_logger.get_log("DM_ETL_002") == [
+        {
+            "msg": "Transformer MockTransformer is not valid for record: Unsupported type",
+            "detail": {
+                "transformer_name": "MockTransformer",
+                "reason": "Unsupported type",
+            },
+            "reference": "DM_ETL_002",
+        }
+    ]
+
+
+def test_save(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    mock_org_repo = mocker.MagicMock()
+    mock_location_repo = mocker.MagicMock()
+    mock_service_repo = mocker.MagicMock()
+
+    processor._REPOSITORY_CACHE = {
+        "ftrs-dos-test-database-organisation-test_workspace": mock_org_repo,
+        "ftrs-dos-test-database-healthcare-service-test_workspace": mock_service_repo,
+        "ftrs-dos-test-database-location-test_workspace": mock_location_repo,
+    }
+
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service)
+
+    processor._save(result)
+
+    assert mock_org_repo.upsert.call_count == 1
+    mock_org_repo.upsert.assert_called_once_with(result.organisation)
+
+    assert mock_location_repo.upsert.call_count == 1
+    mock_location_repo.upsert.assert_called_once_with(result.location)
+
+    assert mock_service_repo.upsert.call_count == 1
+    mock_service_repo.upsert.assert_called_once_with(result.healthcare_service)

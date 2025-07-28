@@ -3,9 +3,8 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
-from ftrs_data_layer.models import (
-    HealthcareService,
-)
+
+from ftrs_data_layer.domain import HealthcareService
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from healthcare_service.app.services.healthcare_service_helper import (
@@ -25,6 +24,8 @@ def test_create_healthcare_service_successful() -> NoReturn:
         name="Test Healthcare Service",
         telecom=None,
         openingTime=None,
+        symptomGroupSymptomDiscriminators=[],
+        dispositions=[],
     )
     response = create_healthcare_service(
         healthcare_service=test_service, repository=mock_repository
@@ -59,6 +60,8 @@ def test_create_healthcare_service_repository_error() -> NoReturn:
         name="Test Healthcare Service",
         telecom=None,
         openingTime=None,
+        symptomGroupSymptomDiscriminators=[],
+        dispositions=[],
     )
     mock_repository.create.side_effect = Exception("Repository error")
 

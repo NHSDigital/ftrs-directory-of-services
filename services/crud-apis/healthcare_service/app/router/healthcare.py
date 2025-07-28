@@ -4,10 +4,11 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.params import Body
 from fastapi.responses import Response
+
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.logbase import CrudApisLogBase
-from ftrs_data_layer.models import HealthcareService
+from ftrs_data_layer.domain import HealthcareService
 from starlette.responses import JSONResponse
 
 from healthcare_service.app.services.healthcare_service_helper import (

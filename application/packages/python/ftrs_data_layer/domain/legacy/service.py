@@ -169,7 +169,7 @@ class ServiceEndpoint(LegacyDoSModel, table=True):
     businessscenario: str | None
     address: str | None
     comment: str | None
-    iscompressionenabled: bool | None
+    iscompressionenabled: str | None
     serviceid: int = Field(foreign_key="services.id")
 
 

@@ -2,7 +2,10 @@
 from typing import NoReturn
 
 import pytest
-from ftrs_data_layer.enums import HealthcareServiceCategory, HealthcareServiceType
+from ftrs_data_layer.domain.enums import (
+    HealthcareServiceCategory,
+    HealthcareServiceType,
+)
 from pydantic import ValidationError
 
 from healthcare_service.app.services.validators import (

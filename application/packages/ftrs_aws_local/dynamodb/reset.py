@@ -4,8 +4,8 @@ from typing import Annotated, List
 import boto3
 from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
+from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.logbase import DataMigrationLogBase
-from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import (
     AttributeLevelRepository,
     ModelType,
@@ -51,8 +51,8 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             reset_logger.log(
                 DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
             )
-            err_msg = DataMigrationLogBase.ETL_RESET_007.value.message.format(
-                entity_type=entity_type
+            err_msg = reset_logger.format_message(
+                DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
             )
             raise ValueError(err_msg)
 

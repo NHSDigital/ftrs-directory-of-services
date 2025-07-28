@@ -1,13 +1,24 @@
 from .base import LegacyDoSModel
-from .clinical_codes import SymptomDiscriminator, SymptomGroup
+from .clinical_codes import (
+    Disposition,
+    SymptomDiscriminator,
+    SymptomDiscriminatorSynonym,
+    SymptomGroup,
+    SymptomGroupSymptomDiscriminator,
+)
 from .service import (
+    OpeningTimeDay,
     Service,
     ServiceDayOpening,
+    ServiceDayOpeningTime,
+    ServiceDisposition,
     ServiceEndpoint,
     ServiceSGSD,
     ServiceSpecifiedOpeningDate,
     ServiceSpecifiedOpeningTime,
+    ServiceStatusEnum,
     ServiceType,
+    ServiceTypeEnum,
 )
 
 __all__ = [
@@ -20,5 +31,13 @@ __all__ = [
     "ServiceSGSD",
     "SymptomDiscriminator",
     "SymptomGroup",
+    "SymptomGroupSymptomDiscriminator",
     "LegacyDoSModel",
+    "ServiceStatusEnum",
+    "ServiceTypeEnum",
+    "OpeningTimeDay",
+    "ServiceDayOpeningTime",
+    "SymptomDiscriminatorSynonym",
+    "Disposition",
+    "ServiceDisposition",
 ]
