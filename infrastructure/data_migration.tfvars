@@ -13,7 +13,7 @@ rds_instance_class  = "db.serverless"
 
 lambda_runtime                      = "python3.12"
 data_collection_date                = "05-03-25"
-migration_lambda_name               = "migration-lambda"
+migration_lambda_name               = "lambda"
 migration_lambda_handler            = "pipeline.lambda_handler.lambda_handler"
 migration_lambda_connection_timeout = 900
 migration_lambda_memory_size        = 512
