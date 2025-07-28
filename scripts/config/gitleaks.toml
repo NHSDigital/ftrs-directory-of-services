@@ -30,7 +30,6 @@ regexes = [
   '''(.*)017000801446(.*)''', # Allow AWS account number for Lambda Layers
   '''(.*)336392948345(.*)''',
   '''(.*)XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX''',
-  '''(.*)foreign_key(.*)''' # Allow foreign_key assignments
 ]
 
 [[rules]]
