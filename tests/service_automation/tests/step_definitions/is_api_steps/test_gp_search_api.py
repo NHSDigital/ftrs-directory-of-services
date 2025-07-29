@@ -42,12 +42,13 @@ def send_get_with_params(
         )
     logger.info(f"URL: {url}")
     logger.info(f"Params: {param_dict}")
-    logger.info(f"Response: {response.status_code} - {response.text}")
+    # logger.info(f"Response: {response.status_code} - {response.text}")
     return response
 
 
 @then(parsers.parse('I receive a status code "{status_code:d}" in response'))
 def status_code(fresponse, status_code):
+    logger.info(f"status: {fresponse.status}")
     assert fresponse.status == status_code
 
 
