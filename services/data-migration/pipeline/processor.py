@@ -152,12 +152,14 @@ class DataMigrationProcessor:
             )
             return TransformerClass(logger=self.logger)
 
-    def _iter_records(self) -> Iterable[legacy.Service]:
+    def _iter_records(self, batch_size: int = 100) -> Iterable[legacy.Service]:
         """
         Iterate over records in the database.
         """
         with Session(self.engine) as session:
-            yield from session.exec(select(legacy.Service)).all()
+            stmt = select(legacy.Service).execution_options(yield_per=batch_size)
+            for record in session.scalars(stmt):
+                yield record
 
     def _save(self, result: ServiceTransformOutput) -> None:
         """
