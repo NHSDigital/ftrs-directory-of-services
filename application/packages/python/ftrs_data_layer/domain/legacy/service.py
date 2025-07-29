@@ -3,11 +3,6 @@ from decimal import Decimal
 from enum import IntEnum
 
 from ftrs_data_layer.domain.legacy.base import LegacyDoSModel
-from ftrs_data_layer.domain.legacy.clinical_codes import (
-    Disposition,
-    SymptomDiscriminator,
-    SymptomGroup,
-)
 from sqlmodel import Field, Relationship
 
 
@@ -215,8 +210,7 @@ class ServiceDayOpening(LegacyDoSModel, table=True):
 
     id: int = Field(primary_key=True)
     serviceid: int = Field(foreign_key="services.id")
-    dayid: int = Field(foreign_key="openingtimedays.id")
-    day: OpeningTimeDay = Relationship()
+    dayid: int
     times: list["ServiceDayOpeningTime"] = Relationship()
 
 
@@ -225,11 +219,8 @@ class ServiceSGSD(LegacyDoSModel, table=True):
 
     id: int = Field(primary_key=True)
     serviceid: int = Field(foreign_key="services.id")
-    sdid: int = Field(foreign_key="symptomdiscriminators.id")
-    sgid: int = Field(foreign_key="symptomgroups.id")
-
-    discriminator: "SymptomDiscriminator" = Relationship()
-    group: "SymptomGroup" = Relationship()
+    sdid: int
+    sgid: int
 
 
 class ServiceDisposition(LegacyDoSModel, table=True):
@@ -238,5 +229,3 @@ class ServiceDisposition(LegacyDoSModel, table=True):
     id: int = Field(primary_key=True)
     serviceid: int = Field(foreign_key="services.id")
     dispositionid: int = Field(foreign_key="dispositions.id")
-
-    disposition: "Disposition" = Relationship()
