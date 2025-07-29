@@ -13,9 +13,10 @@ module "health_check_lambda" {
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
-  layers = (
-    [aws_lambda_layer_version.python_dependency_layer.arn]
-  )
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
@@ -23,7 +24,7 @@ module "health_check_lambda" {
   environment_variables = {
     "ENVIRONMENT"         = var.environment
     "PROJECT_NAME"        = var.project
-    "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
+    "WORKSPACE"           = terraform.workspace == "default" ? "" : terraform.workspace
     "DYNAMODB_TABLE_NAME" = "${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
   }
 }
