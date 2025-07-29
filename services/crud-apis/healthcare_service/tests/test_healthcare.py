@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
-from pytest_mock import mocker
+from pytest_mock import MockerFixture
 
 from healthcare_service.app.router.healthcare import router
 
@@ -47,8 +47,8 @@ def get_mock_service() -> dict:
     }
 
 
-@pytest.fixture
-def mock_repository(mocker: mocker) -> None:
+@pytest.fixture(autouse=True)
+def mock_repository(mocker: MockerFixture) -> MockerFixture:
     repository_mock = mocker.patch(
         "healthcare_service.app.router.healthcare.repository"
     )
@@ -57,13 +57,22 @@ def mock_repository(mocker: mocker) -> None:
     return repository_mock
 
 
-def test_returns_healthcare_service_by_id(mock_repository: mocker) -> None:
+@pytest.fixture
+def mock_apply_updates(mocker: MockerFixture) -> None:
+    apply_updates_mock = mocker.patch(
+        "healthcare_service.app.router.healthcare.apply_updates"
+    )
+    apply_updates_mock.return_value = None
+    return apply_updates_mock
+
+
+def test_returns_healthcare_service_by_id() -> None:
     response = client.get(f"/{test_service_id}")
     assert response.status_code == HTTPStatus.OK
     assert response.json()["id"] == str(test_service_id)
 
 
-def test_returns_404_when_service_not_found(mock_repository: mocker) -> None:
+def test_returns_404_when_service_not_found(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = None
     with pytest.raises(HTTPException) as exc_info:
         client.get(f"/{test_service_id}")
@@ -71,13 +80,13 @@ def test_returns_404_when_service_not_found(mock_repository: mocker) -> None:
     assert exc_info.value.detail == "Healthcare Service not found"
 
 
-def test_returns_all_healthcare_services(mock_repository: mocker) -> None:
+def test_returns_all_healthcare_services() -> None:
     response = client.get("/")
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()) > 0
 
 
-def test_returns_404_when_no_services_found(mock_repository: mocker) -> None:
+def test_returns_404_when_no_services_found(mock_repository: MockerFixture) -> None:
     mock_repository.iter_records.return_value = []
     with pytest.raises(HTTPException) as exc_info:
         client.get("/")
@@ -85,7 +94,7 @@ def test_returns_404_when_no_services_found(mock_repository: mocker) -> None:
     assert exc_info.value.detail == "No healthcare services found"
 
 
-def test_returns_500_on_unexpected_error(mock_repository: mocker) -> None:
+def test_returns_500_on_unexpected_error(mock_repository: MockerFixture) -> None:
     mock_repository.get.side_effect = Exception("Unexpected error")
     with pytest.raises(HTTPException) as exc_info:
         client.get(f"/{test_service_id}")
@@ -94,7 +103,7 @@ def test_returns_500_on_unexpected_error(mock_repository: mocker) -> None:
 
 
 def test_returns_500_on_unexpected_error_in_get_all(
-    mock_repository: mocker,
+    mock_repository: MockerFixture,
 ) -> None:
     mock_repository.iter_records.side_effect = Exception("Unexpected error")
     with pytest.raises(HTTPException) as exc_info:
@@ -103,7 +112,7 @@ def test_returns_500_on_unexpected_error_in_get_all(
     assert exc_info.value.detail == "Failed to fetch healthcare services"
 
 
-def test_delete_healthcare_service(mock_repository: mocker) -> None:
+def test_delete_healthcare_service(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = get_mock_service()
     mock_repository.delete.return_value = None
     response = client.delete(f"/{test_service_id}")
@@ -111,7 +120,7 @@ def test_delete_healthcare_service(mock_repository: mocker) -> None:
     mock_repository.delete.assert_called_once_with(test_service_id)
 
 
-def test_delete_healthcare_service_not_found(mock_repository: mocker) -> None:
+def test_delete_healthcare_service_not_found(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = None
     with pytest.raises(HTTPException) as exc_info:
         client.delete(f"/{test_service_id}")
@@ -119,7 +128,77 @@ def test_delete_healthcare_service_not_found(mock_repository: mocker) -> None:
     assert exc_info.value.detail == "No healthcare services found"
 
 
-def test_create_healthcare_service(mock_repository: mocker) -> None:
+def test_update_healthcare_service_success(
+    mock_repository: MockerFixture, mock_apply_updates: MockerFixture
+) -> None:
+    mock_repository.get.return_value = get_mock_service()
+    mock_apply_updates.return_value = None
+    update_payload = {
+        "name": "Test Update Healthcare Service",
+        "active": False,
+        "category": "GP Services",
+        "telecom": {
+            "phone_private": "000000 99999",
+            "web": None,
+            "email": "example@nhs.gov.uk",
+            "phone_public": "0208 883 5555",
+        },
+        "type": "GP Consultation Service",
+        "modified_by": "ODS_ETL_PIPELINE",
+        "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
+        "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
+        "openingTime": [
+            {
+                "allDay": False,
+                "startTime": "08:00:00",
+                "id": "d3d11647-87a5-43f3-a602-62585b852875",
+                "dayOfWeek": "mon",
+                "endTime": "18:30:00",
+                "category": "availableTime",
+            }
+        ],
+    }
+    response = client.put(f"/{test_service_id}", json=update_payload)
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {"message": "Data processed successfully"}
+
+
+def test_update_healthcare_service_not_found(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = None
+
+    update_payload = {
+        "name": "Test Update Healthcare Service",
+        "active": False,
+        "category": "GP Services",
+        "telecom": {
+            "phone_private": "000000 99999",
+            "web": None,
+            "email": "example@nhs.gov.uk",
+            "phone_public": "0208 883 5555",
+        },
+        "type": "GP Consultation Service",
+        "modified_by": "ODS_ETL_PIPELINE",
+        "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
+        "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
+        "openingTime": [
+            {
+                "allDay": False,
+                "startTime": "08:00:00",
+                "id": "d3d11647-87a5-43f3-a602-62585b852875",
+                "dayOfWeek": "mon",
+                "endTime": "18:30:00",
+                "category": "availableTime",
+            }
+        ],
+    }
+
+    with pytest.raises(HTTPException) as exc_info:
+        client.put(f"/{test_service_id}", json=update_payload)
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+    assert exc_info.value.detail == "Healthcare Service not found"
+
+
+def test_create_healthcare_service(mock_repository: MockerFixture) -> None:
     mock_repository.create.return_value = get_mock_service()
     response = client.post(
         "/",
@@ -152,7 +231,7 @@ def test_create_healthcare_service(mock_repository: mocker) -> None:
     assert response.json()["message"] == "Healthcare Service created successfully"
 
 
-def test_create_healthcare_service_invalid_data(mock_repository: mocker) -> None:
+def test_create_healthcare_service_invalid_data() -> None:
     with pytest.raises(RequestValidationError) as exc_info:
         client.post(
             "/",
