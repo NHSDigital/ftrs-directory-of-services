@@ -152,7 +152,7 @@ class DataMigrationProcessor:
             )
             return TransformerClass(logger=self.logger)
 
-    def _iter_records(self, batch_size: int = 100) -> Iterable[legacy.Service]:
+    def _iter_records(self, batch_size: int = 1000) -> Iterable[legacy.Service]:
         """
         Iterate over records in the database.
         """
