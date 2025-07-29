@@ -68,7 +68,7 @@ class ClinicalCodeConverter:
                 codeType=item.get("codeType"),
                 codeID=item.get("codeID"),
                 codeValue=item.get("codeValue"),
-                time=item.get("time", 0),
+                time=item.get("dispositiontime", 0),  # Default to 0 if not provided
             )
             disposition_list.append(validated_disposition)
 

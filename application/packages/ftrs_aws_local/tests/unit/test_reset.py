@@ -6,14 +6,16 @@ from ftrs_data_layer.models import HealthcareService, Location, Organisation
 from pytest_mock import MockerFixture
 from typer import Abort
 
-from dynamodb.utils import TargetEnvironment
 from dynamodb.reset import (
     DEFAULT_CLEARABLE_ENTITY_TYPES,
     ClearableEntityTypes,
     get_entity_cls,
+    get_entity_config,
     init_tables,
     reset,
 )
+from dynamodb.utils import TargetEnvironment
+
 
 def test_reset_invalid_environment() -> None:
     with pytest.raises(ValueError):
@@ -186,3 +188,31 @@ def test_init_tables_existing_table(
         workspace="test-workspace",
         entity_type=[ClearableEntityTypes.organisation],
     )
+
+
+def test_get_entity_config_includes_correct_indexes_for_healthcare_service() -> None:
+    length = 2
+    result = get_entity_config(ClearableEntityTypes.healthcare_service)
+    assert len(result["global_secondary_indexes"]) == length
+    assert result["global_secondary_indexes"][0]["IndexName"] == "ProvidedByValueIndex"
+    assert result["global_secondary_indexes"][1]["IndexName"] == "LocationIndex"
+
+
+def test_get_entity_config_includes_correct_indexes_for_location() -> None:
+    result = get_entity_config(ClearableEntityTypes.location)
+    assert len(result["global_secondary_indexes"]) == 1
+    assert (
+        result["global_secondary_indexes"][0]["IndexName"]
+        == "ManagingOrganisationIndex"
+    )
+
+
+def test_get_entity_config_returns_same_key_schema_for_all_entities() -> None:
+    base_schema = [
+        {"AttributeName": "id", "KeyType": "HASH"},
+        {"AttributeName": "field", "KeyType": "RANGE"},
+    ]
+
+    for entity_type in ClearableEntityTypes:
+        result = get_entity_config(entity_type)
+        assert result["key_schema"] == base_schema

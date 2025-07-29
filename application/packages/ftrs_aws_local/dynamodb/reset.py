@@ -48,7 +48,9 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
         case ClearableEntityTypes.location:
             return Location
         case _:
-            reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_007, entity_type=entity_type)
+            reset_logger.log(
+                MigrationETLPipelineLogBase.ETL_RESET_007, entity_type=entity_type
+            )
             err_msg = MigrationETLPipelineLogBase.ETL_RESET_007.value.message.format(
                 entity_type=entity_type
             )
@@ -89,54 +91,19 @@ def init_tables(
     client = get_dynamodb_client(endpoint_url)
     for entity_name in entity_type:
         table_name = get_table_name(entity_name, env.value, workspace)
-
+        entity_config = get_entity_config(entity_name)
         try:
-            if entity_name == "organisation":
-                create_table(
-                    client=client,
-                    table_name=table_name,
-                    key_schema=[
-                        {"AttributeName": "id", "KeyType": "HASH"},
-                        {"AttributeName": "field", "KeyType": "RANGE"},
-                    ],
-                    attribute_definitions=[
-                        {"AttributeName": "id", "AttributeType": "S"},
-                        {"AttributeName": "field", "AttributeType": "S"},
-                        {
-                            "AttributeName": "identifier_ODS_ODSCode",
-                            "AttributeType": "S",
-                        },
-                    ],
-                    global_secondary_indexes=[
-                        {
-                            "IndexName": "OdsCodeValueIndex",
-                            "KeySchema": [
-                                {
-                                    "AttributeName": "identifier_ODS_ODSCode",
-                                    "KeyType": "HASH",
-                                },
-                            ],
-                            "Projection": {"ProjectionType": "ALL"},
-                        }
-                    ],
-                )
-            else:
-                create_table(
-                    client=client,
-                    table_name=table_name,
-                    key_schema=[
-                        {"AttributeName": "id", "KeyType": "HASH"},
-                        {"AttributeName": "field", "KeyType": "RANGE"},
-                    ],
-                    attribute_definitions=[
-                        {"AttributeName": "id", "AttributeType": "S"},
-                        {"AttributeName": "field", "AttributeType": "S"},
-                    ],
-                    global_secondary_indexes=None,
-                )
-
+            create_table(
+                client=client,
+                table_name=table_name,
+                key_schema=entity_config["key_schema"],
+                attribute_definitions=entity_config["attribute_definitions"],
+                global_secondary_indexes=entity_config["global_secondary_indexes"],
+            )
         except client.exceptions.ResourceInUseException:
-            reset_logger.log(MigrationETLPipelineLogBase.ETL_RESET_004, table_name=table_name)
+            reset_logger.log(
+                MigrationETLPipelineLogBase.ETL_RESET_004, table_name=table_name
+            )
 
 
 def reset(
@@ -202,5 +169,107 @@ def reset(
             count += 1
 
         reset_logger.log(
-            MigrationETLPipelineLogBase.ETL_RESET_006, count=count, table_name=table_name
+            MigrationETLPipelineLogBase.ETL_RESET_006,
+            count=count,
+            table_name=table_name,
         )
+
+
+def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
+    table_entity = {
+        "organisation": {
+            "key_schema": [
+                {"AttributeName": "id", "KeyType": "HASH"},
+                {"AttributeName": "field", "KeyType": "RANGE"},
+            ],
+            "attribute_definitions": [
+                {"AttributeName": "id", "AttributeType": "S"},
+                {"AttributeName": "field", "AttributeType": "S"},
+                {
+                    "AttributeName": "identifier_ODS_ODSCode",
+                    "AttributeType": "S",
+                },
+            ],
+            "global_secondary_indexes": [
+                {
+                    "IndexName": "OdsCodeValueIndex",
+                    "KeySchema": [
+                        {
+                            "AttributeName": "identifier_ODS_ODSCode",
+                            "KeyType": "HASH",
+                        },
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
+        },
+        "healthcare-service": {
+            "key_schema": [
+                {"AttributeName": "id", "KeyType": "HASH"},
+                {"AttributeName": "field", "KeyType": "RANGE"},
+            ],
+            "attribute_definitions": [
+                {"AttributeName": "id", "AttributeType": "S"},
+                {"AttributeName": "field", "AttributeType": "S"},
+                {"AttributeName": "providedBy", "AttributeType": "S"},
+                {"AttributeName": "location", "AttributeType": "S"},
+            ],
+            "global_secondary_indexes": [
+                {
+                    "IndexName": "ProvidedByValueIndex",
+                    "KeySchema": [
+                        {
+                            "AttributeName": "providedBy",
+                            "KeyType": "HASH",
+                        },
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
+                {
+                    "IndexName": "LocationIndex",
+                    "KeySchema": [
+                        {
+                            "AttributeName": "location",
+                            "KeyType": "HASH",
+                        },
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
+            ],
+        },
+        "location": {
+            "key_schema": [
+                {"AttributeName": "id", "KeyType": "HASH"},
+                {"AttributeName": "field", "KeyType": "RANGE"},
+            ],
+            "attribute_definitions": [
+                {"AttributeName": "id", "AttributeType": "S"},
+                {"AttributeName": "field", "AttributeType": "S"},
+                {"AttributeName": "managingOrganisation", "AttributeType": "S"},
+            ],
+            "global_secondary_indexes": [
+                {
+                    "IndexName": "ManagingOrganisationIndex",
+                    "KeySchema": [
+                        {
+                            "AttributeName": "managingOrganisation",
+                            "KeyType": "HASH",
+                        },
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
+        },
+        "default": {
+            "key_schema": [
+                {"AttributeName": "id", "KeyType": "HASH"},
+                {"AttributeName": "field", "KeyType": "RANGE"},
+            ],
+            "attribute_definitions": [
+                {"AttributeName": "id", "AttributeType": "S"},
+                {"AttributeName": "field", "AttributeType": "S"},
+            ],
+            "global_secondary_indexes": None,
+        },
+    }
+    return table_entity.get(entity_name, table_entity["default"])
