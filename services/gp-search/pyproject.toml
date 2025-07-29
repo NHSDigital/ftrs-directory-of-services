@@ -23,8 +23,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 packages = [
   { include = "functions" },
-  { include = "health_check" },
-  { include = "utils" }
+  { include = "health_check" }
 ]
 
 [tool.poetry.group.dev.dependencies]
@@ -71,7 +70,6 @@ addopts = [
     "-v",
     "--cov=functions",
     "--cov=health_check",
-    "--cov=utils",
     "--cov-report=term-missing",
     "--cov-fail-under=80",
     "--cov-branch",
