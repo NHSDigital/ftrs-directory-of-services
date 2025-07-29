@@ -23,7 +23,7 @@ def dns_resolvable(api_name, env, workspace):
     target_fixture="fresponse",
 )
 def send_get_with_params(
-    api_request_context, workspace, api_name, env, params, resource_name
+    api_request_context_mtls, workspace, api_name, env, params, resource_name
 ):
     url = get_url(workspace, api_name, env) + "/" + resource_name
     # Handle None or empty params
@@ -33,7 +33,7 @@ def send_get_with_params(
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
 
-    response = api_request_context.get(
+    response = api_request_context_mtls.get(
             url,  params=param_dict
         )
     return response

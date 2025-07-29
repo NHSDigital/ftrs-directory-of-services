@@ -42,7 +42,7 @@ def playwright():
 
 
 @pytest.fixture
-def api_request_context(playwright, workspace, env, api_name = "servicesearch"):
+def api_request_context_mtls(playwright, workspace, env, api_name = "servicesearch"):
     """Create a new Playwright API request context."""
     r53 = get_r53(workspace, api_name, env)
     # Get mTLS certs
@@ -58,6 +58,14 @@ def api_request_context(playwright, workspace, env, api_name = "servicesearch"):
         ]
     }
     request_context = playwright.request.new_context(**context_options)
+    yield request_context
+    request_context.dispose()
+
+
+@pytest.fixture
+def api_request_context(playwright):
+    """Create a new Playwright API request context."""
+    request_context = playwright.request.new_context()
     yield request_context
     request_context.dispose()
 
