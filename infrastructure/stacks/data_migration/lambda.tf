@@ -25,7 +25,7 @@ module "migration_lambda" {
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
-  timeout                 = var.migration_lambda_connection_timeout
+  timeout                 = var.migration_lambda_timeout
   memory_size             = var.migration_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
