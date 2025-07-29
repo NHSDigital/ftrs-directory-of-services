@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
-from fhir.resources.R4B.organization import Organization
+from fhir.resources.R4B.organization import Organization as FhirOrganization
 
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
 
@@ -13,16 +13,13 @@ def bundle_mapper():
 
 
 class TestBundleMapper:
-    def test_map_to_fhir_with_no_endpoints(
-        self, bundle_mapper, create_organization_record, create_organization_value
-    ):
+    def test_map_to_fhir_with_no_endpoints(self, bundle_mapper, create_organisation):
         # Arrange - Create a new organization record with no endpoints instead of modifying the existing one
-        org_value = create_organization_value(endpoints=[])
-        org_record = create_organization_record(org_value=org_value)
+        org_value = create_organisation(endpoints=[])
         ods_code = "O123"
 
         # Create mock organization resource
-        org_resource = Organization.model_validate(
+        org_resource = FhirOrganization.model_validate(
             {
                 "id": "org-123",
                 "identifier": [
@@ -39,35 +36,35 @@ class TestBundleMapper:
         # Mock the mapper methods
         with patch.object(
             bundle_mapper.organization_mapper,
-            "map_to_organization_resource",
+            "map_to_fhir_organization",
             return_value=org_resource,
         ) as mock_org_mapper:
             with patch.object(
-                bundle_mapper.endpoint_mapper, "map_to_endpoints", return_value=[]
+                bundle_mapper.endpoint_mapper, "map_to_fhir_endpoints", return_value=[]
             ) as mock_endpoint_mapper:
                 # Act
-                bundle = bundle_mapper.map_to_fhir(org_record, ods_code)
+                bundle = bundle_mapper.map_to_fhir(org_value, ods_code)
 
                 # Assert
-                mock_org_mapper.assert_called_once_with(org_record)
-                mock_endpoint_mapper.assert_called_once_with(org_record)
+                mock_org_mapper.assert_called_once_with(org_value)
+                mock_endpoint_mapper.assert_called_once_with(org_value)
                 assert isinstance(bundle, Bundle)
                 assert bundle.type == "searchset"
                 assert len(bundle.entry) == 1  # Only organization, no endpoints
                 assert bundle.entry[0].resource == org_resource
 
     def test_map_to_fhir_with_multiple_endpoints(
-        self, bundle_mapper, organization_record, create_fhir_endpoint
+        self, bundle_mapper, organisation, create_fhir_endpoint
     ):
         # Arrange
         ods_code = "O123"
 
         # Create two mock endpoint resources
-        endpoint1 = create_fhir_endpoint(endpoint_id="endpoint-123")
-        endpoint2 = create_fhir_endpoint(endpoint_id="endpoint-456")
+        endpoint1 = create_fhir_endpoint()
+        endpoint2 = create_fhir_endpoint()
 
         # Create mock organization resource
-        org_resource = Organization.model_validate(
+        org_resource = FhirOrganization.model_validate(
             {
                 "id": "org-123",
                 "identifier": [
@@ -84,20 +81,20 @@ class TestBundleMapper:
         # Mock the mapper methods
         with patch.object(
             bundle_mapper.organization_mapper,
-            "map_to_organization_resource",
+            "map_to_fhir_organization",
             return_value=org_resource,
         ) as mock_org_mapper:
             with patch.object(
                 bundle_mapper.endpoint_mapper,
-                "map_to_endpoints",
+                "map_to_fhir_endpoints",
                 return_value=[endpoint1, endpoint2],
             ) as mock_endpoint_mapper:
                 # Act
-                bundle = bundle_mapper.map_to_fhir(organization_record, ods_code)
+                bundle = bundle_mapper.map_to_fhir(organisation, ods_code)
 
                 # Assert
-                mock_org_mapper.assert_called_once_with(organization_record)
-                mock_endpoint_mapper.assert_called_once_with(organization_record)
+                mock_org_mapper.assert_called_once_with(organisation)
+                mock_endpoint_mapper.assert_called_once_with(organisation)
                 assert isinstance(bundle, Bundle)
                 assert bundle.type == "searchset"
                 assert len(bundle.entry) == 3  # 1 organization + 2 endpoints
@@ -147,7 +144,7 @@ class TestBundleMapper:
         search_mode = bundle_mapper._get_search_mode(endpoint_resource)
         assert search_mode == "include"
 
-    def test_map_to_fhir_with_no_organization_record(self, bundle_mapper):
+    def test_map_to_fhir_with_no_organisation(self, bundle_mapper):
         # Arrange
         ods_code = "O123"
 
@@ -165,7 +162,7 @@ class TestBundleMapper:
     def test_create_resources(
         self,
         bundle_mapper,
-        organization_record,
+        organisation,
         create_fhir_endpoint,
         create_fhir_organization,
     ):
@@ -176,20 +173,20 @@ class TestBundleMapper:
         # Mock the mapper methods
         with patch.object(
             bundle_mapper.organization_mapper,
-            "map_to_organization_resource",
+            "map_to_fhir_organization",
             return_value=org,
         ) as mock_org_mapper:
             with patch.object(
                 bundle_mapper.endpoint_mapper,
-                "map_to_endpoints",
+                "map_to_fhir_endpoints",
                 return_value=[endpoint],
             ) as mock_endpoint_mapper:
                 # Act
-                resources = bundle_mapper._create_resources(organization_record)
+                resources = bundle_mapper._create_resources(organisation)
 
                 # Assert
-                mock_org_mapper.assert_called_once_with(organization_record)
-                mock_endpoint_mapper.assert_called_once_with(organization_record)
+                mock_org_mapper.assert_called_once_with(organisation)
+                mock_endpoint_mapper.assert_called_once_with(organisation)
                 assert len(resources) == 2
                 assert resources[0] == org
                 assert resources[1] == endpoint
