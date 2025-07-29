@@ -1,18 +1,13 @@
-name: "Check Python syntax and formatting"
-description: "Checks correct syntax and Ruff formatting of Python code"
+name: "Check formatting of python code action"
+description: "Checks correct formatting of python code in the repository"
 
 runs:
   using: "composite"
   steps:
-    - name: Install Ruff
-      shell: bash
-      run: pip install ruff
-
-    - name: Check Python syntax and formatting
-      id: syntax_python
+    - name: Checking format of python code
+      id: format_python
       shell: bash
       run: |
-        ruff check .
-        ruff format --check .
         export PRECOMMIT=false
-        ./scripts/githooks/python-flake-pre-commit.sh
+          ./scripts/githooks/python-black-pre-commit.sh
+
