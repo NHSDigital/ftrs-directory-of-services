@@ -1,6 +1,6 @@
 import tempfile
 import os
-from loguru import logger
+
 
 def create_temp_file(data, suffix):
 
@@ -10,5 +10,4 @@ def create_temp_file(data, suffix):
     with open(temp.name, mode='wb') as f:
         f.write(data.encode("utf-8"))
     temp.close()
-    logger.info(f"Temporary file created at {temp.name} with suffix {suffix}")
     return temp.name

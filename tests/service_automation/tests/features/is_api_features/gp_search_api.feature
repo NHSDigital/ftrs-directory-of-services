@@ -4,7 +4,7 @@ Feature: API GP Endpoint Search
     Given that the stack is "gp-search"
     And the dns for "servicesearch" is resolvable
 
-@test
+
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters
     Given I request data from the "servicesearch" endpoint "organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M81046"
     Then I receive a status code "200" in response

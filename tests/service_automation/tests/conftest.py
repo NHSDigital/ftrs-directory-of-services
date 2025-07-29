@@ -57,7 +57,6 @@ def api_request_context(playwright, workspace, env, api_name = "servicesearch"):
             }
         ]
     }
-    logger.info(f"Creating API request context with options: {context_options}")
     request_context = playwright.request.new_context(**context_options)
     yield request_context
     request_context.dispose()
@@ -140,5 +139,4 @@ def get_mtls_certs():
     # Write to temp files
     client_pem_path = create_temp_file(client_pem, '.pem')
     ca_cert_path = create_temp_file(ca_cert, '.crt')
-    logger.info(f"Client PEM Path: {client_pem_path}")
     return client_pem_path, ca_cert_path
