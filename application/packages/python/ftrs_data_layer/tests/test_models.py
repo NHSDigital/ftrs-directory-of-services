@@ -551,7 +551,7 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
             "web": "abc.co.uk",
             "type": "GP Practice",
             "sg_sd_pairs": '{"sg" : {"id" : "SG1000", "source" : "pathways", "codeType" : "Symptom Group (SG)", "codeID" : 1000, "codeValue" : "Abdominal or Flank Injury, Blunt", "zCodeExists" : false}, "sd" : {"id" : "SD4003", "source" : "pathways", "codeType" : "Symptom Discriminator (SD)", "codeID" : 4003, "codeValue" : "PC full Primary Care assessment and prescribing capability", "synonyms" : null}}',
-            "dispositions": '{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "time": 10}',
+            "dispositions": '{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "dispositiontime": 10}',
             "availability": {
                 "availableTime": [],
                 "availableTimePublicHolidays": [],

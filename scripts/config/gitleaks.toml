@@ -21,7 +21,9 @@ paths = [
   '''.poetry.lock''',
   '''yarn.lock''',
   '''scripts/workflow/create-vpn-client-cert.sh''',
-  '''services/data-migration/tests/unit/'''
+  '''services/data-migration/tests/unit/''',
+  '''application/packages/python/ftrs_data_layer/domain/legacy/''',
+  '''application/packages/python/ftrs_data_layer/legacy_model.py'''
 ]
 regexes = [
   '''=========================================''',
