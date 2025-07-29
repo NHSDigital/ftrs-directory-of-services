@@ -67,9 +67,7 @@ def test_sync_all_services(
 
     mock_session = mocker.MagicMock()
     mock_session.__enter__.return_value = mock_session
-    mock_session.exec.return_value = mocker.MagicMock(
-        all=mocker.MagicMock(return_value=[mock_legacy_service])
-    )
+    mock_session.scalars = mocker.MagicMock(return_value=[mock_legacy_service])
 
     mocker.patch("pipeline.processor.Session", return_value=mock_session)
 
