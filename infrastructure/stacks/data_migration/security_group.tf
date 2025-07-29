@@ -23,15 +23,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
   to_port                      = var.rds_port
 }
 
-resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_lambda" {
-  count                        = (local.deploy_databases && var.environment == "dev") ? 1 : 0
-  description                  = "Allow RDS ingress from lambda"
-  security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  referenced_security_group_id = data.aws_security_group.lambda_security_group[0].id
-  from_port                    = var.rds_port
-  ip_protocol                  = "tcp"
-  to_port                      = var.rds_port
-}
+
 
 resource "aws_security_group" "migration_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
@@ -39,6 +31,16 @@ resource "aws_security_group" "migration_lambda_security_group" {
   description = "Security group for migration lambda"
 
   vpc_id = data.aws_vpc.vpc.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_migration_lambda" {
+  count                        = (local.deploy_databases && var.environment == "dev") ? 1 : 0
+  description                  = "Allow RDS ingress from lambda"
+  security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  referenced_security_group_id = aws_security_group.migration_lambda_security_group.id
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
 }
 
 resource "aws_vpc_security_group_egress_rule" "migration_allow_egress_to_internet" {
