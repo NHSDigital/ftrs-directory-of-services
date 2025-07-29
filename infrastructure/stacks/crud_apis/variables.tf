@@ -115,3 +115,8 @@ variable "api_gateway_throttling_rate_limit" {
   description = "The rate limit for API Gateway throttling"
   type        = number
 }
+
+variable "aws_lambda_layers" {
+  description = "A list of Lambda layer ARNs to attach to the Lambda function"
+  type        = list(string)
+}
