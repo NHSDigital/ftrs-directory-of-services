@@ -1,3 +1,12 @@
+resource "aws_lambda_layer_version" "common_packages_layer" {
+  layer_name          = "${local.resource_prefix}-common-packages-layer${local.workspace_suffix}"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common packages for Lambda functions"
+
+  s3_bucket = local.artefacts_bucket
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+}
+
 resource "aws_lambda_layer_version" "python_dependency_layer" {
   layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
@@ -22,18 +31,19 @@ module "lambda" {
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
-  layers = (
-    [aws_lambda_layer_version.python_dependency_layer.arn]
-  )
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
 
   environment_variables = {
-    "ENVIRONMENT"         = var.environment
-    "PROJECT_NAME"        = var.project
-    "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
-    "DYNAMODB_TABLE_NAME" = "${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
+    "ENVIRONMENT"   = var.environment
+    "PROJECT_NAME"  = var.project
+    "WORKSPACE"     = terraform.workspace == "default" ? "" : terraform.workspace
+    "FHIR_BASE_URL" = "https://example.org"
   }
 }
 
