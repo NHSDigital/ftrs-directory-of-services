@@ -76,7 +76,7 @@ pytest tests
 from the crud-apis directory run:
 
 ```bash
-poetry run poe start-loction-api
+poetry run poe start-location-api
 ```
 
 The API will be available at [http://localhost:6000].
