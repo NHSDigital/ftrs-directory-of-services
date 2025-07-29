@@ -3,8 +3,6 @@ from decimal import Decimal
 from typing import Annotated, Literal, Optional, Union
 from uuid import UUID, uuid4
 
-import numpy as np
-
 from ftrs_data_layer.domain.clinical_code import (
     ClinicalCodeConverter,
     Disposition,

@@ -29,11 +29,11 @@ ruff = "^0.9.6"
 pytest = "^8.3.5"
 pytest-cov = "^6.0.0"
 pytest-mock = "^3.14.0"
+numpy = "^1.26.4"
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 uvicorn = "^0.34.2"
 boto3 = "^1.37.33"
 poethepoet = "^0.34.0"
-numpy = "^1.26.4"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"
