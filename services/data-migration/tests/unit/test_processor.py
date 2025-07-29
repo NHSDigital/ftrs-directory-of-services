@@ -26,6 +26,7 @@ from pytest_mock import MockerFixture
 from sqlalchemy import Engine
 
 from pipeline.processor import DataMigrationProcessor, ServiceTransformOutput
+from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 
 
@@ -137,11 +138,13 @@ def test_process_service(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
+    processor.metadata = mock_metadata_cache
 
     processor.logger.append_keys = mocker.MagicMock()
     processor.logger.remove_keys = mocker.MagicMock()
@@ -307,14 +310,14 @@ def test_process_service(
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
                 sg=SymptomGroup(
-                    id="d99da436-4a6f-57d9-828d-7a21b8d62a07",
+                    id="2b52f7e2-c0ab-5e00-8d7d-75ede400fe7c",
                     source="pathways",
                     codeType="Symptom Group (SG)",
                     codeID=1035,
                     codeValue="Breathing Problems, Breathlessness or Wheeze, Pregnant",
                 ),
                 sd=SymptomDiscriminator(
-                    id="8cf9af7f-d476-5f27-bc40-47c7826a4a17",
+                    id="300af504-ba5d-5973-a877-a0789c6863ab",
                     source="pathways",
                     codeType="Symptom Discriminator (SD)",
                     codeID=4003,
@@ -324,14 +327,14 @@ def test_process_service(
             ),
             SymptomGroupSymptomDiscriminatorPair(
                 sg=SymptomGroup(
-                    id="56138625-05bc-5575-9c9c-b1d390d054d2",
+                    id="39ce1220-2586-5b2e-a35d-3021b2e0337c",
                     source="servicefinder",
                     codeType="Symptom Group (SG)",
                     codeID=360,
                     codeValue="z2.0 - Service Types",
                 ),
                 sd=SymptomDiscriminator(
-                    id="7ff7cb87-baf5-541a-9139-f85eab0bc312",
+                    id="6ce70d41-9337-578d-a662-d9fe25016d40",
                     source="servicefinder",
                     codeType="Symptom Discriminator (SD)",
                     codeID=14023,
@@ -387,11 +390,13 @@ def test_process_service_unsupported_service(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
+    processor.metadata = mock_metadata_cache
 
     mock_legacy_service.typeid = 1000
     mock_legacy_service.type = ServiceType(
@@ -428,11 +433,13 @@ def test_process_service_skipped_service(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
+    processor.metadata = mock_metadata_cache
 
     mock_legacy_service.statusid = 2  # Closed status
 
@@ -462,11 +469,13 @@ def test_process_service_error(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
+    processor.metadata = mock_metadata_cache
 
     processor._save = mocker.MagicMock(side_effect=Exception("Test error"))
 
@@ -513,7 +522,10 @@ def test_get_transformer(
 
     assert transformer == mock_transformer
 
-    mock_transformer.assert_called_once_with(logger=processor.logger)
+    mock_transformer.assert_called_once_with(
+        logger=processor.logger,
+        metadata=processor.metadata,
+    )
     assert mock_transformer.is_service_supported.call_count == 1
     mock_transformer.is_service_supported.assert_called_once_with(mock_legacy_service)
 
@@ -569,11 +581,13 @@ def test_save(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
+    processor.metadata = mock_metadata_cache
 
     mock_org_repo = mocker.MagicMock()
     mock_location_repo = mocker.MagicMock()

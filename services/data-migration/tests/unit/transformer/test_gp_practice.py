@@ -4,6 +4,7 @@ from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceT
 from ftrs_data_layer.domain.legacy import Service, ServiceStatusEnum
 
 from pipeline.transformer.gp_practice import GPPracticeTransformer
+from pipeline.utils.cache import DoSMetadataCache
 
 
 @pytest.mark.parametrize(
@@ -66,7 +67,10 @@ def test_should_include_service(
     assert message == expected_message
 
 
-def test_transform(mock_legacy_service: Service) -> None:
+def test_transform(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
     """
     Test that transform method correctly transforms a GP practice service.
     """
@@ -74,7 +78,7 @@ def test_transform(mock_legacy_service: Service) -> None:
     mock_legacy_service.odscode = "A12345"  # Valid ODS code
     mock_legacy_service.statusid = ServiceStatusEnum.ACTIVE
 
-    transformer = GPPracticeTransformer(MockLogger())
+    transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
     result = transformer.transform(mock_legacy_service)
 
     assert result.organisation.identifier_ODS_ODSCode == "A12345"

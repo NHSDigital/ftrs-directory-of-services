@@ -13,6 +13,7 @@ from pipeline.transformer import (
     ServiceTransformer,
     ServiceTransformOutput,
 )
+from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 
 
@@ -42,6 +43,7 @@ class DataMigrationProcessor:
         self.config = config
         self.engine = create_engine(config.db_config.connection_string, echo=False)
         self.metrics = self.Metrics()
+        self.metadata = DoSMetadataCache(self.engine)
 
     def sync_all_services(self) -> None:
         """
@@ -150,16 +152,15 @@ class DataMigrationProcessor:
                 DataMigrationLogBase.DM_ETL_003,
                 transformer_name=TransformerClass.__name__,
             )
-            return TransformerClass(logger=self.logger)
+            return TransformerClass(logger=self.logger, metadata=self.metadata)
 
     def _iter_records(self, batch_size: int = 1000) -> Iterable[legacy.Service]:
         """
         Iterate over records in the database.
         """
+        stmt = select(legacy.Service).execution_options(yield_per=batch_size)
         with Session(self.engine) as session:
-            stmt = select(legacy.Service).execution_options(yield_per=batch_size)
-            for record in session.scalars(stmt):
-                yield record
+            yield from session.scalars(stmt)
 
     def _save(self, result: ServiceTransformOutput) -> None:
         """

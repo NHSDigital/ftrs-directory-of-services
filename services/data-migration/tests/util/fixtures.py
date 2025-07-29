@@ -23,6 +23,7 @@ from ftrs_data_layer.domain.legacy import (
     SymptomGroup,
 )
 
+from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
 
 
@@ -321,3 +322,63 @@ def mock_legacy_service() -> Generator[Service, None, None]:
             ),
         ],
     )
+
+
+@pytest.fixture
+def mock_metadata_cache(mock_config: DataMigrationConfig) -> DoSMetadataCache:
+    """
+    Mock a metadata cache instance.
+    """
+    cache = DoSMetadataCache(None)
+    cache.symptom_groups.cache = {
+        1035: SymptomGroup(
+            id=1035,
+            name="Breathing Problems, Breathlessness or Wheeze, Pregnant",
+            zcodeexists=None,
+        ),
+        360: SymptomGroup(id=360, name="z2.0 - Service Types", zcodeexists=True),
+    }
+    cache.symptom_discriminators.cache = {
+        4003: SymptomDiscriminator(
+            id=4003,
+            description="PC full Primary Care assessment and prescribing capability",
+            synonyms=[],
+        ),
+        14023: SymptomDiscriminator(
+            id=14023,
+            description="GP Practice",
+            synonyms=[
+                SymptomDiscriminatorSynonym(
+                    id=2341, symptomdiscriminatorid=14023, name="General Practice"
+                )
+            ],
+        ),
+    }
+    cache.dispositions.cache = {
+        126: Disposition(
+            id=126,
+            name="Contact Own GP Practice next working day for appointment",
+            dxcode="DX115",
+            dispositiontime=7200,
+        ),
+        10: Disposition(
+            id=10,
+            name="Speak to a Primary Care Service within 2 hours",
+            dxcode="DX12",
+            dispositiontime=120,
+        ),
+    }
+    cache.opening_time_days.cache = {
+        1: OpeningTimeDay(id=1, name="Monday"),
+        2: OpeningTimeDay(id=2, name="Tuesday"),
+        3: OpeningTimeDay(id=3, name="Wednesday"),
+        4: OpeningTimeDay(id=4, name="Thursday"),
+        5: OpeningTimeDay(id=5, name="Friday"),
+        6: OpeningTimeDay(id=6, name="Saturday"),
+        7: OpeningTimeDay(id=7, name="Sunday"),
+        8: OpeningTimeDay(id=8, name="BankHoliday"),
+    }
+
+    with patch("pipeline.utils.cache.DoSMetadataCache") as mock_cache:
+        mock_cache.return_value = cache
+        yield cache
