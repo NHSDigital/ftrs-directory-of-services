@@ -1,7 +1,6 @@
+from ftrs_common.utils.config import Settings
 from ftrs_data_layer.models import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-
-from utils.config import Settings
 
 env_variable_settings = Settings()
 

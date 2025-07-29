@@ -8,6 +8,7 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeHandler,
 )
 from ftrs_common.logger import Logger
+from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import Organisation
 
@@ -16,7 +17,6 @@ from organisations.app.services.validators import (
     CreatePayloadValidator,
     UpdatePayloadValidator,
 )
-from utils.db_service import get_service_repository
 
 ERROR_MESSAGE_404 = "Organisation not found"
 FHIR_MEDIA_TYPE = "application/fhir+json"
