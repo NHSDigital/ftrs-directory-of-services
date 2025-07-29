@@ -127,6 +127,10 @@ module "location_api_lambda" {
     aws_lambda_layer_version.common_packages_layer.arn,
   ]
 
+  aws_lambda_layers = [
+    "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"
+  ]
+
   environment_variables = {
     "ENVIRONMENT"  = var.environment
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
