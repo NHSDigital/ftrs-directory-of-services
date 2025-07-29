@@ -416,7 +416,7 @@ class CrudApisLogBase(LogBase):
     )
     LOCATION_006 = LogReference(
         level=INFO,
-        message= "Getting location with ID {location_id}.",
+        message="Getting location with ID {location_id}.",
     )
     LOCATION_007 = LogReference(
         level=INFO,
