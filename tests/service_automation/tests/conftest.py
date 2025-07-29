@@ -6,6 +6,7 @@ from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
 from utilities.infra.secrets_util import GetSecretWrapper
 from utilities.common.file_helper import create_temp_file
+from utilities.infra.api_util import get_r53
 from pages.ui_pages.search import LoginPage
 from pages.ui_pages.result import NewAccountPage
 
@@ -41,14 +42,16 @@ def playwright():
 
 
 @pytest.fixture
-def api_request_context(playwright):
+def api_request_context(playwright, workspace, env, api_name = "servicesearch"):
     """Create a new Playwright API request context."""
+    r53 = get_r53(workspace, api_name, env)
     # Get mTLS certs
     client_pem_path, ca_cert_path = get_mtls_certs()
     context_options = {
         "ignore_https_errors": True,
         "client_certificates": [
-            {   "origin": "",
+            {
+                "origin": f"https://{r53}",
                 "certPath": ca_cert_path,
                 "keyPath": client_pem_path,
             }

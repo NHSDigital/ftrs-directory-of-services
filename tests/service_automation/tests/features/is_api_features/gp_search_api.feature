@@ -2,7 +2,7 @@
 Feature: API GP Endpoint Search
   Background: Set stack
     Given that the stack is "gp-search"
-    # And the dns for "servicesearch" is resolvable
+    And the dns for "servicesearch" is resolvable
 
 @test
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters

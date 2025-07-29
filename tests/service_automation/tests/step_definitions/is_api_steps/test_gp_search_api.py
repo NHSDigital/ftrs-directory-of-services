@@ -15,6 +15,7 @@ scenarios("./is_api_features/gp_search_api.feature")
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
 def dns_resolvable(api_name, env, workspace):
     r53 = get_r53(workspace, api_name, env)
+    logger.info(f"Checking DNS for {r53}")
     wait_for_dns(r53)
 
 
@@ -33,16 +34,9 @@ def send_get_with_params(
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
 
-    # # Get mTLS certs
-    # client_pem_path, ca_cert_path = get_mtls_certs()
-    logger.info(f"URL: {url}")
-    logger.info(f"Params: {param_dict}")
     response = api_request_context.get(
             url,  params=param_dict
         )
-    logger.info(f"URL: {url}")
-    logger.info(f"Params: {param_dict}")
-    # logger.info(f"Response: {response.status_code} - {response.text}")
     return response
 
 
