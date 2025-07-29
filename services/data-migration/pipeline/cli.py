@@ -5,7 +5,6 @@ from typing import Annotated, Generator
 
 from typer import Option, Typer
 
-# from pipeline.processor import DataMigrationProcessor, ServiceTransformOutput
 from pipeline.application import DataMigrationApplication
 from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
 

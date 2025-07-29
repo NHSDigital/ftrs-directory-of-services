@@ -75,7 +75,7 @@ variable "migration_lambda_name" {
   description = "The name of the migration lambda function"
 }
 
-variable "migration_lambda_connection_timeout" {
+variable "migration_lambda_timeout" {
   description = "The timeout for the migration Lambda function"
   type        = number
 }
