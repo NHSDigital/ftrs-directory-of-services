@@ -29,6 +29,7 @@ jobs:
     name: "Manage DynamoDB backups"
     timeout-minutes: 5
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
