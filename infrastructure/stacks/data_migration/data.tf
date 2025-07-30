@@ -93,6 +93,8 @@ data "aws_iam_policy_document" "sqs_access_policy" {
     actions = [
       "sqs:SendMessage",
       "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
     ]
     resources = [
       aws_sqs_queue.rds_event_listener.arn
