@@ -58,9 +58,14 @@ def api_request_context_mtls(playwright, workspace, env, api_name = "servicesear
         ]
     }
     request_context = playwright.request.new_context(**context_options)
-    yield request_context
-    delete_download_files()
-    request_context.dispose()
+    try:
+        yield request_context
+    finally:
+        try:
+            delete_download_files()
+        except Exception as e:
+            logger.error(f"Error deleting download files: {e}")
+        request_context.dispose()
 
 
 @pytest.fixture
