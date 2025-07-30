@@ -31,11 +31,12 @@ module "migration_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.migration_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy_document.sqs_access_policy.json
   ]
 
   layers = concat(
