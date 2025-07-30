@@ -6,7 +6,7 @@ from typing import Annotated, Generator, List
 from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication
-from pipeline.queue_populator import populate_queue
+from pipeline.queue_populator import populate_sqs_queue
 from pipeline.utils.config import (
     DatabaseConfig,
     DataMigrationConfig,
@@ -98,7 +98,7 @@ def populate_queue_handler(
         type_ids=type_ids,
         status_ids=status_ids,
     )
-    populate_queue(config)
+    populate_sqs_queue(config)
 
 
 @contextmanager

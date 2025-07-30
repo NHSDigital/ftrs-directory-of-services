@@ -116,6 +116,7 @@ files = [
 botocore-stubs = "*"
 mypy-boto3-dynamodb = {version = ">=1.38.0,<1.39.0", optional = true, markers = "extra == \"dynamodb\""}
 mypy-boto3-s3 = {version = ">=1.38.0,<1.39.0", optional = true, markers = "extra == \"s3\""}
+mypy-boto3-sqs = {version = ">=1.38.0,<1.39.0", optional = true, markers = "extra == \"sqs\""}
 types-s3transfer = "*"
 
 [package.extras]
@@ -671,6 +672,47 @@ files = [
 toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 
 [[package]]
+name = "fhir-core"
+version = "1.1.4"
+description = "FHIR Core library"
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+files = [
+    {file = "fhir_core-1.1.4-py2.py3-none-any.whl", hash = "sha256:66d81639f9a45e646cf21cae492d68d89550a22409bf68a9b292b789e0d0061d"},
+    {file = "fhir_core-1.1.4.tar.gz", hash = "sha256:d6549665c32f6b710da19d1309851d5d5f8902af899925623d6f4441eb1f2176"},
+]
+
+[package.dependencies]
+pydantic = ">=2.7.4,<3.0"
+
+[package.extras]
+dev = ["Jinja2 (==2.11.1)", "MarkupSafe (==1.1.1)", "PyYAML (>=6.0.1)", "black (>=23.0,<24.0) ; python_version >= \"3.7\"", "certifi", "colorlog (==2.10.0)", "coverage", "fhirspec", "flake8 (==6.0)", "flake8-bugbear (>=22.12.6)", "flake8-isort (>=6.0.0)", "importlib-metadata (>=5.2.0)", "isort (>=5.11.4)", "lxml", "mypy", "pytest (>5.4.0) ; python_version >= \"3.6\"", "pytest-cov (>=2.10.0) ; python_version >= \"3.6\"", "requests (==2.23.0) ; python_version < \"3.10\"", "setuptools (==65.6.3) ; python_version >= \"3.7\"", "types-PyYAML", "types-requests", "types-simplejson", "zest-releaser[recommended]"]
+test = ["PyYAML (>=6.0.1)", "black (>=23.0,<24.0) ; python_version >= \"3.7\"", "coverage", "flake8 (==6.0)", "flake8-bugbear (>=22.12.6)", "flake8-isort (>=6.0.0)", "importlib-metadata (>=5.2.0)", "isort (>=5.11.4)", "lxml", "mypy", "pytest (>5.4.0) ; python_version >= \"3.6\"", "pytest-cov (>=2.10.0) ; python_version >= \"3.6\"", "pytest-runner", "requests (==2.23.0) ; python_version < \"3.10\"", "setuptools (==65.6.3) ; python_version >= \"3.7\"", "types-PyYAML", "types-requests", "types-simplejson"]
+
+[[package]]
+name = "fhir-resources"
+version = "8.1.0"
+description = "FHIR Resources as Model Class"
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+files = [
+    {file = "fhir_resources-8.1.0-py2.py3-none-any.whl", hash = "sha256:4370a5b6b35f278705328368bf79b3a17db91025fd4ec896fb963edd44ecc5de"},
+    {file = "fhir_resources-8.1.0.tar.gz", hash = "sha256:8d64a717f37ea50bde97c1b8ff3fd969a6074df99c167183a273abe4da8bbfa5"},
+]
+
+[package.dependencies]
+fhir-core = ">=1.1.3"
+
+[package.extras]
+all = ["PyYAML (>=5.4.1)", "lxml"]
+dev = ["Jinja2 (==3.1.6)", "MarkupSafe (==2.1.5)", "black (>=23.0,<24.0) ; python_version >= \"3.7\"", "certifi", "colorlog (==2.10.0)", "coverage", "fhirspec (>=0.6.0)", "flake8 (==6.0)", "flake8-bugbear (>=22.12.6)", "flake8-isort (>=6.0.0)", "importlib-metadata (>=5.2.0)", "isort (>=5.11.4)", "mypy", "pytest (>5.4.0) ; python_version >= \"3.6\"", "pytest-cov (>=2.10.0) ; python_version >= \"3.6\"", "requests (==2.23.0) ; python_version < \"3.10\"", "setuptools (==65.6.3) ; python_version >= \"3.7\"", "typed-ast (>=1.5.4)", "types-PyYAML", "types-requests", "types-simplejson", "zest-releaser[recommended]"]
+test = ["PyYAML (>=5.4.1)", "black (>=23.0,<24.0) ; python_version >= \"3.7\"", "coverage", "flake8 (==6.0)", "flake8-bugbear (>=22.12.6)", "flake8-isort (>=6.0.0)", "importlib-metadata (>=5.2.0)", "isort (>=5.11.4)", "lxml", "mypy", "pytest (>5.4.0) ; python_version >= \"3.6\"", "pytest-cov (>=2.10.0) ; python_version >= \"3.6\"", "pytest-runner", "requests (==2.23.0) ; python_version < \"3.10\"", "setuptools (==65.6.3) ; python_version >= \"3.7\"", "typed-ast (>=1.5.4)", "types-PyYAML", "types-requests", "types-simplejson"]
+xml = ["lxml"]
+yaml = ["PyYAML (>=5.4.1)"]
+
+[[package]]
 name = "freezegun"
 version = "1.5.1"
 description = "Let your Python tests travel through time"
@@ -696,7 +738,9 @@ files = []
 develop = true
 
 [package.dependencies]
+fhir-resources = ">=8.0.0,<9.0.0"
 pydantic = ">=2.11.1,<3.0.0"
+sqlmodel = ">=0.0.24,<0.0.25"
 
 [package.source]
 type = "directory"
@@ -708,7 +752,7 @@ version = "3.1.1"
 description = "Lightweight in-process concurrent programming"
 optional = false
 python-versions = ">=3.7"
-groups = ["main"]
+groups = ["main", "dev"]
 markers = "python_version < \"3.14\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")"
 files = [
     {file = "greenlet-3.1.1-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:0bbae94a29c9e5c7e4a2b7f0aae5c17e8e90acbfd3bf6270eeba60c39fce3563"},
@@ -873,6 +917,18 @@ groups = ["main"]
 files = [
     {file = "mypy_boto3_s3-1.38.0-py3-none-any.whl", hash = "sha256:5cd9449df0ef6cf89e00e6fc9130a0ab641f703a23ab1d2146c394da058e8282"},
     {file = "mypy_boto3_s3-1.38.0.tar.gz", hash = "sha256:f8fe586e45123ffcd305a0c30847128f3931d888649e2b4c5a52f412183c840a"},
+]
+
+[[package]]
+name = "mypy-boto3-sqs"
+version = "1.38.0"
+description = "Type annotations for boto3 SQS 1.38.0 service generated with mypy-boto3-builder 8.10.1"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "mypy_boto3_sqs-1.38.0-py3-none-any.whl", hash = "sha256:8e881c8492f6f51dcbe1cce9d9f05334f4b256b5843e227fa925e0f6e702b31d"},
+    {file = "mypy_boto3_sqs-1.38.0.tar.gz", hash = "sha256:39aebc121a2fe20f962fd83b617fd916003605d6f6851fdf195337a0aa428fe1"},
 ]
 
 [[package]]
@@ -1573,7 +1629,7 @@ version = "2.0.40"
 description = "Database Abstraction Library"
 optional = false
 python-versions = ">=3.7"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "SQLAlchemy-2.0.40-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:ae9597cab738e7cc823f04a704fb754a9249f0b6695a6aeb63b74055cd417a96"},
     {file = "SQLAlchemy-2.0.40-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:37a5c21ab099a83d669ebb251fddf8f5cee4d75ea40a5a1653d9c43d60e20867"},
@@ -1669,7 +1725,7 @@ version = "0.0.24"
 description = "SQLModel, SQL databases in Python, designed for simplicity, compatibility, and robustness."
 optional = false
 python-versions = ">=3.7"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "sqlmodel-0.0.24-py3-none-any.whl", hash = "sha256:6778852f09370908985b667d6a3ab92910d0d5ec88adcaf23dbc242715ff7193"},
     {file = "sqlmodel-0.0.24.tar.gz", hash = "sha256:cc5c7613c1a5533c9c7867e1aab2fd489a76c9e8a061984da11b4e613c182423"},
@@ -1781,4 +1837,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0.0"
-content-hash = "2b359881ac2a0dbd91cd567d4b72136ae1a0ccd24fa391714d5107307ba62ec2"
+content-hash = "34c30d3f56b3aad68478e8f02184d91a73c2344882ad1e5f7b0f2e740d7285cd"
