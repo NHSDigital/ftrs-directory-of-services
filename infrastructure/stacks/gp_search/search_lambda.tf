@@ -55,32 +55,3 @@ module "search_api_gateway_permissions" {
   lambda_function_name = "${local.resource_prefix}-${var.lambda_name}"
   rest_api_id          = module.search_rest_api.rest_api_id
 }
-
-data "aws_iam_policy_document" "vpc_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:GetItem",
-      "dynamodb:Scan",
-      "dynamodb:Query",
-    ]
-    resources = [
-      "${local.gp_search_organisation_table_arn}/",
-      "${local.gp_search_organisation_table_arn}/*"
-    ]
-  }
-}
