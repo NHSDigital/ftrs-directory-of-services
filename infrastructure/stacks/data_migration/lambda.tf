@@ -61,6 +61,10 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   function_name    = module.migration_lambda.lambda_function_name
   enabled          = true
 
+  scaling_config {
+    maximum_concurrency = 10
+  }
+
   depends_on = [
     aws_sqs_queue_policy.rds_event_listener_policy,
     module.migration_lambda
