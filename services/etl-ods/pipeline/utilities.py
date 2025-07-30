@@ -69,7 +69,7 @@ def get_api_key() -> str:
             ods_utils_logger.log(
                 OdsETLPipelineLogBase.ETL_UTILS_006,
                 secret_name=secret_name,
-                error_message="Secret not found",
+                error_message=str(e),
             )
         raise
 
