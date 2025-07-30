@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
 from utilities.infra.secrets_util import GetSecretWrapper
-from utilities.common.file_helper import create_temp_file
+from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_r53
 from pages.ui_pages.search import LoginPage
 from pages.ui_pages.result import NewAccountPage
@@ -41,7 +41,7 @@ def playwright():
         yield p
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def api_request_context_mtls(playwright, workspace, env, api_name = "servicesearch"):
     """Create a new Playwright API request context."""
     r53 = get_r53(workspace, api_name, env)
@@ -59,6 +59,7 @@ def api_request_context_mtls(playwright, workspace, env, api_name = "servicesear
     }
     request_context = playwright.request.new_context(**context_options)
     yield request_context
+    delete_download_files()
     request_context.dispose()
 
 
