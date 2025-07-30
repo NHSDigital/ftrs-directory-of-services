@@ -24,7 +24,11 @@ from ftrs_data_layer.domain.legacy.service import (
 from pytest_mock import MockerFixture
 from sqlalchemy import Engine
 
-from pipeline.processor import DataMigrationProcessor, ServiceTransformOutput
+from pipeline.processor import (
+    DataMigrationProcessor,
+    ServiceTransformOutput,
+    DataMigrationMetrics,
+)
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 
@@ -149,7 +153,7 @@ def test_process_service(
     processor.logger.remove_keys = mocker.MagicMock()
     processor._save = mocker.MagicMock()
 
-    assert processor.metrics == processor.Metrics(
+    assert processor.metrics == DataMigrationMetrics(
         total_records=0,
         supported_records=0,
         unsupported_records=0,
@@ -161,7 +165,7 @@ def test_process_service(
 
     processor._process_service(service=mock_legacy_service)
 
-    assert processor.metrics == processor.Metrics(
+    assert processor.metrics == DataMigrationMetrics(
         total_records=1,
         supported_records=1,
         unsupported_records=0,
@@ -400,7 +404,7 @@ def test_process_service_unsupported_service(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == processor.Metrics(
+    assert processor.metrics == DataMigrationMetrics(
         total_records=1,
         supported_records=0,
         unsupported_records=1,
@@ -435,7 +439,7 @@ def test_process_service_skipped_service(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == processor.Metrics(
+    assert processor.metrics == DataMigrationMetrics(
         total_records=1,
         supported_records=1,
         unsupported_records=0,
@@ -471,7 +475,7 @@ def test_process_service_error(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == processor.Metrics(
+    assert processor.metrics == DataMigrationMetrics(
         total_records=1,
         supported_records=1,
         unsupported_records=0,

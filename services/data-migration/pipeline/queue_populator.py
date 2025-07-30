@@ -30,10 +30,10 @@ def get_record_ids(config: QueuePopulatorConfig) -> Iterable[int]:
 
     with Session(engine) as session:
         stmt = select(Service.id)
-        if config.type_ids:
+        if config.type_ids is not None:
             stmt = stmt.where(Service.typeid.in_(config.type_ids))
 
-        if config.status_ids:
+        if config.status_ids is not None:
             stmt = stmt.where(Service.statusid.in_(config.status_ids))
 
         return session.exec(stmt).all()
@@ -78,13 +78,13 @@ def send_message_batch(batch: dict) -> None:
             failed=failed,
         )
 
-    record_ids = [entry["Id"] for entry in response.get("Successful", [])]
-    LOGGER.log(
-        DataMigrationLogBase.DM_QP_003,
-        count=len(record_ids),
-        record_ids=record_ids,
-        queue_url=batch["QueueUrl"],
-    )
+    if successful := response.get("Successful"):
+        LOGGER.log(
+            DataMigrationLogBase.DM_QP_003,
+            count=len(successful),
+            record_ids=[entry["Id"] for entry in successful],
+            queue_url=batch["QueueUrl"],
+        )
 
 
 def populate_sqs_queue(config: QueuePopulatorConfig) -> None:

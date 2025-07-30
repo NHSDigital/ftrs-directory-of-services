@@ -2,7 +2,7 @@ import pytest
 from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 
-from pipeline.application import DataMigrationApplication, DMSEvent, FullSyncEvent
+from pipeline.application import DataMigrationApplication, DMSEvent
 from pipeline.processor import DataMigrationProcessor
 from pipeline.utils.config import DataMigrationConfig
 
@@ -146,17 +146,6 @@ def test_parse_event_dms_event(mock_config: DataMigrationConfig) -> None:
     assert parsed_event.type == "dms_event"
 
 
-def test_parse_event_full_sync(mock_config: DataMigrationConfig) -> None:
-    app = DataMigrationApplication(config=mock_config)
-
-    mock_event = {"type": "full_sync"}
-
-    parsed_event = app.parse_event(mock_event)
-
-    assert isinstance(parsed_event, FullSyncEvent)
-    assert parsed_event.type == "full_sync"
-
-
 def test_parse_event_invalid_type(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
@@ -171,11 +160,53 @@ def test_parse_event_invalid_type(
     assert mock_logger.get_log("DM_ETL_009") == [
         {
             "reference": "DM_ETL_009",
-            "msg": "Error parsing event: 1 validation error for DataMigrationEvent\nevent\n  Input tag 'invalid_event' found using 'type' does not match any of the expected tags: 'dms_event', 'full_sync' [type=union_tag_invalid, input_value={'type': 'invalid_event'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/union_tag_invalid",
             "detail": {
-                "error": "1 validation error for DataMigrationEvent\nevent\n  Input tag 'invalid_event' found using 'type' does not match any of the expected tags: 'dms_event', 'full_sync' [type=union_tag_invalid, input_value={'type': 'invalid_event'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/union_tag_invalid",
-                "event": {"type": "invalid_event"},
+                "error": "4 validation errors for DMSEvent\n"
+                "type\n"
+                "  Input should be 'dms_event' [type=literal_error, "
+                "input_value='invalid_event', input_type=str]\n"
+                "    For further information visit "
+                "https://errors.pydantic.dev/2.11/v/literal_error\n"
+                "record_id\n"
+                "  Field required [type=missing, input_value={'type': "
+                "'invalid_event'}, input_type=dict]\n"
+                "    For further information visit "
+                "https://errors.pydantic.dev/2.11/v/missing\n"
+                "table_name\n"
+                "  Field required [type=missing, input_value={'type': "
+                "'invalid_event'}, input_type=dict]\n"
+                "    For further information visit "
+                "https://errors.pydantic.dev/2.11/v/missing\n"
+                "method\n"
+                "  Field required [type=missing, input_value={'type': "
+                "'invalid_event'}, input_type=dict]\n"
+                "    For further information visit "
+                "https://errors.pydantic.dev/2.11/v/missing",
+                "event": {
+                    "type": "invalid_event",
+                },
             },
+            "msg": "Error parsing event: 4 validation errors for DMSEvent\n"
+            "type\n"
+            "  Input should be 'dms_event' [type=literal_error, "
+            "input_value='invalid_event', input_type=str]\n"
+            "    For further information visit "
+            "https://errors.pydantic.dev/2.11/v/literal_error\n"
+            "record_id\n"
+            "  Field required [type=missing, input_value={'type': "
+            "'invalid_event'}, input_type=dict]\n"
+            "    For further information visit "
+            "https://errors.pydantic.dev/2.11/v/missing\n"
+            "table_name\n"
+            "  Field required [type=missing, input_value={'type': "
+            "'invalid_event'}, input_type=dict]\n"
+            "    For further information visit "
+            "https://errors.pydantic.dev/2.11/v/missing\n"
+            "method\n"
+            "  Field required [type=missing, input_value={'type': "
+            "'invalid_event'}, input_type=dict]\n"
+            "    For further information visit "
+            "https://errors.pydantic.dev/2.11/v/missing",
         }
     ]
 
