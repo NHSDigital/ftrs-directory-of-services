@@ -8,6 +8,7 @@ from pytest_mock import MockerFixture
 from typer import Typer
 from typer.testing import CliRunner
 
+from pipeline.application import DMSEvent
 from pipeline.cli import patch_local_save_method, typer_app
 from pipeline.processor import ServiceTransformOutput
 from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
@@ -32,7 +33,7 @@ def test_local_handler_full_sync(mocker: MockerFixture) -> None:
     Test the local_handler function for full sync.
     """
     mock_app = mocker.patch("pipeline.cli.DataMigrationApplication")
-    mock_app.return_value.handle_event = mocker.Mock()
+    mock_app.return_value.handle_full_sync_event = mocker.Mock()
 
     result = runner.invoke(
         typer_app,
@@ -62,7 +63,7 @@ def test_local_handler_full_sync(mocker: MockerFixture) -> None:
         )
     )
 
-    mock_app.return_value.handle_event.assert_called_once_with({"type": "full_sync"})
+    mock_app.return_value.handle_full_sync_event.assert_called_once_with()
 
 
 def test_local_handler_single_sync(mocker: MockerFixture) -> None:
@@ -70,7 +71,7 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
     Test the local_handler function for single sync.
     """
     mock_app = mocker.patch("pipeline.cli.DataMigrationApplication")
-    mock_app.return_value.handle_event = mocker.Mock()
+    mock_app.return_value.handle_dms_event = mocker.Mock()
 
     result = runner.invoke(
         typer_app,
@@ -98,13 +99,13 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
         )
     )
 
-    mock_app.return_value.handle_event.assert_called_once_with(
-        {
-            "type": "dms_event",
-            "record_id": "12345",
-            "method": "insert",
-            "table_name": "services",
-        }
+    mock_app.return_value.handle_dms_event.assert_called_once_with(
+        DMSEvent(
+            type="dms_event",
+            record_id=12345,
+            method="insert",
+            table_name="services",
+        )
     )
 
 
@@ -113,7 +114,7 @@ def test_local_handler_output_dir(mocker: MockerFixture) -> None:
     Test the local_handler function with output directory for dry run.
     """
     mock_app = mocker.patch("pipeline.cli.DataMigrationApplication")
-    mock_app.return_value.handle_event = mocker.Mock()
+    mock_app.return_value.handle_full_sync_event = mocker.Mock()
 
     mock_open = mocker.patch("pipeline.cli.open", mocker.mock_open())
 
@@ -142,7 +143,7 @@ def test_local_handler_output_dir(mocker: MockerFixture) -> None:
             ENDPOINT_URL=None,
         )
     )
-    mock_app.return_value.handle_event.assert_called_once_with({"type": "full_sync"})
+    mock_app.return_value.handle_full_sync_event.assert_called_once_with()
 
     expected_file_count = 3
     assert mock_open.call_count == expected_file_count

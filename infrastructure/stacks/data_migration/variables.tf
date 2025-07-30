@@ -90,6 +90,25 @@ variable "migration_lambda_handler" {
   type        = string
 }
 
+variable "queue_populator_lambda_name" {
+  description = "The name of the queue populator lambda function"
+}
+
+variable "queue_populator_lambda_timeout" {
+  description = "The timeout for the queue populator Lambda function"
+  type        = number
+}
+
+variable "queue_populator_lambda_memory_size" {
+  description = "The memory size for the queue populator Lambda function"
+  type        = number
+}
+
+variable "queue_populator_lambda_handler" {
+  description = "The handler for the queue populator Lambda function"
+  type        = string
+}
+
 variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string

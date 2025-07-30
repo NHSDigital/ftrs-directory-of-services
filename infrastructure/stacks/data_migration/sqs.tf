@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "rds_event_listener" {
-  name = "${local.resource_prefix}-rds-events"
+  name = "${local.resource_prefix}-rds-events${local.workspace_suffix}"
 }
 
 resource "aws_sqs_queue_policy" "rds_event_listener_policy" {
@@ -13,10 +13,9 @@ resource "aws_sqs_queue_policy" "rds_event_listener_policy" {
         Principal = {
           Service = "lambda.amazonaws.com"
         },
-        Action   = "sqs:SendMessage",
+        Action   = ["sqs:SendMessage", "sqs:ReceiveMessage"],
         Resource = aws_sqs_queue.rds_event_listener.arn,
       }
     ]
   })
-
 }

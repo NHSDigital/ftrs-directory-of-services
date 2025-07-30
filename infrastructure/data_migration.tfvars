@@ -11,12 +11,16 @@ rds_engine_version  = "16.6"
 rds_engine_mode     = "provisioned"
 rds_instance_class  = "db.serverless"
 
-lambda_runtime               = "python3.12"
-data_collection_date         = "05-03-25"
-migration_lambda_name        = "lambda"
-migration_lambda_handler     = "pipeline.lambda_handler.lambda_handler"
-migration_lambda_timeout     = 900
-migration_lambda_memory_size = 2048 # More memory to allow for 2 vCPUs
+lambda_runtime                     = "python3.12"
+data_collection_date               = "05-03-25"
+migration_lambda_name              = "lambda"
+migration_lambda_handler           = "pipeline.lambda_handler.lambda_handler"
+migration_lambda_timeout           = 900
+migration_lambda_memory_size       = 2048 # More memory to allow for 2 vCPUs
+queue_populator_lambda_name        = "queue-populator-lambda"
+queue_populator_lambda_timeout     = 900
+queue_populator_lambda_memory_size = 512
+queue_populator_lambda_handler     = "pipeline.queue_populator.lambda_handler"
 
 aws_lambda_layers = [
   "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"

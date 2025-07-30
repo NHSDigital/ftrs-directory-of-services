@@ -5,7 +5,7 @@ from typing import Annotated, Generator, List
 
 from typer import Option, Typer
 
-from pipeline.application import DataMigrationApplication
+from pipeline.application import DataMigrationApplication, DMSEvent
 from pipeline.queue_populator import populate_sqs_queue
 from pipeline.utils.config import (
     DatabaseConfig,
@@ -63,16 +63,15 @@ def migrate_handler(  # noqa: PLR0913
 
     with patch_local_save_method(app, output_dir):
         if service_id:
-            event = {
-                "type": "dms_event",
-                "record_id": service_id,
-                "method": "insert",
-                "table_name": "services",
-            }
-            app.handle_event(event)
+            event = DMSEvent(
+                type="dms_event",
+                record_id=service_id,
+                method="insert",
+                table_name="services",
+            )
+            app.handle_dms_event(event)
         else:
-            event = {"type": "full_sync"}
-            app.handle_event(event)
+            app.handle_full_sync_event()
 
 
 @typer_app.command("populate-queue")
