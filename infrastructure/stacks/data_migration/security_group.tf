@@ -14,7 +14,7 @@ data "aws_security_group" "rds_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
-  count                        = (local.deploy_databases && var.environment == "dev") ? 1 : 0
+  count                        = (local.deploy_databases && local.rds_environments) ? 1 : 0
   description                  = "Allow RDS ingress from VPN"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = data.aws_security_group.vpn_security_group[0].id
@@ -34,7 +34,7 @@ resource "aws_security_group" "migration_lambda_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_migration_lambda" {
-  count                        = (local.deploy_databases && var.environment == "dev") ? 1 : 0
+  count                        = (local.deploy_databases && local.rds_environments) ? 1 : 0
   description                  = "Allow RDS ingress from lambda"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = aws_security_group.migration_lambda_security_group.id

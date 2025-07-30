@@ -1,19 +1,18 @@
-from pipeline.utils.cache import SQLModelKVCache, DoSMetadataCache
-from sqlalchemy import Engine
-from pytest_mock import MockerFixture
-from sqlmodel import SQLModel
 import pytest
 from ftrs_data_layer.domain.legacy import (
-    SymptomGroup,
-    SymptomDiscriminator,
     Disposition,
     OpeningTimeDay,
     ServiceType,
+    SymptomDiscriminator,
+    SymptomGroup,
 )
-from sqlmodel import Field
-from sqlalchemy.engine.mock import create_mock_engine, MockConnection
-from unittest.mock import MagicMock
 from ftrs_data_layer.domain.legacy.base import LegacyDoSModel
+from pytest_mock import MockerFixture
+from sqlalchemy import Engine
+from sqlalchemy.engine.mock import create_mock_engine
+from sqlmodel import Field
+
+from pipeline.utils.cache import DoSMetadataCache, SQLModelKVCache
 
 
 class MockModel(LegacyDoSModel, table=True):

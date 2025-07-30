@@ -9,7 +9,7 @@ from ftrs_data_layer.domain.legacy import (
 )
 from sqlalchemy import Engine
 from sqlalchemy.orm import joinedload
-from sqlmodel import Session, select, SQLModel
+from sqlmodel import Session, SQLModel, select
 
 T = TypeVar("T", bound=SQLModel)
 

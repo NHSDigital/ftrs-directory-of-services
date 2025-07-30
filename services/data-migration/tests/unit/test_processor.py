@@ -25,9 +25,9 @@ from pytest_mock import MockerFixture
 from sqlalchemy import Engine
 
 from pipeline.processor import (
+    DataMigrationMetrics,
     DataMigrationProcessor,
     ServiceTransformOutput,
-    DataMigrationMetrics,
 )
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
