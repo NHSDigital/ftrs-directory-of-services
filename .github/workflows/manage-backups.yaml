@@ -19,6 +19,10 @@ on:
           description: "The short form of git commit hash."
           required: true
           type: string
+        type:
+          description: "The type of permissions (e.g., account, app)"
+          required: true
+          type: string
 
 jobs:
   manage_backups:
@@ -32,6 +36,12 @@ jobs:
       - name: "Install jq"
         run: sudo apt-get install -y jq
 
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
       - name: "Manage backups"
         id: "manage_backups"
         shell: bash
