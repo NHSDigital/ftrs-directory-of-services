@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from freezegun import freeze_time
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from pydantic import SecretStr
 from pytest_mock import MockerFixture
 from typer import Typer
 from typer.testing import CliRunner
@@ -16,7 +17,6 @@ from pipeline.utils.config import (
     DataMigrationConfig,
     QueuePopulatorConfig,
 )
-from pydantic import SecretStr
 
 runner = CliRunner()
 

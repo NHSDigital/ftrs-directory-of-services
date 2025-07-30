@@ -1,10 +1,10 @@
-from typing import Annotated, Literal
+from typing import Literal
 from uuid import uuid4
 
 from aws_lambda_powertools.utilities.data_classes import SQSEvent
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import DataMigrationLogBase
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from pipeline.processor import DataMigrationProcessor
 from pipeline.utils.config import DataMigrationConfig

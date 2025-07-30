@@ -1,24 +1,19 @@
-from pipeline.queue_populator import (
-    get_record_ids,
-    QueuePopulatorConfig,
-    QueuePopulatorEvent,
-    DatabaseConfig,
-    get_dms_event_batches,
-    send_message_batch,
-    populate_sqs_queue,
-    lambda_handler,
-)
-import pytest
-from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
-from sqlalchemy.engine import create_mock_engine
-from sqlalchemy.engine.mock import MockConnection
-from sqlalchemy import Engine
-from sqlmodel import select
-from ftrs_data_layer.domain.legacy import Service
-import json
+
+import pytest
 from ftrs_common.mocks.mock_logger import MockLogger
-from itertools import batched
+from pytest_mock import MockerFixture
+from sqlalchemy.engine import create_mock_engine
+
+from pipeline.queue_populator import (
+    DatabaseConfig,
+    QueuePopulatorConfig,
+    get_dms_event_batches,
+    get_record_ids,
+    lambda_handler,
+    populate_sqs_queue,
+    send_message_batch,
+)
 
 
 @pytest.fixture
