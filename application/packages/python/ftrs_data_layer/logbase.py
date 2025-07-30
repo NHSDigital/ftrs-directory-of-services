@@ -432,5 +432,5 @@ class CrudApisLogBase(LogBase):
     )
     LOCATION_E003 = LogReference(
         level=Exception,
-        message="Error fetching locations:",
+        message="Error fetching locations: {error_message}.",
     )

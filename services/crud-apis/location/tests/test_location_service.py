@@ -1,4 +1,3 @@
-# services/crud-apis/location/tests/test_location_service.py
 from http import HTTPStatus
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4

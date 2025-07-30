@@ -1,6 +1,5 @@
 import logging
 from http import HTTPStatus
-from typing import NoReturn
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -22,35 +21,34 @@ class LocationService:
         self.logger = logger or Logger.get(service="crud_location_logger")
 
     def get_location_by_id(self, location_id: str) -> Location:
-        try:
-            location = self.location_repository.get(location_id)
-            if not location:
-                # If the location is not found, return a 404 response
-                self.logger.log(
-                    CrudApisLogBase.LOCATION_E001,
-                    location_id=location_id,
-                )
-                return raise_http_exception(HTTPStatus.NOT_FOUND, "Location not found")
-            else:
-                self.logger.log(CrudApisLogBase.LOCATION_003, location_id=location_id)
-                return location
-        except Exception as e:
-            return raise_http_exception_if_not_found(e)
+        location = self.location_repository.get(location_id)
+        if not location:
+            # If the location is not found, return a 404 response
+            self.logger.log(
+                CrudApisLogBase.LOCATION_E001,
+                location_id=location_id,
+            )
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="Location not found",
+            )
+        else:
+            self.logger.log(CrudApisLogBase.LOCATION_003, location_id=location_id)
+            return location
 
     def get_locations(self) -> list[Location]:
-        try:
-            locations = list(self.location_repository.iter_records(ITEMS_PER_PAGE))
-            if not locations:
-                self.logger.log(
-                    CrudApisLogBase.LOCATION_E002,
-                )
-                return raise_http_exception(HTTPStatus.NOT_FOUND, "No locations found")
-            else:
-                self.logger.log(CrudApisLogBase.LOCATION_004, count=len(locations))
-                return locations
-
-        except Exception as e:
-            return raise_http_exception_if_not_found(e)
+        locations = list(self.location_repository.iter_records(ITEMS_PER_PAGE))
+        if not locations:
+            self.logger.log(
+                CrudApisLogBase.LOCATION_E002,
+            )
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="No locations found",
+            )
+        else:
+            self.logger.log(CrudApisLogBase.LOCATION_004, count=len(locations))
+            return locations
 
     def create_location(self, location: Location) -> Location:
         """
@@ -68,26 +66,3 @@ class LocationService:
             location_id=location.id,
         )
         return location
-
-
-def raise_http_exception_if_not_found(exception: Exception) -> NoReturn:
-    """
-    Raise an HTTPException if the exception is a 404 Not Found error.
-    Otherwise, log the error and raise a generic 500 Internal Server Error.
-    """
-    if (
-        isinstance(exception, HTTPException)
-        and exception.status_code == HTTPStatus.NOT_FOUND
-    ):
-        # If the exception is already an HTTPException, re-raise it
-        raise exception
-    else:
-        logging.exception("Error fetching locations:")
-        raise_http_exception(
-            HTTPStatus.INTERNAL_SERVER_ERROR, "Failed to fetch locations"
-        )
-
-
-def raise_http_exception(status_code: int, detail: str) -> NoReturn:
-    logging.error(detail)
-    raise HTTPException(status_code=status_code, detail=detail)
