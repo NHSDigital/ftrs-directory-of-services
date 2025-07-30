@@ -20,7 +20,6 @@ from ftrs_data_layer.domain import (
 )
 from ftrs_data_layer.domain.legacy.service import (
     Service,
-    ServiceType,
 )
 from pytest_mock import MockerFixture
 from sqlalchemy import Engine
