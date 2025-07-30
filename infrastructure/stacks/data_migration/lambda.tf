@@ -63,7 +63,7 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   batch_size       = 10
 
   scaling_config {
-    maximum_concurrency = 20
+    maximum_concurrency = 10
   }
 
   depends_on = [

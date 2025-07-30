@@ -11,7 +11,12 @@ from typer.testing import CliRunner
 from pipeline.application import DMSEvent
 from pipeline.cli import patch_local_save_method, typer_app
 from pipeline.processor import ServiceTransformOutput
-from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
+from pipeline.utils.config import (
+    DatabaseConfig,
+    DataMigrationConfig,
+    QueuePopulatorConfig,
+)
+from pydantic import SecretStr
 
 runner = CliRunner()
 
@@ -217,3 +222,85 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     org_path.unlink()
     loc_path.unlink()
     hc_path.unlink()
+
+
+def test_populate_queue_handler(
+    mocker: MockerFixture,
+) -> None:
+    """
+    Test the populate_queue_handler function.
+    """
+    mock_populate = mocker.patch("pipeline.cli.populate_sqs_queue")
+
+    result = runner.invoke(
+        typer_app,
+        [
+            "populate-queue",
+            "--db-uri",
+            "postgresql://username:password@localhost:5432/dbname",
+            "--sqs-queue-url",
+            "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
+            "--type-id",
+            "1",
+            "--type-id",
+            "2",
+            "--status-id",
+            "3",
+            "--status-id",
+            "4",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    mock_populate.assert_called_once_with(
+        QueuePopulatorConfig(
+            db_config=DatabaseConfig(
+                host="localhost",
+                port=5432,
+                username="username",
+                password=SecretStr("password"),
+                dbname="dbname",
+            ),
+            SQS_QUEUE_URL="https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
+            type_ids=[1, 2],
+            status_ids=[3, 4],
+        )
+    )
+
+
+def test_populate_queue_handler_no_ids(
+    mocker: MockerFixture,
+) -> None:
+    """
+    Test the populate_queue_handler function without type ids or status ids.
+    """
+    mock_populate = mocker.patch("pipeline.cli.populate_sqs_queue")
+
+    result = runner.invoke(
+        typer_app,
+        [
+            "populate-queue",
+            "--db-uri",
+            "postgresql://username:password@localhost:5432/dbname",
+            "--sqs-queue-url",
+            "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    mock_populate.assert_called_once_with(
+        QueuePopulatorConfig(
+            db_config=DatabaseConfig(
+                host="localhost",
+                port=5432,
+                username="username",
+                password=SecretStr("password"),
+                dbname="dbname",
+            ),
+            SQS_QUEUE_URL="https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
+            type_ids=None,
+            status_ids=None,
+        )
+    )

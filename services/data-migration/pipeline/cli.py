@@ -80,10 +80,10 @@ def populate_queue_handler(
     sqs_queue_url: Annotated[
         str, Option(..., help="SQS queue URL to populate with legacy services")
     ],
-    type_ids: Annotated[
+    type_id: Annotated[
         List[int] | None, Option(help="List of type IDs to filter services by")
     ] = None,
-    status_ids: Annotated[
+    status_id: Annotated[
         List[int] | None, Option(help="List of status IDs to filter services by")
     ] = None,
 ) -> None:
@@ -94,8 +94,8 @@ def populate_queue_handler(
     config = QueuePopulatorConfig(
         db_config=DatabaseConfig.from_uri(db_uri),
         SQS_QUEUE_URL=sqs_queue_url,
-        type_ids=type_ids,
-        status_ids=status_ids,
+        type_ids=type_id,
+        status_ids=status_id,
     )
     populate_sqs_queue(config)
 

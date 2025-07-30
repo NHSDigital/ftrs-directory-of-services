@@ -11,21 +11,10 @@ from pipeline.utils.config import DataMigrationConfig
 
 
 class DMSEvent(BaseModel):
-    type: Literal["dms_event"]
+    type: Literal["dms_event"] = "dms_event"
     record_id: int
     table_name: str
     method: str
-
-
-class FullSyncEvent(BaseModel):
-    type: Literal["full_sync"]
-
-
-LambdaTriggerEvent = Annotated[DMSEvent | FullSyncEvent, Field(discriminator="type")]
-
-
-class DataMigrationEvent(BaseModel):
-    event: LambdaTriggerEvent
 
 
 class DataMigrationApplication:
@@ -38,6 +27,7 @@ class DataMigrationApplication:
         """
         Process the incoming event and run the correct processing logic for the change.
         """
+        self.processor.metrics.reset()
         self.logger.log(DataMigrationLogBase.DM_ETL_000, event=event)
 
         for record in event.records:
@@ -80,12 +70,12 @@ class DataMigrationApplication:
         """
         return self.processor.sync_all_services()
 
-    def parse_event(self, event: dict) -> LambdaTriggerEvent:
+    def parse_event(self, event: dict) -> DMSEvent:
         """
-        Parse the incoming event into a LambdaTriggerEvent object.
+        Parse the incoming event into a DMSEvent object.
         """
         try:
-            return DataMigrationEvent(event=event).event
+            return DMSEvent(**event)
         except Exception as e:
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_009,

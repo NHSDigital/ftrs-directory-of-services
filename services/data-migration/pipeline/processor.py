@@ -17,6 +17,28 @@ from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 
 
+class DataMigrationMetrics(BaseModel):
+    total_records: int = 0
+    supported_records: int = 0
+    unsupported_records: int = 0
+    transformed_records: int = 0
+    migrated_records: int = 0
+    skipped_records: int = 0
+    errors: int = 0
+
+    def reset(self) -> None:
+        """
+        Reset all metrics to zero.
+        """
+        self.total_records = 0
+        self.supported_records = 0
+        self.unsupported_records = 0
+        self.transformed_records = 0
+        self.migrated_records = 0
+        self.skipped_records = 0
+        self.errors = 0
+
+
 class DataMigrationProcessor:
     """
     This class is responsible for managing the data migration process.
@@ -24,15 +46,6 @@ class DataMigrationProcessor:
     """
 
     _REPOSITORY_CACHE: dict[str, AttributeLevelRepository] = {}
-
-    class Metrics(BaseModel):
-        total_records: int = 0
-        supported_records: int = 0
-        unsupported_records: int = 0
-        transformed_records: int = 0
-        migrated_records: int = 0
-        skipped_records: int = 0
-        errors: int = 0
 
     def __init__(
         self,
@@ -42,7 +55,7 @@ class DataMigrationProcessor:
         self.logger = logger
         self.config = config
         self.engine = create_engine(config.db_config.connection_string, echo=False)
-        self.metrics = self.Metrics()
+        self.metrics = DataMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
     def sync_all_services(self) -> None:

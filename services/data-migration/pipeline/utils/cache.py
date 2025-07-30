@@ -9,9 +9,9 @@ from ftrs_data_layer.domain.legacy import (
 )
 from sqlalchemy import Engine
 from sqlalchemy.orm import joinedload
-from sqlmodel import Session, select
+from sqlmodel import Session, select, SQLModel
 
-T = TypeVar("T")
+T = TypeVar("T", bound=SQLModel)
 
 
 class SQLModelKVCache(Generic[T]):
@@ -19,10 +19,11 @@ class SQLModelKVCache(Generic[T]):
     A simple key-value cache for storing and retrieving data.
     """
 
-    def __init__(self, engine: Engine, model: type[T]) -> None:
+    def __init__(self, engine: Engine, model: type[T], prejoin: bool = False) -> None:
         self.cache: dict[int, T] = {}
         self.engine = engine
         self.model = model
+        self.prejoin = prejoin
 
     def get(self, key: int) -> T:
         """
@@ -45,9 +46,9 @@ class SQLModelKVCache(Generic[T]):
         Retrieve an item from the database using the provided key.
         """
         with Session(self.engine) as session:
-            stmt = (
-                select(self.model).where(self.model.id == key).options(joinedload("*"))
-            )
+            stmt = select(self.model).where(self.model.id == key)
+            if self.prejoin:
+                stmt = stmt.options(joinedload("*"))
 
             return session.exec(stmt).unique().first()
 
@@ -60,7 +61,9 @@ class DoSMetadataCache:
     def __init__(self, engine: Engine) -> None:
         self.engine = engine
         self.symptom_groups = SQLModelKVCache(engine, SymptomGroup)
-        self.symptom_discriminators = SQLModelKVCache(engine, SymptomDiscriminator)
+        self.symptom_discriminators = SQLModelKVCache(
+            engine, SymptomDiscriminator, prejoin=True
+        )
         self.dispositions = SQLModelKVCache(engine, Disposition)
         self.opening_time_days = SQLModelKVCache(engine, OpeningTimeDay)
         self.service_types = SQLModelKVCache(engine, ServiceType)
