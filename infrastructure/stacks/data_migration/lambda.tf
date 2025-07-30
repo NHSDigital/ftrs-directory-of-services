@@ -60,7 +60,7 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   event_source_arn                   = aws_sqs_queue.rds_event_listener.arn
   function_name                      = module.migration_lambda.lambda_function_name
   enabled                            = true
-  batch_size                         = 10
+  batch_size                         = 50
   maximum_batching_window_in_seconds = 1
 
   scaling_config {
