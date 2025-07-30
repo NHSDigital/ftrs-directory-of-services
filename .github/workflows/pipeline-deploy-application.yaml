@@ -145,6 +145,21 @@ jobs:
       type: app
       workflow_timeout: 30
     secrets: inherit
+  manage-dynamodb-backups:
+    name: "Maintain dynamodb back ups in ${{ needs.metadata.outputs.environment }}"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - apply-infrastructure
+    uses: ./.github/workflows/manage-backups.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+    secrets: inherit
+
 
   deploy-read-only-viewer-service:
     name: "Deploy read only viewer service to ${{ needs.metadata.outputs.environment }}"
@@ -188,6 +203,7 @@ jobs:
     needs:
       - deploy-read-only-viewer-service
       - service-automation-tests
+      - manage-dynamodb-backups
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
@@ -200,6 +216,7 @@ jobs:
       - plan-infrastructure
       - manual-approval
       - apply-infrastructure
+      - manage-dynamodb-backups
       - deploy-read-only-viewer-service
       - service-automation-tests
       - check-pipeline-status
