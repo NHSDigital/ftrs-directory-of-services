@@ -105,3 +105,15 @@ The API routing happens at the API gateway level, routing will happen for the /l
 **Description**: Retrieves all locations.
 
 **Responses**: 200 OK: Returns a list of locations.
+
+### Create Location
+
+**Endpoint**: POST /
+
+**Description**: Creates a new location.
+
+**Request Body**: JSON object containing the location details.
+
+**Responses**:
+ 201 Created: Returns the created location.
+ 422 Unprocessable entities: Invalid request body.
