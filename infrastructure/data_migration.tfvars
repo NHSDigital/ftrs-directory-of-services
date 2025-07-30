@@ -27,4 +27,4 @@ aws_lambda_layers = [
 ]
 
 data_migration_rds_min_capacity = 1
-data_migration_rds_max_capacity = 1
+data_migration_rds_max_capacity = 5
