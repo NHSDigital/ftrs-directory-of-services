@@ -38,4 +38,8 @@ locals {
   env_sso_roles = [
     for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
   ]
+
+  # only build backup ssm parameter if the workspace is default
+  deploy_backup_ssm = "default" == "${terraform.workspace}"
 }
+
