@@ -397,16 +397,7 @@ def test_process_service_unsupported_service(
         logger=mock_logger,
     )
     processor.metadata = mock_metadata_cache
-
     mock_legacy_service.typeid = 1000
-    mock_legacy_service.type = ServiceType(
-        id=1000,
-        name="Unsupported Service Type",
-        nationalranking=None,
-        searchcapacitystatus=None,
-        capacitymodel=None,
-        capacityreset=None,
-    )
 
     processor._process_service(mock_legacy_service)
 

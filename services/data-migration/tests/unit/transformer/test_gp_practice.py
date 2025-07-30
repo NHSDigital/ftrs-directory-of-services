@@ -27,7 +27,7 @@ def test_is_service_supported(
     """
     Test that is_service_supported returns True for a valid GP profile
     """
-    mock_legacy_service.type.id = service_type_id
+    mock_legacy_service.typeid = service_type_id
     mock_legacy_service.odscode = ods_code
 
     is_supported, message = GPPracticeTransformer.is_service_supported(
@@ -55,7 +55,7 @@ def test_should_include_service(
     """
     Test that should_include_service returns True for a valid GP profile
     """
-    mock_legacy_service.type.id = 100  # GP Practice type ID
+    mock_legacy_service.typeid = 100  # GP Practice type ID
     mock_legacy_service.odscode = "A12345"  # Valid ODS code
     mock_legacy_service.statusid = status_id
 
@@ -74,7 +74,7 @@ def test_transform(
     """
     Test that transform method correctly transforms a GP practice service.
     """
-    mock_legacy_service.type.id = 100  # GP Practice type ID
+    mock_legacy_service.typeid = 100  # GP Practice type ID
     mock_legacy_service.odscode = "A12345"  # Valid ODS code
     mock_legacy_service.statusid = ServiceStatusEnum.ACTIVE
 

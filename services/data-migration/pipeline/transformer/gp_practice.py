@@ -51,7 +51,7 @@ class GPPracticeTransformer(ServiceTransformer):
         """
         Check if the service is a GP practice.
         """
-        if service.type.id != cls.GP_PRACTICE_TYPE_ID:
+        if service.typeid != cls.GP_PRACTICE_TYPE_ID:
             return False, "Service type is not GP Practice (100)"
 
         if not service.odscode:
