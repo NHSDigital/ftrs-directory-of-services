@@ -17,9 +17,27 @@ num_delayed_attr="ApproximateNumberOfMessagesDelayed"
 num_not_visible_attr="ApproximateNumberOfMessagesNotVisible"
 
 poll_queue=1
-pause_in_seconds=10
+pause_in_seconds=30
 
-# first find the SQS queue URL for the environment
+# start by invoking lambda to populate the queue
+lambda_status=$(aws lambda invoke \
+  --function-name ftrs-dos-dev-data-migration-queue-populator-lambda-fdos-491 \
+  --invocation-type Event \
+  response.json 2>&1)
+
+status_code=$(echo "$lambda_status" | jq -r '.StatusCode')
+if [ "$status_code" -ne 202 ]; then
+  echo "Lambda function invocation failed with status code $status_code"
+  echo "Response: $lambda_status"
+  exit 1
+else
+  echo "Lambda function invoked successfully."
+fi
+# wait for lambda to start
+sleep pause_in_seconds=30
+
+
+# find the SQS queue URL for the environment
 queue_list=$(aws sqs list-queues --queue-name-prefix "$QUEUE_NAME" 2>&1)
 queue_url=$(echo "$queue_list" | jq -r '.QueueUrls[0]')
 
