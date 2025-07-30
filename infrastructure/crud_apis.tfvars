@@ -29,7 +29,3 @@ api_gateway_integration_timeout       = 10000
 api_gateway_access_log_retention_days = 7
 api_gateway_throttling_burst_limit    = 100
 api_gateway_throttling_rate_limit     = 10
-
-aws_lambda_layers = [
-  "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"
-]
