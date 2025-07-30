@@ -3,6 +3,7 @@ from typing import Generic, TypeVar
 from ftrs_data_layer.domain.legacy import (
     Disposition,
     OpeningTimeDay,
+    ServiceType,
     SymptomDiscriminator,
     SymptomGroup,
 )
@@ -62,3 +63,4 @@ class DoSMetadataCache:
         self.symptom_discriminators = SQLModelKVCache(engine, SymptomDiscriminator)
         self.dispositions = SQLModelKVCache(engine, Disposition)
         self.opening_time_days = SQLModelKVCache(engine, OpeningTimeDay)
+        self.service_types = SQLModelKVCache(engine, ServiceType)

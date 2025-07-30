@@ -54,3 +54,22 @@ module "migration_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 }
+
+resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
+  event_source_arn = aws_sqs_queue.rds_event_listener.arn
+  function_name    = module.migration_lambda.lambda_function_name
+  enabled          = true
+
+  depends_on = [
+    aws_sqs_queue_policy.rds_event_listener_policy,
+    module.migration_lambda
+  ]
+}
+
+resource "aws_lambda_permission" "allow_sqs_invoke" {
+  statement_id  = "AllowSQSTrigger"
+  action        = "lambda:InvokeFunction"
+  function_name = module.migration_lambda.lambda_function_name
+  principal     = "sqs.amazonaws.com"
+  source_arn    = aws_sqs_queue.rds_event_listener.arn
+}

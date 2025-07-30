@@ -103,13 +103,15 @@ class ServiceTransformer(ABC):
         Create an Organisation instance from the source DoS service data.
         """
         organisation_id = self.generate_id(service.id, "organisation")
+        service_type = self.metadata.service_types.get(service.typeid)
+
         return Organisation(
             id=organisation_id,
             identifier_ODS_ODSCode=service.odscode,
             active=True,
             name=service.name,
             telecom=None,
-            type=service.type.name,
+            type=service_type.name,
             createdBy=self.MIGRATION_USER,
             createdDateTime=self.start_time,
             modifiedBy=self.MIGRATION_USER,

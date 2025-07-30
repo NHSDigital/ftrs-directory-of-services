@@ -378,6 +378,16 @@ def mock_metadata_cache(mock_config: DataMigrationConfig) -> DoSMetadataCache:
         7: OpeningTimeDay(id=7, name="Sunday"),
         8: OpeningTimeDay(id=8, name="BankHoliday"),
     }
+    cache.service_types.cache = {
+        100: ServiceType(
+            id=100,
+            name="GP Practice",
+            nationalranking=None,
+            searchcapacitystatus=None,
+            capacitymodel=None,
+            capacityreset=None,
+        ),
+    }
 
     with patch("pipeline.utils.cache.DoSMetadataCache") as mock_cache:
         mock_cache.return_value = cache

@@ -121,7 +121,7 @@ class Service(LegacyDoSModel, table=True):
     modifiedtime: datetime | None
     lasttemplatename: str | None
     lasttemplateid: int | None
-    typeid: int = Field(foreign_key="servicetypes.id")
+    typeid: int
     parentid: int | None
     subregionid: int | None
     statusid: int | None
@@ -134,7 +134,6 @@ class Service(LegacyDoSModel, table=True):
     lastverified: str | None
     nextverificationdue: str | None
 
-    type: "ServiceType" = Relationship()
     endpoints: list["ServiceEndpoint"] = Relationship()
     scheduled_opening_times: list["ServiceDayOpening"] = Relationship()
     specified_opening_times: list["ServiceSpecifiedOpeningDate"] = Relationship()
