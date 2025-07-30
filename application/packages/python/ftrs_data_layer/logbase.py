@@ -306,6 +306,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Running in local environment, using LOCAL_API_KEY environment variable.",
     )
+    ETL_UTILS_006 = LogReference(
+        level=INFO,
+        message="Error with secret: {secret_name} with message {error_message}.",
+    )
 
 
 class CrudApisLogBase(LogBase):
