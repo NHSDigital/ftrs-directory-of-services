@@ -1,12 +1,17 @@
 from contextlib import contextmanager
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Generator
+from typing import Annotated, Generator, List
 
 from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication
-from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
+from pipeline.queue_populator import populate_queue
+from pipeline.utils.config import (
+    DatabaseConfig,
+    DataMigrationConfig,
+    QueuePopulatorConfig,
+)
 
 
 class TargetEnvironment(StrEnum):
@@ -24,8 +29,8 @@ typer_app = Typer(
 )
 
 
-@typer_app.command()
-def local_handler(  # noqa: PLR0913
+@typer_app.command("migrate")
+def migrate_handler(  # noqa: PLR0913
     db_uri: Annotated[
         str | None, Option(..., help="URI to connect to the source database")
     ],
@@ -68,6 +73,32 @@ def local_handler(  # noqa: PLR0913
         else:
             event = {"type": "full_sync"}
             app.handle_event(event)
+
+
+@typer_app.command("populate-queue")
+def populate_queue_handler(
+    db_uri: Annotated[str, Option(..., help="URI to connect to the source database")],
+    sqs_queue_url: Annotated[
+        str, Option(..., help="SQS queue URL to populate with legacy services")
+    ],
+    type_ids: Annotated[
+        List[int] | None, Option(help="List of type IDs to filter services by")
+    ] = None,
+    status_ids: Annotated[
+        List[int] | None, Option(help="List of status IDs to filter services by")
+    ] = None,
+) -> None:
+    """
+    Local entrypoint for populating the queue with legacy services.
+    This function can be used to test the queue population logic.
+    """
+    config = QueuePopulatorConfig(
+        db_config=DatabaseConfig.from_uri(db_uri),
+        SQS_QUEUE_URL=sqs_queue_url,
+        type_ids=type_ids,
+        status_ids=status_ids,
+    )
+    populate_queue(config)
 
 
 @contextmanager

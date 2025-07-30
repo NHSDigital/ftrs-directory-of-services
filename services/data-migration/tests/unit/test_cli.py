@@ -19,7 +19,7 @@ def test_typer_app_init() -> None:
     """
     Test the initialization of the Typer app.
     """
-    expected_command_count = 1
+    expected_command_count = 2
 
     assert isinstance(typer_app, Typer)
     assert typer_app.info.name == "dos-etl"
@@ -37,6 +37,7 @@ def test_local_handler_full_sync(mocker: MockerFixture) -> None:
     result = runner.invoke(
         typer_app,
         [
+            "migrate",
             "--db-uri",
             "postgresql://username:password@localhost:5432/dbname",
             "--env",
@@ -74,6 +75,7 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
     result = runner.invoke(
         typer_app,
         [
+            "migrate",
             "--db-uri",
             "postgresql://username:password@localhost:5432/dbname",
             "--env",
@@ -118,6 +120,7 @@ def test_local_handler_output_dir(mocker: MockerFixture) -> None:
     result = runner.invoke(
         typer_app,
         [
+            "migrate",
             "--db-uri",
             "postgresql://username:password@localhost:5432/dbname",
             "--env",
