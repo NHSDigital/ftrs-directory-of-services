@@ -1,0 +1,51 @@
+name: Manage DynamoDb backups
+# This workflow manages DynamoDB backups by deleting old backups and creating new ones.
+# TODO workspace is temporary for testing -
+permissions:
+      actions: write
+      id-token: write
+      contents: read
+on:
+  workflow_call:
+    inputs:
+        environment:
+          description: "The relevant github environment (for secrets and variables)"
+          required: true
+          type: string
+        workspace:
+          description: "The name of the workspace to validate the infrastructure against."
+          required: true
+          type: string
+        commit_hash:
+          description: "The short form of git commit hash."
+          required: true
+          type: string
+
+jobs:
+  manage_backups:
+    name: "Manage DynamoDB backups"
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install jq"
+        run: sudo apt-get install -y jq
+
+      - name: "Manage backups"
+        id: "manage_backups"
+        shell: bash
+        run: |
+          export WORKSPACE="${{ inputs.workspace }}"
+          export COMMIT_HASH="${{ inputs.commit_hash }}"
+          /bin/bash ./scripts/workflow/manage-dynamodb-backups.sh
+
+  slack-notifications:
+    needs:
+      - manage_backups
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: dev
+    secrets: inherit
