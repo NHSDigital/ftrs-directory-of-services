@@ -86,3 +86,16 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
     ])
   }
 }
+
+data "aws_iam_policy_document" "sqs_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:SendMessage",
+      "sqs:ReceiveMessage",
+    ]
+    resources = [
+      aws_sqs_queue.rds_event_listener.arn
+    ]
+  }
+}

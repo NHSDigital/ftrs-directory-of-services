@@ -1,9 +1,12 @@
+from aws_lambda_powertools.utilities.data_classes import SQSEvent, event_source
+
 from pipeline.application import DataMigrationApplication
 
 APP: DataMigrationApplication | None = None
 
 
-def lambda_handler(event: dict, context: dict) -> None:
+@event_source(data_class=SQSEvent)
+def lambda_handler(event: SQSEvent, context: dict) -> None:
     """
     AWS Lambda entrypoint for transforming data.
     This function will be triggered by an S3 event.
@@ -12,4 +15,4 @@ def lambda_handler(event: dict, context: dict) -> None:
     if APP is None:
         APP = DataMigrationApplication()
 
-    return APP.handle_event(event)
+    APP.handle_sqs_event(event)

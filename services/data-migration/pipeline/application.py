@@ -1,6 +1,7 @@
 from typing import Annotated, Literal
 from uuid import uuid4
 
+from aws_lambda_powertools.utilities.data_classes import SQSEvent
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
@@ -33,19 +34,15 @@ class DataMigrationApplication:
         self.logger = self.create_logger()
         self.processor = self.create_processor()
 
-    def handle_event(self, event: dict) -> None:
+    def handle_sqs_event(self, event: SQSEvent) -> None:
         """
         Process the incoming event and run the correct processing logic for the change.
         """
         self.logger.log(DataMigrationLogBase.DM_ETL_000, event=event)
-        parsed_event = self.parse_event(event)
 
-        match parsed_event.__class__.__name__:
-            case "DMSEvent":
-                self.handle_dms_event(parsed_event)
-
-            case "FullSyncEvent":
-                self.handle_full_sync_event()
+        for record in event.records:
+            parsed_event = self.parse_event(record.json_body)
+            self.handle_dms_event(parsed_event)
 
         self.logger.log(
             DataMigrationLogBase.DM_ETL_999,
