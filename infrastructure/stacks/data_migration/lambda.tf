@@ -76,7 +76,7 @@ module "queue_populator_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.queue_populator_lambda_name}"
   description             = "Lambda to populate the SQS queue with DoS services"
-  handler                 = var.queue_populator_lambda_name
+  handler                 = var.queue_populator_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
