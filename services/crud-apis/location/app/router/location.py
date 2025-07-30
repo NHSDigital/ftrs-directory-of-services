@@ -3,8 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Path
 from ftrs_common.logger import Logger
-from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.domain import Location
+from ftrs_data_layer.logbase import CrudApisLogBase
 from starlette.responses import JSONResponse
 
 from location.app.service.location_service import LocationService
