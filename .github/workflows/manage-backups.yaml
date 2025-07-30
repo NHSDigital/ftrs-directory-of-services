@@ -2,7 +2,6 @@ name: Manage DynamoDb backups
 # This workflow manages DynamoDB backups by deleting old backups and creating new ones.
 # TODO workspace is temporary for testing -
 permissions:
-      actions: write
       id-token: write
       contents: read
 on:
