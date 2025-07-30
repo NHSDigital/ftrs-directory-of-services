@@ -144,6 +144,22 @@ class DataMigrationLogBase(LogBase):
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )
 
+    DM_QP_000 = LogReference(
+        level=INFO, message="Starting Data Migration Queue Populator"
+    )
+    DM_QP_001 = LogReference(
+        level=DEBUG, message="Sending {count} messages to SQS queue"
+    )
+    DM_QP_002 = LogReference(
+        level=ERROR, message="Messages failed to be sent to SQS queue"
+    )
+    DM_QP_003 = LogReference(
+        level=INFO, message="Successfully sent {count} messages to SQS queue"
+    )
+    DM_QP_999 = LogReference(
+        level=INFO, message="Data Migration Queue Populator completed successfully"
+    )
+
 
 class UtilsLogBase(LogBase):
     """
