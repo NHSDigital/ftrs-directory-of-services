@@ -16,10 +16,10 @@ data_collection_date               = "05-03-25"
 migration_lambda_name              = "lambda"
 migration_lambda_handler           = "pipeline.lambda_handler.lambda_handler"
 migration_lambda_timeout           = 30
-migration_lambda_memory_size       = 2048 # More memory to allow for 2 vCPUs
+migration_lambda_memory_size       = 1024
 queue_populator_lambda_name        = "queue-populator-lambda"
-queue_populator_lambda_timeout     = 900
-queue_populator_lambda_memory_size = 512
+queue_populator_lambda_timeout     = 300
+queue_populator_lambda_memory_size = 2048
 queue_populator_lambda_handler     = "pipeline.queue_populator.lambda_handler"
 
 aws_lambda_layers = [
