@@ -36,12 +36,10 @@ module "organisation_api_lambda" {
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
-  layers = concat(
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.common_packages_layer.arn],
-    var.aws_lambda_layers
-
-  )
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment
@@ -81,12 +79,10 @@ module "healthcare_service_api_lambda" {
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
-  layers = concat(
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.common_packages_layer.arn],
-    var.aws_lambda_layers
-
-  )
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment
@@ -126,12 +122,10 @@ module "location_api_lambda" {
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
   ]
-  layers = concat(
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.common_packages_layer.arn],
-    var.aws_lambda_layers
-
-  )
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment
