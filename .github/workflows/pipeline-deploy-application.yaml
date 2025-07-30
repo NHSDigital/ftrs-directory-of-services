@@ -158,6 +158,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      type: app
     secrets: inherit
 
 
