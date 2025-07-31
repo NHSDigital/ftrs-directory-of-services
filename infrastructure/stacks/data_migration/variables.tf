@@ -161,3 +161,8 @@ variable "sqs_ssm_path_for_ids" {
   description = "The SSM path for storing SQS IDs"
   type        = string
 }
+
+variable "migration_copy_db_trigger" {
+  description = "The Lambda function handler for the migration copy DB trigger"
+  type        = string
+}
