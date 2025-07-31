@@ -125,20 +125,19 @@ module "queue_populator_lambda" {
 }
 
 module "rds_event_listener" {
-  source                 = "../../modules/lambda"
-  function_name          = "${local.resource_prefix}-${var.rds_event_listener_name}"
-  description            = "Lambda to listen for database events and send notifications"
-  handler                = "lambda_function.lambda_handler"
-  runtime                = var.lambda_runtime
-  local_existing_package = "lambdav1.zip"
-  timeout                = var.load_lambda_connection_timeout
-  memory_size            = var.load_lambda_memory_size
-  s3_bucket_name         = ""
-  s3_key                 = ""
-  subnet_ids             = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids     = [aws_security_group.rds_event_listener_lambda_security_group.id]
+  source             = "../../modules/lambda"
+  function_name      = "${local.resource_prefix}-${var.rds_event_listener_name}"
+  description        = "Lambda to listen for database events and send notifications"
+  handler            = var.migration_copy_db_trigger
+  runtime            = var.lambda_runtime
+  timeout            = var.load_lambda_connection_timeout
+  memory_size        = var.load_lambda_memory_size
+  s3_bucket_name     = local.artefacts_bucket
+  s3_key             = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group.id]
 
-  number_of_policy_jsons = "5"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
