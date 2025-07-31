@@ -63,9 +63,7 @@ def get_api_key() -> str:
             secret_dict = json.loads(secret)
             return secret_dict.get("api_key", secret)
         except json.JSONDecodeError:
-            ods_utils_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_007
-            )
+            ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_007)
             raise
     except ClientError as e:
         if e.response["Error"]["Code"] == "ResourceNotFoundException":
