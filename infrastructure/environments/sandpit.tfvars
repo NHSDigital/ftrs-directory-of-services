@@ -27,5 +27,8 @@ enable_flow_log           = false
 flow_log_s3_force_destroy = true
 
 force_destroy_access_logging_bucket = true
-dms_task_logging_enabled            = false
-dms_allocated_storage               = 50
+
+dms_replication_instance_class = "dms.t3.micro"
+dms_engine                     = "aurora-postgresql"
+dms_allocated_storage          = 50
+migration_type                 = "full-load-and-cdc"
