@@ -147,15 +147,17 @@ module "rds_event_listener" {
   ]
 
   environment_variables = {
-    "ENVIRONMENT"   = var.environment
-    "PROJECT_NAME"  = var.project
-    "SQS_QUEUE_URL" = aws_sqs_queue.rds_event_listener.id
+    "ENVIRONMENT"  = var.environment
+    "PROJECT_NAME" = var.project
+    "SQS_SSM_PATH" = var.sqs_ssm_path_for_ids
   }
 
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  depends_on = [aws_sqs_queue.rds_event_listener]
 }
 
 resource "aws_lambda_permission" "allow_rds_event_lambda_to_invoke_sqs" {
