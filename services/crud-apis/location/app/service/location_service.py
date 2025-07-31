@@ -4,8 +4,8 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain import Location
 from ftrs_data_layer.logbase import CrudApisLogBase
-from ftrs_data_layer.models import Location
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 ITEMS_PER_PAGE = 10

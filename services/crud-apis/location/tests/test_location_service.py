@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
-from ftrs_data_layer.models import Location
+from ftrs_data_layer.domain import Location
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_mock import MockerFixture
 
