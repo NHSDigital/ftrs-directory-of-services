@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           export FUNCTION_NAME=${{ inputs.function_name }}
-          /bin/bash ./scripts/workflow/trigger_data_migration_lambda.sh
+          /bin/bash ./scripts/workflow/trigger-data-migration-lambda.sh
 
       - name: "Poll data migration queue"
         id: "poll_data_migration_queue"
