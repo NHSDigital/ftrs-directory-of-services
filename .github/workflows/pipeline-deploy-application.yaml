@@ -158,7 +158,6 @@ jobs:
     uses: ./.github/workflows/migrate-data.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      # TODO remove hardcoded function name once migration is stable
       function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
       type: app
     secrets: inherit
@@ -175,7 +174,6 @@ jobs:
     uses: ./.github/workflows/manage-backups.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       type: app
     secrets: inherit
