@@ -4,6 +4,9 @@ from pytest_bdd import given, parsers, scenarios, then
 from step_definitions.common_steps.setup_steps import *
 from utilities.infra.api_util import get_url, get_r53
 from utilities.infra.dns_util import wait_for_dns
+from utilities.infra.secrets_util import GetSecretWrapper
+from utilities.common.file_helper import create_temp_file
+from loguru import logger
 
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")
@@ -20,7 +23,7 @@ def dns_resolvable(api_name, env, workspace):
     target_fixture="fresponse",
 )
 def send_get_with_params(
-    api_request_context, workspace, api_name, env, params, resource_name
+    api_request_context_mtls, workspace, api_name, env, params, resource_name
 ):
     url = get_url(workspace, api_name, env) + "/" + resource_name
     # Handle None or empty params
@@ -30,7 +33,9 @@ def send_get_with_params(
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
 
-    response = api_request_context.get(url, params=param_dict)
+    response = api_request_context_mtls.get(
+            url,  params=param_dict
+        )
     return response
 
 
@@ -91,3 +96,5 @@ def count_resources(lambda_response, resource_type):
         entry.get("resource", {}).get("resourceType") == resource_type
         for entry in lambda_response.get("entry", [])
     )
+
+
