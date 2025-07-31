@@ -145,6 +145,22 @@ jobs:
       type: app
       workflow_timeout: 30
     secrets: inherit
+
+  migrate-data:
+    name: "Trigger etl process  in ${{ needs.metadata.outputs.environment }}"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - apply-infrastructure
+    uses: ./.github/workflows/migrate-data.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      # TODO remove hardcoded function name once migration is stable
+      function_name: "ftrs-dos-dev-data-migration-queue-populator-lambda-fdos-491"
+      type: app
+    secrets: inherit
   manage-dynamodb-backups:
     name: "Maintain dynamodb back ups in ${{ needs.metadata.outputs.environment }}"
     concurrency:
@@ -153,6 +169,7 @@ jobs:
     needs:
       - metadata
       - apply-infrastructure
+      - migrate-data
     uses: ./.github/workflows/manage-backups.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -217,6 +234,7 @@ jobs:
       - plan-infrastructure
       - manual-approval
       - apply-infrastructure
+      - migrate-data
       - manage-dynamodb-backups
       - deploy-read-only-viewer-service
       - service-automation-tests
