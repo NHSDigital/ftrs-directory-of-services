@@ -23,7 +23,7 @@ on:
 jobs:
   migrate-data-via-etl:
     name: "Trigger etl data migration in ${{ inputs.environment }}"
-    timeout-minutes: 5
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
