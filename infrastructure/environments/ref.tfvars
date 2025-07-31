@@ -29,3 +29,4 @@ flow_log_s3_force_destroy = true
 force_destroy_access_logging_bucket = true
 
 dms_instance_multi_az = true
+dms_allocated_storage = 50
