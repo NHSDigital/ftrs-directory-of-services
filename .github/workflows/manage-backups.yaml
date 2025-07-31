@@ -50,12 +50,3 @@ jobs:
           export WORKSPACE="${{ inputs.workspace }}"
           export COMMIT_HASH="${{ inputs.commit_hash }}"
           /bin/bash ./scripts/workflow/manage-dynamodb-backups.sh
-
-  slack-notifications:
-    needs:
-      - manage_backups
-    if: always()
-    uses: ./.github/workflows/slack-notifications.yaml
-    with:
-      env: dev
-    secrets: inherit
