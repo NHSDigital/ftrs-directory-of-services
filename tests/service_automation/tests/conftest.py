@@ -4,6 +4,9 @@ import boto3
 from dotenv import load_dotenv
 from loguru import logger
 from playwright.sync_api import sync_playwright, Page, APIRequestContext
+from utilities.infra.secrets_util import GetSecretWrapper
+from utilities.common.file_helper import create_temp_file, delete_download_files
+from utilities.infra.api_util import get_r53
 from pages.ui_pages.search import LoginPage
 from pages.ui_pages.result import NewAccountPage
 
@@ -36,6 +39,33 @@ def playwright():
     """Start Playwright session."""
     with sync_playwright() as p:
         yield p
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls(playwright, workspace, env, api_name = "servicesearch"):
+    """Create a new Playwright API request context."""
+    r53 = get_r53(workspace, api_name, env)
+    try:
+        # Get mTLS certs
+        client_pem_path, ca_cert_path = get_mtls_certs()
+        context_options = {
+            "ignore_https_errors": True,
+            "client_certificates": [
+                {
+                    "origin": f"https://{r53}",
+                    "certPath": ca_cert_path,
+                    "keyPath": client_pem_path,
+                }
+            ]
+        }
+        request_context = playwright.request.new_context(**context_options)
+        yield request_context
+    finally:
+        try:
+            delete_download_files()
+        except Exception as e:
+            logger.error(f"Error deleting download files: {e}")
+        request_context.dispose()
 
 
 @pytest.fixture
@@ -112,3 +142,15 @@ def write_allure_environment(env, workspace, project, commit_hash):
         f.write(f"WORKSPACE={workspace}\n")
         f.write(f"PROJECT={project}\n")
         f.write(f"COMMIT_HASH={commit_hash}\n")
+
+
+def get_mtls_certs():
+    # Fetch secrets from AWS
+    gsw = GetSecretWrapper()
+    client_pem = gsw.get_secret('/temp/dev/api-ca-pk')       # Combined client cert + key
+    ca_cert = gsw.get_secret('/temp/dev/api-ca-cert')        # CA cert for server verification
+
+    # Write to temp files
+    client_pem_path = create_temp_file(client_pem, '.pem')
+    ca_cert_path = create_temp_file(ca_cert, '.crt')
+    return client_pem_path, ca_cert_path
