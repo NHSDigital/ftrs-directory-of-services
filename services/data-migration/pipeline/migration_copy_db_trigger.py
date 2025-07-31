@@ -13,7 +13,6 @@ path = os.environ["SQS_SSM_PATH"]
 
 
 def lambda_handler(event: dict, context: dict) -> None:
-
     message = get_message_from_event(event)
 
     workspaces = get_dms_workspaces()
