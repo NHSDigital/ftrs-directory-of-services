@@ -19,9 +19,7 @@ class FtrsService:
         try:
             logger.info("Retrieving organisation by ods_code")
 
-            organisation: Organisation | None = (
-                self.repository.get_first_record_by_ods_code(ods_code)
-            )
+            organisation = self.repository.get_first_record_by_ods_code(ods_code)
 
             logger.append_keys(
                 organization_id=organisation.id if organisation else "None"
