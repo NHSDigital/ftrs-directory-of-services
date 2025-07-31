@@ -19,8 +19,8 @@ num_not_visible_attr="ApproximateNumberOfMessagesNotVisible"
 poll_queue=1
 pause_in_seconds=30
 
-# give time for lambda to start up
-sleep "$pause_in_seconds"
+echo "Start by pausing to allow the queue to populate with messages..."
+sleep 60
 
 # find the SQS queue URL for the environment
 queue_list=$(aws sqs list-queues --queue-name-prefix "$QUEUE_NAME" 2>&1)
