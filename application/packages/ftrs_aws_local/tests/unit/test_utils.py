@@ -1,4 +1,5 @@
 import pytest
+
 from dynamodb.utils import get_table_name
 
 

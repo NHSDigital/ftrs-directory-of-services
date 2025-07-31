@@ -1,15 +1,14 @@
 from http import HTTPStatus
-from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
+from ftrs_data_layer.models import Location
 from pytest_mock import MockerFixture
 
 from location.app.router.location import router
-
-client = TestClient(router)
 
 test_location_id = uuid4()
 
@@ -40,55 +39,105 @@ def get_mock_location() -> dict:
     }
 
 
-@pytest.fixture
-def mock_repository(mocker: MockerFixture) -> None:
-    repository_mock = mocker.patch("location.app.router.location.repository")
-    repository_mock.get.return_value = get_mock_location()
-    repository_mock.iter_records.return_value = [get_mock_location()]
-    return repository_mock
+@pytest.fixture()
+def mock_location_service(mocker: MockerFixture) -> MockerFixture:
+    service_mock = mocker.patch("location.app.router.location.location_service")
+    service_mock.get_location_by_id.return_value = Location(**get_mock_location())
+    service_mock.get_locations.return_value = [Location(**get_mock_location())]
+    service_mock.create_location.return_value = Location(**get_mock_location())
+    return service_mock
 
 
-def test_returns_location_by_id(mock_repository: Mock) -> None:
+client = TestClient(router)
+
+
+def test_returns_location_by_id(mock_location_service: MockerFixture) -> None:
     response = client.get(f"/{test_location_id}")
     assert response.status_code == HTTPStatus.OK
     assert response.json()["id"] == str(test_location_id)
 
 
-def test_returns_404_when_location_not_found(mock_repository: Mock) -> None:
-    mock_repository.get.return_value = None
+def test_returns_404_when_location_not_found(
+    mock_location_service: MockerFixture,
+) -> None:
+    mock_location_service.get_location_by_id.side_effect = HTTPException(
+        status_code=HTTPStatus.NOT_FOUND, detail="Location not found"
+    )
     with pytest.raises(HTTPException) as exc_info:
         client.get(f"/{test_location_id}")
     assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Location not found"
 
 
-def test_returns_all_locations(mock_repository: Mock) -> None:
+def test_returns_404_when_no_locations_found(
+    mock_location_service: MockerFixture,
+) -> None:
+    mock_location_service.get_locations.side_effect = HTTPException(
+        status_code=HTTPStatus.NOT_FOUND, detail="No locations found"
+    )
+    with pytest.raises(HTTPException) as exc_info:
+        client.get("/")
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+
+
+def test_returns_all_locations(mock_location_service: MockerFixture) -> None:
     response = client.get("/")
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()) == 1
 
 
-def test_returns_404_when_no_locations_found(mock_repository: Mock) -> None:
-    mock_repository.iter_records.return_value = []
+def test_creates_new_location(mock_location_service: MockerFixture) -> None:
+    new_location = Location(**get_mock_location())
+    response = client.post("/", json=new_location.model_dump(mode="json"))
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json()["location"]["id"] == str(test_location_id)
+    mock_location_service.create_location.assert_called_once_with(new_location)
+
+
+def test_creates_new_location_with_uuid(mock_location_service: MockerFixture) -> None:
+    new_location = Location(**get_mock_location())
+    response = client.post("/", json=new_location.model_dump(mode="json"))
+    assert response.status_code == HTTPStatus.CREATED
+    assert "id" in response.json()["location"]
+    mock_location_service.create_location.assert_called_once_with(new_location)
+
+
+def test_creates_new_location_with_value_error(
+    mock_location_service: MockerFixture,
+) -> None:
+    new_location = Location(**get_mock_location())
+    new_location.id = "invalid-uuid"
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.post("/", json=new_location.model_dump(mode="json"))
+    assert exc_info.type == RequestValidationError
+    mock_location_service.create_location.assert_not_called()  # Ensure no creation attempt was made
+
+
+def test_creates_new_location_with_missing_fields(
+    mock_location_service: MockerFixture,
+) -> None:
+    new_location = Location(**get_mock_location())
+    new_location.name = None  # Simulate missing field
+    response = client.post("/", json=new_location.model_dump(mode="json"))
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json()["location"]["name"] is None
+    mock_location_service.create_location.assert_called_once_with(new_location)
+
+
+def test_get_all_locations_500_error(mock_location_service: MockerFixture) -> None:
+    mock_location_service.get_locations.side_effect = HTTPException(
+        status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Internal Server Error"
+    )
     with pytest.raises(HTTPException) as exc_info:
         client.get("/")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "No locations found"
+    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert exc_info.value.detail == "Internal Server Error"
 
 
-def test_returns_500_on_unexpected_error(mock_repository: Mock) -> None:
-    mock_repository.get.side_effect = Exception("Unexpected error")
+def test_get_location_by_id_500_error(mock_location_service: MockerFixture) -> None:
+    mock_location_service.get_location_by_id.side_effect = HTTPException(
+        status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Internal Server Error"
+    )
     with pytest.raises(HTTPException) as exc_info:
         client.get(f"/{test_location_id}")
     assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert exc_info.value.detail == "Failed to fetch locations"
-
-
-def test_returns_500_on_unexpected_error_in_get_all(
-    mock_repository: Mock,
-) -> None:
-    mock_repository.iter_records.side_effect = Exception("Unexpected error")
-    with pytest.raises(HTTPException) as exc_info:
-        client.get("/")
-    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert exc_info.value.detail == "Failed to fetch locations"
+    assert exc_info.value.detail == "Internal Server Error"

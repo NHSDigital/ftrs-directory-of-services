@@ -27,6 +27,8 @@ moto = {extras = ["dynamodb"], version = "^5.1.2"}
 ruff = "^0.11.3"
 freezegun = "^1.5.1"
 pytest-mock = "^3.14.0"
+numpy = "^1.26.4"
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -188,6 +188,38 @@ def test_healthcare_service() -> None:
             email="example@mail.com",
             web="www.example.com",
         ),
+        symptomGroupSymptomDiscriminators={
+            "SG_SD": [
+                {
+                    "sd": {
+                        "codeID": 4003,
+                        "codeType": "Symptom Discriminator (SD)",
+                        "codeValue": "PC full Primary Care assessment and prescribing capability",
+                        "id": "SD4003",
+                        "source": "pathways",
+                        "synonyms": None,
+                    },
+                    "sg": {
+                        "codeID": 1000,
+                        "codeType": "Symptom Group (SG)",
+                        "codeValue": "Abdominal or Flank Injury, Blunt",
+                        "id": "SG1000",
+                        "source": "pathways",
+                        "zCodeExists": False,
+                    },
+                }
+            ]
+        },
+        dispositions=[
+            {
+                "id": "1",
+                "source": "pathways",
+                "codeType": "Disposition (Dx)",
+                "codeID": 301,
+                "codeValue": "Dx1",
+                "time": 10,
+            }
+        ],
         openingTime=[
             AvailableTime(
                 id=id1,
@@ -238,6 +270,38 @@ def test_healthcare_service() -> None:
             "email": "example@mail.com",
             "web": "www.example.com",
         },
+        "symptomGroupSymptomDiscriminators": {
+            "SG_SD": [
+                {
+                    "sg": {
+                        "id": "SG1000",
+                        "source": "pathways",
+                        "codeType": "Symptom Group (SG)",
+                        "codeID": 1000,
+                        "codeValue": "Abdominal or Flank Injury, Blunt",
+                        "zCodeExists": False,
+                    },
+                    "sd": {
+                        "id": "SD4003",
+                        "source": "pathways",
+                        "codeType": "Symptom Discriminator (SD)",
+                        "codeID": 4003,
+                        "codeValue": "PC full Primary Care assessment and prescribing capability",
+                        "synonyms": None,
+                    },
+                }
+            ]
+        },
+        "dispositions": [
+            {
+                "id": "1",
+                "source": "pathways",
+                "codeType": "Disposition (Dx)",
+                "codeID": 301,
+                "codeValue": "Dx1",
+                "time": 10,
+            }
+        ],
         "openingTime": [
             {
                 "allDay": False,
@@ -309,6 +373,38 @@ def test_healthcare_service_from_json() -> None:
                 "email": "example@mail.com",
                 "web": "www.example.com",
             },
+            "symptomGroupSymptomDiscriminators": {
+                "SG_SD": [
+                    {
+                        "sg": {
+                            "id": "SG1000",
+                            "source": "pathways",
+                            "codeType": "Symptom Group (SG)",
+                            "codeID": 1000,
+                            "codeValue": "Abdominal or Flank Injury, Blunt",
+                            "zCodeExists": False,
+                        },
+                        "sd": {
+                            "id": "SD4003",
+                            "source": "pathways",
+                            "codeType": "Symptom Discriminator (SD)",
+                            "codeID": 4003,
+                            "codeValue": "PC full Primary Care assessment and prescribing capability",
+                            "synonyms": None,
+                        },
+                    }
+                ]
+            },
+            "dispositions": [
+                {
+                    "id": "1",
+                    "source": "pathways",
+                    "codeType": "Disposition (Dx)",
+                    "codeID": 301,
+                    "codeValue": "Dx1",
+                    "time": 10,
+                }
+            ],
             "openingTime": [
                 {
                     "allDay": False,
@@ -368,6 +464,38 @@ def test_healthcare_service_from_json() -> None:
             email="example@mail.com",
             web="www.example.com",
         ),
+        symptomGroupSymptomDiscriminators={
+            "SG_SD": [
+                {
+                    "sd": {
+                        "codeID": 4003,
+                        "codeType": "Symptom Discriminator (SD)",
+                        "codeValue": "PC full Primary Care assessment and prescribing capability",
+                        "id": "SD4003",
+                        "source": "pathways",
+                        "synonyms": None,
+                    },
+                    "sg": {
+                        "codeID": 1000,
+                        "codeType": "Symptom Group (SG)",
+                        "codeValue": "Abdominal or Flank Injury, Blunt",
+                        "id": "SG1000",
+                        "source": "pathways",
+                        "zCodeExists": False,
+                    },
+                }
+            ]
+        },
+        dispositions=[
+            {
+                "id": "1",
+                "source": "pathways",
+                "codeType": "Disposition (Dx)",
+                "codeID": 301,
+                "codeValue": "Dx1",
+                "time": 10,
+            }
+        ],
         openingTime=[
             AvailableTime(
                 id=id1,
@@ -422,6 +550,8 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
             "email": "test@nhs.net",
             "web": "abc.co.uk",
             "type": "GP Practice",
+            "sg_sd_pairs": '{"sg" : {"id" : "SG1000", "source" : "pathways", "codeType" : "Symptom Group (SG)", "codeID" : 1000, "codeValue" : "Abdominal or Flank Injury, Blunt", "zCodeExists" : false}, "sd" : {"id" : "SD4003", "source" : "pathways", "codeType" : "Symptom Discriminator (SD)", "codeID" : 4003, "codeValue" : "PC full Primary Care assessment and prescribing capability", "synonyms" : null}}',
+            "dispositions": '{"id": "1", "source": "pathways", "codeType": "Disposition (Dx)", "codeID": 301, "codeValue": "Dx1", "dispositiontime": 10}',
             "availability": {
                 "availableTime": [],
                 "availableTimePublicHolidays": [],
@@ -455,6 +585,38 @@ def test_healthcare_service_from_dos(mocker: MockerFixture) -> None:
         },
         "type": "GP Consultation Service",
         "openingTime": None,
+        "symptomGroupSymptomDiscriminators": {
+            "SG_SD": [
+                {
+                    "sg": {
+                        "id": "SG1000",
+                        "source": "pathways",
+                        "codeType": "Symptom Group (SG)",
+                        "codeID": 1000,
+                        "codeValue": "Abdominal or Flank Injury, Blunt",
+                        "zCodeExists": False,
+                    },
+                    "sd": {
+                        "id": "SD4003",
+                        "source": "pathways",
+                        "codeType": "Symptom Discriminator (SD)",
+                        "codeID": 4003,
+                        "codeValue": "PC full Primary Care assessment and prescribing capability",
+                        "synonyms": None,
+                    },
+                }
+            ]
+        },
+        "dispositions": [
+            {
+                "id": "1",
+                "source": "pathways",
+                "codeType": "Disposition (Dx)",
+                "codeID": 301,
+                "codeValue": "Dx1",
+                "time": 10,
+            }
+        ],
     }
 
     assert hs.indexes == {}

@@ -11,6 +11,7 @@ locals {
   # Deploy databases only in default Terraform workspace.
   # This ensures that database resources are provisioned only in the intended environment.
   deploy_databases = "default" == "${terraform.workspace}"
+  rds_environments = var.environment == "dev" || var.environment == "test"
 
   dynamodb_tables = {
     for table_name in var.dynamodb_table_names :
@@ -18,6 +19,8 @@ locals {
       arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${table_name}${local.workspace_suffix}"
     }
   }
+
+  gp_search_organisation_table_arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
 
   domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
 

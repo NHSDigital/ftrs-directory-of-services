@@ -394,3 +394,43 @@ class CrudApisLogBase(LogBase):
         level=INFO,
         message="Successfully created healthcare service with ID: {id}.",
     )
+    LOCATION_001 = LogReference(
+        level=INFO,
+        message="Received request to create location with name: {name} and Managing Organisation: {orgID}.",
+    )
+    LOCATION_002 = LogReference(
+        level=INFO,
+        message="Successfully created location with ID: {location_id}.",
+    )
+    LOCATION_003 = LogReference(
+        level=INFO,
+        message="Location with ID {location_id} found.",
+    )
+    LOCATION_004 = LogReference(
+        level=INFO,
+        message="Found {count} locations.",
+    )
+    LOCATION_005 = LogReference(
+        level=INFO,
+        message="Creating location with ID {location_id}.",
+    )
+    LOCATION_006 = LogReference(
+        level=INFO,
+        message="Getting location with ID {location_id}.",
+    )
+    LOCATION_007 = LogReference(
+        level=INFO,
+        message="Retrieving all locations",
+    )
+    LOCATION_E001 = LogReference(
+        level=ERROR,
+        message="Location with ID {location_id} not found",
+    )
+    LOCATION_E002 = LogReference(
+        level=ERROR,
+        message="No locations found.",
+    )
+    LOCATION_E003 = LogReference(
+        level=Exception,
+        message="Error fetching locations: {error_message}.",
+    )

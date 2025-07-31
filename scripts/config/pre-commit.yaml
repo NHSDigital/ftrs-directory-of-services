@@ -52,6 +52,13 @@ repos:
     entry: ./scripts/githooks/check-projects-make-pre-commit.sh
     language: script
     pass_filenames: false
+
+- repo: https://github.com/astral-sh/ruff-pre-commit.git
+  rev: v0.12.5
+  hooks:
+  - id: ruff-check
+    # Run the formatter.
+  - id: ruff-format
 - repo: https://github.com/bridgecrewio/checkov.git
   rev: "a58cc7d" # sha for version 3.2.431
   hooks:

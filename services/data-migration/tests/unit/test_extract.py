@@ -19,6 +19,7 @@ from pipeline.extract import (
     merge_gp_practice_with_openingtimes,
 )
 from pipeline.utils.dos_db import (
+    QUERY_CLINICAL_CODES,
     QUERY_GP_ENDPOINTS,
     QUERY_GP_PRACTICE,
     QUERY_GP_SERVICEDAYOPENINGTIMES,
@@ -104,6 +105,7 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logger: MockLogger) -> No
             call(QUERY_GP_ENDPOINTS, "test_db_uri"),
             call(QUERY_GP_SERVICEDAYOPENINGTIMES, "test_db_uri"),
             call(QUERY_GP_SERVICESPECIFIEDOPENINGTIMES, "test_db_uri"),
+            call(QUERY_CLINICAL_CODES, "test_db_uri"),
             call(QUERY_SERVICES_SIZE, "test_db_uri"),
             call(QUERY_SERVICES_COLUMNS, "test_db_uri"),
             call(QUERY_SERVICEENDPOINTS_COLUMNS, "test_db_uri"),
@@ -120,8 +122,8 @@ def test_extract_gp_practice(mock_sql_data: Mock, mock_logger: MockLogger) -> No
     assert mock_logger.get_log("ETL_EXTRACT_003", "INFO") == [
         {
             "reference": "ETL_EXTRACT_003",
-            "msg": "Percentage of all data fields: 38.1%",
-            "detail": {"data_fields_percentage": np.float64(38.1)},
+            "msg": "Percentage of all data fields: 42.86%",
+            "detail": {"data_fields_percentage": np.float64(42.86)},
         }
     ]
 

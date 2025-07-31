@@ -111,3 +111,8 @@ variable "sso_roles" {
   type        = list(string)
   default     = []
 }
+
+variable "gp_search_organisation_table_name" {
+  description = "The dynamodb table name for gp search"
+  type        = string
+}
