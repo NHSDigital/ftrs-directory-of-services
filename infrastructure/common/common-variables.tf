@@ -120,21 +120,25 @@ variable "gp_search_organisation_table_name" {
 variable "dms_replication_instance_class" {
   description = "The instance class for the DMS replication instance"
   type        = string
+  default     = null
 }
 
 variable "dms_engine" {
   description = "The engine for the DMS replication instance"
   type        = string
+  default     = null
 }
 
 variable "dms_allocated_storage" {
   description = "The allocated storage for the DMS replication instance"
   type        = number
+  default     = null
 }
 
 variable "migration_type" {
   description = "The type of migration for DMS"
   type        = string
+  default     = null
 }
 
 variable "dms_instance_multi_az" {

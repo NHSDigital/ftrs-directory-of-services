@@ -35,3 +35,4 @@ data_migration_rds_max_capacity = 1
 
 rds_event_listener_name = "rds-event-listener"
 schema_name             = "pathwaysdos"
+sqs_ssm_path_for_ids    = "/migration/sqs_ids/"

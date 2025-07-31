@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "rds_event_listener" {
-  name = "${local.resource_prefix}-rds-events"
+  name = "${local.resource_prefix}-rds-events${local.workspace_suffix}"
 }
 
 resource "aws_sqs_queue_policy" "rds_event_listener_policy" {
