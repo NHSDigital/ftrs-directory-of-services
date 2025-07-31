@@ -45,20 +45,20 @@ def playwright():
 def api_request_context_mtls(playwright, workspace, env, api_name = "servicesearch"):
     """Create a new Playwright API request context."""
     r53 = get_r53(workspace, api_name, env)
-    # Get mTLS certs
-    client_pem_path, ca_cert_path = get_mtls_certs()
-    context_options = {
-        "ignore_https_errors": True,
-        "client_certificates": [
-            {
-                "origin": f"https://{r53}",
-                "certPath": ca_cert_path,
-                "keyPath": client_pem_path,
-            }
-        ]
-    }
-    request_context = playwright.request.new_context(**context_options)
     try:
+        # Get mTLS certs
+        client_pem_path, ca_cert_path = get_mtls_certs()
+        context_options = {
+            "ignore_https_errors": True,
+            "client_certificates": [
+                {
+                    "origin": f"https://{r53}",
+                    "certPath": ca_cert_path,
+                    "keyPath": client_pem_path,
+                }
+            ]
+        }
+        request_context = playwright.request.new_context(**context_options)
         yield request_context
     finally:
         try:
