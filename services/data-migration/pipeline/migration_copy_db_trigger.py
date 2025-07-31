@@ -1,6 +1,7 @@
-import os
 import json
 import logging
+import os
+
 import boto3
 
 logger = logging.getLogger()
@@ -11,7 +12,7 @@ ssm = boto3.client("ssm")
 path = os.environ["SQS_SSM_PATH"]
 
 
-def lambda_handler(event, context):
+def lambda_handler(event: dict, context: dict) -> None:
 
     message = get_message_from_event(event)
 
@@ -28,22 +29,20 @@ def lambda_handler(event, context):
                 workspace_queue_url,
                 response.get("MessageId"),
             )
-        except Exception as e:
-            logger.error(
-                "Failed to send message to SQS for workspace %s. Error: %s",
-                workspace_queue_url,
-                str(e),
+        except Exception:
+            logger.exception(
+                "Failed to send message to SQS for workspace %s", workspace_queue_url
             )
 
 
-def get_message_from_event(event):
+def get_message_from_event(event: dict) -> dict:
     logger.info("Received event: %s", json.dumps(event))
 
     message = {"source": "aurora_trigger", "event": event}
     return message
 
 
-def get_dms_workspaces():
+def get_dms_workspaces() -> list[str]:
     try:
         paginator = ssm.get_paginator("get_parameters_by_path")
         workspaces = []
@@ -52,7 +51,8 @@ def get_dms_workspaces():
             workspaces.extend([param["Value"] for param in page["Parameters"]])
 
         logger.info("Retrieved DMS workspaces: %s", workspaces)
+    except Exception:
+        logger.exception("Error retrieving DMS workspaces")
+        raise
+    else:
         return workspaces
-    except Exception as e:
-        logger.error("Error retrieving DMS workspaces: %s", str(e))
-        raise e
