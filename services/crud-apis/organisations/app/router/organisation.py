@@ -1,4 +1,3 @@
-import logging
 from http import HTTPStatus
 from uuid import UUID
 
@@ -11,6 +10,7 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import Organisation
+from pydantic import ValidationError
 
 from organisations.app.services.organisation_service import OrganisationService
 from organisations.app.services.validators import (
@@ -101,7 +101,7 @@ def get_all_organisations(limit: int = 10) -> list[Organisation]:
     )
     organisations = list(org_repository.iter_records(max_results=limit))
     if not organisations:
-        logging.error("Unable to retrieve any organisations.")
+        # logging.error("Unable to retrieve any organisations.")
         raise HTTPException(
             status_code=404, detail="Unable to retrieve any organisations"
         )
@@ -152,6 +152,12 @@ def update_organisation(
         return JSONResponse(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content=e.outcome,
+            media_type=FHIR_MEDIA_TYPE,
+        )
+    except ValidationError as e:
+        return JSONResponse(
+            status_code=422,
+            content=str(e),
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:
