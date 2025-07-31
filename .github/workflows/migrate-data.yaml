@@ -1,6 +1,5 @@
 name: Migrate data to dynamodb
-# This workflow manages DynamoDB backups by deleting old backups and creating new ones.
-# TODO workspace is temporary for testing -
+# This workflow triggers the etl process and monitors the queue.
 permissions:
       id-token: write
       contents: read
