@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body, HTTPException, Path
 from fastapi.responses import JSONResponse, Response
+from fhir.resources.exceptions import FHIRValidationError
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
@@ -155,6 +156,12 @@ def update_organisation(
             media_type=FHIR_MEDIA_TYPE,
         )
     except ValidationError as e:
+        return JSONResponse(
+            status_code=422,
+            content=str(e),
+            media_type=FHIR_MEDIA_TYPE,
+        )
+    except FHIRValidationError as e:
         return JSONResponse(
             status_code=422,
             content=str(e),
