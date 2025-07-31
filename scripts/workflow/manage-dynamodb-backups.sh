@@ -3,8 +3,7 @@
 # fail on first error
 set -e
 EXPORTS_SET=0
-# WORKSPACE for testing only
-export WORKSPACE="${WORKSPACE:-default}"
+
 export MAX_BACKUPS="${MAX_BACKUPS:-3}"
 export ENV="${ENV:-dev}"
 # check necessary environment variables are set
@@ -32,7 +31,7 @@ FULL_TABLE_NAME="$table_name_prefix-$table"
 echo "Managing backups for $FULL_TABLE_NAME starting..."
 echo "Creating new backup for $FULL_TABLE_NAME with commit hash $COMMIT_HASH"
 # TODO: Uncomment the following line to create a backup
-create_output=$(aws dynamodb create-backup --table-name "$FULL_TABLE_NAME" --backup-name "$FULL_TABLE_NAME-$WORKSPACE-$COMMIT_HASH"  2>&1 )
+create_output=$(aws dynamodb create-backup --table-name "$FULL_TABLE_NAME" --backup-name "$FULL_TABLE_NAME-$COMMIT_HASH"  2>&1 )
 echo "$create_output" | jq -r '.BackupDetails | "Backup ARN: \(.BackupArn)\nBackup Name: \(.BackupName)"' 2>&1
 new_arn=$(echo "$create_output" | jq -r '.BackupDetails.BackupArn')
 # create json object with table name and new arn
