@@ -80,3 +80,4 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   type        = "String"
   value       = module.api_gateway.api_endpoint
 }
+

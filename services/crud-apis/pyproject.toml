@@ -16,7 +16,8 @@ dependencies = [
     "httpx (>=0.28.1,<0.29.0)",
     "aws-lambda-powertools (>=3.11.0,<4.0.0)",
     "email-validator (>=2.1.0,<3.0.0)",
-    "fhir-resources (>=8.0.0,<9.0.0)"
+    "fhir-resources (>=8.0.0,<9.0.0)",
+    "numpy (>=1.26.4,<2.0.0)"
 ]
 
 [build-system]
@@ -33,7 +34,6 @@ ftrs-python-packages = {path = "../../application/packages/python", develop = tr
 uvicorn = "^0.34.2"
 boto3 = "^1.37.33"
 poethepoet = "^0.34.0"
-numpy = "^1.26.4"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"

@@ -302,6 +302,18 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="Request to {method} {url} failed: {error_message}.",
     )
+    ETL_UTILS_005 = LogReference(
+        level=INFO,
+        message="Running in local environment, using LOCAL_API_KEY environment variable.",
+    )
+    ETL_UTILS_006 = LogReference(
+        level=ERROR,
+        message="Error with secret: {secret_name} with message {error_message}.",
+    )
+    ETL_UTILS_007 = LogReference(
+        level=ERROR,
+        message="Error secret is not in json format.",
+    )
 
 
 class CrudApisLogBase(LogBase):
