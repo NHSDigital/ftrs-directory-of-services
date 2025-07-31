@@ -29,3 +29,4 @@ flow_log_s3_force_destroy = true
 gp_search_organisation_table_name = "organisation-is"
 
 force_destroy_access_logging_bucket = true
+dms_allocated_storage               = 50

@@ -38,7 +38,7 @@ data_migration_rds_max_capacity = 5
 
 dms_replication_instance_class = "dms.t3.micro"
 dms_engine                     = "aurora-postgresql"
-dms_allocated_storage          = 50
 migration_type                 = "full-load-and-cdc"
 rds_event_listener_name        = "rds-event-listener"
 schema_name                    = "pathwaysdos"
+dms_allocated_storage          = 50
