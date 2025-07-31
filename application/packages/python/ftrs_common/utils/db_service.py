@@ -1,3 +1,5 @@
+from typing import TypeVar
+
 from ftrs_common.utils.config import Settings
 from ftrs_data_layer.models import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
@@ -5,9 +7,12 @@ from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 env_variable_settings = Settings()
 
 
+DBModelT = TypeVar("DBModelT", bound=DBModel)
+
+
 def get_service_repository(
-    model_cls: type[DBModel], entity_name: str
-) -> AttributeLevelRepository[DBModel]:
+    model_cls: type[DBModelT], entity_name: str
+) -> AttributeLevelRepository[DBModelT]:
     """
     Get a repository for the specified model and entity name.
 
@@ -16,9 +21,9 @@ def get_service_repository(
         entity_name: The type of entity for the table name.
 
     Returns:
-        AttributeLevelRepository[DBModel]: The repository for the specified model.
+        AttributeLevelRepository[DBModelT]: The repository for the specified model.
     """
-    return AttributeLevelRepository[DBModel](
+    return AttributeLevelRepository[DBModelT](
         table_name=get_table_name(entity_name),
         model_cls=model_cls,
         endpoint_url=env_variable_settings.endpoint_url or None,
