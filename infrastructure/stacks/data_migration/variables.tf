@@ -156,3 +156,8 @@ variable "schema_name" {
   description = "The schema name to use in table mappings"
   type        = string
 }
+
+variable "sqs_ssm_path_for_ids" {
+  description = "The SSM path for storing SQS IDs"
+  type        = string
+}
