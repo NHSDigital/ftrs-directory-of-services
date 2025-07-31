@@ -3,12 +3,12 @@ from uuid import uuid4
 from aws_lambda_powertools import Tracer
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
+from ftrs_data_layer.models import Organisation
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
 from functions.ftrs_service.fhir_mapper.organization_mapper import (
     OrganizationMapper,
 )
-from functions.ftrs_service.repository.dynamo import OrganizationRecord
 
 tracer = Tracer()
 
@@ -20,21 +20,15 @@ class BundleMapper:
         self.endpoint_mapper = EndpointMapper()
 
     @tracer.capture_method
-    def map_to_fhir(
-        self, organization_record: OrganizationRecord, ods_code: str
-    ) -> Bundle:
-        resources = (
-            self._create_resources(organization_record) if organization_record else []
-        )
+    def map_to_fhir(self, organisation: Organisation, ods_code: str) -> Bundle:
+        resources = self._create_resources(organisation) if organisation else []
 
         return self._create_bundle(resources, ods_code)
 
-    def _create_resources(
-        self, organization_record: OrganizationRecord
-    ) -> list[FHIRResourceModel]:
-        endpoint_resources = self.endpoint_mapper.map_to_endpoints(organization_record)
-        organization_resource = self.organization_mapper.map_to_organization_resource(
-            organization_record
+    def _create_resources(self, organisation: Organisation) -> list[FHIRResourceModel]:
+        endpoint_resources = self.endpoint_mapper.map_to_fhir_endpoints(organisation)
+        organization_resource = self.organization_mapper.map_to_fhir_organization(
+            organisation
         )
 
         return [organization_resource] + endpoint_resources

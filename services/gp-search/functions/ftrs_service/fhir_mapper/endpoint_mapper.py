@@ -1,57 +1,39 @@
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
-from fhir.resources.R4B.endpoint import Endpoint
-
-from functions.ftrs_service.repository.dynamo import (
-    EndpointValue,
-    OrganizationRecord,
-)
+from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
+from ftrs_data_layer.models import Endpoint, Organisation
 
 logger = Logger()
 
 
 class EndpointMapper:
-    PAYLOAD_MIME_TYPE_BY_FORMAT_MAP = {
-        "PDF": "application/pdf",
-        "CDA": "application/hl7-cda+xml",
-        "FHIR": "application/fhir+json",
-    }
-
-    CONNECTION_TYPE_MAP = {
-        "itk": "ihe-xcpd",
-        "email": "direct-project",
-        "fhir": "hl7-fhir-rest",
-    }
-
     BUSINESS_SCENARIO_MAP = {
         "Primary": "primary-recipient",
         "Copy": "copy-recipient",
     }
 
-    def map_to_endpoints(
-        self, organization_record: OrganizationRecord
-    ) -> list[Endpoint]:
-        endpoints = []
+    def map_to_fhir_endpoints(self, organisation: Organisation) -> list[FhirEndpoint]:
+        fhir_endpoints = []
 
-        for endpoint_value in organization_record.value.endpoints:
-            endpoint = self._create_endpoint(endpoint_value)
-            if endpoint:
-                endpoints.append(endpoint)
+        for endpoint in organisation.endpoints:
+            fhir_endpoint = self._create_fhir_endpoint(endpoint)
+            if fhir_endpoint:
+                fhir_endpoints.append(fhir_endpoint)
 
-        return endpoints
+        return fhir_endpoints
 
-    def _create_endpoint(self, endpoint_value: EndpointValue) -> Endpoint | None:
-        endpoint_id = endpoint_value.id
-        status = self._create_status()
-        connection_type = self._create_connection_type(endpoint_value)
-        managing_organization = self._create_managing_organization(endpoint_value)
-        payload_type = self._create_payload_type(endpoint_value)
-        payload_mime_type = self._create_payload_mime_type(endpoint_value)
-        address = self._create_address(endpoint_value)
-        extension = self._create_extensions(endpoint_value)
+    def _create_fhir_endpoint(self, endpoint: Endpoint) -> FhirEndpoint | None:
+        endpoint_id = str(endpoint.id)
+        status = endpoint.status.value
+        connection_type = self._create_connection_type(endpoint)
+        managing_organization = self._create_managing_organization(endpoint)
+        payload_type = self._create_payload_type(endpoint)
+        payload_mime_type = self._create_payload_mime_type(endpoint)
+        address = self._create_address(endpoint)
+        extension = self._create_extensions(endpoint)
 
-        endpoint = Endpoint.model_validate(
+        endpoint = FhirEndpoint.model_validate(
             {
                 "id": endpoint_id,
                 "status": status,
@@ -66,25 +48,17 @@ class EndpointMapper:
 
         return endpoint
 
-    def _create_address(self, endpoint_value: EndpointValue) -> str:
-        return endpoint_value.address
+    def _create_address(self, endpoint: Endpoint) -> str:
+        return endpoint.address
 
-    def _create_managing_organization(
-        self, endpoint_value: EndpointValue
-    ) -> dict[str, str]:
-        org_id = endpoint_value.managedByOrganisation
+    def _create_managing_organization(self, endpoint: Endpoint) -> dict[str, str]:
+        org_id = str(endpoint.managedByOrganisation)
         managing_organization = {"reference": f"Organization/{org_id}"}
         return managing_organization
 
-    def _create_status(self) -> str:
-        status = "active"
-        return status
-
-    def _create_payload_type(
-        self, endpoint_value: EndpointValue
-    ) -> list[CodeableConcept]:
+    def _create_payload_type(self, endpoint: Endpoint) -> list[CodeableConcept]:
         system = "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-        code = endpoint_value.payloadType
+        code = endpoint.payloadType.value
 
         if not code:
             return []
@@ -102,29 +76,25 @@ class EndpointMapper:
 
         return [codeable_concept]
 
-    def _create_payload_mime_type(self, endpoint_value: EndpointValue) -> list[str]:
-        format_value = endpoint_value.format.upper()
+    def _create_payload_mime_type(self, endpoint: Endpoint) -> list[str]:
+        payload_mime_type = str(endpoint.payloadMimeType.value)
 
-        if format_value not in self.PAYLOAD_MIME_TYPE_BY_FORMAT_MAP:
-            logger.error(f"Unknown format: {format_value}")
-            return []
+        return [payload_mime_type]
 
-        return [self.PAYLOAD_MIME_TYPE_BY_FORMAT_MAP[format_value]]
-
-    def _create_extensions(self, endpoint_value: EndpointValue) -> list[dict]:
+    def _create_extensions(self, endpoint: Endpoint) -> list[dict]:
         extensions = []
 
-        if endpoint_value.order:
-            extensions.append(self._create_order_extension(endpoint_value.order))
+        if endpoint.order:
+            extensions.append(self._create_order_extension(endpoint.order))
 
-        if endpoint_value.isCompressionEnabled:
+        if endpoint.isCompressionEnabled:
             extensions.append(
-                self._create_compression_extension(endpoint_value.isCompressionEnabled)
+                self._create_compression_extension(endpoint.isCompressionEnabled)
             )
 
-        if endpoint_value.description:
+        if endpoint.description:
             if extension := self._create_business_scenario_extension(
-                endpoint_value.description
+                endpoint.description
             ):
                 extensions.append(extension)
 
@@ -156,16 +126,14 @@ class EndpointMapper:
             "valueCode": business_scenario_code,
         }
 
-    def _create_connection_type(self, endpoint_value: EndpointValue) -> Coding | None:
-        db_conn_type = endpoint_value.connectionType.lower()
+    def _create_connection_type(self, endpoint: Endpoint) -> Coding | None:
+        # TODO: Currently not proper FHIR codes, will need mapping
 
-        if db_conn_type not in self.CONNECTION_TYPE_MAP:
-            logger.error(f"Unknown connection type: {db_conn_type}")
-            return None
+        db_conn_type = endpoint.connectionType.lower()
 
         return Coding.model_validate(
             {
                 "system": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
-                "code": self.CONNECTION_TYPE_MAP[db_conn_type],
+                "code": db_conn_type,
             }
         )

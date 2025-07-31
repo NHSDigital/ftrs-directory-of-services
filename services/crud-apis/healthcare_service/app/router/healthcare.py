@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.params import Body
 from fastapi.responses import Response
+from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.models import HealthcareService
 from starlette.responses import JSONResponse
 
@@ -14,7 +15,6 @@ from healthcare_service.app.services.healthcare_service_helper import (
 from healthcare_service.app.services.validators import (
     HealthcareServiceCreatePayloadValidator,
 )
-from utils.db_service import get_service_repository
 
 # Constants
 ITEMS_PER_PAGE = 10

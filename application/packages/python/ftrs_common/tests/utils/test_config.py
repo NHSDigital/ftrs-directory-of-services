@@ -1,7 +1,7 @@
 import os
 from unittest.mock import patch
 
-from utils.config import Settings
+from ftrs_common.utils.config import Settings
 
 
 def test_settings_default_values() -> None:

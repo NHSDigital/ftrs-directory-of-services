@@ -29,10 +29,8 @@ def mock_boto3_client(mock_dynamodb):
 
 @pytest.fixture
 def mock_config():
-    with patch("health_check.health_check_function.get_config") as mock:
-        mock.return_value = {
-            "DYNAMODB_TABLE_NAME": "test-table",
-        }
+    with patch("health_check.health_check_function.GpHealthCheckSettings") as mock:
+        mock.return_value.dynamodb_table_name = "test-table"
         yield mock
 
 

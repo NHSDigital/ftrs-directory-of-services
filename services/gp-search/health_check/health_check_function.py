@@ -1,7 +1,7 @@
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from utils.config import get_config
+from health_check.config import GpHealthCheckSettings
 
 
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
@@ -13,7 +13,7 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
 def _is_table_active() -> bool:
     try:
         dynamodb = boto3.client("dynamodb")
-        table_name = get_config().get("DYNAMODB_TABLE_NAME")
+        table_name = GpHealthCheckSettings().dynamodb_table_name
 
         response = dynamodb.describe_table(TableName=table_name)
 

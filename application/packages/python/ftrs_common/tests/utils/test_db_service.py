@@ -1,13 +1,12 @@
 from unittest.mock import patch
 
-from ftrs_data_layer.models import DBModel
-from ftrs_data_layer.repository.dynamodb.attribute_level import AttributeLevelRepository
-
-from utils.db_service import (
+from ftrs_common.utils.db_service import (
     env_variable_settings,
     get_service_repository,
     get_table_name,
 )
+from ftrs_data_layer.models import DBModel
+from ftrs_data_layer.repository.dynamodb.attribute_level import AttributeLevelRepository
 
 
 class TestModel(DBModel):
@@ -16,9 +15,12 @@ class TestModel(DBModel):
 
 def test_get_service_repository_returns_repository() -> None:
     with (
-        patch("utils.db_service.get_table_name", return_value="mock-table-name"),
         patch(
-            "utils.db_service.env_variable_settings.endpoint_url",
+            "ftrs_common.utils.db_service.get_table_name",
+            return_value="mock-table-name",
+        ),
+        patch(
+            "ftrs_common.utils.db_service.env_variable_settings.endpoint_url",
             "http://mock-endpoint.com",
         ),
     ):
@@ -30,8 +32,11 @@ def test_get_service_repository_returns_repository() -> None:
 
 def test_get_service_repository_with_no_endpoint_url() -> None:
     with (
-        patch("utils.db_service.get_table_name", return_value="mock-table-name"),
-        patch("utils.db_service.env_variable_settings.endpoint_url", None),
+        patch(
+            "ftrs_common.utils.db_service.get_table_name",
+            return_value="mock-table-name",
+        ),
+        patch("ftrs_common.utils.db_service.env_variable_settings.endpoint_url", None),
     ):
         repository = get_service_repository(TestModel, "entity-name")
 

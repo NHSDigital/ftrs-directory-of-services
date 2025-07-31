@@ -32,3 +32,34 @@ data "aws_acm_certificate" "domain_cert" {
   statuses    = ["ISSUED"]
   most_recent = true
 }
+
+data "aws_iam_policy_document" "vpc_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:CreateNetworkInterface",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DeleteNetworkInterface"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "dynamodb_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:Scan",
+      "dynamodb:Query",
+    ]
+    resources = flatten([
+      for table in local.dynamodb_tables : [
+        table.arn,
+        "${table.arn}/index/*",
+      ]
+    ])
+  }
+}

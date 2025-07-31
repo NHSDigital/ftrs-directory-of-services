@@ -69,7 +69,7 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
         Parse the item from DynamoDB into the model format.
         """
         parsed_item = item.copy()
-        return self.model_cls.model_construct(**parsed_item)
+        return self.model_cls.model_validate(parsed_item)
 
     def iter_records(
         self, max_results: int | None = 100
@@ -83,10 +83,20 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
         )
 
     def get_by_ods_code(self, ods_code: str) -> list[str]:
+        records = self._get_records_by_ods_code(ods_code)
+
+        return [record.id for record in records]
+
+    def get_first_record_by_ods_code(self, ods_code: str) -> ModelType | None:
+        records = self._get_records_by_ods_code(ods_code)
+
+        return records[0] if records else None
+
+    def _get_records_by_ods_code(self, ods_code: str) -> list[ModelType]:
         ods_code_field = "identifier_ODS_ODSCode"
-        records = self._query(
+        records: list[ModelType] = self._query(
             key=ods_code_field,
             value=ods_code,
             IndexName="OdsCodeValueIndex",
         )
-        return [record.id for record in records]
+        return records
