@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
-from ftrs_data_layer.models import Location
+from ftrs_data_layer.domain import Location
 from pytest_mock import MockerFixture
 
 from location.app.router.location import router
