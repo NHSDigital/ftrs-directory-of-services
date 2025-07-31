@@ -152,4 +152,5 @@ variable "dms_task_logging_enabled" {
 variable "enable_flow_log" {
   description = "Whether VPC Flow logs are enabled or not"
   type        = bool
+  default     = false
 }

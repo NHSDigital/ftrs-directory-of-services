@@ -27,4 +27,6 @@ enable_flow_log           = false
 flow_log_s3_force_destroy = true
 
 force_destroy_access_logging_bucket = true
-dms_task_logging_enabled            = false
+
+dms_task_logging_enabled = false
+dms_allocated_storage    = 50
