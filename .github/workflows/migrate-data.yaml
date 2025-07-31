@@ -53,12 +53,3 @@ jobs:
         run: |
           export ENV="${{ inputs.environment }}"
           /bin/bash ./scripts/workflow/poll-data-migration-queue.sh
-
-  slack-notifications:
-    needs:
-      - migrate-data-via-etl
-    if: always()
-    uses: ./.github/workflows/slack-notifications.yaml
-    with:
-      env: dev
-    secrets: inherit
