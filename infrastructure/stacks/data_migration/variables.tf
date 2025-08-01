@@ -90,6 +90,30 @@ variable "migration_lambda_handler" {
   type        = string
 }
 
+variable "migration_queue_enabled" {
+  description = "Flag to enable the migration queue"
+  type        = bool
+  default     = true
+}
+
+variable "migration_queue_batch_size" {
+  description = "The batch size for the migration queue"
+  type        = number
+  default     = 50
+}
+
+variable "migration_queue_maximum_batching_window_in_seconds" {
+  description = "The maximum batching window in seconds for the migration queue"
+  type        = number
+  default     = 1
+}
+
+variable "migration_queue_maximum_concurrency" {
+  description = "The maximum concurrency for the migration queue"
+  type        = number
+  default     = 20
+}
+
 variable "queue_populator_lambda_name" {
   description = "The name of the queue populator lambda function"
 }
