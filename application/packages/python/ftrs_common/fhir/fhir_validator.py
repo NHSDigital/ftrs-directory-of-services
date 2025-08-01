@@ -26,7 +26,10 @@ class FhirValidator:
             return fhir_model.model_validate(resource)
         except ValidationError as e:
             fhir_logger.log(
-                FhirLogBase.FHIR_001, resource_type=fhir_model.__name__, error=str(e)
+                FhirLogBase.FHIR_001,
+                status_code=422,
+                resource_type=fhir_model.__name__,
+                error=str(e),
             )
             outcome = OperationOutcomeHandler.from_validation_error(e)
             raise OperationOutcomeException(outcome)
