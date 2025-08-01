@@ -209,7 +209,7 @@ resource "aws_rds_cluster_role_association" "rds_associate_lambda_role" {
   count = local.deploy_databases ? 1 : 0
 
   db_cluster_identifier = module.rds_replication[0].cluster_id
-  role_arn              = aws_iam_role.rds_lambda_invoke_role.arn
+  role_arn              = aws_iam_role.rds_lambda_invoke_role[0].arn
   feature_name          = "Lambda"
 }
 
@@ -252,7 +252,7 @@ resource "null_resource" "create_dms_trigger" {
       echo '${templatefile("${path.module}/trigger.sql.tmpl", {
     user       = data.aws_secretsmanager_secret_version.rds_username.secret_string
     table_name = "pathwaysdos.services",
-    lambda_arn = module.rds_event_listener.lambda_function_arn
+    lambda_arn = module.rds_event_listener[0].lambda_function_arn
     aws_region = var.aws_region
 })}' > /tmp/create_trigger.sql
       # Apply the trigger to the target database
