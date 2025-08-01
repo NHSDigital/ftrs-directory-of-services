@@ -14,7 +14,8 @@ data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
 }
 
 resource "aws_iam_role" "rds_lambda_invoke_role" {
-  name = "${local.resource_prefix}-${var.rds_event_listener_name}-invoke-role"
+  count = local.deploy_databases ? 1 : 0
+  name  = "${local.resource_prefix}-${var.rds_event_listener_name}-invoke-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -29,15 +30,16 @@ resource "aws_iam_role" "rds_lambda_invoke_role" {
 }
 
 resource "aws_iam_role_policy" "rds_lambda_invoke_policy" {
-  name = "${local.resource_prefix}-${var.rds_event_listener_name}-invoke-policy"
-  role = aws_iam_role.rds_lambda_invoke_role.id
+  count = local.deploy_databases ? 1 : 0
+  name  = "${local.resource_prefix}-${var.rds_event_listener_name}-invoke-policy"
+  role  = aws_iam_role.rds_lambda_invoke_role[0].id
 
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
       Effect   = "Allow",
       Action   = "lambda:InvokeFunction",
-      Resource = module.rds_event_listener.lambda_function_arn
+      Resource = module.rds_event_listener[0].lambda_function_arn
     }]
   })
 }
