@@ -398,6 +398,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Error updating organisation with organisation_id {organisation_id}:{error_message}.",
     )
+    ORGANISATION_020 = LogReference(
+        level=ERROR,
+        message="Unable to retrieve any organisations.",
+    )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
         message="Received request to create healthcare service with name: {name} and type: {type}.",
