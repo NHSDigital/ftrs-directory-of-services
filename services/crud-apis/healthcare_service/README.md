@@ -121,7 +121,7 @@ The API routing happens at the API gateway level, routing will happen for the /h
 
 ### Update Healthcare Service
 
-**Endpoint**: `PUT /{service_id}`
+**Endpoint**: PUT /{service_id}
 
 **Description**: Updates a healthcare service with the given ID.
 
