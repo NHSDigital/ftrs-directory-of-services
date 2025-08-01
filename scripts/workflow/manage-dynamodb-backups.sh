@@ -18,7 +18,7 @@ if [ -z "$COMMIT_HASH" ] ; then
 fi
 
 if [ -z "$DYNAMO_PREFIX_NAME" ] ; then
-  echo "ERROR: DYNAMO_PREFIX_NAME is not set. Please export DYNAMO_PREFIX_NAMEDYNAMO_TABLE_NAME to the name of the DynamoDB table to manage backups for."
+  echo "ERROR: DYNAMO_PREFIX_NAME is not set. Please export DYNAMO_PREFIX_NAME to the name of the DynamoDB table to manage backups for."
   exit 1
 fi
 
