@@ -166,7 +166,7 @@ resource "aws_security_group" "rds_event_listener_lambda_security_group" {
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
   count                        = local.deploy_databases ? 1 : 0
-  security_group_id            = aws_security_group.rds_event_listener_lambda_security_group.id
+  security_group_id            = aws_security_group.rds_event_listener_lambda_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description                  = "Allow ingress on port 443 from RDS security group"
   from_port                    = 443
@@ -176,7 +176,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
 
 resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_to_internet" {
   count             = local.deploy_databases ? 1 : 0
-  security_group_id = aws_security_group.rds_event_listener_lambda_security_group.id
+  security_group_id = aws_security_group.rds_event_listener_lambda_security_group[0].id
   description       = "Allow egress to internet on port 443"
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = "443"
