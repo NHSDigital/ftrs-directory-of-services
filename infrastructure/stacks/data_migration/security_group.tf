@@ -130,6 +130,7 @@ resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_fr
   count                        = local.deploy_databases ? 1 : 0
   security_group_id            = aws_security_group.dms_replication_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description                  = "Allow ingress on port ${var.rds_port} from RDS security group"
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -139,6 +140,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
   count                        = local.deploy_databases ? 1 : 0
   security_group_id            = aws_security_group.dms_replication_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description                  = "Allow egress on port ${var.rds_port} to RDS security group"
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -147,15 +149,16 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_internet" {
   count             = local.deploy_databases ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
+  description       = "Allow egress to internet on all ports"
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = "-1"
   ip_protocol       = "-1"
   to_port           = "-1"
 }
 
-
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {
-  name        = "${local.resource_prefix}-${var.rds_event_listener_name}${local.workspace_suffix}-sg"
+  count       = local.deploy_databases ? 1 : 0
+  name        = "${local.resource_prefix}-${var.rds_event_listener_name}-sg"
   description = "Security group for RDS event listener lambda"
 
   vpc_id = data.aws_vpc.vpc.id
@@ -165,6 +168,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
   count                        = local.deploy_databases ? 1 : 0
   security_group_id            = aws_security_group.rds_event_listener_lambda_security_group.id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description                  = "Allow ingress on port 443 from RDS security group"
   from_port                    = 443
   ip_protocol                  = "tcp"
   to_port                      = 443
@@ -173,8 +177,9 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
 resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_to_internet" {
   count             = local.deploy_databases ? 1 : 0
   security_group_id = aws_security_group.rds_event_listener_lambda_security_group.id
+  description       = "Allow egress to internet on port 443"
   cidr_ipv4         = "0.0.0.0/0"
-  from_port         = "-1"
-  ip_protocol       = "-1"
-  to_port           = "-1"
+  from_port         = "443"
+  ip_protocol       = "tcp"
+  to_port           = "443"
 }

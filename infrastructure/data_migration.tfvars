@@ -36,7 +36,8 @@ aws_lambda_layers = [
 data_migration_rds_min_capacity = 1
 data_migration_rds_max_capacity = 5
 
-rds_event_listener_name   = "rds-event-listener"
-schema_name               = "pathwaysdos"
-sqs_ssm_path_for_ids      = "/migration/sqs_ids/"
-migration_copy_db_trigger = "pipeline.migration_copy_db_trigger.lambda_handler"
+rds_event_listener_name       = "rds-event-listener"
+schema_name                   = "pathwaysdos"
+sqs_ssm_path_for_ids          = "/migration/sqs_ids/"
+migration_copy_db_trigger     = "pipeline.migration_copy_db_trigger.lambda_handler"
+cloudwatch_log_retention_days = 365

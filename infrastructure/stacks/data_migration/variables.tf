@@ -166,3 +166,8 @@ variable "migration_copy_db_trigger" {
   description = "The Lambda function handler for the migration copy DB trigger"
   type        = string
 }
+
+variable "cloudwatch_log_retention_days" {
+  description = "The number of days to retain CloudWatch logs for DMS tasks"
+  type        = number
+}

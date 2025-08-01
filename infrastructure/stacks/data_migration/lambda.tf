@@ -125,6 +125,7 @@ module "queue_populator_lambda" {
 }
 
 module "rds_event_listener" {
+  count              = local.deploy_databases ? 1 : 0
   source             = "../../modules/lambda"
   function_name      = "${local.resource_prefix}-${var.rds_event_listener_name}"
   description        = "Lambda to listen for database events and send notifications"
@@ -148,7 +149,7 @@ module "rds_event_listener" {
   environment_variables = {
     "ENVIRONMENT"  = var.environment
     "PROJECT_NAME" = var.project
-    "SQS_SSM_PATH" = var.sqs_ssm_path_for_ids
+    "SQS_SSM_PATH" = "${var.sqs_ssm_path_for_ids}${var.environment}/"
   }
 
   account_id     = data.aws_caller_identity.current.account_id
