@@ -3,7 +3,9 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
-from ftrs_data_layer.models import HealthcareService
+from ftrs_data_layer.models import (
+    HealthcareService,
+)
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from healthcare_service.app.services.healthcare_service_helper import (
