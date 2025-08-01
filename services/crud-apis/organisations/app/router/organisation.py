@@ -101,7 +101,9 @@ def get_all_organisations(limit: int = 10) -> list[Organisation]:
     )
     organisations = list(org_repository.iter_records(max_results=limit))
     if not organisations:
-        # logging.error("Unable to retrieve any organisations.")
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_020,
+        )
         raise HTTPException(
             status_code=404, detail="Unable to retrieve any organisations"
         )
@@ -155,9 +157,14 @@ def update_organisation(
             media_type=FHIR_MEDIA_TYPE,
         )
     except (ValidationError, TypeError, KeyError) as e:
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_019,
+            organisation_id=organisation_id,
+            error_message=str(e),
+        )
         return JSONResponse(
             status_code=422,
-            content=e.outcome,
+            content=str(e),
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:
