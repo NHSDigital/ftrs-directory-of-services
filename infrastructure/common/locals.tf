@@ -6,11 +6,9 @@ locals {
   account_prefix   = "${var.repo_name}-${var.environment}"
   root_domain_name = "${var.environment}.${var.root_domain_name}"
 
-  # TODO remove once no longer used - use resource_prefix instead
-  prefix = "${var.project}-${var.environment}"
-  # Deploy databases only in default Terraform workspace.
-  # This ensures that database resources are provisioned only in the intended environment.
-  deploy_databases = "default" == "${terraform.workspace}"
+  # Deploy certain resources (e.g., databases, backup SSM) only in default Terraform workspace.
+  is_primary_environment = terraform.workspace == "default"
+
   rds_environments = var.environment == "dev" || var.environment == "test"
 
   dynamodb_tables = {
