@@ -171,7 +171,7 @@ If the branch has not been pushed and the dev pipeline successfully deployed the
 To integrate with CI/CD pipelines, use:
 
 ```shell
-/bin/bash $(git rev-parse --show-toplevel)/scripts/workflow/service-automated-tests.sh
+/bin/bash $(git rev-parse --show-toplevel)/scripts/workflow/service-automation-tests.sh
 ```
 
 This script expects the variables ENVIRONMENT, WORKSPACE, TEST_TAG, TEST_TYPE to be set if running locally. These variables are set in the pipeline and passed through to the script.
