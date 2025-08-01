@@ -44,6 +44,8 @@ def get_mock_service() -> dict:
                 "category": "availableTime",
             }
         ],
+        "symptomGroupSymptomDiscriminators": [],
+        "dispositions": [],
     }
 
 

@@ -3,7 +3,7 @@ from typing import Generator, Generic, Type, TypeVar
 from uuid import UUID
 
 from ftrs_common.logger import Logger
-from ftrs_data_layer.models import BaseModel
+from ftrs_data_layer.domain.base import BaseModel
 
 ModelType = TypeVar("ModelType", bound=BaseModel)
 

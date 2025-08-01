@@ -12,8 +12,8 @@ def test_logger_create() -> None:
     logger = Logger.get(service="test_service")
     assert isinstance(logger, Logger)
     assert logger.service == "test_service"
-    assert logger.level == DEBUG
-    assert logger.child is True
+    assert logger.level == INFO
+    assert logger.child is False
 
     other_logger = Logger.get(service="test_service")
     assert logger is other_logger
@@ -103,3 +103,33 @@ def test_logbase() -> None:
     assert CustomLogBase.ANOTHER_LOG.name == "ANOTHER_LOG"
     assert CustomLogBase.ANOTHER_LOG.value.level == INFO
     assert CustomLogBase.ANOTHER_LOG.value.message == "Another log message"
+
+
+def test_format_message() -> None:
+    class CustomLogBase(LogBase):
+        CUSTOM_LOG = LogReference(level=DEBUG, message="Custom log with {param}")
+
+    logger = Logger.get(service="test_service")
+    formatted_message = logger.format_message(CustomLogBase.CUSTOM_LOG, param="value")
+    assert formatted_message == "Custom log with value"
+
+
+def test_format_message_no_params() -> None:
+    class CustomLogBase(LogBase):
+        CUSTOM_LOG = LogReference(level=DEBUG, message="Custom log without params")
+
+    logger = Logger.get(service="test_service")
+    formatted_message = logger.format_message(CustomLogBase.CUSTOM_LOG)
+    assert formatted_message == "Custom log without params"
+
+
+def test_format_message_missing_params() -> None:
+    class CustomLogBase(LogBase):
+        CUSTOM_LOG = LogReference(level=DEBUG, message="Custom log with {param}")
+
+    logger = Logger.get(service="test_service")
+
+    with pytest.raises(
+        KeyError, match="Missing key in log message \\(CUSTOM_LOG\\): 'param'"
+    ):
+        logger.format_message(CustomLogBase.CUSTOM_LOG, missing_param="value")

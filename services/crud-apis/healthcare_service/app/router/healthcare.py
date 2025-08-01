@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Path
 from fastapi.params import Body
 from fastapi.responses import Response
-from ftrs_data_layer.models import HealthcareService
+from ftrs_data_layer.domain import HealthcareService
 from starlette.responses import JSONResponse
 
 from healthcare_service.app.services.healthcare_service_helper import (

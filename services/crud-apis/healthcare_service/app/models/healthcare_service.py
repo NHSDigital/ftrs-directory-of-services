@@ -1,7 +1,10 @@
 from typing import Optional
 from uuid import UUID
 
-from ftrs_data_layer.enums import HealthcareServiceCategory, HealthcareServiceType
+from ftrs_data_layer.domain.enums import (
+    HealthcareServiceCategory,
+    HealthcareServiceType,
+)
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -61,6 +64,14 @@ class HealthCareService(BaseModel):
                 "category": "availableTime",
             }
         ],
+    )
+    symptomGroupSymptomDiscriminators: Optional[list[dict]] = Field(
+        default_factory=list,
+        example=[],
+    )
+    dispositions: Optional[list[dict]] = Field(
+        default_factory=list,
+        example=[],
     )
 
 

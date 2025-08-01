@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import boto3
 import pytest
-from ftrs_data_layer.models import HealthcareService, Location, Organisation
+from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from pytest_mock import MockerFixture
 from typer import Abort
 

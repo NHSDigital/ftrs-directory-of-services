@@ -36,6 +36,13 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
 
         return self._parse_item(item)
 
+    def upsert(self, obj: ModelType) -> None:
+        """
+        Upsert an item in DynamoDB.
+        If the item exists, it will be updated; if not, it will be created.
+        """
+        self._put_item(obj)
+
     def update(self, id: str | UUID, obj: ModelType) -> None:
         """
         Update an existing item in DynamoDB.
@@ -82,11 +89,11 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
             max_results,
         )
 
-    def get_by_ods_code(self, ods_code: str) -> list[str]:
+    def get_by_ods_code(self, ods_code: str) -> list[ModelType]:
         ods_code_field = "identifier_ODS_ODSCode"
         records = self._query(
             key=ods_code_field,
             value=ods_code,
             IndexName="OdsCodeValueIndex",
         )
-        return [record.id for record in records]
+        return list(records)

@@ -71,64 +71,69 @@ variable "aws_lambda_layers" {
   type        = list(string)
 }
 
-variable "extract_name" {
-  description = "The extract name of the Lambda function"
+variable "migration_lambda_name" {
+  description = "The name of the migration lambda function"
 }
 
-variable "extract_lambda_connection_timeout" {
-  description = "The timeout for the extract Lambda function"
+variable "migration_lambda_timeout" {
+  description = "The timeout for the migration Lambda function"
   type        = number
 }
 
-variable "extract_lambda_memory_size" {
-  description = "The memory size for the extract Lambda function"
+variable "migration_lambda_memory_size" {
+  description = "The memory size for the migration Lambda function"
   type        = number
 }
 
-variable "extract_lambda_handler" {
-  description = "The handler for the extract Lambda function"
+variable "migration_lambda_handler" {
+  description = "The handler for the migration Lambda function"
   type        = string
 }
 
-variable "transform_name" {
-  description = "The transform name of the Lambda function"
+variable "migration_queue_enabled" {
+  description = "Flag to enable the migration queue"
+  type        = bool
+  default     = true
 }
 
-variable "transform_lambda_connection_timeout" {
-  description = "The timeout for the transform Lambda function"
+variable "migration_queue_batch_size" {
+  description = "The batch size for the migration queue"
+  type        = number
+  default     = 50
+}
+
+variable "migration_queue_maximum_batching_window_in_seconds" {
+  description = "The maximum batching window in seconds for the migration queue"
+  type        = number
+  default     = 1
+}
+
+variable "migration_queue_maximum_concurrency" {
+  description = "The maximum concurrency for the migration queue"
+  type        = number
+  default     = 20
+}
+
+variable "queue_populator_lambda_name" {
+  description = "The name of the queue populator lambda function"
+}
+
+variable "queue_populator_lambda_timeout" {
+  description = "The timeout for the queue populator Lambda function"
   type        = number
 }
 
-variable "transform_lambda_memory_size" {
-  description = "The memory size for the transform Lambda function"
+variable "queue_populator_lambda_memory_size" {
+  description = "The memory size for the queue populator Lambda function"
   type        = number
 }
 
-variable "transform_lambda_handler" {
-  description = "The handler for the transform Lambda function"
+variable "queue_populator_lambda_handler" {
+  description = "The handler for the queue populator Lambda function"
   type        = string
 }
 
 variable "data_collection_date" {
   description = "The date the data has been collected"
-  type        = string
-}
-
-variable "load_name" {
-  description = "The load name of the Lambda function"
-}
-
-variable "load_lambda_connection_timeout" {
-  description = "The timeout for the load Lambda function"
-  type        = number
-}
-
-variable "load_lambda_memory_size" {
-  description = "The memory size for the load Lambda function"
-  type        = number
-}
-
-variable "load_lambda_handler" {
-  description = "The handler for the load Lambda function"
   type        = string
 }

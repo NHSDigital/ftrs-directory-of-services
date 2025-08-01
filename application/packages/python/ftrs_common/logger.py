@@ -32,13 +32,14 @@ class Logger(PowertoolsLogger):
     Custom logger class that extends the AWS Lambda Powertools Logger.
     """
 
-    def log(self, log_reference: LogBase, **detail: dict) -> None:
+    def log(self, log_reference: LogBase, **detail: dict) -> str:
         """
         Log a message with a specific log reference.
+        Returns the formatted log message.
         """
         log_key = log_reference.name
         log_details = log_reference.value
-        formatted_message = log_details.format(**detail)
+        formatted_message = self.format_message(log_reference, **detail)
         log_dict = {"msg": formatted_message, "reference": log_key, "stacklevel": 3}
         if detail:
             log_dict["detail"] = detail
@@ -66,10 +67,22 @@ class Logger(PowertoolsLogger):
                 )
                 raise ValueError(error_msg)
 
+        return formatted_message
+
+    def format_message(self, log_details: LogBase, **kwargs: dict) -> str:
+        """
+        Format the log message with the provided keyword arguments.
+        """
+        try:
+            return log_details.value.message.format(**kwargs)
+        except KeyError as e:
+            msg = f"Missing key in log message ({log_details.name}): {e}"
+            raise KeyError(msg) from e
+
     @classmethod
     @cache
     def get(cls, service: str = "ftrs") -> "Logger":
         """
         Create a new instance of the Logger class.
         """
-        return cls(service=service, level="DEBUG", child=True)
+        return cls(service=service)
