@@ -1,12 +1,16 @@
-import pytest
 import os
-import boto3
-from dotenv import load_dotenv
-from loguru import logger
-from playwright.sync_api import sync_playwright, Page, APIRequestContext
-from pages.ui_pages.search import LoginPage
-from pages.ui_pages.result import NewAccountPage
 
+import boto3
+import pytest
+from dotenv import load_dotenv
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.models import HealthcareService, Location, Organisation
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from loguru import logger
+from pages.ui_pages.result import NewAccountPage
+from pages.ui_pages.search import LoginPage
+from playwright.sync_api import Page, sync_playwright
+from utilities.infra.repo_util import model_from_json_file
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -112,3 +116,27 @@ def write_allure_environment(env, workspace, project, commit_hash):
         f.write(f"WORKSPACE={workspace}\n")
         f.write(f"PROJECT={project}\n")
         f.write(f"COMMIT_HASH={commit_hash}\n")
+
+
+@pytest.fixture(scope="session")
+def organisation_repo() -> AttributeLevelRepository[Organisation]:
+    return get_service_repository(Organisation, "organisation")
+
+
+@pytest.fixture(scope="session")
+def location_repo():
+    return get_service_repository(Location, "location")
+
+
+@pytest.fixture(scope="session")
+def healthcare_service_repo():
+    return get_service_repository(HealthcareService, "healthcare-service")
+
+
+@pytest.fixture(scope="session")
+def organisation_repo_seeded(organisation_repo):
+    json_file = "Organisation/00000000-bab3-4baf-92da-0c77df9363a6.json"
+    organisation = model_from_json_file(json_file, organisation_repo)
+    organisation_repo.create(organisation)
+    yield organisation_repo
+    organisation_repo.delete(organisation.id)
