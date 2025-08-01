@@ -180,6 +180,19 @@ jobs:
       type: app
     secrets: inherit
 
+  load-dynamodb-data:
+    name: "Load DynamoDB tables data from backup in ${{ needs.metadata.outputs.workspace }}"
+    if: github.ref != 'refs/heads/main'
+    needs:
+      - metadata
+      - apply-infrastructure
+    uses: ./.github/workflows/load-dynamodb-from-backup.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      dynamo_table_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-database"
+      workspace: ${{ needs.metadata.outputs.workspace }}
+    secrets: inherit
+
   deploy-read-only-viewer-service:
     name: "Deploy read only viewer service to ${{ needs.metadata.outputs.environment }}"
     concurrency:
