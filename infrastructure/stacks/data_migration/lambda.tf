@@ -136,7 +136,7 @@ module "rds_event_listener" {
   s3_bucket_name     = local.artefacts_bucket
   s3_key             = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group.id]
+  security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
   number_of_policy_jsons = "4"
   policy_jsons = [
