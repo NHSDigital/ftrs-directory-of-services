@@ -28,3 +28,9 @@ flow_log_s3_force_destroy    = false
 flow_logs_s3_expiration_days = 30
 
 force_destroy_access_logging_bucket = false
+
+dms_instance_multi_az          = true
+dms_replication_instance_class = "dms.t3.micro"
+dms_engine                     = "aurora-postgresql"
+dms_allocated_storage          = 50
+migration_type                 = "full-load-and-cdc"
