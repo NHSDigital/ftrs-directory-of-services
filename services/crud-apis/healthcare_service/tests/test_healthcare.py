@@ -5,6 +5,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
+from ftrs_data_layer.models import HealthcareService
 from pytest_mock import MockerFixture
 
 from healthcare_service.app.router.healthcare import router
@@ -14,7 +15,7 @@ client = TestClient(router)
 test_service_id = uuid4()
 
 
-def get_mock_service() -> dict:
+def get_mock_service() -> HealthcareService:
     return {
         "id": test_service_id,
         "createdBy": "test_user",
@@ -55,15 +56,6 @@ def mock_repository(mocker: MockerFixture) -> MockerFixture:
     repository_mock.get.return_value = get_mock_service()
     repository_mock.iter_records.return_value = [get_mock_service()]
     return repository_mock
-
-
-@pytest.fixture
-def mock_apply_updates(mocker: MockerFixture) -> None:
-    apply_updates_mock = mocker.patch(
-        "healthcare_service.app.router.healthcare.apply_updates"
-    )
-    apply_updates_mock.return_value = None
-    return apply_updates_mock
 
 
 def test_returns_healthcare_service_by_id() -> None:
@@ -128,11 +120,8 @@ def test_delete_healthcare_service_not_found(mock_repository: MockerFixture) -> 
     assert exc_info.value.detail == "No healthcare services found"
 
 
-def test_update_healthcare_service_success(
-    mock_repository: MockerFixture, mock_apply_updates: MockerFixture
-) -> None:
-    mock_repository.get.return_value = get_mock_service()
-    mock_apply_updates.return_value = None
+def test_update_healthcare_service_success(mock_repository: MockerFixture) -> None:
+    mock_repository.update.return_value = None
     update_payload = {
         "name": "Test Update Healthcare Service",
         "active": False,
@@ -144,7 +133,7 @@ def test_update_healthcare_service_success(
             "phone_public": "0208 883 5555",
         },
         "type": "GP Consultation Service",
-        "modified_by": "ODS_ETL_PIPELINE",
+        "modifiedBy": "ODS_ETL_PIPELINE",
         "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
         "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
         "openingTime": [
@@ -157,14 +146,27 @@ def test_update_healthcare_service_success(
                 "category": "availableTime",
             }
         ],
+        "createdBy": "SYSTEM",
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "dispositions": None,
+        "id": "841ef1a7-1adf-440f-9ca0-5e969ec61a5e",
+        "identifier_oldDoS_uid": None,
+        "modifiedDateTime": "2023-10-01T00:00:00Z",
+        "symptomGroupSymptomDiscriminators": {"SG_SD": None},
     }
+
     response = client.put(f"/{test_service_id}", json=update_payload)
+
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {"message": "Data processed successfully"}
+
+    assert response.json()["message"] == "Healthcare Service updated successfully"
+    assert response.json()["healthcare_service"] == update_payload
 
 
 def test_update_healthcare_service_not_found(mock_repository: MockerFixture) -> None:
-    mock_repository.get.return_value = None
+    mock_repository.update.side_effect = HTTPException(
+        status_code=HTTPStatus.NOT_FOUND, detail="Healthcare Service not found"
+    )
 
     update_payload = {
         "name": "Test Update Healthcare Service",
@@ -193,9 +195,20 @@ def test_update_healthcare_service_not_found(mock_repository: MockerFixture) -> 
     }
 
     with pytest.raises(HTTPException) as exc_info:
-        client.put(f"/{test_service_id}", json=update_payload)
+        client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json=update_payload)
     assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
     assert exc_info.value.detail == "Healthcare Service not found"
+
+
+def test_update_healthcare_service_invalid_request_body() -> None:
+    invalid_payload = {
+        "name": "Test Update Healthcare Service",
+    }
+
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.put(f"/{test_service_id}", json=invalid_payload)
+    assert exc_info.type == RequestValidationError
+    assert "Field required" in exc_info.value.errors()[0]["msg"]
 
 
 def test_create_healthcare_service(mock_repository: MockerFixture) -> None:

@@ -138,3 +138,9 @@ The API routing happens at the API gateway level, routing will happen for the /h
     "name": "New Healthcare Service Name"
   }
   ```
+
+**Responses**:
+
+ 200 OK: Returns the updated healthcare service.
+ 404 Not Found: Service to be updated not found.
+ 422 Unprocessable Entity: Invalid request body.
