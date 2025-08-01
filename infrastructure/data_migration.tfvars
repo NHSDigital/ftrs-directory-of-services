@@ -22,6 +22,11 @@ queue_populator_lambda_timeout     = 300
 queue_populator_lambda_memory_size = 2048
 queue_populator_lambda_handler     = "pipeline.queue_populator.lambda_handler"
 
+migration_queue_enabled                            = true
+migration_queue_batch_size                         = 50
+migration_queue_maximum_batching_window_in_seconds = 1
+migration_queue_maximum_concurrency                = 20
+
 aws_lambda_layers = [
   "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"
 ]

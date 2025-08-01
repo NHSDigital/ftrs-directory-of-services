@@ -56,15 +56,25 @@ module "migration_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 }
 
+
+resource "aws_lambda_permission" "allow_sqs_invoke" {
+  statement_id  = "AllowSQSTrigger"
+  action        = "lambda:InvokeFunction"
+  function_name = module.migration_lambda.lambda_function_name
+  principal     = "sqs.amazonaws.com"
+  source_arn    = aws_sqs_queue.rds_event_listener.arn
+}
+
+
 resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   event_source_arn                   = aws_sqs_queue.rds_event_listener.arn
   function_name                      = module.migration_lambda.lambda_function_name
-  enabled                            = true
-  batch_size                         = 50
-  maximum_batching_window_in_seconds = 1
+  enabled                            = var.migration_queue_enabled
+  batch_size                         = var.migration_queue_batch_size
+  maximum_batching_window_in_seconds = var.migration_queue_maximum_batching_window_in_seconds
 
   scaling_config {
-    maximum_concurrency = 20
+    maximum_concurrency = var.migration_queue_maximum_concurrency
   }
 
   depends_on = [
@@ -111,12 +121,3 @@ module "queue_populator_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 }
-
-resource "aws_lambda_permission" "allow_sqs_invoke" {
-  statement_id  = "AllowSQSTrigger"
-  action        = "lambda:InvokeFunction"
-  function_name = module.migration_lambda.lambda_function_name
-  principal     = "sqs.amazonaws.com"
-  source_arn    = aws_sqs_queue.rds_event_listener.arn
-}
-
