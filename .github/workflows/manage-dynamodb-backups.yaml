@@ -26,7 +26,7 @@ on:
         type: string
 
 jobs:
-  manage_backups:
+  manage_dynamodb_backups:
     name: "Manage DynamoDB backups"
     timeout-minutes: 5
     runs-on: ubuntu-latest
