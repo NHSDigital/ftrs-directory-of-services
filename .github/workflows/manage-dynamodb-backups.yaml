@@ -49,6 +49,6 @@ jobs:
         id: "manage_backups"
         shell: bash
         run: |
-          export DYNAMO_TABLE_NAME=${{ inputs.dynamo_table_name }}
+          export DYNAMO_PREFIX_NAME=${{ inputs.dynamo_table_name }}
           export COMMIT_HASH="${{ inputs.commit_hash }}"
           /bin/bash ./scripts/workflow/manage-dynamodb-backups.sh
