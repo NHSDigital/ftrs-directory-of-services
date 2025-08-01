@@ -83,7 +83,7 @@ def env() -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def load_env_file(env):
-    load_dotenv(f".env.{env}", override=True)
+    load_dotenv()
 
 
 @pytest.fixture(scope="session")
@@ -93,7 +93,7 @@ def workspace() -> str:
 
 @pytest.fixture(scope="session")
 def project() -> str:
-    project = _get_env_var("project")
+    project = _get_env_var("PROJECT_NAME")
     return project
 
 
