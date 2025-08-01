@@ -174,20 +174,20 @@ To integrate with CI/CD pipelines, use:
 /bin/bash $(git rev-parse --show-toplevel)/scripts/workflow/service-automation-tests.sh
 ```
 
-This script expects the variables ENVIRONMENT, WORKSPACE, TEST_TAG, TEST_TYPE to be set if running locally. These variables are set in the pipeline and passed through to the script.
-TEST_TAG is the tag used to identify the tests that should be run, for example is-pipeline
-TEST_TYPE identifies the type of Allure report to generate
-```
-ui or feature
-```
+This script expects the variables `ENVIRONMENT`, `WORKSPACE`, `APPLICATION_TEST_DIR`, `TEST_TAG`, `TEST_TYPE`, `COMMIT_HASH` to be set if running locally.
+These variables are set in the pipeline and passed through to the script.
+
+- `TEST_TAG` is the tag used to identify the tests that should be run, e.g. `is-pipeline`
+- `TEST_TYPE` identifies the type of Allure report to generate, e.g. `ui` or `feature`
 
 To set these if wanting to run the service-automated-tests script locally use:
 
 ```shell
-export WORKSPACE=dosis-xxx (replacing dosis-xxx with the relevant workspace)
-export ENVIRONMENT=dev
-export TEST_TAG=is-pipeline (replacing is-pipeline with the relevant tag)
-export TEST_TYPE=api (replace with ui if want to run the playwright ui tests)
+export WORKSPACE=dosis-xxx  # replacing dosis-xxx with the relevant workspace
+export ENVIRONMENT=dev      # replacing dev with the relevant environment
+export TEST_TAG=is-pipeline # replacing is-pipeline with the relevant tag
+export TEST_TYPE=api        # replace with ui if want to run the playwright ui tests
+export COMMIT_HASH=abc123   # replacing with actual 6-character commit hash
 ```
 
 ## Troubleshooting
