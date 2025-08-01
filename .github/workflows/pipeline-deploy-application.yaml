@@ -147,8 +147,8 @@ jobs:
     secrets: inherit
 
   migrate-data:
-    name: "Trigger etl process  in ${{ needs.metadata.outputs.environment }}"
-    if: github.ref == 'refs/heads/main'
+    name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
+    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
       cancel-in-progress: false
@@ -159,25 +159,26 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
+      queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-rds-events"
       type: app
     secrets: inherit
+
   manage-dynamodb-backups:
-    name: "Maintain dynamodb back ups in ${{ needs.metadata.outputs.environment }}"
-    if: github.ref == 'refs/heads/main'
+    name: "Manage DynamoDB backups in ${{ needs.metadata.outputs.environment }}"
+    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
       cancel-in-progress: false
     needs:
       - metadata
-      - apply-infrastructure
       - migrate-data
     uses: ./.github/workflows/manage-backups.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
+      dynamo_table_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-database"
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       type: app
     secrets: inherit
-
 
   deploy-read-only-viewer-service:
     name: "Deploy read only viewer service to ${{ needs.metadata.outputs.environment }}"
@@ -216,6 +217,7 @@ jobs:
       test_type: "api"
       type: app
     secrets: inherit
+
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:

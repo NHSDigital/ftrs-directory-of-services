@@ -1,23 +1,29 @@
-name: Manage DynamoDb backups
 # This workflow manages DynamoDB backups by deleting old backups and creating new ones.
+name: Manage DynamoDB backups
+
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
+
 on:
   workflow_call:
     inputs:
-        environment:
-          description: "The relevant github environment (for secrets and variables)"
-          required: true
-          type: string
-        commit_hash:
-          description: "The short form of git commit hash."
-          required: true
-          type: string
-        type:
-          description: "The type of permissions (e.g., account, app)"
-          required: true
-          type: string
+      environment:
+        description: "The relevant github environment (for secrets and variables)"
+        required: true
+        type: string
+      dynamo_table_name:
+        description: "The name of the DynamoDB table to manage backups for"
+        required: true
+        type: string
+      commit_hash:
+        description: "The short form of git commit hash."
+        required: true
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
 
 jobs:
   manage_backups:
@@ -38,9 +44,11 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
+
       - name: "Manage backups"
         id: "manage_backups"
         shell: bash
         run: |
+          export DYNAMO_TABLE_NAME=${{ inputs.dynamo_table_name }}
           export COMMIT_HASH="${{ inputs.commit_hash }}"
           /bin/bash ./scripts/workflow/manage-dynamodb-backups.sh
