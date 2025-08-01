@@ -24,7 +24,7 @@ class FhirValidator:
         """
         try:
             return fhir_model.model_validate(resource)
-        except (ValidationError, TypeError, KeyError) as e:
+        except ValidationError as e:
             fhir_logger.log(
                 FhirLogBase.FHIR_001,
                 status_code=422,
