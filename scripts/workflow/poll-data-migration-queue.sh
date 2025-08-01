@@ -1,17 +1,26 @@
 #! /bin/bash
 
-# fail on first error
+# This script monitors an AWS SQS queue for pending messages in the specified environment.
+# It continuously polls the queue at regular intervals until there are no messages left
+# (including delayed or not visible ones), at which point it exits.
+
+# Fail on first error
 set -e
 
 export ENV="${ENV:-dev}"
-export QUEUE_NAME="${QUEUE_NAME:-ftrs-dos-${ENV}-data-migration-rds-events}"
 
-# reset counts at start
+# Check required environment variable
+if [ -z "$QUEUE_NAME" ] ; then
+  echo "ERROR: QUEUE_NAME is not set. Please export QUEUE_NAME to the name of the SQS queue to poll."
+  exit 1
+fi
+
+# Initialize counts
 message_num=0
 delayed_num=0
 not_visible_num=0
 
-# attributes to pull back from SQS
+# Attributes to pull back from SQS
 num_messages_attr="ApproximateNumberOfMessages"
 num_delayed_attr="ApproximateNumberOfMessagesDelayed"
 num_not_visible_attr="ApproximateNumberOfMessagesNotVisible"
@@ -19,14 +28,14 @@ num_not_visible_attr="ApproximateNumberOfMessagesNotVisible"
 poll_queue=1
 pause_in_seconds=30
 
-echo "Start by pausing to allow the queue to populate with messages..."
+echo "Pausing 60 seconds to allow the queue to populate with messages..."
 sleep 60
 
-# find the SQS queue URL for the environment
+# Find the SQS queue URL for the environment
 queue_list=$(aws sqs list-queues --queue-name-prefix "$QUEUE_NAME" 2>&1)
 queue_url=$(echo "$queue_list" | jq -r '.QueueUrls[0]')
 
-# now poll the queue for messages
+# Poll the queue until empty
 while [ $poll_queue -eq 1 ]; do
   echo "Polling SQS queue $queue_url in $ENV environment every $pause_in_seconds seconds for messages..."
   message_numbers=$(aws sqs get-queue-attributes \
@@ -40,7 +49,7 @@ while [ $poll_queue -eq 1 ]; do
   echo "Number of messages in queue: $message_num"
   echo "Number of delayed messages in queue: $delayed_num"
   echo "Number of not visible messages in queue: $not_visible_num"
-  # if there are no messages in the queue, exit the loop
+
   if [ "$message_num" -eq 0 ] && [ "$delayed_num" -eq 0 ] && [ "$not_visible_num" -eq 0 ]; then
     echo "No messages in queue, exiting..."
     poll_queue=0
@@ -51,5 +60,4 @@ while [ $poll_queue -eq 1 ]; do
   fi
 done
 
-echo "Finished polling etl process queue in $ENV"
-
+echo "Finished polling "$QUEUE_NAME" queue in $ENV"
