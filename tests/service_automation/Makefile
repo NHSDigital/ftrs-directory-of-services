@@ -16,6 +16,8 @@ clean:
 	rm -rf $(ALLURE_RESULTS)
 	rm -rf $(ALLURE_REPORTS)
 	rm -rf venv
+	rm -rf downloads
+	find . -name "*.log" -type f -delete
 
 install: config
 
