@@ -70,7 +70,6 @@ def get_healthcare_service_by_id(service_id: str) -> HealthcareService:
         return raise_http_exception_if_not_found(e)
 
 
-# Update Healthcare Service
 @router.put(
     "/{service_id}",
     summary="Update a Healthcare Service.",
