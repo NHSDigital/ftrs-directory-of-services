@@ -161,9 +161,10 @@ module "rds_event_listener" {
 }
 
 resource "aws_lambda_permission" "allow_rds_event_lambda_to_invoke_sqs" {
+  count         = local.deploy_databases ? 1 : 0
   statement_id  = "AllowExecutionFromSQS"
   action        = "lambda:InvokeFunction"
-  function_name = module.rds_event_listener.lambda_function_name
+  function_name = module.rds_event_listener[0].lambda_function_name
   principal     = "sqs.amazonaws.com"
   source_arn    = aws_sqs_queue.rds_event_listener.arn
 }
