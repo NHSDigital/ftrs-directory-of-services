@@ -9,7 +9,7 @@ resource "aws_security_group" "rds_security_group" {
 }
 
 data "aws_security_group" "rds_security_group" {
-  count = local.deploy_databases && local.rds_environments ? 1 : 0
+  count = local.deploy_databases && local.rds_environments ? 0 : 1
   name  = "${local.resource_prefix}-rds-sg"
 }
 
