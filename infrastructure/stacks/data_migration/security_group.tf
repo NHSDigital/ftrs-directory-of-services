@@ -44,7 +44,6 @@ resource "aws_security_group" "queue_populator_lambda_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_processor_lambda" {
-  count                        = (local.deploy_databases && local.rds_environments) ? 1 : 0
   description                  = "Allow RDS ingress from processor lambda"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = aws_security_group.processor_lambda_security_group.id
@@ -54,7 +53,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_processor
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_queue_populator_lambda" {
-  count = (local.deploy_databases && local.rds_environments && local.deploy_queue_populator_lambda) ? 1 : 0
+  count = local.deploy_queue_populator_lambda ? 1 : 0
 
   description                  = "Allow RDS ingress from queue populator lambda"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
