@@ -14,6 +14,8 @@ def set_environment_variables() -> Generator:
         os.environ["ENVIRONMENT"] = "local"
         os.environ["WORKSPACE"] = "test-workspace"
         os.environ["LOCAL_CRUD_API_URL"] = "http://test-crud-api"
+        os.environ["LOCAL_API_KEY"] = "test-api-key"
+        os.environ["LOCAL_FHIR_API_URL"] = "http://test-fhir-api"
 
         yield
 

@@ -10,6 +10,7 @@ from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
     build_headers,
+    get_api_key,
     get_base_crud_api_url,
     get_signed_request_headers,
     handle_fhir_response,
@@ -55,7 +56,6 @@ def test_get_base_crud_api_url_no_workspace(
     url = get_base_crud_api_url()
 
     assert url == expected_url
-
     assert get_parameter_mock.call_count == 1
     get_parameter_mock.assert_called_once_with(name="/ftrs-dos-dev-crud-apis/endpoint")
 
@@ -415,3 +415,29 @@ def test_make_request_logs_request_exception(
             "Request to GET https://api.example.com/resource failed: fail."
             in caplog.text
         )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test_get_api_key_returns_value_from_json_secret(
+    mock_boto_client: MagicMock,
+) -> None:
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    mock_secretsmanager.get_secret_value.return_value = {
+        "SecretString": '{"api_key": "super-secret-key"}'
+    }
+
+    api_key = get_api_key()
+    expected_secret_name = "/ftrs-dos/dev/apim-api-key"
+    mock_secretsmanager.get_secret_value.assert_called_once_with(
+        SecretId=expected_secret_name
+    )
+    assert api_key == "super-secret-key"
