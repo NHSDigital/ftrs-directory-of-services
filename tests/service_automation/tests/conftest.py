@@ -104,8 +104,8 @@ def api_response():
     return {}
 
 
-def _get_env_var(varname: str) -> str:
-    value = os.getenv(varname)
+def _get_env_var(varname: str, default: str = None) -> str:
+    value = os.getenv(varname, default)
     assert value, f"{varname} is not set"
     return value
 
@@ -127,7 +127,7 @@ def workspace() -> str:
 
 @pytest.fixture(scope="session")
 def project() -> str:
-    project = _get_env_var("PROJECT_NAME")
+    project = _get_env_var("PROJECT_NAME", "ftrs-dos")
     return project
 
 
