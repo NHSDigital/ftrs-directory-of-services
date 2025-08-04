@@ -84,6 +84,8 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
 }
 
 module "queue_populator_lambda" {
+  count = var.environment == "dev" ? 1 : 0
+
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.queue_populator_lambda_name}"
   description             = "Lambda to populate the SQS queue with DoS services"
