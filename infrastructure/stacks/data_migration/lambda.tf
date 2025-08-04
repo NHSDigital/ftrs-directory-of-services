@@ -115,7 +115,7 @@ module "queue_populator_lambda" {
   environment_variables = {
     "ENVIRONMENT"   = var.environment
     "WORKSPACE"     = terraform.workspace == "default" ? "" : terraform.workspace
-    "SQS_QUEUE_URL" = aws_sqs_queue.dms_event_queue.arn
+    "SQS_QUEUE_URL" = aws_sqs_queue.dms_event_queue.url
     "PROJECT_NAME"  = var.project
   }
   account_id     = data.aws_caller_identity.current.account_id
