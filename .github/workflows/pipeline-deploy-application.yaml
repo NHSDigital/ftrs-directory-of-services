@@ -175,7 +175,7 @@ jobs:
     uses: ./.github/workflows/manage-dynamodb-backups.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      dynamo_table_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-database"
+      dynamodb_table_prefix: "ftrs-dos-${{ needs.metadata.outputs.environment }}-database"
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       type: app
     secrets: inherit
