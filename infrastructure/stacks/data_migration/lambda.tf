@@ -78,7 +78,7 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   }
 
   depends_on = [
-    aws_sqs_queue_policy.rds_event_listener_policy,
+    aws_sqs_queue_policy.dms_event_queue_policy,
     module.processor_lambda
   ]
 }
