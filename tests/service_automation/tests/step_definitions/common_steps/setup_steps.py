@@ -1,7 +1,5 @@
 from loguru import logger
-from pytest_bdd import given, parsers, scenarios
-
-scenarios("./is_api_features/gp_search_api.feature")
+from pytest_bdd import given, parsers
 
 
 @given(parsers.parse('that the stack is "{stack}"'), target_fixture='fstack_name')
