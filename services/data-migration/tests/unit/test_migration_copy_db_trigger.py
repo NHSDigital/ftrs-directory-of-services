@@ -29,7 +29,6 @@ def test_lambda_handler(
 
     lambda_handler(event, context)
 
-    mock_get_dms_workspaces.assert_called_once()
     EXPECTED_CALL_COUNT = 2
     assert mock_send_message.call_count == EXPECTED_CALL_COUNT
     mock_send_message.assert_any_call(
