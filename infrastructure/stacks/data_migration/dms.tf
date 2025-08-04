@@ -57,8 +57,7 @@ resource "aws_dms_replication_task" "dms_replication_task" {
 
   replication_task_settings = jsonencode({
     Logging = {
-      EnableLogging      = var.dms_task_logging_enabled
-      CloudWatchLogGroup = aws_cloudwatch_log_group.dms_log_group[0].name
+      EnableLogging = var.dms_task_logging_enabled
     }
   })
 }
