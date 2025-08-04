@@ -44,13 +44,14 @@ resource "aws_secretsmanager_secret_version" "source_rds_credentials" {
 }
 
 resource "aws_secretsmanager_secret" "target_rds_credentials" {
-  count = local.deploy_databases && (var.environment == "dev" || var.environment == "test") ? 1 : 0
+  count = local.deploy_databases ? 1 : 0
 
   name = "/${var.project}/${var.environment}/target-rds-credentials"
 }
 
+//FIXME: Why does this need to be restricted to only dev and test
 resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
-  count = local.deploy_databases && (var.environment == "dev" || var.environment == "test") ? 1 : 0
+  count = local.deploy_databases ? 1 : 0
 
   secret_id = aws_secretsmanager_secret.target_rds_credentials[0].id
   secret_string = jsonencode({

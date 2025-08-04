@@ -15,8 +15,6 @@ path = os.environ["SQS_SSM_PATH"]
 def lambda_handler(event: dict, context: dict) -> None:
     message = get_message_from_event(event)
 
-    workspaces = get_dms_workspaces()
-
     for workspace_queue_url in workspaces:
         try:
             response = sqs.send_message(
@@ -55,3 +53,6 @@ def get_dms_workspaces() -> list[str]:
         raise
     else:
         return workspaces
+
+
+workspaces = get_dms_workspaces()
