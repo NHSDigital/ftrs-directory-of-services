@@ -16,20 +16,20 @@ resource "aws_lambda_layer_version" "data_layer" {
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
 }
 
-module "migration_lambda" {
+module "processor_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.migration_lambda_name}"
-  description             = "Lambda to handle DoS data migration"
-  handler                 = var.migration_lambda_handler
+  function_name           = "${local.resource_prefix}-${var.processor_lambda_name}"
+  description             = "Lambda to handle DoS data migration update events"
+  handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
-  timeout                 = var.migration_lambda_timeout
-  memory_size             = var.migration_lambda_memory_size
+  timeout                 = var.processor_lambda_timeout
+  memory_size             = var.processor_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.migration_lambda_security_group.id]
+  security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
   number_of_policy_jsons = "4"
   policy_jsons = [
@@ -60,7 +60,7 @@ module "migration_lambda" {
 resource "aws_lambda_permission" "allow_sqs_invoke" {
   statement_id  = "AllowSQSTrigger"
   action        = "lambda:InvokeFunction"
-  function_name = module.migration_lambda.lambda_function_name
+  function_name = module.processor_lambda.lambda_function_name
   principal     = "sqs.amazonaws.com"
   source_arn    = aws_sqs_queue.rds_event_listener.arn
 }
@@ -68,18 +68,18 @@ resource "aws_lambda_permission" "allow_sqs_invoke" {
 
 resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   event_source_arn                   = aws_sqs_queue.rds_event_listener.arn
-  function_name                      = module.migration_lambda.lambda_function_name
-  enabled                            = var.migration_queue_enabled
-  batch_size                         = var.migration_queue_batch_size
-  maximum_batching_window_in_seconds = var.migration_queue_maximum_batching_window_in_seconds
+  function_name                      = module.processor_lambda.lambda_function_name
+  enabled                            = var.dms_event_queue_enabled
+  batch_size                         = var.dms_event_queue_batch_size
+  maximum_batching_window_in_seconds = var.dms_event_queue_maximum_batching_window_in_seconds
 
   scaling_config {
-    maximum_concurrency = var.migration_queue_maximum_concurrency
+    maximum_concurrency = var.dms_event_queue_maximum_concurrency
   }
 
   depends_on = [
     aws_sqs_queue_policy.rds_event_listener_policy,
-    module.migration_lambda
+    module.processor_lambda
   ]
 }
 
@@ -96,9 +96,9 @@ module "queue_populator_lambda" {
   memory_size             = var.queue_populator_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.migration_lambda_security_group.id]
+  security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,

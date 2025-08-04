@@ -1,4 +1,5 @@
 from aws_lambda_powertools.utilities.data_classes import SQSEvent
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from pytest_mock import MockerFixture
 
 from pipeline.application import DataMigrationApplication, DMSEvent
@@ -8,6 +9,7 @@ from pipeline.utils.config import DataMigrationConfig
 
 def test_lambda_handler(
     mocker: MockerFixture,
+    mock_lambda_context: LambdaContext,
     mock_config: DataMigrationConfig,
 ) -> None:
     app = DataMigrationApplication(config=mock_config)
@@ -28,9 +30,7 @@ def test_lambda_handler(
         }
     )
 
-    context = {}
-
-    lambda_handler(event, context)
+    lambda_handler(event, mock_lambda_context)
 
     app.handle_dms_event.assert_has_calls(
         [
@@ -54,7 +54,10 @@ def test_lambda_handler(
     )
 
 
-def test_lambda_handler_no_app(mocker: MockerFixture) -> None:
+def test_lambda_handler_no_app(
+    mocker: MockerFixture,
+    mock_lambda_context: LambdaContext,
+) -> None:
     """
     Test that the lambda_handler initializes the DataMigrationApplication if it is None.
     """
@@ -70,15 +73,16 @@ def test_lambda_handler_no_app(mocker: MockerFixture) -> None:
         ]
     }
 
-    context = {}
-
-    lambda_handler(event, context)
+    lambda_handler(event, mock_lambda_context)
 
     mock_app.assert_called_once()
     mock_app.return_value.handle_sqs_event.assert_called_once_with(SQSEvent(data=event))
 
 
-def test_lambda_handler_existing_app(mocker: MockerFixture) -> None:
+def test_lambda_handler_existing_app(
+    mocker: MockerFixture,
+    mock_lambda_context: LambdaContext,
+) -> None:
     """
     Test that the lambda_handler uses the existing DataMigrationApplication if it is already initialized.
     """
@@ -94,9 +98,7 @@ def test_lambda_handler_existing_app(mocker: MockerFixture) -> None:
         ]
     }
 
-    context = {}
-
-    lambda_handler(event, context)
+    lambda_handler(event, mock_lambda_context)
 
     mock_app.assert_not_called()  # Should not create a new instance
     mock_app.return_value.handle_sqs_event.assert_called_once_with(SQSEvent(data=event))
