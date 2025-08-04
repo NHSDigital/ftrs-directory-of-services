@@ -28,7 +28,7 @@ on:
 jobs:
   manage_dynamodb_backups:
     name: "Manage DynamoDB backups"
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:

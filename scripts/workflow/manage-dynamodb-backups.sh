@@ -18,7 +18,7 @@ if [ -z "$COMMIT_HASH" ] ; then
 fi
 
 if [ -z "$DYNAMO_PREFIX_NAME" ] ; then
-  echo "ERROR: DYNAMO_PREFIX_NAME is not set. Please export DYNAMO_PREFIX_NAME to the name of the DynamoDB table to manage backups for."
+  echo "ERROR: DYNAMO_PREFIX_NAME is not set. Please export DYNAMO_PREFIX_NAME to the environment based prefix for the DynamoDB table to manage backups for."
   exit 1
 fi
 
@@ -48,25 +48,25 @@ for table in "${TABLE_NAME[@]}"; do
   list_output=$(aws dynamodb list-backups --table-name "$FULL_TABLE_NAME" --backup-type USER \
   | jq '.[] | sort_by(.BackupCreationDate)' 2>&1)
   echo "$list_output"
-  backup_count=0
-  earliest_backup_arn=""
 
   list_output=$(aws dynamodb list-backups --table-name "$FULL_TABLE_NAME" --backup-type USER)
   backup_arns=($(echo "$list_output" | jq -r '.BackupSummaries | sort_by(.BackupCreationDateTime) | .[].BackupArn'))
 
   if [[ ${#backup_arns[@]} -gt $MAX_BACKUPS ]]; then
-    to_delete="${backup_arns[0]}"
-    echo "Exceeding $MAX_BACKUPS backups for $FULL_TABLE_NAME. Deleting oldest: $to_delete"
-    delete_output=$(aws dynamodb delete-backup --backup-arn "$to_delete" 2>&1)
-    deleted_name=$(echo "$delete_output" | jq -r '.BackupDescription.BackupDetails.BackupName')
-    echo "Deleted backup: $deleted_name"
+    loop_counter=0
+    while [[ $loop_counter -lt $(( ${#backup_arns[@]} - MAX_BACKUPS )) ]]; do
+      to_delete="${backup_arns[$loop_counter]}"
+      echo "Exceeding $MAX_BACKUPS backups for $FULL_TABLE_NAME. Deleting oldest: $to_delete"
+      delete_output=$(aws dynamodb delete-backup --backup-arn "$to_delete" 2>&1)
+      deleted_name=$(echo "$delete_output" | jq -r '.BackupDescription.BackupDetails.BackupName')
+      echo "Deleted backup: $deleted_name"
+      loop_counter=$((loop_counter + 1))
+    done
   else
     echo "Backup count within limit: ${#backup_arns[@]} (limit: $MAX_BACKUPS)"
   fi
-
   echo "Finished backup management for $FULL_TABLE_NAME"
 done
-
 # -------------------------
 # Store to Parameter Store
 # -------------------------
@@ -75,7 +75,7 @@ SSM_NAME="/ftrs-dos/${ENV}/dynamodb-tables-backup-arns"
 SSM_VALUE=$(printf '%s\n' "${ARN_JSON[@]}" | jq -s add)
 
 echo "Storing latest backup ARNs to SSM Parameter: $SSM_NAME"
-aws ssm put-parameter --name "$SSM_NAME" --value "$SSM_VALUE" --type "String" --overwrite
-
+ssm_output=$(aws ssm put-parameter --name "$SSM_NAME" --value "$SSM_VALUE" --type "String" --overwrite)
+echo "SSM Parameter store output: $ssm_output"
 echo "Backup ARNs stored in SSM: $SSM_NAME"
 echo "Backup management completed for environment: $ENV"
