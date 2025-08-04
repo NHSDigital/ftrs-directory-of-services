@@ -3,6 +3,7 @@ import json
 import boto3
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
+from step_definitions.common_steps.data_steps import *  # noqa: F403
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.lambda_util import LambdaWrapper
 

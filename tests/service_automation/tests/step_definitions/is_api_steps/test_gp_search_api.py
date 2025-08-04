@@ -1,8 +1,7 @@
-from pytest_bdd import given, parsers, scenarios, then
-from step_definitions.common_steps.setup_steps import *
-from pytest_bdd import given, parsers, scenarios, then
-from step_definitions.common_steps.setup_steps import *
-from utilities.infra.api_util import get_url, get_r53
+from pytest_bdd import given, parsers, scenarios, then, when
+from step_definitions.common_steps.data_steps import *  # noqa: F403
+from step_definitions.common_steps.setup_steps import *  # noqa: F403
+from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
 from utilities.infra.secrets_util import GetSecretWrapper
 from utilities.common.file_helper import create_temp_file
@@ -18,7 +17,7 @@ def dns_resolvable(api_name, env, workspace):
     wait_for_dns(r53)
 
 
-@given(
+@when(
     parsers.re(r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
     target_fixture="fresponse",
 )
