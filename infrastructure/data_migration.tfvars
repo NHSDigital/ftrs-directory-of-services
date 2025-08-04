@@ -41,3 +41,5 @@ schema_name                   = "pathwaysdos"
 sqs_ssm_path_for_ids          = "/ftrs-dos/migration/sqs_ids/"
 migration_copy_db_trigger     = "pipeline.migration_copy_db_trigger.lambda_handler"
 cloudwatch_log_retention_days = 365
+dms_db_lambda_name            = "dms-db-setup"
+dms_db_lambda_trigger         = "pipeline.dms_db.lambda_handler"

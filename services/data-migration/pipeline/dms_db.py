@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 import boto3
 import pymysql
@@ -9,24 +10,28 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+MIN_PASSWORD_LENGTH = 16
+
 secrets_client = boto3.client("secretsmanager")
 
 
-def fetch_environment_variables() -> tuple[str, str, int, str, str]:
+def fetch_environment_variables() -> tuple[str, str, str, str]:
     try:
-        cluster_endpoint = os.environ["RDS_CLUSTER_ENDPOINT"]
-        database_name = os.environ["RDS_DATABASE_NAME"]
-        rds_port = int(os.environ["RDS_PORT"])
-        secret_name = os.environ["SECRET_NAME"]
+        target_rds_details = os.environ["TARGET_RDS_DETAILS"]
+        dms_user_details = os.environ["DMS_USER_DETAILS"]
+        aws_region = os.environ.get("AWS_REGION")
+        trigger_lambda_arn = os.environ["TRIGGER_LAMBDA_ARN"]
     except KeyError:
         logger.exception("Missing environment variable")
         raise
     else:
-        return cluster_endpoint, database_name, rds_port, secret_name
+        return target_rds_details, dms_user_details, aws_region, trigger_lambda_arn
 
 
 # Fetch environment variables
-cluster_endpoint, database_name, rds_port, secret_name = fetch_environment_variables()
+target_rds_details, dms_user_details, aws_region, trigger_lambda_arn = (
+    fetch_environment_variables()
+)
 
 
 def execute_rds_command(
@@ -50,15 +55,70 @@ def execute_rds_command(
         logger.exception("Failed to execute RDS command")
 
 
+def execute_postgresql_trigger(
+    connection: pymysql.connections.Connection,
+    rds_username: str,
+    lambda_arn: str,
+    aws_region: str,
+) -> None:
+    try:
+        # Read the SQL template file
+        with open(
+            "trigger.sql.tmpl",
+            "r",
+        ) as file:
+            sql_template = file.read()
+
+        # Replace placeholders with actual values
+        sql_commands = re.sub(r"\\$\\{user\\}", rds_username, sql_template)
+        sql_commands = re.sub(r"\\$\\{lambda_arn\\}", lambda_arn, sql_commands)
+        sql_commands = re.sub(r"\\$\\{aws_region\\}", aws_region, sql_commands)
+
+        # Execute the SQL commands
+        with connection.cursor() as cursor:
+            for command in sql_commands.split(";"):
+                if command.strip():
+                    cursor.execute(command)
+            connection.commit()
+
+        logger.info("PostgreSQL trigger executed successfully.")
+    except Exception:
+        logger.exception("Failed to execute PostgreSQL trigger")
+
+
+def get_target_rds_details() -> tuple[str, str, int, str, str]:
+    target_rds_details_response = secrets_client.get_secret_value(
+        SecretId=target_rds_details
+    )
+    target_rds_details_secret = eval(target_rds_details_response["SecretString"])
+
+    cluster_endpoint = target_rds_details_secret["host"]
+    database_name = target_rds_details_secret["dbname"]
+    port = target_rds_details_secret["port"]
+    username = target_rds_details_secret["username"]
+    password = target_rds_details_secret["password"]
+
+    return cluster_endpoint, database_name, port, username, password
+
+
+def get_dms_user_details() -> tuple[str, str]:
+    dms_user_details_response = secrets_client.get_secret_value(
+        SecretId=dms_user_details
+    )
+    dms_user_details_secret = eval(dms_user_details_response["SecretString"])
+    rds_password = dms_user_details_secret.get("rds_password")
+    rds_username = "dms_user"
+
+    return rds_username, rds_password
+
+
 def lambda_handler(event: dict, context: dict) -> None:
     try:
-        # Fetch credentials from Secrets Manager
-        secret_response = secrets_client.get_secret_value(SecretId=secret_name)
-        secret = eval(secret_response["SecretString"])
-        username = secret["username"]
-        password = secret["password"]
-        rds_username = secret.get("rds_username")
-        rds_password = secret.get("rds_password")
+        cluster_endpoint, database_name, port, username, password = (
+            get_target_rds_details()
+        )
+
+        rds_username, rds_password = get_dms_user_details()
 
         # Connect to the RDS instance
         connection = pymysql.connect(
@@ -66,22 +126,16 @@ def lambda_handler(event: dict, context: dict) -> None:
             user=username,
             password=password,
             database=database_name,
-            port=rds_port,
+            port=port,
         )
-
-        # Create a new user
-        with connection.cursor() as cursor:
-            new_user = event["new_user"]
-            new_password = event["new_password"]
-            cursor.execute(
-                f"CREATE USER '{new_user}'@'%' IDENTIFIED BY '{new_password}';"
-            )
-            connection.commit()
-
-        logger.info(f"Successfully created user: {new_user}")
 
         # Execute RDS command
         execute_rds_command(connection, rds_username, rds_password)
+
+        # Execute PostgreSQL trigger
+        execute_postgresql_trigger(
+            connection, rds_username, trigger_lambda_arn, aws_region
+        )
 
     except ClientError:
         logger.exception("Error fetching secret")

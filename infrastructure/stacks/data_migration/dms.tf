@@ -38,7 +38,7 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
   engine_name   = var.dms_engine
   username      = data.aws_secretsmanager_secret_version.rds_username.secret_string
   password      = data.aws_secretsmanager_secret_version.rds_password.secret_string
-  server_name   = module.rds_replication[0].cluster_endpoint
+  server_name   = module.rds_replication_target_db[0].cluster_endpoint
   port          = var.rds_port
   database_name = var.target_rds_database
 }

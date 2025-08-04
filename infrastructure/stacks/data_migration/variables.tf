@@ -171,3 +171,13 @@ variable "cloudwatch_log_retention_days" {
   description = "The number of days to retain CloudWatch logs for DMS tasks"
   type        = number
 }
+
+variable "dms_db_lambda_name" {
+  description = "The name of the DMS DB setup Lambda function"
+  type        = string
+}
+
+variable "dms_db_lambda_trigger" {
+  description = "The Lambda function handler for the DMS DB setup trigger"
+  type        = string
+}

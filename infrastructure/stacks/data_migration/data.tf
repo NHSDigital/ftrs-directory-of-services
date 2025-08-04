@@ -113,3 +113,20 @@ data "aws_iam_policy_document" "sqs_access_policy" {
     ]
   }
 }
+
+data "aws_iam_policy_document" "lambda_rds_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBClusters",
+      "rds:ExecuteStatement",
+      "rds-data:ExecuteStatement",
+      "rds-data:BatchExecuteStatement",
+      "rds-data:BeginTransaction",
+      "rds-data:CommitTransaction",
+      "rds-data:RollbackTransaction"
+    ]
+    resources = ["*"]
+  }
+}

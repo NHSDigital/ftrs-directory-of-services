@@ -9,6 +9,7 @@ POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
+DMS_DB_LAMBDA_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-dms-db-setup
 
 .PHONY: install lint test build
 
@@ -71,3 +72,8 @@ restore-from-s3: install
 	poetry run dos-etl restore-from-s3 --env $(ENVIRONMENT) --workspace $(WORKSPACE)
 
 pre-commit: lint
+
+invoke-lambda:
+	aws lambda invoke \
+	--function-name $(DMS_DB_LAMBDA_NAME) \
+	/dev/null
