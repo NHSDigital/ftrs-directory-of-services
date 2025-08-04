@@ -78,7 +78,7 @@ def get_api_key() -> str:
 def get_resource_prefix() -> str:
     project = os.environ.get("PROJECT_NAME")
     environment = os.environ.get("ENVIRONMENT")
-    return f"{project}-{environment}-etl-ods"
+    return f"{project}/{environment}"
 
 
 def get_signed_request_headers(
