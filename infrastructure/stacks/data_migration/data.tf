@@ -98,3 +98,20 @@ data "aws_secretsmanager_secret_version" "rds_password" {
 data "aws_rds_cluster" "rds" {
   cluster_identifier = "${local.resource_prefix}-rds"
 }
+
+data "aws_iam_policy_document" "lambda_rds_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBClusters",
+      "rds:ExecuteStatement",
+      "rds-data:ExecuteStatement",
+      "rds-data:BatchExecuteStatement",
+      "rds-data:BeginTransaction",
+      "rds-data:CommitTransaction",
+      "rds-data:RollbackTransaction"
+    ]
+    resources = ["*"]
+  }
+}
