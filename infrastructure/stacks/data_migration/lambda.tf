@@ -62,12 +62,12 @@ resource "aws_lambda_permission" "allow_sqs_invoke" {
   action        = "lambda:InvokeFunction"
   function_name = module.processor_lambda.lambda_function_name
   principal     = "sqs.amazonaws.com"
-  source_arn    = aws_sqs_queue.rds_event_listener.arn
+  source_arn    = aws_sqs_queue.dms_event_queue.arn
 }
 
 
 resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
-  event_source_arn                   = aws_sqs_queue.rds_event_listener.arn
+  event_source_arn                   = aws_sqs_queue.dms_event_queue.arn
   function_name                      = module.processor_lambda.lambda_function_name
   enabled                            = var.dms_event_queue_enabled
   batch_size                         = var.dms_event_queue_batch_size
@@ -98,7 +98,7 @@ module "queue_populator_lambda" {
   memory_size             = var.queue_populator_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
+  security_group_ids = [aws_security_group.queue_populator_lambda_security_group[0].id]
 
   number_of_policy_jsons = "2"
   policy_jsons = [
@@ -115,7 +115,7 @@ module "queue_populator_lambda" {
   environment_variables = {
     "ENVIRONMENT"   = var.environment
     "WORKSPACE"     = terraform.workspace == "default" ? "" : terraform.workspace
-    "SQS_QUEUE_URL" = aws_sqs_queue.rds_event_listener.url
+    "SQS_QUEUE_URL" = aws_sqs_queue.dms_event_queue.arn
     "PROJECT_NAME"  = var.project
   }
   account_id     = data.aws_caller_identity.current.account_id

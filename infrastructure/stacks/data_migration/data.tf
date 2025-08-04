@@ -97,7 +97,7 @@ data "aws_iam_policy_document" "sqs_access_policy" {
       "sqs:GetQueueAttributes",
     ]
     resources = [
-      aws_sqs_queue.rds_event_listener.arn
+      aws_sqs_queue.dms_event_queue.arn
     ]
   }
 }
