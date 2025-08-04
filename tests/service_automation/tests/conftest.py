@@ -135,7 +135,7 @@ def healthcare_service_repo():
 
 @pytest.fixture(scope="session")
 def organisation_repo_seeded(organisation_repo):
-    json_file = "Organisation/00000000-bab3-4baf-92da-0c77df9363a6.json"
+    json_file = "Organisation/dbb206d6-6cf7-43a4-b910-10fdc14a3cb6.json"
     organisation = model_from_json_file(json_file, organisation_repo)
     organisation_repo.create(organisation)
     yield organisation_repo
