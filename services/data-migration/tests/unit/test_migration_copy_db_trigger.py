@@ -53,9 +53,14 @@ def test_get_message_from_event(mock_logger_info: MagicMock) -> None:
 
 @patch("pipeline.migration_copy_db_trigger.ssm.get_paginator")
 @patch("pipeline.migration_copy_db_trigger.logger.info")
+@patch("pipeline.migration_copy_db_trigger.os.environ.get")
 def test_get_dms_workspaces(
-    mock_logger_info: MagicMock, mock_get_paginator: MagicMock
+    mock_os_environ_get: MagicMock,
+    mock_logger_info: MagicMock,
+    mock_get_paginator: MagicMock,
 ) -> None:
+    mock_os_environ_get.return_value = "/mocked/path"
+
     mock_paginator = Mock()
     mock_get_paginator.return_value = mock_paginator
 
@@ -70,3 +75,4 @@ def test_get_dms_workspaces(
         "Retrieved DMS workspaces: %s", ["workspace1", "workspace2"]
     )
     mock_get_paginator.assert_called_once_with("get_parameters_by_path")
+    mock_os_environ_get.assert_called_once_with("SQS_SSM_PATH")
