@@ -10,9 +10,13 @@ from pipeline.migration_copy_db_trigger import (
 
 @patch("pipeline.migration_copy_db_trigger.sqs.send_message")
 @patch("pipeline.migration_copy_db_trigger.get_dms_workspaces")
+@patch("pipeline.migration_copy_db_trigger.os.environ.get")
 def test_lambda_handler(
-    mock_get_dms_workspaces: MagicMock, mock_send_message: MagicMock
+    mock_os_environ_get: MagicMock,
+    mock_get_dms_workspaces: MagicMock,
+    mock_send_message: MagicMock,
 ) -> None:
+    mock_os_environ_get.return_value = "mocked_path"
     mock_get_dms_workspaces.return_value = [
         "https://sqs.queue.url/1",
         "https://sqs.queue.url/2",
@@ -24,6 +28,7 @@ def test_lambda_handler(
 
     lambda_handler(event, context)
 
+    mock_os_environ_get.assert_called_once_with("SQS_SSM_PATH")
     mock_get_dms_workspaces.assert_called_once()
     EXPECTED_CALL_COUNT = 2
     assert mock_send_message.call_count == EXPECTED_CALL_COUNT
