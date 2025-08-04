@@ -9,7 +9,7 @@ logger.setLevel(logging.INFO)
 
 sqs = boto3.client("sqs")
 ssm = boto3.client("ssm")
-path = os.environ["SQS_SSM_PATH"]
+path = os.environ.get("SQS_SSM_PATH")
 
 
 def lambda_handler(event: dict, context: dict) -> None:
