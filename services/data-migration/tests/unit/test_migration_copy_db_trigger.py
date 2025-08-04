@@ -1,3 +1,7 @@
+import os
+
+os.environ["SQS_SSM_PATH"] = "/mocked/path"
+
 import json
 from unittest.mock import MagicMock, Mock, patch
 
