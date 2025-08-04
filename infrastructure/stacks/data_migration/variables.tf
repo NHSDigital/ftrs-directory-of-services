@@ -71,45 +71,50 @@ variable "aws_lambda_layers" {
   type        = list(string)
 }
 
-variable "migration_lambda_name" {
-  description = "The name of the migration lambda function"
+variable "processor_lambda_name" {
+  description = "The name of the processor lambda function"
 }
 
-variable "migration_lambda_timeout" {
-  description = "The timeout for the migration Lambda function"
+variable "processor_lambda_timeout" {
+  description = "The timeout for the processor Lambda function"
   type        = number
 }
 
-variable "migration_lambda_memory_size" {
-  description = "The memory size for the migration Lambda function"
+variable "processor_lambda_memory_size" {
+  description = "The memory size for the processor Lambda function"
   type        = number
 }
 
-variable "migration_lambda_handler" {
-  description = "The handler for the migration Lambda function"
+variable "processor_lambda_handler" {
+  description = "The handler for the processor Lambda function"
   type        = string
 }
 
-variable "migration_queue_enabled" {
-  description = "Flag to enable the migration queue"
+variable "dms_event_queue_name" {
+  description = "The name of the DMS event queue"
+  type        = string
+}
+
+variable "dms_event_queue_enabled" {
+  description = "Flag to enable the DMS event queue"
   type        = bool
   default     = true
 }
 
-variable "migration_queue_batch_size" {
-  description = "The batch size for the migration queue"
+variable "dms_event_queue_batch_size" {
+  description = "The batch size for the DMS event queue"
   type        = number
   default     = 50
 }
 
-variable "migration_queue_maximum_batching_window_in_seconds" {
-  description = "The maximum batching window in seconds for the migration queue"
+variable "dms_event_queue_maximum_batching_window_in_seconds" {
+  description = "The maximum batching window in seconds for the DMS event queue"
   type        = number
   default     = 1
 }
 
-variable "migration_queue_maximum_concurrency" {
-  description = "The maximum concurrency for the migration queue"
+variable "dms_event_queue_maximum_concurrency" {
+  description = "The maximum concurrency for the DMS event queue"
   type        = number
   default     = 20
 }

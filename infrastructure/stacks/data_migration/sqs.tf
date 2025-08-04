@@ -1,9 +1,9 @@
-resource "aws_sqs_queue" "rds_event_listener" {
-  name = "${local.resource_prefix}-rds-events${local.workspace_suffix}"
+resource "aws_sqs_queue" "dms_event_queue" {
+  name = "${local.resource_prefix}-${var.dms_event_queue_name}${local.workspace_suffix}"
 }
 
-resource "aws_sqs_queue_policy" "rds_event_listener_policy" {
-  queue_url = aws_sqs_queue.rds_event_listener.id
+resource "aws_sqs_queue_policy" "dms_event_queue_policy" {
+  queue_url = aws_sqs_queue.dms_event_queue.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -14,7 +14,7 @@ resource "aws_sqs_queue_policy" "rds_event_listener_policy" {
           Service = "lambda.amazonaws.com"
         },
         Action   = ["sqs:SendMessage", "sqs:ReceiveMessage"],
-        Resource = aws_sqs_queue.rds_event_listener.arn,
+        Resource = aws_sqs_queue.dms_event_queue.arn,
       }
     ]
   })

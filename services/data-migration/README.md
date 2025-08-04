@@ -110,28 +110,28 @@ The following options are also available:
 
 ```bash
 # Store output locally
-dos-etl \
+dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env local \
     --output-dir /tmp/out/extract.parquet
 
 # Migrate all services directly into local DynamoDB
-dos-etl \
+dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env local \
     --ddb-endpoint-url http://localhost:8000
 
 
 # Migrate a specific service directly into dev DynamoDB
-dos-etl \
+dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env dev \
     --service-id <service_id>
 
 # Migrate all services directly into workspaced DynamoDB
-dos-etl \
+dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
-    --env local \
+    --env dev \
     --workspace fdos-000 \
     --ddb-endpoint-url http://localhost:8000
 ```

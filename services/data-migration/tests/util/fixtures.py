@@ -4,6 +4,7 @@ from typing import Generator
 from unittest.mock import patch
 
 import pytest
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain.legacy import (
@@ -392,3 +393,19 @@ def mock_metadata_cache(mock_config: DataMigrationConfig) -> DoSMetadataCache:
     with patch("pipeline.utils.cache.DoSMetadataCache") as mock_cache:
         mock_cache.return_value = cache
         yield cache
+
+
+@pytest.fixture
+def mock_lambda_context() -> LambdaContext:
+    """
+    Mock the Lambda context for testing.
+    """
+    context = LambdaContext()
+    context._function_name = "test_lambda_function"
+    context._function_version = "$LATEST"
+    context._invoked_function_arn = "invoked-function-arn"
+    context._aws_request_id = "mock-request-id"
+    context._log_group_name = "/aws/lambda/test_lambda_function"
+    context._log_stream_name = "log-stream-name"
+    context._memory_limit_in_mb = 1024
+    return context

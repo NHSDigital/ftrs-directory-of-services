@@ -3,6 +3,7 @@ from itertools import batched
 from typing import Iterable
 
 import boto3
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain.legacy import Service
 from ftrs_data_layer.logbase import DataMigrationLogBase
@@ -44,6 +45,13 @@ def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[list[dict]]:
     Populate the queue with legacy services based on type and status IDs.
     """
     record_ids = get_record_ids(config)
+
+    LOGGER.log(
+        DataMigrationLogBase.DM_QP_001,
+        count=len(record_ids),
+        queue_url=config.sqs_queue_url,
+    )
+
     for batch in batched(record_ids, SQS_BATCH_SIZE_LIMIT):
         sqs_messages = [
             {
@@ -65,6 +73,12 @@ def send_message_batch(batch: dict) -> None:
     """
     Send a batch of messages to the SQS queue.
     """
+    LOGGER.log(
+        DataMigrationLogBase.DM_QP_002,
+        count=len(batch["Entries"]),
+        queue_url=batch["QueueUrl"],
+    )
+
     response = SQS_CLIENT.send_message_batch(
         QueueUrl=batch["QueueUrl"],
         Entries=batch["Entries"],
@@ -72,7 +86,7 @@ def send_message_batch(batch: dict) -> None:
 
     if failed := response.get("Failed"):
         LOGGER.log(
-            DataMigrationLogBase.DM_QP_002,
+            DataMigrationLogBase.DM_QP_003,
             count=len(failed),
             queue_url=batch["QueueUrl"],
             failed=failed,
@@ -80,7 +94,7 @@ def send_message_batch(batch: dict) -> None:
 
     if successful := response.get("Successful"):
         LOGGER.log(
-            DataMigrationLogBase.DM_QP_003,
+            DataMigrationLogBase.DM_QP_004,
             count=len(successful),
             record_ids=[entry["Id"] for entry in successful],
             queue_url=batch["QueueUrl"],
@@ -106,7 +120,8 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
     LOGGER.log(DataMigrationLogBase.DM_QP_999)
 
 
-def lambda_handler(event: dict, context: dict) -> None:
+@LOGGER.inject_lambda_context
+def lambda_handler(event: dict, context: LambdaContext) -> None:
     """
     AWS Lambda entrypoint for populating the queue with legacy services.
     """

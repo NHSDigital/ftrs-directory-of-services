@@ -13,19 +13,20 @@ rds_instance_class  = "db.serverless"
 
 lambda_runtime                     = "python3.12"
 data_collection_date               = "05-03-25"
-migration_lambda_name              = "lambda"
-migration_lambda_handler           = "pipeline.lambda_handler.lambda_handler"
-migration_lambda_timeout           = 30
-migration_lambda_memory_size       = 1024
+processor_lambda_name              = "processor-lambda"
+processor_lambda_handler           = "pipeline.lambda_handler.lambda_handler"
+processor_lambda_timeout           = 30
+processor_lambda_memory_size       = 1024
 queue_populator_lambda_name        = "queue-populator-lambda"
 queue_populator_lambda_timeout     = 300
 queue_populator_lambda_memory_size = 2048
 queue_populator_lambda_handler     = "pipeline.queue_populator.lambda_handler"
 
-migration_queue_enabled                            = true
-migration_queue_batch_size                         = 50
-migration_queue_maximum_batching_window_in_seconds = 1
-migration_queue_maximum_concurrency                = 20
+dms_event_queue_name                               = "dms-events"
+dms_event_queue_enabled                            = true
+dms_event_queue_batch_size                         = 50
+dms_event_queue_maximum_batching_window_in_seconds = 1
+dms_event_queue_maximum_concurrency                = 20
 
 aws_lambda_layers = [
   "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"

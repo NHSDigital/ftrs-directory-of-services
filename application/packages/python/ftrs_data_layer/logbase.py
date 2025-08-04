@@ -148,13 +148,17 @@ class DataMigrationLogBase(LogBase):
         level=INFO, message="Starting Data Migration Queue Populator"
     )
     DM_QP_001 = LogReference(
-        level=DEBUG, message="Sending {count} messages to SQS queue"
+        level=INFO,
+        message="Populating SQS queue with {count} total messages",
     )
     DM_QP_002 = LogReference(
-        level=ERROR, message="Failed to send {count} messages to SQS queue"
+        level=DEBUG, message="Sending {count} messages to SQS queue"
     )
     DM_QP_003 = LogReference(
-        level=INFO, message="Successfully sent {count} messages to SQS queue"
+        level=ERROR, message="Failed to send {count} messages to SQS queue"
+    )
+    DM_QP_004 = LogReference(
+        level=DEBUG, message="Successfully sent {count} messages to SQS queue"
     )
     DM_QP_999 = LogReference(
         level=INFO, message="Data Migration Queue Populator completed"

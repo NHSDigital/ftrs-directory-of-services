@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 from sqlalchemy.engine import create_mock_engine
@@ -188,8 +189,8 @@ def test_send_message_batch(mocker: MockerFixture, mock_logger: MockLogger) -> N
         Entries=batch["Entries"],
     )
 
-    assert mock_logger.was_logged("DM_QP_002") is False
-    assert mock_logger.get_log("DM_QP_003") == [
+    assert mock_logger.was_logged("DM_QP_003") is False
+    assert mock_logger.get_log("DM_QP_004") == [
         {
             "detail": {
                 "count": 2,
@@ -197,7 +198,7 @@ def test_send_message_batch(mocker: MockerFixture, mock_logger: MockLogger) -> N
                 "record_ids": ["1", "2"],
             },
             "msg": "Successfully sent 2 messages to SQS queue",
-            "reference": "DM_QP_003",
+            "reference": "DM_QP_004",
         }
     ]
 
@@ -240,7 +241,7 @@ def test_send_message_batch_with_failed_messages(
         Entries=batch["Entries"],
     )
 
-    assert mock_logger.get_log("DM_QP_002") == [
+    assert mock_logger.get_log("DM_QP_003") == [
         {
             "detail": {
                 "count": 2,
@@ -251,10 +252,10 @@ def test_send_message_batch_with_failed_messages(
                 "queue_url": "http://localhost:4566/000000000000/test-queue",
             },
             "msg": "Failed to send 2 messages to SQS queue",
-            "reference": "DM_QP_002",
+            "reference": "DM_QP_003",
         }
     ]
-    assert mock_logger.was_logged("DM_QP_003") is False
+    assert mock_logger.was_logged("DM_QP_004") is False
 
 
 def test_send_message_batch_mixed_results(
@@ -299,7 +300,7 @@ def test_send_message_batch_mixed_results(
         Entries=batch["Entries"],
     )
 
-    assert mock_logger.get_log("DM_QP_002") == [
+    assert mock_logger.get_log("DM_QP_003") == [
         {
             "detail": {
                 "count": 2,
@@ -310,10 +311,10 @@ def test_send_message_batch_mixed_results(
                 "queue_url": "http://localhost:4566/000000000000/test-queue",
             },
             "msg": "Failed to send 2 messages to SQS queue",
-            "reference": "DM_QP_002",
+            "reference": "DM_QP_003",
         }
     ]
-    assert mock_logger.get_log("DM_QP_003") == [
+    assert mock_logger.get_log("DM_QP_004") == [
         {
             "detail": {
                 "count": 1,
@@ -321,7 +322,7 @@ def test_send_message_batch_mixed_results(
                 "record_ids": ["1"],
             },
             "msg": ("Successfully sent 1 messages to SQS queue"),
-            "reference": "DM_QP_003",
+            "reference": "DM_QP_004",
         }
     ]
 
@@ -360,7 +361,9 @@ def test_populate_sqs_queue(
 
 
 def test_lambda_handler(
-    mocker: MockerFixture, mock_config: QueuePopulatorConfig
+    mocker: MockerFixture,
+    mock_config: QueuePopulatorConfig,
+    mock_lambda_context: LambdaContext,
 ) -> None:
     mock_populate = mocker.patch("pipeline.queue_populator.populate_sqs_queue")
     mocker.patch.object(
@@ -372,9 +375,8 @@ def test_lambda_handler(
         "type_ids": [1, 2, 3],
         "status_ids": [4, 5, 6],
     }
-    context = {}
 
-    lambda_handler(event, context)
+    lambda_handler(event, mock_lambda_context)
 
     mock_populate.assert_called_once_with(
         config=QueuePopulatorConfig(

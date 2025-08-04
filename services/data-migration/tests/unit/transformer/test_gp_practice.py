@@ -1,7 +1,7 @@
 import pytest
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
-from ftrs_data_layer.domain.legacy import Service, ServiceStatusEnum
+from ftrs_data_layer.domain.legacy import Service
 
 from pipeline.transformer.gp_practice import GPPracticeTransformer
 from pipeline.utils.cache import DoSMetadataCache
@@ -41,14 +41,14 @@ def test_is_service_supported(
 @pytest.mark.parametrize(
     "status_id, expected_result, expected_message",
     [
-        (ServiceStatusEnum.ACTIVE, True, None),  # Active service
-        (ServiceStatusEnum.CLOSED, False, "Service is not active"),
-        (ServiceStatusEnum.SUSPENDED, False, "Service is not active"),
+        (1, True, None),  # Active service
+        (2, False, "Service is not active"),
+        (3, False, "Service is not active"),
     ],
 )
 def test_should_include_service(
     mock_legacy_service: Service,
-    status_id: ServiceStatusEnum,
+    status_id: int,
     expected_result: bool,
     expected_message: str | None,
 ) -> None:
@@ -76,7 +76,7 @@ def test_transform(
     """
     mock_legacy_service.typeid = 100  # GP Practice type ID
     mock_legacy_service.odscode = "A12345"  # Valid ODS code
-    mock_legacy_service.statusid = ServiceStatusEnum.ACTIVE
+    mock_legacy_service.statusid = 1  # Active status
 
     transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
     result = transformer.transform(mock_legacy_service)

@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
     principals {
       type = "AWS"
       identifiers = [
-        module.migration_lambda.lambda_role_arn,
+        module.processor_lambda.lambda_role_arn,
       ]
     }
 

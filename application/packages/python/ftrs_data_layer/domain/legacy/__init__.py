@@ -16,9 +16,7 @@ from .service import (
     ServiceSGSD,
     ServiceSpecifiedOpeningDate,
     ServiceSpecifiedOpeningTime,
-    ServiceStatusEnum,
     ServiceType,
-    ServiceTypeEnum,
 )
 
 __all__ = [
@@ -33,7 +31,6 @@ __all__ = [
     "SymptomGroup",
     "SymptomGroupSymptomDiscriminator",
     "LegacyDoSModel",
-    "ServiceStatusEnum",
     "ServiceTypeEnum",
     "OpeningTimeDay",
     "ServiceDayOpeningTime",

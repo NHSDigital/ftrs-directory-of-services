@@ -25,10 +25,10 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
 
 
 
-resource "aws_security_group" "migration_lambda_security_group" {
+resource "aws_security_group" "processor_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  name        = "${local.resource_prefix}-${var.migration_lambda_name}${local.workspace_suffix}-sg"
-  description = "Security group for migration lambda"
+  name        = "${local.resource_prefix}-${var.processor_lambda_name}${local.workspace_suffix}-sg"
+  description = "Security group for processor lambda"
 
   vpc_id = data.aws_vpc.vpc.id
 }
@@ -41,11 +41,11 @@ resource "aws_security_group" "queue_populator_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_migration_lambda" {
+resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_processor_lambda" {
   count                        = (local.deploy_databases && local.rds_environments) ? 1 : 0
-  description                  = "Allow RDS ingress from lambda"
+  description                  = "Allow RDS ingress from processor lambda"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  referenced_security_group_id = aws_security_group.migration_lambda_security_group.id
+  referenced_security_group_id = aws_security_group.processor_lambda_security_group.id
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -61,9 +61,9 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_queue_pop
   to_port                      = var.rds_port
 }
 
-resource "aws_vpc_security_group_egress_rule" "migration_allow_egress_to_internet" {
+resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_internet" {
   description       = "Allow egress to internet"
-  security_group_id = aws_security_group.migration_lambda_security_group.id
+  security_group_id = aws_security_group.processor_lambda_security_group.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 443
   ip_protocol       = "tcp"
