@@ -9,6 +9,7 @@ POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
+DMS_DB_LAMBDA_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-dms-db-setup
 
 .PHONY: install lint test build
 
@@ -59,3 +60,8 @@ build-dependency-layer: clean
 publish:
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+
+invoke-lambda:
+	aws lambda invoke \
+	--function-name $(DMS_DB_LAMBDA_NAME) \
+	/dev/null

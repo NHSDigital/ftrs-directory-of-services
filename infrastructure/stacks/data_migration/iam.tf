@@ -39,7 +39,7 @@ resource "aws_iam_role_policy" "rds_lambda_invoke_policy" {
     Statement = [{
       Effect   = "Allow",
       Action   = "lambda:InvokeFunction",
-      Resource = module.rds_event_listener[0].lambda_function_arn
+      Resource = module.rds_event_listener_lambda[0].lambda_function_arn
     }]
   })
 }
