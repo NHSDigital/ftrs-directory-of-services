@@ -34,7 +34,7 @@ resource "aws_security_group" "processor_lambda_security_group" {
 }
 
 resource "aws_security_group" "queue_populator_lambda_security_group" {
-  count = var.environment == "dev" ? 1 : 0
+  count = local.deploy_queue_populator_lambda ? 1 : 0
 
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.queue_populator_lambda_name}${local.workspace_suffix}-sg"
@@ -54,7 +54,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_processor
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_queue_populator_lambda" {
-  count = var.environment == "dev" ? 1 : 0
+  count = (local.deploy_databases && local.rds_environments && local.deploy_queue_populator_lambda) ? 1 : 0
 
   description                  = "Allow RDS ingress from queue populator lambda"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
@@ -74,7 +74,7 @@ resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_interne
 }
 
 resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_internet" {
-  count = var.environment == "dev" ? 1 : 0
+  count = local.deploy_queue_populator_lambda ? 1 : 0
 
   description       = "Allow egress to internet"
   security_group_id = aws_security_group.queue_populator_lambda_security_group[0].id
