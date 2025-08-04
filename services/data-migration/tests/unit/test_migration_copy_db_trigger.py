@@ -14,13 +14,10 @@ from pipeline.migration_copy_db_trigger import (
 
 @patch("pipeline.migration_copy_db_trigger.sqs.send_message")
 @patch("pipeline.migration_copy_db_trigger.get_dms_workspaces")
-@patch("pipeline.migration_copy_db_trigger.os.environ.get")
 def test_lambda_handler(
-    mock_os_environ_get: MagicMock,
     mock_get_dms_workspaces: MagicMock,
     mock_send_message: MagicMock,
 ) -> None:
-    mock_os_environ_get.return_value = "mocked_path"
     mock_get_dms_workspaces.return_value = [
         "https://sqs.queue.url/1",
         "https://sqs.queue.url/2",
@@ -32,7 +29,6 @@ def test_lambda_handler(
 
     lambda_handler(event, context)
 
-    mock_os_environ_get.assert_called_once_with("SQS_SSM_PATH")
     mock_get_dms_workspaces.assert_called_once()
     EXPECTED_CALL_COUNT = 2
     assert mock_send_message.call_count == EXPECTED_CALL_COUNT
@@ -57,14 +53,10 @@ def test_get_message_from_event(mock_logger_info: MagicMock) -> None:
 
 @patch("pipeline.migration_copy_db_trigger.ssm.get_paginator")
 @patch("pipeline.migration_copy_db_trigger.logger.info")
-@patch("pipeline.migration_copy_db_trigger.os.environ.get")
 def test_get_dms_workspaces(
-    mock_os_environ_get: MagicMock,
     mock_logger_info: MagicMock,
     mock_get_paginator: MagicMock,
 ) -> None:
-    mock_os_environ_get.return_value = "/mocked/path"
-
     mock_paginator = Mock()
     mock_get_paginator.return_value = mock_paginator
 
@@ -79,4 +71,3 @@ def test_get_dms_workspaces(
         "Retrieved DMS workspaces: %s", ["workspace1", "workspace2"]
     )
     mock_get_paginator.assert_called_once_with("get_parameters_by_path")
-    mock_os_environ_get.assert_called_once_with("SQS_SSM_PATH")
