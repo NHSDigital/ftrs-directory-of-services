@@ -182,7 +182,7 @@ jobs:
 
   load-dynamodb-data:
     name: "Load DynamoDB tables data from backup in ${{ needs.metadata.outputs.workspace }}"
-    if: github.ref != 'refs/heads/main'
+    if: needs.metadata.outputs.workspace != 'default'
     needs:
       - metadata
       - apply-infrastructure
@@ -218,7 +218,7 @@ jobs:
     name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
-      - apply-infrastructure
+      - load-dynamodb-data
     if: always() && !cancelled() && (needs.apply-infrastructure.result == 'success' || needs.manual-approval.result == 'skipped')
     uses: ./.github/workflows/service-automation-test.yaml
     with:
@@ -251,6 +251,7 @@ jobs:
       - apply-infrastructure
       - migrate-data
       - manage-dynamodb-backups
+      - load-dynamodb-data
       - deploy-read-only-viewer-service
       - service-automation-tests
       - check-pipeline-status
