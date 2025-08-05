@@ -186,7 +186,6 @@ module "dms_db_lambda" {
     "TARGET_RDS_DETAILS" = "/${var.project}/${var.environment}/target-rds-credentials"
     "DMS_USER_DETAILS"   = "/${var.project}/${var.environment}/dms-user-password"
     "TRIGGER_LAMBDA_ARN" = module.rds_event_listener_lambda[0].lambda_function_arn
-    "AWS_REGION"         = var.aws_region
   }
 
   account_id     = data.aws_caller_identity.current.account_id
