@@ -20,19 +20,16 @@ def fetch_environment_variables() -> tuple[str, str, str, str]:
     try:
         target_rds_details = os.environ["TARGET_RDS_DETAILS"]
         dms_user_details = os.environ["DMS_USER_DETAILS"]
-        aws_region = os.environ.get("AWS_REGION")
         trigger_lambda_arn = os.environ["TRIGGER_LAMBDA_ARN"]
     except KeyError:
         logger.exception("Missing environment variable")
         raise
     else:
-        return target_rds_details, dms_user_details, aws_region, trigger_lambda_arn
+        return target_rds_details, dms_user_details, trigger_lambda_arn
 
 
 # Fetch environment variables
-target_rds_details, dms_user_details, aws_region, trigger_lambda_arn = (
-    fetch_environment_variables()
-)
+target_rds_details, dms_user_details, trigger_lambda_arn = fetch_environment_variables()
 
 
 def get_sqlalchemy_engine(
@@ -143,6 +140,7 @@ def lambda_handler(event: dict, context: dict) -> None:
         execute_rds_command(engine, rds_username, rds_password)
 
         # Execute PostgreSQL trigger
+        aws_region = boto3.session.Session().region_name
         execute_postgresql_trigger(engine, rds_username, trigger_lambda_arn, aws_region)
 
     except ClientError:
