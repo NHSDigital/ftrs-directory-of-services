@@ -130,3 +130,25 @@ data "aws_iam_policy_document" "lambda_rds_policy" {
     resources = ["*"]
   }
 }
+
+data "aws_iam_policy_document" "sqs_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:SendMessage"
+    ]
+    resources = ["*"]
+  }
+}
+
+data "aws_iam_policy_document" "ssm_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters",
+      "ssm:GetParametersByPath"
+    ]
+    resources = ["*"]
+  }
+}
