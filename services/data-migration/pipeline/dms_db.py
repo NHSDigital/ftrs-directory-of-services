@@ -112,8 +112,7 @@ def get_dms_user_details() -> tuple[str, str]:
     dms_user_details_response = secrets_client.get_secret_value(
         SecretId=dms_user_details
     )
-    dms_user_details_secret = eval(dms_user_details_response["SecretString"])
-    rds_password = dms_user_details_secret.get("rds_password")
+    rds_password = dms_user_details_response["SecretString"]
     rds_username = "dms_user"
 
     return rds_username, rds_password

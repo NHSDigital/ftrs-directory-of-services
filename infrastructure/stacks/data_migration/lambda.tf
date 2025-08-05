@@ -170,11 +170,11 @@ module "dms_db_lambda" {
   s3_bucket_name     = local.artefacts_bucket
   s3_key             = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
+  security_group_ids = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
 
   number_of_policy_jsons = "2"
   policy_jsons = [
-    data.aws_iam_policy_document.secrets_access_policy.json,
+    data.aws_iam_policy_document.secrets_access_policy_for_dms.json,
     data.aws_iam_policy_document.lambda_rds_policy.json
   ]
 

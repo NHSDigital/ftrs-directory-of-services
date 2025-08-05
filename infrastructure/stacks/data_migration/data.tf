@@ -67,6 +67,19 @@ data "aws_iam_policy_document" "secrets_access_policy" {
   }
 }
 
+data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/target-rds-credentials-*",
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/dms-user-password-*"
+    ]
+  }
+}
+
 data "aws_iam_policy_document" "dynamodb_access_policy" {
   statement {
     effect = "Allow"

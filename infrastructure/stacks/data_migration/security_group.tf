@@ -183,3 +183,31 @@ resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_t
   ip_protocol       = "tcp"
   to_port           = "443"
 }
+
+resource "aws_security_group" "dms_db_setup_lambda_security_group" {
+  count       = local.deploy_databases ? 1 : 0
+  name        = "${local.resource_prefix}-${var.dms_db_lambda_name}-sg"
+  description = "Security group for DMS DB Setup lambda"
+
+  vpc_id = data.aws_vpc.vpc.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "dms_db_setup_allow_ingress_to_lambda" {
+  count             = local.deploy_databases ? 1 : 0
+  security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
+  description       = "Allow ingress on from anywhere on port 443"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = "443"
+  ip_protocol       = "tcp"
+  to_port           = "443"
+}
+
+resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_internet" {
+  count             = local.deploy_databases ? 1 : 0
+  security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
+  description       = "Allow egress to database on port 5432"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = "5432"
+  ip_protocol       = "tcp"
+  to_port           = "5432"
+}
