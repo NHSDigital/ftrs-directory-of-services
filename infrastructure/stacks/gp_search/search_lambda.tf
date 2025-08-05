@@ -40,10 +40,9 @@ module "lambda" {
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
 
   environment_variables = {
-    "ENVIRONMENT"   = var.environment
-    "PROJECT_NAME"  = var.project
-    "WORKSPACE"     = terraform.workspace == "default" ? "" : terraform.workspace
-    "FHIR_BASE_URL" = "https://example.org"
+    "ENVIRONMENT"  = var.environment
+    "PROJECT_NAME" = var.project
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
   }
 }
 

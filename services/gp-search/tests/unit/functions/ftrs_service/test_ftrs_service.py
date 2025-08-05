@@ -7,13 +7,6 @@ from functions.ftrs_service.ftrs_service import FtrsService
 
 
 @pytest.fixture
-def mock_config():
-    with patch("functions.ftrs_service.ftrs_service.GpSettings") as mock:
-        mock.fhir_base_url = "https://test-base-url.org"
-        yield mock
-
-
-@pytest.fixture
 def mock_repository(organisation):
     with patch("functions.ftrs_service.ftrs_service.get_service_repository") as mock:
         mock_repo = mock.return_value
@@ -33,12 +26,12 @@ def mock_bundle_mapper():
 
 
 @pytest.fixture
-def ftrs_service(mock_config, mock_repository, mock_bundle_mapper):
+def ftrs_service(mock_repository, mock_bundle_mapper):
     return FtrsService()
 
 
 class TestFtrsService:
-    def test_init(self, mock_config, mock_repository, mock_bundle_mapper):
+    def test_init(self, mock_repository, mock_bundle_mapper):
         # Act
         service = FtrsService()
 

@@ -9,7 +9,13 @@ from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
 
 @pytest.fixture
 def bundle_mapper():
-    return BundleMapper(base_url="https://example.org")
+    return BundleMapper()
+
+
+@pytest.fixture
+def mock_get_fhir_url():
+    with patch("functions.ftrs_service.fhir_mapper.bundle_mapper.get_fhir_url") as mock:
+        yield mock
 
 
 class TestBundleMapper:
@@ -102,9 +108,12 @@ class TestBundleMapper:
                 assert bundle.entry[1].resource == endpoint1
                 assert bundle.entry[2].resource == endpoint2
 
-    def test_create_entry_for_endpoint(self, bundle_mapper, create_fhir_endpoint):
+    def test_create_entry_for_endpoint(
+        self, bundle_mapper, create_fhir_endpoint, mock_get_fhir_url
+    ):
         # Arrange
         endpoint_resource = create_fhir_endpoint()
+        mock_get_fhir_url.return_value = "https://example.org/Endpoint/endpoint-123"
 
         # Act
         entry = bundle_mapper._create_entry(endpoint_resource)
@@ -115,16 +124,20 @@ class TestBundleMapper:
         assert entry["search"]["mode"] == "include"
 
     def test_create_entry_for_organization(
-        self, bundle_mapper, create_fhir_organization
+        self, bundle_mapper, create_fhir_organization, mock_get_fhir_url
     ):
         # Arrange
         organization_resource = create_fhir_organization()
+        mock_get_fhir_url.return_value = "https://servicesearch.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
 
         # Act
         entry = bundle_mapper._create_entry(organization_resource)
 
         # Assert
-        assert entry["fullUrl"] == "https://example.org/Organization/org-123"
+        assert (
+            entry["fullUrl"]
+            == "https://servicesearch.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
+        )
         assert entry["resource"] == organization_resource
         assert entry["search"]["mode"] == "match"
 

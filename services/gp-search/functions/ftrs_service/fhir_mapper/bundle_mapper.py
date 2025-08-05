@@ -3,6 +3,7 @@ from uuid import uuid4
 from aws_lambda_powertools import Tracer
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
+from ftrs_common.utils.api_url_util import get_fhir_url
 from ftrs_data_layer.models import Organisation
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
@@ -14,8 +15,7 @@ tracer = Tracer()
 
 
 class BundleMapper:
-    def __init__(self, base_url: str) -> None:
-        self.base_url = base_url
+    def __init__(self) -> None:
         self.organization_mapper = OrganizationMapper()
         self.endpoint_mapper = EndpointMapper()
 
@@ -40,12 +40,15 @@ class BundleMapper:
     ) -> Bundle:
         bundle_type = "searchset"
         bundle_id = str(uuid4())
+        url = (
+            f"{get_fhir_url('servicesearch', 'Organization')}"
+            f"?identifier=odsOrganisationCode|{ods_code}"
+            f"&_revinclude=Endpoint:organization"
+        )
         bundle_link = [
             {
                 "relation": "self",
-                "url": f"{self.base_url}/Organization"
-                f"?identifier=odsOrganisationCode|{ods_code}"
-                f"&_revinclude=Endpoint:organization",
+                "url": url,
             }
         ]
 
@@ -63,12 +66,11 @@ class BundleMapper:
         return bundle
 
     def _create_entry(self, resource: FHIRResourceModel) -> dict[str, object]:
-        resource_type = resource.get_resource_type()
-        resource_id = resource.id
+        url = get_fhir_url("servicesearch", resource.get_resource_type(), resource.id)
         search_mode = self._get_search_mode(resource)
 
         return {
-            "fullUrl": f"{self.base_url}/{resource_type}/{resource_id}",
+            "fullUrl": url,
             "resource": resource,
             "search": {"mode": search_mode},
         }
