@@ -1,18 +1,3 @@
-data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "sqs:SendMessage",
-      "sqs:ReceiveMessage",
-      "sqs:DeleteMessage",
-      "sqs:GetQueueAttributes"
-    ]
-    resources = [
-      aws_sqs_queue.rds_event_listener.arn
-    ]
-  }
-}
-
 resource "aws_iam_role" "rds_lambda_invoke_role" {
   count = local.deploy_databases ? 1 : 0
   name  = "${local.resource_prefix}-${var.rds_event_listener_name}-invoke-role"
