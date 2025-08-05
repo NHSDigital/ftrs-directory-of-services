@@ -11,9 +11,6 @@ locals {
 
   rds_environments = var.environment == "dev" || var.environment == "test"
 
-  # Deploy certain resources (e.g., databases, backup SSM) only in default Terraform workspace.
-  is_primary_environment = terraform.workspace == "default"
-
   dynamodb_tables = {
     for table_name in var.dynamodb_table_names :
     table_name => {
