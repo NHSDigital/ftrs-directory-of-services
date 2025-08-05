@@ -6,7 +6,6 @@ Feature: Data Repository
     When I get a model with id "dbb206d6-6cf7-43a4-b910-10fdc14a3cb6" from the repo
     Then a model of type Organisation is returned
     And the model has an id of "dbb206d6-6cf7-43a4-b910-10fdc14a3cb6"
-    And I save the model as a json file
 
   Scenario: Retrieve created model from repository
     Given I have a organisation repo
