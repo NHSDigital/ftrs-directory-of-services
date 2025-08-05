@@ -87,24 +87,20 @@ Change aws config file with values listed in Service Teams - Set up SSO for AWS 
 
 ### Service Test Configuration
 
-Dotenv files set up for both Dev and Test environments, both inherit any variables set in the top level dotenv file
+The `.env.sample` file of the framework contains the variables that are required to be set when running locally.
 
-The workspace is defined as
+Create a copy of `.env.sample` and name it `.env`, filling in the missing variable values.
 
-```plain
-workspace = default when running against the main branch
-workspace = dr-xxx when running against task branch dr-xxx
+This dotenv file will be automatically loaded when running the tests.
+
+The workspace is defined as:
+
+```shell
+WORKSPACE=default # when running against the main branch
+WORKSPACE=dr-xxx  # when running against task branch dr-xxx
 ```
 
-### API Test Configuration
-
-Update config.yaml with API details as explained below:
-
-```yaml
-base_url: "https://www.googleapis.com/customsearch/v1"
-api_key: "YOUR_GOOGLE_API_KEY"
-search_engine_id: "YOUR_SEARCH_ENGINE_ID"
-```
+Note that if the branch has not been pushed with the dev pipeline successfully deployed the app then the script will fail as there will not be any infrastructure built that relates to the branch.
 
 ## Running Tests
 
@@ -160,12 +156,6 @@ make --ignore-errors clean install test report
 
 Note that we add the `--ignore-errors` parameter so that reports still generate if tests fail.
 
-## Using the Variables Locally
-
-The config file of the framework contains the variables that are required to be set when running locally.
-
-If the branch has not been pushed and the dev pipeline successfully deployed the app then the script will fail as there will not be any infrastructure built that relates to the branch.
-
 ## CI/CD Integration
 
 To integrate with CI/CD pipelines, use:
@@ -174,7 +164,7 @@ To integrate with CI/CD pipelines, use:
 /bin/bash $(git rev-parse --show-toplevel)/scripts/workflow/service-automation-tests.sh
 ```
 
-This script expects the variables `ENVIRONMENT`, `WORKSPACE`, `APPLICATION_TEST_DIR`, `TEST_TAG`, `TEST_TYPE`, `COMMIT_HASH` to be set if running locally.
+This script expects the variables `ENVIRONMENT`, `WORKSPACE`, `TEST_TAG`, `TEST_TYPE`, `COMMIT_HASH` to be set if running locally.
 These variables are set in the pipeline and passed through to the script.
 
 - `TEST_TAG` is the tag used to identify the tests that should be run, e.g. `is-pipeline`
