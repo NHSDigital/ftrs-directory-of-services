@@ -48,6 +48,12 @@ def mock_location_service(mocker: MockerFixture) -> MockerFixture:
     return service_mock
 
 
+@pytest.fixture
+def mock_repository(mocker: MockerFixture) -> None:
+    repository_mock = mocker.patch("location.app.router.location.location_repository")
+    return repository_mock
+
+
 client = TestClient(router)
 
 
@@ -141,3 +147,19 @@ def test_get_location_by_id_500_error(mock_location_service: MockerFixture) -> N
         client.get(f"/{test_location_id}")
     assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert exc_info.value.detail == "Internal Server Error"
+
+
+def test_delete_location_success(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = get_mock_location()
+    mock_repository.delete.return_value = None
+    response = client.delete(f"/{test_location_id}")
+    assert response.status_code == HTTPStatus.NO_CONTENT
+    mock_repository.delete.assert_called_once_with(test_location_id)
+
+
+def test_delete_healthcare_service_not_found(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = None
+    with pytest.raises(HTTPException) as exc_info:
+        client.delete(f"/{test_location_id}")
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+    assert exc_info.value.detail == "Location not found"
