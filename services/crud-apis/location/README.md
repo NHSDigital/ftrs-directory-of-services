@@ -118,7 +118,7 @@ The API routing happens at the API gateway level, routing will happen for the /l
  201 Created: Returns the created location.
  422 Unprocessable entities: Invalid request body.
 
- ### Delete Location
+### Delete Location
 
 **Endpoint**: DELETE /{location_id}
 
