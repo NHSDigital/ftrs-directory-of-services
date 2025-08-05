@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 from freezegun import freeze_time
+from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.models import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
@@ -213,6 +214,9 @@ def test_process_organisation_update_no_changes(
     fhir_org = {
         "resourceType": "Organization",
         "id": organisation_id,
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
         ],
@@ -257,6 +261,9 @@ def test_process_organisation_update_with_changes(
     fhir_org = {
         "resourceType": "Organization",
         "id": organisation_id,
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
         ],
@@ -291,3 +298,50 @@ def test_process_organisation_update_with_changes(
         assert result is True
         org_repository.update.assert_called_once()
         assert f"Successfully updated organisation {organisation_id}" in caplog.text
+
+
+def test_process_organisation_update_missing_required_field() -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    fhir_org = {
+        "id": organisation_id,
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+    }
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        service.process_organisation_update(organisation_id, fhir_org)
+
+    assert exc_info.value.outcome["issue"][0]["code"] == "structure"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Missing required field 'resourceType'"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_process_organisation_update_invalid_fhir_structure() -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    invalid_fhir = {
+        "id": organisation_id,
+        # Missing required resourceType field
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Test Org",
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+        "telecom": [{"system": "phone", "value": "12345"}],
+    }
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        service.process_organisation_update(organisation_id, invalid_fhir)
+
+    assert exc_info.value.outcome["issue"][0]["code"] == "structure"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert "resourceType" in exc_info.value.outcome["issue"][0]["diagnostics"]
