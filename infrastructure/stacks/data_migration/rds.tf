@@ -200,7 +200,7 @@ module "rds_replication_target_db" {
   vpc_security_group_ids          = [try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)]
   db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.rds_pglogical_parameter_group[0].name
 
-  final_snapshot_identifier = "${local.resource_prefix}-rds-etl-${timestamp()}"
+  final_snapshot_identifier = "${local.resource_prefix}-rds-etl-${formatdate("YYYYMMDDHHmmss", timestamp())}"
 
   deletion_protection = true
 }
