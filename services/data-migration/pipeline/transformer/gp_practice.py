@@ -29,6 +29,9 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
+        name = self.clean_name(service.publicname, organisation.name)
+        # if name:
+        organisation.name = name
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -73,3 +76,9 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
+
+    @classmethod
+    def clean_name(cls, publicname, name):
+        if publicname:
+            return publicname.split("-", maxsplit=1)[0].rstrip()
+        return None

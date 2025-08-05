@@ -74,6 +74,7 @@ def test_transform(
     """
     Test that transform method correctly transforms a GP practice service.
     """
+    mock_legacy_service.publicname = "GP - Remove this text" # GP Public Name
     mock_legacy_service.typeid = 100  # GP Practice type ID
     mock_legacy_service.odscode = "A12345"  # Valid ODS code
     mock_legacy_service.statusid = 1  # Active status
@@ -81,6 +82,29 @@ def test_transform(
     transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
     result = transformer.transform(mock_legacy_service)
 
+    assert result.organisation.name == "GP"
+    assert result.organisation.identifier_ODS_ODSCode == "A12345"
+    assert result.healthcare_service.category == HealthcareServiceCategory.GP_SERVICES
+    assert (
+        result.healthcare_service.type == HealthcareServiceType.GP_CONSULTATION_SERVICE
+    )
+
+def test_transform_with_empty_publicname(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """
+    Test that transform method correctly transforms a GP practice service.
+    """
+    mock_legacy_service.name = "GP - Remove this text" # GP Name
+    mock_legacy_service.typeid = 100  # GP Practice type ID
+    mock_legacy_service.odscode = "A12345"  # Valid ODS code
+    mock_legacy_service.statusid = 1  # Active status
+
+    transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+
+    assert result.organisation.name == "Remove this text"
     assert result.organisation.identifier_ODS_ODSCode == "A12345"
     assert result.healthcare_service.category == HealthcareServiceCategory.GP_SERVICES
     assert (
