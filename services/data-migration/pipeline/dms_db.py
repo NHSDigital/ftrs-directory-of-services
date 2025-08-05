@@ -3,8 +3,9 @@ import os
 import re
 
 import boto3
-import pymysql
 from botocore.exceptions import ClientError
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 
 # Set up logging
 logger = logging.getLogger()
@@ -34,9 +35,14 @@ target_rds_details, dms_user_details, aws_region, trigger_lambda_arn = (
 )
 
 
-def execute_rds_command(
-    connection: pymysql.connections.Connection, rds_username: str, rds_password: str
-) -> None:
+def get_sqlalchemy_engine(
+    host: str, db: str, user: str, password: str, port: int
+) -> Engine:
+    url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
+    return create_engine(url)
+
+
+def execute_rds_command(engine: Engine, rds_username: str, rds_password: str) -> None:
     try:
         command = f"""DO $$ BEGIN
                 IF NOT EXISTS (
@@ -47,16 +53,17 @@ def execute_rds_command(
                 GRANT SELECT ON ALL TABLES IN SCHEMA public TO {rds_username};
                 END IF;
                 END $$;"""
-        with connection.cursor() as cursor:
-            cursor.execute(command)
+        with engine.connect() as connection:
+            connection.execute(text(command))
             connection.commit()
         logger.info("RDS command executed successfully.")
     except Exception:
         logger.exception("Failed to execute RDS command")
+        raise
 
 
 def execute_postgresql_trigger(
-    connection: pymysql.connections.Connection,
+    engine: Engine,
     rds_username: str,
     lambda_arn: str,
     aws_region: str,
@@ -69,21 +76,24 @@ def execute_postgresql_trigger(
         ) as file:
             sql_template = file.read()
 
+        table_name = "pathwaysdos.services"
         # Replace placeholders with actual values
         sql_commands = re.sub(r"\\$\\{user\\}", rds_username, sql_template)
         sql_commands = re.sub(r"\\$\\{lambda_arn\\}", lambda_arn, sql_commands)
         sql_commands = re.sub(r"\\$\\{aws_region\\}", aws_region, sql_commands)
+        sql_commands = re.sub(r"\\$\\{table_name\\}", table_name, sql_commands)
 
         # Execute the SQL commands
-        with connection.cursor() as cursor:
+        with engine.connect() as connection:
             for command in sql_commands.split(";"):
                 if command.strip():
-                    cursor.execute(command)
+                    connection.execute(text(command))
             connection.commit()
 
         logger.info("PostgreSQL trigger executed successfully.")
     except Exception:
         logger.exception("Failed to execute PostgreSQL trigger")
+        raise
 
 
 def get_target_rds_details() -> tuple[str, str, int, str, str]:
@@ -120,30 +130,26 @@ def lambda_handler(event: dict, context: dict) -> None:
 
         rds_username, rds_password = get_dms_user_details()
 
-        # Connect to the RDS instance
-        connection = pymysql.connect(
+        # Connect to the RDS instance using SQLAlchemy
+        engine = get_sqlalchemy_engine(
             host=cluster_endpoint,
+            db=database_name,
             user=username,
             password=password,
-            database=database_name,
             port=port,
         )
 
         # Execute RDS command
-        execute_rds_command(connection, rds_username, rds_password)
+        execute_rds_command(engine, rds_username, rds_password)
 
         # Execute PostgreSQL trigger
-        execute_postgresql_trigger(
-            connection, rds_username, trigger_lambda_arn, aws_region
-        )
+        execute_postgresql_trigger(engine, rds_username, trigger_lambda_arn, aws_region)
 
     except ClientError:
         logger.exception("Error fetching secret")
-    except pymysql.MySQLError:
-        logger.exception("Database error")
     except Exception:
         logger.exception("Unexpected error")
     finally:
-        if "connection" in locals() and connection.open:
-            connection.close()
-            logger.info("Database connection closed.")
+        if "engine" in locals():
+            engine.dispose()
+            logger.info("Database engine disposed.")
