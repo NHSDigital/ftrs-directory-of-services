@@ -5,7 +5,7 @@ Feature: API GP Endpoint Search
     Given that the stack is "gp-search"
     And the dns for "servicesearch" is resolvable
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/36fce427-0f31-4a4e-903f-74dcf9e63cfd.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters
