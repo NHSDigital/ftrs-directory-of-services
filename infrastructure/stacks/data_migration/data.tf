@@ -131,13 +131,18 @@ data "aws_iam_policy_document" "lambda_rds_policy" {
   }
 }
 
-data "aws_iam_policy_document" "sqs_access_policy" {
+data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
   statement {
     effect = "Allow"
     actions = [
-      "sqs:SendMessage"
+      "sqs:SendMessage",
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes"
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:sqs:${var.aws_region}:${local.account_id}:ftrs-dos-dev-data-migration-rds-events*"
+    ]
   }
 }
 

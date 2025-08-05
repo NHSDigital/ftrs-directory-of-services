@@ -138,10 +138,9 @@ module "rds_event_listener_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.rds_event_listener_sqs_access_policy.json,
-    data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
   ]
 
@@ -186,6 +185,8 @@ module "dms_db_lambda" {
     "DMS_USER_DETAILS"   = "/${var.project}/${var.environment}/dms-user-password"
     "TRIGGER_LAMBDA_ARN" = module.rds_event_listener_lambda[0].lambda_function_arn
   }
+
+  layers = [aws_lambda_layer_version.python_dependency_layer.arn]
 
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
