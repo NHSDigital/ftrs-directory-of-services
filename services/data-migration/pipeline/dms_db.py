@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 
 import boto3
 from botocore.exceptions import ClientError
@@ -68,23 +67,21 @@ def execute_postgresql_trigger(
     try:
         # Read the SQL template file
         with open(
-            "trigger.sql.tmpl",
+            "pipeline/trigger.sql.tmpl",
             "r",
         ) as file:
             sql_template = file.read()
 
         table_name = "pathwaysdos.services"
         # Replace placeholders with actual values
-        sql_commands = re.sub(r"\\$\\{user\\}", rds_username, sql_template)
-        sql_commands = re.sub(r"\\$\\{lambda_arn\\}", lambda_arn, sql_commands)
-        sql_commands = re.sub(r"\\$\\{aws_region\\}", aws_region, sql_commands)
-        sql_commands = re.sub(r"\\$\\{table_name\\}", table_name, sql_commands)
+        sql_commands = sql_template.replace("${user}", rds_username)
+        sql_commands = sql_commands.replace("${lambda_arn}", lambda_arn)
+        sql_commands = sql_commands.replace("${aws_region}", aws_region)
+        sql_commands = sql_commands.replace("${table_name}", table_name)
 
-        # Execute the SQL commands
+        # Execute the SQL commands as a single statement
         with engine.connect() as connection:
-            for command in sql_commands.split(";"):
-                if command.strip():
-                    connection.execute(text(command))
+            connection.execute(text(sql_commands))
             connection.commit()
 
         logger.info("PostgreSQL trigger executed successfully.")
