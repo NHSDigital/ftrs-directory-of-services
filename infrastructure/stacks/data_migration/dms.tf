@@ -55,6 +55,8 @@ resource "aws_dms_replication_task" "dms_replication_task" {
     schema_name = var.schema_name
   })
 
+  start_replication_task = true
+
   replication_task_settings = jsonencode({
     Logging = {
       EnableLogging = var.dms_task_logging_enabled
