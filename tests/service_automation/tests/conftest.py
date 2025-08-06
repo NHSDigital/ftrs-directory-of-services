@@ -11,7 +11,7 @@ from pages.ui_pages.result import NewAccountPage
 from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
 from utilities.common.file_helper import create_temp_file, delete_download_files
-from utilities.infra.api_util import get_r53
+from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file
 from utilities.infra.secrets_util import GetSecretWrapper
 
@@ -48,7 +48,7 @@ def playwright():
 @pytest.fixture(scope="module")
 def api_request_context_mtls(playwright, workspace, env, api_name = "servicesearch"):
     """Create a new Playwright API request context."""
-    r53 = get_r53(workspace, api_name, env)
+    url = get_url(api_name)
     try:
         # Get mTLS certs
         client_pem_path, ca_cert_path = get_mtls_certs()
@@ -56,7 +56,7 @@ def api_request_context_mtls(playwright, workspace, env, api_name = "servicesear
             "ignore_https_errors": True,
             "client_certificates": [
                 {
-                    "origin": f"https://{r53}",
+                    "origin": url,
                     "certPath": ca_cert_path,
                     "keyPath": client_pem_path,
                 }

@@ -3,9 +3,6 @@ from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
-from utilities.infra.secrets_util import GetSecretWrapper
-from utilities.common.file_helper import create_temp_file
-from loguru import logger
 
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")
@@ -24,7 +21,7 @@ def dns_resolvable(api_name, env, workspace):
 def send_get_with_params(
     api_request_context_mtls, workspace, api_name, env, params, resource_name
 ):
-    url = get_url(workspace, api_name, env) + "/" + resource_name
+    url = get_url(api_name) + "/" + resource_name
     # Handle None or empty params
     if params is None or not params.strip():
         param_dict = {}
