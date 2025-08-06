@@ -17,7 +17,7 @@ class GPPracticeTransformer(ServiceTransformer):
     Selection criteria:
     - The service type must be 'GP Practice' (100)
     - The service must have an ODS code
-    - The ODS code should be 6-9 characters
+    - The ODS code should be 6 characters
     - The ODS code format should start with one of the following letters: A, B, C, D, E, F, G, H, J, K, L, M, N, P, V, W, Y
 
     Filter criteria:
