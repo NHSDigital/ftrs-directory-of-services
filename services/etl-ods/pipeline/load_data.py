@@ -38,10 +38,10 @@ def load_data(transformed_data: list[str]) -> None:
         batch = []
         for index, item in enumerate(transformed_data, start=1):
             batch.append({"Id": str(index), "MessageBody": json.dumps(item)})
-            ods_processor_logger.log(
-                OdsETLPipelineLogBase.ETL_PROCESSOR_014,
-                number=len(transformed_data),
-            )
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_014,
+            number=len(transformed_data),
+        )
 
         sqs = boto3.client("sqs", region_name=os.environ["AWS_REGION"])
         queue_name = get_queue_name(os.environ["ENVIRONMENT"], os.environ["WORKSPACE"])

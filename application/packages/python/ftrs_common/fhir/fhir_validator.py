@@ -14,6 +14,46 @@ fhir_logger = Logger.get(service="common_fhir_logger")
 
 class FhirValidator:
     @staticmethod
+    def _validate_resource_structure(
+        resource: dict, fhir_model: Type[FHIRAbstractModel]
+    ) -> dict:
+        """
+        Validates that the resource is a properly structured JSON object.
+        Returns the resource if valid, raises OperationOutcomeException if not.
+        """
+        if not isinstance(resource, dict):
+            msg = "Invalid request body: must be a JSON object"
+            FhirValidator._log_and_raise(msg, "structure", fhir_model)
+
+        if "resourceType" not in resource:
+            msg = "Missing required field 'resourceType'"
+            FhirValidator._log_and_raise(msg, "structure", fhir_model)
+
+        expected_type = fhir_model.__name__
+        if resource["resourceType"] != expected_type:
+            msg = f"Invalid resourceType: must be '{expected_type}'"
+            FhirValidator._log_and_raise(msg, "structure", fhir_model)
+
+        return resource
+
+    @staticmethod
+    def _log_and_raise(
+        msg: str, code: str, fhir_model: Type[FHIRAbstractModel]
+    ) -> None:
+        fhir_logger.log(
+            FhirLogBase.FHIR_001,
+            resource_type=fhir_model.__name__,
+            error=msg,
+        )
+        raise OperationOutcomeException(
+            OperationOutcomeHandler.build(
+                diagnostics=msg,
+                code=code,
+                severity="error",
+            )
+        )
+
+    @staticmethod
     def validate(
         resource: dict, fhir_model: Type[FHIRAbstractModel]
     ) -> FHIRAbstractModel:
@@ -22,6 +62,7 @@ class FhirValidator:
         Returns an instance of the model if validation is successful.
         Raises OperationOutcomeException if validation fails.
         """
+        resource = FhirValidator._validate_resource_structure(resource, fhir_model)
         try:
             return fhir_model.model_validate(resource)
         except ValidationError as e:

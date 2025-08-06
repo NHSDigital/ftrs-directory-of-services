@@ -1,18 +1,38 @@
+from typing import Literal
+
+from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
+from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.identifier import Identifier
 from pydantic import BaseModel, Field
 
 
 class Organisation(BaseModel):
-    name: str = Field(min_length=1, max_length=100, example="Test Organisation")
+    """Internal organization model - simplified for database storage"""
+
+    name: str = Field(..., example="GP Practice Name")
     active: bool = Field(..., example=True)
-    telecom: str | None = Field(max_length=20, example="0123456789")
-    type: str = Field(min_length=1, max_length=100, example="GP Practice")
+    telecom: str | None = Field(default=None, example="01234 567890")
+    type: str = Field(default="GP Practice", example="GP Practice")
 
 
-class OrganisationUpdatePayload(Organisation):
-    modified_by: str = Field(max_length=100, min_length=1, example="ODS_ETL_PIPELINE")
+class OrganisationUpdatePayload(BaseModel):
+    """FHIR-compliant Organization model for updates"""
 
-    class Config:
-        extra = "forbid"
+    resourceType: Literal["Organization"] = Field(..., example="Organization")
+    id: str = Field(..., example="00000000-0000-0000-0000-00000000000a")
+    meta: dict = Field(
+        ...,
+        example={
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+    )
+    identifier: list[Identifier] = Field(..., description="Organization identifiers")
+    name: str = Field(max_length=100, example="GP Practice Name")
+    active: bool = Field(..., example=True)
+    type: list[Type] = Field(default_factory=list, description="Organization type")
+    telecom: list[ContactPoint] | None = None
+
+    model_config = {"extra": "forbid"}
 
 
 class OrganisationCreatePayload(Organisation):

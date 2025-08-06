@@ -5,6 +5,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
+from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.models import Organisation
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
@@ -132,17 +133,25 @@ def test_update_organisation_success() -> None:
     fhir_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
         ],
-        "active": False,
         "name": "Test Organisation",
+        "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"text": "GP Practice"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
     }
     response = client.put(f"/{test_org_id}", json=fhir_payload)
     assert response.status_code == HTTPStatus.OK
-    assert response.json()["success"] is True
+    assert response.json()["issue"][0]["code"] == "success"
+    assert response.json()["issue"][0]["severity"] == "information"
+    assert (
+        response.json()["issue"][0]["diagnostics"]
+        == "Organisation updated successfully"
+    )
 
 
 def test_update_organisation_no_updates(
@@ -150,24 +159,32 @@ def test_update_organisation_no_updates(
 ) -> None:
     mock_organisation_service.process_organisation_update.return_value = False
     update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": "0123456789",
-        "type": "GP Practice",
-        "modified_by": "ODS_ETL_PIPELINE",
+        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
     }
     response = client.put(f"/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        "message": "No changes made to the organisation",
-    }
+    assert response.json()["issue"][0]["code"] == "information"
+    assert response.json()["issue"][0]["severity"] == "information"
+    assert (
+        response.json()["issue"][0]["diagnostics"]
+        == "No changes made to the organisation"
+    )
 
 
 def test_update_organisation_operation_outcome(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-
     mock_organisation_service.process_organisation_update.side_effect = (
         OperationOutcomeException(
             {
@@ -183,16 +200,44 @@ def test_update_organisation_operation_outcome(
         )
     )
     update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": "0123456789",
-        "type": "GP Practice",
-        "modified_by": "ODS_ETL_PIPELINE",
+        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
     }
-    response = client.put(f"/{test_org_id}", json=update_payload)
-    assert str(response.status_code) == "422"
-    assert response.json()["resourceType"] == "OperationOutcome"
-    assert response.json()["issue"][0]["code"] == "not-found"
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["resourceType"] == "OperationOutcome"
+    assert exc_info.value.outcome["issue"][0]["code"] == "not-found"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+
+
+def test_update_organisation_missing_required_field() -> None:
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "ABC",
+        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+    }
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.put(f"/{test_org_id}", json=fhir_payload)
+    assert "'active'" in str(exc_info.value)
+    assert "field required" in str(exc_info.value).lower()
 
 
 def test_update_organisation_unexpected_exception(
@@ -202,23 +247,31 @@ def test_update_organisation_unexpected_exception(
         "Something went wrong"
     )
     update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": "0123456789",
-        "type": "GP Practice",
-        "modified_by": "ODS_ETL_PIPELINE",
+        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
     }
-    response = client.put(f"/{test_org_id}", json=update_payload)
-    assert str(response.status_code) == "500"
-    assert response.json()["issue"][0]["code"] == "exception"
-    assert "Something went wrong" in response.json()["issue"][0]["diagnostics"]
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "exception"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert "Something went wrong" in exc_info.value.outcome["issue"][0]["diagnostics"]
 
 
 def test_get_organisation_by_ods_code_success() -> None:
     ods_code = "12345"
     response = client.get(f"/ods_code/{ods_code}")
     assert response.status_code == HTTPStatus.OK
-    assert response.json()["id"] == "12345"
+    assert response.json() == {"id": "12345"}
 
 
 def test_get_organisation_by_ods_code_not_found(mock_repository: MockerFixture) -> None:

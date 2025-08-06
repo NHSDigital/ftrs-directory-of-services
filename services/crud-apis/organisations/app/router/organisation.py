@@ -10,11 +10,11 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.models import Organisation
-from pydantic import ValidationError
 
 from organisations.app.services.organisation_service import OrganisationService
 from organisations.app.services.validators import (
     CreatePayloadValidator,
+    UpdatePayloadValidator,
 )
 from utils.db_service import get_service_repository
 
@@ -122,7 +122,9 @@ def update_organisation(
         examples=["00000000-0000-0000-0000-11111111111"],
         description="The internal id of the organisation",
     ),
-    fhir_org: dict = Body(..., media_type=FHIR_MEDIA_TYPE),
+    update_payload_validator: UpdatePayloadValidator = Body(
+        ..., media_type=FHIR_MEDIA_TYPE
+    ),
 ) -> JSONResponse:
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_005,
@@ -131,57 +133,47 @@ def update_organisation(
     try:
         processed = organisation_service.process_organisation_update(
             organisation_id=organisation_id,
-            fhir_org=fhir_org,
+            fhir_org=update_payload_validator.model_dump(),
         )
         if not processed:
             crud_organisation_logger.log(
                 CrudApisLogBase.ORGANISATION_007,
                 organisation_id=organisation_id,
             )
+            outcome = OperationOutcomeHandler.build(
+                diagnostics="No changes made to the organisation",
+                code="information",
+                severity="information",
+            )
             return JSONResponse(
                 status_code=200,
-                content={
-                    "message": "No changes made to the organisation",
-                },
+                content=outcome,
                 media_type=FHIR_MEDIA_TYPE,
             )
+        outcome = OperationOutcomeHandler.build(
+            diagnostics="Organisation updated successfully",
+            code="success",
+            severity="information",
+        )
         return JSONResponse(
             status_code=200,
-            content={"success": True, "message": "Organisation updated successfully"},
-            media_type=FHIR_MEDIA_TYPE,
-        )
-    except OperationOutcomeException as e:
-        return JSONResponse(
-            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            content=e.outcome,
-            media_type=FHIR_MEDIA_TYPE,
-        )
-    except (ValidationError, TypeError, KeyError) as e:
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_019,
-            organisation_id=organisation_id,
-            error_message=str(e),
-        )
-        return JSONResponse(
-            status_code=422,
-            content=str(e),
+            content=outcome,
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_019,
-            organisation_id=organisation_id,
-            error_message=str(e),
-        )
-        return JSONResponse(
-            status_code=500,
-            content=OperationOutcomeHandler.build(
+        if not isinstance(e, OperationOutcomeException):
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_019,
+                organisation_id=organisation_id,
+                error_message=str(e),
+            )
+            outcome = OperationOutcomeHandler.build(
                 diagnostics=f"Unexpected error: {str(e)}",
                 code="exception",
                 severity="error",
-            ),
-            media_type=FHIR_MEDIA_TYPE,
-        )
+            )
+            raise OperationOutcomeException(outcome) from e
+        raise
 
 
 @router.post("/", summary="Create a new organisation")
