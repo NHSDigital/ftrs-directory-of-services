@@ -1,0 +1,13 @@
+{
+  "id": "22d9d655-2019-42c4-b890-acc808de3f84",
+  "createdBy": "ROBOT",
+  "createdDateTime": "2025-06-27T12:46:36.111296Z",
+  "modifiedBy": "ROBOT",
+  "modifiedDateTime": "2025-06-27T12:46:36.111296Z",
+  "identifier_ODS_ODSCode": "ABCDEFGHIJ12",
+  "active": true,
+  "name": "GP: Crocus Medical Practice Saffron Walden West Essex",
+  "telecom": null,
+  "type": "GP Practice",
+  "endpoints": []
+}
