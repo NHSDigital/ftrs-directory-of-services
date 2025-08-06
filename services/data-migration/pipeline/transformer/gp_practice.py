@@ -29,8 +29,7 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
-        name = self.clean_name(service.publicname, organisation.name)
-        # if name:
+        name = self.clean_name(service.publicname)
         organisation.name = name
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
@@ -78,7 +77,7 @@ class GPPracticeTransformer(ServiceTransformer):
         return True, None
 
     @classmethod
-    def clean_name(cls, publicname, name):
+    def clean_name(cls, publicname: str) -> str:
         if publicname:
             return publicname.split("-", maxsplit=1)[0].rstrip()
-        return None
+        raise ValueError("publicname is not set")
