@@ -9,7 +9,7 @@ from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
 class GPPracticeTransformer(ServiceTransformer):
     STATUS_ACTIVE = 1
     GP_PRACTICE_TYPE_ID = 100
-    GP_PRACTICE_ODS_CODE_REGEX = re.compile(r"^[ABCDEFGHJKLNPVWY][0-9]{5,8}$")
+    GP_PRACTICE_ODS_CODE_REGEX = re.compile(r"^[ABCDEFGHJKLNPVWY][0-9]{5}$")
 
     """
     Transformer for GP practice services.
