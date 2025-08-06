@@ -1,0 +1,52 @@
+{
+  "id": "6ed15508-e2dc-4adc-8349-35224d8903f9",
+  "createdBy": "ROBOT",
+  "createdDateTime": "2025-06-27T12:46:36.111296Z",
+  "modifiedBy": "ROBOT",
+  "modifiedDateTime": "2025-06-27T12:46:36.111296Z",
+  "identifier_ODS_ODSCode": "P00083010",
+  "active": true,
+  "name": "GP: Monarch Medical Centre - Radcliffe - Bury",
+  "telecom": null,
+  "type": "GP Practice",
+  "endpoints": [
+    {
+      "id": "533b7bc2-670a-4fc7-9956-d05fa6d9e103",
+      "createdBy": "ROBOT",
+      "createdDateTime": "2025-06-27T12:46:36.111296Z",
+      "modifiedBy": "ROBOT",
+      "modifiedDateTime": "2025-06-27T12:46:36.111296Z",
+      "identifier_oldDoS_id": 308939,
+      "status": "active",
+      "connectionType": "email",
+      "name": null,
+      "payloadMimeType": "application/pdf",
+      "description": "Copy",
+      "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
+      "address": "dummy-endpoint-email@nhs.net",
+      "managedByOrganisation": "6ed15508-e2dc-4adc-8349-35224d8903f9",
+      "service": null,
+      "order": 2,
+      "isCompressionEnabled": false
+    },
+    {
+      "id": "e4e60c61-6260-4a97-86c7-6b3addd4a585",
+      "createdBy": "ROBOT",
+      "createdDateTime": "2025-06-27T12:46:36.111296Z",
+      "modifiedBy": "ROBOT",
+      "modifiedDateTime": "2025-06-27T12:46:36.111296Z",
+      "identifier_oldDoS_id": 294925,
+      "status": "active",
+      "connectionType": "email",
+      "name": null,
+      "payloadMimeType": "application/pdf",
+      "description": "Primary",
+      "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
+      "address": "dummy-endpoint-email@nhs.net",
+      "managedByOrganisation": "6ed15508-e2dc-4adc-8349-35224d8903f9",
+      "service": null,
+      "order": 2,
+      "isCompressionEnabled": false
+    }
+  ]
+}

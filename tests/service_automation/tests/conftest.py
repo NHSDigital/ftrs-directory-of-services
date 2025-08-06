@@ -1,15 +1,19 @@
-import pytest
 import os
-import boto3
-from dotenv import load_dotenv
-from loguru import logger
-from playwright.sync_api import sync_playwright, Page, APIRequestContext
-from utilities.infra.secrets_util import GetSecretWrapper
-from utilities.common.file_helper import create_temp_file, delete_download_files
-from utilities.infra.api_util import get_r53
-from pages.ui_pages.search import LoginPage
-from pages.ui_pages.result import NewAccountPage
 
+import boto3
+import pytest
+from dotenv import load_dotenv
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.models import HealthcareService, Location, Organisation
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from loguru import logger
+from pages.ui_pages.result import NewAccountPage
+from pages.ui_pages.search import LoginPage
+from playwright.sync_api import Page, sync_playwright
+from utilities.common.file_helper import create_temp_file, delete_download_files
+from utilities.infra.api_util import get_url
+from utilities.infra.repo_util import model_from_json_file
+from utilities.infra.secrets_util import GetSecretWrapper
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -44,7 +48,7 @@ def playwright():
 @pytest.fixture(scope="module")
 def api_request_context_mtls(playwright, workspace, env, api_name = "servicesearch"):
     """Create a new Playwright API request context."""
-    r53 = get_r53(workspace, api_name, env)
+    url = get_url(api_name)
     try:
         # Get mTLS certs
         client_pem_path, ca_cert_path = get_mtls_certs()
@@ -52,7 +56,7 @@ def api_request_context_mtls(playwright, workspace, env, api_name = "servicesear
             "ignore_https_errors": True,
             "client_certificates": [
                 {
-                    "origin": f"https://{r53}",
+                    "origin": url,
                     "certPath": ca_cert_path,
                     "keyPath": client_pem_path,
                 }
@@ -100,8 +104,8 @@ def api_response():
     return {}
 
 
-def _get_env_var(varname: str) -> str:
-    value = os.getenv(varname)
+def _get_env_var(varname: str, default: str = None) -> str:
+    value = os.getenv(varname, default)
     assert value, f"{varname} is not set"
     return value
 
@@ -113,7 +117,7 @@ def env() -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def load_env_file(env):
-    load_dotenv(f".env.{env}", override=True)
+    load_dotenv()
 
 
 @pytest.fixture(scope="session")
@@ -123,7 +127,7 @@ def workspace() -> str:
 
 @pytest.fixture(scope="session")
 def project() -> str:
-    project = _get_env_var("project")
+    project = _get_env_var("PROJECT_NAME", "ftrs-dos")
     return project
 
 
@@ -142,6 +146,30 @@ def write_allure_environment(env, workspace, project, commit_hash):
         f.write(f"WORKSPACE={workspace}\n")
         f.write(f"PROJECT={project}\n")
         f.write(f"COMMIT_HASH={commit_hash}\n")
+
+
+@pytest.fixture(scope="session")
+def organisation_repo() -> AttributeLevelRepository[Organisation]:
+    return get_service_repository(Organisation, "organisation")
+
+
+@pytest.fixture(scope="session")
+def location_repo():
+    return get_service_repository(Location, "location")
+
+
+@pytest.fixture(scope="session")
+def healthcare_service_repo():
+    return get_service_repository(HealthcareService, "healthcare-service")
+
+
+@pytest.fixture(scope="session")
+def organisation_repo_seeded(organisation_repo):
+    json_file = "Organisation/organisation-for-session-seeded-repo-test.json"
+    organisation = model_from_json_file(json_file, organisation_repo)
+    organisation_repo.create(organisation)
+    yield organisation_repo
+    organisation_repo.delete(organisation.id)
 
 
 def get_mtls_certs():

@@ -1,6 +1,7 @@
-from utilities.infra.api_gateway_util import ApiGatewayToService
+from ftrs_common.utils.api_url_util import get_api_url
 from loguru import logger
 from utilities.common.resource_name import get_resource_name
+from utilities.infra.api_gateway_util import ApiGatewayToService
 
 
 def get_api_gateway_url(workspace, stack, project, env):
@@ -15,12 +16,9 @@ def get_api_gateway_url(workspace, stack, project, env):
     )
 
 
-def get_url(workspace, api_name, env):
+def get_url(api_name):
     # set the URL for the R53 record for the env
-    if workspace == "default":
-        url =  "https://" + api_name + "." + env + ".ftrs.cloud.nhs.uk"
-    else:
-        url =  "https://" + api_name + "-" + workspace + "." + env + ".ftrs.cloud.nhs.uk"
+    url = get_api_url(api_name)
     logger.info("URL: {}", url)
     return url
 

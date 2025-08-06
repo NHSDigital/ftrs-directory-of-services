@@ -4,140 +4,113 @@ This module provides reusable fixtures that can be used across all test files.
 """
 
 from datetime import datetime
+from uuid import UUID, uuid4
 
 import pytest
-from fhir.resources.R4B.endpoint import Endpoint
+from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
-
-from functions.ftrs_service.repository.dynamo import (
-    EndpointValue,
-    OrganizationRecord,
-    OrganizationValue,
+from ftrs_data_layer.enums import (
+    EndpointConnectionType,
+    EndpointDescription,
+    EndpointPayloadMimeType,
+    EndpointPayloadType,
+    EndpointStatus,
 )
+from ftrs_data_layer.models import Endpoint, Organisation
 
 
 @pytest.fixture
-def create_endpoint_value():
-    """Factory function to create EndpointValue instances with customizable fields."""
+def create_endpoint():
+    """Factory function to create Endpoint instances with customizable fields."""
 
-    def _create_endpoint_value(
-        endpoint_id: str = "endpoint-123",
-        connection_type: str = "fhir",
-        payload_type: str = "document",
-        format_type: str = "PDF",
-        address: str = "https://example.org/fhir",
-        order: int = 1,
+    def _create_endpoint(
+        endpoint_id: UUID | None = UUID("12345678123456781234567812345678"),
+        identifier_old_dos_id: int = 123456,
+        status: EndpointStatus = EndpointStatus.ACTIVE,
+        connection_type: EndpointConnectionType = EndpointConnectionType.ITK,
+        description: EndpointDescription = EndpointDescription.COPY,
+        payload_mime_type: EndpointPayloadMimeType = EndpointPayloadMimeType.FHIR,
         is_compression_enabled: bool = True,
-        description: str = "Primary",
-        managed_by_organisation: str = "org-123",
-    ) -> EndpointValue:
-        return EndpointValue(
-            id=endpoint_id,
-            identifier_oldDoS_id=9876,
+        managed_by_organisation=None,
+        created_by: str = "test_user",
+        created_date_time: datetime = datetime(2023, 10, 1),
+        modified_by: str = "test_user",
+        modified_date_time: datetime = datetime(2023, 10, 1),
+        name: str = "Test Endpoint Name",
+        payload_type: EndpointPayloadType = EndpointPayloadType.ED,
+        service=None,
+        address: str = "https://example.com/endpoint",
+        order: int = 1,
+    ) -> Endpoint:
+        return Endpoint(
+            id=endpoint_id or uuid4(),
+            identifier_oldDoS_id=identifier_old_dos_id,
+            status=status,
             connectionType=connection_type,
-            managedByOrganisation=managed_by_organisation,
+            description=description,
+            payloadMimeType=payload_mime_type,
+            isCompressionEnabled=is_compression_enabled,
+            managedByOrganisation=managed_by_organisation or uuid4(),
+            createdBy=created_by,
+            createdDateTime=created_date_time,
+            modifiedBy=modified_by,
+            modifiedDateTime=modified_date_time,
+            name=name,
             payloadType=payload_type,
-            format=format_type,
+            service=service,
             address=address,
             order=order,
-            isCompressionEnabled=is_compression_enabled,
-            description=description,
-            status="active",
-            createdBy="test-user",
-            modifiedBy="test-user",
-            createdDateTime=datetime(2023, 1, 1),
-            modifiedDateTime=datetime(2023, 1, 2),
-            service="dummy-service",
-            name="dummy-name",
         )
 
-    return _create_endpoint_value
+    return _create_endpoint
 
 
 @pytest.fixture
-def endpoint_value(create_endpoint_value):
-    """Create a standard test endpoint value.
-    Uses the create_endpoint_value factory function with default values."""
-    return create_endpoint_value()
+def endpoint(create_endpoint):
+    """Create a standard test Endpoint.
+    Uses the create_endpoint factory function with default values."""
+    return create_endpoint()
 
 
 @pytest.fixture
-def create_organization_value():
-    """Factory function to create OrganizationValue instances with customizable fields."""
+def create_organisation():
+    """Factory function to create Organisation instances with customizable fields."""
 
-    def _create_organization_value(
-        org_id: str = "org-123",
-        name: str = "Test Organization",
-        org_type: str = "prov",
+    def _create_organisation(
+        org_id: UUID | None = None,
+        identifier_ods_code: str = "123456",
         active: bool = True,
-        ods_code: str = "O123",
-        endpoints: list[EndpointValue] | None = None,
-        telecom: str = "01234567890",
-    ) -> OrganizationValue:
-        return OrganizationValue(
-            id=org_id,
-            name=name,
-            type=org_type,
+        name: str = "Test Organisation",
+        telecom: str = "123456789",
+        org_type: str = "GP Practice",
+        created_by: str = "test_user",
+        created_date_time: datetime = datetime(2023, 10, 1),
+        modified_by: str = "test_user",
+        modified_date_time: datetime = datetime(2023, 10, 1),
+        endpoints: list[Endpoint] | None = None,
+    ) -> Organisation:
+        return Organisation(
+            id=org_id or uuid4(),
+            identifier_ODS_ODSCode=identifier_ods_code,
             active=active,
-            identifier_ODS_ODSCode=ods_code,
+            name=name,
             telecom=telecom,
+            type=org_type,
+            createdBy=created_by,
+            createdDateTime=created_date_time,
+            modifiedBy=modified_by,
+            modifiedDateTime=modified_date_time,
             endpoints=endpoints or [],
-            createdBy="test-user",
-            modifiedBy="test-user",
-            createdDateTime=datetime(2023, 1, 1),
-            modifiedDateTime=datetime(2023, 1, 2),
         )
 
-    return _create_organization_value
+    return _create_organisation
 
 
 @pytest.fixture
-def organization_value(create_organization_value, endpoint_value):
-    """Create a standard test organization value with the default endpoint.
-    Uses the create_organization_value factory function with default values."""
-    return create_organization_value(endpoints=[endpoint_value])
-
-
-@pytest.fixture
-def create_organization_record():
-    """Factory function to create OrganizationRecord instances with customizable fields."""
-
-    def _create_organization_record(
-        org_id: str = "org-123",
-        ods_code: str = "O123",
-        org_value: OrganizationValue | None = None,
-    ) -> OrganizationRecord:
-        if org_value is None:
-            # Create a minimal organization value if none provided
-            org_value = OrganizationValue(
-                id=org_id,
-                name="Test Organization",
-                type="prov",
-                active=True,
-                identifier_ODS_ODSCode=ods_code,
-                telecom="01234567890",
-                endpoints=[],
-                createdBy="test-user",
-                modifiedBy="test-user",
-                createdDateTime=datetime(2023, 1, 1),
-                modifiedDateTime=datetime(2023, 1, 2),
-            )
-
-        return OrganizationRecord(
-            id=org_id,
-            ods_code=ods_code,
-            field="organization",
-            value=org_value,
-        )
-
-    return _create_organization_record
-
-
-@pytest.fixture
-def organization_record(create_organization_record, organization_value):
-    """Create a standard test organization record with the default organization value.
-    Uses the create_organization_record factory function with default values."""
-    return create_organization_record(org_value=organization_value)
+def organisation(create_organisation, endpoint):
+    """Create a standard test Organisation with the default Endpoint.
+    Uses the create_organisation factory function with default values."""
+    return create_organisation(endpoints=[endpoint])
 
 
 @pytest.fixture
@@ -189,8 +162,8 @@ def create_fhir_endpoint():
         managing_org_id: str = "org-123",
         payload_type: str = "document",
         address: str = "https://example.org/fhir",
-    ) -> Endpoint:
-        return Endpoint.model_validate(
+    ) -> FhirEndpoint:
+        return FhirEndpoint.model_validate(
             {
                 "id": endpoint_id,
                 "status": status,

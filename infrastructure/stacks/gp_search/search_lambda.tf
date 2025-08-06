@@ -1,3 +1,12 @@
+resource "aws_lambda_layer_version" "common_packages_layer" {
+  layer_name          = "${local.resource_prefix}-common-packages-layer${local.workspace_suffix}"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common packages for Lambda functions"
+
+  s3_bucket = local.artefacts_bucket
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+}
+
 resource "aws_lambda_layer_version" "python_dependency_layer" {
   layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
@@ -22,18 +31,18 @@ module "lambda" {
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
-  layers = (
-    [aws_lambda_layer_version.python_dependency_layer.arn]
-  )
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
 
   environment_variables = {
-    "ENVIRONMENT"         = var.environment
-    "PROJECT_NAME"        = var.project
-    "NAMESPACE"           = "${var.gp_search_service_name}${local.workspace_suffix}"
-    "DYNAMODB_TABLE_NAME" = "${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
+    "ENVIRONMENT"  = var.environment
+    "PROJECT_NAME" = var.project
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
   }
 }
 
@@ -44,33 +53,4 @@ module "search_api_gateway_permissions" {
   aws_region           = var.aws_region
   lambda_function_name = "${local.resource_prefix}-${var.lambda_name}"
   rest_api_id          = module.search_rest_api.rest_api_id
-}
-
-data "aws_iam_policy_document" "vpc_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:GetItem",
-      "dynamodb:Scan",
-      "dynamodb:Query",
-    ]
-    resources = [
-      "${local.gp_search_organisation_table_arn}/",
-      "${local.gp_search_organisation_table_arn}/*"
-    ]
-  }
 }

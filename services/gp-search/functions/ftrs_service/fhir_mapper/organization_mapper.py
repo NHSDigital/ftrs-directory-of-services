@@ -1,28 +1,20 @@
 from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
-from fhir.resources.R4B.organization import Organization
-
-from functions.ftrs_service.repository.dynamo import (
-    OrganizationRecord,
-    OrganizationValue,
-)
+from fhir.resources.R4B.organization import Organization as FhirOrganization
+from ftrs_data_layer.models import Organisation
 
 
 class OrganizationMapper:
-    def map_to_organization_resource(
-        self, organization_record: OrganizationRecord
-    ) -> Organization:
-        organization_value = organization_record.value
-
-        organization_id = organization_value.id
-        name = organization_value.name
-        active = organization_value.active
-        identifier = self._create_identifier(organization_value)
-        telecom = self._create_telecom(organization_value)
+    def map_to_fhir_organization(self, organisation: Organisation) -> FhirOrganization:
+        organization_id = str(organisation.id)
+        name = organisation.name
+        active = organisation.active
+        identifier = self._create_identifier(organisation)
+        telecom = self._create_telecom(organisation)
         address = self._create_dummy_address()
 
-        org = Organization.model_validate(
+        fhir_organization = FhirOrganization.model_validate(
             {
                 "id": organization_id,
                 "identifier": identifier,
@@ -33,28 +25,29 @@ class OrganizationMapper:
             }
         )
 
-        return org
+        return fhir_organization
 
-    def _create_identifier(
-        self, organization_value: OrganizationValue
-    ) -> list[Identifier]:
+    def _create_identifier(self, organisation: Organisation) -> list[Identifier]:
         identifier = Identifier.model_validate(
             {
                 "use": "official",
                 "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": organization_value.identifier_ODS_ODSCode,
+                "value": organisation.identifier_ODS_ODSCode,
             }
         )
 
         return [identifier]
 
-    def _create_telecom(
-        self, organization_value: OrganizationValue
-    ) -> list[ContactPoint]:
+    def _create_telecom(self, organisation: Organisation) -> list[ContactPoint]:
+        telecom = organisation.telecom
+
+        if not telecom:
+            return []
+
         telecom_entry = ContactPoint.model_validate(
             {
                 "system": "phone",
-                "value": organization_value.telecom,
+                "value": telecom,
             }
         )
 

@@ -7,20 +7,10 @@ from functions.ftrs_service.ftrs_service import FtrsService
 
 
 @pytest.fixture
-def mock_config():
-    with patch("functions.ftrs_service.ftrs_service.get_config") as mock:
-        mock.return_value = {
-            "DYNAMODB_TABLE_NAME": "test-table",
-            "FHIR_BASE_URL": "https://test-base-url.org",
-        }
-        yield mock
-
-
-@pytest.fixture
-def mock_repository(organization_record):
-    with patch("functions.ftrs_service.ftrs_service.DynamoRepository") as mock_class:
-        mock_repo = mock_class.return_value
-        mock_repo.get_first_record_by_ods_code.return_value = organization_record
+def mock_repository(organisation):
+    with patch("functions.ftrs_service.ftrs_service.get_service_repository") as mock:
+        mock_repo = mock.return_value
+        mock_repo.get_first_record_by_ods_code.return_value = organisation
         yield mock_repo
 
 
@@ -36,12 +26,12 @@ def mock_bundle_mapper():
 
 
 @pytest.fixture
-def ftrs_service(mock_config, mock_repository, mock_bundle_mapper):
+def ftrs_service(mock_repository, mock_bundle_mapper):
     return FtrsService()
 
 
 class TestFtrsService:
-    def test_init(self, mock_config, mock_repository, mock_bundle_mapper):
+    def test_init(self, mock_repository, mock_bundle_mapper):
         # Act
         service = FtrsService()
 
@@ -50,7 +40,7 @@ class TestFtrsService:
         assert service.mapper == mock_bundle_mapper
 
     def test_endpoints_by_ods_success(
-        self, ftrs_service, mock_repository, mock_bundle_mapper, organization_record
+        self, ftrs_service, mock_repository, mock_bundle_mapper, organisation
     ):
         # Arrange
         ods_code = "O123"
@@ -61,9 +51,7 @@ class TestFtrsService:
 
         # Assert
         mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
-        mock_bundle_mapper.map_to_fhir.assert_called_once_with(
-            organization_record, ods_code
-        )
+        mock_bundle_mapper.map_to_fhir.assert_called_once_with(organisation, ods_code)
         assert result == expected_bundle
 
     def test_endpoints_by_ods_not_found(
@@ -71,7 +59,7 @@ class TestFtrsService:
     ):
         # Arrange
         ods_code = "UNKNOWN"
-        organization_record = None
+        organisation = None
         expected_bundle = mock_bundle_mapper.map_to_fhir.return_value
         mock_repository.get_first_record_by_ods_code.return_value = None
 
@@ -80,9 +68,7 @@ class TestFtrsService:
 
         # Assert
         mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
-        mock_bundle_mapper.map_to_fhir.assert_called_once_with(
-            organization_record, ods_code
-        )
+        mock_bundle_mapper.map_to_fhir.assert_called_once_with(organisation, ods_code)
         assert result == expected_bundle
 
     def test_endpoints_by_ods_repository_exception(
@@ -103,7 +89,7 @@ class TestFtrsService:
         assert exc_info.value == expected_exc
 
     def test_endpoints_by_ods_mapper_exception(
-        self, ftrs_service, mock_repository, mock_bundle_mapper, organization_record
+        self, ftrs_service, mock_repository, mock_bundle_mapper, organisation
     ):
         # Arrange
         ods_code = "O123"
@@ -116,7 +102,5 @@ class TestFtrsService:
 
         # Assert
         mock_repository.get_first_record_by_ods_code.assert_called_once_with(ods_code)
-        mock_bundle_mapper.map_to_fhir.assert_called_once_with(
-            organization_record, ods_code
-        )
+        mock_bundle_mapper.map_to_fhir.assert_called_once_with(organisation, ods_code)
         assert exc_info.value == expected_exc

@@ -1,35 +1,31 @@
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.bundle import Bundle
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.models import Organisation
 
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
-from functions.ftrs_service.repository.dynamo import DynamoRepository
-from utils.config import get_config
 
 logger = Logger()
 
 
 class FtrsService:
     def __init__(self) -> None:
-        table_name_ = get_config().get("DYNAMODB_TABLE_NAME")
-        base_url_ = get_config().get("FHIR_BASE_URL")
-        self.repository = DynamoRepository(table_name=table_name_)
-        self.mapper = BundleMapper(base_url=base_url_)
+        self.repository = get_service_repository(Organisation, "organisation")
+        self.mapper = BundleMapper()
 
     def endpoints_by_ods(self, ods_code: str) -> Bundle:
         try:
-            logger.info("Retrieving organization_record by ods_code")
+            logger.info("Retrieving organisation by ods_code")
 
-            organization_record = self.repository.get_first_record_by_ods_code(ods_code)
+            organisation = self.repository.get_first_record_by_ods_code(ods_code)
 
             logger.append_keys(
-                organization_id=organization_record.id
-                if organization_record
-                else "None"
+                organization_id=organisation.id if organisation else "None"
             )
 
-            logger.info("Mapping organization_record to fhir_bundle")
+            logger.info("Mapping organisation to fhir_bundle")
 
-            fhir_bundle = self.mapper.map_to_fhir(organization_record, ods_code)
+            fhir_bundle = self.mapper.map_to_fhir(organisation, ods_code)
 
         except Exception:
             logger.exception("Error occurred while processing")
