@@ -27,7 +27,7 @@ module "lambda" {
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.dynamodb_access_policy.json]
+  policy_jsons           = [data.aws_iam_policy_document.dynamodb_access_policy.json]
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 

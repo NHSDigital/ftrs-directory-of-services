@@ -1,5 +1,5 @@
 module "health_check_lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ebe96e5/infrastructure/modules/lambda"
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ea49dff/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.health_check_lambda_name}"
   description            = "This lambda provides a health check for the search lambda"
   handler                = "health_check/health_check_function.lambda_handler"
@@ -9,7 +9,7 @@ module "health_check_lambda" {
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.health_check_dynamodb_access_policy.json]
+  policy_jsons           = [data.aws_iam_policy_document.health_check_dynamodb_access_policy.json]
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
@@ -27,6 +27,11 @@ module "health_check_lambda" {
     "WORKSPACE"           = terraform.workspace == "default" ? "" : terraform.workspace
     "DYNAMODB_TABLE_NAME" = "${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
   }
+
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
