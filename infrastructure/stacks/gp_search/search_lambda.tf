@@ -44,6 +44,11 @@ module "lambda" {
     "PROJECT_NAME" = var.project
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
   }
+
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "search_api_gateway_permissions" {
