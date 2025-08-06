@@ -24,10 +24,15 @@ resource "aws_secretsmanager_secret_version" "rds_password" {
   secret_string = random_password.rds_password[0].result
 }
 
+resource "random_id" "dms_user_password_suffix" {
+  count       = local.deploy_databases ? 1 : 0
+  byte_length = 5
+}
+
 resource "aws_secretsmanager_secret" "dms_user_password" {
   count = local.deploy_databases ? 1 : 0
 
-  name = "/${var.project}/${var.environment}/dms-user-password"
+  name = "/${var.project}/${var.environment}/dms-user-password-${random_id.dms_user_password_suffix[0].hex}"
 }
 
 resource "aws_secretsmanager_secret_version" "dms_user_password" {
