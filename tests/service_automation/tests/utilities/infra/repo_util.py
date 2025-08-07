@@ -1,11 +1,14 @@
 import json
 
-from ftrs_data_layer.models import DBModel
+from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
-JSON_FILES_PATH="tests/json_files/"
+JSON_FILES_PATH = "tests/json_files/"
 
-def model_from_json_file(json_file: str, model_repo: AttributeLevelRepository) -> DBModel:
+
+def model_from_json_file(
+    json_file: str, model_repo: AttributeLevelRepository
+) -> DBModel:
     with open(f"{JSON_FILES_PATH}{json_file}", "r") as f:
         model_data = json.load(f)
     return model_repo.model_cls(**model_data)

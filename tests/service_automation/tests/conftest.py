@@ -4,7 +4,7 @@ import boto3
 import pytest
 from dotenv import load_dotenv
 from ftrs_common.utils.db_service import get_service_repository
-from ftrs_data_layer.models import HealthcareService, Location, Organisation
+from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from pages.ui_pages.result import NewAccountPage
@@ -46,7 +46,7 @@ def playwright():
 
 
 @pytest.fixture(scope="module")
-def api_request_context_mtls(playwright, workspace, env, api_name = "servicesearch"):
+def api_request_context_mtls(playwright, workspace, env, api_name="servicesearch"):
     """Create a new Playwright API request context."""
     url = get_url(api_name)
     try:
@@ -60,7 +60,7 @@ def api_request_context_mtls(playwright, workspace, env, api_name = "servicesear
                     "certPath": ca_cert_path,
                     "keyPath": client_pem_path,
                 }
-            ]
+            ],
         }
         request_context = playwright.request.new_context(**context_options)
         yield request_context
@@ -176,10 +176,10 @@ def organisation_repo_seeded(organisation_repo):
 def get_mtls_certs():
     # Fetch secrets from AWS
     gsw = GetSecretWrapper()
-    client_pem = gsw.get_secret('/temp/dev/api-ca-pk')       # Combined client cert + key
-    ca_cert = gsw.get_secret('/temp/dev/api-ca-cert')        # CA cert for server verification
+    client_pem = gsw.get_secret("/temp/dev/api-ca-pk")  # Combined client cert + key
+    ca_cert = gsw.get_secret("/temp/dev/api-ca-cert")  # CA cert for server verification
 
     # Write to temp files
-    client_pem_path = create_temp_file(client_pem, '.pem')
-    ca_cert_path = create_temp_file(ca_cert, '.crt')
+    client_pem_path = create_temp_file(client_pem, ".pem")
+    ca_cert_path = create_temp_file(ca_cert, ".crt")
     return client_pem_path, ca_cert_path

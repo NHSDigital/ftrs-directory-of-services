@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-
 from ftrs_common.utils.db_service import (
     env_variable_settings,
     get_service_repository,

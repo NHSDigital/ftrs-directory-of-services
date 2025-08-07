@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
-from ftrs_data_layer.models import HealthcareService
+from ftrs_data_layer.domain import HealthcareService
 from pytest_mock import MockerFixture
 
 from healthcare_service.app.router.healthcare import router

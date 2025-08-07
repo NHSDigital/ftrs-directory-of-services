@@ -4,7 +4,7 @@ from aws_lambda_powertools import Tracer
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.utils.api_url_util import get_fhir_url
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.domain import Organisation
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
 from functions.ftrs_service.fhir_mapper.organization_mapper import (

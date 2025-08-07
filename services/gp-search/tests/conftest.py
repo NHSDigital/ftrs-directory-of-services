@@ -9,14 +9,14 @@ from uuid import UUID, uuid4
 import pytest
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
-from ftrs_data_layer.enums import (
+from ftrs_data_layer.domain import Endpoint, Organisation
+from ftrs_data_layer.domain.enums import (
     EndpointConnectionType,
     EndpointDescription,
     EndpointPayloadMimeType,
     EndpointPayloadType,
     EndpointStatus,
 )
-from ftrs_data_layer.models import Endpoint, Organisation
 
 
 @pytest.fixture
