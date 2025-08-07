@@ -105,6 +105,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
   count                        = local.deploy_databases ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = aws_security_group.dms_replication_security_group[0].id
+  description                  = "Allow ingress on port ${var.rds_port} from DMS replication security group"
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -113,6 +114,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
 resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
   count             = local.deploy_databases ? 1 : 0
   security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description       = "Allow egress to internet on port 443"
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 443
   ip_protocol       = "tcp"
@@ -157,6 +159,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_i
 }
 
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
   count       = local.deploy_databases ? 1 : 0
   name        = "${local.resource_prefix}-${var.rds_event_listener_name}-sg"
   description = "Security group for RDS event listener lambda"
@@ -185,6 +188,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_t
 }
 
 resource "aws_security_group" "dms_db_setup_lambda_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
   count       = local.deploy_databases ? 1 : 0
   name        = "${local.resource_prefix}-${var.dms_db_lambda_name}-sg"
   description = "Security group for DMS DB Setup lambda"
@@ -206,6 +210,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_se
   count                        = local.deploy_databases ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
+  description                  = "Allow ingress on port ${var.rds_port} from DMS DB Setup lambda security group"
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
