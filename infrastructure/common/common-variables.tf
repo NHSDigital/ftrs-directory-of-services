@@ -135,7 +135,13 @@ variable "dms_allocated_storage" {
   default     = null
 }
 
-variable "migration_type" {
+variable "full_migration_type" {
+  description = "The type of migration for DMS"
+  type        = string
+  default     = null
+}
+
+variable "cdc_migration_type" {
   description = "The type of migration for DMS"
   type        = string
   default     = null

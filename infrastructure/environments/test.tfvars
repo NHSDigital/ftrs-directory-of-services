@@ -33,4 +33,5 @@ force_destroy_access_logging_bucket = true
 dms_replication_instance_class = "dms.t3.micro"
 dms_engine                     = "aurora-postgresql"
 dms_allocated_storage          = 50
-migration_type                 = "full-load-and-cdc"
+full_migration_type            = "full-load"
+cdc_migration_type             = "cdc"

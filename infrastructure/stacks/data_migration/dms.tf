@@ -43,11 +43,11 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
   database_name = var.target_rds_database
 }
 
-resource "aws_dms_replication_task" "dms_replication_task" {
+resource "aws_dms_replication_task" "dms_full_replication_task" {
   count = local.deploy_databases ? 1 : 0
 
-  replication_task_id      = "${local.resource_prefix}-etl-replication-task"
-  migration_type           = var.migration_type
+  replication_task_id      = "${local.resource_prefix}-etl-full-replication-task"
+  migration_type           = var.full_migration_type
   replication_instance_arn = aws_dms_replication_instance.dms_replication_instance[0].replication_instance_arn
   source_endpoint_arn      = aws_dms_endpoint.dms_source_endpoint[0].endpoint_arn
   target_endpoint_arn      = aws_dms_endpoint.dms_target_endpoint[0].endpoint_arn
@@ -56,6 +56,27 @@ resource "aws_dms_replication_task" "dms_replication_task" {
   })
 
   start_replication_task = true
+
+  replication_task_settings = jsonencode({
+    Logging = {
+      EnableLogging = var.dms_task_logging_enabled
+    }
+  })
+}
+
+resource "aws_dms_replication_task" "dms_cdc_replication_task" {
+  count = local.deploy_databases ? 1 : 0
+
+  replication_task_id      = "${local.resource_prefix}-etl-cdc-replication-task"
+  migration_type           = var.cdc_migration_type
+  replication_instance_arn = aws_dms_replication_instance.dms_replication_instance[0].replication_instance_arn
+  source_endpoint_arn      = aws_dms_endpoint.dms_source_endpoint[0].endpoint_arn
+  target_endpoint_arn      = aws_dms_endpoint.dms_target_endpoint[0].endpoint_arn
+  table_mappings = templatefile("${path.module}/table-mappings.json", {
+    schema_name = var.schema_name
+  })
+
+  start_replication_task = false
 
   replication_task_settings = jsonencode({
     Logging = {
