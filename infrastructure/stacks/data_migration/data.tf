@@ -140,7 +140,9 @@ data "aws_iam_policy_document" "lambda_rds_policy" {
       "rds-data:CommitTransaction",
       "rds-data:RollbackTransaction"
     ]
-    resources = ["*"]
+    resources = [
+      module.rds_replication_target_db[0].cluster_arn
+    ]
   }
 }
 
@@ -167,6 +169,6 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "ssm:GetParameters",
       "ssm:GetParametersByPath"
     ]
-    resources = ["*"]
+    resources = [aws_ssm_parameter.rds_event_listener_workspace_sqs_id.arn]
   }
 }

@@ -181,3 +181,21 @@ variable "dms_db_lambda_trigger" {
   description = "The Lambda function handler for the DMS DB setup trigger"
   type        = string
 }
+
+variable "dms_start_full_replication_task" {
+  description = "Whether to start the DMS replication task automatically"
+  type        = bool
+  default     = true
+}
+
+variable "dms_start_cdc_replication_task" {
+  description = "Whether to start the DMS replication task automatically"
+  type        = bool
+  default     = false
+}
+
+variable "dms_replication_instance_auto_minor_version_upgrade" {
+  description = "Whether to enable auto minor version upgrades for the DMS replication instance"
+  type        = bool
+  default     = true
+}
