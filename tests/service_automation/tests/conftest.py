@@ -104,9 +104,10 @@ def api_response():
     return {}
 
 
-def _get_env_var(varname: str, default: str = None) -> str:
+def _get_env_var(varname: str, default: str = None, required: bool = True) -> str:
     value = os.getenv(varname, default)
-    assert value, f"{varname} is not set"
+    if required:
+        assert value, f"{varname} is not set"
     return value
 
 
@@ -122,7 +123,7 @@ def load_env_file(env):
 
 @pytest.fixture(scope="session")
 def workspace() -> str:
-    return _get_env_var("WORKSPACE")
+    return _get_env_var("WORKSPACE", "", required=False)
 
 
 @pytest.fixture(scope="session")
