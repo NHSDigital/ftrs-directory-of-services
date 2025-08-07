@@ -60,7 +60,7 @@ Feature: Lambda function
 
 
   Scenario: For an odsCode that does not exist an empty bundle will be returned
-    When I invoke the lambda with the ods code "12345"
+    When I invoke the lambda with the ods code "0VE7BPDES6"
     Then the lambda response contains an empty bundle
 
 

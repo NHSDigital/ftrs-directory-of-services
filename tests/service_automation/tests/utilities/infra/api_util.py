@@ -25,9 +25,7 @@ def get_url(api_name):
 
 def get_r53(workspace, api_name, env):
     # set the URL for the R53 record for the env
-    if workspace == "default":
-        r53 =  api_name + "." + env + ".ftrs.cloud.nhs.uk"
-    else:
-        r53 =  api_name + "-" + workspace + "." + env + ".ftrs.cloud.nhs.uk"
+    workspace_suffix = f"-{workspace}" if workspace else ""
+    r53 = f"{api_name}{workspace_suffix}.{env}.ftrs.cloud.nhs.uk"
     logger.info("R53 URL: {}", r53)
     return r53
