@@ -5,11 +5,7 @@ _settings = Settings()
 
 def get_api_url(api_name: str) -> str:
     """Generate base URL for API based on API name, environment and workspace."""
-    workspace_suffix = (
-        f"-{_settings.workspace}"
-        if _settings.workspace and _settings.workspace != "default"
-        else ""
-    )
+    workspace_suffix = f"-{_settings.workspace}" if _settings.workspace else ""
     return f"https://{api_name}{workspace_suffix}.{_settings.env}.ftrs.cloud.nhs.uk"
 
 

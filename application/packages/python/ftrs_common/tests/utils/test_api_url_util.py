@@ -8,10 +8,6 @@ from ftrs_common.utils.api_url_util import get_api_url, get_fhir_url
     ("workspace", "expected"),
     [
         (
-            "default",
-            "https://servicesearch.dev.ftrs.cloud.nhs.uk",
-        ),
-        (
             None,
             "https://servicesearch.dev.ftrs.cloud.nhs.uk",
         ),
