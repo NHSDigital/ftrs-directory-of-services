@@ -1,0 +1,55 @@
+# This workflow loads DynamoDB tables with data from a backup
+name: Load DynamoDB tables with data from backup
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The relevant github environment (for secrets and variables)"
+        required: true
+        type: string
+      dynamo_table_name:
+        description: "The name of the DynamoDB table to manage backups for"
+        required: true
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to load the data into"
+        required: true
+        type: string
+
+jobs:
+  load-dynamodb-data:
+    name: "Load DynamoDB tables with data from backup"
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install jq"
+        run: sudo apt-get install -y jq
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Run load DynamoDB tables script"
+        id: "load_dynamodb"
+        shell: bash
+        run: |
+          export ENV="${{ inputs.environment }}"
+          export WORKSPACE=${{ inputs.workspace }}
+          export DYNAMO_PREFIX_NAME=${{ inputs.dynamo_table_name }}
+          /bin/bash ./scripts/workflow/load-dynamodb-from-backup.sh
