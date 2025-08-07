@@ -118,3 +118,29 @@ The API routing happens at the API gateway level, routing will happen for the /h
 
  201 Created: Returns the created healthcare service.
  422 Unprocessable Entity: Invalid request body.
+
+### Update Healthcare Service
+
+**Endpoint**: PUT /{service_id}
+
+**Description**: Updates a healthcare service with the given ID.
+
+**Path Parameters**:
+
+- `service_id` (UUID): The internal ID of the healthcare service.
+
+**Request Body**:
+
+- A JSON object containing the fields to update. Example:
+
+  ```json
+  {
+    "name": "New Healthcare Service Name"
+  }
+  ```
+
+**Responses**:
+
+ 200 OK: Returns the updated healthcare service.
+ 404 Not Found: Service to be updated not found.
+ 422 Unprocessable Entity: Invalid request body.

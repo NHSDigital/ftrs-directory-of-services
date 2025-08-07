@@ -361,7 +361,6 @@ class CrudApisLogBase(LogBase):
         level=INFO,
         message="Organisation with ID {organisation_id} not found.",
     )
-
     ORGANISATION_011 = LogReference(
         level=INFO,
         message="Received request to create a new organisation with ODS code: {ods_code}.",
@@ -409,6 +408,66 @@ class CrudApisLogBase(LogBase):
     HEALTHCARESERVICE_002 = LogReference(
         level=INFO,
         message="Successfully created healthcare service with ID: {id}.",
+    )
+    HEALTHCARESERVICE_003 = LogReference(
+        level=INFO,
+        message="Received request to update healthcare service with ID: {service_id}.",
+    )
+    HEALTHCARESERVICE_004 = LogReference(
+        level=INFO,
+        message="Successfully updated healthcare service {service_id}.",
+    )
+    HEALTHCARESERVICE_005 = LogReference(
+        level=INFO,
+        message="Applying updates to healthcare service: {service_id}.",
+    )
+    HEALTHCARESERVICE_006 = LogReference(
+        level=INFO,
+        message="Received request to read healthcare service with ID: {service_id}.",
+    )
+    HEALTHCARESERVICE_007 = LogReference(
+        level=INFO,
+        message="Received request to read all healthcare services.",
+    )
+    HEALTHCARESERVICE_008 = LogReference(
+        level=INFO,
+        message="Successfully retrieved healthcare service: {service}.",
+    )
+    HEALTHCARESERVICE_009 = LogReference(
+        level=ERROR,
+        message="Received request to delete healthcare service with ID: {service_id}.",
+    )
+    HEALTHCARESERVICE_010 = LogReference(
+        level=INFO,
+        message="Successfully deleted healthcare service with ID: {service_id}.",
+    )
+    HEALTHCARESERVICE_011 = LogReference(
+        level=INFO,
+        message="Successfully created healthcare service: {service}.",
+    )
+    HEALTHCARESERVICE_012 = LogReference(
+        level=INFO,
+        message="Found {length} healthcare services.",
+    )
+    HEALTHCARESERVICE_E001 = LogReference(
+        level=ERROR,
+        message="Error updating healthcare service with service_id {service_id}:{error_message}.",
+    )
+    HEALTHCARESERVICE_E002 = LogReference(
+        level=ERROR,
+        message="Healthcare Service with ID {service_id} not found.",
+    )
+    HEALTHCARESERVICE_E003 = LogReference(
+        level=ERROR,
+        message="No healthcare services found.",
+    )
+    HEALTHCARESERVICE_E004 = LogReference(
+        level=ERROR,
+        message="Error fetching healthcare services.",
+    )
+    HEALTHCARESERVICE_E005 = LogReference(
+        level=ERROR,
+        message="Error detail: {detail}.",
     )
     LOCATION_001 = LogReference(
         level=INFO,
