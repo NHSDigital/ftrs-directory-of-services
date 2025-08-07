@@ -1,9 +1,11 @@
 resource "aws_sqs_queue" "rds_event_listener_dlq" {
-  name = "${local.resource_prefix}-rds-events-dlq${local.workspace_suffix}"
+  name                    = "${local.resource_prefix}-rds-events-dlq${local.workspace_suffix}"
+  sqs_managed_sse_enabled = true
 }
 
 resource "aws_sqs_queue" "rds_event_listener" {
-  name = "${local.resource_prefix}-rds-events${local.workspace_suffix}"
+  name                    = "${local.resource_prefix}-rds-events${local.workspace_suffix}"
+  sqs_managed_sse_enabled = true
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.rds_event_listener_dlq.arn
     maxReceiveCount     = 5
