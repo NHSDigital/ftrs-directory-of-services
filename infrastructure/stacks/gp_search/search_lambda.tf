@@ -17,7 +17,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 }
 
 module "lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ebe96e5/infrastructure/modules/lambda"
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ea49dff/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
   description            = "This lambda provides search logic to returns an organisation and its endpoints"
   handler                = "functions/gp_search_function.lambda_handler"
@@ -27,7 +27,7 @@ module "lambda" {
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.vpc_access_policy.json, data.aws_iam_policy_document.dynamodb_access_policy.json]
+  policy_jsons           = [data.aws_iam_policy_document.dynamodb_access_policy.json]
   timeout                = var.lambda_timeout
   memory_size            = var.lambda_memory_size
 
@@ -44,6 +44,11 @@ module "lambda" {
     "PROJECT_NAME" = var.project
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
   }
+
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
 }
 
 module "search_api_gateway_permissions" {
