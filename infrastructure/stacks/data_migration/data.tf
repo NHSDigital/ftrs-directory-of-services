@@ -67,6 +67,19 @@ data "aws_iam_policy_document" "secrets_access_policy" {
   }
 }
 
+data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/target-rds-credentials-*",
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/dms-user-password-*"
+    ]
+  }
+}
+
 data "aws_iam_policy_document" "dynamodb_access_policy" {
   statement {
     effect = "Allow"
@@ -84,5 +97,63 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
         "${table.arn}/index/*"
       ]
     ])
+  }
+}
+
+data "aws_secretsmanager_secret_version" "rds_username" {
+  secret_id = "${var.project}/${var.environment}/rds-username"
+}
+
+data "aws_secretsmanager_secret_version" "rds_password" {
+  secret_id = "${var.project}/${var.environment}/rds-password"
+}
+
+data "aws_rds_cluster" "rds" {
+  cluster_identifier = "${local.resource_prefix}-rds"
+}
+
+data "aws_iam_policy_document" "lambda_rds_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBClusters",
+      "rds:ExecuteStatement",
+      "rds-data:ExecuteStatement",
+      "rds-data:BatchExecuteStatement",
+      "rds-data:BeginTransaction",
+      "rds-data:CommitTransaction",
+      "rds-data:RollbackTransaction"
+    ]
+    resources = [
+      module.rds_replication_target_db[0].cluster_arn
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:SendMessage",
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes"
+    ]
+    resources = [
+      "arn:aws:sqs:${var.aws_region}:${local.account_id}:ftrs-dos-dev-data-migration-rds-events*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "ssm_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters",
+      "ssm:GetParametersByPath"
+    ]
+    resources = [aws_ssm_parameter.rds_event_listener_workspace_sqs_id.arn]
   }
 }

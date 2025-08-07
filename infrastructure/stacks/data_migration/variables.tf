@@ -132,3 +132,55 @@ variable "load_lambda_handler" {
   description = "The handler for the load Lambda function"
   type        = string
 }
+
+variable "rds_event_listener_name" {
+  description = "The name of the RDS event listener Lambda function"
+}
+
+variable "schema_name" {
+  description = "The schema name to use in table mappings"
+  type        = string
+}
+
+variable "sqs_ssm_path_for_ids" {
+  description = "The SSM path for storing SQS IDs"
+  type        = string
+}
+
+variable "migration_copy_db_trigger" {
+  description = "The Lambda function handler for the migration copy DB trigger"
+  type        = string
+}
+
+variable "cloudwatch_log_retention_days" {
+  description = "The number of days to retain CloudWatch logs for DMS tasks"
+  type        = number
+}
+
+variable "dms_db_lambda_name" {
+  description = "The name of the DMS DB setup Lambda function"
+  type        = string
+}
+
+variable "dms_db_lambda_trigger" {
+  description = "The Lambda function handler for the DMS DB setup trigger"
+  type        = string
+}
+
+variable "dms_start_full_replication_task" {
+  description = "Whether to start the DMS replication task automatically"
+  type        = bool
+  default     = true
+}
+
+variable "dms_start_cdc_replication_task" {
+  description = "Whether to start the DMS replication task automatically"
+  type        = bool
+  default     = false
+}
+
+variable "dms_replication_instance_auto_minor_version_upgrade" {
+  description = "Whether to enable auto minor version upgrades for the DMS replication instance"
+  type        = bool
+  default     = true
+}

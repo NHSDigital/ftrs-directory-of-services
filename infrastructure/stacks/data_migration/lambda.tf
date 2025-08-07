@@ -143,3 +143,75 @@ resource "aws_lambda_permission" "allow_s3_to_invoke_transform_lambda" {
   principal     = "s3.amazonaws.com"
   source_arn    = module.migration_store_bucket.s3_bucket_arn
 }
+
+module "rds_event_listener_lambda" {
+  count              = local.deploy_databases ? 1 : 0
+  source             = "../../modules/lambda"
+  function_name      = "${local.resource_prefix}-${var.rds_event_listener_name}"
+  description        = "Lambda to listen for database events and send notifications"
+  handler            = var.migration_copy_db_trigger
+  runtime            = var.lambda_runtime
+  timeout            = var.load_lambda_connection_timeout
+  memory_size        = var.load_lambda_memory_size
+  s3_bucket_name     = local.artefacts_bucket
+  s3_key             = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
+
+  number_of_policy_jsons = "2"
+  policy_jsons = [
+    data.aws_iam_policy_document.rds_event_listener_sqs_access_policy.json,
+    data.aws_iam_policy_document.ssm_access_policy.json,
+  ]
+
+  environment_variables = {
+    "ENVIRONMENT"  = var.environment
+    "PROJECT_NAME" = var.project
+    "SQS_SSM_PATH" = "${var.sqs_ssm_path_for_ids}${var.environment}/"
+  }
+
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
+
+  depends_on = [aws_sqs_queue.rds_event_listener]
+}
+
+module "dms_db_lambda" {
+  count              = local.deploy_databases ? 1 : 0
+  source             = "../../modules/lambda"
+  function_name      = "${local.resource_prefix}-${var.dms_db_lambda_name}"
+  description        = "Lambda to set up DMS target RDS instance"
+  handler            = var.dms_db_lambda_trigger
+  runtime            = var.lambda_runtime
+  timeout            = var.load_lambda_connection_timeout
+  memory_size        = var.load_lambda_memory_size
+  s3_bucket_name     = local.artefacts_bucket
+  s3_key             = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
+
+  number_of_policy_jsons = "2"
+  policy_jsons = [
+    data.aws_iam_policy_document.secrets_access_policy_for_dms.json,
+    data.aws_iam_policy_document.lambda_rds_policy.json
+  ]
+
+  environment_variables = {
+    "ENVIRONMENT"        = var.environment
+    "PROJECT_NAME"       = var.project
+    "TARGET_RDS_DETAILS" = "/${var.project}/${var.environment}/target-rds-credentials"
+    "DMS_USER_DETAILS"   = "/${var.project}/${var.environment}/dms-user-password-${random_id.dms_user_password_suffix[0].hex}"
+    "TRIGGER_LAMBDA_ARN" = module.rds_event_listener_lambda[0].lambda_function_arn
+  }
+
+  layers = [aws_lambda_layer_version.python_dependency_layer.arn]
+
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
+
+  depends_on = [aws_sqs_queue.rds_event_listener]
+}
