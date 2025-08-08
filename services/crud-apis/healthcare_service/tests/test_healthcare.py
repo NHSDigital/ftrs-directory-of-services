@@ -142,7 +142,6 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
             {
                 "allDay": False,
                 "startTime": "08:00:00",
-                "id": "d3d11647-87a5-43f3-a602-62585b852875",
                 "dayOfWeek": "mon",
                 "endTime": "18:30:00",
                 "category": "availableTime",
@@ -150,11 +149,11 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
         ],
         "createdBy": "SYSTEM",
         "createdDateTime": "2023-10-01T00:00:00Z",
-        "dispositions": None,
+        "dispositions": [],
         "id": "841ef1a7-1adf-440f-9ca0-5e969ec61a5e",
         "identifier_oldDoS_uid": None,
         "modifiedDateTime": "2023-10-01T00:00:00Z",
-        "symptomGroupSymptomDiscriminators": {"SG_SD": None},
+        "symptomGroupSymptomDiscriminators": [],
     }
 
     response = client.put(f"/{test_service_id}", json=update_payload)
@@ -194,6 +193,8 @@ def test_update_healthcare_service_not_found(mock_repository: MockerFixture) -> 
                 "category": "availableTime",
             }
         ],
+        "symptomGroupSymptomDiscriminators": [],
+        "dispositions": [],
     }
 
     with pytest.raises(HTTPException) as exc_info:

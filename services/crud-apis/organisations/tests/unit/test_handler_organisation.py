@@ -47,6 +47,7 @@ def test_client(test_app: FastAPI) -> TestClient:
     return TestClient(test_app)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "error_code,expected_status_code",
     [
@@ -85,6 +86,7 @@ async def test_operation_outcome_exception_handler_status_codes(
     assert response.status_code == expected_status_code
 
 
+@pytest.mark.asyncio
 async def test_operation_outcome_exception_handler_response_content() -> None:
     """Test that the response contains the correct OperationOutcome content."""
     test_outcome = {

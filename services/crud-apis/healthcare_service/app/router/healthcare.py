@@ -74,7 +74,7 @@ def get_healthcare_service_by_id(service_id: str) -> HealthcareService:
     "/{service_id}",
     summary="Update a Healthcare Service.",
 )
-def update_organisation(
+async def update_organisation(
     service_id: UUID = Path(
         ...,
         examples=["00000000-0000-0000-0000-11111111111"],
