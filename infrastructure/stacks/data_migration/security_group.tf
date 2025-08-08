@@ -14,7 +14,7 @@ data "aws_security_group" "rds_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
-  count                        = (local.is_primary_environment && var.environment == "dev") ? 1 : 0
+  count                        = (local.is_primary_environment && local.rds_environments) ? 1 : 0
   description                  = "Allow RDS ingress from VPN"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = data.aws_security_group.vpn_security_group[0].id
