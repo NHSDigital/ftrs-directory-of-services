@@ -172,3 +172,15 @@ data "aws_iam_policy_document" "ssm_access_policy" {
     resources = [aws_ssm_parameter.rds_event_listener_workspace_sqs_id.arn]
   }
 }
+
+data "aws_iam_policy_document" "rds_connect_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds-db:connect"
+    ]
+    resources = [
+      "arn:aws:rds-db:${var.aws_region}:${local.account_id}:dbuser:${module.rds_replication_target_db.cluster_id}/${aws_secretsmanager_secret_version.rds_username[0].secret_string}"
+    ]
+  }
+}

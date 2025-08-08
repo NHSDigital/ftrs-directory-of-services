@@ -13,6 +13,7 @@ logger.setLevel(logging.INFO)
 MIN_PASSWORD_LENGTH = 16
 
 secrets_client = boto3.client("secretsmanager")
+rds_client = boto3.client("rds")
 
 
 def fetch_environment_variables() -> tuple[str, str, str, str]:
@@ -90,7 +91,7 @@ def execute_postgresql_trigger(
         raise
 
 
-def get_target_rds_details() -> tuple[str, str, int, str, str]:
+def get_target_rds_details(aws_region: str) -> tuple[str, str, int, str, str]:
     target_rds_details_response = secrets_client.get_secret_value(
         SecretId=target_rds_details
     )
@@ -100,7 +101,12 @@ def get_target_rds_details() -> tuple[str, str, int, str, str]:
     database_name = target_rds_details_secret["dbname"]
     port = target_rds_details_secret["port"]
     username = target_rds_details_secret["username"]
-    password = target_rds_details_secret["password"]
+    password = rds_client.generate_db_auth_token(
+        DBHostname=cluster_endpoint,
+        Port=port,
+        DBUsername=username,
+        Region=aws_region,
+    )
 
     return cluster_endpoint, database_name, port, username, password
 
@@ -117,8 +123,11 @@ def get_dms_user_details() -> tuple[str, str]:
 
 def lambda_handler(event: dict, context: dict) -> None:
     try:
+        # Execute PostgreSQL trigger
+        aws_region = boto3.session.Session().region_name
+
         cluster_endpoint, database_name, port, username, password = (
-            get_target_rds_details()
+            get_target_rds_details(aws_region)
         )
 
         rds_username, rds_password = get_dms_user_details()
@@ -135,8 +144,6 @@ def lambda_handler(event: dict, context: dict) -> None:
         # Execute RDS command
         execute_rds_command(engine, rds_username, rds_password)
 
-        # Execute PostgreSQL trigger
-        aws_region = boto3.session.Session().region_name
         execute_postgresql_trigger(engine, rds_username, trigger_lambda_arn, aws_region)
 
     except ClientError:

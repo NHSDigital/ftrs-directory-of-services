@@ -191,7 +191,7 @@ variable "dms_start_full_replication_task" {
 variable "dms_start_cdc_replication_task" {
   description = "Whether to start the DMS replication task automatically"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "dms_replication_instance_auto_minor_version_upgrade" {
