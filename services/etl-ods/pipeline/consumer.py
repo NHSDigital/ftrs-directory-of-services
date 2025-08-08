@@ -59,15 +59,11 @@ def process_message_and_send_request(record: dict) -> None:
     message_id = record["messageId"]
 
     if not path or not body:
-        ods_consumer_logger.log(
+        err_msg = ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_006,
             message_id=message_id,
         )
-        raise ValueError(
-            OdsETLPipelineLogBase.ETL_CONSUMER_006.value.format(
-                message_id=record["messageId"]
-            )
-        )
+        raise ValueError(err_msg)
 
     api_url = get_base_fhir_api_url()
     api_url = api_url + "/Organization/" + path

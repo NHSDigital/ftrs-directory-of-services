@@ -9,8 +9,8 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
-from ftrs_data_layer.models import Organisation
 
 from organisations.app.services.organisation_service import OrganisationService
 from organisations.app.services.validators import (
@@ -55,7 +55,7 @@ def get_org_by_ods_code(
             )
         return JSONResponse(
             status_code=200,
-            content={"id": records[0]},
+            content={"id": records[0].id},
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:

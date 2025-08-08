@@ -10,8 +10,10 @@ locals {
   prefix = "${var.project}-${var.environment}"
   # Deploy databases only in default Terraform workspace.
   # This ensures that database resources are provisioned only in the intended environment.
-  deploy_databases = "default" == "${terraform.workspace}"
-  rds_environments = var.environment == "dev" || var.environment == "test"
+  deploy_databases              = "default" == "${terraform.workspace}"
+  deploy_queue_populator_lambda = var.environment == "dev"
+  rds_environments              = var.environment == "dev" || var.environment == "test"
+
 
   # Deploy certain resources (e.g., databases, backup SSM) only in default Terraform workspace.
   is_primary_environment = terraform.workspace == "default"

@@ -7,7 +7,7 @@ import pytest
 from fastapi import HTTPException
 from freezegun import freeze_time
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.organisation_service import OrganisationService

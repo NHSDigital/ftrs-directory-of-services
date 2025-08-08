@@ -1,7 +1,7 @@
 from aws_lambda_powertools import Logger
 from fhir.resources.R4B.bundle import Bundle
 from ftrs_common.utils.db_service import get_service_repository
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.domain import Organisation
 
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
 

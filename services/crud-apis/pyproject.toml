@@ -34,6 +34,8 @@ ftrs-python-packages = {path = "../../application/packages/python", develop = tr
 uvicorn = "^0.34.2"
 boto3 = "^1.37.33"
 poethepoet = "^0.34.0"
+numpy = "^1.26.4"
+pytest-asyncio = "^1.1.0"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"

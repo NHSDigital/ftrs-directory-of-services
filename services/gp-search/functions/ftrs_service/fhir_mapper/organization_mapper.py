@@ -2,7 +2,7 @@ from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganization
-from ftrs_data_layer.models import Organisation
+from ftrs_data_layer.domain import Organisation
 
 
 class OrganizationMapper:

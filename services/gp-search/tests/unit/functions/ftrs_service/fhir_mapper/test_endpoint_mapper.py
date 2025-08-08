@@ -3,7 +3,7 @@ from uuid import UUID
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
-from ftrs_data_layer.enums import (
+from ftrs_data_layer.domain.enums import (
     EndpointDescription,
     EndpointPayloadType,
 )

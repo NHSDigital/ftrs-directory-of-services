@@ -1,7 +1,7 @@
 from typing import TypeVar
 
 from ftrs_common.utils.config import Settings
-from ftrs_data_layer.models import DBModel
+from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 env_variable_settings = Settings()

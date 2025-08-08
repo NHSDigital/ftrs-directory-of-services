@@ -38,7 +38,7 @@ class DDBLogBase(LogBase):
     DDB_CORE_015 = LogReference(level=ERROR, message="Unprocessed items in batch write")
 
 
-class MigrationETLPipelineLogBase(LogBase):
+class DataMigrationLogBase(LogBase):
     """
     LogBase for Data Migration ETL Pipeline operations
     """
@@ -95,6 +95,73 @@ class MigrationETLPipelineLogBase(LogBase):
     )
     ETL_RESET_007 = LogReference(
         level=ERROR, message="Unsupported entity type: {entity_type}"
+    )
+
+    DM_ETL_000 = LogReference(
+        level=INFO, message="Starting Data Migration ETL Pipeline"
+    )
+    DM_ETL_001 = LogReference(level=DEBUG, message="Starting to process record")
+    DM_ETL_002 = LogReference(
+        level=DEBUG,
+        message="Transformer {transformer_name} is not valid for record: {reason}",
+    )
+    DM_ETL_003 = LogReference(
+        level=INFO, message="Transformer {transformer_name} selected for record"
+    )
+    DM_ETL_004 = LogReference(
+        level=INFO,
+        message="Record was not migrated due to reason: {reason}",
+    )
+    DM_ETL_005 = LogReference(
+        level=INFO,
+        message="Record skipped due to condition: {reason}",
+    )
+    DM_ETL_006 = LogReference(
+        level=DEBUG,
+        message="Record successfully transformed into future data model",
+    )
+    DM_ETL_007 = LogReference(
+        level=INFO,
+        message="Record successfully migrated",
+    )
+    DM_ETL_008 = LogReference(
+        level=ERROR,
+        message="Error processing record: {error}",
+    )
+    DM_ETL_009 = LogReference(
+        level=ERROR,
+        message="Error parsing event: {error}",
+    )
+    DM_ETL_010 = LogReference(
+        level=WARNING, message="Unsupported event method: {method}"
+    )
+    DM_ETL_011 = LogReference(
+        level=WARNING,
+        message="Table {table_name} not supported for event method: {method}",
+    )
+
+    DM_ETL_999 = LogReference(
+        level=INFO, message="Data Migration ETL Pipeline completed successfully."
+    )
+
+    DM_QP_000 = LogReference(
+        level=INFO, message="Starting Data Migration Queue Populator"
+    )
+    DM_QP_001 = LogReference(
+        level=INFO,
+        message="Populating SQS queue with {count} total messages",
+    )
+    DM_QP_002 = LogReference(
+        level=DEBUG, message="Sending {count} messages to SQS queue"
+    )
+    DM_QP_003 = LogReference(
+        level=ERROR, message="Failed to send {count} messages to SQS queue"
+    )
+    DM_QP_004 = LogReference(
+        level=DEBUG, message="Successfully sent {count} messages to SQS queue"
+    )
+    DM_QP_999 = LogReference(
+        level=INFO, message="Data Migration Queue Populator completed"
     )
 
 

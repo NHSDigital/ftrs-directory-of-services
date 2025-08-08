@@ -1,4 +1,7 @@
-from ftrs_data_layer.enums import HealthcareServiceCategory, HealthcareServiceType
+from ftrs_data_layer.domain.enums import (
+    HealthcareServiceCategory,
+    HealthcareServiceType,
+)
 from pydantic import field_validator
 
 from healthcare_service.app.models.healthcare_service import (

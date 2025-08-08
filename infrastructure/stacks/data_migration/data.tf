@@ -62,7 +62,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${local.account_prefix}/source-rds-credentials-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/source-rds-credentials-*"
     ]
   }
 }
@@ -84,5 +84,20 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
         "${table.arn}/index/*"
       ]
     ])
+  }
+}
+
+data "aws_iam_policy_document" "sqs_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:SendMessage",
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+    ]
+    resources = [
+      aws_sqs_queue.dms_event_queue.arn
+    ]
   }
 }

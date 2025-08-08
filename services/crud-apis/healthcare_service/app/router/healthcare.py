@@ -6,8 +6,8 @@ from fastapi.params import Body
 from fastapi.responses import Response
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.domain import HealthcareService
 from ftrs_data_layer.logbase import CrudApisLogBase
-from ftrs_data_layer.models import HealthcareService
 from starlette.responses import JSONResponse
 
 from healthcare_service.app.services.healthcare_service_helper import (
@@ -74,7 +74,7 @@ def get_healthcare_service_by_id(service_id: str) -> HealthcareService:
     "/{service_id}",
     summary="Update a Healthcare Service.",
 )
-def update_organisation(
+async def update_organisation(
     service_id: UUID = Path(
         ...,
         examples=["00000000-0000-0000-0000-11111111111"],
