@@ -1,6 +1,6 @@
 resource "aws_security_group" "rds_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  count = local.deploy_databases && local.rds_environments ? 1 : 0
+  count = local.is_primary_environment && local.rds_environments ? 1 : 0
 
   name        = "${local.resource_prefix}-rds-sg"
   description = "RDS Security Group"
@@ -9,12 +9,12 @@ resource "aws_security_group" "rds_security_group" {
 }
 
 data "aws_security_group" "rds_security_group" {
-  count = local.deploy_databases && local.rds_environments ? 0 : 1
+  count = local.is_primary_environment && local.rds_environments ? 0 : 1
   name  = "${local.resource_prefix}-rds-sg"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
-  count                        = (local.deploy_databases && local.rds_environments) ? 1 : 0
+  count                        = (local.is_primary_environment && local.rds_environments) ? 1 : 0
   description                  = "Allow RDS ingress from VPN"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = data.aws_security_group.vpn_security_group[0].id

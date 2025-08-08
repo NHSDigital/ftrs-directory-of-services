@@ -8,6 +8,7 @@ data "aws_acm_certificate" "domain_cert" {
   most_recent = true
 }
 
+# trivy:ignore:AVD-AWS-0005 false positive – using API Gateway V2 with TLS_1_2
 resource "aws_apigatewayv2_domain_name" "crud_api_domain" {
   domain_name = "crud${local.workspace_suffix}.${local.env_domain_name}"
 
