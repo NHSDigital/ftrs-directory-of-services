@@ -165,7 +165,6 @@ resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
 
 }
 ## DMS Replication Instance
-
 module "rds_replication_target_db" {
   count  = local.deploy_databases ? 1 : 0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=592cb15809bde8eed2a641ba5971ec665c9b4397"
