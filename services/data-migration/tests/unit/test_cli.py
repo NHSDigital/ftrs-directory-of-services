@@ -174,9 +174,9 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     hc_path = output_dir / "healthcare-service.jsonl"
 
     mock_output = ServiceTransformOutput(
-        organisation=Organisation.model_construct(id=uuid4()),
-        location=Location.model_construct(id=uuid4()),
-        healthcare_service=HealthcareService.model_construct(id=uuid4()),
+        organisation=[Organisation.model_construct(id=uuid4())],
+        location=[Location.model_construct(id=uuid4())],
+        healthcare_service=[HealthcareService.model_construct(id=uuid4())],
     )
 
     with patch_local_save_method(mock_app, output_dir):
@@ -196,22 +196,30 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     hc_content = json.loads(hc_path.read_text().strip())
 
     assert org_content == {
-        "id": str(mock_output.organisation.id),
+        "id": str(mock_output.organisation[0].id),
+        "identifier_ODS_ODSCode": None,
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
         "modifiedBy": "SYSTEM",
         "modifiedDateTime": "2025-07-15T12:00:00Z",
         "endpoints": [],
+        "telecom": None,
     }
     assert loc_content == {
-        "id": str(mock_output.location.id),
+        "id": str(mock_output.location[0].id),
+        "name": None,
+        "partOf": None,
+        "positionGCS": None,
+        "positionReferenceNumber_UBRN": None,
+        "positionReferenceNumber_UPRN": None,
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
         "modifiedBy": "SYSTEM",
         "modifiedDateTime": "2025-07-15T12:00:00Z",
     }
     assert hc_content == {
-        "id": str(mock_output.healthcare_service.id),
+        "id": str(mock_output.healthcare_service[0].id),
+        "identifier_oldDoS_uid": None,
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
         "modifiedBy": "SYSTEM",

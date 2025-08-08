@@ -81,8 +81,16 @@ def test_transform(
     transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
     result = transformer.transform(mock_legacy_service)
 
-    assert result.organisation.identifier_ODS_ODSCode == "A12345"
-    assert result.healthcare_service.category == HealthcareServiceCategory.GP_SERVICES
+    assert len(result.organisation) == 1
+    assert result.organisation[0].identifier_ODS_ODSCode == "A12345"
+
+    assert len(result.location) == 1
+
+    assert len(result.healthcare_service) == 1
     assert (
-        result.healthcare_service.type == HealthcareServiceType.GP_CONSULTATION_SERVICE
+        result.healthcare_service[0].category == HealthcareServiceCategory.GP_SERVICES
+    )
+    assert (
+        result.healthcare_service[0].type
+        == HealthcareServiceType.GP_CONSULTATION_SERVICE
     )

@@ -39,9 +39,9 @@ class GPPracticeTransformer(ServiceTransformer):
         )
 
         return ServiceTransformOutput(
-            organisation=organisation,
-            healthcare_service=healthcare_service,
-            location=location,
+            organisation=[organisation],
+            healthcare_service=[healthcare_service],
+            location=[location],
         )
 
     @classmethod

@@ -29,7 +29,7 @@ from ftrs_data_layer.domain.clinical_code import (
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from pipeline.utils.cache import DoSMetadataCache
 
@@ -41,9 +41,9 @@ class ServiceTransformOutput(BaseModel):
     This may be adapted in the future to better reflect relationships/data deduplication.
     """
 
-    organisation: Organisation
-    healthcare_service: HealthcareService
-    location: Location
+    organisation: list[Organisation] = Field(default_factory=list)
+    healthcare_service: list[HealthcareService] = Field(default_factory=list)
+    location: list[Location] = Field(default_factory=list)
 
 
 class ServiceTransformer(ABC):

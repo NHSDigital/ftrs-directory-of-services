@@ -6,6 +6,7 @@ from typing import Annotated, Generator, List
 from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication, DMSEvent
+from pipeline.processor import ServiceTransformOutput
 from pipeline.queue_populator import populate_sqs_queue
 from pipeline.utils.config import (
     DatabaseConfig,
@@ -121,16 +122,15 @@ def patch_local_save_method(
     location_file = open(location_path, "w")
     healthcare_file = open(healthcare_path, "w")
 
-    app.processor._save = lambda out: (
-        organisation_file.write(
-            out.organisation.model_dump_json(exclude_none=True) + "\n"
-        ),
-        location_file.write(out.location.model_dump_json(exclude_none=True) + "\n"),
-        healthcare_file.write(
-            out.healthcare_service.model_dump_json(exclude_none=True) + "\n"
-        ),
-    )
+    def _mock_save(result: ServiceTransformOutput) -> None:
+        for org in result.organisation:
+            organisation_file.write(org.model_dump_json() + "\n")
+        for loc in result.location:
+            location_file.write(loc.model_dump_json() + "\n")
+        for hc in result.healthcare_service:
+            healthcare_file.write(hc.model_dump_json() + "\n")
 
+    app.processor._save = _mock_save
     yield
 
     organisation_file.close()
