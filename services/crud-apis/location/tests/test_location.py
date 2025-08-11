@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -49,8 +48,8 @@ def mock_location_service(mocker: MockerFixture) -> MockerFixture:
     return service_mock
 
 
-@pytest.fixture
-def mock_repository(mocker: MagicMock) -> None:
+@pytest.fixture()
+def mock_repository(mocker: MockerFixture) -> MockerFixture:
     repository_mock = mocker.patch("location.app.router.location.location_repository")
     return repository_mock
 
@@ -222,7 +221,7 @@ def test_update_location_not_found(mock_repository: MockerFixture) -> None:
     }
 
     with pytest.raises(HTTPException) as exc_info:
-        client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json={update_payload})
+        client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json=update_payload)
     assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
     assert exc_info.value.detail == "Location not found"
 

@@ -95,7 +95,7 @@ async def delete_location(
     "/{location_id}",
     summary="Update a Location.",
 )
-def update_location(
+async def update_location(
     location_id: UUID = Path(
         ...,
         examples=["00000000-0000-0000-0000-11111111111"],
