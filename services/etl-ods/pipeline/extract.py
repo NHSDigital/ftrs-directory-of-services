@@ -5,7 +5,7 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from pipeline.utilities import get_base_crud_api_url, make_request
+from pipeline.utilities import get_api_key, get_base_crud_api_url, make_request
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -52,12 +52,16 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     base_url = get_base_crud_api_url()
     organisation_get_uuid_uri = base_url + "/Organization/ods_code/" + ods_code
 
+    api_key = get_api_key()
+
     try:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_028,
             ods_code=ods_code,
         )
-        response = make_request(organisation_get_uuid_uri, sign=True, fhir=True)
+        response = make_request(
+            organisation_get_uuid_uri, sign=True, fhir=True, api_key=api_key
+        )
         return (
             response.get("id", None)
             if isinstance(response, dict)
