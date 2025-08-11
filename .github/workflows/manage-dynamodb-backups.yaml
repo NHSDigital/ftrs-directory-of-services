@@ -1,0 +1,54 @@
+# This workflow manages DynamoDB backups by deleting old backups and creating new ones.
+name: Manage DynamoDB backups
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The relevant github environment (for secrets and variables)"
+        required: true
+        type: string
+      dynamodb_table_prefix:
+        description: "The name of the DynamoDB table to manage backups for"
+        required: true
+        type: string
+      commit_hash:
+        description: "The short form of git commit hash."
+        required: true
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+
+jobs:
+  manage_dynamodb_backups:
+    name: "Manage DynamoDB backups"
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install jq"
+        run: sudo apt-get install -y jq
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Manage backups"
+        id: "manage_backups"
+        shell: bash
+        run: |
+          export DYNAMO_PREFIX_NAME=${{ inputs.dynamodb_table_prefix }}
+          export COMMIT_HASH="${{ inputs.commit_hash }}"
+          /bin/bash ./scripts/workflow/manage-dynamodb-backups.sh
