@@ -31,7 +31,7 @@ def get_organization() -> Response:
         logger.warning(
             "Validation error occurred", extra={"validation_errors": exception.errors()}
         )
-        fhir_resource = error_util.create_resource_validation_error(exception)
+        fhir_resource = error_util.create_validation_error_operation_outcome(exception)
         return create_response(422, fhir_resource)
     except Exception:
         logger.exception("Internal server error occurred")
