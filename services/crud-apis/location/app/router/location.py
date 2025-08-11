@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, HTTPException, Path, Response
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Location
@@ -57,3 +57,34 @@ async def post_location(location: Location) -> JSONResponse:
             "location": location.model_dump(mode="json"),
         },
     )
+
+
+@router.delete("/{location_id}", summary="Delete a location by ID.")
+async def delete_location(
+    location_id: UUID = Path(
+        ...,
+        examples=["00000000-0000-0000-0000-11111111111"],
+        description="The UUID of the location to delete",
+    ),
+) -> Response:
+    location_service_logger.log(
+        CrudApisLogBase.LOCATION_008,
+        location_id=location_id,
+    )
+    location = location_repository.get(location_id)
+    if not location:
+        location_service_logger.log(
+            CrudApisLogBase.LOCATION_E001,
+            location_id=location_id,
+        )
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="Location not found",
+        )
+
+    location_repository.delete(location_id)
+    location_service_logger.log(
+        CrudApisLogBase.LOCATION_009,
+        location_id=location_id,
+    )
+    return Response(status_code=HTTPStatus.NO_CONTENT, content=None)
