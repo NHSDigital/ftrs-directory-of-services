@@ -373,6 +373,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="Request to {method} {url} failed: {error_message}.",
     )
+    ETL_UTILS_TEMP = LogReference(
+        level=WARNING,
+        message="ODS CODE: {ods_code} DATA: {data} UUID: {uuid}.",
+    )
     ETL_UTILS_005 = LogReference(
         level=INFO,
         message="Running in local environment, using LOCAL_API_KEY environment variable.",

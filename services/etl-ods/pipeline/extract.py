@@ -58,6 +58,12 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             ods_code=ods_code,
         )
         response = make_request(organisation_get_uuid_uri, sign=True, fhir=True)
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_029_TEMP,
+            ods_code=ods_code,
+            data=response,
+            uuid=organisation_get_uuid_uri,
+        )
         return (
             response.get("id", None)
             if isinstance(response, dict)
