@@ -102,7 +102,7 @@ resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_i
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
-  count                        = local.deploy_databases ? 1 : 0
+  count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = aws_security_group.dms_replication_security_group[0].id
   description                  = "Allow ingress on port ${var.rds_port} from DMS replication security group"
@@ -112,7 +112,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
-  count             = local.deploy_databases ? 1 : 0
+  count             = local.is_primary_environment ? 1 : 0
   security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description       = "Allow egress to internet on port 443"
   cidr_ipv4         = "0.0.0.0/0"
@@ -122,14 +122,14 @@ resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
 }
 
 resource "aws_security_group" "dms_replication_security_group" {
-  count       = local.deploy_databases ? 1 : 0
+  count       = local.is_primary_environment ? 1 : 0
   name        = "${local.resource_prefix}-etl-replication-sg"
   description = "Security group for DMS ETL replication instance"
   vpc_id      = data.aws_vpc.vpc.id
 }
 
 resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_from_rds" {
-  count                        = local.deploy_databases ? 1 : 0
+  count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.dms_replication_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description                  = "Allow ingress on port ${var.rds_port} from RDS security group"
@@ -139,7 +139,7 @@ resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_fr
 }
 
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_rds" {
-  count                        = local.deploy_databases ? 1 : 0
+  count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.dms_replication_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description                  = "Allow egress on port ${var.rds_port} to RDS security group"
@@ -149,7 +149,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
 }
 
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_internet" {
-  count             = local.deploy_databases ? 1 : 0
+  count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
   description       = "Allow egress to internet on all ports"
   cidr_ipv4         = "0.0.0.0/0"
@@ -160,7 +160,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_i
 
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  count       = local.deploy_databases ? 1 : 0
+  count       = local.is_primary_environment ? 1 : 0
   name        = "${local.resource_prefix}-${var.rds_event_listener_name}-sg"
   description = "Security group for RDS event listener lambda"
 
@@ -168,7 +168,7 @@ resource "aws_security_group" "rds_event_listener_lambda_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
-  count                        = local.deploy_databases ? 1 : 0
+  count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.rds_event_listener_lambda_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description                  = "Allow ingress on port 443 from RDS security group"
@@ -178,7 +178,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_to_internet" {
-  count             = local.deploy_databases ? 1 : 0
+  count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.rds_event_listener_lambda_security_group[0].id
   description       = "Allow egress to internet on port 443"
   cidr_ipv4         = "0.0.0.0/0"
@@ -189,7 +189,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_t
 
 resource "aws_security_group" "dms_db_setup_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  count       = local.deploy_databases ? 1 : 0
+  count       = local.is_primary_environment ? 1 : 0
   name        = "${local.resource_prefix}-${var.dms_db_lambda_name}-sg"
   description = "Security group for DMS DB Setup lambda"
 
@@ -197,7 +197,7 @@ resource "aws_security_group" "dms_db_setup_lambda_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "dms_db_setup_allow_ingress_to_lambda" {
-  count             = local.deploy_databases ? 1 : 0
+  count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
   description       = "Allow ingress on from anywhere on port 443"
   cidr_ipv4         = "0.0.0.0/0"
@@ -207,7 +207,7 @@ resource "aws_vpc_security_group_ingress_rule" "dms_db_setup_allow_ingress_to_la
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_setup" {
-  count                        = local.deploy_databases ? 1 : 0
+  count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
   description                  = "Allow ingress on port ${var.rds_port} from DMS DB Setup lambda security group"
@@ -217,7 +217,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_se
 }
 
 resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds" {
-  count                        = local.deploy_databases ? 1 : 0
+  count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.dms_db_setup_lambda_security_group[0].id
   description                  = "Allow egress to database on port 5432"
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
@@ -227,7 +227,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds"
 }
 
 resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_internet" {
-  count             = local.deploy_databases ? 1 : 0
+  count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
   description       = "Allow egress to database on port 443"
   cidr_ipv4         = "0.0.0.0/0"

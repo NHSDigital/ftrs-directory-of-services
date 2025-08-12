@@ -1,5 +1,5 @@
 resource "aws_iam_role" "rds_lambda_invoke_role" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
   name  = "${local.resource_prefix}-${var.rds_event_listener_name}-invoke-role"
 
   assume_role_policy = jsonencode({
@@ -15,7 +15,7 @@ resource "aws_iam_role" "rds_lambda_invoke_role" {
 }
 
 resource "aws_iam_role_policy" "rds_lambda_invoke_policy" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
   name  = "${local.resource_prefix}-${var.rds_event_listener_name}-invoke-policy"
   role  = aws_iam_role.rds_lambda_invoke_role[0].id
 
