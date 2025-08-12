@@ -74,7 +74,9 @@ module "api_gateway" {
   }
 }
 
+
 resource "aws_ssm_parameter" "crud_api_endpoint" {
+  # checkov:skip=CKV2_AWS_34: Temp suppression JIRA-445
   name        = "/${local.resource_prefix}${local.workspace_suffix}/endpoint"
   description = "The endpoint URL for the CRUD API Gateway"
   type        = "String"

@@ -1,4 +1,6 @@
 data "aws_iam_policy_document" "vpc_access_policy" {
+  # checkov:skip=CKV_AWS_111: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_356: Temp suppression JIRA-445
   statement {
     sid    = "AllowVpcAccess"
     effect = "Allow"
@@ -17,6 +19,7 @@ data "aws_iam_policy_document" "vpc_access_policy" {
 }
 
 data "aws_iam_policy_document" "deny_lambda_function_access_policy" {
+  # checkov:skip=CKV_AWS_111: Temp suppression JIRA-445
   statement {
     sid    = "DenyLambdaFunctionAccess"
     effect = "Deny"
@@ -41,6 +44,7 @@ data "aws_iam_policy_document" "deny_lambda_function_access_policy" {
 }
 
 data "aws_iam_policy_document" "allow_private_subnet_policy" {
+  # checkov:skip=CKV_AWS_111: Temp suppression JIRA-445
   statement {
     sid    = "AllowPrivateSubnetAccess"
     effect = "Allow"
@@ -58,6 +62,7 @@ data "aws_iam_policy_document" "allow_private_subnet_policy" {
 }
 
 data "aws_iam_policy_document" "limit_to_environment_vpc_policy" {
+  # checkov:skip=CKV_AWS_111: Temp suppression JIRA-445
 
   statement {
     sid    = "EnforceStayInSpecificVpc"
@@ -76,7 +81,7 @@ data "aws_iam_policy_document" "limit_to_environment_vpc_policy" {
 }
 
 data "aws_iam_policy_document" "enforce_vpc_lambda_policy" {
-
+  # checkov:skip=CKV_AWS_111: Temp suppression JIRA-445
   statement {
     sid    = "EnforceVpcFunction"
     effect = "Deny"

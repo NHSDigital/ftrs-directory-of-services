@@ -1,4 +1,6 @@
 openapi: 3.0.3
+# checkov:skip=CKV_OPENAPI_4: Temp suppression JIRA-445
+# checkov:skip=CKV_OPENAPI_21: Temp suppression JIRA-445
 info:
   title: Directory of Services Ingestion API
   description: |

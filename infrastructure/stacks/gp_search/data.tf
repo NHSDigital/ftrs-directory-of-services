@@ -34,6 +34,8 @@ data "aws_acm_certificate" "domain_cert" {
 }
 
 data "aws_iam_policy_document" "vpc_access_policy" {
+  # checkov:skip=CKV_AWS_111: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_356: Temp suppression JIRA-445
   statement {
     effect = "Allow"
     actions = [

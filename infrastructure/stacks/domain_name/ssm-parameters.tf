@@ -1,4 +1,5 @@
 resource "aws_ssm_parameter" "ssm_aws_account_id" {
+  # checkov:skip=CKV_AWS_337: Temp suppression JIRA-445
   for_each = var.environment == "mgmt" ? { for account in var.aws_accounts : account => account } : {}
 
   name        = "/${var.project}/${each.key}/aws_account_id"

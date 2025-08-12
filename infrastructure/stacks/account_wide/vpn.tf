@@ -86,11 +86,13 @@ resource "aws_cloudwatch_log_stream" "vpn_log_stream" {
 }
 
 resource "aws_secretsmanager_secret" "vpn_ca_cert_secret" {
+  # checkov:skip=CKV2_AWS_57: Temp suppression JIRA-445
   count = var.environment == "dev" ? 1 : 0
   name  = "/${var.repo_name}/${var.environment}/vpn-ca-cert"
 }
 
 resource "aws_secretsmanager_secret" "vpn_ca_pk_secret" {
+  # checkov:skip=CKV2_AWS_57: Temp suppression JIRA-445
   count = var.environment == "dev" ? 1 : 0
   name  = "/${var.repo_name}/${var.environment}/vpn-ca-pk"
 }

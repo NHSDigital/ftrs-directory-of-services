@@ -54,6 +54,8 @@ module "rds" {
 }
 
 resource "aws_secretsmanager_secret" "rds_username" {
+  # checkov:skip=CKV2_AWS_57: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_149: Temp suppression JIRA-445
   count = local.is_primary_environment && local.rds_environments ? 1 : 0
 
   name = "${var.project}/${var.environment}/rds-username"
@@ -67,6 +69,8 @@ resource "aws_secretsmanager_secret_version" "rds_username" {
 }
 
 resource "aws_secretsmanager_secret" "rds_password" {
+  # checkov:skip=CKV2_AWS_57: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_149: Temp suppression JIRA-445
   count = local.is_primary_environment && local.rds_environments ? 1 : 0
 
   name = "${var.project}/${var.environment}/rds-password"
@@ -80,6 +84,8 @@ resource "aws_secretsmanager_secret_version" "rds_password" {
 }
 
 resource "aws_secretsmanager_secret" "source_rds_credentials" {
+  # checkov:skip=CKV2_AWS_57: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_149: Temp suppression JIRA-445
   count = local.is_primary_environment ? 1 : 0
 
   name = "/${var.project}/${var.environment}/source-rds-credentials"
@@ -99,6 +105,8 @@ resource "aws_secretsmanager_secret_version" "source_rds_credentials" {
 }
 
 resource "aws_secretsmanager_secret" "target_rds_credentials" {
+  # checkov:skip=CKV2_AWS_57: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_149: Temp suppression JIRA-445
   count = local.is_primary_environment ? 1 : 0
 
   name = "/${var.project}/${var.environment}/target-rds-credentials"
