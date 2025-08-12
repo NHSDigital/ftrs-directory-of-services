@@ -131,8 +131,8 @@ module "rds_event_listener_lambda" {
   description        = "Lambda to listen for database events and send notifications"
   handler            = var.migration_copy_db_trigger
   runtime            = var.lambda_runtime
-  timeout            = var.load_lambda_connection_timeout
-  memory_size        = var.load_lambda_memory_size
+  timeout            = var.rds_event_listener_lambda_connection_timeout
+  memory_size        = var.rds_event_listener_lambda_memory_size
   s3_bucket_name     = local.artefacts_bucket
   s3_key             = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
@@ -165,8 +165,8 @@ module "dms_db_lambda" {
   description        = "Lambda to set up DMS target RDS instance"
   handler            = var.dms_db_lambda_trigger
   runtime            = var.lambda_runtime
-  timeout            = var.load_lambda_connection_timeout
-  memory_size        = var.load_lambda_memory_size
+  timeout            = var.dms_db_lambda_connection_timeout
+  memory_size        = var.dms_db_lambda_memory_size
   s3_bucket_name     = local.artefacts_bucket
   s3_key             = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
