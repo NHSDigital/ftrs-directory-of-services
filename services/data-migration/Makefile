@@ -10,6 +10,9 @@ WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 DMS_DB_LAMBDA_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-dms-db-setup
+FULL_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-etl-full-replication-task
+CDC_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-etl-cdc-replication-task
+WAIT_SECONDS ?= 30
 
 .PHONY: install lint test build
 
@@ -72,6 +75,18 @@ restore-from-s3: install
 	poetry run dos-etl restore-from-s3 --env $(ENVIRONMENT) --workspace $(WORKSPACE)
 
 pre-commit: lint
+
+invoke-replication-task:
+	aws dms start-replication-task \
+	--replication-task-arn $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
+	--start-replication-task-type start-replication
+	@echo "Full replication task invoked successfully."
+	aws dms start-replication-task \
+	--replication-task-arn $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(CDC_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
+	--start-replication-task-type start-replication
+	@echo "CDC replication task invoked successfully."
+	@echo "Waiting for $(WAIT_SECONDS) seconds after starting replication task..."
+	@sleep $(WAIT_SECONDS)
 
 invoke-lambda:
 	aws lambda invoke \
