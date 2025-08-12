@@ -1,0 +1,22 @@
+dynamodb-to-opensearch:
+  source:
+    dynamodb:
+      tables:
+        - table_arn: ""
+          stream:
+            start_position: "LATEST"
+      aws:
+        region: "eu-west-1"
+  sink:
+    - opensearch:
+        hosts: ["http://opensearch:9200"]
+        index: "ftrs-organisation"
+        index_type: custom
+        document_id: "${getMetadata(\"primary_key\")}"
+        action: "${getMetadata(\"opensearch_action\")}"
+        username: "admin"
+        password: "admin"
+        insecure: true
+        max_retries: 10
+        socket_timeout: 30000
+        connect_timeout: 30000
