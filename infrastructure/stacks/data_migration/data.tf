@@ -180,7 +180,7 @@ data "aws_iam_policy_document" "rds_connect_policy" {
       "rds-db:connect"
     ]
     resources = [
-      "arn:aws:rds-db:${var.aws_region}:${local.account_id}:dbuser:${module.rds_replication_target_db.cluster_id}/${aws_secretsmanager_secret_version.rds_username[0].secret_string}"
+      "arn:aws:rds-db:${var.aws_region}:${local.account_id}:dbuser:${module.rds_replication_target_db[0].cluster_id}/${aws_secretsmanager_secret_version.rds_username[0].secret_string}"
     ]
   }
 }
