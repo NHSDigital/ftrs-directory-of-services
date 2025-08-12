@@ -15,7 +15,7 @@ resource "random_password" "rds_password" {
 }
 
 resource "aws_rds_cluster_parameter_group" "rds_pglogical_parameter_group" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   name        = "${local.resource_prefix}-rds-pglogical"
   family      = "aurora-postgresql16"
@@ -166,7 +166,7 @@ resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
 }
 ## DMS Replication Instance
 module "rds_replication_target_db" {
-  count  = local.deploy_databases ? 1 : 0
+  count  = local.is_primary_environment ? 1 : 0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=592cb15809bde8eed2a641ba5971ec665c9b4397"
 
   name           = "${local.resource_prefix}-rds-etl-target"
@@ -205,7 +205,7 @@ module "rds_replication_target_db" {
 }
 
 resource "aws_rds_cluster_role_association" "rds_associate_lambda_role" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   db_cluster_identifier = module.rds_replication_target_db[0].cluster_id
   role_arn              = aws_iam_role.rds_lambda_invoke_role[0].arn

@@ -125,7 +125,7 @@ module "queue_populator_lambda" {
 }
 
 module "rds_event_listener_lambda" {
-  count              = local.deploy_databases ? 1 : 0
+  count              = local.is_primary_environment ? 1 : 0
   source             = "../../modules/lambda"
   function_name      = "${local.resource_prefix}-${var.rds_event_listener_name}"
   description        = "Lambda to listen for database events and send notifications"
@@ -155,11 +155,11 @@ module "rds_event_listener_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
-  depends_on = [aws_sqs_queue.rds_event_listener]
+  depends_on = [aws_sqs_queue.dms_event_queue]
 }
 
 module "dms_db_lambda" {
-  count              = local.deploy_databases ? 1 : 0
+  count              = local.is_primary_environment ? 1 : 0
   source             = "../../modules/lambda"
   function_name      = "${local.resource_prefix}-${var.dms_db_lambda_name}"
   description        = "Lambda to set up DMS target RDS instance"
@@ -194,5 +194,5 @@ module "dms_db_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
-  depends_on = [aws_sqs_queue.rds_event_listener]
+  depends_on = [aws_sqs_queue.dms_event_queue]
 }

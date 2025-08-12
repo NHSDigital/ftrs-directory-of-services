@@ -1,5 +1,5 @@
 resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   replication_subnet_group_id          = "${local.resource_prefix}-etl-replication-subnet-group"
   replication_subnet_group_description = "Subnet group for DMS ETL replication instance"
@@ -7,7 +7,7 @@ resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
 }
 
 resource "aws_dms_replication_instance" "dms_replication_instance" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   replication_instance_id     = "${local.resource_prefix}-etl-replication-instance"
   replication_instance_class  = var.dms_replication_instance_class
@@ -19,7 +19,7 @@ resource "aws_dms_replication_instance" "dms_replication_instance" {
 }
 
 resource "aws_dms_endpoint" "dms_source_endpoint" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   endpoint_id   = "${local.resource_prefix}-etl-source"
   endpoint_type = "source"
@@ -32,7 +32,7 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
 }
 
 resource "aws_dms_endpoint" "dms_target_endpoint" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   endpoint_id   = "${local.resource_prefix}-etl-target"
   endpoint_type = "target"
@@ -45,7 +45,7 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
 }
 
 resource "aws_dms_replication_task" "dms_full_replication_task" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   replication_task_id      = "${local.resource_prefix}-etl-full-replication-task"
   migration_type           = var.full_migration_type
@@ -67,7 +67,7 @@ resource "aws_dms_replication_task" "dms_full_replication_task" {
 }
 
 resource "aws_dms_replication_task" "dms_cdc_replication_task" {
-  count = local.deploy_databases ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   replication_task_id      = "${local.resource_prefix}-etl-cdc-replication-task"
   migration_type           = var.cdc_migration_type
