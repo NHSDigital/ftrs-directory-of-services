@@ -170,6 +170,13 @@ def make_request(
         }
     )
 
+    ods_utils_logger.log(
+        OdsETLPipelineLogBase.ETL_UTILS_TEMP,
+        ods_code="WIPPPP2",
+        data=headers,
+        uuid=url,
+    )
+
     try:
         response = requests.request(
             url=url,
