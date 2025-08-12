@@ -64,12 +64,6 @@ resource "aws_dms_replication_task" "dms_full_replication_task" {
     },
     StopTaskCachedChangesApplied = true
   })
-
-  timeouts {
-    create = "30m"
-    update = "30m"
-    delete = "15m"
-  }
 }
 
 resource "aws_dms_replication_task" "dms_cdc_replication_task" {
@@ -91,10 +85,4 @@ resource "aws_dms_replication_task" "dms_cdc_replication_task" {
       EnableLogging = var.dms_task_logging_enabled
     }
   })
-
-  timeouts {
-    create = "30m"
-    update = "30m"
-    delete = "15m"
-  }
 }
