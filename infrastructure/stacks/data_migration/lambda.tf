@@ -176,7 +176,7 @@ module "dms_db_lambda" {
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy_for_dms.json,
     data.aws_iam_policy_document.lambda_rds_policy.json,
-    data.aws_iam_policy_document.rds_connect_policy
+    data.aws_iam_policy_document.rds_connect_policy.json,
   ]
 
   environment_variables = {
