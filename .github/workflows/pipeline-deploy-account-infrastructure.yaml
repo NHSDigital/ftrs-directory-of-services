@@ -56,6 +56,9 @@ jobs:
 
   plan-infrastructure:
     name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+    concurrency:
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+      cancel-in-progress: false
     needs:
       - metadata
       - quality-checks
@@ -96,6 +99,9 @@ jobs:
 
   apply-infrastructure:
     name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+    concurrency:
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+      cancel-in-progress: false
     if: github.ref == 'refs/heads/main'
     needs:
       - metadata

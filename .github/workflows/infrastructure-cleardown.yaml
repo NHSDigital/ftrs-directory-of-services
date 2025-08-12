@@ -73,7 +73,7 @@ jobs:
     steps:
       - name: "Checkout code"
         if: ${{ matrix.stack == 'opensearch' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag }}
 
@@ -105,7 +105,7 @@ jobs:
       - destroy-application-infrastructure
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag }}
 
@@ -134,7 +134,7 @@ jobs:
       - delete-tf-state
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag }}
 

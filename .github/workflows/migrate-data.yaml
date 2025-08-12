@@ -1,0 +1,61 @@
+# This workflow runs the ETL process and monitors the queue for events.
+name: Migrate data to dynamodb
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The relevant github environment (for secrets and variables)"
+        required: true
+        type: string
+      function_name:
+        description: "The name of the AWS Lambda function to trigger data migration"
+        required: true
+        type: string
+      queue_name:
+        description: "The name of the AWS SQS to poll for data migration events"
+        required: true
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+
+jobs:
+  migrate-data-via-etl:
+    name: "Run ETL process in ${{ inputs.environment }}"
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v5
+
+      - name: "Install jq"
+        run: sudo apt-get install -y jq
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Run ETL process for data migration"
+        id: "trigger_migration"
+        shell: bash
+        run: |
+          export FUNCTION_NAME=${{ inputs.function_name }}
+          /bin/bash ./scripts/workflow/trigger-data-migration-lambda.sh
+
+      - name: "Poll data migration queue"
+        id: "poll_data_migration_queue"
+        shell: bash
+        run: |
+          export ENV="${{ inputs.environment }}"
+          export QUEUE_NAME=${{ inputs.queue_name }}
+          /bin/bash ./scripts/workflow/poll-data-migration-queue.sh

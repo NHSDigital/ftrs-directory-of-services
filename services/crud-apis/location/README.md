@@ -117,3 +117,15 @@ The API routing happens at the API gateway level, routing will happen for the /l
 **Responses**:
  201 Created: Returns the created location.
  422 Unprocessable entities: Invalid request body.
+
+### Delete Location
+
+**Endpoint**: DELETE /{location_id}
+
+**Description**: Deletes a location with given ID.
+
+**Path Parameters**: location_id (UUID): The ID of the location.
+
+**Responses**:
+ 204 No Content: Request fulfilled, nothing follows.
+ 404 Not Found: Location not found.
