@@ -199,3 +199,23 @@ variable "dms_replication_instance_auto_minor_version_upgrade" {
   type        = bool
   default     = true
 }
+
+variable "rds_event_listener_lambda_connection_timeout" {
+  description = "The connection timeout for the RDS event listener Lambda function"
+  type        = number
+}
+
+variable "rds_event_listener_lambda_memory_size" {
+  description = "The memory size for the RDS event listener Lambda function"
+  type        = number
+}
+
+variable "dms_db_lambda_connection_timeout" {
+  description = "The connection timeout for the DMS DB setup Lambda function"
+  type        = number
+}
+
+variable "dms_db_lambda_memory_size" {
+  description = "The memory size for the DMS DB setup Lambda function"
+  type        = number
+}
