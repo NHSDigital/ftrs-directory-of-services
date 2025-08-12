@@ -182,7 +182,6 @@ jobs:
       - name: "Checkov scan"
         id: "checkov"
         uses: bridgecrewio/checkov-action@v12
-        continue-on-error: true
         with:
           quiet: true
           soft_fail: false
