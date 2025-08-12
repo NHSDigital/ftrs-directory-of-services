@@ -10,8 +10,8 @@ WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 DMS_DB_LAMBDA_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-dms-db-setup
-FULL_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-etl-full-replication-task
-CDC_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-etl-cdc-replication-task
+FULL_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-etl-full-replication-task
+CDC_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-etl-cdc-replication-task
 WAIT_SECONDS ?= 30
 
 .PHONY: install lint test build
