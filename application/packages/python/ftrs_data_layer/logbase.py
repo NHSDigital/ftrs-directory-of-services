@@ -317,6 +317,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Fetching organisation uuid for ods code {ods_code}.",
     )
+    ETL_PROCESSOR_029_TEMP = LogReference(
+        level=INFO,
+        message="ODS CODE: {ods_code} DATA: {data} UUID: {uuid}.",
+    )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
         message="Received event for ODS ETL consumer lambda.",
