@@ -40,7 +40,7 @@ def get_org_by_ods_code(
     try:
         records = org_repository.get_by_ods_code(ods_code)
         crud_organisation_logger.log(
-            CrudApisLogBase.ETL_PROCESSOR_029_TEMP,
+            CrudApisLogBase.ORGANISATION_021,
             ods_code=ods_code,
             data=records,
             uuid="record at router",
