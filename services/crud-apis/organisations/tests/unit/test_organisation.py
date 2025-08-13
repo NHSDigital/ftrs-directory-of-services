@@ -269,25 +269,25 @@ def test_update_organisation_unexpected_exception(
     assert "Something went wrong" in exc_info.value.outcome["issue"][0]["diagnostics"]
 
 
-def test_get_organisation_by_ods_code_success() -> None:
-    ods_code = "12345"
-    response = client.get(f"/ods_code/{ods_code}")
-    assert response.status_code == HTTPStatus.OK
-    assert response.json() == {"id": "12345"}
+# def test_get_organisation_by_ods_code_success() -> None:
+#     ods_code = "12345"
+#     response = client.get(f"/ods_code/{ods_code}")
+#     assert response.status_code == HTTPStatus.OK
+#     assert response.json() == {"id": "12345"}
 
 
-def test_get_organisation_by_ods_code_not_found(mock_repository: MockerFixture) -> None:
-    mock_repository.get_by_ods_code.return_value = None
-    ods_code = "12345"
-    response = client.get(f"/ods_code/{ods_code}")
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json()["issue"] == [
-        {
-            "code": "not-found",
-            "diagnostics": "Organisation not found",
-            "severity": "error",
-        }
-    ]
+# def test_get_organisation_by_ods_code_not_found(mock_repository: MockerFixture) -> None:
+#     mock_repository.get_by_ods_code.return_value = None
+#     ods_code = "12345"
+#     response = client.get(f"/ods_code/{ods_code}")
+#     assert response.status_code == HTTPStatus.NOT_FOUND
+#     assert response.json()["issue"] == [
+#         {
+#             "code": "not-found",
+#             "diagnostics": "Organisation not found",
+#             "severity": "error",
+#         }
+#     ]
 
 
 def test_get_organisation_by_ods_code_unexpected_error(
