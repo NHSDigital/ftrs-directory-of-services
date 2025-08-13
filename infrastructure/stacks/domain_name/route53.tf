@@ -1,13 +1,13 @@
 resource "aws_route53_zone" "root_zone" {
-  # checkov:skip=CKV2_AWS_38: Temp suppression JIRA-445
-  # checkov:skip=CKV2_AWS_39: Temp suppression JIRA-445
+  # checkov:skip=CKV2_AWS_38: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-409
+  # checkov:skip=CKV2_AWS_39: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-409
   count = var.environment == "mgmt" ? 1 : 0
   name  = var.root_domain_name
 }
 
 resource "aws_route53_zone" "environment_zone" {
-  # checkov:skip=CKV2_AWS_38: Temp suppression JIRA-445
-  # checkov:skip=CKV2_AWS_39: Temp suppression JIRA-445
+  # checkov:skip=CKV2_AWS_38: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-409
+  # checkov:skip=CKV2_AWS_39: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-409
   count = var.environment == "mgmt" ? 0 : 1
   name  = local.root_domain_name
 }

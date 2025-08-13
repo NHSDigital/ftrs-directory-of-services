@@ -32,7 +32,7 @@ module "frontend_lambda" {
 }
 
 resource "aws_lambda_function_url" "frontend_lambda_url" {
-  # checkov:skip=CKV_AWS_258: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_258: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-543
   function_name      = module.frontend_lambda.lambda_function_name
   authorization_type = "NONE"
 }

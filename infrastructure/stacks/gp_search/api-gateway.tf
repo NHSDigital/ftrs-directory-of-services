@@ -20,10 +20,10 @@ resource "aws_api_gateway_deployment" "deployment" {
 }
 
 resource "aws_api_gateway_stage" "stage" {
-  # checkov:skip=CKV_AWS_76: Temp suppression JIRA-445
-  # checkov:skip=CKV_AWS_120: Temp suppression JIRA-445
-  # checkov:skip=CKV2_AWS_4: Temp suppression JIRA-445
-  # checkov:skip=CKV2_AWS_51: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_76: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
+  # checkov:skip=CKV_AWS_120: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
+  # checkov:skip=CKV2_AWS_4: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
+  # checkov:skip=CKV2_AWS_51: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
   depends_on           = [aws_cloudwatch_log_group.api_gateway_execution_logs]
   deployment_id        = aws_api_gateway_deployment.deployment.id
   rest_api_id          = module.search_rest_api.rest_api_id
@@ -32,8 +32,8 @@ resource "aws_api_gateway_stage" "stage" {
 }
 
 resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
-  # checkov:skip=CKV_AWS_158: Temp suppression JIRA-445
-  # checkov:skip=CKV_AWS_338: Temp suppression JIRA-445
+  # checkov:skip=CKV_AWS_158: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-404
+  # checkov:skip=CKV_AWS_338: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-404
   name              = "/aws/apigateway/${local.resource_prefix}-api-gateway-execution-logs${local.workspace_suffix}/default"
   retention_in_days = var.retention_in_days
 }

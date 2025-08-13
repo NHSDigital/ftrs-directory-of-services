@@ -1,4 +1,4 @@
 FROM postgres:16.7
-# checkov:skip=CKV_DOCKER_2: Temp suppression JIRA-445
-# checkov:skip=CKV_DOCKER_3: Temp suppression JIRA-445
+# checkov:skip=CKV_DOCKER_2: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-410
+# checkov:skip=CKV_DOCKER_3: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-410
 # Setup Extensions/users here
