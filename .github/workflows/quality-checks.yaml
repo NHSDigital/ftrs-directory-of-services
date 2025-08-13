@@ -197,7 +197,6 @@ jobs:
           if-no-files-found: ignore
 
       - name : "Warn Checkov failure"
-        # if: ${{ steps.checkov.outcome == 'failure' }}
         if: failure()
         run: echo "::warning::Checkov has encountered issues. Please check the checkov.sarif file for the issues identified"
 
