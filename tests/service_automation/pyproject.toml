@@ -26,6 +26,7 @@ dependencies = [
     "pytest-playwright>=0.7.0",
     "pyyaml>=6.0.2",
     "python.dotenv>=1.1.1",
+    "requests>=2.32.4",
 ]
 
 [build-system]

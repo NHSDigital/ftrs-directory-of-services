@@ -564,6 +564,22 @@ class CrudApisLogBase(LogBase):
         level=INFO,
         message="Retrieving all locations",
     )
+    LOCATION_008 = LogReference(
+        level=INFO,
+        message="Received request to delete location with ID: {location_id}.",
+    )
+    LOCATION_009 = LogReference(
+        level=INFO,
+        message="Successfully deleted location with ID: {location_id}.",
+    )
+    LOCATION_010 = LogReference(
+        level=INFO,
+        message="Received request to update location with ID: {location_id}.",
+    )
+    LOCATION_011 = LogReference(
+        level=INFO,
+        message="Successfully updated location {location_id}.",
+    )
     LOCATION_E001 = LogReference(
         level=ERROR,
         message="Location with ID {location_id} not found",

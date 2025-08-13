@@ -48,6 +48,12 @@ def mock_location_service(mocker: MockerFixture) -> MockerFixture:
     return service_mock
 
 
+@pytest.fixture()
+def mock_repository(mocker: MockerFixture) -> MockerFixture:
+    repository_mock = mocker.patch("location.app.router.location.location_repository")
+    return repository_mock
+
+
 client = TestClient(router)
 
 
@@ -141,3 +147,91 @@ def test_get_location_by_id_500_error(mock_location_service: MockerFixture) -> N
         client.get(f"/{test_location_id}")
     assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert exc_info.value.detail == "Internal Server Error"
+
+
+def test_delete_location_success(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = get_mock_location()
+    mock_repository.delete.return_value = None
+    response = client.delete(f"/{test_location_id}")
+    assert response.status_code == HTTPStatus.NO_CONTENT
+    mock_repository.delete.assert_called_once_with(test_location_id)
+
+
+def test_delete_healthcare_service_not_found(mock_repository: MockerFixture) -> None:
+    mock_repository.get.return_value = None
+    with pytest.raises(HTTPException) as exc_info:
+        client.delete(f"/{test_location_id}")
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+    assert exc_info.value.detail == "Location not found"
+
+
+def test_update_location_success(mock_repository: MockerFixture) -> None:
+    mock_repository.update.return_value = None
+    update_payload = {
+        "id": str(test_location_id),
+        "active": True,
+        "address": {
+            "street": "123 Main St",
+            "town": "Test Town",
+            "postcode": "AB12 3CD",
+        },
+        "createdBy": "test_user",
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "managingOrganisation": "96602abd-f265-4803-b4fb-413692279b5c",
+        "modifiedBy": "test_user",
+        "modifiedDateTime": "2023-10-01T00:00:00Z",
+        "name": "Test Location",
+        "positionGCS": {"latitude": "51.5074", "longitude": "-0.1278"},
+        "positionReferenceNumber_UPRN": 1234567890,
+        "positionReferenceNumber_UBRN": 9876543210,
+        "primaryAddress": True,
+        "partOf": None,
+    }
+
+    response = client.put(f"/{test_location_id}", json=update_payload)
+    assert response.status_code == HTTPStatus.OK
+
+    assert response.json()["message"] == "Location updated successfully"
+    assert response.json()["location"] == update_payload
+
+
+def test_update_location_not_found(mock_repository: MockerFixture) -> None:
+    mock_repository.update.side_effect = HTTPException(
+        status_code=HTTPStatus.NOT_FOUND, detail="Location not found"
+    )
+
+    update_payload = {
+        "active": True,
+        "address": {
+            "street": "123 Main St",
+            "town": "Test Town",
+            "postcode": "AB12 3CD",
+        },
+        "createdBy": "test_user",
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "managingOrganisation": "96602abd-f265-4803-b4fb-413692279b5c",
+        "modifiedBy": "test_user",
+        "modifiedDateTime": "2023-10-01T00:00:00Z",
+        "name": "Test Location",
+        "positionGCS": {"latitude": "51.5074", "longitude": "-0.1278"},
+        "positionReferenceNumber_UPRN": 1234567890,
+        "positionReferenceNumber_UBRN": 9876543210,
+        "primaryAddress": True,
+        "partOf": None,
+    }
+
+    with pytest.raises(HTTPException) as exc_info:
+        client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json=update_payload)
+    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+    assert exc_info.value.detail == "Location not found"
+
+
+def test_update_location_invalid_request_body() -> None:
+    invalid_payload = {
+        "name": "Test Update Location",
+    }
+
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.put(f"/{test_location_id}", json=invalid_payload)
+    assert exc_info.type == RequestValidationError
+    assert "Field required" in exc_info.value.errors()[0]["msg"]
