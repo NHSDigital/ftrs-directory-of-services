@@ -47,3 +47,4 @@ rds_event_listener_lambda_connection_timeout = 300
 rds_event_listener_lambda_memory_size        = 1024
 dms_db_lambda_connection_timeout             = 300
 dms_db_lambda_memory_size                    = 1024
+full_migration_completion_event_queue_name   = "full-migration-completion-event"

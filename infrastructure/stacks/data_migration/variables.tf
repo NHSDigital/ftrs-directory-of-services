@@ -219,3 +219,8 @@ variable "dms_db_lambda_memory_size" {
   description = "The memory size for the DMS DB setup Lambda function"
   type        = number
 }
+
+variable "full_migration_completion_event_queue_name" {
+  description = "The name of the SQS queue for full migration completion events"
+  type        = string
+}
