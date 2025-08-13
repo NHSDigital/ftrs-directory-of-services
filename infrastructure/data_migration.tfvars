@@ -34,7 +34,7 @@ aws_lambda_layers = [
 ]
 
 data_migration_rds_min_capacity = 1
-data_migration_rds_max_capacity = 5
+data_migration_rds_max_capacity = 10
 
 rds_event_listener_name                      = "rds-event-listener"
 schema_name                                  = "pathwaysdos"
