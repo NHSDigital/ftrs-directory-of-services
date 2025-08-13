@@ -62,6 +62,9 @@ resource "aws_dms_replication_task" "dms_full_replication_task" {
     Logging = {
       EnableLogging = var.dms_task_logging_enabled
     },
+    FullLoadSettings = {
+      TargetTablePrepMode = "DROP_AND_CREATE"
+    },
     StopTaskCachedChangesApplied = true
   })
 }
