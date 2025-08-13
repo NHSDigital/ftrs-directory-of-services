@@ -30,3 +30,33 @@ resource "aws_sqs_queue_policy" "dms_event_queue_policy" {
     ]
   })
 }
+
+resource "aws_sqs_queue" "eventbridge_event_full_migration_completion_dlq" {
+  count = local.is_primary_environment ? 1 : 0
+
+  name                    = "${local.resource_prefix}-${var.full_migration_completion_event_queue_name}-dlq"
+  sqs_managed_sse_enabled = true
+}
+
+resource "aws_sqs_queue_policy" "eventbridge_event_full_migration_completion_dlq_policy" {
+  queue_url = aws_sqs_queue.eventbridge_event_full_migration_completion_dlq.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "events.amazonaws.com"
+        },
+        Action   = ["sqs:SendMessage"],
+        Resource = aws_sqs_queue.eventbridge_event_full_migration_completion_dlq.arn,
+        Condition = {
+          ArnEquals = {
+            "aws:SourceArn" = aws_cloudwatch_event_rule.dms_full_replication_task_completed[0].arn
+          }
+        }
+      }
+    ]
+  })
+}
