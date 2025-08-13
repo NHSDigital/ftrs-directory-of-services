@@ -5,6 +5,8 @@ resource "aws_api_gateway_resource" "search_resource" {
 }
 
 resource "aws_api_gateway_method" "search_get" {
+  # checkov:skip=CKV_AWS_59: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
+  # checkov:skip=CKV2_AWS_53: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
   authorization = "NONE"
   http_method   = "GET"
   resource_id   = aws_api_gateway_resource.search_resource.id
