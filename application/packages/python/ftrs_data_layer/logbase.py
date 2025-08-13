@@ -476,6 +476,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Unable to retrieve any organisations.",
     )
+    ORGANISATION_021 = LogReference(
+        level=INFO,
+        message="ODS CODE: {ods_code} DATA: {data} UUID: {uuid}.",
+    )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
         message="Received request to create healthcare service with name: {name} and type: {type}.",
