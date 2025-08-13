@@ -55,6 +55,23 @@ dynamodb_tables = {
       }
     ]
   }
+  "triage-code" = {
+    hash_key  = "id"
+    range_key = "field"
+    attributes = [
+      { name = "id", type = "S" },
+      { name = "field", type = "S" },
+      { name = "codeType", type = "S" },
+    ]
+    global_secondary_indexes = [
+      {
+        name            = "CodeTypeIndex"
+        hash_key        = "codeType"
+        range_key       = "id"
+        projection_type = "ALL"
+      }
+    ]
+  }
 }
 
 team_owner = "future-directory"
