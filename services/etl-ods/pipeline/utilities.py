@@ -151,13 +151,6 @@ def make_request(
     json_data = kwargs.get("json")
     json_string = json.dumps(json_data) if json_data is not None else None
 
-    ods_utils_logger.log(
-        OdsETLPipelineLogBase.ETL_UTILS_TEMP,
-        ods_code="WIPPPP",
-        data=json_data,
-        uuid=url,
-    )
-
     headers = build_headers(
         {
             "json_data": json_data,
@@ -168,13 +161,6 @@ def make_request(
             "method": method,
             "api_key": api_key,
         }
-    )
-
-    ods_utils_logger.log(
-        OdsETLPipelineLogBase.ETL_UTILS_TEMP,
-        ods_code="WIPPPP2",
-        data=headers,
-        uuid=url,
     )
 
     try:

@@ -317,10 +317,6 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Fetching organisation uuid for ods code {ods_code}.",
     )
-    ETL_PROCESSOR_029_TEMP = LogReference(
-        level=INFO,
-        message="ODS CODE: {ods_code} DATA: {data} UUID: {uuid}.",
-    )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
         message="Received event for ODS ETL consumer lambda.",
@@ -372,10 +368,6 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_UTILS_004 = LogReference(
         level=WARNING,
         message="Request to {method} {url} failed: {error_message}.",
-    )
-    ETL_UTILS_TEMP = LogReference(
-        level=WARNING,
-        message="ODS CODE: {ods_code} DATA: {data} UUID: {uuid}.",
     )
     ETL_UTILS_005 = LogReference(
         level=INFO,
@@ -475,10 +467,6 @@ class CrudApisLogBase(LogBase):
     ORGANISATION_020 = LogReference(
         level=ERROR,
         message="Unable to retrieve any organisations.",
-    )
-    ORGANISATION_021 = LogReference(
-        level=INFO,
-        message="ODS CODE: {ods_code} DATA: {data} UUID: {uuid}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,

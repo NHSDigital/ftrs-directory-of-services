@@ -90,8 +90,6 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
         )
 
     def get_by_ods_code(self, ods_code: str) -> list[str]:
-        # records = self._get_records_by_ods_code(ods_code)
-        # return [record.id for record in records]
         return self._get_records_by_ods_code(ods_code)
 
     def get_first_record_by_ods_code(self, ods_code: str) -> ModelType | None:
@@ -105,5 +103,5 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
             value=ods_code,
             IndexName="OdsCodeValueIndex",
         )
-        # return records
+
         return list(records)

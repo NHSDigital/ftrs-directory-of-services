@@ -324,68 +324,68 @@ def test_iter_records_no_results() -> None:
     repo.table.scan.assert_called_once_with(Limit=100, ReturnConsumedCapacity="INDEXES")
 
 
-# def test_doc_upsert() -> None:
-#     """
-#     Test the upsert method of the DocumentLevelRepository.
-#     """
-#     repo = AttributeLevelRepository(
-#         table_name="test_table",
-#         model_cls=MockModel,
-#     )
-#     obj = MockModel(id="1", name="Test")
+def test_doc_upsert() -> None:
+    """
+    Test the upsert method of the DocumentLevelRepository.
+    """
+    repo = AttributeLevelRepository(
+        table_name="test_table",
+        model_cls=MockModel,
+    )
+    obj = MockModel(id="1", name="Test")
 
-#     # Mock the put_item method
-#     repo.table.put_item = MagicMock(
-#         return_value={
-#             "ResponseMetadata": {
-#                 "HTTPStatusCode": 200,
-#             },
-#             "ConsumedCapacity": {
-#                 "TableName": "test_table",
-#                 "CapacityUnits": 1,
-#             },
-#         }
-#     )
+    # Mock the put_item method
+    repo.table.put_item = MagicMock(
+        return_value={
+            "ResponseMetadata": {
+                "HTTPStatusCode": 200,
+            },
+            "ConsumedCapacity": {
+                "TableName": "test_table",
+                "CapacityUnits": 1,
+            },
+        }
+    )
 
-#     # Call the upsert method
-#     repo.upsert(obj)
-#     repo.table.put_item.assert_called_once_with(
-#         Item={
-#             "id": "1",
-#             "field": "document",
-#             "name": "Test",
-#         },
-#         ReturnConsumedCapacity="INDEXES",
-#     )
+    # Call the upsert method
+    repo.upsert(obj)
+    repo.table.put_item.assert_called_once_with(
+        Item={
+            "id": "1",
+            "field": "document",
+            "name": "Test",
+        },
+        ReturnConsumedCapacity="INDEXES",
+    )
 
 
-# def test_get_by_ods_code() -> None:
-#     """
-#     Test the get_by_ods_code method of the DocumentLevelRepository.
-#     """
-#     repo = AttributeLevelRepository(
-#         table_name="test_table",
-#         model_cls=MockModel,
-#     )
-#     ods_code = "A12345"
+def test_get_by_ods_code() -> None:
+    """
+    Test the get_by_ods_code method of the DocumentLevelRepository.
+    """
+    repo = AttributeLevelRepository(
+        table_name="test_table",
+        model_cls=MockModel,
+    )
+    ods_code = "A12345"
 
-#     # Mock the query method
-#     repo.table.query = MagicMock(
-#         return_value={
-#             "Items": [
-#                 {"id": "1", "field": "document", "name": "Test1"},
-#             ]
-#         }
-#     )
+    # Mock the query method
+    repo.table.query = MagicMock(
+        return_value={
+            "Items": [
+                {"id": "1", "field": "document", "name": "Test1"},
+            ]
+        }
+    )
 
-#     # Call the get_by_ods_code method
-#     result = repo.get_by_ods_code(ods_code)
+    # Call the get_by_ods_code method
+    result = repo.get_by_ods_code(ods_code)
 
-#     assert result == [MockModel(id="1", name="Test1")]
+    assert result == [MockModel(id="1", name="Test1")]
 
-#     repo.table.query.assert_called_once_with(
-#         IndexName="OdsCodeValueIndex",
-#         KeyConditionExpression="identifier_ODS_ODSCode = :identifier_ODS_ODSCode",
-#         ExpressionAttributeValues={":identifier_ODS_ODSCode": ods_code},
-#         ReturnConsumedCapacity="INDEXES",
-#     )
+    repo.table.query.assert_called_once_with(
+        IndexName="OdsCodeValueIndex",
+        KeyConditionExpression="identifier_ODS_ODSCode = :identifier_ODS_ODSCode",
+        ExpressionAttributeValues={":identifier_ODS_ODSCode": ods_code},
+        ReturnConsumedCapacity="INDEXES",
+    )
