@@ -130,9 +130,12 @@ class DataMigrationProcessor:
                 DataMigrationLogBase.DM_ETL_007,
                 elapsed_time=elapsed_time,
                 transformer_name=transformer.__class__.__name__,
-                healthcare_service_id=result.healthcare_service.id,
-                organisation_id=result.organisation.id,
-                location_id=result.location.id,
+                healthcare_service_count=len(result.healthcare_service),
+                location_count=len(result.location),
+                organisation_count=len(result.organisation),
+                healthcare_service_ids=[hs.id for hs in result.healthcare_service],
+                location_ids=[loc.id for loc in result.location],
+                organisation_ids=[org.id for org in result.organisation],
             )
 
         except Exception as e:
@@ -183,9 +186,14 @@ class DataMigrationProcessor:
         location_repo = self.get_repository("location", Location)
         service_repo = self.get_repository("healthcare-service", HealthcareService)
 
-        org_repo.upsert(result.organisation)
-        location_repo.upsert(result.location)
-        service_repo.upsert(result.healthcare_service)
+        for org in result.organisation:
+            org_repo.upsert(org)
+
+        for loc in result.location:
+            location_repo.upsert(loc)
+
+        for hc in result.healthcare_service:
+            service_repo.upsert(hc)
 
     # TODO: Remove this method and use the common function once merged by IS
     def get_repository(
