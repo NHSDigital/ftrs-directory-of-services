@@ -40,7 +40,7 @@ def get_org_by_ods_code(
     try:
         records = org_repository.get_by_ods_code(ods_code)
         crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_021,
+            CrudApisLogBase.ETL_PROCESSOR_029_TEMP,
             ods_code=ods_code,
             data=records,
             uuid="record at router",
@@ -61,7 +61,7 @@ def get_org_by_ods_code(
             )
         return JSONResponse(
             status_code=200,
-            content={"id": records[0].id},
+            content={"id": str(records[0].id)},
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:
