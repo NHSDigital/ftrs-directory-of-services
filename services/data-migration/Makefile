@@ -77,11 +77,19 @@ restore-from-s3: install
 pre-commit: lint
 
 invoke-replication-task:
-	aws dms start-replication-task \
-	--replication-task-arn $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
-	--start-replication-task-type start-replication
-	@echo "Full replication task invoked successfully."
-	@echo "Waiting for $(WAIT_SECONDS) seconds after starting replication task..."
+	@echo "Checking status of replication task $(FULL_REPLICATION_TASK_NAME)..."
+	$(eval TASK_STATUS := $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].Status | [0]" --output text))
+	@echo "Current task status: $(TASK_STATUS)"
+	@if [ "$(TASK_STATUS)" = "ready" ]; then \
+		echo "Starting replication task with start-replication..."; \
+		aws dms start-replication-task \
+		--replication-task-arn $$(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
+		--start-replication-task-type start-replication; \
+	else \
+		echo "Task is currently in status $(TASK_STATUS), which is not 'ready'. Skipping start-replication."; \
+	fi
+	@echo "Continuing with remaining steps..."
+	@echo "Waiting for $(WAIT_SECONDS) seconds after replication task check..."
 	@sleep $(WAIT_SECONDS)
 
 invoke-lambda:
