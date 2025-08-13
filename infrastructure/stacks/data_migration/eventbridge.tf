@@ -5,10 +5,9 @@ resource "aws_cloudwatch_event_rule" "dms_full_replication_task_completed" {
   description = "Trigger Lambda on DMS full replication task completion"
   event_pattern = jsonencode({
     "source" : ["aws.dms"],
-    "detail-type" : ["DMS Full Replication Task State Change"],
     "detail" : {
-      "ReplicationTaskId" : ["${aws_dms_replication_task.dms_full_replication_task[0].replication_task_id}"],
-      "Status" : ["stopped"]
+      "category" : ["StateChange"],
+      "eventId" : ["DMS-EVENT-0079"]
     }
   })
 }

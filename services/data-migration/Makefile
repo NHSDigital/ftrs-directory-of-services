@@ -81,10 +81,6 @@ invoke-replication-task:
 	--replication-task-arn $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
 	--start-replication-task-type start-replication
 	@echo "Full replication task invoked successfully."
-	aws dms start-replication-task \
-	--replication-task-arn $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(CDC_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
-	--start-replication-task-type start-replication
-	@echo "CDC replication task invoked successfully."
 	@echo "Waiting for $(WAIT_SECONDS) seconds after starting replication task..."
 	@sleep $(WAIT_SECONDS)
 
