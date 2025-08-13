@@ -39,7 +39,9 @@ resource "aws_sqs_queue" "eventbridge_event_full_migration_completion_dlq" {
 }
 
 resource "aws_sqs_queue_policy" "eventbridge_event_full_migration_completion_dlq_policy" {
-  queue_url = aws_sqs_queue.eventbridge_event_full_migration_completion_dlq.id
+  count = local.is_primary_environment ? 1 : 0
+
+  queue_url = aws_sqs_queue.eventbridge_event_full_migration_completion_dlq[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -50,7 +52,7 @@ resource "aws_sqs_queue_policy" "eventbridge_event_full_migration_completion_dlq
           Service = "events.amazonaws.com"
         },
         Action   = ["sqs:SendMessage"],
-        Resource = aws_sqs_queue.eventbridge_event_full_migration_completion_dlq.arn,
+        Resource = aws_sqs_queue.eventbridge_event_full_migration_completion_dlq[0].arn,
         Condition = {
           ArnEquals = {
             "aws:SourceArn" = aws_cloudwatch_event_rule.dms_full_replication_task_completed[0].arn
