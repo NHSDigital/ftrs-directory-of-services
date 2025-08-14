@@ -84,7 +84,7 @@ resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
     host     = module.rds_replication_target_db[0].cluster_endpoint,
     port     = var.rds_port,
     username = aws_secretsmanager_secret_version.rds_username[0].secret_string,
-    password = aws_secretsmanager_secret_version.rds_password[0].secret_string,
+    password = "NOT_SET",
     dbname   = var.target_rds_database
   })
 }

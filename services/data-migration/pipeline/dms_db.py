@@ -41,17 +41,21 @@ def get_sqlalchemy_engine(
 
 def execute_rds_command(engine: Engine, rds_username: str, rds_password: str) -> None:
     try:
+        # Create a SQL command with password placeholder
         command = f"""DO $$ BEGIN
                 IF NOT EXISTS (
                 SELECT FROM pg_catalog.pg_roles WHERE rolname = '{rds_username}'
                 ) THEN
-                CREATE ROLE {rds_username} LOGIN PASSWORD '{rds_password}';
+                CREATE ROLE {rds_username} LOGIN PASSWORD :'password';
                 GRANT rds_replication TO {rds_username};
                 GRANT SELECT ON ALL TABLES IN SCHEMA public TO {rds_username};
                 END IF;
                 END $$;"""
+
+        # Using parameterized query to avoid password in logs
         with engine.connect() as connection:
-            connection.execute(text(command))
+            # Execute the command with parameters
+            connection.execute(text(command), {"password": rds_password})
             connection.commit()
         logger.info("RDS command executed successfully.")
     except Exception:
