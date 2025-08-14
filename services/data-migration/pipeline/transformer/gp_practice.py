@@ -9,7 +9,7 @@ from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
 class GPPracticeTransformer(ServiceTransformer):
     STATUS_ACTIVE = 1
     GP_PRACTICE_TYPE_ID = 100
-    GP_PRACTICE_ODS_CODE_REGEX = re.compile(r"^[ABCDEFGHJKLNPVWY][0-9]{5,8}$")
+    GP_PRACTICE_ODS_CODE_REGEX = re.compile(r"^[ABCDEFGHJKLMNPVWY][0-9]{5}$")
 
     """
     Transformer for GP practice services.
@@ -17,7 +17,7 @@ class GPPracticeTransformer(ServiceTransformer):
     Selection criteria:
     - The service type must be 'GP Practice' (100)
     - The service must have an ODS code
-    - The ODS code should be 6-9 characters
+    - The ODS code should be 6 characters
     - The ODS code format should start with one of the following letters: A, B, C, D, E, F, G, H, J, K, L, M, N, P, V, W, Y
 
     Filter criteria:
@@ -29,6 +29,7 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
+        organisation.name = self.clean_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -73,3 +74,9 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
+
+    @classmethod
+    def clean_name(cls, publicname: str) -> str:
+        if publicname:
+            return publicname.split("-", maxsplit=1)[0].rstrip()
+        raise ValueError("publicname is not set")

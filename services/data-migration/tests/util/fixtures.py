@@ -88,7 +88,7 @@ def mock_legacy_service() -> Generator[Service, None, None]:
         statusid=1,
         organisationid=None,
         returnifopenminutes=None,
-        publicname=None,
+        publicname="Public Test Service",
         latitude=Decimal("51.5074"),
         longitude=Decimal("-0.1278"),
         professionalreferralinfo=None,
