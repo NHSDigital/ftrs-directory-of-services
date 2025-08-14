@@ -24,7 +24,7 @@ INVALID_SEARCH_DATA_CODING: dict[str, list] = {
 VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
-    InvalidRevincludeError: {"code": "required", "severity": "error"},
+    InvalidRevincludeError: {"code": "value", "severity": "error"},
 }
 
 

@@ -89,7 +89,7 @@ class TestErrorUtil:
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         assert result.issue[0].severity == "error"
-        assert result.issue[0].code == "required"
+        assert result.issue[0].code == "value"
         assert (
             result.issue[0].diagnostics
             == "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
@@ -145,7 +145,7 @@ class TestErrorUtil:
         assert result.issue[0].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
         assert result.issue[1].severity == "error"
-        assert result.issue[1].code == "required"
+        assert result.issue[1].code == "value"
         assert (
             result.issue[1].diagnostics
             == "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
