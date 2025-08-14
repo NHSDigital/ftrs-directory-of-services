@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from typing import Type
-from uuid import UUID
+from uuid import UUID, uuid5
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
