@@ -147,13 +147,13 @@ class TestLambdaHandler:
                     "Validation error occurred",
                     extra={"validation_errors": validation_error.errors()},
                 ),
-                call.info("Creating response", extra={"status_code": 422}),
+                call.info("Creating response", extra={"status_code": 400}),
             ]
         )
 
         assert_response(
             response,
-            expected_status_code=422,
+            expected_status_code=400,
             expected_body=mock_error_util.create_validation_error_operation_outcome.return_value.model_dump_json(),
         )
 
