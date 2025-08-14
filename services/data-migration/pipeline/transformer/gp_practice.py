@@ -4,6 +4,8 @@ from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceT
 from ftrs_data_layer.domain import legacy as legacy_model
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
+from pipeline.utils.validators.email import EmailValidator
+from pipeline.utils.validators.phone_number import PhoneNumberValidator
 
 
 class GPPracticeTransformer(ServiceTransformer):
@@ -28,6 +30,7 @@ class GPPracticeTransformer(ServiceTransformer):
         """
         Transform the given GP practice service into the new data model format.
         """
+        self.validate_service(service)  # TODO: Reimplement this FDOS-553
         organisation = self.build_organisation(service)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
@@ -73,3 +76,26 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
+
+    @classmethod
+    def validate_service(cls, service: legacy_model.Service) -> tuple[bool, list[str]]:
+        """
+        Validate the service for GP practice criteria.
+        """
+        validators = [
+            (EmailValidator.is_valid_length, service.email),
+            (EmailValidator.is_valid, service.email),
+            (EmailValidator.is_nhs_email, service.email),
+            (PhoneNumberValidator.is_valid, service.publicphone),
+        ]
+
+        issues = []
+        for validator_func, item in validators:
+            is_valid, reason = validator_func(item)
+            if not is_valid:
+                issues.append(reason)
+
+        if len(issues) > 0:
+            return False, issues
+
+        return True, []
