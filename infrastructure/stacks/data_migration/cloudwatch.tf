@@ -1,7 +1,7 @@
 resource "aws_cloudwatch_log_data_protection_policy" "dms_db_protection_policy" {
   count = local.is_primary_environment ? 1 : 0
 
-  log_group_name = module.dms_db_lambda.lambda_cloudwatch_log_group_name
+  log_group_name = module.dms_db_lambda[0].lambda_cloudwatch_log_group_name
 
   policy_document = jsonencode({
     Name    = "DmsDbLogDataProtectionPolicy"
