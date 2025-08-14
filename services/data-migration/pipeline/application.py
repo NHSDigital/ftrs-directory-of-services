@@ -7,6 +7,7 @@ from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 
 from pipeline.processor import DataMigrationProcessor
+from pipeline.triageCode_processor import TriageCodeProcessor
 from pipeline.utils.config import DataMigrationConfig
 
 
@@ -22,6 +23,7 @@ class DataMigrationApplication:
         self.config = config or DataMigrationConfig()
         self.logger = self.create_logger()
         self.processor = self.create_processor()
+        self.triage_code_processor = self.create_triage_code_processor()
 
     def handle_sqs_event(self, event: SQSEvent) -> None:
         """
@@ -68,7 +70,8 @@ class DataMigrationApplication:
         Handle a full sync event.
         This should trigger the full sync process.
         """
-        return self.processor.sync_all_services()
+        self.processor.sync_all_services()
+        self.triage_code_processor.sync_all_triage_codes()
 
     def parse_event(self, event: dict) -> DMSEvent:
         """
@@ -101,6 +104,15 @@ class DataMigrationApplication:
         Create a DataMigrationProcessor instance with the configured database URI.
         """
         return DataMigrationProcessor(
+            logger=self.logger,
+            config=self.config,
+        )
+
+    def create_triage_code_processor(self) -> TriageCodeProcessor:
+        """
+        Create a TriageCodeProcessor instance with the configured database URI.
+        """
+        return TriageCodeProcessor(
             logger=self.logger,
             config=self.config,
         )

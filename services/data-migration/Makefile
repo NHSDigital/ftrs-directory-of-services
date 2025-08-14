@@ -30,6 +30,10 @@ lint:
 	poetry run ruff check
 	poetry run ruff format --check
 
+lint-fix:
+	poetry run ruff check --fix
+	poetry run ruff format
+
 test: unit-test
 
 unit-test: coverage
@@ -59,3 +63,5 @@ build-dependency-layer: clean
 publish:
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+
+pre-commit: lint

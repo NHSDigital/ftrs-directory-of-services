@@ -5,6 +5,7 @@ import boto3
 from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from ftrs_data_layer.domain.triage_code import TriageCode
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from ftrs_data_layer.repository.dynamodb import (
     AttributeLevelRepository,
@@ -22,6 +23,7 @@ class ClearableEntityTypes(StrEnum):
     organisation = "organisation"
     healthcare_service = "healthcare-service"
     location = "location"
+    triageCode = "triage-code"
 
 
 class RepositoryTypes(StrEnum):
@@ -33,6 +35,7 @@ DEFAULT_CLEARABLE_ENTITY_TYPES = [
     ClearableEntityTypes.organisation,
     ClearableEntityTypes.healthcare_service,
     ClearableEntityTypes.location,
+    ClearableEntityTypes.triageCode,
 ]
 
 
@@ -47,6 +50,8 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             return HealthcareService
         case ClearableEntityTypes.location:
             return Location
+        case ClearableEntityTypes.triageCode:
+            return TriageCode
         case _:
             reset_logger.log(
                 DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
@@ -250,6 +255,34 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
                         {
                             "AttributeName": "managingOrganisation",
                             "KeyType": "HASH",
+                        },
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
+        },
+        "triageCode": {
+            "key_schema": [
+                {"AttributeName": "id", "KeyType": "HASH"},
+                {"AttributeName": "field", "KeyType": "RANGE"},
+            ],
+            "attribute_definitions": [
+                {"AttributeName": "id", "AttributeType": "S"},
+                {"AttributeName": "field", "AttributeType": "S"},
+                {"AttributeName": "codeType", "AttributeType": "S"},
+                {"AttributeName": "codeID", "AttributeType": "S"},
+            ],
+            "global_secondary_indexes": [
+                {
+                    "IndexName": "CodeTypeIndex",
+                    "KeySchema": [
+                        {
+                            "AttributeName": "codeType",
+                            "KeyType": "HASH",
+                        },
+                        {
+                            "AttributeName": "id",
+                            "KeyType": "RANGE",
                         },
                     ],
                     "Projection": {"ProjectionType": "ALL"},
