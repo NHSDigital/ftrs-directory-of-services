@@ -1,4 +1,5 @@
 resource "aws_sqs_queue" "dms_event_queue" {
+  # checkov:skip=CKV_AWS_27: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-545
   name = "${local.resource_prefix}-${var.dms_event_queue_name}${local.workspace_suffix}"
 }
 

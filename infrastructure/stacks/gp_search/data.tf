@@ -34,6 +34,8 @@ data "aws_acm_certificate" "domain_cert" {
 }
 
 data "aws_iam_policy_document" "vpc_access_policy" {
+  # checkov:skip=CKV_AWS_111: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-421
+  # checkov:skip=CKV_AWS_356: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-421
   statement {
     effect = "Allow"
     actions = [

@@ -182,22 +182,20 @@ jobs:
       - name: "Checkov scan"
         id: "checkov"
         uses: bridgecrewio/checkov-action@v12
-        continue-on-error: true
         with:
           quiet: true
+          soft_fail: false
           output_format: sarif
           output_file_path: checkov.sarif
 
       - name: "Publish Checkov report"
         uses: actions/upload-artifact@v4.6.1
+        if: success() || failure()
         with:
           name: "checkov.sarif"
           path: "."
           if-no-files-found: ignore
 
-      - name : "Warn Checkov failure"
-        if: ${{ steps.checkov.outcome == 'failure' }}
-        run: echo "::warning::Checkov has encountered issues. Please check the checkov.sarif file for the issues identified"
 
   trivy-scan:
     name: "Trivy scan"
