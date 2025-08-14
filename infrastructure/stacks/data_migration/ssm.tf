@@ -1,5 +1,5 @@
 resource "aws_ssm_parameter" "rds_event_listener_workspace_sqs_id" {
-  # checkov:skip=CKV_AWS_34: Needs to be encrypted
+  # checkov:skip=CKV2_AWS_34: Needs to be encrypted
   name  = "${var.sqs_ssm_path_for_ids}${var.environment}/${local.resource_prefix}-sqs-param${local.workspace_suffix}"
   type  = "String"
   value = aws_sqs_queue.dms_event_queue.id
