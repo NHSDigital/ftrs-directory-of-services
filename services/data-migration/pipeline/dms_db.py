@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 
 import boto3
 from botocore.exceptions import ClientError
@@ -99,18 +100,13 @@ def get_target_rds_details(aws_region: str) -> tuple[str, str, int, str, str]:
     target_rds_details_response = secrets_client.get_secret_value(
         SecretId=target_rds_details
     )
-    target_rds_details_secret = eval(target_rds_details_response["SecretString"])
+    target_rds_details_secret = json.loads(target_rds_details_response["SecretString"])
 
     cluster_endpoint = target_rds_details_secret["host"]
     database_name = target_rds_details_secret["dbname"]
     port = target_rds_details_secret["port"]
     username = target_rds_details_secret["username"]
-    password = rds_client.generate_db_auth_token(
-        DBHostname=cluster_endpoint,
-        Port=port,
-        DBUsername=username,
-        Region=aws_region,
-    )
+    password = target_rds_details_secret["password"]
 
     return cluster_endpoint, database_name, port, username, password
 
