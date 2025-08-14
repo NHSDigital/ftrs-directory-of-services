@@ -1,4 +1,3 @@
-from application.packages.python.ftrs_data_layer.domain.enums import OrganisationType
 from pydantic import field_validator
 
 from organisations.app.models.organisation import (
@@ -10,6 +9,8 @@ NAME_EMPTY_ERROR = "Name cannot be empty."
 CREATED_BY_EMPTY_ERROR = "createdBy cannot be empty."
 ODS_CODE_EMPTY_ERROR = "ODS code cannot be empty."
 ORG_TYPE_INVALID_ERROR = "Organisation type is invalid."
+
+org_type_enums = ['GP_PRACTICE = "GP Practice"']
 
 
 class UpdatePayloadValidator(OrganisationUpdatePayload):
@@ -23,7 +24,7 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
     @field_validator("type")
     def validate_organisation_type(cls, v: str) -> str:
         """Validates the Organisation Type field to ensure it is a valid type."""
-        if not OrganisationType.__contains__(v) or not v.strip():
+        if not org_type_enums.__contains__(v) or not v.strip():
             raise ValueError(ORG_TYPE_INVALID_ERROR)
         return v
 
