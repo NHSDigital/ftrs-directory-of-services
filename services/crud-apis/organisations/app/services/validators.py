@@ -24,7 +24,10 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
     @field_validator("type")
     def validate_organisation_type(cls, v: str) -> str:
         """Validates the Organisation Type field to ensure it is a valid type."""
-        if not v or any((not isinstance(item, str) or item.strip() not in org_type_enums) for item in v):
+        if not v or any(
+            (not isinstance(item, str) or item.strip() not in org_type_enums)
+            for item in v
+        ):
             raise ValueError(ORG_TYPE_INVALID_ERROR)
         return v
 
