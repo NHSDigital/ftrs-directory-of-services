@@ -83,7 +83,7 @@ invoke-replication-task:
 	@if [ "$(TASK_STATUS)" = "ready" ]; then \
 		echo "Starting replication task with start-replication..."; \
 		aws dms start-replication-task \
-		--replication-task-arn $$(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
+		--replication-task-arn $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].ReplicationTaskArn | [0]" --output text) \
 		--start-replication-task-type start-replication; \
 	else \
 		echo "Task is currently in status $(TASK_STATUS), which is not 'ready'. Skipping start-replication."; \
