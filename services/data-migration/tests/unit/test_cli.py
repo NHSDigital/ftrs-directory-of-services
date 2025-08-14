@@ -25,7 +25,7 @@ def test_typer_app_init() -> None:
     """
     Test the initialization of the Typer app.
     """
-    expected_command_count = 2
+    expected_command_count = 4
 
     assert isinstance(typer_app, Typer)
     assert typer_app.info.name == "dos-etl"

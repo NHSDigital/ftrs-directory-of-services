@@ -40,8 +40,26 @@ def get_table_name(entity_name: str) -> str:
     Returns:
         str: The constructed table name
     """
+    return format_table_name(
+        entity_name=entity_name,
+        env=env_variable_settings.env,
+        workspace=env_variable_settings.workspace,
+    )
 
-    table_name = f"ftrs-dos-{env_variable_settings.env}-database-{entity_name}"
-    if env_variable_settings.workspace:
-        table_name = f"{table_name}-{env_variable_settings.workspace}"
+
+def format_table_name(entity_name: str, env: str, workspace: str | None = None) -> str:
+    """
+    Format the DynamoDB table name based on the entity name, environment, and optional workspace.
+
+    Args:
+        entity_name: The type of entity for the table name
+        env: The environment (e.g., dev, test)
+        workspace: The workspace (if any)
+
+    Returns:
+        str: The formatted table name
+    """
+    table_name = f"ftrs-dos-{env}-database-{entity_name}"
+    if workspace:
+        table_name = f"{table_name}-{workspace}"
     return table_name
