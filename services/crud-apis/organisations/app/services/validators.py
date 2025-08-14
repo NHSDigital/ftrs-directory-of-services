@@ -22,7 +22,7 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
         return v
 
     @field_validator("type")
-    def validate_organisation_type(cls, v: str) -> str:
+    def validate_organisation_type(cls, v: list) -> list:
         """Validates the Organisation Type field to ensure it is a valid type."""
         if isinstance(v, list):
             for item in v:
@@ -37,7 +37,10 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
                             return v
                 elif isinstance(item, str) and item.strip() in org_type_enums:
                     return v
+            # If none of the items are valid
             raise ValueError(ORG_TYPE_INVALID_ERROR)
+        # If v is None or not a recognized type
+        raise ValueError(ORG_TYPE_INVALID_ERROR)
 
 
 class CreatePayloadValidator(OrganisationCreatePayload):
