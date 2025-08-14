@@ -1,3 +1,4 @@
+from fhir.resources.R4B.codeableconcept import CodeableConcept
 from pydantic import field_validator
 
 from organisations.app.models.organisation import (
@@ -26,17 +27,17 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
         """Validates the Organisation Type field to ensure it is a valid type."""
         if isinstance(v, list):
             for item in v:
-                if isinstance(item, dict):
-                    display = item.get("display") or item.get("text")
+                if isinstance(item, CodeableConcept):
+                    # Check display/text at the top level
+                    display = getattr(item, "text", None)
                     if display and display in org_type_enums:
                         return v
-                    codings = item.get("coding", [])
+                    # Check all codings
+                    codings = getattr(item, "coding", [])
                     for coding in codings:
-                        code = coding.get("code")
+                        code = getattr(coding, "code", None)
                         if code and code in org_type_enums:
                             return v
-                elif isinstance(item, str) and item.strip() in org_type_enums:
-                    return v
             # If none of the items are valid
             raise ValueError(ORG_TYPE_INVALID_ERROR)
         # If v is None or not a recognized type
