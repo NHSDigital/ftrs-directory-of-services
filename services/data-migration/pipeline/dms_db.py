@@ -1,6 +1,6 @@
+import json
 import logging
 import os
-import json
 
 import boto3
 from botocore.exceptions import ClientError
