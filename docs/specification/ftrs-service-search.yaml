@@ -1,4 +1,7 @@
 openapi: 3.0.3
+# checkov:skip=CKV_OPENAPI_4: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
+# checkov:skip=CKV_OPENAPI_21: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
+# checkov:skip=CKV_OPENAPI_5: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
 info:
   title: Find the Right Service Search API
   description: |

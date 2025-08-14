@@ -17,6 +17,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 }
 
 module "organisation_api_lambda" {
+  # checkov:skip=CKV_AWS_111: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-421
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.organisation_api_lambda_name}"
   description             = "Lambda to expose CRUD apis for organisations"
