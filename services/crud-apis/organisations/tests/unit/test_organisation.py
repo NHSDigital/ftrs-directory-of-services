@@ -144,7 +144,7 @@ def test_update_organisation_success() -> None:
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     response = client.put(f"/{test_org_id}", json=fhir_payload)
     assert response.status_code == HTTPStatus.OK
@@ -172,7 +172,7 @@ def test_update_organisation_no_updates(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     response = client.put(f"/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.OK
@@ -213,7 +213,7 @@ def test_update_organisation_operation_outcome(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/{test_org_id}", json=update_payload)
@@ -234,7 +234,7 @@ def test_update_organisation_missing_required_field() -> None:
         ],
         "name": "ABC",
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(RequestValidationError) as exc_info:
         client.put(f"/{test_org_id}", json=fhir_payload)
@@ -260,7 +260,7 @@ def test_update_organisation_unexpected_exception(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/{test_org_id}", json=update_payload)
