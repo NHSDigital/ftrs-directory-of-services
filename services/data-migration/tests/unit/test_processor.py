@@ -53,6 +53,7 @@ def test_processor_init(
         "total_records": 0,
         "transformed_records": 0,
         "unsupported_records": 0,
+        "invalid_records": 0,
     }
 
 
@@ -160,6 +161,7 @@ def test_process_service(
         transformed_records=0,
         migrated_records=0,
         skipped_records=0,
+        invalid_records=0,
         errors=0,
     )
 
@@ -172,6 +174,7 @@ def test_process_service(
         transformed_records=1,
         migrated_records=1,
         skipped_records=0,
+        invalid_records=0,
         errors=0,
     )
 
@@ -252,8 +255,8 @@ def test_process_service(
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         name="Test Service",
         telecom=Telecom(
-            phone_public="01234 567890",
-            phone_private="09876 543210",
+            phone_public="01234567890",
+            phone_private="09876543210",
             email="test@example.com",
             web="http://example.com",
         ),

@@ -43,38 +43,6 @@ class DataMigrationLogBase(LogBase):
     LogBase for Data Migration ETL Pipeline operations
     """
 
-    ETL_EXTRACT_001 = LogReference(
-        level=INFO, message="Extracting data to {output_path}"
-    )
-    ETL_EXTRACT_002 = LogReference(
-        level=INFO,
-        message="Percentage of service profiles: {service_profiles_percentage}%",
-    )
-    ETL_EXTRACT_003 = LogReference(
-        level=INFO, message="Percentage of all data fields: {data_fields_percentage}%"
-    )
-    ETL_EXTRACT_004 = LogReference(
-        level=INFO, message="Data extraction completed successfully."
-    )
-
-    ETL_TRANSFORM_001 = LogReference(
-        level=INFO, message="Transforming data from {input_path} to {output_path}"
-    )
-    ETL_TRANSFORM_002 = LogReference(
-        level=INFO, message="Transform completed successfully."
-    )
-
-    ETL_LOAD_001 = LogReference(
-        level=INFO, message="Loading {len_input_df} {table_value}s into {table_value}"
-    )
-    ETL_LOAD_002 = LogReference(
-        level=INFO, message="Loaded {count} {table_value}s into the database."
-    )
-    ETL_LOAD_003 = LogReference(
-        level=INFO,
-        message="Data loaded successfully into {env_value} environment, workspace: {workspace_value}",
-    )
-
     ETL_RESET_001 = LogReference(level=INFO, message="Initializing tables...")
     ETL_RESET_002 = LogReference(
         level=ERROR,
@@ -138,6 +106,13 @@ class DataMigrationLogBase(LogBase):
     DM_ETL_011 = LogReference(
         level=WARNING,
         message="Table {table_name} not supported for event method: {method}",
+    )
+    DM_ETL_012 = LogReference(
+        level=INFO, message="Record {record_id} has {issue_count} validation errors"
+    )
+    DM_ETL_013 = LogReference(
+        level=WARNING,
+        message="Record {record_id} has fatal issues and cannot be migrated",
     )
 
     DM_ETL_999 = LogReference(
