@@ -4,12 +4,14 @@ from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceT
 from ftrs_data_layer.domain import legacy as legacy_model
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
+from pipeline.validation.service import GPPracticeValidator
 
 
 class GPPracticeTransformer(ServiceTransformer):
     STATUS_ACTIVE = 1
     GP_PRACTICE_TYPE_ID = 100
     GP_PRACTICE_ODS_CODE_REGEX = re.compile(r"^[ABCDEFGHJKLMNPVWY][0-9]{5}$")
+    VALIDATOR_CLS = GPPracticeValidator
 
     """
     Transformer for GP practice services.

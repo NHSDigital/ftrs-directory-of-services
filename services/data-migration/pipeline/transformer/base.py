@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from uuid import UUID
+from typing import Type
+from uuid import UUID, uuid5
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
@@ -32,6 +33,8 @@ from ftrs_data_layer.domain.clinical_code import (
 from pydantic import BaseModel, Field
 
 from pipeline.utils.cache import DoSMetadataCache
+from pipeline.validation.base import Validator
+from pipeline.validation.service import ServiceValidator
 from pipeline.utils.uuid_utils import generate_uuid
 
 
@@ -54,11 +57,13 @@ class ServiceTransformer(ABC):
 
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
     MIGRATION_USER = "DATA_MIGRATION"
+    VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
     def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
         self.metadata = metadata
+        self.validator = self.VALIDATOR_CLS(logger)
 
     @abstractmethod
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:

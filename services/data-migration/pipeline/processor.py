@@ -24,6 +24,7 @@ class DataMigrationMetrics(BaseModel):
     transformed_records: int = 0
     migrated_records: int = 0
     skipped_records: int = 0
+    invalid_records: int = 0
     errors: int = 0
 
     def reset(self) -> None:
@@ -36,6 +37,7 @@ class DataMigrationMetrics(BaseModel):
         self.transformed_records = 0
         self.migrated_records = 0
         self.skipped_records = 0
+        self.invalid_records = 0
         self.errors = 0
 
 
@@ -105,7 +107,24 @@ class DataMigrationProcessor:
                 self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
                 return
 
-            result = transformer.transform(service)
+            validation_result = transformer.validator.validate(service)
+            if not validation_result.is_valid:
+                issues = [
+                    issue.model_dump(mode="json") for issue in validation_result.issues
+                ]
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_012,
+                    record_id=service.id,
+                    issue_count=len(issues),
+                    issues=issues,
+                )
+
+            if not validation_result.should_continue:
+                self.invalid_records += 1
+                self.logger.log(DataMigrationLogBase.DM_ETL_013, record_id=service.id)
+                return
+
+            result = transformer.transform(validation_result.sanitised)
             self.metrics.transformed_records += 1
 
             self.logger.log(
