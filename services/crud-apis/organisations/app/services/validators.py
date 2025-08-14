@@ -28,17 +28,13 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
             for item in v:
                 if isinstance(item, dict):
                     display = item.get("display") or item.get("text")
-                    code = None
-                    if (
-                        "coding" in item
-                        and isinstance(item["coding"], list)
-                        and item["coding"]
-                    ):
-                        code = item["coding"][0].get("code")
-                    if (display and display in org_type_enums) or (
-                        code and code in org_type_enums
-                    ):
+                    if display and display in org_type_enums:
                         return v
+                    codings = item.get("coding", [])
+                    for coding in codings:
+                        code = coding.get("code")
+                        if code and code in org_type_enums:
+                            return v
                 elif isinstance(item, str) and item.strip() in org_type_enums:
                     return v
             raise ValueError(ORG_TYPE_INVALID_ERROR)
