@@ -10,7 +10,7 @@ CREATED_BY_EMPTY_ERROR = "createdBy cannot be empty."
 ODS_CODE_EMPTY_ERROR = "ODS code cannot be empty."
 ORG_TYPE_INVALID_ERROR = "Organisation type is invalid."
 
-org_type_enums = ['GP_PRACTICE = "GP Practice"']
+org_type_enums = ['GP Practice']
 
 
 class UpdatePayloadValidator(OrganisationUpdatePayload):
