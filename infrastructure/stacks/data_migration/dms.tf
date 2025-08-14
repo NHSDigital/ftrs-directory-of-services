@@ -7,6 +7,7 @@ resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
 }
 
 resource "aws_dms_replication_instance" "dms_replication_instance" {
+  # checkov:skip=CKV_AWS_212: Needs CMK
   count = local.is_primary_environment ? 1 : 0
 
   replication_instance_id     = "${local.resource_prefix}-etl-replication-instance"
@@ -19,6 +20,7 @@ resource "aws_dms_replication_instance" "dms_replication_instance" {
 }
 
 resource "aws_dms_endpoint" "dms_source_endpoint" {
+  # checkov:skip=CKV_AWS_296: Needs CMK
   count = local.is_primary_environment ? 1 : 0
 
   endpoint_id   = "${local.resource_prefix}-etl-source"
@@ -32,6 +34,7 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
 }
 
 resource "aws_dms_endpoint" "dms_target_endpoint" {
+  # checkov:skip=CKV_AWS_296: Needs CMK
   count = local.is_primary_environment ? 1 : 0
 
   endpoint_id   = "${local.resource_prefix}-etl-target"

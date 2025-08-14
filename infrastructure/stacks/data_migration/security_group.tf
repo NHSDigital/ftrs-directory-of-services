@@ -148,14 +148,34 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
   to_port                      = var.rds_port
 }
 
-resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_internet" {
+resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_https" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
-  description       = "Allow egress to internet on all ports"
+  description       = "Allow egress to internet on HTTPS port"
   cidr_ipv4         = "0.0.0.0/0"
-  from_port         = "-1"
-  ip_protocol       = "-1"
-  to_port           = "-1"
+  from_port         = 443
+  ip_protocol       = "tcp"
+  to_port           = 443
+}
+
+resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns" {
+  count             = local.is_primary_environment ? 1 : 0
+  security_group_id = aws_security_group.dms_replication_security_group[0].id
+  description       = "Allow egress for DNS resolution"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 53
+  ip_protocol       = "tcp"
+  to_port           = 53
+}
+
+resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_udp" {
+  count             = local.is_primary_environment ? 1 : 0
+  security_group_id = aws_security_group.dms_replication_security_group[0].id
+  description       = "Allow egress for DNS resolution (UDP)"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 53
+  ip_protocol       = "udp"
+  to_port           = 53
 }
 
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {
