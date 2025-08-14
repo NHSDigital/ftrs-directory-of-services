@@ -1,18 +1,30 @@
+import asyncio
+import json
 from contextlib import contextmanager
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Generator, List
 
+import awswrangler as wr
+import boto3
+import rich
+from aws_lambda_powertools.utilities.parameters import get_parameter, set_parameter
+from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
+from ftrs_common.utils.db_service import format_table_name
 from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication, DMSEvent
 from pipeline.processor import ServiceTransformOutput
 from pipeline.queue_populator import populate_sqs_queue
+from pipeline.seeding.bulkload import bulk_load_table
+from pipeline.seeding.export import export_table, process_export
 from pipeline.utils.config import (
     DatabaseConfig,
     DataMigrationConfig,
     QueuePopulatorConfig,
 )
+
+CONSOLE = rich.get_console()
 
 
 class TargetEnvironment(StrEnum):
@@ -136,3 +148,105 @@ def patch_local_save_method(
     organisation_file.close()
     location_file.close()
     healthcare_file.close()
+
+
+@typer_app.command("export-to-s3")
+def export_to_s3_handler(
+    env: Annotated[str, Option(..., help="Environment to run the export in")],
+    workspace: Annotated[
+        str | None, Option(..., help="Workspace to run the export in")
+    ] = None,
+) -> None:
+    """
+    Handler for exporting data from all DynamoDB tables to S3.
+    """
+    asyncio.run(run_s3_export(env, workspace))
+
+
+async def run_s3_export(env: str, workspace: str | None) -> list:
+    """
+    Run the actual S3 export process (async)
+    """
+    export_tasks = [
+        export_table("location", env, workspace),
+        export_table("organisation", env, workspace),
+        # export_table("healthcare-service", env, workspace), TODO: FDOS-547 - Uncomment when enabling seeding of HealthcareService records
+    ]
+    table_uris = {}
+
+    for task in asyncio.as_completed(export_tasks):
+        export_description = await task
+        table_name = export_description["TableArn"].rsplit("/")[-1]
+        records_df = await process_export(export_description)
+
+        out_key = f"backups/{table_name}.parquet"
+        out_uri = f"s3://{export_description['S3Bucket']}/{out_key}"
+
+        wr.s3.to_parquet(
+            df=records_df,
+            path=out_uri,
+            dataset=False,
+        )
+        CONSOLE.log(
+            f"Saved {records_df.shape[0]} items from [bright_blue]{table_name}[/bright_blue] to [bright_cyan]{out_key}[/bright_cyan]",
+            style="green",
+        )
+
+        table_uris[table_name.split("database-")[-1]] = out_uri
+
+    set_parameter(
+        name=f"/ftrs/dos/{env}/dynamodb-backup-arns",
+        value=json.dumps(table_uris),
+        overwrite=True,
+    )
+    CONSOLE.log(
+        f"DynamoDB backup ARNs parameter for environment [bright_blue]{env}[/bright_blue] saved successfully",
+        style="green",
+    )
+
+
+@typer_app.command("restore-from-s3")
+def restore_from_s3_handler(
+    env: Annotated[str, Option(..., help="Environment to run the restore in")],
+    workspace: Annotated[
+        str | None, Option(..., help="Workspace to run the restore in")
+    ] = None,
+) -> None:
+    """
+    Handler for restoring data from S3 to all DynamoDB tables.
+    """
+    asyncio.run(run_s3_restore(env, workspace))
+
+
+async def run_s3_restore(env: str, workspace: str | None) -> None:
+    """
+    Run the actual S3 restore process (async)
+    """
+    CONSOLE.log(
+        f"Restoring data from S3 for environment [bright_blue]{env}[/bright_blue] and workspace [bright_blue]{workspace}[/bright_blue]"
+    )
+
+    CONSOLE.log("Downloading backup files from S3", style="bright_black")
+    backup_uris = get_parameter(
+        name=f"/ftrs/dos/{env}/dynamodb-backup-arns",
+        transform="json",
+    )
+    data = {
+        entity_type: wr.s3.read_parquet(path=path)
+        for entity_type, path in backup_uris.items()
+    }
+
+    CONSOLE.log("Restoring data to DynamoDB", style="bright_black")
+    tasks = [
+        bulk_load_table(
+            format_table_name(entity_type, env, workspace), df["data"].tolist()
+        )
+        for entity_type, df in data.items()
+    ]
+
+    await asyncio.gather(*tasks)
+
+    CONSOLE.log(
+        f"Data restoration complete to [bright_blue]{env}[/bright_blue] and workspace [bright_blue]{workspace}[/bright_blue]",
+        style="bright_green",
+    )
