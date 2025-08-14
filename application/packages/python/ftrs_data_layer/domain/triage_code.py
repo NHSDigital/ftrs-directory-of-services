@@ -7,6 +7,6 @@ class TriageCode(BaseClinicalCode, DBModel):
     field: str | None = "item"
     synonyms: list[str] = Field(default_factory=list)
     time: int | None = 0
-    zCodeExists: bool | None
+    zCodeExists: bool | None = False
     combinations: list[str] = Field(default_factory=list)
     dx_group_ids: list[int] = Field(default_factory=list)
