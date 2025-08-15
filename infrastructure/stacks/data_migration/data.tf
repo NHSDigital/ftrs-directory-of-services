@@ -156,7 +156,7 @@ data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
       "sqs:GetQueueAttributes"
     ]
     resources = [
-      "arn:aws:sqs:${var.aws_region}:${local.account_id}:ftrs-dos-dev-data-migration-rds-events*"
+      "arn:aws:sqs:${var.aws_region}:${local.account_id}:${local.resource_prefix}-${var.dms_event_queue_name}*"
     ]
   }
 }
@@ -169,7 +169,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "ssm:GetParameters",
       "ssm:GetParametersByPath"
     ]
-    resources = [aws_ssm_parameter.rds_event_listener_workspace_sqs_id.arn]
+    resources = ["arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/ftrs-dos/migration/sqs_ids/${var.environment}/*"]
   }
 }
 
