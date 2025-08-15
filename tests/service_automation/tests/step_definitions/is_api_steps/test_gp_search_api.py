@@ -4,6 +4,17 @@ from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
 
+INVALID_SEARCH_DATA_CODING = {
+    "coding": [
+        {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data",
+        }
+    ]
+}
+
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")
 
@@ -18,9 +29,7 @@ def dns_resolvable(api_name, env, workspace):
     parsers.re(r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
     target_fixture="fresponse",
 )
-def send_get_with_params(
-    api_request_context_mtls, workspace, api_name, env, params, resource_name
-):
+def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
     url = get_url(api_name) + "/" + resource_name
     # Handle None or empty params
     if params is None or not params.strip():
@@ -44,6 +53,7 @@ def status_code(fresponse, status_code):
 def api_error_code(fresponse, error_code):
     response = fresponse.json()
     assert response["issue"][0]["details"]["coding"][0]["code"] == error_code
+
 
 @then(parsers.parse('I receive the message "{error_message}"'))
 def api_error_message(fresponse, error_message):
@@ -87,10 +97,35 @@ def api_check_resource_id(fresponse, resource_id):
     assert response["id"] == resource_id
 
 
+@then(parsers.parse('the OperationOutcome contains an issue with {key} "{value}"'))
+def api_check_operation_outcome_any_issue_diagnostics(fresponse, key, value):
+    response = fresponse.json()
+    assert any(issue.get(key) == value for issue in response["issue"])
+
+
+@then(parsers.parse('the OperationOutcome has issues all with {key} "{value}"'))
+def api_check_operation_outcome_all_issue_diagnostics(fresponse, key, value):
+    response = fresponse.json()
+    assert all(issue.get(key) == value for issue in response["issue"])
+
+
+@then(parsers.parse('the OperationOutcome contains "{number:d}" issues'))
+def api_check_operation_outcome_issue_count(fresponse, number):
+    response = fresponse.json()
+    assert len(response["issue"]) == number
+
+
+@then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding'))
+def api_check_operation_outcome_any_issue_details_invalid_search_data(fresponse):
+    api_check_operation_outcome_any_issue_diagnostics(
+        fresponse,
+        key="details",
+        value=INVALID_SEARCH_DATA_CODING
+    )
+
+
 def count_resources(lambda_response, resource_type):
     return sum(
         entry.get("resource", {}).get("resourceType") == resource_type
         for entry in lambda_response.get("entry", [])
     )
-
-
