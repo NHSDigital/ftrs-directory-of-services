@@ -2,11 +2,9 @@ import pytest
 from pydantic import ValidationError
 
 from functions.organization_query_params import (
-    InvalidIdentifierPrefixError,
+    InvalidIdentifierSystem,
     InvalidRevincludeError,
     ODSCodeInvalidFormatError,
-    ODSCodeTooLongError,
-    ODSCodeTooShortError,
     OrganizationQueryParams,
 )
 
@@ -45,15 +43,15 @@ class TestOrganizationQueryParams:
     @pytest.mark.parametrize(
         ("identifier", "expected_exception"),
         [
-            ("odsOrganisationCode|", ODSCodeTooShortError),
-            ("odsOrganisationCode|ABC1", ODSCodeTooShortError),
-            ("odsOrganisationCode|ABCD123456789", ODSCodeTooLongError),
+            ("odsOrganisationCode|", ODSCodeInvalidFormatError),
+            ("odsOrganisationCode|ABC1", ODSCodeInvalidFormatError),
+            ("odsOrganisationCode|ABCD123456789", ODSCodeInvalidFormatError),
             ("odsOrganisationCode|ABC-123", ODSCodeInvalidFormatError),
             ("odsOrganisationCode|ABC 123", ODSCodeInvalidFormatError),
             ("odsOrganisationCode|ABC@123", ODSCodeInvalidFormatError),
-            ("", InvalidIdentifierPrefixError),
-            ("wrongPrefix|ABC123", InvalidIdentifierPrefixError),
-            ("ABC123", InvalidIdentifierPrefixError),
+            ("", InvalidIdentifierSystem),
+            ("wrongPrefix|ABC123", InvalidIdentifierSystem),
+            ("ABC123", InvalidIdentifierSystem),
         ],
         ids=[
             "odsCode empty after prefix",
