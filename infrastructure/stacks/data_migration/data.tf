@@ -68,6 +68,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
 }
 
 data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
+  count = local.is_primary_environment ? 1 : 0
   statement {
     effect = "Allow"
     actions = [
@@ -128,6 +129,7 @@ data "aws_iam_policy_document" "sqs_access_policy" {
 }
 
 data "aws_iam_policy_document" "lambda_rds_policy" {
+  count = local.is_primary_environment ? 1 : 0
   statement {
     effect = "Allow"
     actions = [
@@ -147,6 +149,7 @@ data "aws_iam_policy_document" "lambda_rds_policy" {
 }
 
 data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
+  count = local.is_primary_environment ? 1 : 0
   statement {
     effect = "Allow"
     actions = [
@@ -162,6 +165,7 @@ data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
 }
 
 data "aws_iam_policy_document" "ssm_access_policy" {
+  count = local.is_primary_environment ? 1 : 0
   statement {
     effect = "Allow"
     actions = [
@@ -174,6 +178,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
 }
 
 data "aws_iam_policy_document" "rds_connect_policy" {
+  count = local.is_primary_environment ? 1 : 0
   statement {
     effect = "Allow"
     actions = [
