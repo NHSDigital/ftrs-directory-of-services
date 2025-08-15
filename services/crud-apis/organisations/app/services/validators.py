@@ -1,5 +1,5 @@
 from fhir.resources.R4B.codeableconcept import CodeableConcept
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 
 from organisations.app.models.organisation import (
     OrganisationCreatePayload,
@@ -15,6 +15,12 @@ org_type_enums = ["GP Practice"]
 
 
 class UpdatePayloadValidator(OrganisationUpdatePayload):
+    @model_validator(mode="before")
+    def check_type_exists(cls, values: any) -> any:
+        if "type" not in values or not values["type"]:
+            raise ValueError(ORG_TYPE_INVALID_ERROR)
+        return values
+
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
         """Validates the name field to ensure it is not empty or whitespace."""
