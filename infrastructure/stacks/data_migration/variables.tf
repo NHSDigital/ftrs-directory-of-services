@@ -231,7 +231,7 @@ variable "full_migration_completion_event_queue_name" {
   type        = string
 }
 
-variable "target_rds_details" {
+variable "target_rds_credentials" {
   description = "The secrets manager name for the target RDS details"
   type        = string
 }

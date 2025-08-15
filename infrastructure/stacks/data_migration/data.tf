@@ -75,7 +75,7 @@ data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.target_rds_details}-*",
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.target_rds_credentials}-*",
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.dms_user_password}-*"
     ]
   }

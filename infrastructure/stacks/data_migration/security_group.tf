@@ -181,7 +181,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   count       = local.is_primary_environment ? 1 : 0
-  name        = "${local.resource_prefix}-${var.rds_event_listener_name}-sg"
+  name        = "${local.resource_prefix}-${var.rds_event_listener_lambda_name}-sg"
   description = "Security group for RDS event listener lambda"
 
   vpc_id = data.aws_vpc.vpc.id
