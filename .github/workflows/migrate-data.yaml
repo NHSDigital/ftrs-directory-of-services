@@ -1,5 +1,5 @@
 # This workflow runs the ETL process and monitors the queue for events.
-name: Migrate data to dynamodb
+name: Run ETL process to migrate data into DynamoDB tables
 
 permissions:
   id-token: write
