@@ -1,5 +1,5 @@
 from fhir.resources.R4B.codeableconcept import CodeableConcept
-from pydantic import field_validator, model_validator
+from pydantic import field_validator
 
 from organisations.app.models.organisation import (
     OrganisationCreatePayload,
@@ -15,11 +15,11 @@ org_type_enums = ["GP Practice"]
 
 
 class UpdatePayloadValidator(OrganisationUpdatePayload):
-    @model_validator(mode="before")
-    def check_type_exists(cls, values: any) -> any:
-        if "type" not in values or not values["type"]:
-            raise ValueError(ORG_TYPE_INVALID_ERROR)
-        return values
+    # @model_validator(mode="before")
+    # def check_type_exists(cls, values: any) -> any:
+    #     if "type" not in values or not values["type"]:
+    #         raise ValueError(ORG_TYPE_INVALID_ERROR)
+    #     return values
 
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
@@ -31,7 +31,11 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
     @field_validator("type")
     def validate_organisation_type(cls, v: list) -> list:
         """Validates the Organisation Type field to ensure it is a valid type."""
+        if not v:
+            raise ValueError(ORG_TYPE_INVALID_ERROR)
         if isinstance(v, list):
+            if len(v) == 0:
+                raise ValueError(ORG_TYPE_INVALID_ERROR)
             for item in v:
                 if isinstance(item, CodeableConcept):
                     # Check display/text at the top level
