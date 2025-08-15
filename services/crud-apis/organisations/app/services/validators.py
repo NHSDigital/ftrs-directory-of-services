@@ -32,9 +32,16 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
                 raise ValueError(ORG_TYPE_INVALID_ERROR)
             for item in v:
                 if isinstance(item, CodeableConcept):
+                    # will need to change to either codings or text eventually
                     display = getattr(item, "text", None)
                     if display and display in org_type_enums:
                         return v
+                    codings = getattr(item, "coding", None)
+                    if codings:
+                        for coding in codings:
+                            code = getattr(coding, "code", None)
+                            if code and code in org_type_enums:
+                                return v
             # If none of the items are valid
             raise ValueError(ORG_TYPE_INVALID_ERROR)
         # If v is None or not a recognized type
