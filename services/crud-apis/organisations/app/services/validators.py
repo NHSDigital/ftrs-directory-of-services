@@ -15,12 +15,6 @@ org_type_enums = ["GP Practice"]
 
 
 class UpdatePayloadValidator(OrganisationUpdatePayload):
-    # @model_validator(mode="before")
-    # def check_type_exists(cls, values: any) -> any:
-    #     if "type" not in values or not values["type"]:
-    #         raise ValueError(ORG_TYPE_INVALID_ERROR)
-    #     return values
-
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
         """Validates the name field to ensure it is not empty or whitespace."""
@@ -38,16 +32,9 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
                 raise ValueError(ORG_TYPE_INVALID_ERROR)
             for item in v:
                 if isinstance(item, CodeableConcept):
-                    # Check display/text at the top level
                     display = getattr(item, "text", None)
                     if display and display in org_type_enums:
                         return v
-                    # Check all codings
-                    codings = getattr(item, "coding", [])
-                    for coding in codings:
-                        code = getattr(coding, "code", None)
-                        if code and code in org_type_enums:
-                            return v
             # If none of the items are valid
             raise ValueError(ORG_TYPE_INVALID_ERROR)
         # If v is None or not a recognized type
