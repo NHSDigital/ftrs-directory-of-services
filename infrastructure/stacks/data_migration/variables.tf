@@ -148,8 +148,14 @@ variable "dynamodb_exports_s3_expiration_days" {
   type        = number
 }
 
-variable "rds_event_listener_name" {
+variable "dynamodb_exports_s3_expiration_days" {
+  description = "The number of days after which DynamoDB exports in S3 will expire"
+  type        = number
+}
+
+variable "rds_event_listener_lambda_name" {
   description = "The name of the RDS event listener Lambda function"
+  type        = string
 }
 
 variable "schema_name" {
@@ -162,7 +168,7 @@ variable "sqs_ssm_path_for_ids" {
   type        = string
 }
 
-variable "migration_copy_db_trigger" {
+variable "migration_copy_db_lambda_trigger" {
   description = "The Lambda function handler for the migration copy DB trigger"
   type        = string
 }
@@ -222,5 +228,20 @@ variable "dms_db_lambda_memory_size" {
 
 variable "full_migration_completion_event_queue_name" {
   description = "The name of the SQS queue for full migration completion events"
+  type        = string
+}
+
+variable "target_rds_details" {
+  description = "The secrets manager name for the target RDS details"
+  type        = string
+}
+
+variable "dms_user_password" {
+  description = "The secrets manager name for the DMS user password"
+  type        = string
+}
+
+variable "source_rds_credentials" {
+  description = "The secrets manager name for the source RDS credentials"
   type        = string
 }
