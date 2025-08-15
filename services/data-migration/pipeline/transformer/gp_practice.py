@@ -5,6 +5,12 @@ from ftrs_data_layer.domain import legacy as legacy_model
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
 from pipeline.validation.service import GPPracticeValidator
+from pipeline.transformer.gp_protected_learning_time import (
+    GPProtectedLearningTimeTransformer,
+)
+from pipeline.transformer.gp_special_allocation_scheme import (
+    GPSpecialAllocationSchemeTransformer,
+)
 
 
 class GPPracticeTransformer(ServiceTransformer):
@@ -57,6 +63,20 @@ class GPPracticeTransformer(ServiceTransformer):
         """
         Check if the service is a GP practice.
         """
+        # Exclude if supported by GPProtectedLearningTimeTransformer
+        is_plt, plt_reason = GPProtectedLearningTimeTransformer.is_service_supported(
+            service
+        )
+        if is_plt:
+            return False, "Service fits GP Protected Learning Time criteria"
+
+        # Exclude if supported by GPSpecialAllocationSchemeTransformer
+        is_sas, sas_reason = GPSpecialAllocationSchemeTransformer.is_service_supported(
+            service
+        )
+        if is_sas:
+            return False, "Service fits GP Special Allocation Scheme criteria"
+
         if service.typeid != cls.GP_PRACTICE_TYPE_ID:
             return False, "Service type is not GP Practice (100)"
 
