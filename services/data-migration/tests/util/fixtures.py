@@ -388,6 +388,22 @@ def mock_metadata_cache(mock_config: DataMigrationConfig) -> DoSMetadataCache:
             capacitymodel=None,
             capacityreset=None,
         ),
+        136: ServiceType(
+            id=136,
+            name="GP Access Hub",
+            nationalranking=None,
+            searchcapacitystatus=None,
+            capacitymodel=None,
+            capacityreset=None,
+        ),
+        152: ServiceType(
+            id=152,
+            name="Primary Care Network (PCN) Enhanced Service",
+            nationalranking=None,
+            searchcapacitystatus=None,
+            capacitymodel=None,
+            capacityreset=None,
+        ),
     }
 
     with patch("pipeline.utils.cache.DoSMetadataCache") as mock_cache:
