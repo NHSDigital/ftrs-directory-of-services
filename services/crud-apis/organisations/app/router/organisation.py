@@ -11,8 +11,8 @@ from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
-from pydantic import ValidationError
 
+# from pydantic import ValidationError
 from organisations.app.services.organisation_service import OrganisationService
 from organisations.app.services.validators import (
     CreatePayloadValidator,
@@ -161,12 +161,12 @@ def update_organisation(
             content=outcome,
             media_type=FHIR_MEDIA_TYPE,
         )
-    except ValidationError as e:
-        return JSONResponse(
-            status_code=422,
-            content={"detail": str(e)},
-            media_type=FHIR_MEDIA_TYPE,
-        )
+    # except ValidationError as e:
+    #     return JSONResponse(
+    #         status_code=422,
+    #         content={"detail": str(e)},
+    #         media_type=FHIR_MEDIA_TYPE,
+    #     )
     except Exception as e:
         if not isinstance(e, OperationOutcomeException):
             crud_organisation_logger.log(
