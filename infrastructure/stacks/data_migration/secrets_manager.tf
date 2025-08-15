@@ -83,7 +83,7 @@ resource "aws_secretsmanager_secret" "target_rds_credentials" {
   # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count = local.is_primary_environment ? 1 : 0
 
-  name = "/${var.project}/${var.environment}/${var.target-rds-credentials}"
+  name = "/${var.project}/${var.environment}/${var.target_rds_credentials}"
 }
 
 resource "aws_secretsmanager_secret_version" "target_rds_credentials" {

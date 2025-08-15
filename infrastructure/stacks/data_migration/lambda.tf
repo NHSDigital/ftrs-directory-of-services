@@ -182,7 +182,7 @@ module "dms_db_lambda" {
   environment_variables = {
     "ENVIRONMENT"        = var.environment
     "PROJECT_NAME"       = var.project
-    "TARGET_RDS_DETAILS" = "/${var.project}/${var.environment}/${var.target_rds_details}"
+    "TARGET_RDS_DETAILS" = "/${var.project}/${var.environment}/${var.target_rds_credentials}"
     "DMS_USER_DETAILS"   = "/${var.project}/${var.environment}/${var.dms-user-password}${random_id.dms_user_password_suffix[0].hex}"
     "TRIGGER_LAMBDA_ARN" = module.rds_event_listener_lambda[0].lambda_function_arn
   }
