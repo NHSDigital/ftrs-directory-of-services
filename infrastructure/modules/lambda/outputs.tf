@@ -17,3 +17,7 @@ output "lambda_function_name" {
 output "lambda_role_arn" {
   value = module.lambda.lambda_role_arn
 }
+
+output "lambda_cloudwatch_log_group_name" {
+  value = module.lambda.lambda_cloudwatch_log_group_name
+}

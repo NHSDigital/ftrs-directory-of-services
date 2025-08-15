@@ -94,11 +94,6 @@ variable "public_dedicated_network_acl" {
   type        = bool
 }
 
-variable "enable_flow_log" {
-  description = "Whether VPC Flow logs are enabled or not"
-  type        = bool
-}
-
 variable "flow_log_destination_type" {
   description = "THe destination type for the flow logs"
   type        = string
