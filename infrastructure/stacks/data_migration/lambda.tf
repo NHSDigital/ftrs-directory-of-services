@@ -140,8 +140,8 @@ module "rds_event_listener_lambda" {
 
   number_of_policy_jsons = "2"
   policy_jsons = [
-    data.aws_iam_policy_document.rds_event_listener_sqs_access_policy.json,
-    data.aws_iam_policy_document.ssm_access_policy.json,
+    data.aws_iam_policy_document.rds_event_listener_sqs_access_policy[0].json,
+    data.aws_iam_policy_document.ssm_access_policy[0].json,
   ]
 
   environment_variables = {
@@ -174,9 +174,9 @@ module "dms_db_lambda" {
 
   number_of_policy_jsons = "3"
   policy_jsons = [
-    data.aws_iam_policy_document.secrets_access_policy_for_dms.json,
-    data.aws_iam_policy_document.lambda_rds_policy.json,
-    data.aws_iam_policy_document.rds_connect_policy.json,
+    data.aws_iam_policy_document.secrets_access_policy_for_dms[0].json,
+    data.aws_iam_policy_document.lambda_rds_policy[0].json,
+    data.aws_iam_policy_document.rds_connect_policy[0].json,
   ]
 
   environment_variables = {
