@@ -1,0 +1,74 @@
+# This workflow restores data from S3 to DynamoDB tables.
+name: Restore data from S3 to DynamoDB tables
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The relevant github environment (for secrets and variables)"
+        required: true
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to load the data into"
+        required: false
+        type: string
+      action:
+        description: "The action to perform (e.g., export, import)"
+        required: true
+        type: string
+
+jobs:
+  manage-dynamodb-data:
+    name: "Manage DynamoDB tables data"
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v4.0.0
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v4.0.0
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Export data from DynamoDB tables to S3"
+        if: ${{ inputs.action == 'export' }}
+        run: make export-to-s3
+        working-directory: "services/data-migration"
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+
+      - name: "Restore data from S3 to DynamoDB tables"
+        if: ${{ inputs.action == 'import' }}
+        run: make restore-from-s3
+        working-directory: "services/data-migration"
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          WORKSPACE: ${{ inputs.workspace }}

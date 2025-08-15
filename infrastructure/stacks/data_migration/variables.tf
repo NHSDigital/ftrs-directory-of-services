@@ -142,3 +142,8 @@ variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string
 }
+
+variable "dynamodb_exports_s3_expiration_days" {
+  description = "The number of days after which DynamoDB exports in S3 will expire"
+  type        = number
+}
