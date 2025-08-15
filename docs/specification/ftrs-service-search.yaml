@@ -26,7 +26,7 @@ info:
     ### Restricted Access
     This is the only access mode supported by the API and it is [application-restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis), meaning we authenticate and authorise the calling application but not the end user. This mode is used as part of a back-end process to retrieve healthcare service details
     This access mode adopts the following security/authentication patterns:
-    - TBC
+    - JWT Private Key authentication
 
     ## Roadmap
     TBC
@@ -80,6 +80,11 @@ servers:
     url: TBC
   - description: Production environment
     url: TBC
+
+# Fix for CKV_OPENAPI_4: Add security schemes
+security:
+  - JWTAuth: []
+
 paths:
   /Organization:
     get:
@@ -101,6 +106,9 @@ paths:
         | Invalid ODS code      | odsCode=TBC      | HTTP Status 422 with INVALID_ODS_CODE message           |
         | Missing ODS code      | No odsCode parameter | HTTP Status 422 with MISSING_ODS_CODE message           |
       operationId: searchOrganizations
+      # Fix for CKV_OPENAPI_5: Add security requirement at operation level
+      security:
+        - JWTAuth: []
       parameters:
         - name: organization.identifier
           in: query
@@ -245,6 +253,42 @@ paths:
                           version: "1"
                           code: "INVALID_PARAMETER"
                           display: "Invalid parameter"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    diagnostics: "Invalid or missing authentication token"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "UNAUTHORIZED"
+                          display: "Unauthorized"
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "forbidden"
+                    diagnostics: "Insufficient permissions to access this resource"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "FORBIDDEN"
+                          display: "Forbidden"
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
           content:
@@ -283,6 +327,17 @@ paths:
                           display: "Internal server error"
 
 components:
+  # Fix for CKV_OPENAPI_4: Add security schemes definition
+  securitySchemes:
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token-based authentication using private key signing.
+        The JWT token must be obtained through the NHS Digital authentication process
+        and included in the Authorization header as 'Bearer <token>'.
+
   schemas:
     Bundle:
       type: object
@@ -486,7 +541,7 @@ components:
                 enum: ["error"]
               code:
                 type: string
-                enum: ["invalid", "internal"]
+                enum: ["invalid", "processing", "security", "forbidden", "exception"]
               diagnostics:
                 type: string
               details:
