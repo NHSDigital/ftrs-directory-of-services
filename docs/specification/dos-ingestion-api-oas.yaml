@@ -723,6 +723,7 @@ components:
                 pattern: "^https://fhir\\.nhs\\.uk/StructureDefinition/.*"
               example: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
               minItems: 1
+              maxItems: 1
             versionId:
               type: string
               example: "1"
