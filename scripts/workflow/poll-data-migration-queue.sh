@@ -32,8 +32,7 @@ echo "Pausing 60 seconds to allow the queue to populate with messages..."
 sleep 60
 
 # Find the SQS queue URL for the environment
-queue_list=$(aws sqs list-queues --queue-name-prefix "$QUEUE_NAME" 2>&1)
-queue_url=$(echo "$queue_list" | jq -r '.QueueUrls[0]')
+queue_url=$(aws sqs get-queue-url --queue-name "$QUEUE_NAME" | jq -r '.QueueUrl' 2>&1)
 
 # Poll the queue until empty
 while [ $poll_queue -eq 1 ]; do

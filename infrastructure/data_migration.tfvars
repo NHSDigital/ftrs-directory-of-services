@@ -2,6 +2,7 @@ team_owner = "future-directory"
 
 migration_pipeline_store_bucket_name = "pipeline-store"
 s3_versioning                        = false
+dynamodb_exports_s3_expiration_days  = 30
 
 source_rds_database = "data_migration"
 target_rds_database = "Core"
