@@ -127,9 +127,9 @@ module "queue_populator_lambda" {
 module "rds_event_listener_lambda" {
   count              = local.is_primary_environment ? 1 : 0
   source             = "../../modules/lambda"
-  function_name      = "${local.resource_prefix}-${var.rds_event_listener_name}"
+  function_name      = "${local.resource_prefix}-${var.rds_event_listener_lambda_name}"
   description        = "Lambda to listen for database events and send notifications"
-  handler            = var.migration_copy_db_trigger
+  handler            = var.migration_copy_db_lambda_trigger
   runtime            = var.lambda_runtime
   timeout            = var.rds_event_listener_lambda_connection_timeout
   memory_size        = var.rds_event_listener_lambda_memory_size
@@ -182,8 +182,8 @@ module "dms_db_lambda" {
   environment_variables = {
     "ENVIRONMENT"        = var.environment
     "PROJECT_NAME"       = var.project
-    "TARGET_RDS_DETAILS" = "/${var.project}/${var.environment}/target-rds-credentials"
-    "DMS_USER_DETAILS"   = "/${var.project}/${var.environment}/dms-user-password-${random_id.dms_user_password_suffix[0].hex}"
+    "TARGET_RDS_DETAILS" = "/${var.project}/${var.environment}/${var.target_rds_details}"
+    "DMS_USER_DETAILS"   = "/${var.project}/${var.environment}/${var.dms-user-password}${random_id.dms_user_password_suffix[0].hex}"
     "TRIGGER_LAMBDA_ARN" = module.rds_event_listener_lambda[0].lambda_function_arn
   }
 

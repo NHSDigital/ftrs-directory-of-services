@@ -62,7 +62,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/source-rds-credentials-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.source_rds_credentials}-*"
     ]
   }
 }
@@ -75,8 +75,8 @@ data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/target-rds-credentials-*",
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/dms-user-password-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.target_rds_details}-*",
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.dms_user_password}-*"
     ]
   }
 }
@@ -159,7 +159,7 @@ data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
       "sqs:GetQueueAttributes"
     ]
     resources = [
-      "arn:aws:sqs:${var.aws_region}:${local.account_id}:${local.resource_prefix}-${var.dms_event_queue_name}*"
+      "${aws_sqs_queue.dms_event_queue.arn}*"
     ]
   }
 }
@@ -173,7 +173,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "ssm:GetParameters",
       "ssm:GetParametersByPath"
     ]
-    resources = ["arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/ftrs-dos/migration/sqs_ids/${var.environment}/*"]
+    resources = ["arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter${var.sqs_ssm_path_for_ids}${var.environment}/*"]
   }
 }
 
