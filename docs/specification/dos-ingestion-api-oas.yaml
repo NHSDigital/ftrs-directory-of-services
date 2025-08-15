@@ -107,15 +107,25 @@ info:
     * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
   version: 1.0.0
+  contact:
+    name: NHS Digital API Support
+    url: https://digital.nhs.uk/developer/help-and-support
+    email: api.management@nhs.net
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: 'https://internal-dev.api.service.nhs.uk/dos-ingestion/FHIR/R4'
+    description: Development environment
+security:
+  - app-level0: []
 paths:
   '/Organization/':
     post:
-      security:
-        - app-level0: []
       summary: Create a new Organization
       description: Create a new Organization resource.
+      security:
+        - app-level0: []
       parameters:
       - in: header
         name: apiKey
@@ -134,32 +144,272 @@ paths:
           Mirrored back in a response header.
         schema:
           type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: Content-Type
+        required: true
+        description: Content type must be application/fhir+json
+        schema:
+          type: string
+          enum: ["application/fhir+json"]
+          example: application/fhir+json
       requestBody:
         required: true
         content:
           application/fhir+json:
             schema:
               $ref: '#/components/schemas/Organization'
+            examples:
+              organization_example:
+                summary: Example Organization
+                value:
+                  resourceType: Organization
+                  id: "00000000-0000-0000-0000-00000000000a"
+                  meta:
+                    profile: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                  active: true
+                  name: "GP Practice Name"
+                  type:
+                    - coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-OrganizationType"
+                          code: "GP"
+                          display: "GP Practice"
+                  identifier:
+                    - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                      value: "ABC123"
+                  telecom:
+                    - system: phone
+                      value: "01234 567890"
+                      use: work
+                  address:
+                    - line: ["Example Medical Practice", "Example Street"]
+                      city: "Example City"
+                      postalCode: "AB12 3CD"
+                      country: "ENGLAND"
       responses:
         '201':
-          description: Organization created
+          description: Organization created successfully
+          headers:
+            X-Correlation-ID:
+              description: 'The X-Correlation-ID from the request header, if supplied, mirrored back.'
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+            Location:
+              description: Location of the created resource
+              schema:
+                type: string
+                example: "/Organization/00000000-0000-0000-0000-00000000000a"
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+            X-XSS-Protection:
+              description: Enable XSS filtering
+              schema:
+                type: string
+                example: "1; mode=block"
+            Strict-Transport-Security:
+              description: Enforce HTTPS
+              schema:
+                type: string
+                example: "max-age=31536000; includeSubDomains"
           content:
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/Organization'
-        '4XX':
-          description: Error
+              examples:
+                created_organization:
+                  summary: Created Organization Response
+                  value:
+                    resourceType: Organization
+                    id: "00000000-0000-0000-0000-00000000000a"
+                    meta:
+                      profile: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                      versionId: "1"
+                      lastUpdated: "2024-01-15T10:30:00.000Z"
+                    active: true
+                    name: "GP Practice Name"
+                    type:
+                      - coding:
+                          - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-OrganizationType"
+                            code: "GP"
+                            display: "GP Practice"
+                    identifier:
+                      - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                        value: "ABC123"
+                    telecom:
+                      - system: phone
+                        value: "01234 567890"
+                        use: work
+                    address:
+                      - line: ["Example Medical Practice", "Example Street"]
+                        city: "Example City"
+                        postalCode: "AB12 3CD"
+                        country: "ENGLAND"
+        '400':
+          description: Bad Request - Invalid input data
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              examples:
+                validation_error:
+                  summary: Validation Error
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: "https://fhir.nhs.uk/Codesystem/http-error-codes"
+                              code: "VALIDATION_ERROR"
+                        diagnostics: "Required field 'name' is missing"
+        '401':
+          description: Unauthorized - Invalid or missing API key
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              examples:
+                unauthorized:
+                  summary: Unauthorized Error
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: security
+                        details:
+                          coding:
+                            - system: "https://fhir.nhs.uk/Codesystem/http-error-codes"
+                              code: "UNAUTHORIZED"
+                        diagnostics: "Invalid or missing API key"
+        '403':
+          description: Forbidden - Access denied
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '409':
+          description: Conflict - Resource already exists
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '422':
+          description: Unprocessable Entity - Semantic validation errors
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '429':
+          description: Too Many Requests - Rate limit exceeded
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+            Retry-After:
+              description: Number of seconds to wait before retrying
+              schema:
+                type: integer
+                example: 60
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '500':
+          description: Internal Server Error
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
           content:
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
   '/Organization/{id}':
     put:
-      security:
-        - app-level0: []
       summary: Update/overwrite an Organization resource
       description: Update or overwrite an existing Organization resource by ID.
+      security:
+        - app-level0: []
       parameters:
       - in: header
         name: apiKey
@@ -175,17 +425,26 @@ paths:
         required: false
         description: |
           Use an optional ID to track transactions across multiple systems.
-
           Mirrored back in a response header.
         schema:
           type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: Content-Type
+        required: true
+        description: Content type must be application/fhir+json
+        schema:
+          type: string
+          enum: ["application/fhir+json"]
+          example: application/fhir+json
       - in: path
         name: id
         description: The unique identifier of the Organization resource to update.
         required: true
         schema:
           type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
           example: "00000000-0000-0000-0000-00000000000a"
       requestBody:
         required: true
@@ -193,22 +452,237 @@ paths:
           application/fhir+json:
             schema:
               $ref: '#/components/schemas/Organization'
+            examples:
+              organization_update:
+                summary: Organization Update Example
+                value:
+                  resourceType: Organization
+                  id: "00000000-0000-0000-0000-00000000000a"
+                  meta:
+                    profile: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                  active: true
+                  name: "Updated GP Practice Name"
+                  type:
+                    - coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-OrganizationType"
+                          code: "GP"
+                          display: "GP Practice"
+                  identifier:
+                    - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                      value: "ABC123"
+                  telecom:
+                    - system: phone
+                      value: "01234 567890"
+                      use: work
+                  address:
+                    - line: ["Updated Medical Practice", "Updated Street"]
+                      city: "Updated City"
+                      postalCode: "AB12 3CD"
+                      country: "ENGLAND"
       responses:
         '200':
-          description: Organization updated
+          description: Organization updated successfully
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-              description: 'The X-Correlation-ID from the request header, if supplied,
-                mirrored back.'
+              description: 'The X-Correlation-ID from the request header, if supplied, mirrored back.'
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+            X-XSS-Protection:
+              description: Enable XSS filtering
+              schema:
+                type: string
+                example: "1; mode=block"
+            Strict-Transport-Security:
+              description: Enforce HTTPS
+              schema:
+                type: string
+                example: "max-age=31536000; includeSubDomains"
+            ETag:
+              description: Version identifier for the resource
+              schema:
+                type: string
+                example: "W/\"2\""
           content:
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/Organization'
-        '4XX':
-          description: Error
+              examples:
+                updated_organization:
+                  summary: Updated Organization Response
+                  value:
+                    resourceType: Organization
+                    id: "00000000-0000-0000-0000-00000000000a"
+                    meta:
+                      profile: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                      versionId: "2"
+                      lastUpdated: "2024-01-15T11:30:00.000Z"
+                    active: true
+                    name: "Updated GP Practice Name"
+                    type:
+                      - coding:
+                          - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-OrganizationType"
+                            code: "GP"
+                            display: "GP Practice"
+                    identifier:
+                      - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                        value: "ABC123"
+                    telecom:
+                      - system: phone
+                        value: "01234 567890"
+                        use: work
+                    address:
+                      - line: ["Updated Medical Practice", "Updated Street"]
+                        city: "Updated City"
+                        postalCode: "AB12 3CD"
+                        country: "ENGLAND"
+        '400':
+          description: Bad Request - Invalid input data
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '401':
+          description: Unauthorized - Invalid or missing API key
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '403':
+          description: Forbidden - Access denied
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '404':
+          description: Not Found - Organization does not exist
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '412':
+          description: Precondition Failed - Version mismatch
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '422':
+          description: Unprocessable Entity - Semantic validation errors
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '429':
+          description: Too Many Requests - Rate limit exceeded
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
+            Retry-After:
+              description: Number of seconds to wait before retrying
+              schema:
+                type: integer
+                example: 60
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+        '500':
+          description: Internal Server Error
+          headers:
+            X-Content-Type-Options:
+              description: Prevent MIME type sniffing
+              schema:
+                type: string
+                example: nosniff
+            X-Frame-Options:
+              description: Prevent clickjacking attacks
+              schema:
+                type: string
+                example: DENY
           content:
             application/fhir+json:
               schema:
@@ -218,8 +692,8 @@ components:
     Organization:
       type: object
       required:
-        - id
         - resourceType
+        - id
         - meta
         - active
         - name
@@ -230,24 +704,45 @@ components:
       properties:
         resourceType:
           type: string
+          enum: [Organization]
           example: Organization
         id:
           type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
           example: "00000000-0000-0000-0000-00000000000a"
+          description: Unique identifier for the Organization resource
         meta:
           type: object
+          required:
+            - profile
           properties:
             profile:
               type: array
               items:
                 type: string
+                pattern: "^https://fhir\\.nhs\\.uk/StructureDefinition/.*"
               example: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+              minItems: 1
+            versionId:
+              type: string
+              example: "1"
+              description: Version of the resource
+            lastUpdated:
+              type: string
+              format: date-time
+              example: "2024-01-15T10:30:00.000Z"
+              description: When the resource was last updated
         active:
           type: boolean
           example: true
+          description: Whether the organization is active
         name:
           type: string
+          minLength: 1
+          maxLength: 255
+          pattern: "^[\\s\\S]*\\S[\\s\\S]*$"
           example: "GP Practice Name"
+          description: Name of the organization
         type:
           type: array
           items:
@@ -265,13 +760,21 @@ components:
                   properties:
                     system:
                       type: string
-                      example: "TO-DO"
+                      format: uri
+                      pattern: "^https://.*"
+                      example: "https://fhir.hl7.org.uk/CodeSystem/UKCore-OrganizationType"
+                      description: Code system URI
                     code:
                       type: string
-                      example: "GP Service"
+                      minLength: 1
+                      example: "GP"
+                      description: Organization type code
                     display:
                       type: string
-                      example: GP Service
+                      example: "GP Practice"
+                      description: Human readable description of the code
+          minItems: 1
+          description: Type of organization
         identifier:
           type: array
           items:
@@ -284,9 +787,14 @@ components:
                 type: string
                 enum: [https://fhir.nhs.uk/Id/ods-organization-code]
                 example: https://fhir.nhs.uk/Id/ods-organization-code
+                description: Identifier system URI
               value:
                 type: string
+                pattern: "^[A-Z0-9]{1,12}$"
                 example: ABC123
+                description: ODS organization code
+          minItems: 1
+          description: Organization identifiers
         telecom:
           type: array
           items:
@@ -297,15 +805,21 @@ components:
             properties:
               system:
                 type: string
-                enum: [phone]
+                enum: [phone, email, fax, url]
                 example: phone
+                description: Type of contact
               value:
                 type: string
+                minLength: 1
                 example: "01234 567890"
+                description: Contact value
               use:
                 type: string
-                enum: [work]
+                enum: [home, work, temp, old, mobile]
                 example: work
+                description: Purpose of the contact
+          minItems: 1
+          description: Contact information
         address:
           type: array
           items:
@@ -320,16 +834,29 @@ components:
                 type: array
                 items:
                   type: string
+                  minLength: 1
                 example: ["Example Medical Practice", "Example Street"]
+                minItems: 1
+                maxItems: 5
+                description: Street address lines
               city:
                 type: string
+                minLength: 1
+                maxLength: 100
                 example: "Example City"
+                description: City name
               postalCode:
                 type: string
+                pattern: "^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$"
                 example: "AB12 3CD"
+                description: UK postal code
               country:
                 type: string
+                enum: ["ENGLAND", "SCOTLAND", "WALES", "NORTHERN IRELAND"]
                 example: "ENGLAND"
+                description: Country name
+          minItems: 1
+          description: Organization addresses
     OperationOutcome:
       type: object
       required:
@@ -338,10 +865,13 @@ components:
       properties:
         resourceType:
           type: string
+          enum: [OperationOutcome]
           example: OperationOutcome
         id:
           type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
           example: 6f4ca309-19d7-4f61-90b3-acbd1f2eb8f8
+          description: Unique identifier for the operation outcome
         meta:
           type: object
           properties:
@@ -349,7 +879,16 @@ components:
               type: array
               items:
                 type: string
+                pattern: "^https://.*"
               example: ["https://simplifier.net/guide/UKCoreDevelopment2/ProfileUKCore-OperationOutcome"]
+              minItems: 1
+            versionId:
+              type: string
+              example: "1"
+            lastUpdated:
+              type: string
+              format: date-time
+              example: "2024-01-15T10:30:00.000Z"
         issue:
           type: array
           items:
@@ -362,9 +901,12 @@ components:
                 type: string
                 enum: [fatal, error, warning, information]
                 example: error
+                description: Severity of the issue
               code:
                 type: string
+                enum: [invalid, structure, required, value, invariant, security, login, unknown, expired, forbidden, suppressed, processing, not-supported, duplicate, multiple-matches, not-found, too-long, code-invalid, extension, too-costly, business-rule, conflict, transient, lock-error, no-store, exception, timeout, incomplete, throttled, informational]
                 example: invalid
+                description: Type of issue
               details:
                 type: object
                 properties:
@@ -372,19 +914,64 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - system
+                        - code
                       properties:
                         system:
                           type: string
+                          format: uri
+                          pattern: "^https://.*"
                           example: https://fhir.nhs.uk/Codesystem/http-error-codes
+                          description: Code system URI
                         code:
                           type: string
+                          minLength: 1
                           example: INVALID
+                          description: Error code
+                        display:
+                          type: string
+                          example: "Invalid input"
+                          description: Human readable error description
+                  text:
+                    type: string
+                    example: "The provided data is invalid"
+                    description: Plain text description of the issue
               diagnostics:
                 type: string
+                minLength: 1
+                maxLength: 1000
                 example: 'Invalid resource.'
+                description: Additional diagnostic information
+              location:
+                type: array
+                items:
+                  type: string
+                example: ["Organization.name"]
+                description: Path to the element that caused the issue
+              expression:
+                type: array
+                items:
+                  type: string
+                example: ["Organization.name"]
+                description: FHIRPath expression identifying the issue location
+          minItems: 1
+          description: List of issues found
   securitySchemes:
     app-level0:
-      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level0
+      type: apiKey
+      in: header
+      name: apiKey
+      description: |
+        API key authentication. The API key must be provided in the 'apiKey' header.
+        API keys are issued during the onboarding process and must be kept secure.
+
+        Security considerations:
+        - API keys should be rotated regularly
+        - Keys should be stored securely and not logged
+        - Keys should not be embedded in client-side code
+        - Use HTTPS for all API communications
+        - Implement rate limiting and monitoring
 x-nhsd-apim:
   target:
     $ref: x-nhsd-apim/target.yaml
