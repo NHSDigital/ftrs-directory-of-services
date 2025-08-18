@@ -1,0 +1,396 @@
+openapi: 3.0.3
+# checkov:skip=CKV_OPENAPI_4: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
+# checkov:skip=CKV_OPENAPI_21: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
+info:
+  title: Directory of Services Ingestion API
+  description: |
+    ## Overview
+
+    Use this API to submit service data from your system to the NHS [Directory of Services (DoS)](https://digital.nhs.uk/services/directory-of-services-dos). This API enables data providers to send structured updates: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the national DoS.
+
+    Once submitted, the data will either undergo manual assurance by DoS leads or, in applicable cases, be processed through an automated assurance workflow. If manual assurance is required, the sender will receive an acknowledgment confirming that the data has been successfully submitted and is pending review.
+
+    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up to date for use across NHS systems.
+
+    ## Who can use this API
+
+    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organizations, local authorities, or trusted third-party systems that manage health and care service data.
+
+    To use this API, both your organization and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the DoS.
+
+    Before access is granted, your organization must:
+    * contact our integration team to discuss your use case and technical approach
+    * undergo a technical and data assurance process to validate the structure, accuracy, and governance of the data source you plan to use
+    * receive approval that your system and data are fit for integration with the DoS Ingestion API
+
+    Use of this API is subject to data governance requirements and must align with approved use cases.
+
+    ## Access modes
+
+    This API has two access modes. They are:
+      * Application Restricted - Addition of new resource allowed / replacement of organization allowed
+      * User Restricted - Healthcare worker access for authentication via a UI (User Interface)
+
+    ## Roadmap
+    We're currently finalising our roadmap and we'll update this content in due course.
+
+    ## Service level
+
+    TBC when service is in Beta.
+
+    ## Technology
+
+    This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).
+
+    It conforms to the FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1.
+
+    You do not need to know much about FHIR to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
+    * resource names are capitalised and singular, for example /Patient not /patients
+    * array names are singular, for example line not lines for address lines
+    * data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object
+
+    There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
+
+    ## Network access
+
+    This API is available on the Internet.
+
+    ## Errors
+
+    We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
+    * 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
+    * 400 to 499 if it failed because of a client error by your application
+    * 500 to 599 if it failed because of an error on our server
+
+    Errors specific to each API are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+
+    ## Open source
+
+    You might find the following open source resources useful:
+    | Resource | Description | Link |
+    |-----|-----|-----|
+    |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services) |
+    | ETL Layer | ETL developed for Data Sourcing Partners | [Github](https://github.com/NHSDigital/ftrs-directory-of-services)|
+    | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
+
+    ## Environments and testing
+
+    TBC links to available environments:
+
+    | Environment | Base URL |
+    |-------------|----------|
+    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Production | https://api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+
+    ### Sandbox
+
+    Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing):
+    * is for early developer testing
+    * only covers a limited set of scenarios
+    * is stateless, so does not actually persist any updates
+    * is open access, so does not allow you to test authorisation - TBC
+
+    For details of sandbox test scenarios, or to try out the sandbox using our 'Try this API' feature, see the documentation for each endpoint.
+
+    TBC - More details to be posted on integration, authentication, resources or test data available in all our environments during Beta phase.
+
+    ## Onboarding
+
+    You need to get your software approved by us before it can go live with this API. We call this onboarding. The onboarding process can sometimes be quite long, so it's worth planning well ahead.
+
+    As part of this process, you need to demonstrate your technical conformance to the requirements for this API.
+
+    ## Related APIs
+
+    The following APIs are related to this one:
+    * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
+    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
+  version: 1.0.0
+servers:
+  - url: 'https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4'
+paths:
+  '/Organization/':
+    post:
+      security:
+        - app-level0: []
+      summary: Create a new Organization
+      description: Create a new Organization resource.
+      parameters:
+      - in: header
+        name: apiKey
+        required: true
+        description: |
+          Use the unique api key provided to you during onboarding. This will be used to authorise API requests.
+        schema:
+          type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+      - in: header
+        name: X-Correlation-ID
+        required: false
+        description: |
+          Use an optional ID to track transactions across multiple systems.
+          Mirrored back in a response header.
+        schema:
+          type: string
+          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      requestBody:
+        required: true
+        content:
+          application/fhir+json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      responses:
+        '201':
+          description: Organization created
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '4XX':
+          description: Error
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+  '/Organization/{id}':
+    put:
+      security:
+        - app-level0: []
+      summary: Update/overwrite an Organization resource
+      description: Update or overwrite an existing Organization resource by ID.
+      parameters:
+      - in: header
+        name: apiKey
+        required: true
+        description: |
+          Use the unique api key provided to you during onboarding. This will be used to authorise API requests
+        schema:
+          type: string
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+      - in: header
+        name: X-Correlation-ID
+        required: false
+        description: |
+          Use an optional ID to track transactions across multiple systems.
+
+          Mirrored back in a response header.
+        schema:
+          type: string
+          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: path
+        name: id
+        description: The unique identifier of the Organization resource to update.
+        required: true
+        schema:
+          type: string
+          example: "00000000-0000-0000-0000-00000000000a"
+      requestBody:
+        required: true
+        content:
+          application/fhir+json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      responses:
+        '200':
+          description: Organization updated
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: 'The X-Correlation-ID from the request header, if supplied,
+                mirrored back.'
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '4XX':
+          description: Error
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+components:
+  schemas:
+    Organization:
+      type: object
+      required:
+        - id
+        - resourceType
+        - meta
+        - active
+        - name
+        - type
+        - identifier
+        - telecom
+        - address
+      properties:
+        resourceType:
+          type: string
+          example: Organization
+        id:
+          type: string
+          example: "00000000-0000-0000-0000-00000000000a"
+        meta:
+          type: object
+          properties:
+            profile:
+              type: array
+              items:
+                type: string
+              example: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        active:
+          type: boolean
+          example: true
+        name:
+          type: string
+          example: "GP Practice Name"
+        type:
+          type: array
+          items:
+            type: object
+            required:
+              - coding
+            properties:
+              coding:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - system
+                    - code
+                  properties:
+                    system:
+                      type: string
+                      example: "TO-DO"
+                    code:
+                      type: string
+                      example: "GP Service"
+                    display:
+                      type: string
+                      example: GP Service
+        identifier:
+          type: array
+          items:
+            type: object
+            required:
+              - system
+              - value
+            properties:
+              system:
+                type: string
+                enum: [https://fhir.nhs.uk/Id/ods-organization-code]
+                example: https://fhir.nhs.uk/Id/ods-organization-code
+              value:
+                type: string
+                example: ABC123
+        telecom:
+          type: array
+          items:
+            type: object
+            required:
+              - system
+              - value
+            properties:
+              system:
+                type: string
+                enum: [phone]
+                example: phone
+              value:
+                type: string
+                example: "01234 567890"
+              use:
+                type: string
+                enum: [work]
+                example: work
+        address:
+          type: array
+          items:
+            type: object
+            required:
+              - line
+              - city
+              - postalCode
+              - country
+            properties:
+              line:
+                type: array
+                items:
+                  type: string
+                example: ["Example Medical Practice", "Example Street"]
+              city:
+                type: string
+                example: "Example City"
+              postalCode:
+                type: string
+                example: "AB12 3CD"
+              country:
+                type: string
+                example: "ENGLAND"
+    OperationOutcome:
+      type: object
+      required:
+        - resourceType
+        - issue
+      properties:
+        resourceType:
+          type: string
+          example: OperationOutcome
+        id:
+          type: string
+          example: 6f4ca309-19d7-4f61-90b3-acbd1f2eb8f8
+        meta:
+          type: object
+          properties:
+            profile:
+              type: array
+              items:
+                type: string
+              example: ["https://simplifier.net/guide/UKCoreDevelopment2/ProfileUKCore-OperationOutcome"]
+        issue:
+          type: array
+          items:
+            type: object
+            required:
+              - severity
+              - code
+            properties:
+              severity:
+                type: string
+                enum: [fatal, error, warning, information]
+                example: error
+              code:
+                type: string
+                example: invalid
+              details:
+                type: object
+                properties:
+                  coding:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        system:
+                          type: string
+                          example: https://fhir.nhs.uk/Codesystem/http-error-codes
+                        code:
+                          type: string
+                          example: INVALID
+              diagnostics:
+                type: string
+                example: 'Invalid resource.'
+  securitySchemes:
+    app-level0:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level0
+x-nhsd-apim:
+  target:
+    type: external
+    healthcheck: /_status
+    url: https://zg5fks99wc.execute-api.eu-west-2.amazonaws.com
+  access:
+    - title: Application-restricted with API key
+      grants:
+        app-level0: []
