@@ -14,7 +14,9 @@ def mock_error_util():
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
 
-        mock.create_resource_validation_error.return_value = mock_validation_error
+        mock.create_validation_error_operation_outcome.return_value = (
+            mock_validation_error
+        )
         mock.create_resource_internal_server_error.return_value = mock_internal_error
 
         yield mock
@@ -135,7 +137,7 @@ class TestLambdaHandler:
             response = lambda_handler(event, lambda_context)
 
         # Assert
-        mock_error_util.create_resource_validation_error.assert_called_once_with(
+        mock_error_util.create_validation_error_operation_outcome.assert_called_once_with(
             validation_error
         )
 
@@ -145,14 +147,14 @@ class TestLambdaHandler:
                     "Validation error occurred",
                     extra={"validation_errors": validation_error.errors()},
                 ),
-                call.info("Creating response", extra={"status_code": 422}),
+                call.info("Creating response", extra={"status_code": 400}),
             ]
         )
 
         assert_response(
             response,
-            expected_status_code=422,
-            expected_body=mock_error_util.create_resource_validation_error.return_value.model_dump_json(),
+            expected_status_code=400,
+            expected_body=mock_error_util.create_validation_error_operation_outcome.return_value.model_dump_json(),
         )
 
     def test_lambda_handler_with_general_exception(
