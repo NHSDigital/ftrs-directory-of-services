@@ -369,7 +369,7 @@ def test_type_validator_invalid_coding_code_empty() -> None:
         "type": [{"coding": [{"system": "abc"}]}],
     }
     response = client.put(f"/{test_org_id}", json=update_payload)
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert (
         "'type' must have either 'coding' or 'text' populated."
         in response.json()["issue"][0]["diagnostics"]
