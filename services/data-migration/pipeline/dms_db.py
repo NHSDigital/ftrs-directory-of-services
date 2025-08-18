@@ -1,8 +1,10 @@
 import json
 import logging
 import os
+from pathlib import Path
 
 import boto3
+from aws_lambda_powertools.utilities.parameters import get_secret
 from botocore.exceptions import ClientError
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -72,10 +74,8 @@ def execute_postgresql_trigger(
 ) -> None:
     try:
         # Read the SQL template file
-        with open(
-            "pipeline/trigger.sql.tmpl",
-            "r",
-        ) as file:
+        template_path = Path(__file__).parent / "templates" / "trigger.sql.tmpl"
+        with open(template_path, "r") as file:
             sql_template = file.read()
 
         # Replace placeholders with actual values
@@ -96,10 +96,7 @@ def execute_postgresql_trigger(
 
 
 def get_target_rds_details(aws_region: str) -> tuple[str, str, int, str, str]:
-    target_rds_details_response = secrets_client.get_secret_value(
-        SecretId=target_rds_details
-    )
-    target_rds_details_secret = json.loads(target_rds_details_response["SecretString"])
+    target_rds_details_secret = get_secret(name=target_rds_details, transform="json")
 
     cluster_endpoint = target_rds_details_secret["host"]
     database_name = target_rds_details_secret["dbname"]
@@ -111,10 +108,7 @@ def get_target_rds_details(aws_region: str) -> tuple[str, str, int, str, str]:
 
 
 def get_dms_user_details() -> tuple[str, str]:
-    dms_user_details_response = secrets_client.get_secret_value(
-        SecretId=dms_user_details
-    )
-    rds_password = dms_user_details_response["SecretString"]
+    rds_password = get_secret(name=dms_user_details)
     rds_username = "dms_user"
 
     return rds_username, rds_password
