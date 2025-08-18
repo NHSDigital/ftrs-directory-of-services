@@ -129,3 +129,29 @@ The API routing happens at the API gateway level, routing will happen for the /l
 **Responses**:
  204 No Content: Request fulfilled, nothing follows.
  404 Not Found: Location not found.
+
+### Update Location
+
+**Endpoint**: PUT /{location_id}
+
+**Description**: Updates a location with the given ID.
+
+**Path Parameters**:
+
+- `location_id` (UUID): The internal ID of the location.
+
+**Request Body**:
+
+- A JSON object containing the fields to update. Example:
+
+  ```json
+  {
+    "name": "New Location Name"
+  }
+  ```
+
+**Responses**:
+
+ 200 OK: Returns the updated location.
+ 404 Not Found: Service to be updated not found.
+ 422 Unprocessable Entity: Invalid request body.

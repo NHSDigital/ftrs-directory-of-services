@@ -183,7 +183,8 @@ def test_process_service(
 
     output = processor._save.call_args[0][0]
     assert isinstance(output, ServiceTransformOutput)
-    assert output.organisation == Organisation(
+    assert len(output.organisation) == 1
+    assert output.organisation[0] == Organisation(
         id="4539600c-e04e-5b35-a582-9fb36858d0e0",
         createdBy="DATA_MIGRATION",
         createdDateTime="2025-07-25T12:00:00+00:00",
@@ -235,7 +236,9 @@ def test_process_service(
             ),
         ],
     )
-    assert output.healthcare_service == HealthcareService(
+
+    assert len(output.healthcare_service) == 1
+    assert output.healthcare_service[0] == HealthcareService(
         id="903cd48b-5d0f-532f-94f4-937a4517b14d",
         createdBy="DATA_MIGRATION",
         createdDateTime="2025-07-25T12:00:00+00:00",
@@ -365,7 +368,9 @@ def test_process_service(
             ),
         ],
     )
-    assert output.location == Location(
+
+    assert len(output.location) == 1
+    assert output.location[0] == Location(
         id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         createdBy="DATA_MIGRATION",
         createdDateTime="2025-07-25T12:00:00+00:00",
@@ -599,10 +604,10 @@ def test_save(
     processor._save(result)
 
     assert mock_org_repo.upsert.call_count == 1
-    mock_org_repo.upsert.assert_called_once_with(result.organisation)
+    mock_org_repo.upsert.assert_called_once_with(result.organisation[0])
 
     assert mock_location_repo.upsert.call_count == 1
-    mock_location_repo.upsert.assert_called_once_with(result.location)
+    mock_location_repo.upsert.assert_called_once_with(result.location[0])
 
     assert mock_service_repo.upsert.call_count == 1
-    mock_service_repo.upsert.assert_called_once_with(result.healthcare_service)
+    mock_service_repo.upsert.assert_called_once_with(result.healthcare_service[0])

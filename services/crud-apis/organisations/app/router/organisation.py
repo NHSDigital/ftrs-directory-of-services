@@ -55,7 +55,7 @@ def get_org_by_ods_code(
             )
         return JSONResponse(
             status_code=200,
-            content={"id": records[0].id},
+            content={"id": str(records[0].id)},
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:
