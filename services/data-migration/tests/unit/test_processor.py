@@ -192,7 +192,7 @@ def test_process_service(
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         identifier_ODS_ODSCode="A12345",
         active=True,
-        name="Test Service",
+        name="Public Test Service",
         telecom=None,
         type="GP Practice",
         endpoints=[
