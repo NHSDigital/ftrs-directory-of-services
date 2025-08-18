@@ -4,10 +4,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Generator, List
 
-import awswrangler as wr
 import rich
-from aws_lambda_powertools.utilities.parameters import get_parameter, set_parameter
-from ftrs_common.utils.db_service import format_table_name
 from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication, DMSEvent
