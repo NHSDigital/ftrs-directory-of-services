@@ -354,23 +354,8 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
 
 
 def test_type_validator_invalid_coding_code_empty() -> None:
-    organisation_data = {
-        "id": "123",
-        "resourceType": "Organization",
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-        "name": "Test Org",
-        "active": True,
-        "telecom": [],
-        "type": {"coding": [{"system": "TO-DO", "code": ""}]},
-    }
+    organisation_data = get_organisation()
+    organisation_data["type"] = {"coding": [{"system": "abc", "code": ""}]}
     with pytest.raises(ValueError) as exc_info:
         client.post("/", json=organisation_data)
     assert exc_info.type is ValueError
