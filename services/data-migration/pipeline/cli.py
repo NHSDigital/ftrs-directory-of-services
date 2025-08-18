@@ -4,7 +4,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Generator, List
 
-import rich
 from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication, DMSEvent
@@ -17,8 +16,6 @@ from pipeline.utils.config import (
     DataMigrationConfig,
     QueuePopulatorConfig,
 )
-
-CONSOLE = rich.get_console()
 
 
 class TargetEnvironment(StrEnum):
