@@ -352,12 +352,20 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
     assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
     assert exc_info.value.detail == "Organisation not found"
 
+
 def test_type_validator_invalid_coding_code_empty() -> None:
     organisation_data = {
         "id": "123",
         "resourceType": "Organization",
-        "meta": {"profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]},
-        "identifier": [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ABC123"}],
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
         "name": "Test Org",
         "active": True,
         "telecom": [],
