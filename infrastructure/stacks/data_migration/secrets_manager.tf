@@ -38,7 +38,7 @@ resource "aws_secretsmanager_secret" "dms_user_password" {
   # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count = local.is_primary_environment ? 1 : 0
 
-  name = "/${var.project}/${var.environment}/${var.dms_user_password}${random_id.dms_user_password_suffix[0].hex}"
+  name = "/${var.project}/${var.environment}/${var.dms_user_password}-${random_id.dms_user_password_suffix[0].hex}"
 }
 
 resource "aws_secretsmanager_secret_version" "dms_user_password" {
