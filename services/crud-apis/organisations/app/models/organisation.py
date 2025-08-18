@@ -3,7 +3,7 @@ from typing import Literal
 from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
-from pydantic import BaseModel, Field, ValidationError, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
 
@@ -40,7 +40,7 @@ class OrganisationUpdatePayload(BaseModel):
     def check_type_coding_and_text(self) -> "OrganisationUpdatePayload":
         for t in self.type:
             if (not t.coding or len(t.coding) == 0) or (not t.text or t.text == ""):
-                raise ValidationError(ERROR_MESSAGE_TYPE)
+                raise ValueError(ERROR_MESSAGE_TYPE)
         return self
 
 
