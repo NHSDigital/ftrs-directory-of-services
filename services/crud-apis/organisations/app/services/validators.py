@@ -1,4 +1,4 @@
-from fhir.resources.R4B.codeableconcept import CodeableConcept
+# from fhir.resources.R4B.codeableconcept import CodeableConcept
 from pydantic import field_validator
 
 from organisations.app.models.organisation import (
@@ -9,9 +9,7 @@ from organisations.app.models.organisation import (
 NAME_EMPTY_ERROR = "Name cannot be empty."
 CREATED_BY_EMPTY_ERROR = "createdBy cannot be empty."
 ODS_CODE_EMPTY_ERROR = "ODS code cannot be empty."
-ORG_TYPE_INVALID_ERROR = "Organisation type is invalid."
-
-org_type_enums = ["GP Practice"]
+# ORG_TYPE_INVALID_ERROR = "Organisation type is invalid."
 
 
 class UpdatePayloadValidator(OrganisationUpdatePayload):
@@ -22,30 +20,32 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
             raise ValueError(NAME_EMPTY_ERROR)
         return v
 
-    @field_validator("type")
-    def validate_organisation_type(cls, v: list) -> list:
-        """Validates the Organisation Type field to ensure it is a valid type."""
-        if not v:
-            raise ValueError(ORG_TYPE_INVALID_ERROR)
-        if isinstance(v, list):
-            if len(v) == 0:
-                raise ValueError(ORG_TYPE_INVALID_ERROR)
-            for item in v:
-                if isinstance(item, CodeableConcept):
-                    # will need to change to either codings or text eventually
-                    display = getattr(item, "text", None)
-                    if display and display in org_type_enums:
-                        return v
-                    codings = getattr(item, "coding", None)
-                    if codings:
-                        for coding in codings:
-                            code = getattr(coding, "code", None)
-                            if code and code in org_type_enums:
-                                return v
-            # If none of the items are valid
-            raise ValueError(ORG_TYPE_INVALID_ERROR)
-        # If v is None or not a recognized type
-        raise ValueError(ORG_TYPE_INVALID_ERROR)
+    # @field_validator("type")
+    # def validate_organisation_type(cls, v: list) -> list:
+    #     """Validates the Organisation Type field to ensure it is a valid type."""
+    #     if not v:
+    #         raise ValueError(ORG_TYPE_INVALID_ERROR)
+    #     if isinstance(v, list):
+    #         if len(v) == 0:
+    #             raise ValueError(ORG_TYPE_INVALID_ERROR)
+    #         for item in v:
+    #             if isinstance(item, CodeableConcept):
+    #                 # will need to change to either codings or text eventually
+    #                 display = getattr(item, "text", None)
+    #                 if display:
+    #                     return v
+    #                 codings = getattr(item, "coding", None)
+    #                 return validate_coding(codings)
+    #         raise ValueError(ORG_TYPE_INVALID_ERROR)
+    #     raise ValueError(ORG_TYPE_INVALID_ERROR)
+
+
+# def validate_coding(codings: list)-> list:
+#      if codings:
+#         for coding in codings:
+#             code = getattr(coding, "code", None)
+#             if code:
+#                 return codings
 
 
 class CreatePayloadValidator(OrganisationCreatePayload):
