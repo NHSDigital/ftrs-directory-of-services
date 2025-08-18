@@ -52,6 +52,6 @@ $function$;
 -- Trigger on the services table to invoke Lambda on row-level changes
 CREATE TRIGGER services_lambda_notify
 AFTER INSERT OR UPDATE OR DELETE
-ON 'table_name', TG_TABLE_NAME
+ON ${table_name}
 FOR EACH ROW
 EXECUTE FUNCTION pathwaysdos.lambda_notify();
