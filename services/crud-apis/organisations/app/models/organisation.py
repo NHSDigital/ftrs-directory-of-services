@@ -41,6 +41,8 @@ class OrganisationUpdatePayload(BaseModel):
         for t in self.type:
             if (not t.coding or len(t.coding) == 0) and (not t.text or t.text == ""):
                 raise ValueError(ERROR_MESSAGE_TYPE)
+            if t.coding and (not t.coding[0].code or t.coding[0].code == ""):
+                raise ValueError(ERROR_MESSAGE_TYPE)
         return self
 
 
