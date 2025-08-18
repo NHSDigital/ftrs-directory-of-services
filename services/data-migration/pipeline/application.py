@@ -7,7 +7,7 @@ from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 
 from pipeline.processor import DataMigrationProcessor
-from pipeline.triageCode_processor import TriageCodeProcessor
+from pipeline.triagecode_processor import TriageCodeProcessor
 from pipeline.utils.config import DataMigrationConfig
 
 

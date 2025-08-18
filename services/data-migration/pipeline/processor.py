@@ -4,7 +4,6 @@ from typing import Iterable
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pydantic import BaseModel
 from sqlmodel import Session, create_engine, select
 
@@ -45,8 +44,6 @@ class DataMigrationProcessor:
     This class is responsible for managing the data migration process.
     It includes methods to transform legacy service data into the new format.
     """
-
-    _REPOSITORY_CACHE: dict[str, AttributeLevelRepository] = {}
 
     def __init__(
         self,
@@ -186,10 +183,8 @@ class DataMigrationProcessor:
         org_repo = get_repository(
             self.config, "organisation", Organisation, self.logger
         )
-        location_repo = self.get_repository(
-            self.config, "location", Location, self.logger
-        )
-        service_repo = self.get_repository(
+        location_repo = get_repository(self.config, "location", Location, self.logger)
+        service_repo = get_repository(
             self.config, "healthcare-service", HealthcareService, self.logger
         )
 
