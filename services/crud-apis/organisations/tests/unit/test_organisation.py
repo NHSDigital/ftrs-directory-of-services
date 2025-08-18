@@ -370,4 +370,4 @@ def test_type_validator_invalid_coding_code_empty() -> None:
     }
     with pytest.raises(RequestValidationError) as exc_info:
         client.put(f"/{test_org_id}", json=update_payload)
-    assert "must have either 'coding' or 'text' populated" in exc_info.value.detail
+    assert "must have either 'coding' or 'text' populated" in str(exc_info.value)
