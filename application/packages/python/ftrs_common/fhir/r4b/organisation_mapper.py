@@ -39,13 +39,13 @@ class OrganizationMapper(FhirMapper):
                     "coding": [
                         {
                             "system": "TO-DO",  # Use correct system if available
-                            "code": org_type_value if org_type_value else "GP Service",
+                            "code": org_type_value if org_type_value else "GP Practice",
                             "display": org_type_value
                             if org_type_value
-                            else "GP Service",
+                            else "GP Practice",
                         }
                     ],
-                    "text": org_type_value if org_type_value else "GP Service",
+                    "text": org_type_value if org_type_value else "GP Practice",
                 }
             )
         ]
@@ -101,6 +101,8 @@ class OrganizationMapper(FhirMapper):
             type_obj = fhir_org.type[0]
             if getattr(type_obj, "text", None):
                 return type_obj.text
+            if getattr(type_obj, "coding", None):
+                return type_obj.coding[0].code
         return None
 
     def _get_org_telecom(self, fhir_org: FhirOrganisation) -> str | None:
