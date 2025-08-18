@@ -14,9 +14,11 @@ from concurrent.futures import ThreadPoolExecutor
 from math import floor
 from threading import Lock
 
+import awswrangler as wr
 import boto3
 import pandas as pd
 import rich
+from aws_lambda_powertools.utilities.parameters import set_parameter
 from ftrs_common.utils.db_service import format_table_name
 from ftrs_data_layer.client import get_dynamodb_client
 from mypy_boto3_dynamodb.type_defs import ExportDescriptionTypeDef
@@ -100,7 +102,7 @@ async def export_table(
     response = trigger_table_export(table_name, s3_bucket)
     export_arn = response["ExportArn"]
 
-    CONSOLE.log(
+    CONSOLE.print(
         f"Triggered export of [bright_blue]{table_name}[/bright_blue] to S3 bucket [bright_cyan]{response['S3Bucket']}[/bright_cyan]"
     )
 
@@ -110,11 +112,11 @@ async def export_table(
         await asyncio.sleep(10)
         time_elapsed_seconds = floor(time.monotonic() - time_start)
 
-        CONSOLE.log(
+        CONSOLE.print(
             f"Waiting for [bright_blue]{table_name}[/bright_blue] export to complete [bright_black]({time_elapsed_seconds}s)[/bright_black]",
         )
 
-    CONSOLE.log(
+    CONSOLE.print(
         f"Export of [bright_blue]{table_name}[/bright_blue] completed successfully",
         style="green",
     )
@@ -127,7 +129,7 @@ async def process_export(description: ExportDescriptionTypeDef) -> None:
     Process the compressed export files into a single parquet file.
     """
     file_list = get_export_file_list(description)
-    compressed_files = download_export_files(description, file_list)
+    compressed_files = download_exported_files(description, file_list)
     records = decompress_and_parse_files(compressed_files)
     return pd.DataFrame(records, columns=["data"])
 
@@ -153,7 +155,7 @@ def get_export_file_list(description: ExportDescriptionTypeDef) -> list[dict]:
     ]
 
 
-def download_export_files(
+def download_exported_files(
     description: ExportDescriptionTypeDef, file_list: list[dict]
 ) -> list[bytes]:
     """
@@ -163,7 +165,7 @@ def download_export_files(
     files_lock = Lock()
     files = []
 
-    CONSOLE.log(
+    CONSOLE.print(
         f"Downloading {len(file_list)} data files for [bright_blue]{table_name}[/bright_blue]",
         style="bright_black",
     )
@@ -186,7 +188,7 @@ def decompress_and_parse_files(compressed_files: list[bytes]) -> list[dict]:
     """
     Decompress and parse the exported files.
     """
-    CONSOLE.log(
+    CONSOLE.print(
         f"Decompressing {len(compressed_files)} data files",
         style="bright_black",
     )
@@ -195,14 +197,56 @@ def decompress_and_parse_files(compressed_files: list[bytes]) -> list[dict]:
     for idx, file_content in enumerate(compressed_files):
         decompressed_content = gzip.decompress(file_content)
         file_records = [
-            line
+            line.strip()
             for line in decompressed_content.decode("utf-8").splitlines()
             if line.strip()
         ]
         records.extend(file_records)
-        CONSOLE.log(
+        CONSOLE.print(
             f"Parsed {len(file_records)} records from file [bright_cyan]{idx + 1}[/bright_cyan]",
             style="bright_black",
         )
 
     return records
+
+
+async def run_s3_export(env: str, workspace: str | None) -> list:
+    """
+    Run the actual S3 export process (async)
+    """
+    export_tasks = [
+        export_table("location", env, workspace),
+        export_table("organisation", env, workspace),
+        # export_table("healthcare-service", env, workspace), TODO: FDOS-547 - Uncomment when enabling seeding of HealthcareService records
+    ]
+    table_uris = {}
+
+    for task in asyncio.as_completed(export_tasks):
+        export_description = await task
+        table_name = export_description["TableArn"].rsplit("/")[-1]
+        records_df = await process_export(export_description)
+
+        out_key = f"backups/{table_name}.parquet"
+        out_uri = f"s3://{export_description['S3Bucket']}/{out_key}"
+
+        wr.s3.to_parquet(
+            df=records_df,
+            path=out_uri,
+            dataset=False,
+        )
+        CONSOLE.print(
+            f"Saved {records_df.shape[0]} items from [bright_blue]{table_name}[/bright_blue] to [bright_cyan]{out_key}[/bright_cyan]",
+            style="green",
+        )
+
+        table_uris[table_name.split("database-")[-1]] = out_uri
+
+    set_parameter(
+        name=f"/ftrs-dos/{env}/dynamodb-backup-arns",
+        value=json.dumps(table_uris),
+        overwrite=True,
+    )
+    CONSOLE.print(
+        f"DynamoDB backup ARNs parameter for environment [bright_blue]{env}[/bright_blue] saved successfully",
+        style="green",
+    )

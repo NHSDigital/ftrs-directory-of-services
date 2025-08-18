@@ -34,6 +34,7 @@ freezegun = "^1.5.1"
 boto3-stubs = {extras = ["dynamodb"], version = "^1.37.33"}
 boto3 = "^1.37.33"
 awswrangler = "^3.11.0"
+pytest-asyncio = "^1.1.0"
 
 [tool.poetry.scripts]
 dos-etl = "pipeline.cli:typer_app"
@@ -64,3 +65,4 @@ docstring-code-format = true
 minversion = "6.0"
 addopts = "-v --cov=pipeline --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "function"
