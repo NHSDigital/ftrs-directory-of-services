@@ -181,7 +181,7 @@ jobs:
 
   restore-dynamodb-from-s3:
     name: "Restore data from S3 to DynamoDB tables in ${{ needs.metadata.outputs.workspace }}"
-    if: needs.metadata.outputs.workspace != 'default'
+    if: needs.metadata.outputs.workspace != 'default' && needs.metadata.outputs.environment != 'prod'
     needs:
       - metadata
       - apply-infrastructure
