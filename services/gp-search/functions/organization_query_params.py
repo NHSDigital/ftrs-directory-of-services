@@ -3,69 +3,73 @@ import re
 from pydantic import BaseModel, Field, computed_field, field_validator
 
 
-class InvalidIdentifierPrefixError(ValueError):
-    def __init__(self) -> None:
-        super().__init__("Identifier must start with 'odsOrganisationCode|'")
-
-
-class ODSCodeTooShortError(ValueError):
-    def __init__(self) -> None:
-        super().__init__("ODS code must be at least 5 characters long")
-
-
-class ODSCodeTooLongError(ValueError):
-    def __init__(self) -> None:
-        super().__init__("ODS code must be at most 12 characters long")
+class InvalidIdentifierSystem(ValueError):
+    def __init__(self, identifier: str) -> None:
+        super().__init__(
+            f"Invalid identifier system '{identifier}' - expected '{IDENTIFIER_SYSTEM}'"
+        )
 
 
 class ODSCodeInvalidFormatError(ValueError):
-    def __init__(self) -> None:
-        super().__init__("ODS code must contain only letters and numbers")
+    def __init__(self, ods_code: str) -> None:
+        super().__init__(
+            f"Invalid identifier value: ODS code '{ods_code}' must follow format {ODS_REGEX}"
+        )
 
 
 class InvalidRevincludeError(ValueError):
     def __init__(self) -> None:
-        super().__init__("_revinclude should be 'Endpoint:organization'")
+        super().__init__(
+            "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+        )
 
 
-IDENTIFIER_PREFIX = "odsOrganisationCode|"
-ODS_MIN_LENGTH = 5
-ODS_MAX_LENGTH = 12
-ODS_REGEX = r"^[A-Za-z0-9]+$"
+IDENTIFIER_SYSTEM = "odsOrganisationCode"
+IDENTIFIER_SEPERATOR = "|"
+ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
+REVINCLUDE_VALUE = "Endpoint:organization"
 
 
-def _extract_ods_code(identifier: str) -> str:
-    return identifier.split("|", 1)[1].upper() if "|" in identifier else ""
+def _extract_identifier_system(identifier: str) -> str:
+    return (
+        identifier.split(IDENTIFIER_SEPERATOR, 1)[0]
+        if IDENTIFIER_SEPERATOR in identifier
+        else ""
+    )
+
+
+def _extract_identifier_value(identifier: str) -> str:
+    return (
+        identifier.split(IDENTIFIER_SEPERATOR, 1)[1].upper()
+        if IDENTIFIER_SEPERATOR in identifier
+        else ""
+    )
 
 
 class OrganizationQueryParams(BaseModel):
     identifier: str = Field(
-        description="Organization identifier in format 'odsOrganisationCode|{code}'"
+        description="Organization identifier in format 'odsOrganisationCode|{code}'",
     )
-    revinclude: str = Field(
-        alias="_revinclude", description="Optional revinclude parameter"
-    )
+    revinclude: str = Field(alias="_revinclude")
 
     @computed_field
     @property
     def ods_code(self) -> str:
-        return _extract_ods_code(self.identifier)
+        return _extract_identifier_value(self.identifier)
 
     # noinspection PyNestedDecorators
     @field_validator("identifier")
     @classmethod
     def validate_identifier(cls, v: str) -> str:
-        if not v.startswith(IDENTIFIER_PREFIX):
-            raise InvalidIdentifierPrefixError
+        identifier_system = _extract_identifier_system(v)
 
-        ods_code = _extract_ods_code(v)
+        if identifier_system != IDENTIFIER_SYSTEM:
+            raise InvalidIdentifierSystem(identifier_system)
 
-        if len(ods_code) < ODS_MIN_LENGTH:
-            raise ODSCodeTooShortError
-        if len(ods_code) > ODS_MAX_LENGTH:
-            raise ODSCodeTooLongError
-        if not re.match(ODS_REGEX, ods_code):
-            raise ODSCodeInvalidFormatError
+        identifier_value = _extract_identifier_value(v)
+
+        if not re.match(ODS_REGEX, identifier_value):
+            raise ODSCodeInvalidFormatError(identifier_value)
 
         return v
 
@@ -73,6 +77,6 @@ class OrganizationQueryParams(BaseModel):
     @field_validator("revinclude")
     @classmethod
     def validate_revinclude(cls, v: str) -> str:
-        if v != "Endpoint:organization":
+        if v != REVINCLUDE_VALUE:
             raise InvalidRevincludeError
         return v
