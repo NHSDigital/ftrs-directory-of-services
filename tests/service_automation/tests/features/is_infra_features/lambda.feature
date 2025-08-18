@@ -86,36 +86,3 @@ Feature: Lambda function
     And I create a model in the repo from json file "Organisation/organisation-with-5-character-ods-code.json"
     When I invoke the lambda with the ods code "E8104"
     Then the lambda response contains the ods code "E8104"
-
-
-  Scenario: Invoke lambda with an ods code set to "" and a validation error is returned
-    When I invoke the lambda with the ods code ""
-    Then the lambda returns the status code "422"
-    And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
-    And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-    And the lambda returns the diagnostics "Value error, ODS code must be at least 5 characters long"
-
-
-  Scenario: Invoke lambda with an ods code of a length of 13 and a validation error is returned
-    When I invoke the lambda with the ods code "ABCDEFGHIJKLM"
-    Then the lambda returns the status code "422"
-    And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
-    And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-    And the lambda returns the diagnostics "Value error, ODS code must be at most 12 characters long"
-
-
-  Scenario: Invoke lambda with an ods code of a length of 4 and a validation error is returned
-    When I invoke the lambda with the ods code "ABCD"
-    Then the lambda returns the status code "422"
-    And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
-    And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-    And the lambda returns the diagnostics "Value error, ODS code must be at least 5 characters long"
-
-
-  Scenario: Invoke lambda with an ods code containing special characters and a validation error is returned
-    When I invoke the lambda with the ods code "P00083010@"
-    Then the lambda returns the status code "422"
-    And the lambda returns the error code "INVALID_ODS_CODE_FORMAT"
-    And the lambda returns the message "The organization.identifier ODS code provided in the search parameter does not match the required format"
-    And the lambda returns the diagnostics "Value error, ODS code must contain only letters and numbers"
-

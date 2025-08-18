@@ -1,4 +1,4 @@
-from fhir.resources.operationoutcome import OperationOutcome, OperationOutcomeIssue
+from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutcomeIssue
 from pydantic import ValidationError
 
 
@@ -24,7 +24,7 @@ class OperationOutcomeHandler:
         severity: str = "error",
         details: dict | None = None,
         issues: list | None = None,
-    ) -> OperationOutcome:
+    ) -> dict:
         if issues is None:
             issue_dict = {
                 "severity": severity,
@@ -44,7 +44,7 @@ class OperationOutcomeHandler:
         exc: Exception,
         code: str = "exception",
         severity: str = "fatal",
-    ) -> OperationOutcome:
+    ) -> dict:
         """
         Build an OperationOutcome from an exception.
         """
@@ -69,7 +69,7 @@ class OperationOutcomeHandler:
     @staticmethod
     def from_validation_error(
         e: ValidationError,
-    ) -> OperationOutcome:
+    ) -> dict:
         details = {
             "coding": [
                 {
