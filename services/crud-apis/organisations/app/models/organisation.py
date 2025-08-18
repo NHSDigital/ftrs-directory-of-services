@@ -39,7 +39,7 @@ class OrganisationUpdatePayload(BaseModel):
     @model_validator(mode="after")
     def check_type_coding_and_text(self) -> "OrganisationUpdatePayload":
         for t in self.type:
-            if (not t.coding or len(t.coding) == 0) or (not t.text or t.text == ""):
+            if (not t.coding or len(t.coding) == 0) and (not t.text or t.text == ""):
                 raise ValueError(ERROR_MESSAGE_TYPE)
         return self
 
