@@ -354,11 +354,23 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
 
 
 def test_type_validator_invalid_coding_code_empty() -> None:
-    organisation_data = get_organisation()
-    organisation_data["type"] = {"coding": [{"system": "abc", "code": ""}]}
-    with pytest.raises(ValueError) as exc_info:
-        client.post("/", json=organisation_data)
-    assert exc_info.type is ValueError
-    assert "'type' must have either 'coding' or 'text' populated." in str(
-        exc_info.value
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Org",
+        "active": True,
+        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "type": [{"coding": [{"system": "abc", "code": ""}]}],
+    }
+    response = client.put(f"/{test_org_id}", json=update_payload)
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert (
+        "'type' must have either 'coding' or 'text' populated."
+        in response.json()["issue"][0]["diagnostics"]
     )
