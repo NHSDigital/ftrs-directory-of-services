@@ -16,7 +16,6 @@ from botocore.exceptions import ClientError
 from ftrs_common.utils.db_service import format_table_name
 
 CONSOLE = rich.get_console()
-
 DDB_CLIENT = boto3.client(
     "dynamodb",
     config=Config(connect_timeout=1, read_timeout=1, retries={"max_attempts": 5}),

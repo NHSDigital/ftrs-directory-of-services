@@ -170,7 +170,7 @@ def download_exported_files(
         style="bright_black",
     )
 
-    def _download_file(index: int, file_info: dict) -> bytes:
+    def _download_file(file_info: dict) -> bytes:
         obj = S3_CLIENT.get_object(
             Bucket=description["S3Bucket"],
             Key=file_info["dataFileS3Key"],
@@ -179,7 +179,7 @@ def download_exported_files(
             files.append(obj["Body"].read())
 
     with ThreadPoolExecutor(max_workers=5) as executor:
-        executor.map(lambda tuple: _download_file(*tuple), enumerate(file_list))
+        executor.map(_download_file, file_list)
 
     return files
 
