@@ -164,3 +164,15 @@ variable "enable_flow_log" {
   type        = bool
   default     = false
 }
+
+variable "dns_port" {
+  description = "The port for DNS queries"
+  type        = number
+  default     = 53
+}
+
+variable "https_port" {
+  description = "The port for HTTPS traffic"
+  type        = number
+  default     = 443
+}

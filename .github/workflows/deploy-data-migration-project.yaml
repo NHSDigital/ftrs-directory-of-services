@@ -23,7 +23,7 @@ on:
         required: true
         type: string
       environment:
-        description: "The management environment"
+        description: "The deployment environment"
         required: true
         type: string
       repo_name:

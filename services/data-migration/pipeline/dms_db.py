@@ -11,7 +11,7 @@ from sqlalchemy.engine import Engine
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-MIN_PASSWORD_LENGTH = 16
+TABLE_NAME = "pathwaysdos.services"
 
 secrets_client = boto3.client("secretsmanager")
 rds_client = boto3.client("rds")
@@ -78,12 +78,11 @@ def execute_postgresql_trigger(
         ) as file:
             sql_template = file.read()
 
-        table_name = "pathwaysdos.services"
         # Replace placeholders with actual values
         sql_commands = sql_template.replace("${user}", rds_username)
         sql_commands = sql_commands.replace("${lambda_arn}", lambda_arn)
         sql_commands = sql_commands.replace("${aws_region}", aws_region)
-        sql_commands = sql_commands.replace("${table_name}", table_name)
+        sql_commands = sql_commands.replace("${table_name}", TABLE_NAME)
 
         # Execute the SQL commands as a single statement
         with engine.connect() as connection:
