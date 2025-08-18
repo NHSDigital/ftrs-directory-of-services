@@ -368,9 +368,6 @@ def test_type_validator_invalid_coding_code_empty() -> None:
         "telecom": [{"system": "phone", "value": "0123456789"}],
         "type": [{"coding": [{"system": "abc"}]}],
     }
-    response = client.put(f"/{test_org_id}", json=update_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert (
-        "must have either 'coding' or 'text' populated"
-        in response.value.outcome["issue"][0]["diagnostics"]
-    )
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.put(f"/{test_org_id}", json=update_payload)
+    assert "must have either 'coding' or 'text' populated" in exc_info.value.detail
