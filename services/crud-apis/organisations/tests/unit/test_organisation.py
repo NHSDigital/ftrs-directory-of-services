@@ -366,7 +366,7 @@ def test_type_validator_invalid_coding_code_empty() -> None:
         "name": "Test Org",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "abc", "code": ""}]}],
+        "type": [{"coding": [{"system": "abc"}]}],
     }
     response = client.put(f"/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.BAD_REQUEST
