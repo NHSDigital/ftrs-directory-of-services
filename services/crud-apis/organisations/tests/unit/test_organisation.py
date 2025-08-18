@@ -351,3 +351,14 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
         client.delete(f"/{test_org_id}")
     assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
     assert exc_info.value.detail == "Organisation not found"
+
+
+def test_create_organisation_validation_error_on_type() -> None:
+    organisation_data = get_organisation()
+    organisation_data["type"] = ""  # Missing type
+    with pytest.raises(RequestValidationError) as exc_info:
+        client.post("/", json=organisation_data)
+    assert exc_info.type is RequestValidationError
+    assert "'type' must have either 'coding' or 'text' populated." in str(
+        exc_info.value
+    )
