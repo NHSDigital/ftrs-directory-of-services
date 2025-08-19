@@ -69,6 +69,7 @@ def process_message_and_send_request(record: dict) -> None:
     api_url = api_url + "/Organization/" + path
 
     api_key = get_api_key()
+    # test
 
     try:
         response = make_request(
