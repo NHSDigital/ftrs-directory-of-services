@@ -1,6 +1,3 @@
-from unittest.mock import patch
-
-import pytest
 from ftrs_data_layer.domain import (
     ClinicalCodeSource,
     ClinicalCodeType,
@@ -8,16 +5,6 @@ from ftrs_data_layer.domain import (
 from ftrs_data_layer.domain import legacy as legacy_model
 
 from pipeline.transformer.triage_code import TriageCodeTransformer
-
-
-@pytest.fixture
-def mock_generate_uuid() -> str:
-    with patch("pipeline.transformer.triage_code.generate_uuid") as mock_uuid:
-        mock_uuid.return_value = "31d5c731-1612-5041-9bc7-da3fe214e7a7"
-        yield mock_uuid
-
-
-pytestmark = pytest.mark.usefixtures("mock_generate_uuid")
 
 
 def test_builds_triage_code_from_symptom_group_with_z_code() -> None:
@@ -58,7 +45,7 @@ def test_builds_triage_code_from_symptom_group_without_z_code() -> None:
 def test_builds_triage_code_from_disposition_with_time() -> None:
     # Setup
     disposition = legacy_model.Disposition(
-        id="789", name="Test Disposition", dispositiontime=60
+        id="789", name="Test Disposition", dispositiontime=60, dxcode="DX789"
     )
 
     result = TriageCodeTransformer.build_triage_code_from_disposition(disposition)
@@ -75,7 +62,7 @@ def test_builds_triage_code_from_disposition_with_time() -> None:
 def test_builds_triage_code_from_disposition_without_time() -> None:
     # Setup
     disposition = legacy_model.Disposition(
-        id="101", name="No Time Disposition", dispositiontime=None
+        id="101", name="No Time Disposition", dispositiontime=None, dxcode="DX101"
     )
 
     result = TriageCodeTransformer.build_triage_code_from_disposition(disposition)
