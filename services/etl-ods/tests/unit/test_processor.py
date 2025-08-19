@@ -273,11 +273,11 @@ def test_processor_continue_on_validation_failure(
                         "coding": [
                             {
                                 "system": "TO-DO",
-                                "code": "GP Service",
-                                "display": "GP Service",
+                                "code": "GP Practice",
+                                "display": "GP Practice",
                             }
                         ],
-                        "text": "GP Service",
+                        "text": "GP Practice",
                     }
                 ],
                 "name": "Test Organisation EFG ODS",
