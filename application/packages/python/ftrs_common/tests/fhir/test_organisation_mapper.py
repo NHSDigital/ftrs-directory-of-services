@@ -114,7 +114,7 @@ def test__build_type() -> None:
     assert type_list[0].text == "GP Practice"
     # Test fallback
     type_list_default = mapper._build_type(None)
-    assert type_list_default[0].coding[0].display == "GP Service"
+    assert type_list_default[0].coding[0].display == "GP Practice"
 
 
 def test_from_fhir_maps_fields_correctly() -> None:
