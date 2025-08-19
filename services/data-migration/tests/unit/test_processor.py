@@ -29,6 +29,7 @@ from pipeline.processor import (
     DataMigrationProcessor,
     ServiceTransformOutput,
 )
+from pipeline.utils import dbutil
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 
@@ -595,10 +596,10 @@ def test_save(
     mock_location_repo = mocker.MagicMock()
     mock_service_repo = mocker.MagicMock()
 
-    processor._REPOSITORY_CACHE = {
-        "organisation": mock_org_repo,
-        "healthcare-service": mock_service_repo,
-        "location": mock_location_repo,
+    dbutil.REPOSITORY_CACHE = {
+        "ftrs-dos-test-database-organisation-test_workspace": mock_org_repo,
+        "ftrs-dos-test-database-healthcare-service-test_workspace": mock_service_repo,
+        "ftrs-dos-test-database-location-test_workspace": mock_location_repo,
     }
 
     transformer = processor.get_transformer(mock_legacy_service)

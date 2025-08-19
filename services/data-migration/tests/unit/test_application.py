@@ -4,6 +4,7 @@ from pytest_mock import MockerFixture
 
 from pipeline.application import DataMigrationApplication, DMSEvent
 from pipeline.processor import DataMigrationProcessor
+from pipeline.triagecode_processor import TriageCodeProcessor
 from pipeline.utils.config import DataMigrationConfig
 
 
@@ -15,6 +16,7 @@ def test_application_init(
     assert app.logger == mock_logger
     assert app.config == mock_config
     assert isinstance(app.processor, DataMigrationProcessor)
+    assert isinstance(app.triage_code_processor, TriageCodeProcessor)
 
 
 def test_handle_dms_event_invalid_method(
@@ -121,9 +123,11 @@ def test_handle_full_sync_event(
 ) -> None:
     app = DataMigrationApplication(config=mock_config)
     app.processor.sync_all_services = mocker.MagicMock()
+    app.triage_code_processor.sync_all_triage_codes = mocker.MagicMock()
 
     app.handle_full_sync_event()
     app.processor.sync_all_services.assert_called_once()
+    app.triage_code_processor.sync_all_triage_codes.assert_called_once()
 
 
 def test_parse_event_dms_event(mock_config: DataMigrationConfig) -> None:

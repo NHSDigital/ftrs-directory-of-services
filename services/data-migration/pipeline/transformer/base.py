@@ -35,6 +35,7 @@ from pydantic import BaseModel, Field
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.validation.base import Validator
 from pipeline.validation.service import ServiceValidator
+from pipeline.utils.uuid_utils import generate_uuid
 
 
 class ServiceTransformOutput(BaseModel):
@@ -56,13 +57,11 @@ class ServiceTransformer(ABC):
 
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
     MIGRATION_USER = "DATA_MIGRATION"
-    VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
     def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
         self.metadata = metadata
-        self.validator = self.VALIDATOR_CLS(logger)
 
     @abstractmethod
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
@@ -107,7 +106,7 @@ class ServiceTransformer(ABC):
         """
         Create an Organisation instance from the source DoS service data.
         """
-        organisation_id = self.generate_id(service.id, "organisation")
+        organisation_id = generate_uuid(service.id, "organisation")
         service_type = self.metadata.service_types.get(service.typeid)
 
         return Organisation(
@@ -146,7 +145,7 @@ class ServiceTransformer(ABC):
             payload_mime_type = None
 
         return Endpoint(
-            id=self.generate_id(endpoint.id, "endpoint"),
+            id=generate_uuid(endpoint.id, "endpoint"),
             identifier_oldDoS_id=endpoint.id,
             status=EndpointStatus.ACTIVE,
             connectionType=endpoint.transport,
@@ -183,7 +182,7 @@ class ServiceTransformer(ABC):
         )
 
         return Location(
-            id=self.generate_id(service.id, "location"),
+            id=generate_uuid(service.id, "location"),
             active=True,
             managingOrganisation=organisation_id,
             address=Address(
@@ -215,7 +214,7 @@ class ServiceTransformer(ABC):
         """
 
         return HealthcareService(
-            id=self.generate_id(service.id, "healthcare_service"),
+            id=generate_uuid(service.id, "healthcare_service"),
             identifier_oldDoS_uid=service.uid,
             active=True,
             category=category,
@@ -329,13 +328,13 @@ class ServiceTransformer(ABC):
 
         return SymptomGroupSymptomDiscriminatorPair(
             sg=SymptomGroup(
-                id=self.generate_id(sg.id, "symptomgroup"),
+                id=generate_uuid(sg.id, "symptomgroup"),
                 codeID=code.sgid,
                 codeValue=sg.name,
                 source=source,
             ),
             sd=SymptomDiscriminator(
-                id=self.generate_id(sd.id, "symptomdiscriminator"),
+                id=generate_uuid(sd.id, "symptomdiscriminator"),
                 codeID=code.sdid,
                 codeValue=sd.description,
                 source=source,
@@ -355,15 +354,9 @@ class ServiceTransformer(ABC):
         """
         disposition = self.metadata.dispositions.get(code.dispositionid)
         return Disposition(
-            id=self.generate_id(code.id, "pathways:disposition"),
+            id=generate_uuid(code.id, "pathways:disposition"),
             codeID=code.dispositionid,
             codeValue=disposition.name,
             source=ClinicalCodeSource.PATHWAYS,
             time=disposition.dispositiontime,
         )
-
-    def generate_id(self, service_id: int, namespace: str) -> UUID:
-        """
-        Generate a namespaced UUID for the service using the service ID and namespace.
-        """
-        return uuid5(self.MIGRATION_UUID_NS, f"{namespace}-{service_id}")
