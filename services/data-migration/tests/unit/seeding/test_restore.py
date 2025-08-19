@@ -7,12 +7,12 @@ import pytest
 from botocore.exceptions import ClientError
 from pytest_mock import MockerFixture
 
-from pipeline.seeding.bulkload import iter_batches, run_s3_restore, write_item_batch
+from pipeline.seeding.restore import iter_batches, run_s3_restore, write_item_batch
 
 
 @pytest.fixture(autouse=True)
 def mock_console(mocker: MockerFixture) -> Generator[MagicMock, None, None]:
-    yield mocker.patch("pipeline.seeding.bulkload.CONSOLE")
+    yield mocker.patch("pipeline.seeding.restore.CONSOLE")
 
 
 def test_iter_batches() -> None:
@@ -32,7 +32,7 @@ def test_iter_batches() -> None:
 
 
 def test_write_item_batch(mocker: MockerFixture) -> None:
-    ddb_mock = mocker.patch("pipeline.seeding.bulkload.DDB_CLIENT")
+    ddb_mock = mocker.patch("pipeline.seeding.restore.DDB_CLIENT")
     ddb_mock.transact_write_items.return_value = None
 
     items = [{"id": i} for i in range(5)]
@@ -54,8 +54,8 @@ def test_write_item_batch_backoff(
     mocker: MockerFixture,
     mock_console: MagicMock,
 ) -> None:
-    ddb_mock = mocker.patch("pipeline.seeding.bulkload.DDB_CLIENT")
-    sleep_mock = mocker.patch("pipeline.seeding.bulkload.sleep")
+    ddb_mock = mocker.patch("pipeline.seeding.restore.DDB_CLIENT")
+    sleep_mock = mocker.patch("pipeline.seeding.restore.sleep")
 
     ddb_mock.transact_write_items.side_effect = [
         ClientError({"Error": {"Code": "ThrottlingException"}}, "TransactWriteItems"),
@@ -82,7 +82,7 @@ def test_write_item_batch_clienterror(
     mocker: MockerFixture,
     mock_console: MagicMock,
 ) -> None:
-    ddb_mock = mocker.patch("pipeline.seeding.bulkload.DDB_CLIENT")
+    ddb_mock = mocker.patch("pipeline.seeding.restore.DDB_CLIENT")
     ddb_mock.transact_write_items.side_effect = ClientError(
         {"Error": {"Code": "SomeOtherError"}}, "TransactWriteItems"
     )
@@ -101,7 +101,7 @@ def test_write_item_batch_exception(
     mocker: MockerFixture,
     mock_console: MagicMock,
 ) -> None:
-    ddb_mock = mocker.patch("pipeline.seeding.bulkload.DDB_CLIENT")
+    ddb_mock = mocker.patch("pipeline.seeding.restore.DDB_CLIENT")
     ddb_mock.transact_write_items.side_effect = Exception("Some error message")
 
     batch = [{"id": i} for i in range(5)]
@@ -117,7 +117,7 @@ def test_write_item_batch_exception(
 @pytest.mark.asyncio
 async def test_run_s3_restore(mocker: MockerFixture) -> None:
     mock_get_parameter = mocker.patch(
-        "pipeline.seeding.bulkload.get_parameter",
+        "pipeline.seeding.restore.get_parameter",
         return_value={
             "healthcare-service": "s3://test-store/healthcare-service.parquet",
             "organisation": "s3://test-store/organisation.parquet",
@@ -126,7 +126,7 @@ async def test_run_s3_restore(mocker: MockerFixture) -> None:
     )
 
     mock_read_parquet = mocker.patch(
-        "pipeline.seeding.bulkload.wr.s3.read_parquet",
+        "pipeline.seeding.restore.wr.s3.read_parquet",
         side_effect=[
             pd.DataFrame(data=[["healthcare-service"]], columns=["data"]),
             pd.DataFrame(data=[["organisation"]], columns=["data"]),
@@ -135,7 +135,7 @@ async def test_run_s3_restore(mocker: MockerFixture) -> None:
     )
 
     mock_bulk_load_table = mocker.patch(
-        "pipeline.seeding.bulkload.bulk_load_table",
+        "pipeline.seeding.restore.bulk_load_table",
         return_value=None,
     )
 

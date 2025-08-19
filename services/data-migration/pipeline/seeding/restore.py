@@ -1,7 +1,7 @@
 import asyncio
 import json
 import time
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from itertools import batched
 from multiprocessing import cpu_count
 from time import sleep
@@ -85,7 +85,7 @@ async def bulk_load_table(table_name: str, items: list[dict]) -> None:
     )
     loop = asyncio.get_running_loop()
 
-    with ProcessPoolExecutor(max_workers=workers) as executor:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
         tasks = []
         for batch in iter_batches(items):
             tasks.append(

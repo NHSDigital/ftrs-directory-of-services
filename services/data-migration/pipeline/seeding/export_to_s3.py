@@ -19,7 +19,7 @@ import boto3
 import pandas as pd
 import rich
 from aws_lambda_powertools.utilities.parameters import set_parameter
-from ftrs_common.utils.db_service import format_table_name
+from ftrs_common.utils.db_service import format_table_name, get_table_arn
 from ftrs_data_layer.client import get_dynamodb_client
 from mypy_boto3_dynamodb.type_defs import ExportDescriptionTypeDef
 
@@ -27,7 +27,7 @@ CONSOLE = rich.get_console()
 S3_CLIENT = boto3.client("s3")
 
 
-def get_s3_bucket_name(env: str, workspace: str | None = None) -> str:
+def get_migration_store_bucket_name(env: str, workspace: str | None = None) -> str:
     """
     Get the data migration pipeline store S3 bucket name
     """
@@ -36,15 +36,6 @@ def get_s3_bucket_name(env: str, workspace: str | None = None) -> str:
         bucket_name += f"-{workspace}"
 
     return bucket_name
-
-
-def get_table_arn(table_name: str) -> str:
-    """
-    Get the ARN of a DynamoDB table
-    """
-    client = get_dynamodb_client()
-    response = client.describe_table(TableName=table_name)
-    return response["Table"]["TableArn"]
 
 
 def trigger_table_export(
@@ -97,7 +88,7 @@ async def export_table(
     Export a DynamoDB table to S3.
     """
     table_name = format_table_name(entity_name, env, workspace)
-    s3_bucket = get_s3_bucket_name(env, workspace)
+    s3_bucket = get_migration_store_bucket_name(env, workspace)
 
     response = trigger_table_export(table_name, s3_bucket)
     export_arn = response["ExportArn"]
