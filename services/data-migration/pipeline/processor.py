@@ -48,8 +48,6 @@ class DataMigrationProcessor:
     It includes methods to transform legacy service data into the new format.
     """
 
-    _REPOSITORY_CACHE: dict[str, AttributeLevelRepository] = {}
-
     def __init__(
         self,
         config: DataMigrationConfig,

@@ -7,6 +7,7 @@ from ftrs_data_layer.repository.base import ModelType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from sqlalchemy import Engine, distinct
 from sqlalchemy.orm import joinedload
+from sqlalchemy import Engine
 from sqlmodel import Session, select
 
 from pipeline.utils.config import DataMigrationConfig
