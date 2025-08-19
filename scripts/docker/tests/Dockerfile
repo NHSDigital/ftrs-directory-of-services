@@ -1,6 +1,10 @@
-# `*:latest` will be replaced with a corresponding version stored in the '.tool-versions' file
-# hadolint ignore=DL3007
-# checkov:skip=CKV_DOCKER_2: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-410
-# checkov:skip=CKV_DOCKER_3: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-410
-# checkov:skip=CKV_DOCKER_7: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-410
-FROM python:latest
+# Use corresponding python version stored in the '.tool-versions' file
+FROM python:3.12.7
+
+# Create a non-root user and switch to it
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+USER appuser
+
+# Add a simple healthcheck (e.g., checking Python is available)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python --version || exit 1
