@@ -4,6 +4,7 @@ from pydantic import Field
 
 
 class TriageCode(BaseClinicalCode, DBModel):
+    id: str
     field: str | None = "item"
     synonyms: list[str] = Field(default_factory=list)
     time: int | None = 0

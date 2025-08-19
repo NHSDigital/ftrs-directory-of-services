@@ -7,8 +7,6 @@ from ftrs_data_layer.domain import (
 )
 from ftrs_data_layer.domain.triage_code import TriageCode
 
-from pipeline.utils.uuid_utils import generate_uuid
-
 
 class TriageCodeTransformer:
     @classmethod
@@ -19,7 +17,7 @@ class TriageCodeTransformer:
         Transform the given symptom group into the new data model format.
         """
         return TriageCode(
-            id=generate_uuid(symptom_group.id, "symptomgroup"),
+            id="SG" + str(symptom_group.id),
             source=(
                 ClinicalCodeSource.SERVICE_FINDER
                 if symptom_group.zcodeexists is True
@@ -39,10 +37,10 @@ class TriageCodeTransformer:
         Transform the given disposition into the new data model format.
         """
         return TriageCode(
-            id=generate_uuid(disposition.id, "disposition"),
+            id=disposition.dxcode,
             source=ClinicalCodeSource.SERVICE_FINDER,
             codeType=ClinicalCodeType.DISPOSITION,
-            codeID=disposition.id,
+            codeID=disposition.dxcode,
             codeValue=disposition.name,
             time=disposition.dispositiontime or 0,
         )
@@ -55,7 +53,7 @@ class TriageCodeTransformer:
         Transform the given symptom discriminator into the new data model format.
         """
         return TriageCode(
-            id=generate_uuid(symptom_discriminator.id, "symptomdiscriminator"),
+            id="SD" + str(symptom_discriminator.id),
             source=ClinicalCodeSource.SERVICE_FINDER,
             codeType=ClinicalCodeType.SYMPTOM_DISCRIMINATOR,
             codeID=symptom_discriminator.id,

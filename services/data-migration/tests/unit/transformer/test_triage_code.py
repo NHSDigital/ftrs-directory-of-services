@@ -1,5 +1,4 @@
 from unittest.mock import patch
-from uuid import UUID
 
 import pytest
 from ftrs_data_layer.domain import (
@@ -31,7 +30,7 @@ def test_builds_triage_code_from_symptom_group_with_z_code() -> None:
 
     # Assert
 
-    assert result.id == UUID("31d5c731-1612-5041-9bc7-da3fe214e7a7")
+    assert result.id == "SG123"
     assert result.source == ClinicalCodeSource.SERVICE_FINDER
     assert result.codeType == ClinicalCodeType.SYMPTOM_GROUP
     assert result.codeID == "123"
@@ -48,7 +47,7 @@ def test_builds_triage_code_from_symptom_group_without_z_code() -> None:
     result = TriageCodeTransformer.build_triage_code_from_symptom_group(symptom_group)
 
     # Assert
-    assert result.id == UUID("31d5c731-1612-5041-9bc7-da3fe214e7a7")
+    assert result.id == "SG456"
     assert result.source == ClinicalCodeSource.PATHWAYS
     assert result.codeType == ClinicalCodeType.SYMPTOM_GROUP
     assert result.codeID == "456"
@@ -65,10 +64,10 @@ def test_builds_triage_code_from_disposition_with_time() -> None:
     result = TriageCodeTransformer.build_triage_code_from_disposition(disposition)
 
     # Assert
-    assert result.id == UUID("31d5c731-1612-5041-9bc7-da3fe214e7a7")
+    assert result.id == "DX789"
     assert result.source == ClinicalCodeSource.SERVICE_FINDER
     assert result.codeType == ClinicalCodeType.DISPOSITION
-    assert result.codeID == "789"
+    assert result.codeID == "DX789"
     assert result.codeValue == "Test Disposition"
     assert result.time == disposition.dispositiontime
 
@@ -82,10 +81,10 @@ def test_builds_triage_code_from_disposition_without_time() -> None:
     result = TriageCodeTransformer.build_triage_code_from_disposition(disposition)
 
     # Assert
-    assert result.id == UUID("31d5c731-1612-5041-9bc7-da3fe214e7a7")
+    assert result.id == "DX101"
     assert result.source == ClinicalCodeSource.SERVICE_FINDER
     assert result.codeType == ClinicalCodeType.DISPOSITION
-    assert result.codeID == "101"
+    assert result.codeID == "DX101"
     assert result.codeValue == "No Time Disposition"
     assert result.time == 0
 
@@ -103,7 +102,7 @@ def test_builds_triage_code_from_symptom_discriminator_with_description() -> Non
     )
 
     # Assert
-    assert result.id == UUID("31d5c731-1612-5041-9bc7-da3fe214e7a7")
+    assert result.id == "SD202"
     assert result.source == ClinicalCodeSource.SERVICE_FINDER
     assert result.codeType == ClinicalCodeType.SYMPTOM_DISCRIMINATOR
     assert result.codeID == "202"
@@ -123,7 +122,7 @@ def test_builds_triage_code_from_symptom_discriminator_without_description() -> 
     )
 
     # Assert
-    assert result.id == UUID("31d5c731-1612-5041-9bc7-da3fe214e7a7")
+    assert result.id == "SD303"
     assert result.source == ClinicalCodeSource.SERVICE_FINDER
     assert result.codeType == ClinicalCodeType.SYMPTOM_DISCRIMINATOR
     assert result.codeID == "303"
