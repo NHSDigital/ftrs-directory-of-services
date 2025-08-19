@@ -94,7 +94,7 @@ def execute_postgresql_trigger(
         raise
 
 
-def get_target_rds_details(aws_region: str) -> tuple[str, str, int, str, str]:
+def get_target_rds_details() -> tuple[str, str, int, str, str]:
     target_rds_details_secret = get_secret(name=target_rds_details, transform="json")
 
     cluster_endpoint = target_rds_details_secret["host"]
@@ -119,7 +119,7 @@ def lambda_handler(event: dict, context: dict) -> None:
         aws_region = boto3.session.Session().region_name
 
         cluster_endpoint, database_name, port, username, password = (
-            get_target_rds_details(aws_region)
+            get_target_rds_details()
         )
 
         rds_username, rds_password = get_dms_user_details()

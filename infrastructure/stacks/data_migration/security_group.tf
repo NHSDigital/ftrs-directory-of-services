@@ -1,6 +1,6 @@
 resource "aws_security_group" "rds_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  count = local.is_primary_environment && local.rds_environments ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   name        = "${local.resource_prefix}-rds-sg"
   description = "RDS Security Group"
@@ -9,7 +9,7 @@ resource "aws_security_group" "rds_security_group" {
 }
 
 data "aws_security_group" "rds_security_group" {
-  count = local.is_primary_environment && local.rds_environments ? 0 : 1
+  count = local.is_primary_environment ? 0 : 1
   name  = "${local.resource_prefix}-rds-sg"
 }
 

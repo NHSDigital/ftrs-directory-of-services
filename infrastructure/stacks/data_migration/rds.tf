@@ -1,12 +1,12 @@
 resource "random_pet" "rds_username" {
-  count = local.is_primary_environment && local.rds_environments ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   length    = 2
   separator = "_"
 }
 
 resource "random_password" "rds_password" {
-  count = local.is_primary_environment && local.rds_environments ? 1 : 0
+  count = local.is_primary_environment ? 1 : 0
 
   length  = 16
   special = false
