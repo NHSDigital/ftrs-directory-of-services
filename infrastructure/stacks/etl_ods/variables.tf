@@ -35,10 +35,16 @@ variable "consumer_lambda_handler" {
   type        = string
 }
 
-variable "lambda_connection_timeout" {
-  description = "The timeout for the ETL ODS Lambda functions"
+variable "consumer_lambda_connection_timeout" {
+  description = "The timeout for the ETL ODS consumer lambda function"
   type        = number
 }
+
+variable "processor_lambda_connection_timeout" {
+  description = "The timeout for the ETL ODS processor lambda function. 12 minutes to allow for longer processing times"
+  type        = number
+}
+
 
 variable "lambda_memory_size" {
   description = "The memory size for the ETL ODS Lambda functions"
