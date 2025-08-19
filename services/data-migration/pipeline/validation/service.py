@@ -2,10 +2,10 @@ from ftrs_data_layer.domain.legacy import Service
 
 from pipeline.validation.base import (
     FieldValidationResult,
-    ValidationIssue,
     ValidationResult,
     Validator,
 )
+from pipeline.validation.types import ValidationIssue
 
 
 class ServiceValidator(Validator[Service]):
@@ -36,7 +36,10 @@ class ServiceValidator(Validator[Service]):
             data.publicphone = publicphone_result.sanitised
             validation_result.issues.extend(publicphone_result.issues)
 
-        if nonpublicphone_result := self.validate_phone_number(data.nonpublicphone):
+        if nonpublicphone_result := self.validate_phone_number(
+            data.nonpublicphone,
+            expression="nonpublicphone",
+        ):
             data.nonpublicphone = nonpublicphone_result.sanitised
             validation_result.issues.extend(nonpublicphone_result.issues)
 
