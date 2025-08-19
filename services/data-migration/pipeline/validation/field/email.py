@@ -42,7 +42,11 @@ class EmailValidator(FieldValidator[str]):
             if not is_valid:
                 break
 
-        return FieldValidationResult(original=data, sanitised=data, issues=self.issues)
+        return FieldValidationResult(
+            original=data,
+            sanitised=data if self.is_valid else None,
+            issues=self.issues,
+        )
 
     def is_valid_type(self, email: str) -> bool:
         """

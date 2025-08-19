@@ -257,7 +257,7 @@ def test_process_service(
         telecom=Telecom(
             phone_public="01234567890",
             phone_private="09876543210",
-            email="test@example.com",
+            email=None,
             web="http://example.com",
         ),
         openingTime=[
@@ -596,9 +596,9 @@ def test_save(
     mock_service_repo = mocker.MagicMock()
 
     processor._REPOSITORY_CACHE = {
-        "ftrs-dos-test-database-organisation-test_workspace": mock_org_repo,
-        "ftrs-dos-test-database-healthcare-service-test_workspace": mock_service_repo,
-        "ftrs-dos-test-database-location-test_workspace": mock_location_repo,
+        "organisation": mock_org_repo,
+        "healthcare-service": mock_service_repo,
+        "location": mock_location_repo,
     }
 
     transformer = processor.get_transformer(mock_legacy_service)

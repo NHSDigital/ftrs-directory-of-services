@@ -2,6 +2,7 @@ from time import perf_counter
 from typing import Iterable
 
 from ftrs_common.logger import Logger
+from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository, ModelType
@@ -214,7 +215,6 @@ class DataMigrationProcessor:
         for hc in result.healthcare_service:
             service_repo.upsert(hc)
 
-    # TODO: Remove this method and use the common function once merged by IS
     def get_repository(
         self, entity_type: str, model_cls: ModelType
     ) -> AttributeLevelRepository[ModelType]:
@@ -222,15 +222,11 @@ class DataMigrationProcessor:
         Get a DynamoDB repository for the specified table and model class.
         Caches the repository to avoid creating multiple instances for the same table.
         """
-        table_name = f"ftrs-dos-{self.config.env}-database-{entity_type}"
-        if self.config.workspace:
-            table_name = f"{table_name}-{self.config.workspace}"
-
-        if table_name not in self._REPOSITORY_CACHE:
-            self._REPOSITORY_CACHE[table_name] = AttributeLevelRepository[ModelType](
-                table_name=table_name,
+        if entity_type not in self._REPOSITORY_CACHE:
+            self._REPOSITORY_CACHE[entity_type] = get_service_repository(
                 model_cls=model_cls,
-                endpoint_url=self.config.dynamodb_endpoint,
+                entity_name=entity_type,
                 logger=self.logger,
             )
-        return self._REPOSITORY_CACHE[table_name]
+
+        return self._REPOSITORY_CACHE[entity_type]
