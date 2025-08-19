@@ -57,13 +57,11 @@ class ServiceTransformer(ABC):
 
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
     MIGRATION_USER = "DATA_MIGRATION"
-    VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
     def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
         self.metadata = metadata
-        self.validator = self.VALIDATOR_CLS(logger)
 
     @abstractmethod
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
