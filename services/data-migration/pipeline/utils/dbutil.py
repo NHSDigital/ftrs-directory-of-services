@@ -29,9 +29,8 @@ def iter_records(
     with Session(engine) as session:
         yield from session.scalars(stmt)
 
-    # TODO: Remove this method and use the common function once merged by IS
 
-
+# TODO: Remove this method and use the common function once merged by IS
 def get_repository(
     config: DataMigrationConfig, entity_type: str, model_cls: ModelType, logger: Logger
 ) -> AttributeLevelRepository[ModelType]:
