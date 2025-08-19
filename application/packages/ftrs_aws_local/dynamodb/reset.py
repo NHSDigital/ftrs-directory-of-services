@@ -23,7 +23,7 @@ class ClearableEntityTypes(StrEnum):
     organisation = "organisation"
     healthcare_service = "healthcare-service"
     location = "location"
-    triageCode = "triage-code"
+    triage_code = "triage-code"
 
 
 class RepositoryTypes(StrEnum):
@@ -35,7 +35,7 @@ DEFAULT_CLEARABLE_ENTITY_TYPES = [
     ClearableEntityTypes.organisation,
     ClearableEntityTypes.healthcare_service,
     ClearableEntityTypes.location,
-    ClearableEntityTypes.triageCode,
+    ClearableEntityTypes.triage_code,
 ]
 
 
@@ -50,7 +50,7 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             return HealthcareService
         case ClearableEntityTypes.location:
             return Location
-        case ClearableEntityTypes.triageCode:
+        case ClearableEntityTypes.triage_code:
             return TriageCode
         case _:
             reset_logger.log(
@@ -261,7 +261,7 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
                 }
             ],
         },
-        "triageCode": {
+        "triage-code": {
             "key_schema": [
                 {"AttributeName": "id", "KeyType": "HASH"},
                 {"AttributeName": "field", "KeyType": "RANGE"},
