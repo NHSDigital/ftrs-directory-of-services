@@ -142,3 +142,100 @@ variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string
 }
+
+variable "dynamodb_exports_s3_expiration_days" {
+  description = "The number of days after which DynamoDB exports in S3 will expire"
+  type        = number
+}
+variable "rds_event_listener_lambda_name" {
+  description = "The name of the RDS event listener Lambda function"
+  type        = string
+}
+
+variable "schema_name" {
+  description = "The schema name to use in table mappings"
+  type        = string
+}
+
+variable "sqs_ssm_path_for_ids" {
+  description = "The SSM path for storing SQS IDs"
+  type        = string
+}
+
+variable "migration_copy_db_lambda_trigger" {
+  description = "The Lambda function handler for the migration copy DB trigger"
+  type        = string
+}
+
+variable "cloudwatch_log_retention_days" {
+  description = "The number of days to retain CloudWatch logs for DMS tasks"
+  type        = number
+}
+
+variable "dms_db_lambda_name" {
+  description = "The name of the DMS DB setup Lambda function"
+  type        = string
+}
+
+variable "dms_db_lambda_trigger" {
+  description = "The Lambda function handler for the DMS DB setup trigger"
+  type        = string
+}
+
+variable "dms_start_full_replication_task" {
+  description = "Whether to start the DMS replication task automatically"
+  type        = bool
+  default     = false
+}
+
+variable "dms_start_cdc_replication_task" {
+  description = "Whether to start the DMS replication task automatically"
+  type        = bool
+  default     = false
+}
+
+variable "dms_replication_instance_auto_minor_version_upgrade" {
+  description = "Whether to enable auto minor version upgrades for the DMS replication instance"
+  type        = bool
+  default     = true
+}
+
+variable "rds_event_listener_lambda_connection_timeout" {
+  description = "The connection timeout for the RDS event listener Lambda function"
+  type        = number
+}
+
+variable "rds_event_listener_lambda_memory_size" {
+  description = "The memory size for the RDS event listener Lambda function"
+  type        = number
+}
+
+variable "dms_db_lambda_connection_timeout" {
+  description = "The connection timeout for the DMS DB setup Lambda function"
+  type        = number
+}
+
+variable "dms_db_lambda_memory_size" {
+  description = "The memory size for the DMS DB setup Lambda function"
+  type        = number
+}
+
+variable "full_migration_completion_event_queue_name" {
+  description = "The name of the SQS queue for full migration completion events"
+  type        = string
+}
+
+variable "target_rds_credentials" {
+  description = "The secrets manager name for the target RDS details"
+  type        = string
+}
+
+variable "dms_user_password" {
+  description = "The secrets manager name for the DMS user password"
+  type        = string
+}
+
+variable "source_rds_credentials" {
+  description = "The secrets manager name for the source RDS credentials"
+  type        = string
+}

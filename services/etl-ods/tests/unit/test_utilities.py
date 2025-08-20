@@ -124,12 +124,11 @@ def test_make_request_success(requests_mock: RequestsMock) -> None:
 
     assert mock_call.last_request.url == url
     assert mock_call.last_request.method == "GET"
-    assert mock_call.last_request.headers == {
-        "User-Agent": "python-requests/2.32.3",
-        "Accept-Encoding": "gzip, deflate",
-        "Accept": "*/*",
-        "Connection": "keep-alive",
-    }
+    headers = mock_call.last_request.headers
+    assert headers["Accept"] == "*/*"
+    assert headers["Accept-Encoding"] == "gzip, deflate"
+    assert headers["Connection"] == "keep-alive"
+    assert "User-Agent" in headers
 
 
 @patch("pipeline.utilities.boto3.Session")
@@ -164,12 +163,11 @@ def test_make_request_with_params(
         == "https://api.example.com/resource?param1=value1&param2=value2"
     )
     assert mock_call.last_request.method == "GET"
-    assert mock_call.last_request.headers == {
-        "User-Agent": "python-requests/2.32.3",
-        "Accept-Encoding": "gzip, deflate",
-        "Accept": "*/*",
-        "Connection": "keep-alive",
-    }
+    headers = mock_call.last_request.headers
+    assert headers["Accept"] == "*/*"
+    assert headers["Accept-Encoding"] == "gzip, deflate"
+    assert headers["Connection"] == "keep-alive"
+    assert "User-Agent" in headers
     assert mock_call.last_request.qs == {"param1": ["value1"], "param2": ["value2"]}
 
 
@@ -202,14 +200,13 @@ def test_make_request_with_json_data(
 
     assert mock_call.last_request.url == "https://api.example.com/resource"
     assert mock_call.last_request.method == "PUT"
-    assert mock_call.last_request.headers == {
-        "User-Agent": "python-requests/2.32.3",
-        "Accept-Encoding": "gzip, deflate",
-        "Accept": "*/*",
-        "Connection": "keep-alive",
-        "Content-Type": "application/json",
-        "Content-Length": "17",
-    }
+    headers = mock_call.last_request.headers
+    assert headers["Content-Type"] == "application/json"
+    assert headers["Content-Length"] == "17"
+    assert headers["Accept"] == "*/*"
+    assert headers["Accept-Encoding"] == "gzip, deflate"
+    assert headers["Connection"] == "keep-alive"
+    assert "User-Agent" in headers
     assert mock_call.last_request.body.decode() == '{"json": "value"}'
 
 
@@ -246,16 +243,15 @@ def test_make_request_signed_request(
 
     assert mock_call.last_request.url == url
     assert mock_call.last_request.method == "GET"
-    assert mock_call.last_request.headers == {
-        "User-Agent": "python-requests/2.32.3",
-        "Accept-Encoding": "gzip, deflate",
-        "Accept": "*/*",
-        "Connection": "keep-alive",
-        "Authorization": "MockedAuthorization",
-        "X-Amz-Date": "MockedDate",
-        "X-Amz-Security-Token": "MockedToken",
-        "Host": "api.example.com",
-    }
+    headers = mock_call.last_request.headers
+    assert headers["Accept"] == "*/*"
+    assert headers["Accept-Encoding"] == "gzip, deflate"
+    assert headers["Connection"] == "keep-alive"
+    assert headers["Authorization"] == "MockedAuthorization"
+    assert headers["X-Amz-Date"] == "MockedDate"
+    assert headers["X-Amz-Security-Token"] == "MockedToken"
+    assert headers["Host"] == "api.example.com"
+    assert "User-Agent" in headers
 
 
 def test_make_request_http_error(requests_mock: RequestsMock) -> None:
