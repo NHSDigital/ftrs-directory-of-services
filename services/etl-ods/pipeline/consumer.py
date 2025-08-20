@@ -1,11 +1,11 @@
-import json
-from http import HTTPStatus
+# import json
+# from http import HTTPStatus
 
-import requests
+# import requests
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.utilities import get_api_key, get_base_fhir_api_url, make_request
+# from pipeline.utilities import get_api_key, get_base_fhir_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
@@ -47,52 +47,57 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
 
 
 def process_message_and_send_request(record: dict) -> None:
-    if isinstance(record.get("body"), str):
-        body_content = json.loads(json.loads(record.get("body")))
-        path = body_content.get("path")
-        body = body_content.get("body")
+    raise RequestProcessingError(
+        message_id="test",
+        status_code=(500),
+        response_text="for testing purposes",
+    )
+    # if isinstance(record.get("body"), str):
+    #     body_content = json.loads(json.loads(record.get("body")))
+    #     path = body_content.get("path")
+    #     body = body_content.get("body")
 
-    else:
-        path = record.get("path")
-        body = record.get("body")
+    # else:
+    #     path = record.get("path")
+    #     body = record.get("body")
 
-    message_id = record["messageId"]
+    # message_id = record["messageId"]
 
-    if not path or not body:
-        err_msg = ods_consumer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_006,
-            message_id=message_id,
-        )
-        raise ValueError(err_msg)
+    # if not path or not body:
+    #     err_msg = ods_consumer_logger.log(
+    #         OdsETLPipelineLogBase.ETL_CONSUMER_006,
+    #         message_id=message_id,
+    #     )
+    #     raise ValueError(err_msg)
 
-    api_url = get_base_fhir_api_url()
-    api_url = api_url + "/Organization/" + path
+    # api_url = get_base_fhir_api_url()
+    # api_url = api_url + "/Organization/" + path
 
-    api_key = get_api_key()
-    # test
+    # api_key = get_api_key()
+    # # test
 
-    try:
-        response = make_request(
-            api_url, method="PUT", sign=False, json=body, api_key=api_key
-        )
-        ods_consumer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_007,
-            status_code=response.status_code,
-        )
-    except requests.exceptions.HTTPError as http_error:
-        if http_error.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-            ods_consumer_logger.log(
-                OdsETLPipelineLogBase.ETL_CONSUMER_008, message_id=message_id
-            )
-            return
-        ods_consumer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_009, message_id=record["messageId"]
-        )
-        raise RequestProcessingError(
-            message_id=message_id,
-            status_code=(http_error.response.status_code),
-            response_text=str(http_error),
-        )
+    # try:
+    #     response = make_request(
+    #         api_url, method="PUT", sign=False, json=body, api_key=api_key
+    #     )
+    #     ods_consumer_logger.log(
+    #         OdsETLPipelineLogBase.ETL_CONSUMER_007,
+    #         status_code=response.status_code,
+    #     )
+    # except requests.exceptions.HTTPError as http_error:
+    #     if http_error.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+    #         ods_consumer_logger.log(
+    #             OdsETLPipelineLogBase.ETL_CONSUMER_008, message_id=message_id
+    #         )
+    #         return
+    #     ods_consumer_logger.log(
+    #         OdsETLPipelineLogBase.ETL_CONSUMER_009, message_id=record["messageId"]
+    #     )
+    # raise RequestProcessingError(
+    #     message_id=message_id,
+    #     status_code=(http_error.response.status_code),
+    #     response_text=str(http_error),
+    # )
 
 
 class RequestProcessingError(Exception):
