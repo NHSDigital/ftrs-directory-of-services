@@ -5,7 +5,7 @@ s3_versioning                        = false
 dynamodb_exports_s3_expiration_days  = 30
 
 source_rds_database = "data_migration"
-target_rds_database = "Core"
+target_rds_database = "dos"
 rds_port            = 5432
 rds_engine          = "aurora-postgresql"
 rds_engine_version  = "16.6"
@@ -34,4 +34,20 @@ aws_lambda_layers = [
 ]
 
 data_migration_rds_min_capacity = 1
-data_migration_rds_max_capacity = 5
+data_migration_rds_max_capacity = 7
+
+rds_event_listener_lambda_name               = "rds-event-listener"
+schema_name                                  = "pathwaysdos"
+sqs_ssm_path_for_ids                         = "/ftrs-dos/migration/sqs-ids/"
+migration_copy_db_lambda_trigger             = "pipeline.migration_copy_db_trigger.lambda_handler"
+cloudwatch_log_retention_days                = 365
+dms_db_lambda_name                           = "dms-db-setup"
+dms_db_lambda_trigger                        = "pipeline.dms_db.lambda_handler"
+rds_event_listener_lambda_connection_timeout = 300
+rds_event_listener_lambda_memory_size        = 1024
+dms_db_lambda_connection_timeout             = 300
+dms_db_lambda_memory_size                    = 1024
+full_migration_completion_event_queue_name   = "full-migration-completion-event"
+target_rds_credentials                       = "target-rds-credentials"
+dms_user_password                            = "dms-user-password"
+source_rds_credentials                       = "source-rds-credentials"

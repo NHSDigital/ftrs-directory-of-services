@@ -9,7 +9,7 @@ locals {
   # Deploy certain resources (e.g., databases, backup SSM) only in default Terraform workspace.
   is_primary_environment        = terraform.workspace == "default"
   deploy_queue_populator_lambda = var.environment == "dev"
-  rds_environments              = var.environment == "dev" || var.environment == "test"
+  rds_environments              = var.environment == "dev" || var.environment == "test" || var.environment == "int"
 
   dynamodb_tables = {
     for table_name in var.dynamodb_table_names :
