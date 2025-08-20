@@ -30,6 +30,10 @@ lint:
 	poetry run ruff check
 	poetry run ruff format --check
 
+lint-fix:
+	poetry run ruff check --fix
+	poetry run ruff format
+
 test: unit-test
 
 unit-test: coverage
@@ -65,3 +69,5 @@ export-to-s3: install
 
 restore-from-s3: install
 	poetry run dos-etl restore-from-s3 --env $(ENVIRONMENT) --workspace $(WORKSPACE)
+
+pre-commit: lint

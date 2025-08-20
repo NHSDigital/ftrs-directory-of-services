@@ -4,7 +4,6 @@ from typing import Iterable
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository, ModelType
 from pydantic import BaseModel
 from sqlmodel import Session, create_engine, select
 
@@ -15,6 +14,7 @@ from pipeline.transformer import (
 )
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
+from pipeline.utils.dbutil import get_repository
 
 
 class DataMigrationMetrics(BaseModel):
@@ -44,8 +44,6 @@ class DataMigrationProcessor:
     This class is responsible for managing the data migration process.
     It includes methods to transform legacy service data into the new format.
     """
-
-    _REPOSITORY_CACHE: dict[str, AttributeLevelRepository] = {}
 
     def __init__(
         self,
@@ -182,9 +180,13 @@ class DataMigrationProcessor:
         """
         Save the transformed result to DynamoDB.
         """
-        org_repo = self.get_repository("organisation", Organisation)
-        location_repo = self.get_repository("location", Location)
-        service_repo = self.get_repository("healthcare-service", HealthcareService)
+        org_repo = get_repository(
+            self.config, "organisation", Organisation, self.logger
+        )
+        location_repo = get_repository(self.config, "location", Location, self.logger)
+        service_repo = get_repository(
+            self.config, "healthcare-service", HealthcareService, self.logger
+        )
 
         for org in result.organisation:
             org_repo.upsert(org)
@@ -194,24 +196,3 @@ class DataMigrationProcessor:
 
         for hc in result.healthcare_service:
             service_repo.upsert(hc)
-
-    # TODO: Remove this method and use the common function once merged by IS
-    def get_repository(
-        self, entity_type: str, model_cls: ModelType
-    ) -> AttributeLevelRepository[ModelType]:
-        """
-        Get a DynamoDB repository for the specified table and model class.
-        Caches the repository to avoid creating multiple instances for the same table.
-        """
-        table_name = f"ftrs-dos-{self.config.env}-database-{entity_type}"
-        if self.config.workspace:
-            table_name = f"{table_name}-{self.config.workspace}"
-
-        if table_name not in self._REPOSITORY_CACHE:
-            self._REPOSITORY_CACHE[table_name] = AttributeLevelRepository[ModelType](
-                table_name=table_name,
-                model_cls=model_cls,
-                endpoint_url=self.config.dynamodb_endpoint,
-                logger=self.logger,
-            )
-        return self._REPOSITORY_CACHE[table_name]
