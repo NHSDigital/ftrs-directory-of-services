@@ -214,6 +214,27 @@ jobs:
       type: "app"
     secrets: inherit
 
+  deploy-data-migration-service:
+    name: "Deploy data migration service to ${{ needs.metadata.outputs.environment }}"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - apply-infrastructure
+    uses: ./.github/workflows/deploy-data-migration-project.yaml
+    with:
+      name: "data-migration"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      type: "app"
+    secrets: inherit
+
   service-automation-tests:
     name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
     needs:
@@ -246,6 +267,7 @@ jobs:
     name: "Check Pipeline Status"
     needs:
       - deploy-read-only-viewer-service
+      - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
     if: always()
@@ -264,6 +286,7 @@ jobs:
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
       - deploy-read-only-viewer-service
+      - deploy-data-migration-service
       - service-automation-tests
       - check-pipeline-status
     if: always()

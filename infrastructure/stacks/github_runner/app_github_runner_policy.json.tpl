@@ -143,7 +143,8 @@
                         "events.amazonaws.com",
                         "scheduler.amazonaws.com",
                         "pipes.amazonaws.com",
-                        "osis-pipelines.amazonaws.com"
+                        "osis-pipelines.amazonaws.com",
+                        "rds.amazonaws.com"
                     ]
                 }
             }
