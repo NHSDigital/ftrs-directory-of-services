@@ -159,12 +159,12 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
-      queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-rds-events"
+      queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
       type: app
     secrets: inherit
 
-  manage-dynamodb-backups:
-    name: "Manage DynamoDB backups in ${{ needs.metadata.outputs.environment }}"
+  export-dynamodb-to-s3:
+    name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
     if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
@@ -172,11 +172,24 @@ jobs:
     needs:
       - metadata
       - migrate-data
-    uses: ./.github/workflows/manage-dynamodb-backups.yaml
+    uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      dynamodb_table_prefix: "ftrs-dos-${{ needs.metadata.outputs.environment }}-database"
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      type: app
+      action: export
+    secrets: inherit
+
+  restore-dynamodb-from-s3:
+    name: "Restore data from S3 to DynamoDB tables in ${{ needs.metadata.outputs.workspace }}"
+    if: needs.metadata.outputs.workspace != 'default' && needs.metadata.outputs.environment != 'prod'
+    needs:
+      - metadata
+      - apply-infrastructure
+    uses: ./.github/workflows/manage-dynamodb-data.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      action: import
       type: app
     secrets: inherit
 
@@ -205,8 +218,19 @@ jobs:
     name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
+      - manual-approval
       - apply-infrastructure
-    if: always() && !cancelled() && (needs.apply-infrastructure.result == 'success' || needs.manual-approval.result == 'skipped')
+      - restore-dynamodb-from-s3
+    if: |
+      always() &&
+      !cancelled() &&
+      (
+        needs.restore-dynamodb-from-s3.result == 'success' ||
+        (
+          needs.restore-dynamodb-from-s3.result == 'skipped' &&
+          (needs.apply-infrastructure.result == 'success' || needs.manual-approval.result == 'skipped')
+        )
+      )
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -223,7 +247,7 @@ jobs:
     needs:
       - deploy-read-only-viewer-service
       - service-automation-tests
-      - manage-dynamodb-backups
+      - export-dynamodb-to-s3
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
@@ -237,7 +261,8 @@ jobs:
       - manual-approval
       - apply-infrastructure
       - migrate-data
-      - manage-dynamodb-backups
+      - export-dynamodb-to-s3
+      - restore-dynamodb-from-s3
       - deploy-read-only-viewer-service
       - service-automation-tests
       - check-pipeline-status
