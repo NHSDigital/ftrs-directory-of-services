@@ -147,12 +147,6 @@ variable "dynamodb_exports_s3_expiration_days" {
   description = "The number of days after which DynamoDB exports in S3 will expire"
   type        = number
 }
-
-variable "dynamodb_exports_s3_expiration_days" {
-  description = "The number of days after which DynamoDB exports in S3 will expire"
-  type        = number
-}
-
 variable "rds_event_listener_lambda_name" {
   description = "The name of the RDS event listener Lambda function"
   type        = string
