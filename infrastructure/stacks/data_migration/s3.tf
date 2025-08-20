@@ -2,6 +2,19 @@ module "migration_store_bucket" {
   source      = "../../modules/s3"
   bucket_name = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
   versioning  = var.s3_versioning
+
+  lifecycle_rule_inputs = [
+    {
+      id      = "delete_logs_older_than_x_days"
+      enabled = true
+      filter = {
+        prefix = "exports/"
+      }
+      expiration = {
+        days = var.dynamodb_exports_s3_expiration_days
+      }
+    }
+  ]
 }
 
 resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {

@@ -25,7 +25,7 @@ def test_typer_app_init() -> None:
     """
     Test the initialization of the Typer app.
     """
-    expected_command_count = 2
+    expected_command_count = 4
 
     assert isinstance(typer_app, Typer)
     assert typer_app.info.name == "dos-etl"
@@ -312,3 +312,33 @@ def test_populate_queue_handler_no_ids(
             status_ids=None,
         )
     )
+
+
+def test_export_to_s3_handler(mocker: MockerFixture) -> None:
+    """
+    Test that the export_to_s3_handler calls run_s3_export
+    """
+    mock_s3_export = mocker.patch("pipeline.cli.run_s3_export")
+
+    result = runner.invoke(
+        typer_app,
+        ["export-to-s3", "--env", "dev", "--workspace", "fdos-000"],
+    )
+
+    assert result.exit_code == 0
+    mock_s3_export.assert_called_once_with("dev", "fdos-000")
+
+
+def test_restore_from_s3_handler(mocker: MockerFixture) -> None:
+    """
+    Test that the restore_from_s3_handler calls run_s3_restore
+    """
+    mock_s3_restore = mocker.patch("pipeline.cli.run_s3_restore")
+
+    result = runner.invoke(
+        typer_app,
+        ["restore-from-s3", "--env", "dev", "--workspace", "fdos-000"],
+    )
+
+    assert result.exit_code == 0
+    mock_s3_restore.assert_called_once_with("dev", "fdos-000")
