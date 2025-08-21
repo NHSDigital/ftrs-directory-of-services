@@ -122,6 +122,8 @@ module "queue_populator_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
 
 module "rds_event_listener_lambda" {
