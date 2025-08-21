@@ -11,6 +11,7 @@ on:
       - "task/FDOS*"
       - "task/SIA*"
       - "task/DOSIS*"
+      - "dependabot/*"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
