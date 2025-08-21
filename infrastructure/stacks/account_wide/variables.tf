@@ -129,3 +129,15 @@ variable "flow_logs_s3_expiration_days" {
   description = "The number of days before the VPC flow logs are deleted"
   type        = number
 }
+
+variable "vpc" {
+  description = "A map of VPC configuration, including VPC ID, CIDR block, and other networking details"
+  type        = map(any)
+  default     = {}
+}
+
+variable "enable_flow_log" {
+  description = "Whether VPC Flow logs are enabled or not"
+  type        = bool
+  default     = false
+}
