@@ -110,15 +110,3 @@ variable "gp_search_organisation_table_name" {
   description = "The dynamodb table name for gp search"
   type        = string
 }
-
-variable "dns_port" {
-  description = "The port for DNS queries"
-  type        = number
-  default     = 53
-}
-
-variable "https_port" {
-  description = "The port for HTTPS traffic"
-  type        = number
-  default     = 443
-}

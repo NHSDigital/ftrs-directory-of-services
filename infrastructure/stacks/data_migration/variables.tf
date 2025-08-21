@@ -280,3 +280,15 @@ variable "source_rds_credentials" {
   description = "The secrets manager name for the source RDS credentials"
   type        = string
 }
+
+variable "dns_port" {
+  description = "The port for DNS queries"
+  type        = number
+  default     = 53
+}
+
+variable "https_port" {
+  description = "The port for HTTPS traffic"
+  type        = number
+  default     = 443
+}
