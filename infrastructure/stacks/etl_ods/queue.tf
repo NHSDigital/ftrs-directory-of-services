@@ -14,7 +14,7 @@ resource "aws_sqs_queue" "dead_letter_queue" {
         Effect    = "Allow"
         Principal = { Service = "sqs.amazonaws.com" }
         Action    = "sqs:SendMessage"
-        Resource  = "${aws_sqs_queue.dead_letter_queue.arn}"
+        Resource  = "*"
       }
     ]
   })
