@@ -1,18 +1,24 @@
+import asyncio
 from contextlib import contextmanager
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Generator, List
 
+import rich
 from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication, DMSEvent
 from pipeline.processor import ServiceTransformOutput
 from pipeline.queue_populator import populate_sqs_queue
+from pipeline.seeding.export_to_s3 import run_s3_export
+from pipeline.seeding.restore import run_s3_restore
 from pipeline.utils.config import (
     DatabaseConfig,
     DataMigrationConfig,
     QueuePopulatorConfig,
 )
+
+CONSOLE = rich.get_console()
 
 
 class TargetEnvironment(StrEnum):
@@ -136,3 +142,29 @@ def patch_local_save_method(
     organisation_file.close()
     location_file.close()
     healthcare_file.close()
+
+
+@typer_app.command("export-to-s3")
+def export_to_s3_handler(
+    env: Annotated[str, Option(..., help="Environment to run the export in")],
+    workspace: Annotated[
+        str | None, Option(..., help="Workspace to run the export in")
+    ] = None,
+) -> None:
+    """
+    Handler for exporting data from all DynamoDB tables to S3.
+    """
+    asyncio.run(run_s3_export(env, workspace))
+
+
+@typer_app.command("restore-from-s3")
+def restore_from_s3_handler(
+    env: Annotated[str, Option(..., help="Environment to run the restore in")],
+    workspace: Annotated[
+        str | None, Option(..., help="Workspace to run the restore in")
+    ] = None,
+) -> None:
+    """
+    Handler for restoring data from S3 to all DynamoDB tables.
+    """
+    asyncio.run(run_s3_restore(env, workspace))
