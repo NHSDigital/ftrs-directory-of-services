@@ -17,7 +17,58 @@ services:
     command: "-Xmx6g -jar DynamoDBLocal.jar -sharedDb -dbPath /data"
     volumes:
       - ./.tmp/dynamodb:/data
+    networks:
+      - opensearch-net
+
+  opensearch:
+    profiles: [ "${ENABLE_OPENSEARCH:-disabled}" ]
+    image: opensearchproject/opensearch:2.11.0
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - opensearch-net
+
+  data-prepper:
+    profiles: ["${ENABLE_OPENSEARCH:-disabled}" ]
+    image: opensearchproject/data-prepper:latest
+    environment:
+      - AWS_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=dummy
+      - AWS_SECRET_ACCESS_KEY=dummy
+      - AWS_ENDPOINT_URL=http://ddb-local:8000
+      - AWS_ENDPOINT_URL_DYNAMODB=http://ddb-local:8000
+      - AWS_ENDPOINT_URL_DYNAMODBSTREAMS=http://ddb-local:8000
+      - AWS_EC2_METADATA_DISABLED=true
+    volumes:
+      - ${PWD}/local-opensearch-config/pipelines.yaml:/usr/share/data-prepper/pipelines/pipelines.yaml
+      - ${PWD}/local-opensearch-config/data-prepper-config.yaml:/usr/share/data-prepper/config/data-prepper-config.yaml
+      - ${PWD}/local-opensearch-config/index-template.json:/usr/share/data-prepper/index-template.json
+      - ${HOME}/.aws:/root/.aws
+    command: [ "./bin/data-prepper", "pipelines/pipelines.yaml", "config/data-prepper-config.yaml" ]
+    depends_on:
+      - ddb-local
+      - opensearch
+    networks:
+      - opensearch-net
 
 volumes:
   pg_data:
     driver: local
+
+networks:
+    opensearch-net:
+        driver: bridge
