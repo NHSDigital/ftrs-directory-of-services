@@ -15,11 +15,6 @@ resource "aws_sqs_queue" "dead_letter_queue" {
         Principal = { Service = "sqs.amazonaws.com" }
         Action    = "sqs:SendMessage"
         Resource  = "${aws_sqs_queue.dead_letter_queue.arn}"
-        Condition = {
-          ArnEquals = {
-            "aws:SourceArn" = "${aws_sqs_queue.transformed_queue.arn}"
-          }
-        }
       }
     ]
   })
