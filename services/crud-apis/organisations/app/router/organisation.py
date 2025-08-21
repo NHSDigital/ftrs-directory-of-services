@@ -110,6 +110,9 @@ def get_all_organisations(limit: int = 10) -> list[Organisation]:
 
     return organisations
 
+@router.get("/organisation", summary="Get organisation uuid by ods_code")
+def get_organisation_uuid_by_ods_code(idenfiter: str) -> JSONResponse:
+    return get_org_by_ods_code(ods_code=idenfiter)
 
 @router.put(
     "/{organisation_id}",
