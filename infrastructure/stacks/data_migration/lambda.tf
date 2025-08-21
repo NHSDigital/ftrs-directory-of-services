@@ -55,7 +55,7 @@ module "processor_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
-  depends_on = [aws_sqs_queue.dms_event_queue]
+  depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
 
 resource "aws_lambda_permission" "allow_sqs_invoke" {
