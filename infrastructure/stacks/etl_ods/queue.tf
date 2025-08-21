@@ -6,6 +6,23 @@ resource "aws_sqs_queue" "dead_letter_queue" {
   message_retention_seconds  = var.message_retention_seconds
   receive_wait_time_seconds  = var.receive_wait_time_seconds
   sqs_managed_sse_enabled    = var.sqs_managed_sse_enabled
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = { Service = "sqs.amazonaws.com" }
+        Action    = "sqs:SendMessage"
+        Resource  = "${aws_sqs_queue.dead_letter_queue.arn}"
+        Condition = {
+          ArnEquals = {
+            "aws:SourceArn" = "${aws_sqs_queue.transformed_queue.arn}"
+          }
+        }
+      }
+    ]
+  })
 }
 
 resource "aws_sqs_queue" "transformed_queue" {
@@ -18,6 +35,6 @@ resource "aws_sqs_queue" "transformed_queue" {
   sqs_managed_sse_enabled    = var.sqs_managed_sse_enabled
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.dead_letter_queue.arn
-    maxReceiveCount     = 3
+    maxReceiveCount     = 5
   })
 }
