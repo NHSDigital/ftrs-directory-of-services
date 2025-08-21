@@ -54,8 +54,9 @@ module "processor_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
-}
 
+  depends_on = [aws_sqs_queue.dms_event_queue]
+}
 
 resource "aws_lambda_permission" "allow_sqs_invoke" {
   statement_id  = "AllowSQSTrigger"
@@ -64,7 +65,6 @@ resource "aws_lambda_permission" "allow_sqs_invoke" {
   principal     = "sqs.amazonaws.com"
   source_arn    = aws_sqs_queue.dms_event_queue.arn
 }
-
 
 resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   event_source_arn                   = aws_sqs_queue.dms_event_queue.arn
