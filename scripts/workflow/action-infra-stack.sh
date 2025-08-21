@@ -97,7 +97,7 @@ function terraform-initialise {
 
 COMMON_TF_VARS_FILE="common.tfvars"
 STACK_TF_VARS_FILE="$STACK.tfvars"
-ENV_TF_VARS_FILE="$ENVIRONMENT.tfvars"
+ENV_TF_VARS_FILE="environment.tfvars"
 ENVIRONMENTS_SUB_DIR="environments"
 
 echo "Preparing to run terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
@@ -118,18 +118,29 @@ else
 fi
 # switch to target stack directory ahead of tf init/plan/apply
 cd "$STACK_DIR" || exit
-# if no stack tfvars create temporary one
+# if no stack-specific tfvars create temporary one
 TEMP_STACK_TF_VARS_FILE=0
 if [ ! -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" ] ; then
   touch "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
   TEMP_STACK_TF_VARS_FILE=1
 fi
 
-ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR/"
+ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR/$ENVIRONMENTS_SUB_DIR/$ENVIRONMENT/"
 
-[ -d "$ROOT_DIR/$INFRASTRUCTURE_DIR/$ENVIRONMENTS_SUB_DIR" ]  && ENVIRONMENTS_DIR="$ENVIRONMENTS_DIR/$ENVIRONMENTS_SUB_DIR"
-echo "Pulling environment variables from $ENVIRONMENTS_DIR"
+if [ -d "$ENVIRONMENTS_DIR" ]  ; then
+  echo "Pulling environment variables from $ENVIRONMENTS_DIR"
+else
+  echo "No environment specific directory found for $ENVIRONMENT. Please create one and try again"
+  exit 1
+fi
 
+
+# if no env specific tfvars for stack create temporary one
+TEMP_ENV_STACK_TF_VARS_FILE=0
+if [ ! -f "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE" ] ; then
+  touch "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
+  TEMP_ENV_STACK_TF_VARS_FILE=1
+fi
 # init terraform
 terraform-initialise
 
@@ -140,7 +151,8 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   terraform plan -out $STACK.tfplan \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
+    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" \
+    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
 
   PLAN_RESULT=$(terraform show -no-color $STACK.tfplan)
 
@@ -170,7 +182,8 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
   terraform destroy -auto-approve \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
+    -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" \
+    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'validate' ] ; then
@@ -185,6 +198,10 @@ rm -f "$STACK_DIR"/common-variables.tf
 
 if [ $TEMP_STACK_TF_VARS_FILE = 1 ] ; then
   rm -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
+fi
+
+if [ $TEMP_ENV_STACK_TF_VARS_FILE = 1 ] ; then
+  rm -f "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
 fi
 
 echo "Completed terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for account type $ENVIRONMENT and project $PROJECT"
