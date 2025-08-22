@@ -84,3 +84,7 @@ variable "receive_wait_time_seconds" {
 variable "sqs_managed_sse_enabled" {
   description = "Enables Server-Side Encryption for messages stored in the queue"
 }
+
+variable "max_receive_count" {
+  description = "The maximum number of times a message can be received before being sent to the dead letter queue"
+}
