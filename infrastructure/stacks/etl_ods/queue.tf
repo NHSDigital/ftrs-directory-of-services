@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "dead_letter_queue" {
-  name                       = "${local.resource_prefix}-dead-letter-queue${local.workspace_suffix}"
+  name                       = "${local.resource_prefix}-dlq${local.workspace_suffix}"
   delay_seconds              = var.delay_seconds
   visibility_timeout_seconds = var.visibility_timeout_seconds
   max_message_size           = var.max_message_size
