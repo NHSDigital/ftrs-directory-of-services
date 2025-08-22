@@ -30,6 +30,6 @@ resource "aws_sqs_queue" "transformed_queue" {
   sqs_managed_sse_enabled    = var.sqs_managed_sse_enabled
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.dead_letter_queue.arn
-    maxReceiveCount     = 5
+    maxReceiveCount     = var.max_receive_count
   })
 }
