@@ -19,7 +19,7 @@ def get_api_gateway_url(workspace, stack, project, env):
 def get_url(api_name):
     # set the URL for the R53 record for the env
     url = get_api_url(api_name)
-    logger.info("URL: {}", url)
+    logger.debug("URL: {}", url)
     return url
 
 
@@ -27,5 +27,5 @@ def get_r53(workspace, api_name, env):
     # set the URL for the R53 record for the env
     workspace_suffix = f"-{workspace}" if workspace else ""
     r53 = f"{api_name}{workspace_suffix}.{env}.ftrs.cloud.nhs.uk"
-    logger.info("R53 URL: {}", r53)
+    logger.debug("R53 URL: {}", r53)
     return r53

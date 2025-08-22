@@ -243,6 +243,7 @@ jobs:
       - manual-approval
       - apply-infrastructure
       - restore-dynamodb-from-s3
+      - export-dynamodb-to-s3
     if: |
       always() &&
       !cancelled() &&
