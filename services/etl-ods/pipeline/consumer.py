@@ -1,11 +1,11 @@
-# import json
-# from http import HTTPStatus
+import json
+from http import HTTPStatus
 
-# import requests
+import requests
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-# from pipeline.utilities import get_api_key, get_base_fhir_api_url, make_request
+from pipeline.utilities import get_api_key, get_base_fhir_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
@@ -69,7 +69,6 @@ def process_message_and_send_request(record: dict) -> None:
     api_url = api_url + "/Organization/" + path
 
     api_key = get_api_key()
-    # test
 
     try:
         response = make_request(
@@ -88,11 +87,11 @@ def process_message_and_send_request(record: dict) -> None:
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_009, message_id=record["messageId"]
         )
-    raise RequestProcessingError(
-        message_id=message_id,
-        status_code=(http_error.response.status_code),
-        response_text=str(http_error),
-    )
+        raise RequestProcessingError(
+            message_id=message_id,
+            status_code=(http_error.response.status_code),
+            response_text=str(http_error),
+        )
 
 
 class RequestProcessingError(Exception):
