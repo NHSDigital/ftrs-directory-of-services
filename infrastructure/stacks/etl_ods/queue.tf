@@ -14,7 +14,7 @@ resource "aws_sqs_queue" "dead_letter_queue" {
         Effect    = "Allow"
         Principal = { Service = "sqs.amazonaws.com" }
         Action    = "sqs:SendMessage"
-        Resource  = "arn:aws:sqs:${data.aws_region}:${data.aws_caller_identity.current.account_id}:${local.resource_prefix}-dlq${local.workspace_suffix}"
+        Resource  = "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${local.resource_prefix}-dlq${local.workspace_suffix}"
         Condition = {
           StringEquals = {
             "aws:SourceAccount" = "${data.aws_caller_identity.current.account_id}"
