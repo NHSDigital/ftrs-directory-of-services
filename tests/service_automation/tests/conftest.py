@@ -12,7 +12,7 @@ from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
 from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
-from utilities.infra.repo_util import model_from_json_file
+from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
 
 # Configure Loguru to log into a file and console
@@ -168,9 +168,15 @@ def healthcare_service_repo():
 def organisation_repo_seeded(organisation_repo):
     json_file = "Organisation/organisation-for-session-seeded-repo-test.json"
     organisation = model_from_json_file(json_file, organisation_repo)
-    organisation_repo.create(organisation)
-    yield organisation_repo
-    organisation_repo.delete(organisation.id)
+    if check_record_in_repo(organisation_repo, organisation.id):
+        organisation_repo.create(organisation)
+        yield organisation_repo
+        organisation_repo.delete(organisation.id)
+    else:
+        organisation_repo.delete(organisation.id)
+        organisation_repo.create(organisation)
+        yield organisation_repo
+        organisation_repo.delete(organisation.id)
 
 
 def get_mtls_certs():

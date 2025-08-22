@@ -3,7 +3,7 @@ from ftrs_data_layer.domain import DBModel, Organisation
 from ftrs_data_layer.repository.base import ModelType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_bdd import given, parsers, then, when
-from utilities.infra.repo_util import model_from_json_file, save_json_file_from_model
+from utilities.infra.repo_util import model_from_json_file, save_json_file_from_model, check_record_in_repo
 
 
 @given(parsers.parse("I have a {repo_name} repo"), target_fixture="model_repo")
@@ -30,10 +30,15 @@ def get_repo_fixture(
 @given(parsers.parse('I create a model in the repo from json file "{json_file}"'))
 def create_model_from_json(model_repo: AttributeLevelRepository, json_file: str):
     model = model_from_json_file(json_file, model_repo)
-    model_repo.create(model)
-    yield
-    model_repo.delete(model.id)
-
+    if check_record_in_repo(model_repo, model.id):
+        model_repo.create(model)
+        yield
+        model_repo.delete(model.id)
+    else:
+        model_repo.delete(model.id)
+        model_repo.create(model)
+        yield
+        model_repo.delete(model.id)
 
 @when(
     parsers.parse('I get a model with id "{model_id}" from the repo'),
