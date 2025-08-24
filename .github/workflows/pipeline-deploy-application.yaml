@@ -252,6 +252,10 @@ jobs:
         (
           needs.restore-dynamodb-from-s3.result == 'skipped' &&
           (needs.apply-infrastructure.result == 'success' || needs.manual-approval.result == 'skipped')
+        ) ||
+        (
+          needs.export-dynamodb-to-s3 == 'success' &&
+          (needs.apply-infrastructure.result == 'success' && needs.apply-infrastructure.result == 'success')
         )
       )
     uses: ./.github/workflows/service-automation-test.yaml
