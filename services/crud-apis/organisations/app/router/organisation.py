@@ -18,6 +18,8 @@ from organisations.app.services.validators import (
     UpdatePayloadValidator,
 )
 
+from organisations.app.router.organization_query_params import OrganizationQueryParams
+
 ERROR_MESSAGE_404 = "Organisation not found"
 FHIR_MEDIA_TYPE = "application/fhir+json"
 
@@ -71,15 +73,16 @@ def get_org_by_ods_code(
 
 
 @router.get("/", summary="Get organisation uuid by ods_code or read all organisations")
-def get_organisation_uuid_by_ods_code_or_all(
+def get_handle_organisation_root_requests(
     identifier: str = None, limit: int = 10
 ) -> JSONResponse:
     if identifier:
-        return get_org_by_ods_code(ods_code=identifier)
+        query_params = router.current_event.query_string_parameters or {}
+        validated_params = OrganizationQueryParams.model_validate(query_params)
+        return get_org_by_ods_code(ods_code=validated_params.ods_code)
     return get_all_organisations()
 
 
-@router.get("/", summary="Get organisation uuid by ods_code")
 def get_organisation_uuid_by_ods_code(identifier: str) -> JSONResponse:
     return get_org_by_ods_code(ods_code=identifier)
 
