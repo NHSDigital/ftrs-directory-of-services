@@ -12,13 +12,12 @@ from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
 
+from organisations.app.router.organization_query_params import OrganizationQueryParams
 from organisations.app.services.organisation_service import OrganisationService
 from organisations.app.services.validators import (
     CreatePayloadValidator,
     UpdatePayloadValidator,
 )
-
-from organisations.app.router.organization_query_params import OrganizationQueryParams
 
 ERROR_MESSAGE_404 = "Organisation not found"
 FHIR_MEDIA_TYPE = "application/fhir+json"
