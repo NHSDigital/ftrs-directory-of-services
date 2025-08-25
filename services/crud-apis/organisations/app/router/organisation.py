@@ -76,8 +76,27 @@ def get_handle_organisation_root_requests(
     identifier: str = None, limit: int = 10
 ) -> JSONResponse:
     if identifier:
-        query_params = router.current_event.query_string_parameters or {}
-        validated_params = OrganizationQueryParams.model_validate(query_params)
+        try:
+            query_params = {
+                "identifier": identifier,
+                "_revinclude": "Endpoint:organization",
+            }
+            validated_params = OrganizationQueryParams.model_validate(query_params)
+        except Exception as e:
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_002,
+                ods_code=validated_params.ods_code,
+            )
+            return JSONResponse(
+                status_code=400,
+                content=OperationOutcomeHandler.build(
+                    diagnostics=f"Invalid query parameters: {str(e)}",
+                    code="invalid",
+                    severity="error",
+                ),
+                media_type=FHIR_MEDIA_TYPE,
+            )
+
         return get_org_by_ods_code(ods_code=validated_params.ods_code)
     return get_all_organisations()
 
