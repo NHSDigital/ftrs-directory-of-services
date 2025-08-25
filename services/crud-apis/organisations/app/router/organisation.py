@@ -70,9 +70,34 @@ def get_org_by_ods_code(
         )
 
 
-@router.get("/organisation", summary="Get organisation uuid by ods_code")
+@router.get("/", summary="Get organisation uuid by ods_code or read all organisations")
+def get_organisation_uuid_by_ods_code_or_all(
+    identifier: str = None, limit: int = 10
+) -> JSONResponse:
+    if identifier:
+        return get_org_by_ods_code(ods_code=identifier)
+    return get_all_organisations()
+
+
+@router.get("/", summary="Get organisation uuid by ods_code")
 def get_organisation_uuid_by_ods_code(identifier: str) -> JSONResponse:
     return get_org_by_ods_code(ods_code=identifier)
+
+
+def get_all_organisations(limit: int = 10) -> list[Organisation]:
+    crud_organisation_logger.log(
+        CrudApisLogBase.ORGANISATION_004,
+    )
+    organisations = list(org_repository.iter_records(max_results=limit))
+    if not organisations:
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_020,
+        )
+        raise HTTPException(
+            status_code=404, detail="Unable to retrieve any organisations"
+        )
+
+    return organisations
 
 
 @router.get("/{organisation_id}", summary="Read a single organisation by id")
@@ -97,23 +122,6 @@ def get_organisation_by_id(
         raise HTTPException(status_code=404, detail=ERROR_MESSAGE_404)
 
     return organisation
-
-
-@router.get("/", summary="Read all organisations")
-def get_all_organisations(limit: int = 10) -> list[Organisation]:
-    crud_organisation_logger.log(
-        CrudApisLogBase.ORGANISATION_004,
-    )
-    organisations = list(org_repository.iter_records(max_results=limit))
-    if not organisations:
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_020,
-        )
-        raise HTTPException(
-            status_code=404, detail="Unable to retrieve any organisations"
-        )
-
-    return organisations
 
 
 @router.put(
