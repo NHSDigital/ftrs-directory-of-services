@@ -1,4 +1,4 @@
-# environment specific values that are applicable to every stack
+# environment specific values that are applicable to more than one stack
 environment         = "ref"
 data_classification = "3"
 
