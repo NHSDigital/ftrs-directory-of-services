@@ -118,6 +118,7 @@ variable "dms_event_queue_maximum_concurrency" {
   type        = number
   default     = 20
 }
+
 variable "dms_replication_instance_class" {
   description = "The instance class for the DMS replication instance"
   type        = string
