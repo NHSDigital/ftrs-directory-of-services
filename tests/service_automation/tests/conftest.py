@@ -168,15 +168,11 @@ def healthcare_service_repo():
 def organisation_repo_seeded(organisation_repo):
     json_file = "Organisation/organisation-for-session-seeded-repo-test.json"
     organisation = model_from_json_file(json_file, organisation_repo)
-    if check_record_in_repo(organisation_repo, organisation.id):
-        organisation_repo.create(organisation)
-        yield organisation_repo
+    if not check_record_in_repo(organisation_repo, organisation.id):
         organisation_repo.delete(organisation.id)
-    else:
-        organisation_repo.delete(organisation.id)
-        organisation_repo.create(organisation)
-        yield organisation_repo
-        organisation_repo.delete(organisation.id)
+    organisation_repo.create(organisation)
+    yield organisation_repo
+    organisation_repo.delete(organisation.id)
 
 
 def get_mtls_certs():

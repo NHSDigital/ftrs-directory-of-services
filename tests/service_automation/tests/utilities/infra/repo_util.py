@@ -23,9 +23,9 @@ def save_json_file_from_model(get_model_result):
 
 def check_record_in_repo(model_repo, model_id):
     record = model_repo.get(model_id)
+    logger.info(f"Checking if record with ID {model_id} exists in the repository.")
     if record is not None:
         exists = False
-        logger.info(f"Checking if record with ID {model_id} exists in the repository.")
         logger.info(f"Record found: {record}")
     else:
         logger.debug(f"Record not found: {model_id}")

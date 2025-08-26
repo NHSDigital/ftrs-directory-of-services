@@ -30,15 +30,11 @@ def get_repo_fixture(
 @given(parsers.parse('I create a model in the repo from json file "{json_file}"'))
 def create_model_from_json(model_repo: AttributeLevelRepository, json_file: str):
     model = model_from_json_file(json_file, model_repo)
-    if check_record_in_repo(model_repo, model.id):
-        model_repo.create(model)
-        yield
+    if not check_record_in_repo(model_repo, model.id):
         model_repo.delete(model.id)
-    else:
-        model_repo.delete(model.id)
-        model_repo.create(model)
-        yield
-        model_repo.delete(model.id)
+    model_repo.create(model)
+    yield
+    model_repo.delete(model.id)
 
 @when(
     parsers.parse('I get a model with id "{model_id}" from the repo'),
