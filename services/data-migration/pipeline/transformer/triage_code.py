@@ -41,7 +41,7 @@ class TriageCodeTransformer:
         """
         return TriageCode(
             id=disposition.dxcode,
-            source=ClinicalCodeSource.SERVICE_FINDER,
+            source=ClinicalCodeSource.PATHWAYS,
             codeType=ClinicalCodeType.DISPOSITION,
             codeID=disposition.dxcode,
             codeValue=disposition.name,
