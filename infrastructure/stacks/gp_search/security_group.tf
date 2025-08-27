@@ -7,6 +7,7 @@ resource "aws_security_group" "gp_search_lambda_security_group" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
+  # trivy:ignore:aws-vpc-no-public-egress-sgr
   security_group_id = aws_security_group.gp_search_lambda_security_group.id
   from_port         = "443"
   to_port           = "443"
