@@ -207,7 +207,6 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag }}
-
       - name: "Trivy scan"
         id: "trivy"
         uses: aquasecurity/trivy-action@0.32.0
@@ -222,11 +221,8 @@ jobs:
 
       - name: "Publish Trivy report"
         uses: actions/upload-artifact@v4.6.1
+        if: success() || failure()
         with:
           name: "trivy.sarif"
           path: "trivy.sarif"
           if-no-files-found: ignore
-
-      - name: "Warn Trivy failure"
-        if: ${{ steps.trivy.outcome == 'failure' }}
-        run: echo "::warning::Trivy has encountered issues. Please check the trivy.sarif file for the issues identified"
