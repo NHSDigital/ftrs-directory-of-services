@@ -1,6 +1,3 @@
-environment         = "prod"
-data_classification = "3"
-
 vpc = {
   name = "vpc"
   cidr = "10.179.0.0/16"
@@ -18,20 +15,6 @@ vpc = {
   database_subnet_c = "10.179.203.0/24"
 }
 
-sso_roles = [
-  "AWSReservedSSO_DOS-FtRS-RO-Infrastructure_49185b4285825a53",
-  "AWSReservedSSO_DOS-FtRS-RO-Developer_f86067072e0b2715"
-]
-
 enable_flow_log              = true
 flow_log_s3_force_destroy    = false
 flow_logs_s3_expiration_days = 30
-
-force_destroy_access_logging_bucket = false
-
-dms_instance_multi_az          = true
-dms_replication_instance_class = "dms.t3.small"
-dms_engine                     = "aurora-postgresql"
-dms_allocated_storage          = 100
-full_migration_type            = "full-load"
-cdc_migration_type             = "cdc"

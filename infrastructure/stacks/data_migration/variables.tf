@@ -119,6 +119,48 @@ variable "dms_event_queue_maximum_concurrency" {
   default     = 20
 }
 
+variable "dms_replication_instance_class" {
+  description = "The instance class for the DMS replication instance"
+  type        = string
+  default     = null
+}
+
+variable "dms_engine" {
+  description = "The engine for the DMS replication instance"
+  type        = string
+  default     = null
+}
+
+variable "dms_allocated_storage" {
+  description = "The allocated storage for the DMS replication instance"
+  type        = number
+  default     = null
+}
+
+variable "full_migration_type" {
+  description = "The type of migration for DMS"
+  type        = string
+  default     = null
+}
+
+variable "cdc_migration_type" {
+  description = "The type of migration for DMS"
+  type        = string
+  default     = null
+}
+
+variable "dms_instance_multi_az" {
+  description = "Is DMS instance set up in multi-AZ mode"
+  type        = bool
+  default     = false
+}
+
+variable "dms_task_logging_enabled" {
+  description = "Enable logging for DMS tasks"
+  type        = bool
+  default     = true
+}
+
 variable "queue_populator_lambda_name" {
   description = "The name of the queue populator lambda function"
 }
@@ -238,4 +280,16 @@ variable "dms_user_password" {
 variable "source_rds_credentials" {
   description = "The secrets manager name for the source RDS credentials"
   type        = string
+}
+
+variable "dns_port" {
+  description = "The port for DNS queries"
+  type        = number
+  default     = 53
+}
+
+variable "https_port" {
+  description = "The port for HTTPS traffic"
+  type        = number
+  default     = 443
 }
