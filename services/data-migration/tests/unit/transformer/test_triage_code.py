@@ -52,7 +52,7 @@ def test_builds_triage_code_from_disposition_with_time() -> None:
 
     # Assert
     assert result.id == "DX789"
-    assert result.source == ClinicalCodeSource.SERVICE_FINDER
+    assert result.source == ClinicalCodeSource.PATHWAYS
     assert result.codeType == ClinicalCodeType.DISPOSITION
     assert result.codeID == "DX789"
     assert result.codeValue == "Test Disposition"
@@ -69,7 +69,7 @@ def test_builds_triage_code_from_disposition_without_time() -> None:
 
     # Assert
     assert result.id == "DX101"
-    assert result.source == ClinicalCodeSource.SERVICE_FINDER
+    assert result.source == ClinicalCodeSource.PATHWAYS
     assert result.codeType == ClinicalCodeType.DISPOSITION
     assert result.codeID == "DX101"
     assert result.codeValue == "No Time Disposition"
