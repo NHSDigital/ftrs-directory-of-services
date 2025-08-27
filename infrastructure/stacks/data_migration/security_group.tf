@@ -151,8 +151,8 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_https" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
   description       = "Allow egress to internet on HTTPS port"
@@ -204,6 +204,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
   to_port                      = var.https_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_to_internet" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.rds_event_listener_lambda_security_group[0].id
@@ -254,6 +255,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds"
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_internet" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
