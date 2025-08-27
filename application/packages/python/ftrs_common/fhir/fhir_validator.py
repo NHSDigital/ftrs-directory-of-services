@@ -50,7 +50,7 @@ class FhirValidator:
         for field in ["name", "modifiedBy", "telecom", "type"]:
             value = resource.get(field)
             if isinstance(value, str) and re.search(special_characters_pattern, value):
-                msg = f"Field '{field}' contains invalid characters"
+                msg = f"Field '{field}' contains invalid characters: {value}"
                 FhirValidator._log_and_raise(msg, "invalid", fhir_model)
 
         return resource
