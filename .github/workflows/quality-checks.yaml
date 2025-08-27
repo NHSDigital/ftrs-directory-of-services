@@ -211,13 +211,13 @@ jobs:
       - name: "Trivy scan"
         id: "trivy"
         uses: aquasecurity/trivy-action@0.32.0
-        continue-on-error: true
         with:
           scan-type: "fs"
           scan-ref: "."
           format: "sarif"
           output: "trivy.sarif"
           scanners: vuln,misconfig
+          severity: 'CRITICAL,HIGH,MEDIUM'
           exit-code: 1
 
       - name: "Publish Trivy report"
