@@ -126,7 +126,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "cloudwatch_logs_retention" {
+variable "cloudwatch_log_retention" {
   description = "Number of days to retain CloudWatch logs"
   type        = number
   default     = 30

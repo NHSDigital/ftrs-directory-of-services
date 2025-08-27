@@ -52,9 +52,10 @@ variable "rds_instance_class" {
   type        = string
 }
 
-variable "rds_cloudwatch_logs_retention" {
+variable "rds_cloudwatch_log_retention" {
   description = "The number of days to retain CloudWatch logs for RDS"
   type        = number
+  default     = 14
 }
 
 variable "data_migration_rds_min_capacity" {
@@ -95,9 +96,10 @@ variable "processor_lambda_handler" {
   type        = string
 }
 
-variable "processor_lambda_logs_retention" {
+variable "processor_lambda_log_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
+  default     = 14
 }
 
 variable "dms_event_queue_name" {
@@ -190,9 +192,10 @@ variable "queue_populator_lambda_handler" {
   type        = string
 }
 
-variable "queue_populator_lambda_logs_retention" {
+variable "queue_populator_lambda_log_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
+  default     = 14
 }
 
 variable "data_collection_date" {
@@ -204,6 +207,7 @@ variable "dynamodb_exports_s3_expiration_days" {
   description = "The number of days after which DynamoDB exports in S3 will expire"
   type        = number
 }
+
 variable "rds_event_listener_lambda_name" {
   description = "The name of the RDS event listener Lambda function"
   type        = string
@@ -227,6 +231,7 @@ variable "migration_copy_db_lambda_trigger" {
 variable "dms_audit_cloudwatch_log_retention_days" {
   description = "The number of days to retain CloudWatch logs for DMS tasks"
   type        = number
+  default     = 30
 }
 
 variable "dms_db_lambda_name" {
@@ -267,9 +272,10 @@ variable "rds_event_listener_lambda_memory_size" {
   type        = number
 }
 
-variable "rds_event_listener_lambda_logs_retention" {
+variable "rds_event_listener_lambda_log_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
+  default     = 14
 }
 
 variable "dms_db_lambda_connection_timeout" {
@@ -282,9 +288,10 @@ variable "dms_db_lambda_memory_size" {
   type        = number
 }
 
-variable "dms_db_lambda_logs_retention" {
+variable "dms_db_lambda_log_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
+  default     = 14
 }
 
 variable "full_migration_completion_event_queue_name" {

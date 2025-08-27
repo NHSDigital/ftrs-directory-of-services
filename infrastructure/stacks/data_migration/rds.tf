@@ -131,7 +131,7 @@ module "rds_replication_target_db" {
 
   enabled_cloudwatch_logs_exports        = ["postgresql"]
   create_cloudwatch_log_group            = true
-  cloudwatch_log_group_retention_in_days = var.rds_cloudwatch_logs_retention
+  cloudwatch_log_group_retention_in_days = var.rds_cloudwatch_log_retention
 
   deletion_protection = true
 }
