@@ -6,7 +6,7 @@ resource "aws_security_group" "organisation_api_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "organisation_api_allow_443" {
 
   security_group_id = aws_security_group.organisation_api_lambda_security_group.id
