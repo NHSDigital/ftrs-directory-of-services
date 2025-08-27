@@ -133,4 +133,9 @@ def _validate_date(date_str: str) -> tuple[bool, str | None]:
 
 
 def _error_response(status_code: int, message: str) -> dict:
+    ods_processor_logger.log(
+        OdsETLPipelineLogBase.ETL_PROCESSOR_029,
+        status_code=status_code,
+        error_message=str(message),
+    )
     return {"statusCode": status_code, "body": json.dumps({"error": message})}
