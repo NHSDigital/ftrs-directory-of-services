@@ -45,6 +45,7 @@ resource "aws_cloudwatch_log_data_protection_policy" "dms_db_protection_policy" 
 # Create CloudWatch log group for audit logs
 resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
   # checkov:skip=CKV_AWS_158: Needs CMK
+  # checkov:skip=CKV_AWS_338: Least than a year for non prod
   count = local.is_primary_environment ? 1 : 0
 
   name              = "/aws/data-protection-audit/${var.environment}/${local.resource_prefix}-${var.dms_db_lambda_name}"
