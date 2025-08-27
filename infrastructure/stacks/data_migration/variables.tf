@@ -52,6 +52,12 @@ variable "rds_instance_class" {
   type        = string
 }
 
+variable "rds_cloudwatch_logs_retention" {
+  description = "The number of days to retain CloudWatch logs for RDS"
+  type        = number
+  default     = 14
+}
+
 variable "data_migration_rds_min_capacity" {
   description = "The minimum capacity for the RDS instance"
   type        = number
@@ -88,6 +94,12 @@ variable "processor_lambda_memory_size" {
 variable "processor_lambda_handler" {
   description = "The handler for the processor Lambda function"
   type        = string
+}
+
+variable "processor_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
 }
 
 variable "dms_event_queue_name" {
@@ -180,6 +192,12 @@ variable "queue_populator_lambda_handler" {
   type        = string
 }
 
+variable "queue_populator_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
+}
+
 variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string
@@ -189,6 +207,7 @@ variable "dynamodb_exports_s3_expiration_days" {
   description = "The number of days after which DynamoDB exports in S3 will expire"
   type        = number
 }
+
 variable "rds_event_listener_lambda_name" {
   description = "The name of the RDS event listener Lambda function"
   type        = string
@@ -209,9 +228,10 @@ variable "migration_copy_db_lambda_trigger" {
   type        = string
 }
 
-variable "cloudwatch_log_retention_days" {
+variable "dms_audit_cloudwatch_logs_retention_days" {
   description = "The number of days to retain CloudWatch logs for DMS tasks"
   type        = number
+  default     = 30
 }
 
 variable "dms_db_lambda_name" {
@@ -252,6 +272,12 @@ variable "rds_event_listener_lambda_memory_size" {
   type        = number
 }
 
+variable "rds_event_listener_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
+}
+
 variable "dms_db_lambda_connection_timeout" {
   description = "The connection timeout for the DMS DB setup Lambda function"
   type        = number
@@ -260,6 +286,12 @@ variable "dms_db_lambda_connection_timeout" {
 variable "dms_db_lambda_memory_size" {
   description = "The memory size for the DMS DB setup Lambda function"
   type        = number
+}
+
+variable "dms_db_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
 }
 
 variable "full_migration_completion_event_queue_name" {

@@ -82,7 +82,7 @@ variable "timeout" {
   default     = "3"
 }
 
-variable "log_retention" {
+variable "logs_retention" {
   description = "Length of time to keep the logs in cloudwatch"
   default     = "0"
 }
@@ -124,4 +124,10 @@ variable "aws_region" {
 variable "vpc_id" {
   description = "Id of the VPC into which the Lambda function will be deployed"
   type        = string
+}
+
+variable "cloudwatch_logs_retention" {
+  description = "Number of days to retain CloudWatch logs"
+  type        = number
+  default     = 30
 }
