@@ -218,6 +218,7 @@ jobs:
           scanners: vuln,misconfig
           severity: 'CRITICAL,HIGH,MEDIUM'
           limit-severities-for-sarif: true
+          trivyignores: 'services'
           exit-code: 1
 
       - name: "Publish Trivy report"

@@ -1,0 +1,27 @@
+vulnerabilities:
+  - id: CVE-2025-50181
+    paths:
+      - "services/gp-search/poetry.lock"
+      - "tests/service_automation/poetry.lock"
+    statement: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-576
+  - id: CVE-2025-50182
+    paths:
+      - "services/gp-search/poetry.lock"
+      - "tests/service_automation/poetry.lock"
+    statement: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-576
+  - id: CVE-2025-54121
+    paths:
+      - "services/crud-apis/poetry.lock"
+    statement: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-576
+  - id: CVE-2025-46565
+    paths:
+      - "services/read-only-viewer/package-lock.json"
+    statement: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-412
+  - id: CVE-2025-32395
+    paths:
+      - "services/read-only-viewer/package-lock.json"
+    statement: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-412
+  - id: GHSA-67mh-4wv8-2f99
+    paths:
+      - "services/read-only-viewer/package-lock.json"
+    statement: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-412
