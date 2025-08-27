@@ -6,8 +6,9 @@ resource "aws_security_group" "organisation_api_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "organisation_api_allow_443" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
+
   security_group_id = aws_security_group.organisation_api_lambda_security_group.id
   description       = "Organisation api egress rule to allow 443"
   cidr_ipv4         = "0.0.0.0/0"
@@ -24,8 +25,9 @@ resource "aws_security_group" "healthcare_service_api_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "healthcare_service_api_allow_443" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
+
   security_group_id = aws_security_group.healthcare_service_api_lambda_security_group.id
   description       = "Healthcare service api egress rule to allow 443"
   cidr_ipv4         = "0.0.0.0/0"
@@ -42,8 +44,8 @@ resource "aws_security_group" "location_api_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "location_api_allow_443" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   security_group_id = aws_security_group.location_api_lambda_security_group.id
   description       = "Location api egress rule to allow 443"
   cidr_ipv4         = "0.0.0.0/0"

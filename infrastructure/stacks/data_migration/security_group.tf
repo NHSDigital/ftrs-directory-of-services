@@ -49,8 +49,8 @@ resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_rds" {
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_internet" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   description       = "Allow egress to internet"
   security_group_id = aws_security_group.processor_lambda_security_group.id
   cidr_ipv4         = "0.0.0.0/0"
@@ -91,8 +91,8 @@ resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_r
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_internet" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   count = local.deploy_queue_populator_lambda ? 1 : 0
 
   description       = "Allow egress to internet"
@@ -113,8 +113,8 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description       = "Allow egress to internet on port ${var.https_port}"
@@ -162,8 +162,8 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_http
   to_port           = var.https_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
   description       = "Allow egress for DNS resolution"
@@ -173,8 +173,8 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns"
   to_port           = var.dns_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_udp" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
   description       = "Allow egress for DNS resolution (UDP)"
@@ -193,8 +193,8 @@ resource "aws_security_group" "rds_event_listener_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.rds_event_listener_lambda_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
@@ -243,8 +243,8 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_se
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr
 resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds" {
-  # trivy:ignore:aws-vpc-no-public-egress-sgr
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.dms_db_setup_lambda_security_group[0].id
   description                  = "Allow egress to database on port ${var.rds_port}"
