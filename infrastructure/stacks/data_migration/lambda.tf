@@ -55,6 +55,8 @@ module "processor_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
+  cloudwatch_logs_retention = var.processor_lambda_logs_retention
+
   depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
 
@@ -123,6 +125,8 @@ module "queue_populator_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
+  cloudwatch_logs_retention = var.queue_populator_lambda_logs_retention
+
   depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
 
@@ -156,6 +160,8 @@ module "rds_event_listener_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.rds_event_listener_lambda_logs_retention
 
   depends_on = [aws_sqs_queue.dms_event_queue]
 }
@@ -195,6 +201,8 @@ module "dms_db_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.dms_db_lambda_logs_retention
 
   depends_on = [aws_sqs_queue.dms_event_queue]
 }

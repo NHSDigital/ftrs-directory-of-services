@@ -101,7 +101,7 @@ variable "api_gateway_integration_timeout" {
   type        = number
 }
 
-variable "api_gateway_access_log_retention_days" {
+variable "api_gateway_access_logs_retention_days" {
   description = "The number of days to retain API Gateway access logs"
   type        = number
 }

@@ -40,7 +40,7 @@ module "api_gateway" {
 
   stage_access_log_settings = {
     create_log_group            = true
-    log_group_retention_in_days = var.api_gateway_access_log_retention_days
+    log_group_retention_in_days = var.api_gateway_access_logs_retention_days
     format = jsonencode({
       context = {
         domainName              = "$context.domainName"
