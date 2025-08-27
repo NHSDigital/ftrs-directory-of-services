@@ -80,7 +80,7 @@ def count_resources(lambda_response, resource_type):
 
 def create_lambda_params(odscode):
     return {
-        "path": "/organization",
+        "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{odscode}",

@@ -11,7 +11,7 @@ on:
       - "task/FDOS*"
       - "task/SIA*"
       - "task/DOSIS*"
-      - "dependabot/*"
+      - "dependabot/**"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
@@ -243,6 +243,7 @@ jobs:
       - manual-approval
       - apply-infrastructure
       - restore-dynamodb-from-s3
+      - export-dynamodb-to-s3
     if: |
       always() &&
       !cancelled() &&
@@ -250,7 +251,7 @@ jobs:
         needs.restore-dynamodb-from-s3.result == 'success' ||
         (
           needs.restore-dynamodb-from-s3.result == 'skipped' &&
-          (needs.apply-infrastructure.result == 'success' || needs.manual-approval.result == 'skipped')
+          (needs.export-dynamodb-to-s3.result == 'success' || needs.manual-approval.result == 'skipped')
         )
       )
     uses: ./.github/workflows/service-automation-test.yaml
