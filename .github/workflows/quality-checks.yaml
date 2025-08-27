@@ -217,7 +217,7 @@ jobs:
           output: "trivy.sarif"
           scanners: vuln,misconfig
           severity: 'CRITICAL,HIGH,MEDIUM'
-          # limit-severities-for-sarif: true
+          limit-severities-for-sarif: true
           trivyignores: 'services/.trivyignore'
           exit-code: 1
 
