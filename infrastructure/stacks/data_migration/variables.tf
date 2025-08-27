@@ -52,6 +52,11 @@ variable "rds_instance_class" {
   type        = string
 }
 
+variable "rds_cloudwatch_logs_retention" {
+  description = "The number of days to retain CloudWatch logs for RDS"
+  type        = number
+}
+
 variable "data_migration_rds_min_capacity" {
   description = "The minimum capacity for the RDS instance"
   type        = number
@@ -88,6 +93,11 @@ variable "processor_lambda_memory_size" {
 variable "processor_lambda_handler" {
   description = "The handler for the processor Lambda function"
   type        = string
+}
+
+variable "processor_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
 }
 
 variable "dms_event_queue_name" {
@@ -180,6 +190,11 @@ variable "queue_populator_lambda_handler" {
   type        = string
 }
 
+variable "queue_populator_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+}
+
 variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string
@@ -209,7 +224,7 @@ variable "migration_copy_db_lambda_trigger" {
   type        = string
 }
 
-variable "cloudwatch_log_retention_days" {
+variable "dms_audit_cloudwatch_log_retention_days" {
   description = "The number of days to retain CloudWatch logs for DMS tasks"
   type        = number
 }
@@ -252,6 +267,11 @@ variable "rds_event_listener_lambda_memory_size" {
   type        = number
 }
 
+variable "rds_event_listener_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+}
+
 variable "dms_db_lambda_connection_timeout" {
   description = "The connection timeout for the DMS DB setup Lambda function"
   type        = number
@@ -259,6 +279,11 @@ variable "dms_db_lambda_connection_timeout" {
 
 variable "dms_db_lambda_memory_size" {
   description = "The memory size for the DMS DB setup Lambda function"
+  type        = number
+}
+
+variable "dms_db_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
   type        = number
 }
 

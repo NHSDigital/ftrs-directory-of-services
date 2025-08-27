@@ -129,6 +129,9 @@ module "rds_replication_target_db" {
 
   final_snapshot_identifier = "${local.resource_prefix}-rds-etl-${formatdate("YYYYMMDDHHmmss", timestamp())}"
 
+  enabled_cloudwatch_logs_exports        = ["error"]
+  cloudwatch_log_group_retention_in_days = var.rds_cloudwatch_logs_retention
+
   deletion_protection = true
 }
 

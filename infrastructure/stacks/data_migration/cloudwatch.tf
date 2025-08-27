@@ -21,7 +21,7 @@ resource "aws_cloudwatch_log_data_protection_policy" "dms_db_protection_policy" 
           Audit = {
             FindingsDestination = {
               CloudWatchLogs = {
-                LogGroup = aws_cloudwatch_log_group.data_protection_audit_log_group[0].name
+                LogGroup = aws_cloudwatch_log_group.dms_db_data_protection_audit_log_group[0].name
               }
             }
           }
@@ -43,10 +43,10 @@ resource "aws_cloudwatch_log_data_protection_policy" "dms_db_protection_policy" 
 }
 
 # Create CloudWatch log group for audit logs
-resource "aws_cloudwatch_log_group" "data_protection_audit_log_group" {
+resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
   # checkov:skip=CKV_AWS_158: Needs CMK
   count = local.is_primary_environment ? 1 : 0
 
   name              = "/aws/data-protection-audit/${var.environment}/${local.resource_prefix}-${var.dms_db_lambda_name}"
-  retention_in_days = var.cloudwatch_log_retention_days
+  retention_in_days = var.dms_audit_cloudwatch_log_retention_days
 }
