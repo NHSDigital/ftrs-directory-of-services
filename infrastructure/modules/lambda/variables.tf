@@ -82,7 +82,7 @@ variable "timeout" {
   default     = "3"
 }
 
-variable "log_retention" {
+variable "logs_retention" {
   description = "Length of time to keep the logs in cloudwatch"
   default     = "0"
 }
@@ -126,7 +126,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "cloudwatch_log_retention" {
+variable "cloudwatch_logs_retention" {
   description = "Number of days to retain CloudWatch logs"
   type        = number
   default     = 30

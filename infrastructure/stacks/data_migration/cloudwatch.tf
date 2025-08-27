@@ -48,5 +48,5 @@ resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
   count = local.is_primary_environment ? 1 : 0
 
   name              = "/aws/data-protection-audit/${var.environment}/${local.resource_prefix}-${var.dms_db_lambda_name}"
-  retention_in_days = var.dms_audit_cloudwatch_log_retention_days
+  retention_in_days = var.dms_audit_cloudwatch_logs_retention_days
 }

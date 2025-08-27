@@ -52,7 +52,7 @@ variable "rds_instance_class" {
   type        = string
 }
 
-variable "rds_cloudwatch_log_retention" {
+variable "rds_cloudwatch_logs_retention" {
   description = "The number of days to retain CloudWatch logs for RDS"
   type        = number
   default     = 14
@@ -96,7 +96,7 @@ variable "processor_lambda_handler" {
   type        = string
 }
 
-variable "processor_lambda_log_retention" {
+variable "processor_lambda_logs_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
   default     = 14
@@ -192,7 +192,7 @@ variable "queue_populator_lambda_handler" {
   type        = string
 }
 
-variable "queue_populator_lambda_log_retention" {
+variable "queue_populator_lambda_logs_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
   default     = 14
@@ -228,7 +228,7 @@ variable "migration_copy_db_lambda_trigger" {
   type        = string
 }
 
-variable "dms_audit_cloudwatch_log_retention_days" {
+variable "dms_audit_cloudwatch_logs_retention_days" {
   description = "The number of days to retain CloudWatch logs for DMS tasks"
   type        = number
   default     = 30
@@ -272,7 +272,7 @@ variable "rds_event_listener_lambda_memory_size" {
   type        = number
 }
 
-variable "rds_event_listener_lambda_log_retention" {
+variable "rds_event_listener_lambda_logs_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
   default     = 14
@@ -288,7 +288,7 @@ variable "dms_db_lambda_memory_size" {
   type        = number
 }
 
-variable "dms_db_lambda_log_retention" {
+variable "dms_db_lambda_logs_retention" {
   description = "The number of days to retain CloudWatch logs"
   type        = number
   default     = 14

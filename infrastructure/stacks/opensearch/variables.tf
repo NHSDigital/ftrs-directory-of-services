@@ -13,7 +13,7 @@ variable "osis_pipeline_persistent_buffer_enabled" {
   type        = bool
 }
 
-variable "osis_pipeline_log_retention_in_days" {
+variable "osis_pipeline_logs_retention_in_days" {
   description = "The number of days to retain logs for the OSIS pipeline"
   type        = number
 }
