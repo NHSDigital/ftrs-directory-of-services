@@ -15,7 +15,7 @@ resource "aws_api_gateway_deployment" "deployment" {
   ]
   triggers = {
     redeployment = sha1(jsonencode(
-      module.search_rest_api
+      module.search_rest_api.body
     ))
   }
 }
