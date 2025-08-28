@@ -2,9 +2,11 @@ from typing import Iterable
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import legacy
+from ftrs_data_layer.domain.legacy import SymptomGroupSymptomDiscriminator
 from ftrs_data_layer.repository.base import ModelType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from sqlalchemy import Engine
+from sqlalchemy import Engine, distinct
+from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
 from pipeline.utils.config import DataMigrationConfig
@@ -28,6 +30,48 @@ def iter_records(
     stmt = select(model_class).execution_options(yield_per=batch_size)
     with Session(engine) as session:
         yield from session.scalars(stmt)
+
+
+def get_all_symptom_groups(engine: Engine) -> list[int]:
+    """
+    Fetch all unique symptom group IDs from the SymptomGroupSymptomDiscriminator table.
+
+    Args:
+        engine: Database engine
+
+    Returns:
+        List of unique symptom group IDs
+    """
+    stmt = select(distinct(SymptomGroupSymptomDiscriminator.symptomgroupid))
+    with Session(engine) as session:
+        result = session.scalars(stmt)
+    return list(result.all())
+
+
+def get_symptom_discriminators_for_symptom_group(
+    engine: Engine, symptom_group_id: int
+) -> list[SymptomGroupSymptomDiscriminator]:
+    """
+    Fetch all symptom discriminator mappings for a specific symptom group.
+
+    Args:
+        engine: Database engine
+        symptom_group_id: ID of the symptom group to fetch discriminators for
+
+    Returns:
+        List of SymptomGroupSymptomDiscriminator records
+    """
+    query = (
+        select(SymptomGroupSymptomDiscriminator)
+        .where(SymptomGroupSymptomDiscriminator.symptomgroupid == symptom_group_id)
+        .options(
+            joinedload(SymptomGroupSymptomDiscriminator.symptomgroup),
+            joinedload(SymptomGroupSymptomDiscriminator.symptomdiscriminator),
+        )
+    )
+    with Session(engine) as session:
+        result = session.scalars(query)
+        return list(result.all())
 
 
 # TODO: Remove this method and use the common function once merged by IS

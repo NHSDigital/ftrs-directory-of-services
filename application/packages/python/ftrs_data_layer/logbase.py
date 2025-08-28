@@ -139,6 +139,10 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="Table {table_name} not supported for event method: {method}",
     )
+    DM_ETL_012 = LogReference(
+        level=WARNING,
+        message="No symptom discriminators found for Symptom Group ID: {sg_id}",
+    )
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
