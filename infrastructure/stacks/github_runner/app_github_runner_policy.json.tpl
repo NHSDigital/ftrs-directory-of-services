@@ -26,13 +26,16 @@
             "Resource": "*"
         },
         {
-            "Sid": "AllowRDSServiceLinkedRoleCreation",
+            "Sid": "AllowDMSRDSServiceLinkedRoleCreation",
             "Effect": "Allow",
             "Action": "iam:CreateServiceLinkedRole",
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                "iam:AWSServiceName": "rds.amazonaws.com"
+                "iam:AWSServiceName": [
+                    "rds.amazonaws.com",
+                    "dms.amazonaws.com"
+                ]
                 }
             }
         },
