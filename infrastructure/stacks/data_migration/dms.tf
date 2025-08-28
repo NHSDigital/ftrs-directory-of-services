@@ -1,4 +1,6 @@
 resource "aws_iam_service_linked_role" "dms" {
+  count = local.is_primary_environment ? 1 : 0
+
   aws_service_name = "dms.amazonaws.com"
 }
 
