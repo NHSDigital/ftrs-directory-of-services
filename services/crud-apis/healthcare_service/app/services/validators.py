@@ -1,5 +1,3 @@
-import re
-
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
     HealthcareServiceType,
@@ -11,9 +9,6 @@ from healthcare_service.app.models.healthcare_service import (
 )
 
 NAME_EMPTY_ERROR = "Healthcare service name cannot be empty."
-NAME_CONTAINS_INVALID_CHARACTERS_ERROR = (
-    "Healthcare service name contains invalid characters."
-)
 TYPE_EMPTY_ERROR = "Healthcare service type cannot be empty."
 TYPE_MISMATCH_ERROR = "Healthcare service type must be one of the following: "
 CATEGORY_EMPTY_ERROR = "Healthcare service category cannot be empty."
@@ -24,11 +19,9 @@ CREATED_BY_EMPTY_ERROR = "createdBy cannot be empty."
 class HealthcareServiceCreatePayloadValidator(HealthcareServiceCreatePayload):
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
-        """Validates the name field to ensure it is not empty or whitespace and doesnt have special characters."""
+        """Validates the name field to ensure it is not empty or whitespace."""
         if not v.strip():
             raise ValueError(NAME_EMPTY_ERROR)
-        if not re.match(r"^[a-zA-Z0-9_\- ]+$", v.strip()):
-            raise ValueError(NAME_CONTAINS_INVALID_CHARACTERS_ERROR)
         return v
 
     @field_validator("type")
