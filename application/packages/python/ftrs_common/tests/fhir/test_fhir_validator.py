@@ -148,43 +148,26 @@ def test_validate_fhir_validation_error(
 
 
 @pytest.mark.parametrize(
-    "resource,field,invalid_value",
+    "resource,expected_error_field",
     [
-        ({"resourceType": "DummyResource", "name": "Valid Name"}, "name", "Valid Name"),
-        (
-            {"resourceType": "DummyResource", "name": "Invalid@Name"},
-            "name",
-            "Invalid@Name",
-        ),
-        (
-            {"resourceType": "DummyResource", "modifiedBy": "ValidUser"},
-            "modifiedBy",
-            "ValidUser",
-        ),
-        (
-            {"resourceType": "DummyResource", "modifiedBy": "Invalid#User"},
-            "modifiedBy",
-            "Invalid#User",
-        ),
-        ({"resourceType": "DummyResource", "telecom": "123456"}, "telecom", "123456"),
-        (
-            {"resourceType": "DummyResource", "telecom": "123-456(789)"},
-            "telecom",
-            "123-456(789)",
-        ),
-        ({"resourceType": "DummyResource", "telecom": "123*456"}, "telecom", "123*456"),
-        ({"resourceType": "DummyResource", "type": "Type1"}, "type", "Type1"),
-        ({"resourceType": "DummyResource", "type": "Type$1"}, "type", "Type$1"),
+        ({"resourceType": "DummyResource", "name": 'Invalid"Name'}, "name"),
+        ({"resourceType": "DummyResource", "name": "Valid Name"}, None),
+        ({"resourceType": "DummyResource", "modifiedBy": "Invalid#User"}, "modifiedBy"),
+        ({"resourceType": "DummyResource", "modifiedBy": "ValidUser"}, None),
+        ({"resourceType": "DummyResource", "telecom": {"value": "123;456"}}, "telecom"),
+        ({"resourceType": "DummyResource", "telecom": {"value": "123456"}}, None),
+        ({"resourceType": "DummyResource", "type": {"text": "Type$1"}}, "type"),
+        ({"resourceType": "DummyResource", "type": {"text": "Type1"}}, None),
     ],
 )
-def test_check_for_special_characters(
-    resource: dict, field: str, invalid_value: str
+def test_check_for_special_characters_original(
+    resource: dict, expected_error_field: str
 ) -> None:
     model = DummyModel
-    if any(char in invalid_value for char in "@#$*"):
+    if expected_error_field:
         with pytest.raises(OperationOutcomeException) as exc_info:
             FhirValidator._check_for_special_characters(resource, model)
-        assert f"Field '{field}' contains invalid characters: {invalid_value}" in str(
+        assert f"Field '{expected_error_field}' contains invalid characters" in str(
             exc_info.value
         )
     else:

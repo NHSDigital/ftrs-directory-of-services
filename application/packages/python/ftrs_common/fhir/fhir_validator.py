@@ -55,11 +55,24 @@ class FhirValidator:
 
         special_characters_pattern = r"[\'\";\\/\`=<>%|&#*@$]"
 
-        for field in ["modifiedBy", "telecom", "type"]:
-            value = resource.get(field)
-            if isinstance(value, str) and re.search(special_characters_pattern, value):
-                msg = f"Field '{field}' contains invalid characters: {value}"
-                FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+        value = resource.get("telecom")
+        if isinstance(value, dict) and re.search(
+            special_characters_pattern, value.get("value")
+        ):
+            msg = f"Field 'telecom' contains invalid characters: {value}"
+            FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
+        value = resource.get("type")
+        if isinstance(value, dict) and re.search(
+            special_characters_pattern, value.get("text")
+        ):
+            msg = f"Field 'type' contains invalid characters: {value}"
+            FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
+        value = resource.get("modifiedBy")
+        if isinstance(value, str) and re.search(special_characters_pattern, value):
+            msg = f"Field 'modifiedBy' contains invalid characters: {value}"
+            FhirValidator._log_and_raise(msg, "invalid", fhir_model)
 
         return resource
 
