@@ -11,6 +11,7 @@ resource "aws_api_gateway_deployment" "deployment" {
   }
   depends_on = [
     aws_api_gateway_method.search_get,
+    aws_api_gateway_resource.search_resource
   ]
   triggers = {
     redeployment = sha1(jsonencode([
