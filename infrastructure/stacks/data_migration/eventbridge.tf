@@ -16,7 +16,7 @@ resource "aws_cloudwatch_event_target" "dms_full_replication_task_lambda" {
   count = local.is_primary_environment ? 1 : 0
 
   rule = aws_cloudwatch_event_rule.dms_full_replication_task_completed[0].name
-  arn  = module.queue_populator_lambda[0].lambda_function_arn
+  arn  = module.queue_populator_lambda.lambda_function_arn
 
   dead_letter_config {
     arn = aws_sqs_queue.eventbridge_event_full_migration_completion_dlq[0].arn
@@ -28,7 +28,7 @@ resource "aws_lambda_permission" "eventbridge_lambda_permission" {
 
   statement_id  = "AllowLambdaExecutionFromEventBridge"
   action        = "lambda:InvokeFunction"
-  function_name = module.queue_populator_lambda[0].lambda_function_name
+  function_name = module.queue_populator_lambda.lambda_function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.dms_full_replication_task_completed[0].arn
 }

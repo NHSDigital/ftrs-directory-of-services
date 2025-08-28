@@ -86,8 +86,6 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
 }
 
 module "queue_populator_lambda" {
-  count = local.deploy_queue_populator_lambda ? 1 : 0
-
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.queue_populator_lambda_name}"
   description             = "Lambda to populate the SQS queue with DoS services"
@@ -100,7 +98,7 @@ module "queue_populator_lambda" {
   memory_size             = var.queue_populator_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.queue_populator_lambda_security_group[0].id]
+  security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
 
   number_of_policy_jsons = "2"
   policy_jsons = [
