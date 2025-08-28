@@ -1,0 +1,9 @@
+# TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-576
+# TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-412
+# vulnerabilities:
+CVE-2025-50181
+CVE-2025-50182
+CVE-2025-54121
+CVE-2025-46565
+CVE-2025-32395
+GHSA-67mh-4wv8-2f99
