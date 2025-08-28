@@ -45,9 +45,16 @@ class FhirValidator:
         Validates that the name, modifiedBy, telecom, and type fields do not contain special characters.
         Returns the resource if valid, raises OperationOutcomeException if not.
         """
+        name_field_pattern = r"[\";\\/\`=<>%|#*@$]"
+
+        value = resource.get("name")
+        if isinstance(value, str) and re.search(name_field_pattern, value):
+            msg = f"Field 'name' contains invalid characters: {value}"
+            FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
         special_characters_pattern = r"[\'\";\\/\`=<>%|&#*@$]"
 
-        for field in ["name", "modifiedBy", "telecom", "type"]:
+        for field in ["modifiedBy", "telecom", "type"]:
             value = resource.get(field)
             if isinstance(value, str) and re.search(special_characters_pattern, value):
                 msg = f"Field '{field}' contains invalid characters: {value}"
