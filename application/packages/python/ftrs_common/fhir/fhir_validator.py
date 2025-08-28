@@ -53,7 +53,7 @@ class FhirValidator:
             msg = f"Field 'name' contains invalid characters: {value}"
             FhirValidator._log_and_raise(msg, "invalid", fhir_model)
 
-        special_characters_pattern = r"[\'\";\\/\`=<>%|&#*@$]"
+        telecom_field_pattern = r"[\";\\`<>|#*@$]"
 
         value = resource.get("telecom")
         if isinstance(value, list):
@@ -61,10 +61,12 @@ class FhirValidator:
                 if isinstance(item, dict):
                     telecom_value = item.get("value")
                     if isinstance(telecom_value, str) and re.search(
-                        special_characters_pattern, telecom_value
+                        telecom_field_pattern, telecom_value
                     ):
                         msg = f"Field 'telecom' contains invalid characters: {item}"
                         FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
+        special_characters_pattern = r"[\'\";\\/\`=<>%|&#*@$]"
 
         value = resource.get("type")
         if isinstance(value, list):
