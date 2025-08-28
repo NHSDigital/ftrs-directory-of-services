@@ -1,7 +1,7 @@
 type: external
-    healthcheck: /_status
-    url: https://crud.dev.ftrs.cloud.nhs.uk
-    security:
-      type: mtls
-      # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
-      secret: uec-dos-ingestion-api-mtls-secret
+healthcheck: /_status
+url: https://crud.dev.ftrs.cloud.nhs.uk
+security:
+  type: mtls
+  # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
+  secret: uec-dos-ingestion-api-mtls-secret
