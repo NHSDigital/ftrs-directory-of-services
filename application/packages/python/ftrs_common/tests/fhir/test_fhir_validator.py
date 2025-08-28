@@ -154,10 +154,13 @@ def test_validate_fhir_validation_error(
         ({"resourceType": "DummyResource", "name": "Valid Name"}, None),
         ({"resourceType": "DummyResource", "modifiedBy": "Invalid#User"}, "modifiedBy"),
         ({"resourceType": "DummyResource", "modifiedBy": "ValidUser"}, None),
-        ({"resourceType": "DummyResource", "telecom": {"value": "123;456"}}, "telecom"),
-        ({"resourceType": "DummyResource", "telecom": {"value": "123456"}}, None),
-        ({"resourceType": "DummyResource", "type": {"text": "Type$1"}}, "type"),
-        ({"resourceType": "DummyResource", "type": {"text": "Type1"}}, None),
+        (
+            {"resourceType": "DummyResource", "telecom": [{"value": "123;456"}]},
+            "telecom",
+        ),
+        ({"resourceType": "DummyResource", "telecom": [{"value": "123456"}]}, None),
+        ({"resourceType": "DummyResource", "type": [{"text": "Type$1"}]}, "type"),
+        ({"resourceType": "DummyResource", "type": [{"text": "Type1"}]}, None),
     ],
 )
 def test_check_for_special_characters_original(
