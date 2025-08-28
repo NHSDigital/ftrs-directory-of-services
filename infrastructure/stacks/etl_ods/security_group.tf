@@ -1,3 +1,4 @@
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_security_group" "processor_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.processor_name}${local.workspace_suffix}-sg"
@@ -13,6 +14,7 @@ resource "aws_security_group" "processor_lambda_security_group" {
 }
 
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_security_group" "consumer_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.consumer_name}${local.workspace_suffix}-sg"

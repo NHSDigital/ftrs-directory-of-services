@@ -1,3 +1,5 @@
+# trivy:ignore:aws-vpc-no-public-ingress-acl : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-575
+# trivy:ignore:aws-autoscaling-enable-at-rest-encryption : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-575
 module "vpc" {
   # Module version: 5.21.0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-vpc.git?ref=7c1f791efd61f326ed6102d564d1a65d1eceedf0"

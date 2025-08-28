@@ -19,6 +19,7 @@ resource "aws_api_gateway_deployment" "deployment" {
   }
 }
 
+# trivy:ignore:AVD-AWS-0001 : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-407
 resource "aws_api_gateway_stage" "stage" {
   # checkov:skip=CKV_AWS_76: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
   # checkov:skip=CKV_AWS_120: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
