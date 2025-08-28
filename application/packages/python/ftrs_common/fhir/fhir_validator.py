@@ -45,7 +45,7 @@ class FhirValidator:
         Validates that the name, modifiedBy, telecom, and type fields do not contain special characters.
         Returns the resource if valid, raises OperationOutcomeException if not.
         """
-        special_characters_pattern = r"[^a-zA-Z0-9_\- ]"
+        special_characters_pattern = r"[^a-zA-Z0-9_\- ()]"
 
         for field in ["name", "modifiedBy", "telecom", "type"]:
             value = resource.get(field)
