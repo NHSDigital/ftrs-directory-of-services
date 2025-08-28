@@ -1,6 +1,6 @@
 resource "aws_api_gateway_resource" "search_resource" {
   parent_id   = module.search_rest_api.root_resource_id
-  path_part   = "test2"
+  path_part   = "test3"
   rest_api_id = module.search_rest_api.rest_api_id
 }
 
