@@ -42,7 +42,7 @@ class FhirValidator:
         resource: dict, fhir_model: Type[FHIRAbstractModel]
     ) -> dict:
         """
-        Validates that the name, modifiedBy, telecom, and type fields do not contain special characters.
+        Validates that the fhir fields do not contain special characters.
         Returns the resource if valid, raises OperationOutcomeException if not.
         """
 
@@ -66,46 +66,6 @@ class FhirValidator:
                     FhirValidator._log_and_raise(msg, "invalid", fhir_model)
 
         return resource
-        # doesnt protect against all special characters
-        # name_field_pattern = r"[\";\\/\`=<>%|#*@$]"
-
-        # value = resource.get("name")
-        # if isinstance(value, str) and re.search(name_field_pattern, value):
-        #     msg = f"Field 'name' contains invalid characters: {value}"
-        #     FhirValidator._log_and_raise(msg, "invalid", fhir_model)
-
-        # telecom_field_pattern = r"[\";\\`<>|#*@$]"
-
-        # value = resource.get("telecom")
-        # if isinstance(value, list):
-        #     for item in value:
-        #         if isinstance(item, dict):
-        #             telecom_value = item.get("value")
-        #             if isinstance(telecom_value, str) and re.search(
-        #                 telecom_field_pattern, telecom_value
-        #             ):
-        #                 msg = f"Field 'telecom' contains invalid characters: {item}"
-        #                 FhirValidator._log_and_raise(msg, "invalid", fhir_model)
-
-        # special_characters_pattern = r"[\'\";\\/\`=<>%|&#*@$]"
-
-        # value = resource.get("type")
-        # if isinstance(value, list):
-        #     for item in value:
-        #         if isinstance(item, dict):
-        #             type_value = item.get("text")
-        #             if isinstance(type_value, str) and re.search(
-        #                 special_characters_pattern, type_value
-        #             ):
-        #                 msg = f"Field 'type' contains invalid characters: {item}"
-        #                 FhirValidator._log_and_raise(msg, "invalid", fhir_model)
-
-        # value = resource.get("modifiedBy")
-        # if isinstance(value, str) and re.search(special_characters_pattern, value):
-        #     msg = f"Field 'modifiedBy' contains invalid characters: {value}"
-        #     FhirValidator._log_and_raise(msg, "invalid", fhir_model)
-
-        # return resource
 
     @staticmethod
     def _log_and_raise(
