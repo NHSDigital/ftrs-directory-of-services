@@ -242,6 +242,54 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     assert result.type[0].coding[0].display == "PRESCRIBING COST CENTRE"
 
 
+def test_to_fhir_bundle_single_org() -> None:
+    mapper = OrganizationMapper()
+    org1 = Organisation(
+        id="org-1",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org 1",
+        active=True,
+        telecom="01234",
+        type="GP Practice",
+        modifiedBy="ODS_ETL_PIPELINE",
+    )
+    bundle_single = mapper.to_fhir_bundle(org1)
+    assert bundle_single.resource_type == "Bundle"
+    assert bundle_single.type == "searchset"
+    assert bundle_single.total == 1
+    assert len(bundle_single.entry) == 1
+    assert bundle_single.entry[0].resource.id == "org-1"
+    assert bundle_single.entry[0].resource.name == "Test Org 1"
+
+
+def test_to_fhir_bundle_multiple_orgs() -> None:
+    mapper = OrganizationMapper()
+    org1 = Organisation(
+        id="org-1",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org 1",
+        active=True,
+        telecom="01234",
+        type="GP Practice",
+        modifiedBy="ODS_ETL_PIPELINE",
+    )
+    org2 = Organisation(
+        id="org-2",
+        identifier_ODS_ODSCode="ODS2",
+        name="Test Org 2",
+        active=False,
+        telecom=None,
+        type="GP Practice",
+        modifiedBy="ODS_ETL_PIPELINE",
+    )
+    bundle_multi = mapper.to_fhir_bundle([org1, org2])
+    assert bundle_multi.resource_type == "Bundle"
+    assert bundle_multi.type == "searchset"
+    assert str(bundle_multi.total) == "2"
+    ids = {entry.resource.id for entry in bundle_multi.entry}
+    assert ids == {"org-1", "org-2"}
+
+
 def test__get_org_type() -> None:
     mapper = OrganizationMapper()
     org_type = [CodeableConcept(text="GP Practice")]
