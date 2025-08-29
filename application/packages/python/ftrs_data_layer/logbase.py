@@ -159,7 +159,10 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="No address found for Organisation ID {organisation}, setting address to None",
     )
-
+    DM_ETL_017 = LogReference(
+        level=DEBUG,
+        message="Healthcare service has opening times with service id: {service_id}",
+    )
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )

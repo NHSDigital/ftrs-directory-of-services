@@ -4,6 +4,7 @@ from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceT
 from ftrs_data_layer.domain import legacy as legacy_model
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
+from pipeline.utils.transformer_utils import extract_organisation_public_name
 from pipeline.validation.service import GPPracticeValidator
 
 
@@ -24,6 +25,13 @@ class GPPracticeTransformer(ServiceTransformer):
 
     Filter criteria:
     - The service must be active
+
+    Note on potential GP Practice misclassification:
+    A PLT could be mistaken for a GP Practice if:
+    - It has Typeid = 100, Status = Active, and a valid ODSCode (same format as GP Practices).
+    - The filtering logic doesn’t check for PLT-specific name patterns like "PLT" or "GP Cover".
+    To avoid misclassification, if the GP Practice transformer is chosen, also check filter must:
+    - Exclude orgs that match PLT filters, by excluding names with "PLT" or "GP Cover"
     """
 
     def transform(
@@ -33,7 +41,7 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
-        organisation.name = self.clean_name(service.publicname)
+        organisation.name = extract_organisation_public_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -66,6 +74,10 @@ class GPPracticeTransformer(ServiceTransformer):
         if not cls.GP_PRACTICE_ODS_CODE_REGEX.match(service.odscode):
             return False, "ODS code does not match the required format"
 
+        name = (service.name or "").upper()
+        if "PLT" in name or "GP COVER" in name:
+            return False, "Service name is PLT specific"
+
         return True, None
 
     @classmethod
@@ -79,9 +91,3 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
-
-    @classmethod
-    def clean_name(cls, publicname: str) -> str:
-        if publicname:
-            return publicname.split("-", maxsplit=1)[0].rstrip()
-        raise ValueError("publicname is not set")
