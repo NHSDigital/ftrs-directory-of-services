@@ -230,8 +230,7 @@ class ServiceTransformer(ABC):
         """
         Create a HealthcareService instance from the source DoS service data.
         """
-
-        return HealthcareService(
+        healthcare_service = HealthcareService(
             id=generate_uuid(service.id, "healthcare_service"),
             identifier_oldDoS_uid=service.uid,
             active=True,
@@ -255,6 +254,14 @@ class ServiceTransformer(ABC):
             dispositions=self.build_dispositions(service),
             migrationNotes=validation_issues,
         )
+
+        if healthcare_service.openingTime:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_017,
+                service_id=healthcare_service.id,
+            )
+
+        return healthcare_service
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:
         """

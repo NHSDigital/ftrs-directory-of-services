@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime, time
+from uuid import UUID
 
 import pytest
 from freezegun import freeze_time
@@ -473,6 +474,14 @@ def test_build_healthcare_service(
             ),
         ],
     )
+
+    assert mock_logger.get_log("DM_ETL_017") == [
+        {
+            "msg": "Healthcare service has opening times with service id: 903cd48b-5d0f-532f-94f4-937a4517b14d",
+            "reference": "DM_ETL_017",
+            "detail": {"service_id": UUID("903cd48b-5d0f-532f-94f4-937a4517b14d")},
+        }
+    ]
 
 
 def test_build_opening_times(
