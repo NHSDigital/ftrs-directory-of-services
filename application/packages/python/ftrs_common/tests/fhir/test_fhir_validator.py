@@ -148,33 +148,40 @@ def test_validate_fhir_validation_error(
 
 
 @pytest.mark.parametrize(
+    "resource",
+    [
+        {"resourceType": "DummyResource", "name": "Valid Name"},
+        {"resourceType": "DummyResource", "modifiedBy": "ValidUser"},
+        {"resourceType": "DummyResource", "telecom": [{"value": "123456"}]},
+        {"resourceType": "DummyResource", "type": [{"text": "Type1"}]},
+    ],
+)
+def test_check_for_special_characters_valid(resource: dict) -> None:
+    model = DummyModel
+    assert FhirValidator._check_for_special_characters(resource, model) == resource
+
+
+@pytest.mark.parametrize(
     "resource,expected_error_field",
     [
         ({"resourceType": "DummyResource", "name": 'Invalid"Name'}, "name"),
-        ({"resourceType": "DummyResource", "name": "Valid Name"}, None),
         ({"resourceType": "DummyResource", "modifiedBy": "Invalid#User"}, "modifiedBy"),
-        ({"resourceType": "DummyResource", "modifiedBy": "ValidUser"}, None),
         (
             {"resourceType": "DummyResource", "telecom": [{"value": "123;456"}]},
             "telecom[0].value",
         ),
-        ({"resourceType": "DummyResource", "telecom": [{"value": "123456"}]}, None),
         (
             {"resourceType": "DummyResource", "type": [{"text": "Type$1"}]},
             "type[0].text",
         ),
-        ({"resourceType": "DummyResource", "type": [{"text": "Type1"}]}, None),
     ],
 )
-def test_check_for_special_characters_original(
+def test_check_for_special_characters_invalid(
     resource: dict, expected_error_field: str
 ) -> None:
     model = DummyModel
-    if expected_error_field:
-        with pytest.raises(OperationOutcomeException) as exc_info:
-            FhirValidator._check_for_special_characters(resource, model)
-        assert f"Field '{expected_error_field}' contains invalid characters" in str(
-            exc_info.value
-        )
-    else:
-        assert FhirValidator._check_for_special_characters(resource, model) == resource
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        FhirValidator._check_for_special_characters(resource, model)
+    assert f"Field '{expected_error_field}' contains invalid characters" in str(
+        exc_info.value
+    )
