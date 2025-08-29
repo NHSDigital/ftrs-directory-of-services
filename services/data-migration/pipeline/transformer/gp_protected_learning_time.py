@@ -1,8 +1,12 @@
 import re
 
 from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.enums import (
+    HealthcareServiceCategory,
+    HealthcareServiceType,
+)
 
-from pipeline.transformer.base import ServiceTransformer
+from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
 
 
 class GPProtectedLearningTimeTransformer(ServiceTransformer):
@@ -10,6 +14,51 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
     STATUS_COMMISSIONING = 3
     SUPPORTED_TYPE_IDS = (100, 136, 159)
     ODS_CODE_REGEX = re.compile(r"^[A-Z][0-9]{5,8}$")
+
+    # TODO: FDOS-520 ACs:
+    # GP Protected Learning Time HealthcareService is made
+    #     We can see records containing each of the fields noted in the data mapping
+    #         All records should contain an service category and service type
+    #         The majority of services will contain at least one phone number, and most will contain both a public and a non public number
+    #         All profiles are expected to have at least one opening time, and some will have one or more exception times
+    #         Phone numbers are separated by the separator.
+    #             We have stubbed numbers today, so this should be validated in unit tests.
+    #     Logging listed above is all accounted for
+    """
+    Transformer for GP Protected Learning Time Services
+
+    Selection criteria:
+    - The service type must be 'GP Practice' (100) or 'GP Access Hub' (136) or 'Primary Care Clinic' (159)
+    - The service must have an ODS code
+        - 6-9 characters, beginning with a letter, and the remaining characters being numbers.
+        - on import, only the first 6 characters are retained, and duplicates are removed
+
+    Filter critiera:
+    - Service status must be Active or Commissioning
+    - Service name contains the following text: "PLT" OR "GP Cover"
+    - Profile is linked to at least 1 SG code AND a postcode
+    """
+
+    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+        """
+        Transform the given GP Protected Learning Time Services into the new data model format
+
+        For GP Protected Learning Time Services, Organisation Linkage is not required
+        Create only the healthcare service without organisation and location entities
+        """
+        healthcare_service = self.build_healthcare_service(
+            service,
+            None,
+            None,
+            category=HealthcareServiceCategory.GP_SERVICES,
+            type=HealthcareServiceType.PLT_SERVICE,
+        )
+
+        return ServiceTransformOutput(
+            organisation=[],
+            healthcare_service=[healthcare_service],
+            location=[],
+        )
 
     @classmethod
     def is_service_supported(
@@ -33,7 +82,7 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
         if "PLT" not in name and "GP COVER" not in name:
             return False, "Service name does not contain 'PLT' or 'GP Cover'"
 
-        # Profile must contain a postcode
+        # Profile must contain a postcode (TODO: Profile is linked to at least 1 SG code AND a postcode)
         if not service.postcode:
             return False, "Profile must contain a postcode"
 
@@ -44,12 +93,9 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
         cls, service: legacy_model.Service
     ) -> tuple[bool, str | None]:
         """
-        Check if the service is active and commissioning.
+        Check if the service is active or commissioning.
         """
-        if service.statusid != cls.STATUS_ACTIVE:
-            return False, "Service is not active"
-
-        if service.statusid != cls.STATUS_COMMISSIONING:
-            return False, "Service is not commissioning"
+        if service.statusid not in (cls.STATUS_ACTIVE, cls.STATUS_COMMISSIONING):
+            return False, "Service is not 'active' or 'commissioning'"
 
         return True, None
