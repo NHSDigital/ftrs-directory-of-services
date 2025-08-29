@@ -1,5 +1,5 @@
 [project]
-name = "dis-ingestion-api"
+name = "dos-ingestion-api"
 version = "0.1.0"
 description = ""
 authors = [

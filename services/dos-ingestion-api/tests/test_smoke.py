@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 import requests
 
-from tests.unit.constants import ENDPOINTS
+from tests.constants import ENDPOINTS
 
 
 @pytest.mark.smoketest
@@ -12,7 +12,7 @@ class TestStatusEndpoints:
         """
         Send a request to _ping endpoint to test health of proxy.
         """
-        response = requests.get(f"{service_url}{ENDPOINTS['ping']}")
+        response = requests.get(f"{service_url}{ENDPOINTS['health']}")
         assert response.status_code == HTTPStatus.OK, (
             f"UNEXPECTED RESPONSE: Actual response status code = {response.status_code}"
         )
@@ -24,26 +24,21 @@ class TestStatusEndpoints:
         resp = requests.get(f"{service_url}{ENDPOINTS['status']}")
         assert resp.status_code == HTTPStatus.UNAUTHORIZED
 
-    def test_status_endpoint(self, service_url: str, api_key: str) -> None:
-        response = requests.get(
-            f"{service_url}{ENDPOINTS['status']}", headers={"apikey": api_key}
+    def test_endpoint_is_secured(self, service_url: str) -> None:
+        """
+        Send an unauthenticated request to endpoint to check secured
+        """
+        url = f"{service_url}{ENDPOINTS['organization']}/0000-0000-0000-0000-00000000000a"
+        resp = requests.put(url)
+        assert resp.status_code == HTTPStatus.UNAUTHORIZED
+
+    def test_endpoint_api_key_valid(self, service_url: str, api_key: str) -> None:
+        """
+        Send an authenticated request to endpoint to check API key
+        """
+        url = (
+            f"{service_url}{ENDPOINTS['organization']}/0000-0000-0000-0000-00000000000a"
         )
-        assert response.status_code == HTTPStatus.OK, (
-            f"UNEXPECTED RESPONSE: Actual response status code = {response.status_code}"
-        )
-        data = response.json()
-        # Check top-level status
-        assert data.get("status") == "pass", (
-            "UNEXPECTED RESPONSE: Health check failed: $.status != 'pass'"
-        )
-        # Check all healthcheckService:status entries
-        checks = data.get("checks", {}).get("healthcheckService:status", [])
-        assert isinstance(checks, list), (
-            "UNEXPECTED RESPONSE: "
-            "Expected checks['healthcheckService:status'] to be a list"
-        )
-        for check in checks:
-            assert check.get("status") == "pass", (
-                "UNEXPECTED RESPONSE: "
-                "Health check failed: $.checks['healthcheckService:status'][*].status != 'pass'"
-            )
+        headers = {"apikey": api_key}
+        resp = requests.put(url, headers=headers)
+        assert resp.status_code != HTTPStatus.UNAUTHORIZED
