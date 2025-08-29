@@ -156,10 +156,13 @@ def test_validate_fhir_validation_error(
         ({"resourceType": "DummyResource", "modifiedBy": "ValidUser"}, None),
         (
             {"resourceType": "DummyResource", "telecom": [{"value": "123;456"}]},
-            "telecom",
+            "telecom[0].value",
         ),
         ({"resourceType": "DummyResource", "telecom": [{"value": "123456"}]}, None),
-        ({"resourceType": "DummyResource", "type": [{"text": "Type$1"}]}, "type"),
+        (
+            {"resourceType": "DummyResource", "type": [{"text": "Type$1"}]},
+            "type[0].text",
+        ),
         ({"resourceType": "DummyResource", "type": [{"text": "Type1"}]}, None),
     ],
 )
