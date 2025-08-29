@@ -87,7 +87,7 @@ class EndpointMapper:
         if endpoint.order:
             extensions.append(self._create_order_extension(endpoint.order))
 
-        if endpoint.isCompressionEnabled:
+        if endpoint.isCompressionEnabled is not None:
             extensions.append(
                 self._create_compression_extension(endpoint.isCompressionEnabled)
             )
