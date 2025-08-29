@@ -1,11 +1,60 @@
+import re
 from typing import Literal
 
 from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
-from pydantic import BaseModel, Field, model_validator
+from ftrs_common.fhir.operation_outcome import (
+    OperationOutcomeException,
+    OperationOutcomeHandler,
+)
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
+IDENTIFIER_SYSTEM = "odsOrganisationCode"
+IDENTIFIER_SEPARATOR = "|"
+ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
 ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
+
+
+class OrganizationQueryParams(BaseModel):
+    identifier: str = Field(
+        ...,
+        description="Organization identifier in format 'odsOrganisationCode|{code}'",
+    )
+
+    @computed_field
+    @property
+    def ods_code(self) -> str:
+        """Returns the ODS code portion of the identifier."""
+        return _extract_identifier_value(self.identifier)
+
+    @field_validator("identifier")
+    @classmethod
+    def validate_identifier(cls, v: str) -> str:
+        if IDENTIFIER_SEPARATOR not in v:
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Invalid identifier value: missing separator '{IDENTIFIER_SEPARATOR}'. Must be in format '{IDENTIFIER_SYSTEM}|<code>' and code must follow format {ODS_REGEX}",
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome)
+        identifier_system = _extract_identifier_system(v)
+        if identifier_system != IDENTIFIER_SYSTEM:
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Invalid identifier system '{identifier_system}' - expected '{IDENTIFIER_SYSTEM}'",
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome)
+        identifier_value = _extract_identifier_value(v)
+        if not re.match(ODS_REGEX, identifier_value):
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Invalid identifier value: ODS code '{identifier_value}' must follow format {ODS_REGEX}",
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome)
+        return v
 
 
 class Organisation(BaseModel):
@@ -54,4 +103,22 @@ class OrganisationCreatePayload(Organisation):
     identifier_ODS_ODSCode: str = Field(max_length=12, min_length=1, example="ABC123")
     createdBy: str = Field(
         max_length=100, min_length=1, example="ROBOT", pattern="^[a-zA-Z]+$"
+    )
+
+
+def _extract_identifier_system(identifier: str) -> str:
+    """Extracts the system part from an identifier string."""
+    return (
+        identifier.split(IDENTIFIER_SEPARATOR, 1)[0]
+        if IDENTIFIER_SEPARATOR in identifier
+        else ""
+    )
+
+
+def _extract_identifier_value(identifier: str) -> str:
+    """Extracts the value part from an identifier string and uppercases it."""
+    return (
+        identifier.split(IDENTIFIER_SEPARATOR, 1)[1].upper()
+        if IDENTIFIER_SEPARATOR in identifier
+        else ""
     )
