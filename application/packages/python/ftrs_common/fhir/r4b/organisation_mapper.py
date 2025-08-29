@@ -1,3 +1,4 @@
+from fhir.resources.R4B.bundle import Bundle, BundleEntry
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
@@ -95,6 +96,29 @@ class OrganizationMapper(FhirMapper):
         }
         fhir_organisation = FhirValidator.validate(required_fields, FhirOrganisation)
         return fhir_organisation
+
+    def to_fhir_bundle(
+        self, organisations: FhirOrganisation | list[FhirOrganisation]
+    ) -> Bundle:
+        """
+        Returns a FHIR Bundle (type 'searchset') containing one or more Organisation resources.
+        Accepts a single Organisation or a list of Organisation objects.
+        """
+        if not isinstance(organisations, list):
+            organisations = [organisations]
+
+        entries = []
+        for org in organisations:
+            fhir_org = self.to_fhir(org)
+            entry = BundleEntry.model_construct()
+            entry.resource = fhir_org
+            entries.append(entry)
+
+        bundle = Bundle.model_construct()
+        bundle.type = "searchset"
+        bundle.total = len(entries)
+        bundle.entry = entries
+        return bundle
 
     def _get_org_type(self, fhir_org: FhirOrganisation) -> str | None:
         if hasattr(fhir_org, "type") and fhir_org.type:
