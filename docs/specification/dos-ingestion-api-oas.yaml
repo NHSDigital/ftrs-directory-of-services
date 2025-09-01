@@ -112,11 +112,25 @@ servers:
     description: Integration Environment
 paths:
   '/Organization/':
-    post:
+    get:
       security:
         - app-level0: []
-      summary: Create a new Organization
-      description: Create a new Organization resource.
+      summary: Search for organizations by ODS code to return Organization details
+      description: |
+        ## Overview
+        Retrieve an Organization identified by an ODS code, or all Organizations if no identifier is provided.
+
+        ## Request Requirements
+        - If the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 5, maximum 12 alphanumeric characters).
+        - If the `identifier` parameter is omitted, all Organizations will be returned.
+
+        The search is performed using the FHIR-compliant identifier parameter:
+        - identifier=odsOrganizationCode|{CODE}
+
+        Example: /Organization/?identifier=odsOrganizationCode|ABC123
+        Example (all): /Organization
+
+      operationId: searchOrganizations
       parameters:
       - in: header
         name: apiKey
@@ -133,28 +147,71 @@ paths:
         description: |
           Use an optional ID to track transactions across multiple systems.
           Mirrored back in a response header.
-        schema:
-          type: string
-          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-      requestBody:
-        required: true
-        content:
-          application/fhir+json:
-            schema:
-              $ref: '#/components/schemas/Organization'
+      - in: query
+        name: identifier
+        description: >
+          ODS code in the format "odsOrganizationCode|{CODE}" (FHIR identifier search).
+          If omitted, all Organizations will be returned.
+          required: false
+          schema:
+            type: string
+            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{5,12}$'
+            example: "odsOrganizationCode|ABC123"
       responses:
-        '201':
-          description: Organization created
+        '200':
+          description: Bundle of Organizations found and returned successfully
           content:
             application/fhir+json:
               schema:
-                $ref: '#/components/schemas/Organization'
-        '4XX':
-          description: Error
+                $ref: '#/components/schemas/Bundle'
+        '400':
+          description: Bad request (e.g., invalid format of parameters)
           content:
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: invalid
+                    diagnostics: Invalid format for identifier parameter
+        '404':
+          description: Organization not found
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: not-found
+                    diagnostics: Organization not found
+        '422':
+          description: Unprocessable Entity (e.g., ODS code validation failed)
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: invalid
+                    diagnostics: Supplied ODS Code must be only alphanumeric characters with a length of 5-12 characters
+        '500':
+          description: Internal server error
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: exception
+                    diagnostics: An unexpected error occurred
   '/Organization/{id}':
     put:
       security:
@@ -331,6 +388,33 @@ components:
               country:
                 type: string
                 example: "ENGLAND"
+    Bundle:
+      type: object
+      required:
+        - resourceType
+        - type
+        - entry
+      properties:
+        resourceType:
+          type: string
+          enum: [Bundle]
+          example: Bundle
+        type:
+          type: string
+          enum: [searchset]
+          example: searchset
+        total:
+          type: integer
+          example: 1
+        entry:
+          type: array
+          items:
+            type: object
+            required:
+              - resource
+            properties:
+              resource:
+                $ref: '#/components/schemas/Organization'
     OperationOutcome:
       type: object
       required:
