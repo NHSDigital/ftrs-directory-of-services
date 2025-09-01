@@ -44,35 +44,21 @@ from pipeline.utils.cache import DoSMetadataCache
             "name": "PLT - GP COVER",
             "expected_result": False,
             "expected_message": "Service fits GP Protected Learning Time criteria",
-        },  # Invalid since its GP protected learning Time
+        },  # Invalid since it's GP protected learning Time
         {
             "service_type_id": 136,
             "ods_code": "G123456",
             "name": "PLT - GP COVER",
             "expected_result": False,
             "expected_message": "Service fits GP Protected Learning Time criteria",
-        },  # Invalid since its GP protected learning Time
+        },  # Invalid since it's GP protected learning Time
         {
             "service_type_id": 159,
             "ods_code": "G123456",
             "name": "PLT - GP COVER",
             "expected_result": False,
             "expected_message": "Service fits GP Protected Learning Time criteria",
-        },  # Invalid since its GP protected learning Time
-        # {
-        #     "service_type_id": 100,
-        #     "ods_code": "H98765",
-        #     "name": "SAS - Name",
-        #     "expected_result": False,
-        #     "expected_message": "Service fits GP Special Allocation Scheme criteria",
-        # },  # Invalid since its GP Special Allocation Scheme
-        # {
-        #     "service_type_id": 100,
-        #     "ods_code": "H98765",
-        #     "name": "Special Allocation Scheme - Name",
-        #     "expected_result": False,
-        #     "expected_message": "Service fits GP Special Allocation Scheme criteria",
-        # },  # Invalid since its GP Special Allocation Scheme
+        },  # Invalid since it's GP protected learning Time
     ],
 )
 def test_is_service_supported(
