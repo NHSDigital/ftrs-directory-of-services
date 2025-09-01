@@ -150,6 +150,13 @@ class TriageCodeProcessor:
                             exclude_none=True, mode="json", warnings=False
                         ),
                     )
+                    elapsed_time = perf_counter() - start_time
+                    self.logger.log(
+                        DataMigrationLogBase.DM_ETL_007,
+                        process="combinations",
+                        elapsed_time=elapsed_time,
+                        # Additional metrics...
+                    )
                 except Exception as e:
                     self.metrics.errors += 1
                     self.logger.exception(
@@ -164,14 +171,6 @@ class TriageCodeProcessor:
             )
             self.logger.log(DataMigrationLogBase.DM_ETL_008, error=str(e))
             return
-
-        elapsed_time = perf_counter() - start_time
-        self.logger.log(
-            DataMigrationLogBase.DM_ETL_007,
-            process="combinations",
-            elapsed_time=elapsed_time,
-            # Additional metrics...
-        )
 
     def _save_to_dynamoDB(self, result: TriageCode) -> None:
         traige_code_repo = get_repository(

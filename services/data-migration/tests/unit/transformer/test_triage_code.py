@@ -3,6 +3,7 @@ from ftrs_data_layer.domain import (
     ClinicalCodeType,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.triage_code import TriageCodeCombination
 
 from pipeline.transformer.triage_code import TriageCodeTransformer
 
@@ -115,3 +116,37 @@ def test_builds_triage_code_from_symptom_discriminator_without_description() -> 
     assert result.codeID == "303"
     assert result.codeValue == ""
     assert result.synonyms == []
+
+
+def test_builds_triage_code_combinations() -> None:
+    # Setup
+    sg = legacy_model.SymptomGroup(id="1", name="SG1", zcodeexists=True)
+    sd = legacy_model.SymptomDiscriminator(
+        id="2", description="Symptom Discriminator description", synonyms=[]
+    )
+    sg_sd = [
+        legacy_model.SymptomGroupSymptomDiscriminator(
+            id=123,
+            symptomgroupid=sg.id,
+            symptomdiscriminatorid=sd.id,
+            symptomgroup=sg,
+            symptomdiscriminator=sd,
+        )
+    ]
+
+    result = TriageCodeTransformer.build_triage_code_combinations(1, sg_sd)
+    assert result.field == "combinations"
+    assert result.id == "SG1"
+    assert result.combinations == [
+        TriageCodeCombination(value="Symptom Discriminator description", id="SD2")
+    ]
+
+
+def test_builds_triage_code_combinations_empty_list() -> None:
+    # Setup
+    result = TriageCodeTransformer.build_triage_code_combinations(1, [])
+
+    # Assert
+    assert result.id == "SG1"
+    assert result.combinations == []
+    assert result.field == "combinations"
