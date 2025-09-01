@@ -15,15 +15,6 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
     SUPPORTED_TYPE_IDS = (100, 136, 159)
     ODS_CODE_REGEX = re.compile(r"^[A-Z][0-9]{5,8}$")
 
-    # TODO: FDOS-520 ACs:
-    # GP Protected Learning Time HealthcareService is made
-    #     We can see records containing each of the fields noted in the data mapping
-    #         All records should contain an service category and service type
-    #         The majority of services will contain at least one phone number, and most will contain both a public and a non public number
-    #         All profiles are expected to have at least one opening time, and some will have one or more exception times
-    #         Phone numbers are separated by the separator.
-    #             We have stubbed numbers today, so this should be validated in unit tests.
-    #     Logging listed above is all accounted for
     """
     Transformer for GP Protected Learning Time Services
 
