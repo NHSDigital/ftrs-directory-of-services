@@ -145,3 +145,43 @@ def test_validate_fhir_validation_error(
     with caplog.at_level("WARNING"):
         with pytest.raises(OperationOutcomeException):
             FhirValidator.validate(resource, model)
+
+
+@pytest.mark.parametrize(
+    "resource",
+    [
+        {"resourceType": "DummyResource", "name": "Valid Name"},
+        {"resourceType": "DummyResource", "modifiedBy": "ValidUser"},
+        {"resourceType": "DummyResource", "telecom": [{"value": "123456"}]},
+        {"resourceType": "DummyResource", "type": [{"text": "Type1"}]},
+    ],
+)
+def test_check_for_special_characters_valid(resource: dict) -> None:
+    model = DummyModel
+    assert FhirValidator._check_for_special_characters(resource, model) == resource
+
+
+@pytest.mark.parametrize(
+    "resource,expected_error_field",
+    [
+        ({"resourceType": "DummyResource", "name": 'Invalid"Name'}, "name"),
+        ({"resourceType": "DummyResource", "modifiedBy": "Invalid#User"}, "modifiedBy"),
+        (
+            {"resourceType": "DummyResource", "telecom": [{"value": "123;456"}]},
+            "telecom[0].value",
+        ),
+        (
+            {"resourceType": "DummyResource", "type": [{"text": "Type$1"}]},
+            "type[0].text",
+        ),
+    ],
+)
+def test_check_for_special_characters_invalid(
+    resource: dict, expected_error_field: str
+) -> None:
+    model = DummyModel
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        FhirValidator._check_for_special_characters(resource, model)
+    assert f"Field '{expected_error_field}' contains invalid characters" in str(
+        exc_info.value
+    )
