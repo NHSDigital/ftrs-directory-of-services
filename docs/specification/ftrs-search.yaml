@@ -74,7 +74,7 @@ servers:
   - url: 'https://internal-dev.api.service.nhs.uk/ftrs-search/FHIR/R4'
     description: Development environment
 security:
-  - app-level3: []
+  - app-level3: [ ]
 paths:
   /Organization:
     get:
@@ -86,18 +86,18 @@ paths:
         ## Request Requirements
         A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
         - it has a minimum of 5 alpha-numeric characters
-        - it has a maxmium of 12 alpha-numeric characters
+        - it has a maximum of 12 alpha-numeric characters
 
         ## Sandbox test scenarios
 
-        | Scenario                    | Request                    | Response                                                      |
-        | --------------------------- | -------------------------- | ------------------------------------------------------------- |
-        | Valid ODS code        | odsCode=TBC   | HTTP Status 200 with OrganizationResponse                    |
-        | Invalid ODS code      | odsCode=TBC      | HTTP Status 422 with INVALID_ODS_CODE message           |
-        | Missing ODS code      | No odsCode parameter | HTTP Status 422 with MISSING_ODS_CODE message           |
+        | Scenario         | Request              | Response                                      |
+        | ---------------- | -------------------- | --------------------------------------------- |
+        | Valid ODS code   | odsCode=TBC          | HTTP Status 200 with OrganizationResponse     |
+        | Invalid ODS code | odsCode=TBC          | HTTP Status 422 with INVALID_ODS_CODE message |
+        | Missing ODS code | No odsCode parameter | HTTP Status 422 with MISSING_ODS_CODE message |
       operationId: searchOrganizations
       security:
-        - app-level3: []
+        - app-level3: [ ]
       parameters:
         - name: organization.identifier
           in: query
@@ -113,7 +113,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: ["Endpoint:organization"]
+            enum: [ "Endpoint:organization" ]
             default: "Endpoint:organization"
       responses:
         '200':
@@ -128,9 +128,9 @@ paths:
                 type: "searchset"
                 link:
                   - relation: "self"
-                    url: "https://example.org/Organization?endpoint.identifier=odsEndpointCode%7CABC123&_include=Organization:endpoint"
+                    url: "https://example.org/FHIR/R4/Organization?endpoint.identifier=odsEndpointCode%7CABC123&_include=Organization:endpoint"
                 entry:
-                  - fullUrl: "https://example.org/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                  - fullUrl: "https://example.org/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                     resource:
                       resourceType: "Organization"
                       id: "04393ec4-198f-42dd-9507-f4fa5e9ebf96"
@@ -145,87 +145,89 @@ paths:
                         - system: "email"
                           value: "example@example.com"
                       address:
-                        - line: ["Example Medical Practice", "Example Street"]
+                        - line: [ "Example Medical Practice", "Example Street" ]
                           city: "Example City"
                           postalCode: "AB12 3CD"
                           country: "ENGLAND"
-                      endpoint:
-                        - reference: "Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
-                        - reference: "Endpoint/a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
-                        - reference: "Endpoint/z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
                     search:
                       mode: "match"
-                  - fullUrl: "https://example.org/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                  - fullUrl: "https://example.org/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
                     resource:
                       resourceType: "Endpoint"
                       id: "1b62110d-4db5-4230-bf37-cbe948aecf76"
                       status: "active"
                       connectionType:
-                        system: "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
                         code: "hl7-fhir-rest"
+                      managingOrganization:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                       payloadType:
                         - coding:
                             - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
                               code: "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType: ["application/fhir+json"]
+                      payloadMimeType: [ "application/fhir+json" ]
                       address: "https://nhs.provided.service.uk/endpoint"
                       extension:
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-order"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
                           valueInteger: 1
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-compression"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
                           valueBoolean: false
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-business-scenario"
-                          valueString: "Primary"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+                          valueCode: "primary-recipient"
                     search:
                       mode: "include"
-                  - fullUrl: "https://example.org/Endpoint/a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
+                  - fullUrl: "https://example.org/FHIR/R4/Endpoint/a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
                     resource:
                       resourceType: "Endpoint"
                       id: "a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
                       status: "active"
                       connectionType:
-                        system: "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
                         code: "hl7-fhir-rest"
+                      managingOrganization:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                       payloadType:
                         - coding:
                             - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
                               code: "urn:nhs-itk:interaction:secondaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType: ["application/fhir+json"]
+                      payloadMimeType: [ "application/fhir+json" ]
                       address: "https://nhs.provided.service.uk/endpoint2"
                       extension:
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-order"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
                           valueInteger: 2
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-compression"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
                           valueBoolean: true
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-business-scenario"
-                          valueString: "Secondary"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+                          valueCode: "primary-recipient"
                     search:
                       mode: "include"
-                  - fullUrl: "https://example.org/Endpoint/z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
+                  - fullUrl: "https://example.org/FHIR/R4/Endpoint/z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
                     resource:
                       resourceType: "Endpoint"
-                      id: "z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
+                      id: "090844f9-fc6e-56fb-8af8-bd631505adce"
                       status: "active"
                       connectionType:
-                        system: "http://terminology.hl7.org/CodeSystem/endpoint-connection-type"
+                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
                         code: "hl7-fhir-rest"
+                      managingOrganization:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                       payloadType:
                         - coding:
                             - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
                               code: "urn:nhs-itk:interaction:backupEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType: ["application/fhir+json"]
+                      payloadMimeType: [ "application/fhir+json" ]
                       address: "https://nhs.provided.service.uk/endpoint3"
                       extension:
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-order"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
                           valueInteger: 3
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-compression"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
                           valueBoolean: false
-                        - url: "https://fhir.nhs.uk/StructureDefinition/extension-endpoint-business-scenario"
-                          valueString: "Backup"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+                          valueCode: "copy-recipient"
                     search:
                       mode: "include"
         '400':
-          description: Bad request (e.g., invalid format of parameters)
+          description: Bad request (e.g., invalid search data)
           content:
             application/fhir+json:
               schema:
@@ -234,14 +236,15 @@ paths:
                 resourceType: "OperationOutcome"
                 issue:
                   - severity: "error"
-                    code: "invalid"
-                    diagnostics: "Invalid format for organization.identifier parameter"
+                    code: "value"
                     details:
                       coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
-                          version: "1"
-                          code: "INVALID_PARAMETER"
-                          display: "Invalid parameter"
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                          version: "1.0.0"
+                          code: "INVALID_SEARCH_DATA"
+                          display: "Invalid search data"
+                    diagnostics: "The request is missing the 'revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -331,13 +334,13 @@ components:
       properties:
         resourceType:
           type: string
-          enum: ["Bundle"]
+          enum: [ "Bundle" ]
         id:
           type: string
           format: uuid
         type:
           type: string
-          enum: ["searchset"]
+          enum: [ "searchset" ]
         link:
           type: array
           items:
@@ -367,7 +370,7 @@ components:
                 properties:
                   mode:
                     type: string
-                    enum: ["match", "include"]
+                    enum: [ "match", "include" ]
 
     Organization:
       type: object
@@ -382,7 +385,7 @@ components:
       properties:
         resourceType:
           type: string
-          enum: ["Organization"]
+          enum: [ "Organization" ]
         id:
           type: string
           format: uuid
@@ -406,7 +409,7 @@ components:
             properties:
               system:
                 type: string
-                enum: ["phone", "fax", "email", "pager", "url", "sms", "other"]
+                enum: [ "phone", "fax", "email", "pager", "url", "sms", "other" ]
               value:
                 type: string
         address:
@@ -444,7 +447,7 @@ components:
       properties:
         resourceType:
           type: string
-          enum: ["Endpoint"]
+          enum: [ "Endpoint" ]
         id:
           type: string
           format: uuid
@@ -459,7 +462,7 @@ components:
                 type: string
         status:
           type: string
-          enum: ["active", "off"]
+          enum: [ "active", "off" ]
         connectionType:
           type: object
           properties:
@@ -499,7 +502,7 @@ components:
                 type: integer
               valueBoolean:
                 type: boolean
-              valueString:
+              valueCode:
                 type: string
 
     OperationOutcome:
@@ -510,7 +513,7 @@ components:
       properties:
         resourceType:
           type: string
-          enum: ["OperationOutcome"]
+          enum: [ "OperationOutcome" ]
         issue:
           type: array
           items:
@@ -521,10 +524,10 @@ components:
             properties:
               severity:
                 type: string
-                enum: ["error"]
+                enum: [ "error", "fatal" ]
               code:
                 type: string
-                enum: ["invalid", "processing", "security", "forbidden", "exception"]
+                enum: [ "code-invalid", "value", "security", "forbidden", "exception", "not-supported", "required" ]
               diagnostics:
                 type: string
               details:
@@ -556,5 +559,4 @@ x-nhsd-apim:
   access:
     - title: Application-restricted with Private Key JWT
       grants:
-        app-level3: []
-      visible: true
+        app-level3: [ ]
