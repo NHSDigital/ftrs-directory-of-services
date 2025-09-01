@@ -69,17 +69,22 @@ def test_fetch_organisation_uuid(
     )
 
     mock_call = requests_mock.get(
-        "http://test-crud-api/Organization/ods_code/ABC123",
-        json={"id": "UUID123"},
+        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|XYZ999",
+        json={
+            "resourceType": "Bundle",
+            "type": "searchset",
+            "entry": [
+                {"resource": {"resourceType": "Organization", "id": "BUNDLE_ORG_ID"}}
+            ],
+        },
     )
-
-    result = fetch_organisation_uuid("ABC123")
-    assert result == "UUID123"
-
+    result_bundle = fetch_organisation_uuid("XYZ999")
+    assert result_bundle == "BUNDLE_ORG_ID"
     assert mock_call.called_once
+    pipeUrlEncoding = "%7C"
     assert (
         mock_call.last_request.url
-        == "http://test-crud-api/Organization/ods_code/ABC123"
+        == f"http://test-crud-api/Organization/?identifier=odsOrganisationCode{pipeUrlEncoding}XYZ999"
     )
 
 

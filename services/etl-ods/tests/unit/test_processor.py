@@ -66,12 +66,21 @@ def mock_responses(requests_mock: RequestsMock) -> MockResponses:
         json=ods_data_abc123,
     )
 
-    # Setup CRUD API Mock for Organisation UUID (00000000-0000-0000-0000-000000000abc)
+    # Setup CRUD API Mock for Organisation UUID (returns a FHIR Bundle with Organization resource)
     crud_api_data_abc123 = {
-        "id": "00000000-0000-0000-0000-000000000abc",
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "entry": [
+            {
+                "resource": {
+                    "resourceType": "Organization",
+                    "id": "00000000-0000-0000-0000-000000000abc",
+                }
+            }
+        ],
     }
     crud_org_abc123_mock = requests_mock.get(
-        "http://test-crud-api/Organization/ods_code/ABC123",
+        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|ABC123",
         json=crud_api_data_abc123,
     )
 
@@ -103,9 +112,10 @@ def test_processor_processing_organisations_successful(
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
     # Assert CRUD API Call for Organisation UUID
     assert mock_responses.crud_org_abc123.called_once
+    assert mock_responses.crud_org_abc123.last_request.path == "/organization/"
     assert (
-        mock_responses.crud_org_abc123.last_request.path
-        == "/organization/ods_code/abc123"
+        mock_responses.crud_org_abc123.last_request.query
+        == "identifier=odsorganisationcode%7cabc123"
     )
     assert (
         requests_mock.request_history[2] == mock_responses.crud_org_abc123.last_request
@@ -173,7 +183,7 @@ def test_processor_continue_on_validation_failure(
     )
 
     crud_api_abc123_mock = requests_mock.get(
-        "http://test-crud-api/Organization/ods_code/ABC123",
+        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|ABC123",
         status_code=422,  # Simulate Unprocessable Entity error
     )
 
@@ -197,11 +207,21 @@ def test_processor_continue_on_validation_failure(
         },
     )
 
+    crud_api_data_efg456 = {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "entry": [
+            {
+                "resource": {
+                    "resourceType": "Organization",
+                    "id": "00000000-0000-0000-0000-000000000EFG",
+                }
+            }
+        ],
+    }
     crud_efg456_mock = requests_mock.get(
-        "http://test-crud-api/Organization/ods_code/EFG456",
-        json={
-            "id": "00000000-0000-0000-0000-000000000EFG",
-        },
+        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|EFG456",
+        json=crud_api_data_efg456,
     )
     expected_call_count = 5
 
@@ -224,13 +244,17 @@ def test_processor_continue_on_validation_failure(
 
     # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000abc)
     assert crud_api_abc123_mock.called_once
-    assert crud_api_abc123_mock.last_request.path == "/organization/ods_code/abc123"
+    assert (
+        crud_api_abc123_mock.last_request.query
+        == "identifier=odsorganisationcode%7cabc123"
+    )
+
     assert requests_mock.request_history[2] == crud_api_abc123_mock.last_request
 
     # Failure for ABC123 should be logged
     expected_failed_log = OdsETLPipelineLogBase.ETL_PROCESSOR_027.value.message.format(
         ods_code="ABC123",
-        error_message="422 Client Error: None for url: http://test-crud-api/Organization/ods_code/ABC123",
+        error_message="422 Client Error: None for url: http://test-crud-api/Organization/?identifier=odsOrganisationCode%7CABC123",
     )
     assert expected_failed_log in caplog.text
 
@@ -241,7 +265,10 @@ def test_processor_continue_on_validation_failure(
 
     # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000EFG)
     assert crud_efg456_mock.called_once
-    assert crud_efg456_mock.last_request.path == "/organization/ods_code/efg456"
+    assert crud_efg456_mock.last_request.path == "/organization/"
+    assert (
+        crud_efg456_mock.last_request.query == "identifier=odsorganisationcode%7cefg456"
+    )
     assert requests_mock.request_history[4] == crud_efg456_mock.last_request
 
     # Assert load_data call
