@@ -52,6 +52,12 @@ variable "rds_instance_class" {
   type        = string
 }
 
+variable "rds_cloudwatch_logs_retention" {
+  description = "The number of days to retain CloudWatch logs for RDS"
+  type        = number
+  default     = 14
+}
+
 variable "data_migration_rds_min_capacity" {
   description = "The minimum capacity for the RDS instance"
   type        = number
@@ -90,6 +96,12 @@ variable "processor_lambda_handler" {
   type        = string
 }
 
+variable "processor_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
+}
+
 variable "dms_event_queue_name" {
   description = "The name of the DMS event queue"
   type        = string
@@ -119,6 +131,48 @@ variable "dms_event_queue_maximum_concurrency" {
   default     = 20
 }
 
+variable "dms_replication_instance_class" {
+  description = "The instance class for the DMS replication instance"
+  type        = string
+  default     = null
+}
+
+variable "dms_engine" {
+  description = "The engine for the DMS replication instance"
+  type        = string
+  default     = null
+}
+
+variable "dms_allocated_storage" {
+  description = "The allocated storage for the DMS replication instance"
+  type        = number
+  default     = null
+}
+
+variable "full_migration_type" {
+  description = "The type of migration for DMS"
+  type        = string
+  default     = null
+}
+
+variable "cdc_migration_type" {
+  description = "The type of migration for DMS"
+  type        = string
+  default     = null
+}
+
+variable "dms_instance_multi_az" {
+  description = "Is DMS instance set up in multi-AZ mode"
+  type        = bool
+  default     = false
+}
+
+variable "dms_task_logging_enabled" {
+  description = "Enable logging for DMS tasks"
+  type        = bool
+  default     = true
+}
+
 variable "queue_populator_lambda_name" {
   description = "The name of the queue populator lambda function"
 }
@@ -138,6 +192,12 @@ variable "queue_populator_lambda_handler" {
   type        = string
 }
 
+variable "queue_populator_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
+}
+
 variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string
@@ -147,6 +207,7 @@ variable "dynamodb_exports_s3_expiration_days" {
   description = "The number of days after which DynamoDB exports in S3 will expire"
   type        = number
 }
+
 variable "rds_event_listener_lambda_name" {
   description = "The name of the RDS event listener Lambda function"
   type        = string
@@ -167,9 +228,10 @@ variable "migration_copy_db_lambda_trigger" {
   type        = string
 }
 
-variable "cloudwatch_log_retention_days" {
+variable "dms_audit_cloudwatch_logs_retention_days" {
   description = "The number of days to retain CloudWatch logs for DMS tasks"
   type        = number
+  default     = 30
 }
 
 variable "dms_db_lambda_name" {
@@ -210,6 +272,12 @@ variable "rds_event_listener_lambda_memory_size" {
   type        = number
 }
 
+variable "rds_event_listener_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
+}
+
 variable "dms_db_lambda_connection_timeout" {
   description = "The connection timeout for the DMS DB setup Lambda function"
   type        = number
@@ -218,6 +286,12 @@ variable "dms_db_lambda_connection_timeout" {
 variable "dms_db_lambda_memory_size" {
   description = "The memory size for the DMS DB setup Lambda function"
   type        = number
+}
+
+variable "dms_db_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs"
+  type        = number
+  default     = 14
 }
 
 variable "full_migration_completion_event_queue_name" {
@@ -238,4 +312,16 @@ variable "dms_user_password" {
 variable "source_rds_credentials" {
   description = "The secrets manager name for the source RDS credentials"
   type        = string
+}
+
+variable "dns_port" {
+  description = "The port for DNS queries"
+  type        = number
+  default     = 53
+}
+
+variable "https_port" {
+  description = "The port for HTTPS traffic"
+  type        = number
+  default     = 443
 }

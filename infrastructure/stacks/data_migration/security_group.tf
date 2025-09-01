@@ -14,7 +14,7 @@ data "aws_security_group" "rds_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
-  count                        = (local.is_primary_environment && local.rds_environments) ? 1 : 0
+  count                        = (local.is_primary_environment && var.environment == "dev") ? 1 : 0
   description                  = "Allow RDS ingress from VPN"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = data.aws_security_group.vpn_security_group[0].id
@@ -49,6 +49,7 @@ resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_rds" {
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_internet" {
   description       = "Allow egress to internet"
   security_group_id = aws_security_group.processor_lambda_security_group.id
@@ -59,8 +60,6 @@ resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_interne
 }
 
 resource "aws_security_group" "queue_populator_lambda_security_group" {
-  count = local.deploy_queue_populator_lambda ? 1 : 0
-
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.queue_populator_lambda_name}${local.workspace_suffix}-sg"
   description = "Security group for queue populator lambda"
@@ -69,32 +68,27 @@ resource "aws_security_group" "queue_populator_lambda_security_group" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_queue_populator_lambda" {
-  count = local.deploy_queue_populator_lambda ? 1 : 0
-
   description                  = "Allow RDS ingress from queue populator lambda"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  referenced_security_group_id = aws_security_group.queue_populator_lambda_security_group[0].id
+  referenced_security_group_id = aws_security_group.queue_populator_lambda_security_group.id
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
 }
 
 resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_rds" {
-  count = local.deploy_queue_populator_lambda ? 1 : 0
-
   description                  = "Allow egress to RDS"
-  security_group_id            = aws_security_group.queue_populator_lambda_security_group[0].id
+  security_group_id            = aws_security_group.queue_populator_lambda_security_group.id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_internet" {
-  count = local.deploy_queue_populator_lambda ? 1 : 0
-
   description       = "Allow egress to internet"
-  security_group_id = aws_security_group.queue_populator_lambda_security_group[0].id
+  security_group_id = aws_security_group.queue_populator_lambda_security_group.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = var.https_port
   ip_protocol       = "tcp"
@@ -111,6 +105,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
@@ -148,6 +143,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_https" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
@@ -158,6 +154,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_http
   to_port           = var.https_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
@@ -168,6 +165,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns"
   to_port           = var.dns_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_udp" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_replication_security_group[0].id
@@ -187,6 +185,7 @@ resource "aws_security_group" "rds_event_listener_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.rds_event_listener_lambda_security_group[0].id
@@ -197,6 +196,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
   to_port                      = var.https_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_to_internet" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.rds_event_listener_lambda_security_group[0].id
@@ -236,6 +236,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_se
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.dms_db_setup_lambda_security_group[0].id
@@ -246,6 +247,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds"
   to_port                      = var.rds_port
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_internet" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id

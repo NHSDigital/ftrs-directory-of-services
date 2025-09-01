@@ -55,6 +55,8 @@ module "processor_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
+  cloudwatch_logs_retention = var.processor_lambda_logs_retention
+
   depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
 
@@ -84,8 +86,6 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
 }
 
 module "queue_populator_lambda" {
-  count = local.deploy_queue_populator_lambda ? 1 : 0
-
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.queue_populator_lambda_name}"
   description             = "Lambda to populate the SQS queue with DoS services"
@@ -98,7 +98,7 @@ module "queue_populator_lambda" {
   memory_size             = var.queue_populator_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.queue_populator_lambda_security_group[0].id]
+  security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
 
   number_of_policy_jsons = "2"
   policy_jsons = [
@@ -122,6 +122,8 @@ module "queue_populator_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.queue_populator_lambda_logs_retention
 
   depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
@@ -156,6 +158,8 @@ module "rds_event_listener_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.rds_event_listener_lambda_logs_retention
 
   depends_on = [aws_sqs_queue.dms_event_queue]
 }
@@ -195,6 +199,8 @@ module "dms_db_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.dms_db_lambda_logs_retention
 
   depends_on = [aws_sqs_queue.dms_event_queue]
 }

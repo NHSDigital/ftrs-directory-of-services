@@ -1,3 +1,9 @@
+resource "aws_iam_service_linked_role" "dms" {
+  count = local.is_primary_environment ? 1 : 0
+
+  aws_service_name = "dms.amazonaws.com"
+}
+
 resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
   count = local.is_primary_environment ? 1 : 0
 
@@ -26,8 +32,8 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
   endpoint_id   = "${local.resource_prefix}-etl-source"
   endpoint_type = "source"
   engine_name   = var.dms_engine
-  username      = data.aws_secretsmanager_secret_version.rds_username.secret_string
-  password      = data.aws_secretsmanager_secret_version.rds_password.secret_string
+  username      = aws_secretsmanager_secret_version.rds_username[0].secret_string
+  password      = aws_secretsmanager_secret_version.rds_password[0].secret_string
   server_name   = module.rds[0].cluster_endpoint
   port          = var.rds_port
   database_name = var.source_rds_database
@@ -40,8 +46,8 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
   endpoint_id   = "${local.resource_prefix}-etl-target"
   endpoint_type = "target"
   engine_name   = var.dms_engine
-  username      = data.aws_secretsmanager_secret_version.rds_username.secret_string
-  password      = data.aws_secretsmanager_secret_version.rds_password.secret_string
+  username      = aws_secretsmanager_secret_version.rds_username[0].secret_string
+  password      = aws_secretsmanager_secret_version.rds_password[0].secret_string
   server_name   = module.rds_replication_target_db[0].cluster_endpoint
   port          = var.rds_port
   database_name = var.target_rds_database
