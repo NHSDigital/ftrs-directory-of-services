@@ -57,35 +57,14 @@ async def get_handle_organisation_requests(
     """
     Returns a FHIR Bundle of Organisation(s) by ODS code or all if no identifier is provided.
     """
-    allowed = {"identifier"}
-    extra = set(request.query_params.keys()) - allowed
-    if extra:
-        outcome = OperationOutcomeHandler.build(
-            diagnostics=f"Unexpected query parameter(s): {', '.join(extra)}. Only 'identifier' is allowed.",
-            code="invalid",
-            severity="error",
-        )
-        raise OperationOutcomeException(outcome)
     try:
+        organisation_service.check_organisation_params(request.query_params)
         if organization_query_params and organization_query_params.identifier:
-            print("here")
-            org = org_repository.get_by_ods_code(
-                ods_code=organization_query_params.identifier
-            )
-            if org is None:
-                crud_organisation_logger.log(
-                    CrudApisLogBase.ORGANISATION_009,
-                    organisation_id=organization_query_params.identifier,
-                )
-                raise_fhir_exception(
-                    diagnostics=f"Organisation with ODS code '{organization_query_params.identifier}' not found",
-                    code="not-found",
-                )
-            bundle = organisation_mapper.to_fhir_bundle(org)
-            return JSONResponse(
-                content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE
-            )
-        bundle = organisation_mapper.to_fhir_bundle(_get_all_organisations())
+            ods_code = organization_query_params.ods_code
+            result = organisation_service.get_by_ods_code(ods_code)
+        else:
+            result = organisation_service.get_all_organisations()
+        bundle = organisation_mapper.to_fhir_bundle(result)
         return JSONResponse(
             content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE
         )
@@ -100,21 +79,6 @@ async def get_handle_organisation_requests(
         raise_fhir_exception(
             diagnostics="Unhandled exception occurred", code="exception"
         )
-
-
-def _get_all_organisations(limit: int = 10) -> list[Organisation]:
-    """
-    Returns all Organisation objects from the repository.
-    """
-    crud_organisation_logger.log(
-        CrudApisLogBase.ORGANISATION_004,
-    )
-    organisations = list(org_repository.iter_records(max_results=limit))
-    orgs = [
-        org if isinstance(org, Organisation) else Organisation(**org)
-        for org in organisations
-    ]
-    return orgs
 
 
 def raise_fhir_exception(diagnostics: str, code: str, severity: str = "error") -> None:

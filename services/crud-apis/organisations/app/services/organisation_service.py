@@ -122,6 +122,50 @@ class OrganisationService:
             raise OperationOutcomeException(outcome)
         return organisation
 
+    def get_by_ods_code(self, identifier: str) -> Organisation | None:
+        """
+        Retrieve the stored organisation from the repository by ODS code.
+        """
+        ods_code = self.extract_identifier_value(identifier)
+        organisation = self.org_repository.get_by_ods_code(ods_code=ods_code)
+        if not organisation:
+            self.logger.log(
+                CrudApisLogBase.ORGANISATION_002,
+                ods_code=identifier,
+            )
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Organisation with ODS code '{identifier}' not found",
+                code="not-found",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome)
+        return organisation
+
+    def check_organisation_params(self, params: dict) -> None:
+        allowed = {"identifier"}
+        extra = set(params.keys()) - allowed
+        if extra:
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Unexpected query parameter(s): {', '.join(extra)}. Only 'identifier' is allowed.",
+                code="invalid",
+                severity="error",
+            )
+        raise OperationOutcomeException(outcome)
+
+    def get_all_organisations(self, limit: int = 10) -> list[Organisation]:
+        """
+        Returns all Organisation objects from the repository.
+        """
+        self.logger.log(
+            CrudApisLogBase.ORGANISATION_004,
+        )
+        organisations = list(self.org_repository.iter_records(max_results=limit))
+        organisations = [
+            org if isinstance(org, Organisation) else Organisation(**org)
+            for org in organisations
+        ]
+        return organisations
+
     def _get_outdated_fields(
         self, organisation: Organisation, payload: Organisation
     ) -> dict:

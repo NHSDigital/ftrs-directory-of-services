@@ -97,15 +97,11 @@ class OrganizationMapper(FhirMapper):
         fhir_organisation = FhirValidator.validate(required_fields, FhirOrganisation)
         return fhir_organisation
 
-    def to_fhir_bundle(
-        self, organisations: FhirOrganisation | list[FhirOrganisation]
-    ) -> Bundle:
+    def to_fhir_bundle(self, organisations: list[FhirOrganisation]) -> Bundle:
         """
         Returns a FHIR Bundle (type 'searchset') containing one or more Organisation resources.
         Accepts a single Organisation or a list of Organisation objects.
         """
-        if not isinstance(organisations, list):
-            organisations = [organisations]
 
         entries = []
         for org in organisations:

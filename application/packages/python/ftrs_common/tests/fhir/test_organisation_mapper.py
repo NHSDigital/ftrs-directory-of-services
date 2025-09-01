@@ -253,7 +253,7 @@ def test_to_fhir_bundle_single_org() -> None:
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
-    bundle_single = mapper.to_fhir_bundle(org1)
+    bundle_single = mapper.to_fhir_bundle([org1])
     assert bundle_single.__resource_type__ == "Bundle"
     assert bundle_single.type == "searchset"
     assert str(bundle_single.total) == "1"

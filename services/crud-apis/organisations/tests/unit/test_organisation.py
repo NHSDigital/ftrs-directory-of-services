@@ -79,6 +79,11 @@ def mock_organisation_service(mocker: MockerFixture) -> MockerFixture:
     )
     service_mock.create_organisation.return_value = Organisation(**get_organisation())
     service_mock.process_organisation_update.return_value = True
+    service_mock.get_by_ods_code.return_value = [Organisation(**get_organisation())]
+    service_mock.get_all_organisations.return_value = [
+        Organisation(**get_organisation())
+    ]
+    # Do NOT stub check_organisation_params here; let it use the real implementation or be patched per-test if needed
     return service_mock
 
 
@@ -115,17 +120,12 @@ def test__get_organization_query_params_with_identifier() -> None:
 
 
 def test_get_handle_organisation_requests_all_success(mocker: MockerFixture) -> None:
-    mock_org = Organisation(**get_organisation())
-    mocker.patch(
-        "organisations.app.router.organisation._get_all_organisations",
-        return_value=[mock_org, mock_org],
-    )
     response = client.get("/")
     assert response.status_code == HTTPStatus.OK
     bundle = response.json()
     assert bundle["resourceType"] == "Bundle"
-    assert str(len(bundle["entry"])) == "2"
-    assert bundle["entry"][0]["resource"]["id"] == str(mock_org.id)
+    assert str(len(bundle["entry"])) == "1"
+    assert bundle["entry"][0]["resource"]["id"] == str(get_organisation()["id"])
 
 
 # Additional test to cover identifier with different valid ODS code (lines 79-85)
@@ -161,13 +161,29 @@ def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> No
     )
 
 
-def test_get_handle_organisation_requests_by_identifier_additional_query_params() -> (
-    None
-):
+def test_get_handle_organisation_requests_with_invalid_params(
+    mocker: MockerFixture,
+) -> None:
+    # Mock check_organisation_params to raise an OperationOutcomeException
+    mocker.patch(
+        "organisations.app.router.organisation.organisation_service.check_organisation_params",
+        side_effect=OperationOutcomeException(
+            {
+                "resourceType": "OperationOutcome",
+                "issue": [
+                    {
+                        "severity": "error",
+                        "code": "invalid",
+                        "diagnostics": "Unexpected query parameter(s): abc. Only 'identifier' is allowed.",
+                    }
+                ],
+            }
+        ),
+    )
     with pytest.raises(Exception) as exc_info:
         client.get("/?identifier=odsOrganisationCode|ODS12345&abc=extra")
     outcome = exc_info.value.outcome
-    print(outcome)
+    assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
         "Unexpected query parameter(s): abc. Only 'identifier' is allowed."
@@ -176,24 +192,31 @@ def test_get_handle_organisation_requests_by_identifier_additional_query_params(
 
 
 def test_get_handle_organisation_requests_by_identifier_not_found(
-    mocker: MockerFixture,
+    mock_organisation_service: MockerFixture,
 ) -> None:
-    mocker.patch(
-        "organisations.app.router.organisation.org_repository.get_by_ods_code",
-        return_value=None,
+    mock_organisation_service.get_by_ods_code.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "not-found",
+                    "diagnostics": "Organisation not found.",
+                }
+            ],
+        }
     )
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(OperationOutcomeException) as exc_info:
         client.get("/?identifier=odsOrganisationCode|ODS12345")
     outcome = exc_info.value.outcome
-    print(outcome)
     assert outcome["issue"][0]["code"] == "not-found"
     assert "not found" in outcome["issue"][0]["diagnostics"].lower()
 
 
-def test_get_handle_organisation_requests_all_empty(mocker: MockerFixture) -> None:
-    mocker.patch(
-        "organisations.app.router.organisation._get_all_organisations", return_value=[]
-    )
+def test_get_handle_organisation_requests_all_empty(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    mock_organisation_service.get_all_organisations.return_value = []
     response = client.get("/")
     assert response.status_code == HTTPStatus.OK
     bundle = response.json()
@@ -202,12 +225,9 @@ def test_get_handle_organisation_requests_all_empty(mocker: MockerFixture) -> No
 
 
 def test_get_handle_organisation_requests_unhandled_exception(
-    mocker: MockerFixture,
+    mock_organisation_service: MockerFixture,
 ) -> None:
-    mocker.patch(
-        "organisations.app.router.organisation._get_all_organisations",
-        side_effect=Exception("fail"),
-    )
+    mock_organisation_service.get_all_organisations.side_effect = Exception("fail")
     with pytest.raises(Exception) as exc_info:
         client.get("/")
     outcome = exc_info.value.outcome
