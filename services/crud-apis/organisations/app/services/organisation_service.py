@@ -122,19 +122,18 @@ class OrganisationService:
             raise OperationOutcomeException(outcome)
         return organisation
 
-    def get_by_ods_code(self, identifier: str) -> Organisation | None:
+    def get_by_ods_code(self, ods_code: str) -> Organisation | None:
         """
         Retrieve the stored organisation from the repository by ODS code.
         """
-        ods_code = self.extract_identifier_value(identifier)
         organisation = self.org_repository.get_by_ods_code(ods_code=ods_code)
         if not organisation:
             self.logger.log(
                 CrudApisLogBase.ORGANISATION_002,
-                ods_code=identifier,
+                ods_code=ods_code,
             )
             outcome = OperationOutcomeHandler.build(
-                diagnostics=f"Organisation with ODS code '{identifier}' not found",
+                diagnostics=f"Organisation with ODS code '{ods_code}' not found",
                 code="not-found",
                 severity="error",
             )
@@ -150,7 +149,7 @@ class OrganisationService:
                 code="invalid",
                 severity="error",
             )
-        raise OperationOutcomeException(outcome)
+            raise OperationOutcomeException(outcome)
 
     def get_all_organisations(self, limit: int = 10) -> list[Organisation]:
         """
