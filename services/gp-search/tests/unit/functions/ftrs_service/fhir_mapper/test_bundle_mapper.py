@@ -113,13 +113,15 @@ class TestBundleMapper:
     ):
         # Arrange
         endpoint_resource = create_fhir_endpoint()
-        mock_get_fhir_url.return_value = "https://example.org/Endpoint/endpoint-123"
+        mock_get_fhir_url.return_value = (
+            "https://example.org/FHIR/R4/Endpoint/endpoint-123"
+        )
 
         # Act
         entry = bundle_mapper._create_entry(endpoint_resource)
 
         # Assert
-        assert entry["fullUrl"] == "https://example.org/Endpoint/endpoint-123"
+        assert entry["fullUrl"] == "https://example.org/FHIR/R4/Endpoint/endpoint-123"
         assert entry["resource"] == endpoint_resource
         assert entry["search"]["mode"] == "include"
 
