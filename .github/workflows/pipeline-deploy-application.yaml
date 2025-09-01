@@ -7,11 +7,12 @@ permissions:
 on:
   pull_request:
     branches:
-      - "dependabot/**"
+      - "task/FDOS-000_Dependabot_workspace_test"
+      # - "dependabot/**"
   push:
     branches:
       - main
-      - "task/FDOS*"
+      - "!task/FDOS*"
       - "task/SIA*"
       - "task/DOSIS*"
   workflow_dispatch:
