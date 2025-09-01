@@ -83,7 +83,6 @@ def mock_organisation_service(mocker: MockerFixture) -> MockerFixture:
     service_mock.get_all_organisations.return_value = [
         Organisation(**get_organisation())
     ]
-    # Do NOT stub check_organisation_params here; let it use the real implementation or be patched per-test if needed
     return service_mock
 
 

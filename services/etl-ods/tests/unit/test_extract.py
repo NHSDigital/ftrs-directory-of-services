@@ -82,7 +82,6 @@ def test_fetch_organisation_uuid(
     assert result_bundle == "BUNDLE_ORG_ID"
     assert mock_call.called_once
     pipeUrlEncoding = "%7C"
-    print()
     assert (
         mock_call.last_request.url
         == f"http://apim-proxy/Organization/?identifier=odsOrganisationCode{pipeUrlEncoding}XYZ999"
