@@ -36,13 +36,12 @@ def get_base_crud_api_url() -> str:
     return get_parameter(name=parameter_path)
 
 
-# will need to change to fit different branches
 @cache
-def get_base_fhir_api_url() -> str:
+def get_base_apim_api_url() -> str:
     env = os.environ.get("ENVIRONMENT", "local")
 
     if env == "local":
-        return os.environ["LOCAL_FHIR_API_URL"]
+        return os.environ["LOCAL_APIM_API_URL"]
 
     return os.environ.get("APIM_URL")
 

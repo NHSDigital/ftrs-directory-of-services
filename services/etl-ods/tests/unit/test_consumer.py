@@ -140,7 +140,7 @@ def test_process_message_and_send_request_success(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_call = requests_mock.put(
-        "http://test-fhir-api/Organization/uuid",
+        "http://test-apim-api/Organization/uuid",
         json={"status": "success"},
         status_code=HTTPStatus.OK,
     )
@@ -167,7 +167,7 @@ def test_process_message_and_send_request_unprocessable(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_call = requests_mock.put(
-        "http://test-fhir-api/Organization/uuid",
+        "http://test-apim-api/Organization/uuid",
         json={"error": "Unprocessable Entity"},
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
     )
@@ -194,7 +194,7 @@ def test_process_message_and_send_request_failure(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_call = requests_mock.put(
-        "http://test-fhir-api/Organization/uuid",
+        "http://test-apim-api/Organization/uuid",
         json={"error": "Internal Server Error"},
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
     )

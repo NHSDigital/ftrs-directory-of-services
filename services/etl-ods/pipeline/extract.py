@@ -6,7 +6,7 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from pipeline.utilities import get_base_crud_api_url, make_request
+from pipeline.utilities import get_api_key, get_base_apim_api_url, make_request
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -63,7 +63,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     Returns DoS UUID based on ODS code.
     """
     validate_ods_code(ods_code)
-    base_url = get_base_crud_api_url()
+    base_url = get_base_apim_api_url()
     identifier_param = f"odsOrganisationCode|{ods_code}"
     organisation_get_uuid_uri = (
         base_url + "/Organization/?identifier=" + identifier_param
@@ -74,7 +74,14 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             OdsETLPipelineLogBase.ETL_PROCESSOR_028,
             ods_code=ods_code,
         )
-        response = make_request(organisation_get_uuid_uri, sign=True, fhir=True)
+        api_key = get_api_key()
+        response = make_request(
+            organisation_get_uuid_uri,
+            method="GET",
+            sign=False,
+            api_key=api_key,
+            fhir=True,
+        )
         if isinstance(response, dict) and response.get("resourceType") == "Bundle":
             entries = response.get("entry", [])
             for entry in entries:
@@ -83,7 +90,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
                     return resource.get("id")
             return None
         ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_029,
+            OdsETLPipelineLogBase.ETL_PROCESSOR_030,
             ods_code=ods_code,
             type=response.get("resourceType"),
         )

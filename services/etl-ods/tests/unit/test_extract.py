@@ -64,12 +64,12 @@ def test_fetch_organisation_uuid(
     requests_mock: RequestsMock, mocker: MockerFixture
 ) -> None:
     mocker.patch(
-        "pipeline.extract.get_base_crud_api_url",
-        return_value="http://test-crud-api",
+        "pipeline.extract.get_base_apim_api_url",
+        return_value="http://apim-proxy",
     )
 
     mock_call = requests_mock.get(
-        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|XYZ999",
+        "http://apim-proxy/Organization/?identifier=odsOrganisationCode|XYZ999",
         json={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -82,9 +82,10 @@ def test_fetch_organisation_uuid(
     assert result_bundle == "BUNDLE_ORG_ID"
     assert mock_call.called_once
     pipeUrlEncoding = "%7C"
+    print()
     assert (
         mock_call.last_request.url
-        == f"http://test-crud-api/Organization/?identifier=odsOrganisationCode{pipeUrlEncoding}XYZ999"
+        == f"http://apim-proxy/Organization/?identifier=odsOrganisationCode{pipeUrlEncoding}XYZ999"
     )
 
 
@@ -92,8 +93,8 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.extract.get_base_crud_api_url",
-        return_value="http://test-crud-api",
+        "pipeline.extract.get_base_apim_api_url",
+        return_value="http://apim-proxy",
     )
 
     class MockResponse:
@@ -120,8 +121,8 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.extract.get_base_crud_api_url",
-        return_value="http://test-crud-api",
+        "pipeline.extract.get_base_apim_api_url",
+        return_value="http://apim-proxy",
     )
 
     class MockResponse:

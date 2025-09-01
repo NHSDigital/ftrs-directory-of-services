@@ -325,6 +325,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="Error processing date with code: {status_code} and message: {error_message}.",
     )
+    ETL_PROCESSOR_030 = LogReference(
+        level=WARNING,
+        message="Fetching organisation uuid for ods code {ods_code} failed, resource type {type} returned.",
+    )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
         message="Received event for ODS ETL consumer lambda.",

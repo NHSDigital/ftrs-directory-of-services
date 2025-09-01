@@ -16,7 +16,7 @@ from pipeline.processor import MAX_DAYS_PAST, processor, processor_lambda_handle
 class MockResponses(NamedTuple):
     ods_sync: Matcher
     ods_abc123: Matcher
-    crud_org_abc123: Matcher
+    apim_org_abc123: Matcher
 
 
 @pytest.fixture
@@ -66,8 +66,8 @@ def mock_responses(requests_mock: RequestsMock) -> MockResponses:
         json=ods_data_abc123,
     )
 
-    # Setup CRUD API Mock for Organisation UUID (returns a FHIR Bundle with Organization resource)
-    crud_api_data_abc123 = {
+    # Setup APIM API Mock for Organisation UUID (returns a FHIR Bundle with Organization resource)
+    apim_api_data_abc123 = {
         "resourceType": "Bundle",
         "type": "searchset",
         "entry": [
@@ -79,15 +79,15 @@ def mock_responses(requests_mock: RequestsMock) -> MockResponses:
             }
         ],
     }
-    crud_org_abc123_mock = requests_mock.get(
-        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|ABC123",
-        json=crud_api_data_abc123,
+    apim_org_abc123_mock = requests_mock.get(
+        "http://test-apim-api/Organization/?identifier=odsOrganisationCode|ABC123",
+        json=apim_api_data_abc123,
     )
 
     return MockResponses(
         ods_sync=ods_sync_mock,
         ods_abc123=ods_abc123_mock,
-        crud_org_abc123=crud_org_abc123_mock,
+        apim_org_abc123=apim_org_abc123_mock,
     )
 
 
@@ -110,15 +110,15 @@ def test_processor_processing_organisations_successful(
     assert mock_responses.ods_abc123.called_once
     assert mock_responses.ods_abc123.last_request.path == "/stu3/organization/abc123"
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
-    # Assert CRUD API Call for Organisation UUID
-    assert mock_responses.crud_org_abc123.called_once
-    assert mock_responses.crud_org_abc123.last_request.path == "/organization/"
+    # Assert APIM API Call for Organisation UUID
+    assert mock_responses.apim_org_abc123.called_once
+    assert mock_responses.apim_org_abc123.last_request.path == "/organization/"
     assert (
-        mock_responses.crud_org_abc123.last_request.query
+        mock_responses.apim_org_abc123.last_request.query
         == "identifier=odsorganisationcode%7cabc123"
     )
     assert (
-        requests_mock.request_history[2] == mock_responses.crud_org_abc123.last_request
+        requests_mock.request_history[2] == mock_responses.apim_org_abc123.last_request
     )
     # Assert load_data call
     load_data_mock.assert_called_once()
@@ -182,8 +182,8 @@ def test_processor_continue_on_validation_failure(
         },
     )
 
-    crud_api_abc123_mock = requests_mock.get(
-        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|ABC123",
+    apim_api_abc123_mock = requests_mock.get(
+        "http://test-apim-api/Organization/?identifier=odsOrganisationCode|ABC123",
         status_code=422,  # Simulate Unprocessable Entity error
     )
 
@@ -207,7 +207,7 @@ def test_processor_continue_on_validation_failure(
         },
     )
 
-    crud_api_data_efg456 = {
+    apim_api_data_efg456 = {
         "resourceType": "Bundle",
         "type": "searchset",
         "entry": [
@@ -219,9 +219,9 @@ def test_processor_continue_on_validation_failure(
             }
         ],
     }
-    crud_efg456_mock = requests_mock.get(
-        "http://test-crud-api/Organization/?identifier=odsOrganisationCode|EFG456",
-        json=crud_api_data_efg456,
+    apim_efg456_mock = requests_mock.get(
+        "http://test-apim-api/Organization/?identifier=odsOrganisationCode|EFG456",
+        json=apim_api_data_efg456,
     )
     expected_call_count = 5
 
@@ -242,19 +242,19 @@ def test_processor_continue_on_validation_failure(
     assert mock_responses.ods_abc123.last_request.path == "/stu3/organization/abc123"
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
 
-    # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000abc)
-    assert crud_api_abc123_mock.called_once
+    # Assert APIM API Call for Organisation UUID (00000000-0000-0000-0000-000000000abc)
+    assert apim_api_abc123_mock.called_once
     assert (
-        crud_api_abc123_mock.last_request.query
+        apim_api_abc123_mock.last_request.query
         == "identifier=odsorganisationcode%7cabc123"
     )
 
-    assert requests_mock.request_history[2] == crud_api_abc123_mock.last_request
+    assert requests_mock.request_history[2] == apim_api_abc123_mock.last_request
 
     # Failure for ABC123 should be logged
     expected_failed_log = OdsETLPipelineLogBase.ETL_PROCESSOR_027.value.message.format(
         ods_code="ABC123",
-        error_message="422 Client Error: None for url: http://test-crud-api/Organization/?identifier=odsOrganisationCode%7CABC123",
+        error_message="422 Client Error: None for url: http://test-apim-api/Organization/?identifier=odsOrganisationCode%7CABC123",
     )
     assert expected_failed_log in caplog.text
 
@@ -263,13 +263,13 @@ def test_processor_continue_on_validation_failure(
     assert ods_efg456_mock.last_request.path == "/stu3/organization/efg456"
     assert requests_mock.request_history[3] == ods_efg456_mock.last_request
 
-    # Assert CRUD API Call for Organisation UUID (00000000-0000-0000-0000-000000000EFG)
-    assert crud_efg456_mock.called_once
-    assert crud_efg456_mock.last_request.path == "/organization/"
+    # Assert APIM API Call for Organisation UUID (00000000-0000-0000-0000-000000000EFG)
+    assert apim_efg456_mock.called_once
+    assert apim_efg456_mock.last_request.path == "/organization/"
     assert (
-        crud_efg456_mock.last_request.query == "identifier=odsorganisationcode%7cefg456"
+        apim_efg456_mock.last_request.query == "identifier=odsorganisationcode%7cefg456"
     )
-    assert requests_mock.request_history[4] == crud_efg456_mock.last_request
+    assert requests_mock.request_history[4] == apim_efg456_mock.last_request
 
     # Assert load_data call
     load_data_mock.assert_called_once()
