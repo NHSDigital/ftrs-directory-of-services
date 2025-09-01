@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+*.egg
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+coverage.xml
+test-report.xml
+
+# Build artifacts
+dist/
+build/
+*.tar.gz
