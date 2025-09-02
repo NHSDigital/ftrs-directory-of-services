@@ -44,9 +44,6 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB"]
 
-[tool.ruff.lint.per-file-ignores]
-"pipeline/utilities.py" = ["PLR0913"]
-
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

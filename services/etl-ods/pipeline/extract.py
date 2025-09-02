@@ -78,7 +78,6 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
         response = make_request(
             organisation_get_uuid_uri,
             method="GET",
-            sign=False,
             api_key=api_key,
             fhir=True,
         )
