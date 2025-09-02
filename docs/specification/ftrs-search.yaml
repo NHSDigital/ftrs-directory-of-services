@@ -83,14 +83,6 @@ paths:
         A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
         - it has a minimum of 5 alpha-numeric characters
         - it has a maximum of 12 alpha-numeric characters
-
-        ## Sandbox test scenarios
-
-        | Scenario         | Request              | Response                                      |
-        | ---------------- | -------------------- | --------------------------------------------- |
-        | Valid ODS code   | odsCode=TBC          | HTTP Status 200 with OrganizationResponse     |
-        | Invalid ODS code | odsCode=TBC          | HTTP Status 422 with INVALID_ODS_CODE message |
-        | Missing ODS code | No odsCode parameter | HTTP Status 422 with MISSING_ODS_CODE message |
       operationId: searchOrganizations
       security:
         - app-level3: [ ]
@@ -223,23 +215,54 @@ paths:
                     search:
                       mode: "include"
         '400':
-          description: Bad request (e.g., invalid search data)
+          description: Bad request
           content:
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: "OperationOutcome"
-                issue:
-                  - severity: "error"
-                    code: "value"
-                    details:
-                      coding:
-                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                          version: "1.0.0"
-                          code: "INVALID_SEARCH_DATA"
-                          display: "Invalid search data"
-                    diagnostics: "The request is missing the 'revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+              examples:
+                invalid-identifier-value:
+                  summary: Invalid ODS code format
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "Invalid identifier value: ODS code 'H82028' must follow format ^[A-Z0-9]{5,12}$"
+                missing-revinclude:
+                  summary: Missing required _revinclude parameter
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "The request is missing the 'revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+                invalid-identifier-system:
+                  summary: Invalid identifier system
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "code-invalid"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
 
         '401':
           description: Unauthorized - Invalid or missing authentication token
@@ -277,24 +300,6 @@ paths:
                           version: "1"
                           code: "FORBIDDEN"
                           display: "Forbidden"
-        '422':
-          description: Unprocessable Entity (e.g., ODS code validation failed)
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: "OperationOutcome"
-                issue:
-                  - severity: "error"
-                    code: "processing"
-                    diagnostics: "Supplied ODS Code must be only alphanumeric characters with a length of 1-12 characters"
-                    details:
-                      coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
-                          version: "1"
-                          code: "INVALID_ODS_Code"
-                          display: "Invalid ODS code"
         '500':
           description: Internal server error
           content:
@@ -304,15 +309,9 @@ paths:
               example:
                 resourceType: "OperationOutcome"
                 issue:
-                  - severity: "error"
+                  - severity: "fatal"
                     code: "exception"
-                    diagnostics: "An unexpected error occurred"
-                    details:
-                      coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
-                          version: "1"
-                          code: "INTERNAL_SERVER_ERROR"
-                          display: "Internal server error"
+                    diagnostics: "Internal server error"
 
 components:
   securitySchemes:
@@ -517,6 +516,7 @@ components:
             required:
               - severity
               - code
+              - diagnostics
             properties:
               severity:
                 type: string
