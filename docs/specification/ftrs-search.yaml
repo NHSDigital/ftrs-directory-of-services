@@ -55,14 +55,6 @@ info:
     Errors specific to each API endpoint are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
     Your API-calling application should have a mechanism to automatically try again, for example by giving status information to your end user, before giving up. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.
 
-    ## Environments and testing
-
-    | Environment      | Base URL |
-    |------------------|----------|
-    | Sandbox          | TBC      |
-    | Integration test | TBC      |
-    | Production       | TBC      |
-
     ### Sandbox testing
     Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing) is for early developer testing only covers a limited set of scenarios is open access, so does not allow you to test authorisation.
     ### Integration testing
@@ -71,8 +63,12 @@ info:
     You must get your software onboarded before it can go live. For more details, contact us at TBC.
   version: 1.0.0
 servers:
-  - url: 'https://internal-dev.api.service.nhs.uk/ftrs-search/FHIR/R4'
-    description: Development environment
+  - url: 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Sandbox
+  - url: 'https://int.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Integration
+  - url: 'https://api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Production
 security:
   - app-level3: [ ]
 paths:
