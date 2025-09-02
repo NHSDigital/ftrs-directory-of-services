@@ -58,6 +58,13 @@ def process_message_and_send_request(record: dict) -> None:
 
     message_id = record["messageId"]
 
+    ods_consumer_logger.log(
+        OdsETLPipelineLogBase.ETL_CONSUMER_TEMP,
+        message_id=message_id,
+        body=body,
+        position="Before path check",
+    )
+
     if not path or not body:
         err_msg = ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_006,
@@ -65,10 +72,31 @@ def process_message_and_send_request(record: dict) -> None:
         )
         raise ValueError(err_msg)
 
+    ods_consumer_logger.log(
+        OdsETLPipelineLogBase.ETL_CONSUMER_TEMP,
+        message_id=message_id,
+        body=body,
+        position="Before get fhir url check",
+    )
+
     api_url = get_base_fhir_api_url()
     api_url = api_url + "/Organization/" + path
 
+    ods_consumer_logger.log(
+        OdsETLPipelineLogBase.ETL_CONSUMER_TEMP,
+        message_id=message_id,
+        body=body,
+        position="Before get api key",
+    )
+
     api_key = get_api_key()
+
+    ods_consumer_logger.log(
+        OdsETLPipelineLogBase.ETL_CONSUMER_TEMP,
+        message_id=message_id,
+        body=body,
+        position="Before make request",
+    )
 
     try:
         response = make_request(

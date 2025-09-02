@@ -345,6 +345,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="Message id: {message_id} is missing 'path' or 'body' fields.",
     )
+    ETL_CONSUMER_TEMP = LogReference(
+        level=WARNING,
+        message="Message id: {message_id} body: {body}. {position}",
+    )
     ETL_CONSUMER_007 = LogReference(
         level=INFO,
         message="Successfully sent request to API. Response status code: {status_code}.",
