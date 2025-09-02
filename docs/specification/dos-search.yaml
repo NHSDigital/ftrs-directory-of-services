@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: Find the Right Service Search API
+  title: Directory of Services Search API
   description: |
     ## Overview
-    Use this API to access healthcare services details profiled in the Find the Right Service Directory. This API provides read-only access to the data held in the directory.
+    Use this API to access healthcare services details profiled in the Directory of Services. This API provides read-only access to the data held in the directory.
     You can:
     - Obtain Organization details (including Endpoints managed by the Organization) for a given Organization ODS Code
     In the future you will be able to:
