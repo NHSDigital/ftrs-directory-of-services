@@ -44,7 +44,7 @@ def get_base_fhir_api_url() -> str:
     if env == "local":
         return os.environ["LOCAL_FHIR_API_URL"]
 
-    if env == "int":
+    if env == "int" or env == "dev":
         return "https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4"
 
     return f"https://internal-{env}.api.service.nhs.uk/dos-ingestion/FHIR/R4"
