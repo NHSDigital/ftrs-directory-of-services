@@ -26,7 +26,7 @@ on:
       environment:
         description: "Deployment environment"
         required: true
-        default: "dev"
+        default: "test"
         type: choice
         options:
           - dev
