@@ -348,7 +348,6 @@ components:
                 format: uri
         entry:
           type: array
-          minItems: 1
           # checkov:skip=CKV_OPENAPI_21: TODO add max items after pagination implemented https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1872
           items:
             type: object
