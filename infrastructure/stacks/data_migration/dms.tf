@@ -1,15 +1,11 @@
-resource "aws_iam_service_linked_role" "dms" {
-  count = local.is_primary_environment ? 1 : 0
-
-  aws_service_name = "dms.amazonaws.com"
-}
-
 resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
   count = local.is_primary_environment ? 1 : 0
 
   replication_subnet_group_id          = "${local.resource_prefix}-etl-replication-subnet-group"
   replication_subnet_group_description = "Subnet group for DMS ETL replication instance"
   subnet_ids                           = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+
+  depends_on = [aws_iam_role_policy_attachment.dms_vpc_role_policy_attachment]
 }
 
 resource "aws_dms_replication_instance" "dms_replication_instance" {
