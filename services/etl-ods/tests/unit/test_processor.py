@@ -1,16 +1,16 @@
 import json
+from datetime import datetime, timedelta
+from http import HTTPStatus
 from typing import NamedTuple
 
 import pytest
 import requests
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
-from requests_mock import (
-    Mocker as RequestsMock,
-)
+from requests_mock import Mocker as RequestsMock
 from requests_mock.adapter import _Matcher as Matcher
 
-from pipeline.processor import processor, processor_lambda_handler
+from pipeline.processor import MAX_DAYS_PAST, processor, processor_lambda_handler
 
 
 class MockResponses(NamedTuple):
@@ -20,9 +20,7 @@ class MockResponses(NamedTuple):
 
 
 @pytest.fixture
-def mock_responses(
-    requests_mock: RequestsMock,
-) -> MockResponses:
+def mock_responses(requests_mock: RequestsMock) -> MockResponses:
     # Setup ODS Sync Data Mock
     ods_sync_data = {
         "Organisations": [
@@ -90,25 +88,19 @@ def test_processor_processing_organisations_successful(
     mock_responses: MockResponses,
 ) -> None:
     expected_call_count = 3
-
-    date = "2023-01-01"
-
+    date = datetime.now().strftime("%Y-%m-%d")
     load_data_mock = mocker.patch("pipeline.processor.load_data")
     assert processor(date) is None
-
     assert requests_mock.call_count == expected_call_count
-
     # Assert ODS Sync Call
     assert mock_responses.ods_sync.called_once
     assert mock_responses.ods_sync.last_request.path == "/ord/2-0-0/sync"
     assert mock_responses.ods_sync.last_request.qs == {"lastchangedate": [date]}
     assert requests_mock.request_history[0] == mock_responses.ods_sync.last_request
-
     # Assert ODS Organisation Call for ABC123
     assert mock_responses.ods_abc123.called_once
     assert mock_responses.ods_abc123.last_request.path == "/stu3/organization/abc123"
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
-
     # Assert CRUD API Call for Organisation UUID
     assert mock_responses.crud_org_abc123.called_once
     assert (
@@ -118,11 +110,9 @@ def test_processor_processing_organisations_successful(
     assert (
         requests_mock.request_history[2] == mock_responses.crud_org_abc123.last_request
     )
-
     # Assert load_data call
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
-
     # Check the data struct
     assert data_to_load == [
         {
@@ -215,7 +205,7 @@ def test_processor_continue_on_validation_failure(
     )
     expected_call_count = 5
 
-    date = "2023-01-01"
+    date = datetime.now().strftime("%Y-%m-%d")
 
     load_data_mock = mocker.patch("pipeline.processor.load_data")
     assert processor(date) is None
@@ -273,11 +263,11 @@ def test_processor_continue_on_validation_failure(
                         "coding": [
                             {
                                 "system": "TO-DO",
-                                "code": "GP Service",
-                                "display": "GP Service",
+                                "code": "GP Practice",
+                                "display": "GP Practice",
                             }
                         ],
-                        "text": "GP Service",
+                        "text": "GP Practice",
                     }
                 ],
                 "name": "Test Organisation EFG ODS",
@@ -305,7 +295,7 @@ def test_processor_no_outdated_organisations(
         json={"Organisations": []},
     )
 
-    date = "2023-01-01"
+    date = datetime.now().strftime("%Y-%m-%d")
     assert processor(date) is None
 
     expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_020.value.message.format(
@@ -335,7 +325,7 @@ def test_processor_no_organisations_logs_and_returns(
     mocker: MockerFixture, requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch("pipeline.processor.fetch_sync_data", return_value=[])
-    date = "2023-01-01"
+    date = datetime.now().strftime("%Y-%m-%d")
     assert processor(date) is None
     expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_020.value.message.format(
         date=date
@@ -349,7 +339,7 @@ def test_processor_skips_when_orglink_missing(
     mocker.patch(
         "pipeline.processor.fetch_sync_data", return_value=[{"NotOrgLink": "missing"}]
     )
-    date = "2023-01-01"
+    date = datetime.now().strftime("%Y-%m-%d")
     assert processor(date) is None
     expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_021.value.message.format()
     assert expected_log in caplog.text
@@ -371,7 +361,7 @@ def test_process_organisation_exception_logs_and_returns_none(
 
 def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     mock_processor = mocker.patch("pipeline.processor.processor")
-    date = "2025-02-02"
+    date = datetime.now().strftime("%Y-%m-%d")
     event = {"date": date}
 
     response = processor_lambda_handler(event, {})
@@ -382,28 +372,57 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
 
 def test_processor_lambda_handler_missing_date() -> None:
     response = processor_lambda_handler({}, {})
-
-    assert response == {"statusCode": 400, "body": "Date parameter is required"}
+    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
+    assert json.loads(response["body"]) == {"error": "Date parameter is required"}
 
 
 def test_processor_lambda_handler_invalid_date_format() -> None:
     invalid_event = {"date": "14-05-2025"}
-
     response = processor_lambda_handler(invalid_event, {})
+    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
+    assert json.loads(response["body"]) == {
+        "error": "Date must be in YYYY-MM-DD format"
+    }
 
-    assert response == {"statusCode": 400, "body": "Date must be in YYYY-MM-DD format"}
+
+def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
+    # Date more than 185 days in the past from 2025-08-14
+    old_date = "2023-01-01"
+    event = {"date": old_date}
+    mock_processor = mocker.patch("pipeline.processor.processor")
+    response = processor_lambda_handler(event, {})
+
+    mock_processor.assert_not_called()
+    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
+    assert json.loads(response["body"]) == {
+        "error": f"Date must not be more than {MAX_DAYS_PAST} days in the past"
+    }
+
+
+def test_processor_lambda_handler_date_exactly_185_days(mocker: MockerFixture) -> None:
+    # Calculate a date exactly 185 days ago from today
+    date_185_days_ago = (datetime.now().date() - timedelta(days=185)).strftime(
+        "%Y-%m-%d"
+    )
+    event = {"date": date_185_days_ago}
+    mock_processor = mocker.patch("pipeline.processor.processor")
+    response = processor_lambda_handler(event, {})
+    mock_processor.assert_called_once_with(date=date_185_days_ago)
+    assert response == {"statusCode": 200, "body": "Processing complete"}
 
 
 def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
     mock_processor = mocker.patch("pipeline.processor.processor")
     mock_processor.side_effect = Exception("Test error")
-    event = {"date": "2025-02-02"}
+    date = datetime.now().strftime("%Y-%m-%d")
+    event = {"date": date}
 
     result = processor_lambda_handler(event, {})
 
-    mock_processor.assert_called_once_with(date="2025-02-02")
+    mock_processor.assert_called_once_with(date=date)
     assert str(result["statusCode"]) == "500"
-    assert "Unexpected error: Test error" in result["body"]
+    error_body = json.loads(result["body"])
+    assert "Unexpected error: Test error" in error_body["error"]
 
 
 def test_processor_logs_and_raises_request_exception(
@@ -413,7 +432,7 @@ def test_processor_logs_and_raises_request_exception(
         "pipeline.processor.fetch_sync_data",
         side_effect=requests.exceptions.RequestException("network fail"),
     )
-    date = "2023-01-01"
+    date = datetime.now().strftime("%Y-%m-%d")
     with caplog.at_level("INFO"):
         with pytest.raises(requests.exceptions.RequestException, match="network fail"):
             processor(date)
@@ -430,7 +449,7 @@ def test_processor_logs_and_raises_generic_exception(
         "pipeline.processor.fetch_sync_data",
         side_effect=Exception("unexpected error"),
     )
-    date = "2023-01-01"
+    date = datetime.now().strftime("%Y-%m-%d")
     with caplog.at_level("INFO"):
         with pytest.raises(Exception, match="unexpected error"):
             processor(date)

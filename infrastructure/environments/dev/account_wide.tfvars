@@ -1,6 +1,3 @@
-environment         = "dev"
-data_classification = "3"
-
 vpc = {
   name = "vpc"
   cidr = "10.170.0.0/16"
@@ -20,14 +17,5 @@ vpc = {
   database_subnet_c = "10.170.203.0/24"
 }
 
-sso_roles = [
-  "AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
-  "AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
-]
-
 enable_flow_log           = false
 flow_log_s3_force_destroy = true
-
-gp_search_organisation_table_name = "organisation-is"
-
-force_destroy_access_logging_bucket = true

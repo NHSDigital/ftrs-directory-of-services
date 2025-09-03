@@ -62,7 +62,21 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/source-rds-credentials-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.source_rds_credentials}-*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
+  count = local.is_primary_environment ? 1 : 0
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.target_rds_credentials}-*",
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.dms_user_password}-*"
     ]
   }
 }
@@ -98,6 +112,68 @@ data "aws_iam_policy_document" "sqs_access_policy" {
     ]
     resources = [
       aws_sqs_queue.dms_event_queue.arn
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "lambda_rds_policy" {
+  count = local.is_primary_environment ? 1 : 0
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBClusters",
+      "rds:ExecuteStatement",
+      "rds-data:ExecuteStatement",
+      "rds-data:BatchExecuteStatement",
+      "rds-data:BeginTransaction",
+      "rds-data:CommitTransaction",
+      "rds-data:RollbackTransaction"
+    ]
+    resources = [
+      module.rds_replication_target_db[0].cluster_arn
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "rds_event_listener_sqs_access_policy" {
+  count = local.is_primary_environment ? 1 : 0
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:SendMessage",
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes"
+    ]
+    resources = [
+      "${aws_sqs_queue.dms_event_queue.arn}*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "ssm_access_policy" {
+  count = local.is_primary_environment ? 1 : 0
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters",
+      "ssm:GetParametersByPath"
+    ]
+    resources = ["arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter${var.sqs_ssm_path_for_ids}${var.environment}/*"]
+  }
+}
+
+data "aws_iam_policy_document" "rds_connect_policy" {
+  count = local.is_primary_environment ? 1 : 0
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds-db:connect"
+    ]
+    resources = [
+      "arn:aws:rds-db:${var.aws_region}:${local.account_id}:dbuser:${module.rds_replication_target_db[0].cluster_id}/${aws_secretsmanager_secret_version.rds_username[0].secret_string}"
     ]
   }
 }

@@ -35,10 +35,16 @@ variable "consumer_lambda_handler" {
   type        = string
 }
 
-variable "lambda_connection_timeout" {
-  description = "The timeout for the ETL ODS Lambda functions"
+variable "consumer_lambda_connection_timeout" {
+  description = "The timeout for the ETL ODS consumer lambda function"
   type        = number
 }
+
+variable "processor_lambda_connection_timeout" {
+  description = "The timeout for the ETL ODS processor lambda function. 12 minutes to allow for longer processing times"
+  type        = number
+}
+
 
 variable "lambda_memory_size" {
   description = "The memory size for the ETL ODS Lambda functions"
@@ -77,4 +83,8 @@ variable "receive_wait_time_seconds" {
 
 variable "sqs_managed_sse_enabled" {
   description = "Enables Server-Side Encryption for messages stored in the queue"
+}
+
+variable "max_receive_count" {
+  description = "The maximum number of times a message can be received before being sent to the dead letter queue"
 }

@@ -1,5 +1,5 @@
 import json
-import re
+from datetime import datetime, timezone
 
 import requests
 from ftrs_common.logger import Logger
@@ -15,6 +15,7 @@ from .extract import (
 )
 from .transform import transform_to_payload
 
+MAX_DAYS_PAST = 185
 BATCH_SIZE = 10
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -100,10 +101,11 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
     try:
         date = event.get("date")
         if not date:
-            return {"statusCode": 400, "body": "Date parameter is required"}
-        date_pattern = r"^\d{4}-\d{2}-\d{2}$"
-        if not re.match(date_pattern, date):
-            return {"statusCode": 400, "body": "Date must be in YYYY-MM-DD format"}
+            return _error_response(400, "Date parameter is required")
+
+        valid, error_message = _validate_date(date)
+        if not valid:
+            return _error_response(400, error_message)
         else:
             processor(date=date)
             return {"statusCode": 200, "body": "Processing complete"}
@@ -113,4 +115,27 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
             OdsETLPipelineLogBase.ETL_PROCESSOR_023,
             error_message=str(e),
         )
-        return {"statusCode": 500, "body": f"Unexpected error: {e}"}
+        return _error_response(500, f"Unexpected error: {e}")
+
+
+def _validate_date(date_str: str) -> tuple[bool, str | None]:
+    """Validate the date string for format and 185-day rule."""
+    try:
+        input_date = datetime.strptime(date_str, "%Y-%m-%d").replace(
+            tzinfo=timezone.utc
+        )
+    except ValueError:
+        return False, "Date must be in YYYY-MM-DD format"
+    today = datetime.now(timezone.utc)
+    if (today - input_date).days > MAX_DAYS_PAST:
+        return False, f"Date must not be more than {MAX_DAYS_PAST} days in the past"
+    return True, None
+
+
+def _error_response(status_code: int, message: str) -> dict:
+    ods_processor_logger.log(
+        OdsETLPipelineLogBase.ETL_PROCESSOR_029,
+        status_code=status_code,
+        error_message=str(message),
+    )
+    return {"statusCode": status_code, "body": json.dumps({"error": message})}

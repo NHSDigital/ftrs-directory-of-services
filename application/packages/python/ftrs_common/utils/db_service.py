@@ -1,6 +1,7 @@
 from typing import TypeVar
 
 from ftrs_common.utils.config import Settings
+from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
@@ -40,8 +41,35 @@ def get_table_name(entity_name: str) -> str:
     Returns:
         str: The constructed table name
     """
+    return format_table_name(
+        entity_name=entity_name,
+        env=env_variable_settings.env,
+        workspace=env_variable_settings.workspace,
+    )
 
-    table_name = f"ftrs-dos-{env_variable_settings.env}-database-{entity_name}"
-    if env_variable_settings.workspace:
-        table_name = f"{table_name}-{env_variable_settings.workspace}"
+
+def format_table_name(entity_name: str, env: str, workspace: str | None = None) -> str:
+    """
+    Format the DynamoDB table name based on the entity name, environment, and optional workspace.
+
+    Args:
+        entity_name: The type of entity for the table name
+        env: The environment (e.g., dev, test)
+        workspace: The workspace (if any)
+
+    Returns:
+        str: The formatted table name
+    """
+    table_name = f"ftrs-dos-{env}-database-{entity_name}"
+    if workspace:
+        table_name = f"{table_name}-{workspace}"
     return table_name
+
+
+def get_table_arn(table_name: str) -> str:
+    """
+    Get the ARN of a DynamoDB table
+    """
+    client = get_dynamodb_client()
+    response = client.describe_table(TableName=table_name)
+    return response["Table"]["TableArn"]

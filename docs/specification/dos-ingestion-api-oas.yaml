@@ -1,6 +1,6 @@
 openapi: 3.0.3
-# checkov:skip=CKV_OPENAPI_4: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
-# checkov:skip=CKV_OPENAPI_21: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
+# checkov:skip=CKV_OPENAPI_4: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-411
+# checkov:skip=CKV_OPENAPI_21: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-411
 info:
   title: Directory of Services Ingestion API
   description: |
@@ -108,7 +108,8 @@ info:
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
   version: 1.0.0
 servers:
-  - url: 'https://internal-dev.api.service.nhs.uk/dos-ingestion/FHIR/R4'
+  - url: 'https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4'
+    description: Integration Environment
 paths:
   '/Organization/':
     post:

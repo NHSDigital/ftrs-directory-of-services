@@ -80,17 +80,6 @@ variable "dynamodb_table_names" {
   type        = list(string)
 }
 
-variable "vpc" {
-  description = "A map of VPC configuration, including VPC ID, CIDR block, and other networking details"
-  type        = map(any)
-  default     = {}
-}
-
-variable "aws_accounts" {
-  description = "List of AWS account environments"
-  type        = list(string)
-}
-
 variable "mgmt_account_id" {
   description = "Management account ID"
   type        = string

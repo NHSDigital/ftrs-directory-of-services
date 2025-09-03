@@ -6,36 +6,36 @@ permissions:
 on:
   workflow_call:
     inputs:
-        environment:
-          description: "The relevant github environment (for secrets and variables)"
-          required: true
-          type: string
-        workspace:
-          description: "The name of the workspace to validate the infrastructure against."
-          required: true
-          type: string
-        tag:
-          description: "The git tag to checkout or, if not passed in, the current branch"
-          required: false
-          type: string
-        stacks:
-          description: "The terraform stacks to be validated"
-          required: true
-          type: string
-        code_directory:
-          description: 'Directory that holds package json for react app '
-          required: false
-          type: string
-          default: 'src/frontend'
-        workflow_timeout:
-          description: "Timeout duration in minutes"
-          required: false
-          default: 5
-          type: number
-        type:
-          description: "The type of permissions (e.g., account, app)"
-          required: true
-          type: string
+      environment:
+        description: "The relevant github environment (for secrets and variables)"
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to validate the infrastructure against."
+        required: true
+        type: string
+      tag:
+        description: "The git tag to checkout or, if not passed in, the current branch"
+        required: false
+        type: string
+      stacks:
+        description: "The terraform stacks to be validated"
+        required: true
+        type: string
+      code_directory:
+        description: "Directory that holds package json for react app "
+        required: false
+        type: string
+        default: "src/frontend"
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 5
+        type: number
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
 
 jobs:
   scan-secrets:
@@ -193,9 +193,8 @@ jobs:
         if: success() || failure()
         with:
           name: "checkov.sarif"
-          path: "."
+          path: "checkov.sarif/"
           if-no-files-found: ignore
-
 
   trivy-scan:
     name: "Trivy scan"
@@ -211,23 +210,22 @@ jobs:
 
       - name: "Trivy scan"
         id: "trivy"
-        uses: aquasecurity/trivy-action@0.32.0
-        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.33.0
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy.sarif'
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy.sarif"
           scanners: vuln,misconfig
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          limit-severities-for-sarif: true
+          trivyignores: 'services/.trivyignore'
           exit-code: 1
 
       - name: "Publish Trivy report"
         uses: actions/upload-artifact@v4.6.1
+        if: success() || failure()
         with:
           name: "trivy.sarif"
-          path: "."
+          path: "trivy.sarif"
           if-no-files-found: ignore
-
-      - name : "Warn Trivy failure"
-        if: ${{ steps.trivy.outcome == 'failure' }}
-        run: echo "::warning::Trivy has encountered issues. Please check the trivy.sarif file for the issues identified"

@@ -1,6 +1,3 @@
-environment         = "ref"
-data_classification = "3"
-
 vpc = {
   name = "vpc"
   cidr = "10.170.0.0/16"
@@ -18,12 +15,5 @@ vpc = {
   database_subnet_c = "10.178.203.0/24"
 }
 
-sso_roles = [
-  "AWSReservedSSO_DOS-FtRS-RO-Developer_3bc2e6cdda06c2e5",
-  "AWSReservedSSO_DOS-FtRS-RO-Infrastructure_622767900be0d98b",
-]
-
 enable_flow_log           = false
 flow_log_s3_force_destroy = true
-
-force_destroy_access_logging_bucket = true

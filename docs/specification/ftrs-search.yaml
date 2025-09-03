@@ -1,7 +1,4 @@
 openapi: 3.0.3
-# checkov:skip=CKV_OPENAPI_4: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
-# checkov:skip=CKV_OPENAPI_21: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
-# checkov:skip=CKV_OPENAPI_5: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1842
 info:
   title: Find the Right Service Search API
   description: |
@@ -26,7 +23,7 @@ info:
     ### Restricted Access
     This is the only access mode supported by the API and it is [application-restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis), meaning we authenticate and authorise the calling application but not the end user. This mode is used as part of a back-end process to retrieve healthcare service details
     This access mode adopts the following security/authentication patterns:
-    - TBC
+    - JWT Private Key authentication
 
     ## Roadmap
     TBC
@@ -74,12 +71,10 @@ info:
     You must get your software onboarded before it can go live. For more details, contact us at TBC.
   version: 1.0.0
 servers:
-  - description: Sandbox environment
-    url: TBC
-  - description: Integration test environment
-    url: TBC
-  - description: Production environment
-    url: TBC
+  - url: 'https://internal-dev.api.service.nhs.uk/ftrs-search/FHIR/R4'
+    description: Development environment
+security:
+  - app-level3: []
 paths:
   /Organization:
     get:
@@ -101,6 +96,8 @@ paths:
         | Invalid ODS code      | odsCode=TBC      | HTTP Status 422 with INVALID_ODS_CODE message           |
         | Missing ODS code      | No odsCode parameter | HTTP Status 422 with MISSING_ODS_CODE message           |
       operationId: searchOrganizations
+      security:
+        - app-level3: []
       parameters:
         - name: organization.identifier
           in: query
@@ -245,6 +242,42 @@ paths:
                           version: "1"
                           code: "INVALID_PARAMETER"
                           display: "Invalid parameter"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    diagnostics: "Invalid or missing authentication token"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "UNAUTHORIZED"
+                          display: "Unauthorized"
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "forbidden"
+                    diagnostics: "Insufficient permissions to access this resource"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "FORBIDDEN"
+                          display: "Forbidden"
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
           content:
@@ -283,6 +316,10 @@ paths:
                           display: "Internal server error"
 
 components:
+  securitySchemes:
+    app-level3:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3
+
   schemas:
     Bundle:
       type: object
@@ -314,6 +351,7 @@ components:
         entry:
           type: array
           minItems: 1
+          # checkov:skip=CKV_OPENAPI_21: TODO add max items after pagination implemented https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1872
           items:
             type: object
             properties:
@@ -486,7 +524,7 @@ components:
                 enum: ["error"]
               code:
                 type: string
-                enum: ["invalid", "internal"]
+                enum: ["invalid", "processing", "security", "forbidden", "exception"]
               diagnostics:
                 type: string
               details:
@@ -505,3 +543,18 @@ components:
                           type: string
                         display:
                           type: string
+
+x-nhsd-apim:
+  target:
+    type: external
+    healthcheck: /_status
+    url: https://servicesearch.dev.ftrs.cloud.nhs.uk
+    security:
+      type: mtls
+      # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
+      secret: ftrs-service-search-mtls-secret
+  access:
+    - title: Application-restricted with Private Key JWT
+      grants:
+        app-level3: []
+      visible: true

@@ -1,3 +1,4 @@
+import re
 from typing import Type
 
 from fhir.resources import FHIRAbstractModel
@@ -37,6 +38,36 @@ class FhirValidator:
         return resource
 
     @staticmethod
+    def _check_for_special_characters(
+        resource: dict, fhir_model: Type[FHIRAbstractModel]
+    ) -> dict:
+        """
+        Validates that the fhir fields do not contain special characters.
+        Returns the resource if valid, raises OperationOutcomeException if not.
+        """
+
+        special_characters_pattern = r"[\";\\`<>|#*@$]"
+
+        stack = [(resource, "")]
+
+        while stack:
+            current, path = stack.pop()
+            if isinstance(current, dict):
+                for k, v in current.items():
+                    new_path = f"{path}.{k}" if path else k
+                    stack.append((v, new_path))
+            elif isinstance(current, list):
+                for idx, item in enumerate(current):
+                    new_path = f"{path}[{idx}]"
+                    stack.append((item, new_path))
+            elif isinstance(current, str):
+                if re.search(special_characters_pattern, current):
+                    msg = f"Field '{path}' contains invalid characters: {current}"
+                    FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
+        return resource
+
+    @staticmethod
     def _log_and_raise(
         msg: str, code: str, fhir_model: Type[FHIRAbstractModel]
     ) -> None:
@@ -63,6 +94,7 @@ class FhirValidator:
         Raises OperationOutcomeException if validation fails.
         """
         resource = FhirValidator._validate_resource_structure(resource, fhir_model)
+        resource = FhirValidator._check_for_special_characters(resource, fhir_model)
         try:
             return fhir_model.model_validate(resource)
         except ValidationError as e:

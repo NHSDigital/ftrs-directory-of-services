@@ -3,7 +3,9 @@ from typing import Literal
 from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
 
 
 class Organisation(BaseModel):
@@ -29,10 +31,19 @@ class OrganisationUpdatePayload(BaseModel):
     identifier: list[Identifier] = Field(..., description="Organization identifiers")
     name: str = Field(max_length=100, example="GP Practice Name")
     active: bool = Field(..., example=True)
-    type: list[Type] = Field(default_factory=list, description="Organization type")
+    type: list[Type] = Field(..., description="Organization type")
     telecom: list[ContactPoint] | None = None
 
     model_config = {"extra": "forbid"}
+
+    @model_validator(mode="after")
+    def check_type_coding_and_text(self) -> "OrganisationUpdatePayload":
+        for t in self.type:
+            if (not t.coding or len(t.coding) == 0) and (not t.text or t.text == ""):
+                raise ValueError(ERROR_MESSAGE_TYPE)
+            if t.coding and (not t.coding[0].code or t.coding[0].code == ""):
+                raise ValueError(ERROR_MESSAGE_TYPE)
+        return self
 
 
 class OrganisationCreatePayload(Organisation):

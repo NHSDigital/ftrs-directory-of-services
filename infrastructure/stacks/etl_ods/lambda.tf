@@ -25,7 +25,7 @@ module "processor_lambda" {
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
-  timeout                 = var.lambda_connection_timeout
+  timeout                 = var.processor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
@@ -66,7 +66,7 @@ module "consumer_lambda" {
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
-  timeout                 = var.lambda_connection_timeout
+  timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
@@ -101,8 +101,9 @@ module "consumer_lambda" {
 
 
 resource "aws_lambda_event_source_mapping" "sqs_trigger" {
-  event_source_arn = aws_sqs_queue.transformed_queue.arn
-  function_name    = module.consumer_lambda.lambda_function_name
-  batch_size       = 10
-  enabled          = true
+  event_source_arn        = aws_sqs_queue.transformed_queue.arn
+  function_name           = module.consumer_lambda.lambda_function_name
+  batch_size              = 10
+  enabled                 = true
+  function_response_types = ["ReportBatchItemFailures"]
 }

@@ -26,13 +26,16 @@
             "Resource": "*"
         },
         {
-            "Sid": "AllowRDSServiceLinkedRoleCreation",
+            "Sid": "AllowDMSRDSServiceLinkedRoleCreation",
             "Effect": "Allow",
             "Action": "iam:CreateServiceLinkedRole",
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                "iam:AWSServiceName": "rds.amazonaws.com"
+                "iam:AWSServiceName": [
+                    "rds.amazonaws.com",
+                    "dms.amazonaws.com"
+                ]
                 }
             }
         },
@@ -118,7 +121,8 @@
                 "arn:aws:iam::*:role/${repo_name}-*",
                 "arn:aws:iam::*:role/${project}-*",
                 "arn:aws:iam::*:policy/${project}-*",
-                "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+                "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
+                "arn:aws:iam::*:role/dms-vpc-role"
             ]
         },
         {
@@ -143,7 +147,8 @@
                         "events.amazonaws.com",
                         "scheduler.amazonaws.com",
                         "pipes.amazonaws.com",
-                        "osis-pipelines.amazonaws.com"
+                        "osis-pipelines.amazonaws.com",
+                        "rds.amazonaws.com"
                     ]
                 }
             }
