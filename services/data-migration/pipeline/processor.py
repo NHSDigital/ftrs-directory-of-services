@@ -2,7 +2,6 @@ from time import perf_counter
 from typing import Iterable
 
 from ftrs_common.logger import Logger
-from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
