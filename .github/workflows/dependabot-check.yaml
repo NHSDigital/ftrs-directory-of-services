@@ -1,0 +1,31 @@
+name: Cleardown paused workflow runs
+
+permissions:
+      actions: write
+      id-token: write
+      contents: read
+on:
+  workflow_call:
+
+jobs:
+  check-and-cancel-redundant-run:
+    name: "Check if run is superfluous"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v5
+
+      - name: "Install jq"
+        run: sudo apt-get install -y jq
+
+      - name: "Cancel if triggerd by PR for non-dependabot branches"
+        id: "cancel_non_dependabot"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          export REPO="${{ github.repository }}"
+          export RUN_ID="${{ github.run_id }}"
+          export TRIGGERING_ACTION = ${{ github.event_name }}"
+          export TRIGGERING_ACTOR = ${{ github.actor }}"
+          /bin/bash ./scripts/workflow/cancel-redundant-run.sh

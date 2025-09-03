@@ -38,9 +38,15 @@ on:
           - prod
 
 jobs:
+  dependabot-check:
+    name: "Check for Dependabot updates"
+    uses: ./.github/workflows/dependabot-check.yaml
+
   metadata:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
+    needs:
+      - dependabot-check
 
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
