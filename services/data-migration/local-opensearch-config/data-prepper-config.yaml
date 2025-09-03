@@ -1,0 +1,13 @@
+ssl: false
+
+# Configure source coordination to use OpenSearch
+source_coordination:
+  store:
+    dynamodb:
+      table_name: "DataPrepperSourceCoordinationStore"
+      region: "eu-west-1"
+      skip_table_creation: false # Set to true if the table is already created
+
+extensions:
+  geoip_service:
+    maxmind:
