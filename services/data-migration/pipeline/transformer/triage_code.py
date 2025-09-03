@@ -1,3 +1,5 @@
+from typing import List
+
 from ftrs_data_layer.domain import (
     ClinicalCodeSource,
     ClinicalCodeType,
@@ -5,7 +7,8 @@ from ftrs_data_layer.domain import (
 from ftrs_data_layer.domain import (
     legacy as legacy_model,
 )
-from ftrs_data_layer.domain.triage_code import TriageCode
+from ftrs_data_layer.domain.legacy import SymptomGroupSymptomDiscriminator
+from ftrs_data_layer.domain.triage_code import TriageCode, TriageCodeCombination
 
 
 class TriageCodeTransformer:
@@ -59,4 +62,28 @@ class TriageCodeTransformer:
             codeID=symptom_discriminator.id,
             codeValue=symptom_discriminator.description or "",
             synonyms=[synonym.name for synonym in symptom_discriminator.synonyms],
+        )
+
+    @classmethod
+    def build_triage_code_combinations(
+        cls, sg_id: int, symptom_group_sd_list: List[SymptomGroupSymptomDiscriminator]
+    ) -> TriageCode:
+        """
+        Build combinations of symptom groups and their associated symptom discriminators.
+        """
+        combinations = []
+
+        for sg_sd in symptom_group_sd_list:
+            if sg_sd.symptomgroup and sg_sd.symptomdiscriminator:
+                combinations.append(
+                    TriageCodeCombination(
+                        value=sg_sd.symptomdiscriminator.description,
+                        id=f"SD{sg_sd.symptomdiscriminator.id}",
+                    )
+                )
+        return TriageCode(
+            id=f"SG{sg_id}",
+            combinations=combinations,
+            field="combinations",
+            codeType=ClinicalCodeType.SG_SD_PAIR,
         )

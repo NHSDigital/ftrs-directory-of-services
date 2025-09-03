@@ -1,5 +1,5 @@
 from typing import NoReturn
-from unittest.mock import Mock, call, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 from ftrs_data_layer.domain import legacy
@@ -11,7 +11,7 @@ from pipeline.triagecode_processor import TriageCodeProcessor
 from pipeline.utils.config import DataMigrationConfig
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def processor() -> TriageCodeProcessor:
     config = Mock(spec=DataMigrationConfig)
     # Create a nested mock for db_config
@@ -169,3 +169,98 @@ def test_save_to_dynamoDB_calls_upsert(
         processor.config, "triage-code", TriageCode, processor.logger
     )
     mock_repo.upsert.assert_called_once_with(triage_code)
+
+
+def test_process_combinations_success(
+    mocker: Mock, processor: TriageCodeProcessor
+) -> NoReturn:
+    """
+    Test successful execution of _process_combinations.
+    """
+    mock_symptom_group_ids = [1, 2]
+    mock_symptom_discriminators = [MagicMock(), MagicMock()]
+    mock_triage_code = MagicMock()
+
+    mocker.patch(
+        "pipeline.triagecode_processor.get_all_symptom_groups",
+        return_value=mock_symptom_group_ids,
+    )
+    mocker.patch(
+        "pipeline.triagecode_processor.get_symptom_discriminators_for_symptom_group",
+        return_value=mock_symptom_discriminators,
+    )
+    mocker.patch(
+        "pipeline.triagecode_processor.TriageCodeTransformer.build_triage_code_combinations",
+        return_value=mock_triage_code,
+    )
+    mocker.patch.object(processor, "_save_to_dynamoDB")
+
+    processor._process_combinations()
+
+    assert processor._save_to_dynamoDB.call_count == len(mock_symptom_group_ids)
+
+
+def test_process_combinations_no_discriminators(
+    mocker: Mock, processor: TriageCodeProcessor
+) -> NoReturn:
+    """
+    Test processing when no symptom discriminators are found for a symptom group.
+    """
+    mock_symptom_group_ids = [1]
+    mocker.patch(
+        "pipeline.triagecode_processor.get_all_symptom_groups",
+        return_value=mock_symptom_group_ids,
+    )
+    mocker.patch(
+        "pipeline.triagecode_processor.get_symptom_discriminators_for_symptom_group",
+        return_value=[],
+    )
+
+    processor._process_combinations()
+
+    processor.logger.log.assert_called_once_with(
+        DataMigrationLogBase.DM_ETL_012, sg_id=1
+    )
+
+
+def test_process_combinations_error_in_discriminator_fetch(
+    mocker: Mock, processor: TriageCodeProcessor
+) -> NoReturn:
+    """
+    Test handling of exceptions when fetching discriminators for a symptom group.
+    """
+    mock_symptom_group_ids = [1]
+    mocker.patch(
+        "pipeline.triagecode_processor.get_all_symptom_groups",
+        return_value=mock_symptom_group_ids,
+    )
+    mocker.patch(
+        "pipeline.triagecode_processor.get_symptom_discriminators_for_symptom_group",
+        side_effect=Exception("Error fetching discriminators"),
+    )
+    processor._process_combinations()
+    processor.logger.exception.assert_called_once()
+    processor.logger.log.assert_called_once_with(
+        DataMigrationLogBase.DM_ETL_008,
+        error="Error fetching discriminators",
+    )
+
+
+def test_process_combinations_engine_error(
+    mocker: Mock, processor: TriageCodeProcessor
+) -> NoReturn:
+    """
+    Test handling of exceptions when fetching symptom groups.
+    """
+    mocker.patch(
+        "pipeline.triagecode_processor.get_all_symptom_groups",
+        side_effect=Exception("Database connection failed"),
+    )
+
+    processor._process_combinations()
+
+    processor.logger.exception.assert_called_once()
+    processor.logger.log.assert_called_once_with(
+        DataMigrationLogBase.DM_ETL_008,
+        error="Database connection failed",
+    )
