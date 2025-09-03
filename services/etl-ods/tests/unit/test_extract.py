@@ -81,10 +81,10 @@ def test_fetch_organisation_uuid(
     result_bundle = fetch_organisation_uuid("XYZ999")
     assert result_bundle == "BUNDLE_ORG_ID"
     assert mock_call.called_once
-    pipeUrlEncoding = "%7C"
+    pipe_url_encoding = "%7C"
     assert (
         mock_call.last_request.url
-        == f"http://apim-proxy/Organization/?identifier=odsOrganisationCode{pipeUrlEncoding}XYZ999"
+        == f"http://apim-proxy/Organization/?identifier=odsOrganisationCode{pipe_url_encoding}XYZ999"
     )
 
 
@@ -140,6 +140,49 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         with pytest.raises(HTTPError) as excinfo:
             fetch_organisation_uuid("ABC123")
         assert isinstance(excinfo.value, HTTPError)
+
+
+def test_fetch_organisation_uuid_invalid_resource_returned(
+    requests_mock: RequestsMock, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch(
+        "pipeline.extract.get_base_apim_api_url",
+        return_value="http://apim-proxy",
+    )
+    requests_mock.get(
+        "http://apim-proxy/Organization/?identifier=odsOrganisationCode|XYZ999",
+        json={
+            "resourceType": "Not Bundle",
+        },
+    )
+    with caplog.at_level("WARNING"):
+        with pytest.raises(ValueError) as excinfo:
+            fetch_organisation_uuid("XYZ999")
+        # Check log for ETL_PROCESSOR_030
+        assert (
+            "Fetching organisation uuid for ods code XYZ999 failed, resource type Not Bundle returned"
+            in caplog.text
+        )
+        # Check error message
+        assert "Organisation not found in database" in str(excinfo.value)
+
+
+def test_fetch_organisation_uuid_no_organisation_returned(
+    requests_mock: RequestsMock, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch(
+        "pipeline.extract.get_base_apim_api_url",
+        return_value="http://apim-proxy",
+    )
+    requests_mock.get(
+        "http://apim-proxy/Organization/?identifier=odsOrganisationCode|XYZ999",
+        json={
+            "resourceType": "Bundle",
+            "entry": [{"resource": {"resourceType": "ABC", "id": "BUNDLE_ORG_ID"}}],
+        },
+    )
+    result = fetch_organisation_uuid("XYZ999")
+    assert result is None
 
 
 def test_extract_ods_code() -> None:

@@ -6,7 +6,7 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from pipeline.utilities import get_api_key, get_base_apim_api_url, make_request
+from pipeline.utilities import get_base_apim_api_url, make_request
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -74,11 +74,10 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             OdsETLPipelineLogBase.ETL_PROCESSOR_028,
             ods_code=ods_code,
         )
-        api_key = get_api_key()
         response = make_request(
             organisation_get_uuid_uri,
             method="GET",
-            api_key=api_key,
+            api_key_required=True,
             fhir=True,
         )
         if isinstance(response, dict) and response.get("resourceType") == "Bundle":

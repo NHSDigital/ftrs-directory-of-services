@@ -1,16 +1,18 @@
+import json
 import os
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
-from botocore.credentials import Credentials
+from botocore.exceptions import ClientError
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
+from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
+    _get_api_key,
     build_headers,
-    get_api_key,
     handle_fhir_response,
     make_request,
 )
@@ -238,7 +240,9 @@ def test_make_request_logs_request_exception(
         )
 
 
-def test_make_request_with_api_key(requests_mock: RequestsMock, mocker) -> None:
+def test_make_request_with_api_key(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
     """
     Test the make_request function with api_key header.
     """
@@ -247,13 +251,13 @@ def test_make_request_with_api_key(requests_mock: RequestsMock, mocker) -> None:
         json={"key": "value"},
         status_code=HTTPStatus.OK,
     )
-    # Patch get_api_key to return a known value
-    mocker.patch("pipeline.utilities.get_api_key", return_value="test-api-key")
+    # Patch _get_api_key to return a known value
+    mocker.patch("pipeline.utilities._get_api_key", return_value="test-api-key")
     url = "https://api.example.com/resource"
-    result = make_request(url, api_key=True)
+    result = make_request(url, api_key_required=True)
     assert result.status_code == HTTPStatus.OK
     assert result.json() == {"key": "value"}
-    assert mock_call.last_request.headers["x-api-key"] == "test-api-key"
+    assert mock_call.last_request.headers["apikey"] == "test-api-key"
 
 
 @patch.dict(
@@ -265,7 +269,7 @@ def test_make_request_with_api_key(requests_mock: RequestsMock, mocker) -> None:
     },
 )
 @patch("pipeline.utilities.boto3.client")
-def test_get_api_key_returns_value_from_json_secret(
+def test__get_api_key_returns_value_from_json_secret(
     mock_boto_client: MagicMock,
 ) -> None:
     mock_secretsmanager = MagicMock()
@@ -274,9 +278,62 @@ def test_get_api_key_returns_value_from_json_secret(
         "SecretString": '{"api_key": "super-secret-key"}'
     }
 
-    api_key = get_api_key()
+    api_key = _get_api_key()
     expected_secret_name = "/ftrs-dos/dev/apim-api-key"
     mock_secretsmanager.get_secret_value.assert_called_once_with(
         SecretId=expected_secret_name
     )
     assert api_key == "super-secret-key"
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test__get_api_key_client_error_logs(
+    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+) -> None:
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    error_response = {"Error": {"Code": "ResourceNotFoundException"}}
+    mock_secretsmanager.get_secret_value.side_effect = ClientError(
+        error_response, "GetSecretValue"
+    )
+    with caplog.at_level("WARNING"):
+        with pytest.raises(ClientError):
+            _get_api_key()
+        assert (
+            "Error with secret: /ftrs-dos/dev/apim-api-key with message An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation"
+            in caplog.text
+        )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test__get_api_key_json_decode_error_logs(
+    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+) -> None:
+    """
+    Test _get_api_key logs ETL_UTILS_007 when JSONDecodeError is thrown.
+    """
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    mock_secretsmanager.get_secret_value.return_value = {
+        "SecretString": "not-a-json-string"
+    }
+    with caplog.at_level("WARNING"):
+        with pytest.raises(json.JSONDecodeError):
+            _get_api_key()
+        assert "Error secret is not in json format" in caplog.text

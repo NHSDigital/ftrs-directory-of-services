@@ -22,7 +22,7 @@ def get_base_apim_api_url() -> str:
     return os.environ.get("APIM_URL")
 
 
-def get_api_key() -> str:
+def _get_api_key() -> str:
     env = os.environ.get("ENVIRONMENT")
 
     if env == "local":
@@ -59,18 +59,18 @@ def get_resource_prefix() -> str:
 def build_headers(options: dict) -> dict:
     """
     Builds headers for the outgoing HTTP request.
-    Expects options dict with keys: json_data, json_string, fhir, url, method
+    Expects options dict with keys: json_data, json_string, fhir, url, method, api_key_required
     """
     headers = {}
     json_data = options.get("json_data")
     json_string = options.get("json_string")
     fhir = options.get("fhir")
-    api_key = options.get("api_key")
+    api_key_required = options.get("api_key_required", False)
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
-    if api_key is not None:
-        headers["apikey"] = api_key
+    if api_key_required:
+        headers["apikey"] = _get_api_key()
     # Set FHIR headers if needed
     if fhir:
         headers["Accept"] = "application/fhir+json"
@@ -90,7 +90,7 @@ def make_request(
     method: str = "GET",
     params: dict = None,
     fhir: bool = False,
-    api_key: str = None,
+    api_key_required: bool = True,
     **kwargs: dict,
 ) -> requests.Response:
     json_data = kwargs.get("json")
@@ -103,7 +103,7 @@ def make_request(
             "fhir": fhir,
             "url": url,
             "method": method,
-            "api_key": api_key,
+            "api_key_required": api_key_required,
         }
     )
 
