@@ -1,6 +1,9 @@
 name: Cancel run if triggered by a PR for a non dependabot branches
 
-permissions: {}
+permissions:
+      actions: write
+      id-token: write
+      contents: read
 on:
   workflow_call:
 

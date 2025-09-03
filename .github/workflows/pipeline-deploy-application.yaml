@@ -41,6 +41,10 @@ jobs:
   dependabot-check:
     name: "Check for Dependabot updates"
     uses: ./.github/workflows/dependabot-check.yaml
+    permissions:
+      actions: write
+      id-token: write
+      contents: read
 
   metadata:
     name: "Get CI/CD metadata"
