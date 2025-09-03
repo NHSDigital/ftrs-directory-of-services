@@ -76,3 +76,4 @@ class ClinicalCodeType(str, Enum):
     SYMPTOM_GROUP = "Symptom Group (SG)"
     SYMPTOM_DISCRIMINATOR = "Symptom Discriminator (SD)"
     DISPOSITION = "Disposition (Dx)"
+    SG_SD_PAIR = "Symptom Group and Symptom Discriminator Pair (SG-SD)"

@@ -137,6 +137,7 @@ def test_builds_triage_code_combinations() -> None:
     result = TriageCodeTransformer.build_triage_code_combinations(1, sg_sd)
     assert result.field == "combinations"
     assert result.id == "SG1"
+    assert result.codeType == ClinicalCodeType.SG_SD_PAIR
     assert result.combinations == [
         TriageCodeCombination(value="Symptom Discriminator description", id="SD2")
     ]

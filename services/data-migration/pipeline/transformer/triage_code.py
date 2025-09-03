@@ -85,4 +85,5 @@ class TriageCodeTransformer:
             id=f"SG{sg_id}",
             combinations=combinations,
             field="combinations",
+            codeType=ClinicalCodeType.SG_SD_PAIR,
         )
