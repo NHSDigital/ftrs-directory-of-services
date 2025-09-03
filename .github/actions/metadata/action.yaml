@@ -70,4 +70,4 @@ runs:
         echo "python_version=$(grep "^python" .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
         echo "terraform_version=$(grep "^terraform" .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
         echo "version=$(head -n 1 .version 2> /dev/null || echo unknown)" >> $GITHUB_OUTPUT
-        echo "github triggering actor: ${{ github.triggering_actor }}"
+        echo "run id: ${{ context.runId }}"
