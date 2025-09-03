@@ -32,10 +32,11 @@ if [ $EXPORTS_SET = 1 ] ; then
   echo One or more parameters not set
   exit 1
 fi
-
+# pull_request
+# 'dependabot[bot]'
 echo "Checking triggering action ($TRIGGERING_ACTION) and actor ($TRIGGERING_ACTOR) for run  $RUN_ID in repository $REPO"
 
-if [[ $TRIGGERING_ACTION == "pull_request" && $TRIGGERING_ACTOR != 'dependabot[bot]' ]] ; then
+if [[ $TRIGGERING_ACTION == "push" && $TRIGGERING_ACTOR != 'timrickwood' ]] ; then
   echo "Cancelling workflow $ID because it was triggered by a pull request but is not for a dependabot branch"
   gh run cancel "$RUN_ID" --repo "$REPO"
 fi
