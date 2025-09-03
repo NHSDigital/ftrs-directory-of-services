@@ -1,9 +1,6 @@
-name: Cleardown paused workflow runs
+name: Cancel run if triggered by a PR for a non dependabot branches
 
-permissions:
-      actions: write
-      id-token: write
-      contents: read
+permissions: {}
 on:
   workflow_call:
 
