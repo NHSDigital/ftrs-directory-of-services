@@ -15,7 +15,7 @@ jobs:
       - name: "Install jq"
         run: sudo apt-get install -y jq
 
-      - name: "Cancel if triggerd by PR for non-dependabot branches"
+      - name: "Cancel if triggered by PR for non-dependabot branches"
         id: "cancel_non_dependabot"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -25,4 +25,4 @@ jobs:
           export RUN_ID="${{ github.run_id }}"
           export TRIGGERING_ACTION="${{ github.event_name }}"
           export TRIGGERING_ACTOR="${{ github.actor }}"
-          /bin/bash ./scripts/workflow/cancel-redundant-run.sh
+          /bin/bash ./scripts/workflow/cancel-redundant-workflow-run.sh
