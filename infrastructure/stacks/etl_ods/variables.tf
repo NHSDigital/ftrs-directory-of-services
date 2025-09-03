@@ -91,4 +91,6 @@ variable "max_receive_count" {
 
 variable "apim_url" {
   description = "The URL of the API Management instance"
+  type        = string
+  default     = "https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4"
 }
