@@ -4,6 +4,10 @@ from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from step_definitions.common_steps.api_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
+import pytest
+import requests
+from loguru import logger
+
 
 INVALID_SEARCH_DATA_CODING = {
     "coding": [
@@ -18,6 +22,23 @@ INVALID_SEARCH_DATA_CODING = {
 
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")
+
+@pytest.mark.nhsd_apim_authorization(access="application", level="level3")
+def test_app_level3_access(nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+    resp = requests.get(
+        nhsd_apim_proxy_url + "/Organization?_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M81046", headers=nhsd_apim_auth_headers
+    )
+    assert resp.status_code == 200
+    logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
+    logger.info(f"response: {resp.text}")
+    # assert resp.json() == expected_json
+
+@pytest.mark.nhsd_apim_authorization({"access": "application", "level": "level0"})
+def test_app_level0_access(nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+    resp = requests.get(
+        nhsd_apim_proxy_url + "/test-auth/app/level0", headers=nhsd_apim_auth_headers
+    )
+    assert resp.status_code == 200
 
 
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
