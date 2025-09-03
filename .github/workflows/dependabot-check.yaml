@@ -23,6 +23,6 @@ jobs:
         run: |
           export REPO="${{ github.repository }}"
           export RUN_ID="${{ github.run_id }}"
-          export TRIGGERING_ACTION = "${{ github.event_name }}"
-          export TRIGGERING_ACTOR = "${{ github.actor }}"
+          export TRIGGERING_ACTION="${{ github.event_name }}"
+          export TRIGGERING_ACTOR="${{ github.actor }}"
           /bin/bash ./scripts/workflow/cancel-redundant-run.sh
