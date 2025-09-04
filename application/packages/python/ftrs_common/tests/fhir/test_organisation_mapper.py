@@ -257,8 +257,26 @@ def test_to_fhir_bundle_single_org() -> None:
     assert bundle_single.__resource_type__ == "Bundle"
     assert bundle_single.type == "searchset"
     assert str(bundle_single.total) == "1"
-    assert bundle_single.entry[0].resource.id == "00000000-0000-0000-0000-00000000000a"
-    assert bundle_single.entry[0].resource.name == "Test Org 1"
+    assert len(bundle_single.entry) == 1
+    resource = bundle_single.entry[0].resource
+    assert resource.id == "00000000-0000-0000-0000-00000000000a"
+    assert resource.name == "Test Org 1"
+    assert resource.active is True
+    assert resource.identifier[0].value == "ODS1"
+    assert (
+        resource.identifier[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
+    )
+    assert resource.identifier[0].use == "official"
+    assert resource.telecom[0].system == "phone"
+    assert resource.telecom[0].value == "01234"
+    assert resource.telecom[0].use == "work"
+    assert resource.type[0].coding[0].display == "GP Practice"
+    assert resource.type[0].coding[0].code == "GP Practice"
+    assert resource.type[0].text == "GP Practice"
+    assert (
+        resource.meta.profile[0]
+        == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+    )
 
 
 def test_to_fhir_bundle_multiple_orgs() -> None:

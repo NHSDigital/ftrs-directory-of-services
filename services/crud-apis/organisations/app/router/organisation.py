@@ -72,8 +72,7 @@ async def get_handle_organisation_requests(
         raise
     except Exception as e:
         crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_019,
-            organisation_id="abc",
+            CrudApisLogBase.ORGANISATION_021,
             error_message=str(e),
         )
         raise_fhir_exception(

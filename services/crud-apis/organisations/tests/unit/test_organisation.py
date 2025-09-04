@@ -456,10 +456,13 @@ def test_organization_query_params_invalid_system() -> None:
 
 def test_organization_query_params_invalid_ods_code() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganizationQueryParams(identifier="odsOrganisationCode|12")
+        OrganizationQueryParams(identifier="odsOrganisationCode|abc")
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
-    assert "must follow format" in outcome["issue"][0]["diagnostics"]
+    assert (
+        "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
+        in outcome["issue"][0]["diagnostics"]
+    )
 
 
 def test_organization_query_params_missing_separator() -> None:
