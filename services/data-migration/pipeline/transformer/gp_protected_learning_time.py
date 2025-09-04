@@ -7,6 +7,7 @@ from ftrs_data_layer.domain.enums import (
 )
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
+from pipeline.utils.transformer_utils import clean_name
 
 
 class GPProtectedLearningTimeTransformer(ServiceTransformer):
@@ -35,12 +36,14 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
         Transform the given GP Protected Learning Time Services into the new data model format
 
         For GP Protected Learning Time Services, Organisation Linkage is not required
-        Create only the healthcare service without organisation and location entities
         """
+        organisation = self.build_organisation(service)
+        organisation.name = clean_name(service.publicname)
+        location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
-            None,
-            None,
+            organisation.id,
+            location.id,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.PLT_SERVICE,
         )
