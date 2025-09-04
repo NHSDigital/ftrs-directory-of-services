@@ -10,7 +10,12 @@ from pipeline.processor import DataMigrationMetrics
 from pipeline.transformer.triage_code import TriageCodeTransformer
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
-from pipeline.utils.dbutil import get_repository, iter_records
+from pipeline.utils.dbutil import (
+    get_all_symptom_groups,
+    get_repository,
+    get_symptom_discriminators_for_symptom_group,
+    iter_records,
+)
 
 
 class TriageCodeProcessor:
@@ -51,6 +56,7 @@ class TriageCodeProcessor:
                 "SymptomDiscriminator",
                 TriageCodeTransformer.build_triage_code_from_symptom_discriminator,
             )
+        self._process_combinations()
 
     def _process_record(
         self, record: legacy, record_type: str, transformer_method: callable
@@ -105,6 +111,66 @@ class TriageCodeProcessor:
 
         finally:
             self.logger.remove_keys(["record_id"])
+
+    def _process_combinations(self) -> None:
+        """
+        Process and save combinations of symptom groups and symptom discriminators.
+        """
+
+        start_time = perf_counter()
+        try:
+            symptom_groups = get_all_symptom_groups(self.engine)
+            for sg_id in symptom_groups:
+                try:
+                    symptom_discriminators_symptom_group = (
+                        get_symptom_discriminators_for_symptom_group(self.engine, sg_id)
+                    )
+                    if not symptom_discriminators_symptom_group:
+                        self.logger.log(DataMigrationLogBase.DM_ETL_012, sg_id=sg_id)
+                        continue
+
+                    triage_code = TriageCodeTransformer.build_triage_code_combinations(
+                        sg_id, symptom_discriminators_symptom_group
+                    )
+                    self._save_to_dynamoDB(triage_code)
+
+                    self.logger.log(
+                        DataMigrationLogBase.DM_ETL_006,
+                        transformer_name="TriageCodeTransformer",
+                        original_record={
+                            "symptom_group_id": sg_id,
+                            "symptom_discriminators": [
+                                sd.model_dump(
+                                    exclude_none=True, mode="json", warnings=False
+                                )
+                                for sd in symptom_discriminators_symptom_group
+                            ],
+                        },
+                        transformed_record=triage_code.model_dump(
+                            exclude_none=True, mode="json", warnings=False
+                        ),
+                    )
+                    elapsed_time = perf_counter() - start_time
+                    self.logger.log(
+                        DataMigrationLogBase.DM_ETL_007,
+                        process="combinations",
+                        elapsed_time=elapsed_time,
+                        # Additional metrics...
+                    )
+                except Exception as e:
+                    self.metrics.errors += 1
+                    self.logger.exception(
+                        f"Unexpected error encountered whilst processing symptom group ID {sg_id}"
+                    )
+                    self.logger.log(DataMigrationLogBase.DM_ETL_008, error=str(e))
+                    continue
+        except Exception as e:
+            self.metrics.errors += 1
+            self.logger.exception(
+                "Unexpected error encountered whilst fetching symptom groups"
+            )
+            self.logger.log(DataMigrationLogBase.DM_ETL_008, error=str(e))
+            return
 
     def _save_to_dynamoDB(self, result: TriageCode) -> None:
         traige_code_repo = get_repository(

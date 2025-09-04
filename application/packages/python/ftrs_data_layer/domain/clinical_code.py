@@ -11,10 +11,10 @@ INVALID_CODE_TYPE_SD = "Invalid codeType for symptom discriminator:"
 
 class BaseClinicalCode(BaseModel):
     id: UUID
-    source: ClinicalCodeSource
+    source: ClinicalCodeSource | None = None
     codeType: ClinicalCodeType
-    codeID: int | str
-    codeValue: str | None
+    codeID: int | str = None
+    codeValue: str | None = None
 
 
 class SymptomGroup(BaseClinicalCode):
