@@ -16,6 +16,7 @@ module "vpc_flow_logs_s3_bucket" {
       }
     }
   ]
+  s3_logging_bucket = local.s3_logging_bucket
 }
 
 resource "aws_s3_bucket_policy" "vpc_flow_logs_s3_bucket_policy" {
