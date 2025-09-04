@@ -43,6 +43,10 @@ module "vpc" {
   # Manage Default SG rules for the VPC
   default_security_group_egress  = []
   default_security_group_ingress = []
+
+  # Manage Default NACL rules for the VPC
+  default_network_acl_ingress = []
+  default_network_acl_egress  = []
 }
 
 locals {
