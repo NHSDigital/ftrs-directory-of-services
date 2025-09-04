@@ -91,7 +91,7 @@ def test_builds_triage_code_from_symptom_discriminator_with_description() -> Non
 
     # Assert
     assert result.id == "SD202"
-    assert result.source == ClinicalCodeSource.SERVICE_FINDER
+    assert result.source == ClinicalCodeSource.PATHWAYS
     assert result.codeType == ClinicalCodeType.SYMPTOM_DISCRIMINATOR
     assert result.codeID == "202"
     assert result.codeValue == "Test Description"
@@ -111,7 +111,7 @@ def test_builds_triage_code_from_symptom_discriminator_without_description() -> 
 
     # Assert
     assert result.id == "SD303"
-    assert result.source == ClinicalCodeSource.SERVICE_FINDER
+    assert result.source == ClinicalCodeSource.PATHWAYS
     assert result.codeType == ClinicalCodeType.SYMPTOM_DISCRIMINATOR
     assert result.codeID == "303"
     assert result.codeValue == ""
@@ -151,3 +151,31 @@ def test_builds_triage_code_combinations_empty_list() -> None:
     assert result.id == "SG1"
     assert result.combinations == []
     assert result.field == "combinations"
+
+
+def test_builds_triage_code_from_symptom_discriminator_with_varied_sources() -> None:
+    # Setup for PATHWAYS source
+    symptom_discriminator_pathways = legacy_model.SymptomDiscriminator(
+        id=100, description="Test Description", synonyms=[]
+    )
+    result_pathways = (
+        TriageCodeTransformer.build_triage_code_from_symptom_discriminator(
+            symptom_discriminator_pathways
+        )
+    )
+
+    # Assert for PATHWAYS source
+    assert result_pathways.source == ClinicalCodeSource.PATHWAYS
+
+    # Setup for SERVICE_FINDER source
+    symptom_discriminator_service_finder = legacy_model.SymptomDiscriminator(
+        id=11000, description="Test Description", synonyms=[]
+    )
+    result_service_finder = (
+        TriageCodeTransformer.build_triage_code_from_symptom_discriminator(
+            symptom_discriminator_service_finder
+        )
+    )
+
+    # Assert for SERVICE_FINDER source
+    assert result_service_finder.source == ClinicalCodeSource.SERVICE_FINDER
