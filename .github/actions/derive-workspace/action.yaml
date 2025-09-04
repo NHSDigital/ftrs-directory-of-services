@@ -18,7 +18,7 @@ runs:
         export TRIGGER_REFERENCE=${{ github.ref_name }}
         export TRIGGER_HEAD_REFERENCE=${{ github.head_ref }}
         export TRIGGER_EVENT_REF=${{ github.event.ref}}
-        export COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)"
+        export COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)
         . scripts/workflow/derive-workspace.sh
         echo "Workspace Name: ${WORKSPACE}"
         echo "workspace=${WORKSPACE}" >> $GITHUB_OUTPUT
