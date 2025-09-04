@@ -168,7 +168,7 @@ def create_fhir_endpoint():
                 "id": endpoint_id,
                 "status": status,
                 "connectionType": {
-                    "system": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection",
                     "code": connection_type,
                 },
                 "managingOrganization": {

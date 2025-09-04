@@ -87,7 +87,7 @@ class EndpointMapper:
         if endpoint.order:
             extensions.append(self._create_order_extension(endpoint.order))
 
-        if endpoint.isCompressionEnabled:
+        if endpoint.isCompressionEnabled is not None:
             extensions.append(
                 self._create_compression_extension(endpoint.isCompressionEnabled)
             )
@@ -127,13 +127,11 @@ class EndpointMapper:
         }
 
     def _create_connection_type(self, endpoint: Endpoint) -> Coding | None:
-        # TODO: Currently not proper FHIR codes, will need mapping
-
         db_conn_type = endpoint.connectionType.lower()
 
         return Coding.model_validate(
             {
-                "system": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+                "system": "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection",
                 "code": db_conn_type,
             }
         )
