@@ -130,6 +130,11 @@ variable "flow_logs_s3_expiration_days" {
   type        = number
 }
 
+variable "s3_logging_bucket_versioning" {
+  description = "Whether to enable versioning on the S3 bucket"
+  type        = bool
+}
+
 variable "vpc" {
   description = "A map of VPC configuration, including VPC ID, CIDR block, and other networking details"
   type        = map(any)

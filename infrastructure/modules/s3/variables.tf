@@ -36,3 +36,9 @@ variable "versioning" {
   type        = bool
   default     = true
 }
+
+variable "s3_logging_bucket" {
+  description = "The name of the S3 bucket to use for access logs"
+  type        = string
+  default     = ""
+}

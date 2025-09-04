@@ -8,7 +8,8 @@ public_facing    = "no"
 service_category = "bronze"
 team_owner       = "ftrs"
 
-artefacts_bucket_name = "artefacts-bucket"
+artefacts_bucket_name  = "artefacts-bucket"
+s3_logging_bucket_name = "s3-access-logs"
 
 dynamodb_table_names = [
   "healthcare-service",
