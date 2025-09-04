@@ -218,7 +218,7 @@ jobs:
   deploy-data-migration-service:
     name: "Deploy data migration service to ${{ needs.metadata.outputs.environment }}"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      group: "${{ needs.metadata.outputs.environment }}-data-migration-${{ needs.metadata.outputs.workspace }}"
       cancel-in-progress: false
     needs:
       - metadata
