@@ -54,7 +54,7 @@ data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
 # Subnet Flow Logs S3 Bucket and Resource Policy
 module "subnet_flow_logs_s3_bucket" {
   source        = "../../modules/s3"
-  bucket_name   = local.s3_log_bucket
+  bucket_name   = "${local.resource_prefix}-${var.subnet_flow_logs_bucket_name}"
   versioning    = var.flow_log_s3_versioning
   force_destroy = var.flow_log_s3_force_destroy
   lifecycle_rule_inputs = [
@@ -106,8 +106,8 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
 
 module "logging_bucket" {
   source      = "../../modules/s3"
-  bucket_name = "${local.resource_prefix}-${var.s3_logging_bucket_name}"
-  versioning  = var.s3_versioning
+  bucket_name = local.s3_log_bucket
+  versioning  = var.s3_log_bucket_versioning
 }
 
 resource "aws_s3_bucket_policy" "logging_bucket_policy" {
