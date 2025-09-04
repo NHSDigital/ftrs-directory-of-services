@@ -105,3 +105,8 @@ variable "gp_search_organisation_table_name" {
   description = "The dynamodb table name for gp search"
   type        = string
 }
+
+variable "s3_logging_bucket_name" {
+  description = "The S3 bucket name for access logs"
+  type        = string
+}

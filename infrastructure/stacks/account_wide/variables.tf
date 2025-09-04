@@ -141,3 +141,8 @@ variable "enable_flow_log" {
   type        = bool
   default     = false
 }
+
+variable "s3_logging_bucket_name" {
+  description = "The S3 bucket name for access logs"
+  type        = string
+}
