@@ -4,7 +4,7 @@ echo "Trigger action: $TRIGGER_ACTION"
 echo "Trigger reference: $TRIGGER_REFERENCE"
 echo "Trigger head reference: $TRIGGER_HEAD_REFERENCE "
 echo "Trigger event reference $TRIGGER_EVENT_REF"
-echo "Dependabot pull request number: $PR_NUMBER"
+echo "Commit hash (for dependabot only): $COMMIT_HASH"
 
 WORKSPACE="Unknown"
 
@@ -37,7 +37,7 @@ BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/refs\/heads\/task/task/g; s/refs\/hea
 
 if [[ "${BRANCH_NAME:0:10}" == "dependabot" ]]; then
   # Handle dependabot branches
-  WORKSPACE="dependabot-$PR_NUMBER"
+  WORKSPACE="dependabot-$COMMIT_HASH"
   echo "Workspace from dependabot branch: $WORKSPACE"
 elif [[ "$BRANCH_NAME" == "main" ]]; then
   # Handle main branch
