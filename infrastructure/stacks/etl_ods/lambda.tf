@@ -50,6 +50,7 @@ module "processor_lambda" {
     "ENVIRONMENT"  = var.environment
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME" = var.project
+    "APIM_URL"     = var.apim_url
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
@@ -91,6 +92,7 @@ module "consumer_lambda" {
     "ENVIRONMENT"  = var.environment
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME" = var.project
+    "APIM_URL"     = var.apim_url
 
   }
   account_id     = data.aws_caller_identity.current.account_id

@@ -88,3 +88,9 @@ variable "sqs_managed_sse_enabled" {
 variable "max_receive_count" {
   description = "The maximum number of times a message can be received before being sent to the dead letter queue"
 }
+
+variable "apim_url" {
+  description = "The URL of the API Management instance"
+  type        = string
+  default     = "https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4"
+}
