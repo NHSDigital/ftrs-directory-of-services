@@ -136,7 +136,7 @@ def test_get_handle_organisation_requests_by_identifier_success_with_different_c
         "organisations.app.router.organisation.org_repository.get_by_ods_code",
         return_value=mock_org,
     )
-    response = client.get("/?identifier=odsOrganisationCode|ODS54321")
+    response = client.get("?identifier=odsOrganisationCode|ODS54321")
     assert response.status_code == HTTPStatus.OK
     bundle = response.json()
     assert bundle["resourceType"] == "Bundle"
@@ -151,7 +151,7 @@ def test_get_handle_organisation_requests_by_identifier_success_with_different_c
 
 def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> None:
     with pytest.raises(Exception) as exc_info:
-        client.get("/?identifier=odsOrganisationCode|abc")
+        client.get("?identifier=odsOrganisationCode|abc")
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
@@ -180,7 +180,7 @@ def test_get_handle_organisation_requests_with_invalid_params(
         ),
     )
     with pytest.raises(Exception) as exc_info:
-        client.get("/?identifier=odsOrganisationCode|ODS12345&abc=extra")
+        client.get("?identifier=odsOrganisationCode|ODS12345&abc=extra")
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
@@ -206,7 +206,7 @@ def test_get_handle_organisation_requests_by_identifier_not_found(
         }
     )
     with pytest.raises(OperationOutcomeException) as exc_info:
-        client.get("/?identifier=odsOrganisationCode|ODS12345")
+        client.get("?identifier=odsOrganisationCode|ODS12345")
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "not-found"
     assert "not found" in outcome["issue"][0]["diagnostics"].lower()

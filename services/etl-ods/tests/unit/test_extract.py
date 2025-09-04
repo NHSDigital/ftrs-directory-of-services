@@ -69,7 +69,7 @@ def test_fetch_organisation_uuid(
     )
 
     mock_call = requests_mock.get(
-        "http://apim-proxy/Organization/?identifier=odsOrganisationCode|XYZ999",
+        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
         json={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -84,7 +84,7 @@ def test_fetch_organisation_uuid(
     pipe_url_encoding = "%7C"
     assert (
         mock_call.last_request.url
-        == f"http://apim-proxy/Organization/?identifier=odsOrganisationCode{pipe_url_encoding}XYZ999"
+        == f"http://apim-proxy/Organization?identifier=odsOrganisationCode{pipe_url_encoding}XYZ999"
     )
 
 
@@ -150,7 +150,7 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
         return_value="http://apim-proxy",
     )
     requests_mock.get(
-        "http://apim-proxy/Organization/?identifier=odsOrganisationCode|XYZ999",
+        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
         json={
             "resourceType": "Not Bundle",
         },
@@ -175,7 +175,7 @@ def test_fetch_organisation_uuid_no_organisation_returned(
         return_value="http://apim-proxy",
     )
     requests_mock.get(
-        "http://apim-proxy/Organization/?identifier=odsOrganisationCode|XYZ999",
+        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
         json={
             "resourceType": "Bundle",
             "entry": [{"resource": {"resourceType": "ABC", "id": "BUNDLE_ORG_ID"}}],

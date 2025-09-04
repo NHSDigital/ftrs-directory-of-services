@@ -111,7 +111,7 @@ servers:
   - url: 'https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4'
     description: Integration Environment
 paths:
-  '/Organization/':
+  '/Organization':
     get:
       security:
         - app-level0: []
@@ -127,7 +127,7 @@ paths:
         The search is performed using the FHIR-compliant identifier parameter:
         - identifier=odsOrganizationCode|{CODE}
 
-        Example: /Organization/?identifier=odsOrganizationCode|ABC123
+        Example: /Organization?identifier=odsOrganizationCode|ABC123
         Example (all): /Organization
 
       operationId: searchOrganizations

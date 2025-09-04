@@ -80,7 +80,7 @@ def mock_responses(requests_mock: RequestsMock) -> MockResponses:
         ],
     }
     apim_org_abc123_mock = requests_mock.get(
-        "http://test-apim-api/Organization/?identifier=odsOrganisationCode|ABC123",
+        "http://test-apim-api/Organization?identifier=odsOrganisationCode|ABC123",
         json=apim_api_data_abc123,
     )
 
@@ -112,7 +112,7 @@ def test_processor_processing_organisations_successful(
     assert requests_mock.request_history[1] == mock_responses.ods_abc123.last_request
     # Assert APIM API Call for Organisation UUID
     assert mock_responses.apim_org_abc123.called_once
-    assert mock_responses.apim_org_abc123.last_request.path == "/organization/"
+    assert mock_responses.apim_org_abc123.last_request.path == "/organization"
     assert (
         mock_responses.apim_org_abc123.last_request.query
         == "identifier=odsorganisationcode%7cabc123"
@@ -183,7 +183,7 @@ def test_processor_continue_on_validation_failure(
     )
 
     apim_api_abc123_mock = requests_mock.get(
-        "http://test-apim-api/Organization/?identifier=odsOrganisationCode|ABC123",
+        "http://test-apim-api/Organization?identifier=odsOrganisationCode|ABC123",
         status_code=422,  # Simulate Unprocessable Entity error
     )
 
@@ -220,7 +220,7 @@ def test_processor_continue_on_validation_failure(
         ],
     }
     apim_efg456_mock = requests_mock.get(
-        "http://test-apim-api/Organization/?identifier=odsOrganisationCode|EFG456",
+        "http://test-apim-api/Organization?identifier=odsOrganisationCode|EFG456",
         json=apim_api_data_efg456,
     )
     expected_call_count = 5
@@ -254,7 +254,7 @@ def test_processor_continue_on_validation_failure(
     # Failure for ABC123 should be logged
     expected_failed_log = OdsETLPipelineLogBase.ETL_PROCESSOR_027.value.message.format(
         ods_code="ABC123",
-        error_message="422 Client Error: None for url: http://test-apim-api/Organization/?identifier=odsOrganisationCode%7CABC123",
+        error_message="422 Client Error: None for url: http://test-apim-api/Organization?identifier=odsOrganisationCode%7CABC123",
     )
     assert expected_failed_log in caplog.text
 
@@ -265,7 +265,7 @@ def test_processor_continue_on_validation_failure(
 
     # Assert APIM API Call for Organisation UUID (00000000-0000-0000-0000-000000000EFG)
     assert apim_efg456_mock.called_once
-    assert apim_efg456_mock.last_request.path == "/organization/"
+    assert apim_efg456_mock.last_request.path == "/organization"
     assert (
         apim_efg456_mock.last_request.query == "identifier=odsorganisationcode%7cefg456"
     )
