@@ -103,3 +103,29 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
     resources = [module.subnet_flow_logs_s3_bucket.s3_bucket_arn]
   }
 }
+
+module "logging_bucket" {
+  source      = "../../modules/s3"
+  bucket_name = local.s3_logging_bucket
+  versioning  = var.s3_logging_bucket_versioning
+}
+
+resource "aws_s3_bucket_policy" "logging_bucket_policy" {
+  bucket = module.logging_bucket.s3_bucket_id
+  policy = data.aws_iam_policy_document.logging_bucket_policy_document.json
+}
+
+data "aws_iam_policy_document" "logging_bucket_policy_document" {
+  statement {
+    principals {
+      identifiers = ["logging.s3.amazonaws.com"]
+      type        = "Service"
+    }
+
+    actions = [
+      "s3:PutObject",
+    ]
+
+    resources = ["${module.logging_bucket.s3_bucket_arn}/*"]
+  }
+}
