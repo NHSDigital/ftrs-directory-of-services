@@ -37,7 +37,7 @@ BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/refs\/heads\/task/task/g; s/refs\/hea
 
 if [[ "${BRANCH_NAME:0:10}" == "dependabot" ]]; then
   # Handle dependabot branches
-  WORKSPACE="dependabot-$COMMIT_HASH"
+  WORKSPACE="bot-$COMMIT_HASH"
   echo "Workspace from dependabot branch: $WORKSPACE"
 elif [[ "$BRANCH_NAME" == "main" ]]; then
   # Handle main branch
