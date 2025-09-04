@@ -130,7 +130,7 @@ variable "flow_logs_s3_expiration_days" {
   type        = number
 }
 
-variable "s3_log_bucket_versioning" {
+variable "s3_logging_bucket_versioning" {
   description = "Whether to enable versioning on the S3 bucket"
   type        = bool
 }

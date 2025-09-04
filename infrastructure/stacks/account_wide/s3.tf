@@ -106,8 +106,8 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
 
 module "logging_bucket" {
   source      = "../../modules/s3"
-  bucket_name = local.s3_log_bucket
-  versioning  = var.s3_log_bucket_versioning
+  bucket_name = local.s3_logging_bucket
+  versioning  = var.s3_logging_bucket_versioning
 }
 
 resource "aws_s3_bucket_policy" "logging_bucket_policy" {
