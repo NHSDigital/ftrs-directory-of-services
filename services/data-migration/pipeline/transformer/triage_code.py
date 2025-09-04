@@ -12,7 +12,7 @@ from ftrs_data_layer.domain.triage_code import TriageCode, TriageCodeCombination
 
 
 class TriageCodeTransformer:
-    __SYMPTOM_DISCRIMINATOR_UPPER_LIMIT = 10999
+    __SYMPTOM_DISCRIMINATOR_PATHWAYS_UPPER_LIMIT = 10999
 
     @classmethod
     def build_triage_code_from_symptom_group(
@@ -59,9 +59,12 @@ class TriageCodeTransformer:
         """
         return TriageCode(
             id="SD" + str(symptom_discriminator.id),
-            source=ClinicalCodeSource.PATHWAYS
-            if int(symptom_discriminator.id) <= cls.__SYMPTOM_DISCRIMINATOR_UPPER_LIMIT
-            else ClinicalCodeSource.SERVICE_FINDER,
+            source=(
+                ClinicalCodeSource.PATHWAYS
+                if int(symptom_discriminator.id)
+                <= cls.__SYMPTOM_DISCRIMINATOR_PATHWAYS_UPPER_LIMIT
+                else ClinicalCodeSource.SERVICE_FINDER
+            ),
             codeType=ClinicalCodeType.SYMPTOM_DISCRIMINATOR,
             codeID=symptom_discriminator.id,
             codeValue=symptom_discriminator.description or "",
