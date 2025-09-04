@@ -44,7 +44,7 @@ def _get_organization_query_params(
 
 
 @router.get(
-    "/",
+    "/Organization",
     summary="Get organisation uuid by ods_code or read all organisations",
     response_class=JSONResponse,
 )
@@ -89,7 +89,9 @@ def raise_fhir_exception(diagnostics: str, code: str, severity: str = "error") -
     raise OperationOutcomeException(outcome)
 
 
-@router.get("/{organisation_id}", summary="Read a single organisation by id")
+@router.get(
+    "/Organization/{organisation_id}", summary="Read a single organisation by id"
+)
 def get_organisation_by_id(
     organisation_id: UUID = Path(
         ...,
@@ -114,7 +116,7 @@ def get_organisation_by_id(
 
 
 @router.put(
-    "/{organisation_id}",
+    "/Organization/{organisation_id}",
     summary="Update an organisation.",
     response_description="OperationOutcome",
 )
@@ -178,7 +180,7 @@ def update_organisation(
         raise
 
 
-@router.post("/", summary="Create a new organisation")
+@router.post("/Organization", summary="Create a new organisation")
 def post_organisation(
     organisation_data: CreatePayloadValidator = Body(
         ...,
@@ -217,7 +219,7 @@ def post_organisation(
     )
 
 
-@router.delete("/{organisation_id}", summary="Delete an organisation")
+@router.delete("/Organization/{organisation_id}", summary="Delete an organisation")
 def delete_organisation(
     organisation_id: UUID = Path(
         ...,
