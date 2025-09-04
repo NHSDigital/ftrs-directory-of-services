@@ -39,6 +39,10 @@ module "vpc" {
   flow_log_destination_type = var.flow_log_destination_type
   flow_log_destination_arn  = module.vpc_flow_logs_s3_bucket.s3_bucket_arn
   flow_log_file_format      = var.flow_log_file_format
+
+  # Manage Default SG rules for the VPC
+  default_security_group_egress  = []
+  default_security_group_ingress = []
 }
 
 locals {
