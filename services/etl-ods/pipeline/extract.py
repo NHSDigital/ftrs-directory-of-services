@@ -1,3 +1,4 @@
+import re
 from http import HTTPStatus
 from urllib.parse import urlparse
 
@@ -5,7 +6,7 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from pipeline.utilities import get_base_crud_api_url, make_request
+from pipeline.utilities import get_base_apim_api_url, make_request
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -31,10 +32,22 @@ def fetch_sync_data(date: str) -> list:
     return organisations
 
 
+# To be moved to common package
+def validate_ods_code(ods_code: str) -> None:
+    if not isinstance(ods_code, str) or not re.match(r"^[A-Za-z0-9]{5,12}$", ods_code):
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_012,
+            e=f"Invalid ODS code: {ods_code}",
+        )
+        err_message = f"Invalid ODS code: '{ods_code}' must match ^[A-Za-z0-9]{{5,12}}$"
+        raise ValueError(err_message)
+
+
 def fetch_ods_organisation_data(ods_code: str) -> dict | None:
     """
     Fetches and validates a FHIR Organization resource for the specified ODS code.
     """
+    validate_ods_code(ods_code)
     ods_org_data_uri = (
         "https://directory.spineservices.nhs.uk/STU3/Organization/" + ods_code
     )
@@ -49,20 +62,37 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     """
     Returns DoS UUID based on ODS code.
     """
-    base_url = get_base_crud_api_url()
-    organisation_get_uuid_uri = base_url + "/Organization/ods_code/" + ods_code
+    validate_ods_code(ods_code)
+    base_url = get_base_apim_api_url()
+    identifier_param = f"odsOrganisationCode|{ods_code}"
+    organisation_get_uuid_uri = (
+        base_url + "/Organization?identifier=" + identifier_param
+    )
 
     try:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_028,
             ods_code=ods_code,
         )
-        response = make_request(organisation_get_uuid_uri, sign=True, fhir=True)
-        return (
-            response.get("id", None)
-            if isinstance(response, dict)
-            else response.json().get("id", None)
+        response = make_request(
+            organisation_get_uuid_uri,
+            method="GET",
+            api_key_required=True,
+            fhir=True,
         )
+        if isinstance(response, dict) and response.get("resourceType") == "Bundle":
+            entries = response.get("entry", [])
+            for entry in entries:
+                resource = entry.get("resource")
+                if resource and resource.get("resourceType") == "Organization":
+                    return resource.get("id")
+            return None
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_030,
+            ods_code=ods_code,
+            type=response.get("resourceType"),
+        )
+        raise ValueError(OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message)
 
     except HTTPError as http_err:
         if (

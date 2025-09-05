@@ -1,17 +1,19 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Body, HTTPException, Path
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request
 from fastapi.responses import JSONResponse, Response
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
+from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
 
+from organisations.app.models.organisation import OrganizationQueryParams
 from organisations.app.services.organisation_service import OrganisationService
 from organisations.app.services.validators import (
     CreatePayloadValidator,
@@ -27,50 +29,69 @@ crud_organisation_logger = Logger.get(service="crud_organisation_logger")
 organisation_service = OrganisationService(
     org_repository=org_repository, logger=crud_organisation_logger
 )
+organisation_mapper = OrganizationMapper()
 
 
-@router.get("/ods_code/{ods_code}", summary="Get an organisation by ODS code.")
-def get_org_by_ods_code(
-    ods_code: str,
+def _get_organization_query_params(
+    identifier: str = Query(
+        None,
+        description="Organization identifier in format 'odsOrganisationCode|{code}'",
+    ),
+) -> OrganizationQueryParams | None:
+    if identifier is None:
+        return None
+    return OrganizationQueryParams(identifier=identifier)
+
+
+@router.get(
+    "/Organization",
+    summary="Get organisation uuid by ods_code or read all organisations",
+    response_class=JSONResponse,
+)
+async def get_handle_organisation_requests(
+    request: Request,
+    organization_query_params: OrganizationQueryParams = Depends(
+        _get_organization_query_params
+    ),
 ) -> JSONResponse:
-    crud_organisation_logger.log(
-        CrudApisLogBase.ORGANISATION_001,
-        ods_code=ods_code,
-    )
+    """
+    Returns a FHIR Bundle of Organisation(s) by ODS code or all if no identifier is provided.
+    """
     try:
-        records = org_repository.get_by_ods_code(ods_code)
-        if not records:
-            crud_organisation_logger.log(
-                CrudApisLogBase.ORGANISATION_002,
-                ods_code=ods_code,
-            )
-            return JSONResponse(
-                status_code=404,
-                content=OperationOutcomeHandler.build(
-                    diagnostics=ERROR_MESSAGE_404,
-                    code="not-found",
-                    severity="error",
-                ),
-                media_type=FHIR_MEDIA_TYPE,
-            )
+        organisation_service.check_organisation_params(request.query_params)
+        if organization_query_params and organization_query_params.identifier:
+            ods_code = organization_query_params.ods_code
+            result = organisation_service.get_by_ods_code(ods_code)
+        else:
+            result = organisation_service.get_all_organisations()
+        bundle = organisation_mapper.to_fhir_bundle(result)
         return JSONResponse(
-            status_code=200,
-            content={"id": str(records[0].id)},
-            media_type=FHIR_MEDIA_TYPE,
+            content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE
         )
+    except OperationOutcomeException:
+        raise
     except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=OperationOutcomeHandler.build(
-                diagnostics=f"Unexpected error: {str(e)}",
-                code="exception",
-                severity="error",
-            ),
-            media_type=FHIR_MEDIA_TYPE,
+        crud_organisation_logger.log(
+            CrudApisLogBase.ORGANISATION_021,
+            error_message=str(e),
+        )
+        raise_fhir_exception(
+            diagnostics="Unhandled exception occurred", code="exception"
         )
 
 
-@router.get("/{organisation_id}", summary="Read a single organisation by id")
+def raise_fhir_exception(diagnostics: str, code: str, severity: str = "error") -> None:
+    outcome = OperationOutcomeHandler.build(
+        diagnostics=diagnostics,
+        code=code,
+        severity=severity,
+    )
+    raise OperationOutcomeException(outcome)
+
+
+@router.get(
+    "/Organization/{organisation_id}", summary="Read a single organisation by id"
+)
 def get_organisation_by_id(
     organisation_id: UUID = Path(
         ...,
@@ -94,25 +115,8 @@ def get_organisation_by_id(
     return organisation
 
 
-@router.get("/", summary="Read all organisations")
-def get_all_organisations(limit: int = 10) -> list[Organisation]:
-    crud_organisation_logger.log(
-        CrudApisLogBase.ORGANISATION_004,
-    )
-    organisations = list(org_repository.iter_records(max_results=limit))
-    if not organisations:
-        crud_organisation_logger.log(
-            CrudApisLogBase.ORGANISATION_020,
-        )
-        raise HTTPException(
-            status_code=404, detail="Unable to retrieve any organisations"
-        )
-
-    return organisations
-
-
 @router.put(
-    "/{organisation_id}",
+    "/Organization/{organisation_id}",
     summary="Update an organisation.",
     response_description="OperationOutcome",
 )
@@ -176,7 +180,7 @@ def update_organisation(
         raise
 
 
-@router.post("/", summary="Create a new organisation")
+@router.post("/Organization", summary="Create a new organisation")
 def post_organisation(
     organisation_data: CreatePayloadValidator = Body(
         ...,
@@ -215,7 +219,7 @@ def post_organisation(
     )
 
 
-@router.delete("/{organisation_id}", summary="Delete an organisation")
+@router.delete("/Organization/{organisation_id}", summary="Delete an organisation")
 def delete_organisation(
     organisation_id: UUID = Path(
         ...,

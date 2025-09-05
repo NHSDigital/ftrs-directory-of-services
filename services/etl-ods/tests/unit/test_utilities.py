@@ -1,110 +1,21 @@
+import json
 import os
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
-from botocore.credentials import Credentials
+from botocore.exceptions import ClientError
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
+from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
+    _get_api_key,
     build_headers,
-    get_api_key,
-    get_base_crud_api_url,
-    get_signed_request_headers,
     handle_fhir_response,
     make_request,
 )
-
-
-@patch.dict(
-    os.environ,
-    {
-        "ENVIRONMENT": "dev",
-        "WORKSPACE": "test-workspace",
-    },
-)
-def test_get_base_crud_api_url(
-    mock_get_parameter: MagicMock,
-) -> None:
-    get_base_crud_api_url.cache_clear()
-    expected_url = "http://test-crud-api"
-    url = get_base_crud_api_url()
-
-    assert url == expected_url
-
-    assert mock_get_parameter.call_count == 1
-    mock_get_parameter.assert_called_once_with(
-        name="/ftrs-dos-dev-crud-apis-test-workspace/endpoint"
-    )
-
-
-@patch.dict(
-    os.environ,
-    {"ENVIRONMENT": "dev", "WORKSPACE": ""},
-)
-@patch("pipeline.utilities.get_parameter")
-def test_get_base_crud_api_url_no_workspace(
-    get_parameter_mock: MagicMock,
-) -> None:
-    get_base_crud_api_url.cache_clear()
-
-    get_parameter_mock.return_value = "https://api.example.com"
-    expected_url = "https://api.example.com"
-
-    url = get_base_crud_api_url()
-
-    assert url == expected_url
-    assert get_parameter_mock.call_count == 1
-    get_parameter_mock.assert_called_once_with(name="/ftrs-dos-dev-crud-apis/endpoint")
-
-
-@patch.dict(
-    os.environ,
-    {
-        "ENVIRONMENT": "local",
-        "WORKSPACE": "",
-        "LOCAL_CRUD_API_URL": "https://localhost:8001/",
-    },
-)
-@patch("pipeline.utilities.get_parameter")
-def test_get_base_crud_api_url_local_workspace(
-    get_parameter_mock: MagicMock,
-) -> None:
-    get_base_crud_api_url.cache_clear()
-    expected_url = "https://localhost:8001/"
-
-    url = get_base_crud_api_url()
-
-    assert url == expected_url
-    assert get_parameter_mock.call_count == 0
-
-
-@patch("pipeline.utilities.boto3.Session")
-def test_get_signed_request_headers(session_mock: MagicMock) -> None:
-    """
-    Test the get_signed_request_headers function.
-    """
-    session_mock.return_value.get_credentials.return_value = Credentials(
-        access_key="mock_access_key",
-        secret_key="mock_secret_key",
-        token="mock_token",
-    )
-
-    method = "GET"
-    url = "https://api.example.com/resource"
-    data = None
-    host = "api.example.com"
-    region = "eu-west-2"
-
-    headers = get_signed_request_headers(method, url, data, host, region)
-
-    assert isinstance(headers, dict)
-    assert "Authorization" in headers
-    assert "X-Amz-Date" in headers
-    assert "X-Amz-Security-Token" in headers
-    assert headers["Host"] == host
 
 
 def test_make_request_success(requests_mock: RequestsMock) -> None:
@@ -131,20 +42,12 @@ def test_make_request_success(requests_mock: RequestsMock) -> None:
     assert "User-Agent" in headers
 
 
-@patch("pipeline.utilities.boto3.Session")
 def test_make_request_with_params(
-    session_mock: MagicMock,
     requests_mock: RequestsMock,
 ) -> None:
     """
     Test the make_request function with parameters.
     """
-    session_mock.return_value.get_credentials.return_value = Credentials(
-        access_key="mock_access_key",
-        secret_key="mock_secret_key",
-        token="mock_token",
-    )
-
     mock_call = requests_mock.get(
         "https://api.example.com/resource",
         json={"key": "value"},
@@ -171,20 +74,12 @@ def test_make_request_with_params(
     assert mock_call.last_request.qs == {"param1": ["value1"], "param2": ["value2"]}
 
 
-@patch("pipeline.utilities.boto3.Session")
 def test_make_request_with_json_data(
-    session_mock: MagicMock,
     requests_mock: RequestsMock,
 ) -> None:
     """
     Test the make_request function with parameters.
     """
-    session_mock.return_value.get_credentials.return_value = Credentials(
-        access_key="mock_access_key",
-        secret_key="mock_secret_key",
-        token="mock_token",
-    )
-
     mock_call = requests_mock.put(
         "https://api.example.com/resource",
         json={"key": "value"},
@@ -208,50 +103,6 @@ def test_make_request_with_json_data(
     assert headers["Connection"] == "keep-alive"
     assert "User-Agent" in headers
     assert mock_call.last_request.body.decode() == '{"json": "value"}'
-
-
-@patch("pipeline.utilities.get_signed_request_headers")
-def test_make_request_signed_request(
-    mock_get_headers: MagicMock,
-    requests_mock: RequestsMock,
-) -> None:
-    """
-    Test the make_request function with signed request.
-    """
-    mock_call = requests_mock.get(
-        "https://api.example.com/resource",
-        json={"key": "value"},
-        status_code=HTTPStatus.OK,
-    )
-
-    mock_get_headers.return_value = {
-        "Authorization": "MockedAuthorization",
-        "X-Amz-Date": "MockedDate",
-        "X-Amz-Security-Token": "MockedToken",
-        "Host": "api.example.com",
-    }
-
-    url = "https://api.example.com/resource"
-    result = make_request(url, sign=True)
-
-    assert result.status_code == HTTPStatus.OK
-    assert result.json() == {"key": "value"}
-
-    mock_get_headers.assert_called_once_with(
-        method="GET", url=url, host="api.example.com", data=None, region="eu-west-2"
-    )
-
-    assert mock_call.last_request.url == url
-    assert mock_call.last_request.method == "GET"
-    headers = mock_call.last_request.headers
-    assert headers["Accept"] == "*/*"
-    assert headers["Accept-Encoding"] == "gzip, deflate"
-    assert headers["Connection"] == "keep-alive"
-    assert headers["Authorization"] == "MockedAuthorization"
-    assert headers["X-Amz-Date"] == "MockedDate"
-    assert headers["X-Amz-Security-Token"] == "MockedToken"
-    assert headers["Host"] == "api.example.com"
-    assert "User-Agent" in headers
 
 
 def test_make_request_http_error(requests_mock: RequestsMock) -> None:
@@ -340,36 +191,12 @@ def test_build_headers_fhir_and_json() -> None:
         "json_data": {"foo": "bar"},
         "json_string": '{"foo": "bar"}',
         "fhir": True,
-        "sign": False,
         "url": "https://example.com",
         "method": "POST",
     }
     headers = build_headers(options)
     assert headers["Content-Type"] == "application/fhir+json"
     assert headers["Accept"] == "application/fhir+json"
-
-
-@patch("pipeline.utilities.get_signed_request_headers")
-def test_build_headers_sign(mock_get_signed_request_headers: MagicMock) -> None:
-    """
-    Test build_headers calls get_signed_request_headers and merges headers.
-    """
-    mock_get_signed_request_headers.return_value = {
-        "Authorization": "sigv4",
-        "Host": "api.example.com",
-    }
-    headers = build_headers(
-        options={
-            "json_data": None,
-            "json_string": None,
-            "fhir": False,
-            "sign": True,
-            "url": "https://api.example.com/resource",
-            "method": "POST",
-        }
-    )
-    assert headers["Authorization"] == "sigv4"
-    assert headers["Host"] == "api.example.com"
 
 
 def test_make_request_logs_http_error(
@@ -413,6 +240,26 @@ def test_make_request_logs_request_exception(
         )
 
 
+def test_make_request_with_api_key(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
+    """
+    Test the make_request function with api_key header.
+    """
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
+    # Patch _get_api_key to return a known value
+    mocker.patch("pipeline.utilities._get_api_key", return_value="test-api-key")
+    url = "https://api.example.com/resource"
+    result = make_request(url, api_key_required=True)
+    assert result.status_code == HTTPStatus.OK
+    assert result.json() == {"key": "value"}
+    assert mock_call.last_request.headers["apikey"] == "test-api-key"
+
+
 @patch.dict(
     os.environ,
     {
@@ -422,7 +269,7 @@ def test_make_request_logs_request_exception(
     },
 )
 @patch("pipeline.utilities.boto3.client")
-def test_get_api_key_returns_value_from_json_secret(
+def test__get_api_key_returns_value_from_json_secret(
     mock_boto_client: MagicMock,
 ) -> None:
     mock_secretsmanager = MagicMock()
@@ -431,9 +278,62 @@ def test_get_api_key_returns_value_from_json_secret(
         "SecretString": '{"api_key": "super-secret-key"}'
     }
 
-    api_key = get_api_key()
+    api_key = _get_api_key()
     expected_secret_name = "/ftrs-dos/dev/apim-api-key"
     mock_secretsmanager.get_secret_value.assert_called_once_with(
         SecretId=expected_secret_name
     )
     assert api_key == "super-secret-key"
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test__get_api_key_client_error_logs(
+    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+) -> None:
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    error_response = {"Error": {"Code": "ResourceNotFoundException"}}
+    mock_secretsmanager.get_secret_value.side_effect = ClientError(
+        error_response, "GetSecretValue"
+    )
+    with caplog.at_level("WARNING"):
+        with pytest.raises(ClientError):
+            _get_api_key()
+        assert (
+            "Error with secret: /ftrs-dos/dev/apim-api-key with message An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation"
+            in caplog.text
+        )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test__get_api_key_json_decode_error_logs(
+    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+) -> None:
+    """
+    Test _get_api_key logs ETL_UTILS_007 when JSONDecodeError is thrown.
+    """
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    mock_secretsmanager.get_secret_value.return_value = {
+        "SecretString": "not-a-json-string"
+    }
+    with caplog.at_level("WARNING"):
+        with pytest.raises(json.JSONDecodeError):
+            _get_api_key()
+        assert "Error secret is not in json format" in caplog.text

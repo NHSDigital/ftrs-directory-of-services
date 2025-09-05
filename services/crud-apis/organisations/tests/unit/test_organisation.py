@@ -10,7 +10,8 @@ from ftrs_data_layer.domain import Organisation
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
-from organisations.app.router.organisation import router
+from organisations.app.models.organisation import OrganizationQueryParams
+from organisations.app.router.organisation import _get_organization_query_params, router
 
 client = TestClient(router)
 
@@ -20,7 +21,7 @@ test_org_id = uuid4()
 def get_organisation() -> dict:
     return {
         "id": str(test_org_id),
-        "identifier_ODS_ODSCode": "12345",
+        "identifier_ODS_ODSCode": "ODS12345",
         "active": True,
         "name": "Test Organisation",
         "telecom": "123456789",
@@ -78,11 +79,15 @@ def mock_organisation_service(mocker: MockerFixture) -> MockerFixture:
     )
     service_mock.create_organisation.return_value = Organisation(**get_organisation())
     service_mock.process_organisation_update.return_value = True
+    service_mock.get_by_ods_code.return_value = [Organisation(**get_organisation())]
+    service_mock.get_all_organisations.return_value = [
+        Organisation(**get_organisation())
+    ]
     return service_mock
 
 
 def test_get_organisation_by_id_success() -> None:
-    response = client.get(f"/{test_org_id}")
+    response = client.get(f"/Organization/{test_org_id}")
     assert response.status_code == HTTPStatus.OK
     assert response.json()["id"] == str(get_organisation()["id"])
 
@@ -92,7 +97,7 @@ def test_get_organisation_by_id_returns_404_when_org_not_found(
 ) -> None:
     mock_repository.get.return_value = None
     with pytest.raises(Exception) as exc_info:
-        client.get(f"/{test_org_id}")
+        client.get(f"/Organization/{test_org_id}")
     assert "Organisation not found" in str(exc_info.value)
 
 
@@ -101,34 +106,132 @@ def test_get_organisation_by_id_returns_500_on_unexpected_error(
 ) -> None:
     mock_repository.get.side_effect = Exception("Unexpected error")
     with pytest.raises(Exception) as exc_info:
-        client.get(f"/{test_org_id}")
+        client.get(f"/Organization/{test_org_id}")
     assert "Unexpected error" in str(exc_info.value)
 
 
-def test_get_organisation_by_id_returns_500_on_unexpected_error_in_get_all(
-    mock_repository: MockerFixture,
-) -> None:
-    mock_repository.iter_records.side_effect = Exception("Unexpected error")
-    with pytest.raises(Exception) as exc_info:
-        client.get("/")
-    assert "Unexpected error" in str(exc_info.value)
+def test__get_organization_query_params_with_identifier() -> None:
+    identifier = "odsOrganisationCode|ABC123"
+    result = _get_organization_query_params(identifier)
+    assert result is not None
+    assert hasattr(result, "identifier")
+    assert result.identifier == identifier
 
 
-def test_get_all_organisations_success() -> None:
-    response = client.get("/")
+def test_get_handle_organisation_requests_all_success(mocker: MockerFixture) -> None:
+    response = client.get("/Organization")
     assert response.status_code == HTTPStatus.OK
-    assert len(response.json()) > 0
-    assert response.json()[0]["id"] == str(get_organisation()["id"])
+    bundle = response.json()
+    assert bundle["resourceType"] == "Bundle"
+    assert str(len(bundle["entry"])) == "1"
+    assert bundle["entry"][0]["resource"]["id"] == str(get_organisation()["id"])
 
 
-def test_get_all_organisations_empty(
-    mock_repository: MockerFixture,
+# Additional test to cover identifier with different valid ODS code (lines 79-85)
+def test_get_handle_organisation_requests_by_identifier_success_with_different_code(
+    mocker: MockerFixture,
 ) -> None:
-    mock_repository.iter_records.return_value = []
-    with pytest.raises(HTTPException) as exc_info:
-        client.get("/")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Unable to retrieve any organisations"
+    mock_org = Organisation(**get_organisation())
+    mocker.patch(
+        "organisations.app.router.organisation.org_repository.get_by_ods_code",
+        return_value=mock_org,
+    )
+    response = client.get("/Organization?identifier=odsOrganisationCode|ODS54321")
+    assert response.status_code == HTTPStatus.OK
+    bundle = response.json()
+    assert bundle["resourceType"] == "Bundle"
+    assert len(bundle["entry"]) == 1
+    assert bundle["entry"][0]["resource"]["id"] == str(test_org_id)
+    # Also check the identifier is present in the response
+    assert any(
+        i["system"] == "https://fhir.nhs.uk/Id/ods-organization-code"
+        for i in bundle["entry"][0]["resource"].get("identifier", [])
+    )
+
+
+def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> None:
+    with pytest.raises(Exception) as exc_info:
+        client.get("/Organization?identifier=odsOrganisationCode|abc")
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert (
+        "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
+        in outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_get_handle_organisation_requests_with_invalid_params(
+    mocker: MockerFixture,
+) -> None:
+    # Mock check_organisation_params to raise an OperationOutcomeException
+    mocker.patch(
+        "organisations.app.router.organisation.organisation_service.check_organisation_params",
+        side_effect=OperationOutcomeException(
+            {
+                "resourceType": "OperationOutcome",
+                "issue": [
+                    {
+                        "severity": "error",
+                        "code": "invalid",
+                        "diagnostics": "Unexpected query parameter(s): abc. Only 'identifier' is allowed.",
+                    }
+                ],
+            }
+        ),
+    )
+    with pytest.raises(Exception) as exc_info:
+        client.get("/Organization?identifier=odsOrganisationCode|ODS12345&abc=extra")
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert (
+        "Unexpected query parameter(s): abc. Only 'identifier' is allowed."
+        in outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_get_handle_organisation_requests_by_identifier_not_found(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    mock_organisation_service.get_by_ods_code.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "not-found",
+                    "diagnostics": "Organisation not found.",
+                }
+            ],
+        }
+    )
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.get("/Organization?identifier=odsOrganisationCode|ODS12345")
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "not-found"
+    assert "not found" in outcome["issue"][0]["diagnostics"].lower()
+
+
+def test_get_handle_organisation_requests_all_empty(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    mock_organisation_service.get_all_organisations.return_value = []
+    response = client.get("/Organization")
+    assert response.status_code == HTTPStatus.OK
+    bundle = response.json()
+    assert bundle["resourceType"] == "Bundle"
+    assert bundle.get("entry", []) == []
+
+
+def test_get_handle_organisation_requests_unhandled_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    mock_organisation_service.get_all_organisations.side_effect = Exception("fail")
+    with pytest.raises(Exception) as exc_info:
+        client.get("/Organization")
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "exception"
+    assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
 
 
 def test_update_organisation_success() -> None:
@@ -146,7 +249,7 @@ def test_update_organisation_success() -> None:
         "telecom": [{"system": "phone", "value": "0123456789"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
-    response = client.put(f"/{test_org_id}", json=fhir_payload)
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
     assert response.status_code == HTTPStatus.OK
     assert response.json()["issue"][0]["code"] == "success"
     assert response.json()["issue"][0]["severity"] == "information"
@@ -174,7 +277,7 @@ def test_update_organisation_no_updates(
         "telecom": [{"system": "phone", "value": "0123456789"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
-    response = client.put(f"/{test_org_id}", json=update_payload)
+    response = client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.OK
     assert response.json()["issue"][0]["code"] == "information"
     assert response.json()["issue"][0]["severity"] == "information"
@@ -216,7 +319,7 @@ def test_update_organisation_operation_outcome(
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
-        client.put(f"/{test_org_id}", json=update_payload)
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["resourceType"] == "OperationOutcome"
     assert exc_info.value.outcome["issue"][0]["code"] == "not-found"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
@@ -237,7 +340,7 @@ def test_update_organisation_missing_required_field() -> None:
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(RequestValidationError) as exc_info:
-        client.put(f"/{test_org_id}", json=fhir_payload)
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
     assert "'active'" in str(exc_info.value)
     assert "field required" in str(exc_info.value).lower()
 
@@ -263,52 +366,15 @@ def test_update_organisation_unexpected_exception(
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
-        client.put(f"/{test_org_id}", json=update_payload)
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "exception"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
     assert "Something went wrong" in exc_info.value.outcome["issue"][0]["diagnostics"]
 
 
-def test_get_organisation_by_ods_code_success() -> None:
-    ods_code = "12345"
-    response = client.get(f"/ods_code/{ods_code}")
-    assert response.status_code == HTTPStatus.OK
-    assert response.json() == {"id": "12345"}
-
-
-def test_get_organisation_by_ods_code_not_found(mock_repository: MockerFixture) -> None:
-    mock_repository.get_by_ods_code.return_value = None
-    ods_code = "12345"
-    response = client.get(f"/ods_code/{ods_code}")
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json()["issue"] == [
-        {
-            "code": "not-found",
-            "diagnostics": "Organisation not found",
-            "severity": "error",
-        }
-    ]
-
-
-def test_get_organisation_by_ods_code_unexpected_error(
-    mock_repository: MockerFixture,
-) -> None:
-    mock_repository.get_by_ods_code.side_effect = Exception("Unexpected error")
-    ods_code = "12345"
-    response = client.get(f"/ods_code/{ods_code}")
-    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert response.json()["issue"] == [
-        {
-            "severity": "error",
-            "code": "exception",
-            "diagnostics": "Unexpected error: Unexpected error",
-        }
-    ]
-
-
 def test_create_organisation_success() -> None:
     organisation_data = get_organisation()
-    response = client.post("/", json=organisation_data)
+    response = client.post("/Organization", json=organisation_data)
     assert response.status_code == HTTPStatus.CREATED
     assert response.json() == {
         "message": "Organisation created successfully",
@@ -320,7 +386,7 @@ def test_create_organisation_validation_error() -> None:
     organisation_data = get_organisation()
     organisation_data["identifier_ODS_ODSCode"] = None  # Missing ODS code
     with pytest.raises(RequestValidationError) as exc_info:
-        client.post("/", json=organisation_data)
+        client.post("/Organization", json=organisation_data)
     assert exc_info.type is RequestValidationError
     assert "Input should be a valid string" in str(exc_info.value)
 
@@ -334,26 +400,26 @@ def test_create_organisation_already_exists(
         detail="Organisation with this ODS code already exists",
     )
     with pytest.raises(HTTPException) as exc_info:
-        client.post("/", json=organisation_data)
+        client.post("/Organization", json=organisation_data)
     assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
     assert exc_info.value.detail == "Organisation with this ODS code already exists"
 
 
 def test_delete_organisation_success(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = get_organisation()
-    response = client.delete(f"/{test_org_id}")
+    response = client.delete(f"/Organization/{test_org_id}")
     assert response.status_code == HTTPStatus.NO_CONTENT
 
 
 def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = None
     with pytest.raises(HTTPException) as exc_info:
-        client.delete(f"/{test_org_id}")
+        client.delete(f"/Organization/{test_org_id}")
     assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
     assert exc_info.value.detail == "Organisation not found"
 
 
-def test_type_validator_invalid_coding_code_empty() -> None:
+def test_type_validator_invalid_coding_and_text_missing() -> None:
     update_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -366,8 +432,50 @@ def test_type_validator_invalid_coding_code_empty() -> None:
         "name": "Test Org",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "abc"}]}],
+        "type": [{"coding": [{}]}],
     }
     with pytest.raises(RequestValidationError) as exc_info:
-        client.put(f"/{test_org_id}", json=update_payload)
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.type is RequestValidationError
     assert "must have either 'coding' or 'text' populated" in str(exc_info.value)
+
+
+def test_organization_query_params_success() -> None:
+    query = OrganizationQueryParams(identifier="odsOrganisationCode|ABC123")
+    assert query.identifier == "odsOrganisationCode|ABC123"
+    assert query.ods_code == "ABC123"
+
+
+def test_organization_query_params_invalid_system() -> None:
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganizationQueryParams(identifier="wrongSystem|ABC123")
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert "Invalid identifier system" in outcome["issue"][0]["diagnostics"]
+
+
+def test_organization_query_params_invalid_ods_code() -> None:
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganizationQueryParams(identifier="odsOrganisationCode|abc")
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert (
+        "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
+        in outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_organization_query_params_missing_separator() -> None:
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganizationQueryParams(identifier="odsOrganisationCodeABC123")
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert (
+        "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{5,12}$"
+        in outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_organization_query_params_lowercase_ods_code() -> None:
+    query = OrganizationQueryParams(identifier="odsOrganisationCode|abcde")
+    assert query.ods_code == "ABCDE"

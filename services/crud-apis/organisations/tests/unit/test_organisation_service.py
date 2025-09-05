@@ -345,3 +345,88 @@ def test_process_organisation_update_invalid_fhir_structure() -> None:
     assert exc_info.value.outcome["issue"][0]["code"] == "structure"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
     assert "resourceType" in exc_info.value.outcome["issue"][0]["diagnostics"]
+
+
+def test_get_by_ods_code_success() -> None:
+    org = Organisation(
+        identifier_ODS_ODSCode="ODS12345",
+        active=True,
+        name="Test Org",
+        telecom="12345",
+        type="GP Practice",
+        endpoints=[],
+        id="00000000-0000-0000-0000-00000000000a",
+        createdBy="test",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="test",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
+    )
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    org_repository.get_by_ods_code.return_value = org
+    service = make_service(org_repository=org_repository)
+    result = service.get_by_ods_code("ODS12345")
+    assert result == org
+    org_repository.get_by_ods_code.assert_called_once_with(ods_code="ODS12345")
+
+
+def test_get_by_ods_code_not_found() -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    org_repository.get_by_ods_code.return_value = None
+    service = make_service(org_repository=org_repository)
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        service.get_by_ods_code("ODS99999")
+    assert exc_info.value.outcome["issue"][0]["code"] == "not-found"
+    assert "not found" in exc_info.value.outcome["issue"][0]["diagnostics"].lower()
+
+
+def test_check_organisation_params_valid() -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    service.check_organisation_params({"identifier": "ODS12345"})
+
+
+def test_check_organisation_params_invalid() -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        service.check_organisation_params({"identifier": "ODS12345", "foo": "bar"})
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert (
+        "unexpected query parameter"
+        in exc_info.value.outcome["issue"][0]["diagnostics"].lower()
+    )
+
+
+def test_get_all_organisations() -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    org1 = Organisation(
+        identifier_ODS_ODSCode="ODS12345",
+        active=True,
+        name="Test Org",
+        telecom="12345",
+        type="GP Practice",
+        endpoints=[],
+        id="00000000-0000-0000-0000-00000000000a",
+        createdBy="test",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="test",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
+    )
+    org2 = Organisation(
+        identifier_ODS_ODSCode="ODS12345",
+        active=True,
+        name="Test Org",
+        telecom="12345",
+        type="GP Practice",
+        endpoints=[],
+        id="00000000-0000-0000-0000-00000000000a",
+        createdBy="test",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="test",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
+    )
+    org_repository.iter_records.return_value = [org1, org2]
+    service = make_service(org_repository=org_repository)
+    result = service.get_all_organisations()
+    assert result == [org1, org2]
+    org_repository.iter_records.assert_called_once()

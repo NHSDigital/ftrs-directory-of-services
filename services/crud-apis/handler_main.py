@@ -6,7 +6,7 @@ from location.app.router import location
 from organisations.app.router import organisation
 
 app = FastAPI(title="FTRS Services API")
-app.include_router(organisation.router, prefix="/Organization", tags=["Organization"])
+app.include_router(organisation.router, tags=["Organization"])
 app.include_router(healthcare.router, prefix="/healthcare-service", tags=["Healthcare"])
 app.include_router(location.router, prefix="/location", tags=["Location"])
 
