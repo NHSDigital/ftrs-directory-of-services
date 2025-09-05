@@ -146,3 +146,9 @@ variable "enable_flow_log" {
   type        = bool
   default     = false
 }
+
+variable "s3_logging_expiration_days" {
+  description = "The number of days before the S3 access logs are deleted"
+  type        = number
+  default     = 30
+}

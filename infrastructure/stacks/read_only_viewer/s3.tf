@@ -65,10 +65,11 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
 }
 
 module "access_logging_bucket" {
-  source        = "../../modules/s3"
-  bucket_name   = "${local.resource_prefix}-${var.access_logs_bucket_name}"
-  versioning    = var.s3_versioning
-  force_destroy = var.force_destroy_access_logging_bucket
+  source            = "../../modules/s3"
+  bucket_name       = "${local.resource_prefix}-${var.access_logs_bucket_name}"
+  versioning        = var.s3_versioning
+  force_destroy     = var.force_destroy_access_logging_bucket
+  s3_logging_bucket = local.s3_logging_bucket
 }
 
 data "aws_iam_policy_document" "access_logging_bucket_policy" {

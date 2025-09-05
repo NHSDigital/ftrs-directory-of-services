@@ -20,13 +20,15 @@ module "s3" {
       }
     }
   }
-  # TODO Set up access logging bucket for CSOC
-  #logging = {
-  #  target_bucket = var.target_bucket
-  #  target_prefix = var.target_prefix
-  #}
+
+  logging = var.s3_logging_bucket != "" ? {
+    target_bucket = var.s3_logging_bucket
+    target_prefix = "${var.bucket_name}${local.workspace_suffix}/"
+  } : {}
+
   versioning = {
     enabled = var.versioning
   }
+
   website = var.website_map
 }

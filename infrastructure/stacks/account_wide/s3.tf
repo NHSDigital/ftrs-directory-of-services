@@ -16,6 +16,7 @@ module "vpc_flow_logs_s3_bucket" {
       }
     }
   ]
+  s3_logging_bucket = local.s3_logging_bucket
 }
 
 resource "aws_s3_bucket_policy" "vpc_flow_logs_s3_bucket_policy" {
@@ -108,6 +109,17 @@ module "logging_bucket" {
   source      = "../../modules/s3"
   bucket_name = local.s3_logging_bucket
   versioning  = var.s3_logging_bucket_versioning
+
+  lifecycle_rule_inputs = [
+    {
+      id      = "delete_s3_logs_older_than_x_days"
+      enabled = true
+      filter  = {}
+      expiration = {
+        days = var.s3_logging_expiration_days
+      }
+    }
+  ]
 }
 
 resource "aws_s3_bucket_policy" "logging_bucket_policy" {
