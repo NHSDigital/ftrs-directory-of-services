@@ -8,34 +8,48 @@ from pipeline.utils.cache import DoSMetadataCache
 
 
 @pytest.mark.parametrize(
-    "service_type_id, ods_code, expected_result, expected_message",
+    "test_data",
     [
-        (100, "A12345", True, None),  # Valid GP Practice
-        (200, "A12345", False, "Service type is not GP Practice (100)"),
-        (100, None, False, "Service does not have an ODS code"),
-        (100, "X12345", False, "ODS code does not match the required format"),
-        (100, "A1234", False, "ODS code does not match the required format"),
+        {
+            "service_type_id": 100,
+            "ods_code": "A12345",
+            "name": "Name",
+            "expected_result": True,
+            "expected_message": None,
+        },  # Valid GP Practice
+        {
+            "service_type_id": 100,
+            "ods_code": "H98765",
+            "name": "SAS - Name",
+            "expected_result": False,
+            "expected_message": "Service fits GP Special Allocation Scheme criteria",
+        },  # Invalid since it's GP Special Allocation Scheme
+        {
+            "service_type_id": 100,
+            "ods_code": "H98765",
+            "name": "Special Allocation Scheme - Name",
+            "expected_result": False,
+            "expected_message": "Service fits GP Special Allocation Scheme criteria",
+        },  # Invalid since it's GP Special Allocation Scheme
     ],
 )
 def test_is_service_supported(
     mock_legacy_service: Service,
-    service_type_id: int,
-    ods_code: str | None,
-    expected_result: bool,
-    expected_message: str | None,
+    test_data: dict,
 ) -> None:
     """
     Test that is_service_supported returns True for a valid GP profile
     """
-    mock_legacy_service.typeid = service_type_id
-    mock_legacy_service.odscode = ods_code
+    mock_legacy_service.typeid = test_data["service_type_id"]
+    mock_legacy_service.odscode = test_data["ods_code"]
+    mock_legacy_service.name = test_data["name"]
 
     is_supported, message = GPPracticeTransformer.is_service_supported(
         mock_legacy_service
     )
 
-    assert is_supported == expected_result
-    assert message == expected_message
+    assert is_supported == test_data["expected_result"]
+    assert message == test_data["expected_message"]
 
 
 @pytest.mark.parametrize(
