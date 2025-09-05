@@ -4,6 +4,10 @@ from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceT
 from ftrs_data_layer.domain import legacy as legacy_model
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
+from pipeline.transformer.gp_protected_learning_time import (
+    GPProtectedLearningTimeTransformer,
+)
+from pipeline.utils.transformer_utils import clean_name
 
 
 class GPPracticeTransformer(ServiceTransformer):
@@ -29,7 +33,7 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
-        organisation.name = self.clean_name(service.publicname)
+        organisation.name = clean_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -52,6 +56,13 @@ class GPPracticeTransformer(ServiceTransformer):
         """
         Check if the service is a GP practice.
         """
+        # Exclude if supported by GPProtectedLearningTimeTransformer
+        is_plt, plt_reason = GPProtectedLearningTimeTransformer.is_service_supported(
+            service
+        )
+        if is_plt:
+            return False, "Service fits GP Protected Learning Time criteria"
+
         if service.typeid != cls.GP_PRACTICE_TYPE_ID:
             return False, "Service type is not GP Practice (100)"
 
@@ -74,9 +85,3 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
-
-    @classmethod
-    def clean_name(cls, publicname: str) -> str:
-        if publicname:
-            return publicname.split("-", maxsplit=1)[0].rstrip()
-        raise ValueError("publicname is not set")
