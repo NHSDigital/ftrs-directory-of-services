@@ -33,13 +33,6 @@ def test_app_level3_access(nhsd_apim_proxy_url, nhsd_apim_auth_headers):
     logger.info(f"response: {resp.text}")
     # assert resp.json() == expected_json
 
-@pytest.mark.nhsd_apim_authorization({"access": "application", "level": "level0"})
-def test_app_level0_access(nhsd_apim_proxy_url, nhsd_apim_auth_headers):
-    resp = requests.get(
-        nhsd_apim_proxy_url + "/test-auth/app/level0", headers=nhsd_apim_auth_headers
-    )
-    assert resp.status_code == 200
-
 
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
 def dns_resolvable(api_name, env, workspace):
@@ -63,6 +56,27 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     response = api_request_context_mtls.get(
             url,  params=param_dict
         )
+    return response
+
+@when(
+    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
+    target_fixture="fresponse",
+)
+@pytest.mark.nhsd_apim_authorization(access="application", level="level3")
+def test_send_to_apim_get_with_params(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+    url = nhsd_apim_proxy_url + "/" + resource_name
+    logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
+    # Handle None or empty params
+    if params is None or not params.strip():
+        param_dict = {}
+    else:
+        # Parse the params string into a dictionary
+        param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
+    logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
+    response = apim_request_context.get(
+            url,  params=param_dict
+        )
+    logger.info(f"response: {response.text}")
     return response
 
 

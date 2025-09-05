@@ -6,7 +6,7 @@ authors = [
     {name = "NHS England"}
 ]
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<4.0.0"
 dependencies = [
     "allure-pytest>=2.13.5",
     "allure-pytest-bdd>=2.13.5",
