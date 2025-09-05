@@ -17,3 +17,5 @@ vpc = {
 
 enable_flow_log           = false
 flow_log_s3_force_destroy = true
+
+s3_logging_expiration_days = 90
