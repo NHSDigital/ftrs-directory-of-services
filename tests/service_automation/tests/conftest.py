@@ -80,6 +80,18 @@ def api_request_context(playwright):
     request_context.dispose()
 
 
+# @pytest.fixture
+# @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
+# def apim_request_context(playwright, nhsd_apim_auth_headers, nhsd_apim_proxy_url):
+@pytest.fixture
+def apim_request_context(playwright):
+    """Create a new Playwright API request context."""
+    request_context = playwright.request.new_context()
+    # logger.info(f"_auth_headers : {nhsd_apim_auth_headers}")
+    yield request_context
+    request_context.dispose()
+
+
 @pytest.fixture(scope="session")
 def chromium():
     with sync_playwright() as p:
