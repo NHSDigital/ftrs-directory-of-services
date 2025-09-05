@@ -34,10 +34,13 @@ class GPSpecialAllocationSchemeTransformer(ServiceTransformer):
         For GP Special Allocation Scheme Services, Organisation Linkage is not required
         Create only the healthcare service without organisation and location entities
         """
+        organisation = self.build_organisation(service)
+        organisation.name = self.clean_name(service.publicname)
+        location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
-            None,
-            None,
+            organisation.id,
+            location.id,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.SAS_SERVICE,
         )
@@ -89,3 +92,9 @@ class GPSpecialAllocationSchemeTransformer(ServiceTransformer):
             return False, "Service is not 'active'"
 
         return True, None
+
+    @classmethod
+    def clean_name(cls, publicname: str) -> str:
+        if publicname:
+            return publicname.split("-", maxsplit=1)[0].rstrip()
+        raise ValueError("publicname is not set")
