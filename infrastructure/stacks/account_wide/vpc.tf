@@ -51,10 +51,9 @@ module "vpc" {
 }
 
 resource "aws_default_security_group" "default_security_group" {
-  vpc_id      = module.vpc.vpc_id
-  ingress     = []
-  egress      = []
-  description = "Default security group for ${local.account_prefix}-${var.vpc["name"]}"
+  vpc_id  = module.vpc.vpc_id
+  ingress = []
+  egress  = []
 }
 
 locals {
