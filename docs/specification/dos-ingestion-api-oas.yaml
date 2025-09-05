@@ -36,7 +36,7 @@ info:
 
     ## Service level
 
-    TBC when service is in Beta.
+    The service level for this API is currently being determined, and this page will be updated in due course.
 
     ## Technology
 
@@ -89,17 +89,30 @@ info:
     * is for early developer testing
     * only covers a limited set of scenarios
     * is stateless, so does not actually persist any updates
-    * is open access, so does not allow you to test authorisation - TBC
+    * includes authorisation via API key
 
     For details of sandbox test scenarios, or to try out the sandbox using our 'Try this API' feature, see the documentation for each endpoint.
 
-    TBC - More details to be posted on integration, authentication, resources or test data available in all our environments during Beta phase.
+    ### Integration
 
+    Our [integration environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing):
+    * is for formal integration testing
+    * is stateful, so can persist updates
+    * includes authorisation via API key
+
+    For details of integration test scenarios, or to try out the integration environment using our 'Try this API' feature, see the documentation for each endpoint.
     ## Onboarding
 
     You need to get your software approved by us before it can go live with this API. We call this onboarding. The onboarding process can sometimes be quite long, so it's worth planning well ahead.
 
     As part of this process, you need to demonstrate your technical conformance to the requirements for this API.
+
+    ### Resources
+
+    The following resources are available to assist you with onboarding:
+    * [API Documentation](https://digital.nhs.uk/developer/guides-and-documentation) - comprehensive guides and documentation for using our APIs
+    * [Developer Forum](https://developer.community.nhs.uk/c/apim-platform/) - a community forum for developers to ask questions and share knowledge
+    * [Support](https://digital.nhs.uk/developer/help-and-support) - contact our support team for assistance
 
     ## Related APIs
 
@@ -108,8 +121,12 @@ info:
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
   version: 1.0.0
 servers:
+  - url: 'https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4'
+    description: Sandbox Environment
   - url: 'https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4'
     description: Integration Environment
+  - url: 'https://api.service.nhs.uk/dos-ingestion/FHIR/R4'
+    description: Production Environment
 paths:
   '/Organization':
     get:
