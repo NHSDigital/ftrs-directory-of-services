@@ -41,15 +41,8 @@ module "vpc" {
   flow_log_file_format      = var.flow_log_file_format
 
   # Manage Default NACL rules for the VPC
-  manage_default_network_acl  = true
   default_network_acl_ingress = []
   default_network_acl_egress  = []
-}
-
-resource "aws_default_security_group" "default_security_group" {
-  vpc_id  = module.vpc.vpc_id
-  ingress = []
-  egress  = []
 }
 
 locals {
