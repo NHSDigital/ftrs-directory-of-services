@@ -65,7 +65,7 @@ info:
     | Resource | Description | Link |
     |-----|-----|-----|
     |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services) |
-    | ETL Layer | ETL developed for Data Sourcing Partners | [Github](https://github.com/NHSDigital/ftrs-directory-of-services)|
+    | ODS ETL Layer | ODS ETL developed for Data Sourcing Partners | [Github](https://github.com/NHSDigital/ftrs-directory-of-services)|
     | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
 
     ## Environments and testing
