@@ -5,12 +5,12 @@
   "link": [
     {
       "relation": "self",
-      "url": "https://example.org/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
+      "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
     }
   ],
   "entry": [
     {
-      "fullUrl": "https://example.org/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96",
+      "fullUrl": "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96",
       "resource": {
         "resourceType": "Organization",
         "id": "04393ec4-198f-42dd-9507-f4fa5e9ebf96",
@@ -46,7 +46,7 @@
       }
     },
     {
-      "fullUrl": "https://example.org/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76",
+      "fullUrl": "https://api.service.nhs.uk/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76",
       "resource": {
         "resourceType": "Endpoint",
         "id": "1b62110d-4db5-4230-bf37-cbe948aecf76",
@@ -92,7 +92,7 @@
       }
     },
     {
-      "fullUrl": "https://servicesearch.dev.ftrs.cloud.nhs.uk/FHIR/R4/Endpoint/5df57f63-7f48-5754-b056-ba362834c1e7",
+      "fullUrl": "https://api.service.nhs.uk/FHIR/R4/Endpoint/5df57f63-7f48-5754-b056-ba362834c1e7",
       "resource": {
         "resourceType": "Endpoint",
         "id": "5df57f63-7f48-5754-b056-ba362834c1e7",
