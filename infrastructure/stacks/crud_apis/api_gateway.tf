@@ -23,35 +23,60 @@ module "api_gateway" {
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        request_templates      = {}
       }
     }
 
-    "ANY /Organization/{proxy+}" = {
+    "ANY /Organization/{proxy+}" = var.environment == "sandbox" ? {
+      integration = {
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
+      }
+    } : {
       integration = {
         integration_type       = "AWS_PROXY"
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        request_templates      = {}
       }
     }
 
-    "ANY /healthcare-service/{proxy+}" = {
+    "ANY /healthcare-service/{proxy+}" = var.environment == "sandbox" ? {
+      integration = {
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
+      }
+    } : {
       authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type       = "AWS_PROXY"
         uri                    = module.healthcare_service_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        request_templates      = {}
       }
     }
 
-    "ANY /location/{proxy+}" = {
+    "ANY /location/{proxy+}" = var.environment == "sandbox" ? {
+      integration = {
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
+      }
+    } : {
       authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type       = "AWS_PROXY"
         uri                    = module.location_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        request_templates      = {}
       }
     }
   }
