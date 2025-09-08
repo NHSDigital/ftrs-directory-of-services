@@ -1,0 +1,1 @@
+osis_pipeline_logs_retention_in_days = 30

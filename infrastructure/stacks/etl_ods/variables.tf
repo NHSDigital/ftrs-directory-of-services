@@ -94,3 +94,15 @@ variable "apim_url" {
   type        = string
   default     = "https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4"
 }
+
+variable "processor_lambda_logs_retention" {
+  description = "The number of days to retain logs for the processor lambda"
+  type        = number
+  default     = 14
+}
+
+variable "consumer_lambda_logs_retention" {
+  description = "The number of days to retain logs for the consumer lambda"
+  type        = number
+  default     = 14
+}
