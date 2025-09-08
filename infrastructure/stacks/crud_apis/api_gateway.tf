@@ -47,23 +47,31 @@ module "api_gateway" {
       "GET /Organization" = {
         integration = {
           integration_type = "MOCK"
+          payload_format_version = "1.0"
+          timeout_milliseconds = 30000
         }
       }
       "ANY /Organization/{proxy+}" = {
         integration = {
           integration_type = "MOCK"
+          payload_format_version = "1.0"
+          timeout_milliseconds = 30000
         }
       }
       "ANY /healthcare-service/{proxy+}" = {
         authorization_type = var.api_gateway_authorization_type
         integration = {
           integration_type = "MOCK"
+          payload_format_version = "1.0"
+          timeout_milliseconds = 30000
         }
       }
       "ANY /location/{proxy+}" = {
         authorization_type = var.api_gateway_authorization_type
         integration = {
           integration_type = "MOCK"
+          payload_format_version = "1.0"
+          timeout_milliseconds = 30000
         }
       }
     } : {}
