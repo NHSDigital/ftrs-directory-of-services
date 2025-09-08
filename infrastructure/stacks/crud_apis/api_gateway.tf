@@ -9,8 +9,28 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  # TODO: FDOS-370 - Setup to use mTLS or API Keys
-  routes = {
+  routes = var.environment == "sandbox" ? {
+    "GET /Organization" = {
+      integration = {
+        integration_type = "MOCK"
+      }
+    }
+    "ANY /Organization/{proxy+}" = {
+      integration = {
+        integration_type = "MOCK"
+      }
+    }
+    "ANY /healthcare-service/{proxy+}" = {
+      integration = {
+        integration_type = "MOCK"
+      }
+    }
+    "ANY /location/{proxy+}" = {
+      integration = {
+        integration_type = "MOCK"
+      }
+    }
+  } : {
     "GET /Organization" = {
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
