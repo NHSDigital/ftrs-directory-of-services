@@ -1,14 +1,14 @@
 resource "aws_apigatewayv2_route_response" "sandbox_organization" {
   count              = var.environment == "sandbox" ? 1 : 0
   api_id             = module.api_gateway.api_id
-  route_id           = module.api_gateway.route_ids["GET /Organization"]
+  route_id           = module.api_gateway.routes["GET /Organization"]
   route_response_key = "$default"
 }
 
 resource "aws_apigatewayv2_integration_response" "sandbox_organization" {
   count                    = var.environment == "sandbox" ? 1 : 0
   api_id                   = module.api_gateway.api_id
-  integration_id           = module.api_gateway.integration_ids["GET /Organization"]
+  integration_id           = module.api_gateway.integrations["GET /Organization"]
   integration_response_key = "$default"
 
   response_templates = {
