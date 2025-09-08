@@ -43,7 +43,6 @@ module "processor_lambda" {
     [aws_lambda_layer_version.python_dependency_layer.arn],
     [aws_lambda_layer_version.common_packages_layer.arn],
     var.aws_lambda_layers
-
   )
 
   environment_variables = {
@@ -52,10 +51,13 @@ module "processor_lambda" {
     "PROJECT_NAME" = var.project
     "APIM_URL"     = var.apim_url
   }
+
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.processor_lambda_logs_retention
 }
 
 module "consumer_lambda" {
@@ -92,12 +94,14 @@ module "consumer_lambda" {
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME" = var.project
     "APIM_URL"     = var.apim_url
-
   }
+
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.consumer_lambda_logs_retention
 }
 
 

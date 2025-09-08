@@ -1,7 +1,7 @@
 osis_pipeline_min_units                 = 1
 osis_pipeline_max_units                 = 1
 osis_pipeline_persistent_buffer_enabled = false
-osis_pipeline_logs_retention_in_days    = 7
+osis_pipeline_logs_retention_in_days    = 14
 ddb_export_bucket_name                  = "ddb-export"
 s3_versioning                           = true
 ddb_export_s3_prefix                    = "ddb-to-opensearch-export/"
