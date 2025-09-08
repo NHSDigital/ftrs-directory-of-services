@@ -119,13 +119,17 @@ info:
     The following APIs are related to this one:
     * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
+
+    ### Contact us
+    For help and support connecting to our APIs and to join our developer community, see [Help and support building healthcare software](https://digital.nhs.uk/developer/help-and-support).
+
   version: 1.0.0
 servers:
-  - url: 'https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4'
+  - url: https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4
     description: Sandbox Environment
-  - url: 'https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4'
+  - url: https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4
     description: Integration Environment
-  - url: 'https://api.service.nhs.uk/dos-ingestion/FHIR/R4'
+  - url: https://api.service.nhs.uk/dos-ingestion/FHIR/R4
     description: Production Environment
 paths:
   '/Organization':
@@ -240,18 +244,17 @@ paths:
         name: apiKey
         required: true
         description: |
-          Use the unique api key provided to you during onboarding. This will be used to authorise API requests
+            Use the unique api key provided to you during onboarding. This will be used to authorise API requests
         schema:
-          type: string
-          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+            type: string
+            pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+            example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
       - in: header
         name: X-Correlation-ID
         required: false
         description: |
-          Use an optional ID to track transactions across multiple systems.
-
-          Mirrored back in a response header.
+            Use an optional ID to track transactions across multiple systems.
+            Mirrored back in a response header.
         schema:
           type: string
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
@@ -261,7 +264,7 @@ paths:
         required: true
         schema:
           type: string
-          example: "00000000-0000-0000-0000-00000000000a"
+          example: 00000000-0000-0000-0000-00000000000a
       requestBody:
         required: true
         content:
@@ -276,13 +279,13 @@ paths:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-              description: 'The X-Correlation-ID from the request header, if supplied,
-                mirrored back.'
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/Organization'
-        '4XX':
+        4XX:
           description: Error
           content:
             application/fhir+json:
@@ -308,7 +311,7 @@ components:
           example: Organization
         id:
           type: string
-          example: "00000000-0000-0000-0000-00000000000a"
+          example: 00000000-0000-0000-0000-00000000000a
         meta:
           type: object
           properties:
@@ -316,13 +319,14 @@ components:
               type: array
               items:
                 type: string
-              example: ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+              example:
+                - https://fhir.nhs.uk/StructureDefinition/UKCore-Organization
         active:
           type: boolean
           example: true
         name:
           type: string
-          example: "GP Practice Name"
+          example: GP Practice Name
         type:
           type: array
           items:
@@ -340,10 +344,10 @@ components:
                   properties:
                     system:
                       type: string
-                      example: "TO-DO"
+                      example: TO-DO
                     code:
                       type: string
-                      example: "GP Service"
+                      example: GP Service
                     display:
                       type: string
                       example: GP Service
@@ -357,7 +361,8 @@ components:
             properties:
               system:
                 type: string
-                enum: [https://fhir.nhs.uk/Id/ods-organization-code]
+                enum:
+                  - https://fhir.nhs.uk/Id/ods-organization-code
                 example: https://fhir.nhs.uk/Id/ods-organization-code
               value:
                 type: string
@@ -372,14 +377,16 @@ components:
             properties:
               system:
                 type: string
-                enum: [phone]
+                enum:
+                  - phone
                 example: phone
               value:
                 type: string
-                example: "01234 567890"
+                example: 01234 567890
               use:
                 type: string
-                enum: [work]
+                enum:
+                  - work
                 example: work
         address:
           type: array
@@ -395,13 +402,15 @@ components:
                 type: array
                 items:
                   type: string
-                example: ["Example Medical Practice", "Example Street"]
+                example:
+                  - Example Medical Practice
+                  - Example Street
               city:
                 type: string
-                example: "Example City"
+                example: Example City
               postalCode:
                 type: string
-                example: "AB12 3CD"
+                example: AB12 3CD
               country:
                 type: string
                 example: "ENGLAND"
@@ -451,7 +460,8 @@ components:
               type: array
               items:
                 type: string
-              example: ["https://simplifier.net/guide/UKCoreDevelopment2/ProfileUKCore-OperationOutcome"]
+              example:
+                - https://simplifier.net/guide/UKCoreDevelopment2/ProfileUKCore-OperationOutcome
         issue:
           type: array
           items:
@@ -462,7 +472,11 @@ components:
             properties:
               severity:
                 type: string
-                enum: [fatal, error, warning, information]
+                enum:
+                  - fatal
+                  - error
+                  - warning
+                  - information
                 example: error
               code:
                 type: string
@@ -483,7 +497,7 @@ components:
                           example: INVALID
               diagnostics:
                 type: string
-                example: 'Invalid resource.'
+                example: Invalid resource.
   securitySchemes:
     app-level0:
       $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level0
