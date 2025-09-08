@@ -13,8 +13,8 @@ module "api_gateway" {
     "GET /Organization" = {
       integration = var.environment == "sandbox" ? {
         integration_type       = "MOCK"
-        payload_format_version = "1.0"
-        timeout_milliseconds   = 30000
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
       } : {
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
@@ -25,8 +25,8 @@ module "api_gateway" {
     "ANY /Organization/{proxy+}" = {
       integration = var.environment == "sandbox" ? {
         integration_type       = "MOCK"
-        payload_format_version = "1.0"
-        timeout_milliseconds   = 30000
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
       } : {
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
@@ -38,8 +38,8 @@ module "api_gateway" {
       authorization_type = var.api_gateway_authorization_type
       integration = var.environment == "sandbox" ? {
         integration_type       = "MOCK"
-        payload_format_version = "1.0"
-        timeout_milliseconds   = 30000
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
       } : {
         uri                    = module.healthcare_service_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
@@ -51,8 +51,8 @@ module "api_gateway" {
       authorization_type = var.api_gateway_authorization_type
       integration = var.environment == "sandbox" ? {
         integration_type       = "MOCK"
-        payload_format_version = "1.0"
-        timeout_milliseconds   = 30000
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
       } : {
         uri                    = module.location_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
