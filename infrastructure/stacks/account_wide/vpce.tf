@@ -23,7 +23,7 @@ resource "aws_vpc_endpoint" "dynamodb_vpce" {
         Sid       = "DenyAccessFromOutsideVPC",
         Effect    = "Deny",
         Principal = "*",
-        Action    = "dynamodb:*",
+        Action    = "*",
         Resource  = "*",
         Condition = {
           StringNotEquals = {
