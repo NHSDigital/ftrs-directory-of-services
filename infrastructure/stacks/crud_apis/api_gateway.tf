@@ -9,41 +9,15 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  routes = var.environment == "sandbox" ? {
-    "GET /Organization" = {
+  routes = {
+    "GET /Organization" = var.environment == "sandbox" ? {
       integration = {
-        integration_type       = "MOCK"
-        uri                    = ""
-        payload_format_version = ""
-        timeout_milliseconds   = 0
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
       }
-    }
-    "ANY /Organization/{proxy+}" = {
-      integration = {
-        integration_type       = "MOCK"
-        uri                    = ""
-        payload_format_version = ""
-        timeout_milliseconds   = 0
-      }
-    }
-    "ANY /healthcare-service/{proxy+}" = {
-      integration = {
-        integration_type       = "MOCK"
-        uri                    = ""
-        payload_format_version = ""
-        timeout_milliseconds   = 0
-      }
-    }
-    "ANY /location/{proxy+}" = {
-      integration = {
-        integration_type       = "MOCK"
-        uri                    = ""
-        payload_format_version = ""
-        timeout_milliseconds   = 0
-      }
-    }
-  } : {
-    "GET /Organization" = {
+    } : {
       integration = {
         integration_type       = "AWS_PROXY"
         uri                    = module.organisation_api_lambda.lambda_function_arn
