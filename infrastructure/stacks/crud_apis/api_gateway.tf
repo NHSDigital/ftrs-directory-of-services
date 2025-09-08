@@ -13,33 +13,33 @@ module "api_gateway" {
     "GET /Organization" = {
       integration = {
         integration_type       = "MOCK"
-        uri                    = null
-        payload_format_version = null
-        timeout_milliseconds   = null
+        uri                    = ""
+        payload_format_version = ""
+        timeout_milliseconds   = 0
       }
     }
     "ANY /Organization/{proxy+}" = {
       integration = {
         integration_type       = "MOCK"
-        uri                    = null
-        payload_format_version = null
-        timeout_milliseconds   = null
+        uri                    = ""
+        payload_format_version = ""
+        timeout_milliseconds   = 0
       }
     }
     "ANY /healthcare-service/{proxy+}" = {
       integration = {
         integration_type       = "MOCK"
-        uri                    = null
-        payload_format_version = null
-        timeout_milliseconds   = null
+        uri                    = ""
+        payload_format_version = ""
+        timeout_milliseconds   = 0
       }
     }
     "ANY /location/{proxy+}" = {
       integration = {
         integration_type       = "MOCK"
-        uri                    = null
-        payload_format_version = null
-        timeout_milliseconds   = null
+        uri                    = ""
+        payload_format_version = ""
+        timeout_milliseconds   = 0
       }
     }
   } : {
