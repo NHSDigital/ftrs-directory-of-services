@@ -15,7 +15,9 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        uri                    = null
       } : {
+        integration_type       = "AWS_PROXY"
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
@@ -27,7 +29,9 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        uri                    = null
       } : {
+        integration_type       = "AWS_PROXY"
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
@@ -40,7 +44,9 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        uri                    = null
       } : {
+        integration_type       = "AWS_PROXY"
         uri                    = module.healthcare_service_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
@@ -53,7 +59,9 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
+        uri                    = null
       } : {
+        integration_type       = "AWS_PROXY"
         uri                    = module.location_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
