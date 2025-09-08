@@ -8,15 +8,11 @@ resource "aws_vpc_endpoint" "dynamodb_vpce" {
     Version = "2012-10-17",
     Statement = [
       {
-        Sid    = "AllowLambdaService",
-        Effect = "Allow",
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        },
-        Action = [
-          "dynamodb:*"
-        ],
-        Resource = "*",
+        Sid       = "AllowAccessFromVPC",
+        Effect    = "Allow",
+        Principal = "*",
+        Action    = "dynamodb:*",
+        Resource  = "*",
         Condition = {
           StringEquals = {
             "aws:SourceVpc" : module.vpc.vpc_id
