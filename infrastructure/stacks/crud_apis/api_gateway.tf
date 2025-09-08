@@ -12,22 +12,34 @@ module "api_gateway" {
   routes = var.environment == "sandbox" ? {
     "GET /Organization" = {
       integration = {
-        integration_type = "MOCK"
+        integration_type       = "MOCK"
+        uri                    = null
+        payload_format_version = null
+        timeout_milliseconds   = null
       }
     }
     "ANY /Organization/{proxy+}" = {
       integration = {
-        integration_type = "MOCK"
+        integration_type       = "MOCK"
+        uri                    = null
+        payload_format_version = null
+        timeout_milliseconds   = null
       }
     }
     "ANY /healthcare-service/{proxy+}" = {
       integration = {
-        integration_type = "MOCK"
+        integration_type       = "MOCK"
+        uri                    = null
+        payload_format_version = null
+        timeout_milliseconds   = null
       }
     }
     "ANY /location/{proxy+}" = {
       integration = {
-        integration_type = "MOCK"
+        integration_type       = "MOCK"
+        uri                    = null
+        payload_format_version = null
+        timeout_milliseconds   = null
       }
     }
   } : {
