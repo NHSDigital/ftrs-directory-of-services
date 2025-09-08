@@ -9,58 +9,68 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  routes = {
+  routes = var.environment == "sandbox" ? {
     "GET /Organization" = {
-      integration = var.environment == "sandbox" ? {
+      integration = {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
         uri                    = null
-        } : {
-        integration_type       = "AWS_PROXY"
-        uri                    = module.organisation_api_lambda.lambda_function_arn
-        payload_format_version = var.api_gateway_payload_format_version
-        timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
-
     "ANY /Organization/{proxy+}" = {
-      integration = var.environment == "sandbox" ? {
+      integration = {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
         uri                    = null
-        } : {
+      }
+    }
+    "ANY /healthcare-service/{proxy+}" = {
+      integration = {
+        integration_type       = "MOCK"
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+        uri                    = null
+      }
+    }
+    "ANY /location/{proxy+}" = {
+      integration = {
+        integration_type       = "MOCK"
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+        uri                    = null
+      }
+    }
+    } : {
+    "GET /Organization" = {
+      integration = {
         integration_type       = "AWS_PROXY"
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
-
+    "ANY /Organization/{proxy+}" = {
+      integration = {
+        integration_type       = "AWS_PROXY"
+        uri                    = module.organisation_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
     "ANY /healthcare-service/{proxy+}" = {
       authorization_type = var.api_gateway_authorization_type
-      integration = var.environment == "sandbox" ? {
-        integration_type       = "MOCK"
-        payload_format_version = var.api_gateway_payload_format_version
-        timeout_milliseconds   = var.api_gateway_integration_timeout
-        uri                    = null
-        } : {
+      integration = {
         integration_type       = "AWS_PROXY"
         uri                    = module.healthcare_service_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
-
     "ANY /location/{proxy+}" = {
       authorization_type = var.api_gateway_authorization_type
-      integration = var.environment == "sandbox" ? {
-        integration_type       = "MOCK"
-        payload_format_version = var.api_gateway_payload_format_version
-        timeout_milliseconds   = var.api_gateway_integration_timeout
-        uri                    = null
-        } : {
+      integration = {
         integration_type       = "AWS_PROXY"
         uri                    = module.location_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
@@ -68,6 +78,66 @@ module "api_gateway" {
       }
     }
   }
+
+  # routes = {
+  #   "GET /Organization" = {
+  #     integration = var.environment == "sandbox" ? {
+  #       integration_type       = "MOCK"
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       uri                    = null
+  #       } : {
+  #       integration_type       = "AWS_PROXY"
+  #       uri                    = module.organisation_api_lambda.lambda_function_arn
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #     }
+  #   }
+
+  #   "ANY /Organization/{proxy+}" = {
+  #     integration = var.environment == "sandbox" ? {
+  #       integration_type       = "MOCK"
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       uri                    = null
+  #       } : {
+  #       integration_type       = "AWS_PROXY"
+  #       uri                    = module.organisation_api_lambda.lambda_function_arn
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #     }
+  #   }
+
+  #   "ANY /healthcare-service/{proxy+}" = {
+  #     authorization_type = var.api_gateway_authorization_type
+  #     integration = var.environment == "sandbox" ? {
+  #       integration_type       = "MOCK"
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       uri                    = null
+  #       } : {
+  #       integration_type       = "AWS_PROXY"
+  #       uri                    = module.healthcare_service_api_lambda.lambda_function_arn
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #     }
+  #   }
+
+  #   "ANY /location/{proxy+}" = {
+  #     authorization_type = var.api_gateway_authorization_type
+  #     integration = var.environment == "sandbox" ? {
+  #       integration_type       = "MOCK"
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       uri                    = null
+  #       } : {
+  #       integration_type       = "AWS_PROXY"
+  #       uri                    = module.location_api_lambda.lambda_function_arn
+  #       payload_format_version = var.api_gateway_payload_format_version
+  #       timeout_milliseconds   = var.api_gateway_integration_timeout
+  #     }
+  #   }
+  # }
 
   stage_access_log_settings = {
     create_log_group            = true
