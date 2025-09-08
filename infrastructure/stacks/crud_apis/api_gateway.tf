@@ -27,6 +27,7 @@ module "api_gateway" {
       }
     }
     "ANY /healthcare-service/{proxy+}" = {
+      authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
@@ -35,6 +36,7 @@ module "api_gateway" {
       }
     }
     "ANY /location/{proxy+}" = {
+      authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
