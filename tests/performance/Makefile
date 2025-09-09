@@ -27,9 +27,14 @@ install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required pl
 	echo "Installing jmeter plugins"
 	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional
 
-performance-test: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [TEST_DATA=name of performance test data jtl file]
+performance-test: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs]
 	echo "running performance tests against ${PLAN_NAME}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l ${TEST_DATA}.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}"
+	export PLAN_NAME=${PLAN_NAME} ; \
+	export ENDPOINT=${ENDPOINT} ; \
+	export PFX_PATH=${PFX_PATH} ; \
+	export PFX_PASSWORD=${PFX_PASSWORD} ; \
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.csv -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}";
+
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
