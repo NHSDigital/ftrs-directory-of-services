@@ -15,6 +15,7 @@ from pipeline.transformer import (
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 from pipeline.utils.dbutil import get_repository
+from pipeline.validation.types import ValidationIssue
 
 
 class DataMigrationMetrics(BaseModel):
@@ -124,7 +125,8 @@ class DataMigrationProcessor:
                 self.logger.log(DataMigrationLogBase.DM_ETL_013, record_id=service.id)
                 return
 
-            result = transformer.transform(validation_result.sanitised)
+            issues = self._convert_validation_issues(validation_result.issues)
+            result = transformer.transform(validation_result.sanitised, issues)
             self.metrics.transformed_records += 1
 
             self.logger.log(
@@ -215,3 +217,13 @@ class DataMigrationProcessor:
 
         for hc in result.healthcare_service:
             service_repo.upsert(hc)
+
+    def _convert_validation_issues(self, issues: list[ValidationIssue]) -> list[str]:
+        """
+        Convert validation issues to a list of strings.
+        """
+        for issue in issues:
+            return [
+                f"field:{issue.expression} ,error: {issue.code},message:{issue.diagnostics},value:{issue.value}"
+                for issue in issues
+            ]

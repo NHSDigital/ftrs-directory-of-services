@@ -258,7 +258,7 @@ def test_process_service(
         telecom=Telecom(
             phone_public="01234567890",
             phone_private="09876543210",
-            email="test@example.com",
+            email="firstname.lastname@nhs.net",
             web="http://example.com",
         ),
         openingTime=[
@@ -601,9 +601,9 @@ def test_save(
         "ftrs-dos-test-database-healthcare-service-test_workspace": mock_service_repo,
         "ftrs-dos-test-database-location-test_workspace": mock_location_repo,
     }
-
+    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
     processor._save(result)
 

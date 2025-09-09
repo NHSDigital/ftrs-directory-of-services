@@ -36,7 +36,7 @@ from pipeline.utils.cache import DoSMetadataCache
 
 class BasicServiceTransformer(ServiceTransformer):
     def transform(self, service: Service) -> dict:
-        return super().transform(service)
+        return super().transform(service, validation_issues=[])
 
     @classmethod
     def is_service_supported(cls, service: Service) -> tuple[bool, str | None]:
@@ -354,7 +354,7 @@ def test_build_healthcare_service(
         telecom=Telecom(
             phone_public="01234 567890",
             phone_private="09876 543210",
-            email="test@example.com",
+            email="firstname.lastname@nhs.net",
             web="http://example.com",
         ),
         openingTime=[
