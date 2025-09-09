@@ -2,7 +2,7 @@ import json
 import os
 from typing import Dict, Optional
 
-MOCK_FOLDER = "responses/organizations"
+MOCK_FOLDER = os.path.join(os.path.dirname(__file__), "responses", "organizations")
 
 
 def load_mock_response(ods_code: str) -> Optional[Dict[str, object]]:
@@ -37,4 +37,8 @@ def handler(event: Dict[str, object], context: object) -> Dict[str, object]:
             "entry": [],
         }
 
-    return {"statusCode": 200, "body": json.dumps(response_body)}
+    return {
+        "statusCode": 200,
+        "body": json.dumps(response_body),
+        "headers": {"Content-Type": "application/json"},
+    }
