@@ -28,7 +28,7 @@
 # }
 
 module "api_gateway_sandbox" {
-  count  = var.environment == "dev" ? 1 : 0
+  count  = var.environment == "sandbox" ? 1 : 0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git?ref=5d1548624b39145ead043794ae5762abb9aadb27"
 
   name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
