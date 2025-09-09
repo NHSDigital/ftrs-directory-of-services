@@ -105,6 +105,7 @@ def test_healthcare_service() -> None:
         "providedBy": str(hs.providedBy),
         "location": str(hs.location),
         "modifiedBy": "test_user",
+        "migrationNotes": None,
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "name": "Test Healthcare Service",
         "telecom": {
