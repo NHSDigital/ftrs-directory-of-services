@@ -12,7 +12,7 @@ module "api_gateway" {
   routes = {
     "GET /Organization" = {
       integration = {
-        uri = var.environment == "dev" ? module.mock_api_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
+        uri                    = var.environment == "dev" ? module.mock_api_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
@@ -20,7 +20,7 @@ module "api_gateway" {
 
     "ANY /Organization/{proxy+}" = {
       integration = {
-        uri = var.environment == "dev" ? module.mock_api_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
+        uri                    = var.environment == "dev" ? module.mock_api_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
