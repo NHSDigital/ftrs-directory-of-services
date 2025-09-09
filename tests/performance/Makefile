@@ -11,13 +11,13 @@ install: install-dependencies
 install-dependencies:
 	asdf install
 
-performance-test: ##[PLAN_NAME=name of jmeter plan] [USERNAME=username][PASSWORD=password] [ENDPOINT=endpoint of APIs]
+performance-test: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs]
 	echo "running performance tests against ${PLAN_NAME}..."
 	export PLAN_NAME=${PLAN_NAME} ; \
-	export USERNAME=${USERNAME} ; \
-	export PASSWORD=${PASSWORD} ;\
 	export ENDPOINT=${ENDPOINT} ; \
-	jmeter -n -t ${PLAN_NAME}.jmx -J username=${USERNAME} -J password=${PASSWORD} -J serviceendpoint=${ENDPOINT} -f -l result.jtl ;
+	export PFX_PATH=${PFX_PATH} ; \
+	export PFX_PASSWORD=${PFX_PASSWORD} ; \
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.csv -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}";
 
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
