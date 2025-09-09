@@ -15,7 +15,7 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
-        uri                    = null
+        uri                    = ""
       }
     }
     "ANY /Organization/{proxy+}" = {
@@ -23,7 +23,7 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
-        uri                    = null
+        uri                    = ""
       }
     }
     "ANY /healthcare-service/{proxy+}" = {
@@ -32,7 +32,7 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
-        uri                    = null
+        uri                    = ""
       }
     }
     "ANY /location/{proxy+}" = {
@@ -41,7 +41,7 @@ module "api_gateway" {
         integration_type       = "MOCK"
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
-        uri                    = null
+        uri                    = ""
       }
     }
     } : {
