@@ -222,8 +222,8 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
         "identifier_oldDoS_uid": None,
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
-        "migrationNotes": None,
         "modifiedBy": "SYSTEM",
+        "migrationNotes": None,
         "modifiedDateTime": "2025-07-15T12:00:00Z",
     }
 

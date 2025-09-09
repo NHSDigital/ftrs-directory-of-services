@@ -346,6 +346,7 @@ def test_build_healthcare_service(
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         identifier_oldDoS_uid="test-uid",
         active=True,
+        migrationNotes=None,
         category="GP Services",
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
