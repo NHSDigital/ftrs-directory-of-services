@@ -9,7 +9,7 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  routes = var.environment == "sandbox" ? {
+  routes = var.environment == "dev" ? {
     "GET /Organization" = {
       integration = {
         integration_type       = "MOCK"
