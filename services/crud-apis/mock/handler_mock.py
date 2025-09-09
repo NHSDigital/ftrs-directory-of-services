@@ -1,6 +1,8 @@
 import json
+from typing import Dict
 
-def lambda_handler(event, context):
+
+def lambda_handler(event: Dict[str, object], context: object) -> Dict[str, object]:
     response = {
         "resourceType": "Organization",
         "id": "mock-org",
