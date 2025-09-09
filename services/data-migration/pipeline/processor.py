@@ -122,7 +122,7 @@ class DataMigrationProcessor:
                     issue.model_dump(mode="json") for issue in validation_result.issues
                 ]
                 self.logger.log(
-                    DataMigrationLogBase.DM_ETL_012,
+                    DataMigrationLogBase.DM_ETL_013,
                     record_id=service.id,
                     issue_count=len(issues),
                     issues=issues,
@@ -130,7 +130,10 @@ class DataMigrationProcessor:
 
             if not validation_result.should_continue:
                 self.metrics.invalid_records += 1
-                self.logger.log(DataMigrationLogBase.DM_ETL_013, record_id=service.id)
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_014,
+                    record_id=service.id,
+                )
                 return
 
             issues = self._convert_validation_issues(validation_result.issues)

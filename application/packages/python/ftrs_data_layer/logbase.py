@@ -143,6 +143,14 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="No symptom discriminators found for Symptom Group ID: {sg_id}",
     )
+    DM_ETL_013 = LogReference(
+        level=WARNING,
+        message="Record {record_id} has {issue_count} validation issues {issues}",
+    )
+    DM_ETL_014 = LogReference(
+        level=WARNING,
+        message="Record {record_id} failed validation and was not migrated",
+    )
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
