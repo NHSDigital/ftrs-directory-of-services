@@ -67,9 +67,10 @@ jmeter
 ## Running the test plan
 
 ### From command line and sending a mtls pfx file
+### From command line and sending a mtls pfx file
 
 ```
-jmeter -n -t IS_Test_Plan.jmx -f -l result.jtl -e -o "report"  -J serviceendpoint=<endpoint> -D javax.net.ssl.keyStore="<full path to pfx file>" -D javax.net.ssl.keyStorePassword='<password for pfx file>'
+jmeter -n -t IS_Test_Plan.jmx -f -l result.csv -e -o "report"  -J serviceendpoint=<endpoint> -D javax.net.ssl.keyStore="<full paths to pfx file>" -D javax.net.ssl.keyStorePassword='<password for pfx file>'
 ```
 
 To generate a dashboard report in the folder reports based on the result.jtl file generated when the test plan ran
