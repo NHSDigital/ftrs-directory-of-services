@@ -2,6 +2,7 @@
 organisation_api_lambda_name       = "organisations-lambda"
 healthcare_service_api_lambda_name = "healthcare-service-lambda"
 location_api_lambda_name           = "location-lambda"
+mock_api_lambda_name               = "mock-lambda"
 
 # Lambda
 organisation_api_lambda_runtime           = "python3.12"
