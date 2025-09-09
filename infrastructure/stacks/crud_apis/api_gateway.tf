@@ -41,6 +41,7 @@ module "api_gateway" {
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
+  }
   #   } : {
   #   # routes = {
   #   "GET /Organization" = {
