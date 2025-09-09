@@ -86,5 +86,5 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   name        = "/${local.resource_prefix}${local.workspace_suffix}/endpoint"
   description = "The endpoint URL for the CRUD API Gateway"
   type        = "String"
-  value       = module.api_gateway.api_endpoint
+  value       = local.crud_api_gateway.api_endpoint
 }

@@ -28,9 +28,9 @@ resource "aws_apigatewayv2_domain_name" "crud_api_domain" {
 }
 
 resource "aws_apigatewayv2_api_mapping" "api_mapping" {
-  api_id      = module.api_gateway.api_id
+  api_id      = local.crud_api_gateway.api_id
   domain_name = aws_apigatewayv2_domain_name.crud_api_domain.id
-  stage       = module.api_gateway.stage_id
+  stage       = local.crud_api_gateway.stage_id
 }
 
 resource "aws_route53_record" "api_record" {
