@@ -226,6 +226,7 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
 }
 
 resource "aws_apigatewayv2_route" "organization_get" {
+  # checkov:skip=CKV_AWS_309: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
   api_id    = module.api_gateway.api_id
   route_key = "GET /Organization"
   target    = "integrations/${aws_apigatewayv2_integration.organization_get.id}"
