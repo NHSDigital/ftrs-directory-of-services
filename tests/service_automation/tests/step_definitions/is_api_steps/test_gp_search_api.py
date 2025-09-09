@@ -1,13 +1,12 @@
+import pytest
+import requests
+from loguru import logger
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from step_definitions.common_steps.api_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
-import pytest
-import requests
-from loguru import logger
-
 
 INVALID_SEARCH_DATA_CODING = {
     "coding": [
@@ -62,7 +61,6 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
     target_fixture="fresponse",
 )
-@pytest.mark.nhsd_apim_authorization(access="application", level="level3")
 def test_send_to_apim_get_with_params(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
     url = nhsd_apim_proxy_url + "/" + resource_name
     logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
@@ -74,7 +72,7 @@ def test_send_to_apim_get_with_params(apim_request_context, params, resource_nam
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
     logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
     response = apim_request_context.get(
-            url,  params=param_dict
+            url,  params=param_dict, headers=nhsd_apim_auth_headers
         )
     logger.info(f"response: {response.text}")
     return response

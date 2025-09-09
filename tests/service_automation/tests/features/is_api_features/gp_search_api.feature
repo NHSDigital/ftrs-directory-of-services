@@ -1,4 +1,5 @@
 @is-api @ftrs-pipeline @gp-search-api
+@nhsd_apim_authorization(access="application",level="level3")
 Feature: API GP Endpoint Search
 
   Background: Set stack and seed repo
