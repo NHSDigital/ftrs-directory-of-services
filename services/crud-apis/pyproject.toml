@@ -47,7 +47,8 @@ poetry-plugin-export = ">=1.8"
 packages = [
   { include = "organisations" },
   { include = "healthcare_service" },
-  { include = "location" }
+  { include = "location" },
+  { include = "mock" }
 ]
 
 [tool.poe.tasks]
