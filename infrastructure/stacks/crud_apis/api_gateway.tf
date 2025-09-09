@@ -9,139 +9,139 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  # routes = var.environment == "dev" ? {
-  routes = {
-    "GET /Organization" = {
-      integration = {
-        integration_type = "MOCK"
-        uri              = "http://example.com"
-        request_templates = {
-          "application/json" = "{\"statusCode\": 200}"
-        }
-        templates = {
-          "application/json" = <<EOF
-{
-  "resourceType": "Organization",
-  "id": "mock-org",
-  "name": "Mock Organization",
-  "telecom": [
-    {
-      "system": "phone",
-      "value": "01234 567890"
-    }
-  ],
-  "type": [
-    {
-      "text": "GP Practice"
-    }
-  ],
-  "active": true
-}
-EOF
-        }
-        # payload_format_version = var.api_gateway_payload_format_version
-        # timeout_milliseconds   = var.api_gateway_integration_timeout
-      }
-    }
-    "ANY /Organization/{proxy+}" = {
-      integration = {
-        integration_type = "MOCK"
-        uri              = "http://example.com"
-        request_templates = {
-          "application/json" = "{\"statusCode\": 200}"
-        }
-        templates = {
-          "application/json" = <<EOF
-{
-  "resourceType": "Organization",
-  "id": "mock-org",
-  "name": "Mock Organization",
-  "telecom": [
-    {
-      "system": "phone",
-      "value": "01234 567890"
-    }
-  ],
-  "type": [
-    {
-      "text": "GP Practice"
-    }
-  ],
-  "active": true
-}
-EOF
-        }
-        # payload_format_version = var.api_gateway_payload_format_version
-        # timeout_milliseconds   = var.api_gateway_integration_timeout
-      }
-    }
-    "ANY /healthcare-service/{proxy+}" = {
-      authorization_type = var.api_gateway_authorization_type
-      integration = {
-        integration_type = "MOCK"
-        uri              = "http://example.com"
-        request_templates = {
-          "application/json" = "{\"statusCode\": 200}"
-        }
-        templates = {
-          "application/json" = <<EOF
-{
-  "resourceType": "Organization",
-  "id": "mock-org",
-  "name": "Mock Organization",
-  "telecom": [
-    {
-      "system": "phone",
-      "value": "01234 567890"
-    }
-  ],
-  "type": [
-    {
-      "text": "GP Practice"
-    }
-  ],
-  "active": true
-}
-EOF
-        }
-        # payload_format_version = var.api_gateway_payload_format_version
-        # timeout_milliseconds   = var.api_gateway_integration_timeout
-      }
-    }
-    "ANY /location/{proxy+}" = {
-      authorization_type = var.api_gateway_authorization_type
-      integration = {
-        integration_type = "MOCK"
-        uri              = "http://example.com"
-        request_templates = {
-          "application/json" = "{\"statusCode\": 200}"
-        }
-        templates = {
-          "application/json" = <<EOF
-{
-  "resourceType": "Organization",
-  "id": "mock-org",
-  "name": "Mock Organization",
-  "telecom": [
-    {
-      "system": "phone",
-      "value": "01234 567890"
-    }
-  ],
-  "type": [
-    {
-      "text": "GP Practice"
-    }
-  ],
-  "active": true
-}
-EOF
-        }
-        # payload_format_version = var.api_gateway_payload_format_version
-        # timeout_milliseconds   = var.api_gateway_integration_timeout
-      }
-    }
-  }
+  #   # routes = var.environment == "dev" ? {
+  #   routes = {
+  #     "GET /Organization" = {
+  #       integration = {
+  #         integration_type = "MOCK"
+  #         uri              = "http://example.com"
+  #         request_templates = {
+  #           "application/json" = "{\"statusCode\": 200}"
+  #         }
+  #         templates = {
+  #           "application/json" = <<EOF
+  # {
+  #   "resourceType": "Organization",
+  #   "id": "mock-org",
+  #   "name": "Mock Organization",
+  #   "telecom": [
+  #     {
+  #       "system": "phone",
+  #       "value": "01234 567890"
+  #     }
+  #   ],
+  #   "type": [
+  #     {
+  #       "text": "GP Practice"
+  #     }
+  #   ],
+  #   "active": true
+  # }
+  # EOF
+  #         }
+  #         # payload_format_version = var.api_gateway_payload_format_version
+  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       }
+  #     }
+  #     "ANY /Organization/{proxy+}" = {
+  #       integration = {
+  #         integration_type = "MOCK"
+  #         uri              = "http://example.com"
+  #         request_templates = {
+  #           "application/json" = "{\"statusCode\": 200}"
+  #         }
+  #         templates = {
+  #           "application/json" = <<EOF
+  # {
+  #   "resourceType": "Organization",
+  #   "id": "mock-org",
+  #   "name": "Mock Organization",
+  #   "telecom": [
+  #     {
+  #       "system": "phone",
+  #       "value": "01234 567890"
+  #     }
+  #   ],
+  #   "type": [
+  #     {
+  #       "text": "GP Practice"
+  #     }
+  #   ],
+  #   "active": true
+  # }
+  # EOF
+  #         }
+  #         # payload_format_version = var.api_gateway_payload_format_version
+  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       }
+  #     }
+  #     "ANY /healthcare-service/{proxy+}" = {
+  #       authorization_type = var.api_gateway_authorization_type
+  #       integration = {
+  #         integration_type = "MOCK"
+  #         uri              = "http://example.com"
+  #         request_templates = {
+  #           "application/json" = "{\"statusCode\": 200}"
+  #         }
+  #         templates = {
+  #           "application/json" = <<EOF
+  # {
+  #   "resourceType": "Organization",
+  #   "id": "mock-org",
+  #   "name": "Mock Organization",
+  #   "telecom": [
+  #     {
+  #       "system": "phone",
+  #       "value": "01234 567890"
+  #     }
+  #   ],
+  #   "type": [
+  #     {
+  #       "text": "GP Practice"
+  #     }
+  #   ],
+  #   "active": true
+  # }
+  # EOF
+  #         }
+  #         # payload_format_version = var.api_gateway_payload_format_version
+  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       }
+  #     }
+  #     "ANY /location/{proxy+}" = {
+  #       authorization_type = var.api_gateway_authorization_type
+  #       integration = {
+  #         integration_type = "MOCK"
+  #         uri              = "http://example.com"
+  #         request_templates = {
+  #           "application/json" = "{\"statusCode\": 200}"
+  #         }
+  #         templates = {
+  #           "application/json" = <<EOF
+  # {
+  #   "resourceType": "Organization",
+  #   "id": "mock-org",
+  #   "name": "Mock Organization",
+  #   "telecom": [
+  #     {
+  #       "system": "phone",
+  #       "value": "01234 567890"
+  #     }
+  #   ],
+  #   "type": [
+  #     {
+  #       "text": "GP Practice"
+  #     }
+  #   ],
+  #   "active": true
+  # }
+  # EOF
+  #         }
+  #         # payload_format_version = var.api_gateway_payload_format_version
+  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
+  #       }
+  #     }
+  #   }
   #   } : {
   #   # routes = {
   #   "GET /Organization" = {
@@ -225,34 +225,19 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   value       = module.api_gateway.api_endpoint
 }
 
-# resource "aws_apigatewayv2_integration" "organization_get" {
-#   api_id                 = module.api_gateway.api_id
-#   integration_uri       = "http://example.com" # Dummy URI for MOCK integration
-#   integration_type       = "MOCK"
-#   integration_method     = "GET"
-#   payload_format_version = "1.0"
-#   request_templates = {
-#     "application/json" = "{\"statusCode\": 200}"
-#   }
-#   response_templates = {
-#     "application/json" = <<EOF
-# {
-#   "resourceType": "Organization",
-#   "id": "mock-org",
-#   "name": "Mock Organization",
-#   "telecom": [
-#     {
-#       "system": "phone",
-#       "value": "01234 567890"
-#     }
-#   ],
-#   "type": [
-#     {
-#       "text": "GP Practice"
-#     }
-#   ],
-#   "active": true
-# }
-# EOF
-#   }
-# }
+resource "aws_apigatewayv2_route" "organization_get" {
+  api_id    = module.api_gateway.api_id
+  route_key = "GET /Organization"
+  target    = "integrations/${aws_apigatewayv2_integration.organization_get.id}"
+}
+
+resource "aws_apigatewayv2_integration" "organization_get" {
+  api_id = module.api_gateway.api_id
+  # integration_uri       = "http://example.com" # Dummy URI for MOCK integration
+  integration_type       = "MOCK"
+  integration_method     = "GET"
+  payload_format_version = "1.0"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
