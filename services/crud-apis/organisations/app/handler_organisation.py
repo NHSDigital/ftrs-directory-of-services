@@ -49,9 +49,8 @@ async def validation_exception_handler(
 ) -> JSONResponse:
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_023,
-        error_message=str(exc),
-        validation_errors=str(exc.errors()),
-        path=request.url.path,
+        error=str(exc),
+        error_message=str(exc.errors()),
     )
 
     return JSONResponse(
