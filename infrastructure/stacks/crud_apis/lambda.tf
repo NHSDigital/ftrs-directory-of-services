@@ -119,7 +119,7 @@ module "location_api_lambda" {
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
-  create                  = var.environment != "sandbox"
+  create             = var.environment != "sandbox"
 
   number_of_policy_jsons = "2"
   policy_jsons = [
