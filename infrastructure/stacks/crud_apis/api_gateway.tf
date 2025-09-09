@@ -9,7 +9,7 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-routes = var.environment == "dev" ? {
+  routes = var.environment == "dev" ? {
     "GET /Organization" = {
       integration = {
         integration_type       = "MOCK"
@@ -41,7 +41,7 @@ routes = var.environment == "dev" ? {
       }
     }
     } : {
-  # routes = {
+    # routes = {
     "GET /Organization" = {
       integration = {
         integration_type       = "AWS_PROXY"
