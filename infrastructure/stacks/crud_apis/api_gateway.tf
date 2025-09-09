@@ -1,5 +1,5 @@
 module "api_gateway" {
-  count  = var.environment == "sandbox" ? 1 : 0
+  count  = var.environment == "dev" ? 1 : 0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git?ref=5d1548624b39145ead043794ae5762abb9aadb27"
 
   name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
@@ -121,5 +121,5 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   name        = "/${local.resource_prefix}${local.workspace_suffix}/endpoint"
   description = "The endpoint URL for the CRUD API Gateway"
   type        = "String"
-  value       = local.crud_api_gateway.api_endpoint
+  value       = module.api_gateway.api_endpoint
 }
