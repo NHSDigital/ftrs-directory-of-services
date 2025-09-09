@@ -14,6 +14,7 @@ module "api_gateway" {
     "GET /Organization" = {
       integration = {
         integration_type = "MOCK"
+        uri = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
@@ -45,6 +46,7 @@ EOF
     "ANY /Organization/{proxy+}" = {
       integration = {
         integration_type = "MOCK"
+        uri = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
@@ -77,6 +79,7 @@ EOF
       authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type = "MOCK"
+        uri = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
@@ -109,6 +112,7 @@ EOF
       authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type = "MOCK"
+        uri = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
@@ -220,3 +224,35 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   type        = "String"
   value       = module.api_gateway.api_endpoint
 }
+
+# resource "aws_apigatewayv2_integration" "organization_get" {
+#   api_id                 = module.api_gateway.api_id
+#   integration_uri       = "http://example.com" # Dummy URI for MOCK integration
+#   integration_type       = "MOCK"
+#   integration_method     = "GET"
+#   payload_format_version = "1.0"
+#   request_templates = {
+#     "application/json" = "{\"statusCode\": 200}"
+#   }
+#   response_templates = {
+#     "application/json" = <<EOF
+# {
+#   "resourceType": "Organization",
+#   "id": "mock-org",
+#   "name": "Mock Organization",
+#   "telecom": [
+#     {
+#       "system": "phone",
+#       "value": "01234 567890"
+#     }
+#   ],
+#   "type": [
+#     {
+#       "text": "GP Practice"
+#     }
+#   ],
+#   "active": true
+# }
+# EOF
+#   }
+# }
