@@ -1,0 +1,40 @@
+{
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+        {
+            "resource": {
+                "resourceType": "Organization",
+                "id": "c6016de0-7ce0-5320-9496-1d13046ad46d",
+                "meta": {
+                    "profile": [
+                        "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                    ]
+                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "value": "C88006"
+                    }
+                ],
+                "active": true,
+                "type": [
+                    {
+                        "coding": [
+                            {
+                                "system": "TO-DO",
+                                "code": "GP Practice",
+                                "display": "GP Practice"
+                            }
+                        ],
+                        "text": "GP Practice"
+                    }
+                ],
+                "name": "Dr Margaret Mckenna And Partners Norfolk Park",
+                "telecom": []
+            }
+        }
+    ]
+}

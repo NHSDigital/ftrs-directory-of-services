@@ -153,7 +153,7 @@ module "mock_api_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.mock_api_lambda_name}"
   description             = "Lambda to return mock responses"
-  handler                 = var.location_api_lambda_handler
+  handler                 = var.mock_api_lambda_handler
   runtime                 = var.mock_api_lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
