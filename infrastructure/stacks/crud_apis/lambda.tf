@@ -51,7 +51,7 @@ module "organisation_api_lambda" {
   allowed_triggers = {
     AllowExecutionFromAPIGateway = {
       service    = "apigateway"
-      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+      source_arn = "${local.crud_api_gateway.api_execution_arn}/*/*"
     }
   }
   account_id     = data.aws_caller_identity.current.account_id
@@ -94,7 +94,7 @@ module "healthcare_service_api_lambda" {
   allowed_triggers = {
     AllowExecutionFromAPIGateway = {
       service    = "apigateway"
-      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+      source_arn = "${local.crud_api_gateway.api_execution_arn}/*/*"
     }
   }
   account_id     = data.aws_caller_identity.current.account_id
@@ -137,7 +137,7 @@ module "location_api_lambda" {
   allowed_triggers = {
     AllowExecutionFromAPIGateway = {
       service    = "apigateway"
-      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+      source_arn = "${local.crud_api_gateway.api_execution_arn}/*/*"
     }
   }
   account_id     = data.aws_caller_identity.current.account_id

@@ -31,4 +31,6 @@ locals {
   env_sso_roles = [
     for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
   ]
+
+  crud_api_gateway = var.environment == "dev" ? module.api_gateway_sandbox[0] : module.api_gateway[0]
 }
