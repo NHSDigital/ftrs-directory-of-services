@@ -14,7 +14,7 @@ def load_mock_response(ods_code: str) -> Optional[Dict[str, object]]:
     return None
 
 
-def lambda_handler(event: Dict[str, object], context: object) -> Dict[str, object]:
+def handler(event: Dict[str, object], context: object) -> Dict[str, object]:
     """Handle Lambda events and return mocked responses based on ODS code."""
     path = event.get("rawPath") or event.get("path")
     if path in ("/ping", "/health"):
