@@ -13,32 +13,128 @@ module "api_gateway" {
   routes = {
     "GET /Organization" = {
       integration = {
-        integration_type       = "MOCK"
-        payload_format_version = var.api_gateway_payload_format_version
-        timeout_milliseconds   = var.api_gateway_integration_timeout
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
+        templates = {
+          "application/json" = <<EOF
+{
+  "resourceType": "Organization",
+  "id": "mock-org",
+  "name": "Mock Organization",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "01234 567890"
+    }
+  ],
+  "type": [
+    {
+      "text": "GP Practice"
+    }
+  ],
+  "active": true
+}
+EOF
+        }
+        # payload_format_version = var.api_gateway_payload_format_version
+        # timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
     "ANY /Organization/{proxy+}" = {
       integration = {
-        integration_type       = "MOCK"
-        payload_format_version = var.api_gateway_payload_format_version
-        timeout_milliseconds   = var.api_gateway_integration_timeout
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
+        templates = {
+          "application/json" = <<EOF
+{
+  "resourceType": "Organization",
+  "id": "mock-org",
+  "name": "Mock Organization",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "01234 567890"
+    }
+  ],
+  "type": [
+    {
+      "text": "GP Practice"
+    }
+  ],
+  "active": true
+}
+EOF
+        }
+        # payload_format_version = var.api_gateway_payload_format_version
+        # timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
     "ANY /healthcare-service/{proxy+}" = {
       authorization_type = var.api_gateway_authorization_type
       integration = {
-        integration_type       = "MOCK"
-        payload_format_version = var.api_gateway_payload_format_version
-        timeout_milliseconds   = var.api_gateway_integration_timeout
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
+        templates = {
+          "application/json" = <<EOF
+{
+  "resourceType": "Organization",
+  "id": "mock-org",
+  "name": "Mock Organization",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "01234 567890"
+    }
+  ],
+  "type": [
+    {
+      "text": "GP Practice"
+    }
+  ],
+  "active": true
+}
+EOF
+        }
+        # payload_format_version = var.api_gateway_payload_format_version
+        # timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
     "ANY /location/{proxy+}" = {
       authorization_type = var.api_gateway_authorization_type
       integration = {
-        integration_type       = "MOCK"
-        payload_format_version = var.api_gateway_payload_format_version
-        timeout_milliseconds   = var.api_gateway_integration_timeout
+        integration_type = "MOCK"
+        request_templates = {
+          "application/json" = "{\"statusCode\": 200}"
+        }
+        templates = {
+          "application/json" = <<EOF
+{
+  "resourceType": "Organization",
+  "id": "mock-org",
+  "name": "Mock Organization",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "01234 567890"
+    }
+  ],
+  "type": [
+    {
+      "text": "GP Practice"
+    }
+  ],
+  "active": true
+}
+EOF
+        }
+        # payload_format_version = var.api_gateway_payload_format_version
+        # timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
   }
