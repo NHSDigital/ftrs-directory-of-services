@@ -55,7 +55,15 @@ class DataMigrationProcessor:
     ) -> None:
         self.logger = logger
         self.config = config
-        self.engine = create_engine(config.db_config.connection_string, echo=False)
+        # Validate the presence of a real connection string to avoid confusing errors when given mocks
+        connection_string = getattr(
+            getattr(config, "db_config", None), "connection_string", None
+        )
+        if not isinstance(connection_string, str) or not connection_string.strip():
+            raise ValueError(
+                "Invalid DataMigrationConfig: db_config.connection_string must be a non-empty string"
+            )
+        self.engine = create_engine(connection_string, echo=False)
         self.metrics = DataMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
@@ -121,7 +129,7 @@ class DataMigrationProcessor:
                 )
 
             if not validation_result.should_continue:
-                self.invalid_records += 1
+                self.metrics.invalid_records += 1
                 self.logger.log(DataMigrationLogBase.DM_ETL_013, record_id=service.id)
                 return
 
@@ -222,8 +230,7 @@ class DataMigrationProcessor:
         """
         Convert validation issues to a list of strings.
         """
-        for issue in issues:
-            return [
-                f"field:{issue.expression} ,error: {issue.code},message:{issue.diagnostics},value:{issue.value}"
-                for issue in issues
-            ]
+        return [
+            f"field:{issue.expression} ,error: {issue.code},message:{issue.diagnostics},value:{issue.value}"
+            for issue in issues
+        ]

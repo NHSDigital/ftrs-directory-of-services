@@ -45,22 +45,31 @@ class PhoneNumberValidator(FieldValidator[str]):
                 issues=self.issues,
             )
 
+        # Normalise input: strip spaces and convert +44 prefix to 0
         data = data.strip().replace(" ", "").replace("+44", "0")
 
-        if any(
+        # 1) Length validation first. If length is invalid, report only that.
+        length_invalid = any(
             [
                 len(data) > PhoneNumberValidator.PHONE_NUMBER_VALID_UPPER_LENGTH,
                 len(data) < PhoneNumberValidator.PHONE_NUMBER_VALID_LOWER_LENGTH,
                 len(data) == PhoneNumberValidator.INVALID_PHONE_NUMBER_LENGTH,
             ]
-        ):
+        )
+        if length_invalid:
             self.add_issue(
                 severity="error",
                 code="invalid_length",
                 diagnostics=self.ERROR_MESSAGES["invalid_length"],
                 value=data,
             )
+            return FieldValidationResult(
+                original=data,
+                sanitised=None,
+                issues=self.issues,
+            )
 
+        # 2) Format validation only when length is acceptable
         if not self.PHONE_NUMBER_REGEX.fullmatch(data):
             self.add_issue(
                 severity="error",
