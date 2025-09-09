@@ -9,176 +9,43 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  #   # routes = var.environment == "dev" ? {
-  #   routes = {
-  #     "GET /Organization" = {
-  #       integration = {
-  #         integration_type = "MOCK"
-  #         uri              = "http://example.com"
-  #         request_templates = {
-  #           "application/json" = "{\"statusCode\": 200}"
-  #         }
-  #         templates = {
-  #           "application/json" = <<EOF
-  # {
-  #   "resourceType": "Organization",
-  #   "id": "mock-org",
-  #   "name": "Mock Organization",
-  #   "telecom": [
-  #     {
-  #       "system": "phone",
-  #       "value": "01234 567890"
-  #     }
-  #   ],
-  #   "type": [
-  #     {
-  #       "text": "GP Practice"
-  #     }
-  #   ],
-  #   "active": true
-  # }
-  # EOF
-  #         }
-  #         # payload_format_version = var.api_gateway_payload_format_version
-  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
-  #       }
-  #     }
-  #     "ANY /Organization/{proxy+}" = {
-  #       integration = {
-  #         integration_type = "MOCK"
-  #         uri              = "http://example.com"
-  #         request_templates = {
-  #           "application/json" = "{\"statusCode\": 200}"
-  #         }
-  #         templates = {
-  #           "application/json" = <<EOF
-  # {
-  #   "resourceType": "Organization",
-  #   "id": "mock-org",
-  #   "name": "Mock Organization",
-  #   "telecom": [
-  #     {
-  #       "system": "phone",
-  #       "value": "01234 567890"
-  #     }
-  #   ],
-  #   "type": [
-  #     {
-  #       "text": "GP Practice"
-  #     }
-  #   ],
-  #   "active": true
-  # }
-  # EOF
-  #         }
-  #         # payload_format_version = var.api_gateway_payload_format_version
-  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
-  #       }
-  #     }
-  #     "ANY /healthcare-service/{proxy+}" = {
-  #       authorization_type = var.api_gateway_authorization_type
-  #       integration = {
-  #         integration_type = "MOCK"
-  #         uri              = "http://example.com"
-  #         request_templates = {
-  #           "application/json" = "{\"statusCode\": 200}"
-  #         }
-  #         templates = {
-  #           "application/json" = <<EOF
-  # {
-  #   "resourceType": "Organization",
-  #   "id": "mock-org",
-  #   "name": "Mock Organization",
-  #   "telecom": [
-  #     {
-  #       "system": "phone",
-  #       "value": "01234 567890"
-  #     }
-  #   ],
-  #   "type": [
-  #     {
-  #       "text": "GP Practice"
-  #     }
-  #   ],
-  #   "active": true
-  # }
-  # EOF
-  #         }
-  #         # payload_format_version = var.api_gateway_payload_format_version
-  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
-  #       }
-  #     }
-  #     "ANY /location/{proxy+}" = {
-  #       authorization_type = var.api_gateway_authorization_type
-  #       integration = {
-  #         integration_type = "MOCK"
-  #         uri              = "http://example.com"
-  #         request_templates = {
-  #           "application/json" = "{\"statusCode\": 200}"
-  #         }
-  #         templates = {
-  #           "application/json" = <<EOF
-  # {
-  #   "resourceType": "Organization",
-  #   "id": "mock-org",
-  #   "name": "Mock Organization",
-  #   "telecom": [
-  #     {
-  #       "system": "phone",
-  #       "value": "01234 567890"
-  #     }
-  #   ],
-  #   "type": [
-  #     {
-  #       "text": "GP Practice"
-  #     }
-  #   ],
-  #   "active": true
-  # }
-  # EOF
-  #         }
-  #         # payload_format_version = var.api_gateway_payload_format_version
-  #         # timeout_milliseconds   = var.api_gateway_integration_timeout
-  #       }
-  #     }
-  #   }
-  #   } : {
-  #   # routes = {
-  #   "GET /Organization" = {
-  #     integration = {
-  #       integration_type       = "AWS_PROXY"
-  #       uri                    = module.organisation_api_lambda.lambda_function_arn
-  #       payload_format_version = var.api_gateway_payload_format_version
-  #       timeout_milliseconds   = var.api_gateway_integration_timeout
-  #     }
-  #   }
-  #   "ANY /Organization/{proxy+}" = {
-  #     integration = {
-  #       integration_type       = "AWS_PROXY"
-  #       uri                    = module.organisation_api_lambda.lambda_function_arn
-  #       payload_format_version = var.api_gateway_payload_format_version
-  #       timeout_milliseconds   = var.api_gateway_integration_timeout
-  #     }
-  #   }
-  #   "ANY /healthcare-service/{proxy+}" = {
-  #     authorization_type = var.api_gateway_authorization_type
-  #     integration = {
-  #       integration_type       = "AWS_PROXY"
-  #       uri                    = module.healthcare_service_api_lambda.lambda_function_arn
-  #       payload_format_version = var.api_gateway_payload_format_version
-  #       timeout_milliseconds   = var.api_gateway_integration_timeout
-  #     }
-  #   }
-  #   "ANY /location/{proxy+}" = {
-  #     authorization_type = var.api_gateway_authorization_type
-  #     integration = {
-  #       integration_type       = "AWS_PROXY"
-  #       uri                    = module.location_api_lambda.lambda_function_arn
-  #       payload_format_version = var.api_gateway_payload_format_version
-  #       timeout_milliseconds   = var.api_gateway_integration_timeout
-  #     }
-  #   }
-  # }
+  routes = {
+    "GET /Organization" = {
+      integration = {
+        uri = var.environment == "sandbox" ? module.mock_api_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
+        # uri                    = module.organisation_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
+
+    "ANY /Organization/{proxy+}" = {
+      integration = {
+        uri = var.environment == "sandbox" ? module.mock_api_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
+        # uri                    = module.organisation_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
+
+    "ANY /healthcare-service/{proxy+}" = {
+      authorization_type = var.api_gateway_authorization_type
+      integration = {
+        uri                    = module.healthcare_service_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
+
+    "ANY /location/{proxy+}" = {
+      authorization_type = var.api_gateway_authorization_type
+      integration = {
+        uri                    = module.location_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
+  }
 
   stage_access_log_settings = {
     create_log_group            = true
@@ -223,22 +90,4 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   description = "The endpoint URL for the CRUD API Gateway"
   type        = "String"
   value       = module.api_gateway.api_endpoint
-}
-
-resource "aws_apigatewayv2_route" "organization_get" {
-  # checkov:skip=CKV_AWS_309: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
-  api_id    = module.api_gateway.api_id
-  route_key = "GET /Organization"
-  target    = "integrations/${aws_apigatewayv2_integration.organization_get.id}"
-}
-
-resource "aws_apigatewayv2_integration" "organization_get" {
-  api_id = module.api_gateway.api_id
-  # integration_uri       = "http://example.com" # Dummy URI for MOCK integration
-  integration_type       = "MOCK"
-  integration_method     = "GET"
-  payload_format_version = "1.0"
-  request_templates = {
-    "application/json" = "{\"statusCode\": 200}"
-  }
 }
