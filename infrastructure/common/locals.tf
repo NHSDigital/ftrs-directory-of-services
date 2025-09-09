@@ -5,7 +5,7 @@ locals {
   resource_prefix   = "${var.project}-${var.environment}-${var.stack_name}"
   account_prefix    = "${var.repo_name}-${var.environment}"
   root_domain_name  = "${var.environment}.${var.root_domain_name}"
-  s3_logging_bucket = "${local.account_prefix}-${var.s3_logging_bucket_name}"
+  s3_logging_bucket = "${local.account_prefix}-${var.environment}-${var.s3_logging_bucket_name}"
 
   # Deploy certain resources (e.g., databases, backup SSM) only in default Terraform workspace.
   is_primary_environment = terraform.workspace == "default"

@@ -50,7 +50,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies','domain_name']"
+      stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies','domain_name','logging']"
       type: account
     secrets: inherit
 
@@ -71,10 +71,10 @@ jobs:
             stacks: "['github_runner','account_policies']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name']"
+            stacks: "['terraform_management','account_wide','domain_name','logging']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name']"
+            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name','logging']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -115,10 +115,10 @@ jobs:
             stacks: "['github_runner','account_policies']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name']"
+            stacks: "['terraform_management','account_wide','domain_name','logging']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name']"
+            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name','logging']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
