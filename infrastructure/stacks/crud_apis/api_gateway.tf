@@ -1,4 +1,5 @@
 module "api_gateway" {
+  count  = var.environment == "sandbox" ? 1 : 0
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git?ref=5d1548624b39145ead043794ae5762abb9aadb27"
 
   name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
@@ -9,7 +10,8 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  routes = var.environment == "sandbox" ? {
+  # routes = var.environment == "sandbox" ? {
+  routes = {
     "GET /Organization" = {
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
@@ -40,7 +42,7 @@ module "api_gateway" {
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
-  } : {}
+  }
 
   stage_access_log_settings = {
     create_log_group            = true
