@@ -14,7 +14,7 @@ module "api_gateway" {
     "GET /Organization" = {
       integration = {
         integration_type = "MOCK"
-        uri = "http://example.com"
+        uri              = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
@@ -46,7 +46,7 @@ EOF
     "ANY /Organization/{proxy+}" = {
       integration = {
         integration_type = "MOCK"
-        uri = "http://example.com"
+        uri              = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
@@ -79,7 +79,7 @@ EOF
       authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type = "MOCK"
-        uri = "http://example.com"
+        uri              = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
@@ -112,7 +112,7 @@ EOF
       authorization_type = var.api_gateway_authorization_type
       integration = {
         integration_type = "MOCK"
-        uri = "http://example.com"
+        uri              = "http://example.com"
         request_templates = {
           "application/json" = "{\"statusCode\": 200}"
         }
