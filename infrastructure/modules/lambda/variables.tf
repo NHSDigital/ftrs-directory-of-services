@@ -132,3 +132,8 @@ variable "cloudwatch_logs_retention" {
   type        = number
   default     = 30
 }
+
+variable "create" {
+  description = "Whether to lambda should be created"
+  default     = true
+}
