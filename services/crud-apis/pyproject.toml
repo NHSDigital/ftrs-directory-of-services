@@ -51,9 +51,6 @@ packages = [
   { include = "mock" }
 ]
 
-[tool.poetry.package.include]
-"mock/responses" = true
-
 [tool.poe.tasks]
 start-healthcare-api = "uvicorn healthcare_service.app.handler_healthcare_service:app --host 0.0.0.0 --port 8002 --reload"
 start-organisations-api = "uvicorn organisations.app.handler_organisation:app --host 0.0.0.0 --port 8001 --reload"
