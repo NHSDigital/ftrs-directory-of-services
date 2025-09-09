@@ -204,8 +204,10 @@ def test_transform_services(
     mock_legacy_service.statusid = 1  # Active status
     mock_legacy_service.name = test_data["service_name"]
 
+    # When creating the transformer in the test:
+    validation_issues = []
     transformer = GPEnhancedAccessTransformer(MockLogger(), mock_metadata_cache)
-    result = transformer.transform(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
     # Verify basic transformation - only healthcare service is created
     assert len(result.organisation) == 0  # Empty list
