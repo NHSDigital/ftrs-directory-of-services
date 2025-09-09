@@ -484,6 +484,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Error getting organisation(s): {error_message}.",
     )
+    ORGANISATION_022 = LogReference(
+        level=ERROR,
+        message="Validation error on field: {field_name}. With error message: {error_message}.",
+    )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
         message="Received request to create healthcare service with name: {name} and type: {type}.",

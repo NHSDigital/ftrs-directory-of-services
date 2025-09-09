@@ -1,9 +1,14 @@
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import field_validator
 
 from organisations.app.models.organisation import (
     OrganisationCreatePayload,
     OrganisationUpdatePayload,
 )
+
+crud_organisation_logger = Logger.get(service="crud_organisation_logger")
+
 
 NAME_EMPTY_ERROR = "Name cannot be empty."
 NAME_MAX_LENGTH_ERROR = "Name cannot be longer than 100 characters."
@@ -19,8 +24,18 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
         """Validates the name field to ensure it is not empty or whitespace.
         Checks the length of the field."""
         if not v.strip():
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_022,
+                field_name="name",
+                error_message=NAME_EMPTY_ERROR,
+            )
             raise ValueError(NAME_EMPTY_ERROR)
         if len(v.strip()) > NAME_MAX_LENGTH:
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_022,
+                field_name="name",
+                error_message=NAME_MAX_LENGTH_ERROR,
+            )
             raise ValueError(NAME_MAX_LENGTH_ERROR)
         return v
 
