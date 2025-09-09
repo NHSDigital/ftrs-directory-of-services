@@ -7,7 +7,9 @@ module "logging_bucket" {
     {
       id      = "delete_s3_logs_older_than_x_days"
       enabled = true
-      filter  = {}
+      filter = {
+        prefix = ""
+      }
       expiration = {
         days = var.s3_logging_expiration_days
       }

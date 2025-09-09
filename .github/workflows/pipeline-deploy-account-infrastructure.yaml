@@ -16,6 +16,7 @@ on:
       - "infrastructure/stacks/artefact_management/**"
       - "infrastructure/stacks/account_policies/**"
       - "infrastructure/stacks/domain_name/**"
+      - "infrastructure/stacks/logging/**"
       - "infrastructure/modules/dynamodb/**"
       - "infrastructure/modules/s3/**"
   workflow_dispatch:
