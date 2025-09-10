@@ -6,6 +6,8 @@ from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_data_layer.domain import Organisation
 
+GP_PRACTICE_DISPLAY = "GP Practice"
+
 TYPE_TO_CODE = {
     "GP PRACTICE": "76",
 }
@@ -34,19 +36,20 @@ class OrganizationMapper(FhirMapper):
         return []
 
     def _build_type(self, org_type_value: str) -> list[CodeableConcept]:
+        display = org_type_value if org_type_value else GP_PRACTICE_DISPLAY
         return [
             CodeableConcept.model_validate(
                 {
                     "coding": [
                         {
                             "system": "TO-DO",  # Use correct system if available
-                            "code": org_type_value if org_type_value else "GP Practice",
-                            "display": org_type_value
+                            "code": org_type_value
                             if org_type_value
-                            else "GP Practice",
+                            else GP_PRACTICE_DISPLAY,
+                            "display": display,
                         }
                     ],
-                    "text": org_type_value if org_type_value else "GP Practice",
+                    "text": display,
                 }
             )
         ]
