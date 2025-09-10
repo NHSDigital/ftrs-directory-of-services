@@ -384,8 +384,10 @@ def test_process_service(
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         active=True,
         address=Address(
-            street="123 Test Street$Test City",
-            town="Test City",
+            line1="123 Main St",
+            line2=None,
+            county="West Yorkshire",
+            town="Leeds",
             postcode="AB12 3CD",
         ),
         managingOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
