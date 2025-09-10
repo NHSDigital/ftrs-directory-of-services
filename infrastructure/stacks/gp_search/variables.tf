@@ -34,3 +34,14 @@ variable "api_gateway_access_logs_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "api_gateway_payload_format_version" {
+  description = "The version of the payload format"
+  type        = string
+  default     = "2.0"
+}
+
+variable "api_gateway_integration_timeout" {
+  description = "Timeout to integration ARN"
+  type        = number
+}
