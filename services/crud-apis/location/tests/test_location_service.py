@@ -20,9 +20,11 @@ def get_mock_location() -> Location:
         "managingOrganisation": "123e4567-e89b-12d3-a456-42661417400a",
         "name": None,
         "address": {
-            "street": "10 made up road",
-            "town": "thingyplace",
-            "postcode": "TP00 9ZZ",
+            "line1": "1 Test Street",
+            "line2": None,
+            "county": "Testshire",
+            "town": "Testville",
+            "postcode": "TE1 1ST",
         },
         "positionGCS": {
             "latitude": "0.000003",
