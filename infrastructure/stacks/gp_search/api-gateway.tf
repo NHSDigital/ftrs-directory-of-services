@@ -1,6 +1,6 @@
 module "api_gateway" {
-  source  = "terraform-aws-modules/apigateway-v2/aws"
-  version = "5.3.1"
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git?ref=c62c315eeab078913c51d7d6a5eb722f4c1e82f5"
+  # version = 5.3.1
   # https://registry.terraform.io/modules/terraform-aws-modules/apigateway-v2/aws/latest
   name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
   description   = "FtRS Service Search API Gateway"
@@ -19,14 +19,13 @@ module "api_gateway" {
 
   # SSL Cert:
   # NB. I think the module will only support TLS_1.2 and an endpoint_type of REGIONAL.
-  domain_name = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
+  domain_name                 = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
   domain_name_certificate_arn = data.aws_acm_certificate.domain_cert.arn
 
   # Mtls
   mutual_tls_authentication = {
     truststore_uri = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
   }
-
 
   routes = {
     "GET /Organization" = {
@@ -69,12 +68,12 @@ module "api_gateway" {
 
   stage_default_route_settings = {
     detailed_metrics_enabled = true
-    xray_tracing_enabled = true
-  #   triggers = {
-  #     redeployment = sha1(jsonencode([
-  #       module.search_rest_api
-  #     ]))
-  # }
+    xray_tracing_enabled     = true
+    #   triggers = {
+    #     redeployment = sha1(jsonencode([
+    #       module.search_rest_api
+    #     ]))
+    # }
   }
 }
 
