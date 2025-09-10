@@ -4,6 +4,7 @@ from typing import Dict, Optional
 
 MOCK_RESPONSES = os.path.join(os.path.dirname(__file__), "responses")
 
+
 def load_response(filename: str) -> Optional[Dict]:
     path = os.path.join(MOCK_RESPONSES, filename)
     print(f"Loading response from: {path}")
@@ -11,6 +12,7 @@ def load_response(filename: str) -> Optional[Dict]:
         with open(path) as f:
             return json.load(f)
     return None
+
 
 def handler(event: Dict[str, object], context: object) -> Dict[str, object]:
     path = event.get("rawPath") or event.get("path")
@@ -46,11 +48,17 @@ def handler(event: Dict[str, object], context: object) -> Dict[str, object]:
                 status_code = 400
                 response_body = load_response("missing-revinclude.json")
                 content_type = "application/fhir+json"
-            elif identifier.startswith("odsOrganisationCode|") and revinclude == "Endpoint:organization":
+            elif (
+                identifier.startswith("odsOrganisationCode|")
+                and revinclude == "Endpoint:organization"
+            ):
                 status_code = 200
                 response_body = load_response("200-example.json")
                 content_type = "application/fhir+json"
-            elif identifier.startswith("odsOrganisationCode|ABC") and revinclude == "Endpoint:organization":
+            elif (
+                identifier.startswith("odsOrganisationCode|ABC")
+                and revinclude == "Endpoint:organization"
+            ):
                 status_code = 400
                 response_body = load_response("invalid-identifier-value.json")
                 content_type = "application/fhir+json"
@@ -62,5 +70,5 @@ def handler(event: Dict[str, object], context: object) -> Dict[str, object]:
     return {
         "statusCode": status_code,
         "body": json.dumps(response_body),
-        "headers": {"Content-Type": content_type}
+        "headers": {"Content-Type": content_type},
     }
