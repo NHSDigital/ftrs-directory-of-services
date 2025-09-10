@@ -18,6 +18,7 @@ INVALID_SEARCH_DATA_CODING = {
 # Load feature file
 scenarios("./is_api_features/gp_search_api.feature")
 
+
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
 def dns_resolvable(api_name, env, workspace):
     r53 = get_r53(workspace, api_name, env)
