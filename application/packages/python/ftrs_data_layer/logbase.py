@@ -151,11 +151,11 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="Record {record_id} failed validation and was not migrated",
     )
-    DM_ETL_013 = LogReference(
+    DM_ETL_015 = LogReference(
         level=INFO,
         message="Address for Organisation ID {organisation} is {address}",
     )
-    DM_ETL_014 = LogReference(
+    DM_ETL_015 = LogReference(
         level=WARNING,
         message="No address found for Organisation ID {organisation}, setting address to None",
     )

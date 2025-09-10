@@ -29,10 +29,8 @@ from ftrs_data_layer.domain.clinical_code import (
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
-from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
 
-from pipeline.utils.address_formatter import format_address
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.uuid_utils import generate_uuid
 from pipeline.validation.base import Validator
