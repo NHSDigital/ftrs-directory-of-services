@@ -1,0 +1,52 @@
+name: APIM Build & Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+      - task/DOSIS*
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      ENVIRONMENT: internal-dev
+      API_NAME: dos-search
+      FHIR_VERSION: FHIR_R4
+      ISSUE_TAG: ${{ github.head_ref }} # branch name or PR ref
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/download/v4.44.1/yq_linux_amd64 -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Install proxygen CLI
+        run: |
+          curl -sSL https://example.com/proxygen/install.sh | bash
+          echo "$HOME/.proxygen/bin" >> $GITHUB_PATH
+
+      - name: Preprocess OAS file
+        run: |
+          # Prefix title with issue tag
+          yq '.info.title = "[" + env.ISSUE_TAG + "] " + .info.title' \
+            apis/${{ env.API_NAME }}.yaml > apis/${{ env.API_NAME }}-${{ env.ISSUE_TAG }}.yaml
+
+      - name: Validate OpenAPI spec
+        run: |
+          npx @redocly/cli lint apis/${{ env.API_NAME }}-${{ env.ISSUE_TAG }}.yaml
+
+      - name: Deploy to APIM
+        run: |
+          proxygen instance deploy \
+            $ENVIRONMENT \
+            "${API_NAME}-${ISSUE_TAG}_${FHIR_VERSION}" \
+            "apis/${API_NAME}-${ISSUE_TAG}.yaml"
+
+      - name: Post-deployment check
+        run: |
+          proxygen instance list $ENVIRONMENT | grep "${API_NAME}-${ISSUE_TAG}_${FHIR_VERSION}"
