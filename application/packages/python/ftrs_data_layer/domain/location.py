@@ -6,7 +6,9 @@ from pydantic import BaseModel
 
 
 class Address(BaseModel):
-    street: str | None
+    line1: str | None
+    line2: str | None
+    county: str | None
     town: str | None
     postcode: str | None
 
