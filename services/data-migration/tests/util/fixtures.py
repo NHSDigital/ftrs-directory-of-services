@@ -74,7 +74,7 @@ def mock_legacy_service() -> Generator[Service, None, None]:
         publicphone="01234 567890",
         nonpublicphone="09876 543210",
         fax=None,
-        email="test@example.com",
+        email="firstname.lastname@nhs.net",
         web="http://example.com",
         createdby="test_user",
         createdtime=datetime.fromisoformat("2023-01-01T00:00:00"),
