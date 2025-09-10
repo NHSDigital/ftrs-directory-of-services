@@ -77,6 +77,29 @@ variable "location_api_lambda_handler" {
   type        = string
 }
 
+variable "mock_api_lambda_runtime" {
+  description = "The runtime environment for the Lambda function"
+}
+
+variable "mock_api_lambda_name" {
+  description = "The name of the mock api Lambda function"
+}
+
+variable "mock_api_lambda_timeout" {
+  description = "The timeout for the mock api Lambda function"
+  type        = number
+}
+
+variable "mock_api_lambda_memory_size" {
+  description = "The memory size for the mock api Lambda function"
+  type        = number
+}
+
+variable "mock_api_lambda_handler" {
+  description = "The handler for the mock api Lambda function"
+  type        = string
+}
+
 variable "crud_apis_store_bucket_name" {
   description = "The name of the S3 bucket to use for the crud apis"
 }
