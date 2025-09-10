@@ -11,9 +11,6 @@ lambda_timeout     = 900
 lambda_memory_size = 512
 
 # API Gateway
-api_gateway_authorization_type         = "AWS_IAM"
 api_gateway_payload_format_version     = "2.0"
 api_gateway_integration_timeout        = 10000
 api_gateway_access_logs_retention_days = 7
-api_gateway_throttling_burst_limit     = 100
-api_gateway_throttling_rate_limit      = 10
