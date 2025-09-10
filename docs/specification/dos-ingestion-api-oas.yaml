@@ -68,8 +68,8 @@ info:
     You might find the following open source resources useful:
     | Resource | Description | Link |
     |-----|-----|-----|
-    |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services) |
-    | ODS ETL Layer | ODS ETL developed for Data Sourcing Partners | [Github](https://github.com/NHSDigital/ftrs-directory-of-services)|
+    |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
+    | ETL ODS Pipeline | ETL developed for Data Sourcing ODS Partner | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/etl-ods)|
     | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
 
     ## Environments and testing
@@ -78,9 +78,9 @@ info:
 
     | Environment | Base URL |
     |-------------|----------|
-    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4 |
-    | Integration | https://int.api.service.nhs.uk/dos-ingest/FHIR/R4 |
-    | Production | https://api.service.nhs.uk/dos-ingest/FHIR/R4 |
+    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Production | https://api.service.nhs.uk/dos-ingestion/FHIR/R4 |
 
     ### Sandbox
 
@@ -88,7 +88,7 @@ info:
     * is for early developer testing
     * only covers a limited set of scenarios
     * is stateless, so does not actually persist any updates
-    * includes authorisation via API key
+    * is open access, so does not allow you to test authorisation
 
     For details of sandbox test scenarios, or to try out the sandbox using our 'Try this API' feature, see the documentation for each endpoint.
 
@@ -99,7 +99,6 @@ info:
     * is stateful, so can persist updates
     * includes authorisation via API key
 
-    For details of integration test scenarios, or to try out the integration environment using our 'Try this API' feature, see the documentation for each endpoint.
     ### Onboarding
 
     This API is not yet available for onboarding as it's still in the Alpha phase. You need to get your software approved by us before it can go live with this API, with further information to be added in due course.
