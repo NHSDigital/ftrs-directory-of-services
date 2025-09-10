@@ -173,7 +173,8 @@ paths:
             type: string
             pattern: '^odsOrganizationCode\|[A-Za-z0-9]{5,12}$'
             example: "odsOrganizationCode|ABC123"
-      responses:
+      - $ref: '#/components/parameters/AcceptFHIR'
+responses:
         '200':
           description: Bundle of Organizations found and returned successfully
           content:
@@ -253,6 +254,8 @@ paths:
         schema:
           type: string
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - $ref: '#/components/parameters/AcceptFHIR'
+      - $ref: '#/components/parameters/ContentTypeFHIR'
       - in: path
         name: id
         description: The unique identifier of the Organization resource to update.
@@ -287,6 +290,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
 components:
+  parameters:
+    AcceptFHIR:
+      in: header
+      name: Accept
+      required: true
+      description: Must be set to `application/fhir+json` to receive FHIR-compliant responses.
+      schema:
+        type: string
+        enum: [application/fhir+json]
+        example: application/fhir+json
+    ContentTypeFHIR:
+      in: header
+      name: Content-Type
+      required: true
+      description: Must be set to `application/fhir+json` for FHIR resource requests.
+      schema:
+        type: string
+        enum: [application/fhir+json]
+        example: application/fhir+json
   schemas:
     Organization:
       type: object

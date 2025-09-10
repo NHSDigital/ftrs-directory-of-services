@@ -156,3 +156,12 @@ def test_dispatch_logs_on_422(
     assert mock_log.called
     _, kwargs = mock_log.call_args
     assert "Validation error" in kwargs.get("error_message", "")
+def test_middlewares_present() -> None:
+    middleware_classes = [mw.cls for mw in app.user_middleware]
+    from ftrs_common.api_middleware.fhir_type_middleware import (
+        FHIRAcceptHeaderMiddleware,
+        FHIRContentTypeMiddleware,
+    )
+
+    assert FHIRContentTypeMiddleware in middleware_classes
+    assert FHIRAcceptHeaderMiddleware in middleware_classes

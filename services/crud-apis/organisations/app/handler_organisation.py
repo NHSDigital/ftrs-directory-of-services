@@ -8,6 +8,11 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
+from ftrs_common.api_middleware.fhir_type_middleware import (
+    FHIRAcceptHeaderMiddleware,
+    FHIRContentTypeMiddleware,
+)
+from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from mangum import Mangum
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
@@ -15,6 +20,14 @@ from starlette.responses import Response
 from organisations.app.router import organisation
 
 crud_organisation_logger = Logger.get(service="crud_organisation_logger")
+app = FastAPI(title="Organisations API")
+app.add_middleware(FHIRContentTypeMiddleware)
+app.add_middleware(FHIRAcceptHeaderMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+
+app.include_router(organisation.router)
+
+handler = Mangum(app, lifespan="off")
 
 STATUS_CODE_MAP = {
     "not-found": 404,
@@ -55,12 +68,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             )
             return response
 
-
-app = FastAPI(title="Organisations API")
-app.add_middleware(RequestLoggingMiddleware)
-app.include_router(organisation.router)
-
-handler = Mangum(app, lifespan="off")
 
 
 @app.exception_handler(RequestValidationError)
