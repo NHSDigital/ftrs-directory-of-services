@@ -1,0 +1,10 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "exception",
+      "diagnostics": "Internal server error"
+    }
+  ]
+}

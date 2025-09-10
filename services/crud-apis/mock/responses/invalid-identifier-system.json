@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "code-invalid",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data"
+          }
+        ]
+      },
+      "diagnostics": "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "value",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data"
+          }
+        ]
+      },
+      "diagnostics": "The request is missing the 'revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+    }
+  ]
+}
