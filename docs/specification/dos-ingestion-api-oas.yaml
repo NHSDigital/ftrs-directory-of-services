@@ -69,7 +69,6 @@ info:
     | Resource | Description | Link |
     |-----|-----|-----|
     |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
-    | ETL ODS Pipeline | ETL developed for Data Sourcing ODS Partner | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/etl-ods)|
     | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
 
     ## Environments and testing
