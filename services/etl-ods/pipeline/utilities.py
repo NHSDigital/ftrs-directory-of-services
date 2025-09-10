@@ -79,10 +79,19 @@ def build_headers(options: dict) -> dict:
     return headers
 
 
-def handle_fhir_response(data: dict) -> dict:
+def handle_fhir_response(data: dict, method: str = None) -> None:
     if data.get("resourceType") == "OperationOutcome" and "issue" in data:
+        severities = {
+            issue.get("severity") for issue in data["issue"] if isinstance(issue, dict)
+        }
+        # For PUT: allow informational OperationOutcome, raise for any other severity
+        if method and method.upper() == "PUT":
+            if not severities.issubset({"information"}):
+                raise OperationOutcomeException(data)
+            return
+        # For all other methods: raise for any OperationOutcome
         raise OperationOutcomeException(data)
-    return data
+    return
 
 
 def make_request(
@@ -120,11 +129,10 @@ def make_request(
         response.raise_for_status()
 
         if fhir:
-            data = response.json()
-            return handle_fhir_response(data)
+            handle_fhir_response(response.json(), method)
+            return response
         else:
             return response
-
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(
             OdsETLPipelineLogBase.ETL_UTILS_003,
