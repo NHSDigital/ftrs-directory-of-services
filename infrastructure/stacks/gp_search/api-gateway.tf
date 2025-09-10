@@ -30,7 +30,7 @@ module "api_gateway" {
   routes = {
     "GET /Organization" = {
       integration = {
-        uri                    = module.organisation_api_lambda.lambda_function_arn
+        uri                    = module.lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
@@ -79,11 +79,11 @@ module "api_gateway" {
 
 resource "aws_route53_record" "gpsearch_api_a_alias" {
   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
-  name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
+  name    = module.api_gateway.domain_name
   type    = "A"
   alias {
-    name                   = aws_api_gateway_domain_name.api_custom_domain.regional_domain_name
-    zone_id                = aws_api_gateway_domain_name.api_custom_domain.regional_zone_id
+    name                   = module.api_gateway.domain_name
+    zone_id                = module.api_gateway.domain_name_hosted_zone_id
     evaluate_target_health = false
   }
 }

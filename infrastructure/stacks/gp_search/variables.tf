@@ -29,8 +29,8 @@ variable "commit_hash" {
   description = "The commit hash of the gp search application"
   type        = string
 }
-variable "retention_in_days" {
-  description = "The retention period in days for anything that can be retained"
+variable "api_gateway_access_logs_retention_days" {
+  description = "The retention period in days for API Gateway logging"
   type        = number
   default     = 7
 }
