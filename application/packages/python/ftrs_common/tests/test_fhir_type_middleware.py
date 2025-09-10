@@ -42,7 +42,9 @@ async def test_content_type_middleware_rejects_invalid() -> None:
     request = Request(scope, receive=lambda: None)
     response = await middleware.dispatch(request, DummyCallNext())
     assert response.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
-    assert b"Unsupported Media Type" in response.body
+    assert (
+        b"PUT requests must have Content-Type 'application/fhir+json'" in response.body
+    )
 
 
 @pytest.mark.asyncio
@@ -102,7 +104,7 @@ async def test_accept_header_middleware_rejects_invalid() -> None:
     request = Request(scope, receive=lambda: None)
     response = await middleware.dispatch(request, DummyCallNext())
     assert response.status_code == HTTPStatus.NOT_ACCEPTABLE
-    assert b"Not Acceptable" in response.body
+    assert b"GET requests must have Accept 'application/fhir+json'" in response.body
 
 
 @pytest.mark.asyncio
@@ -117,7 +119,7 @@ async def test_accept_header_middleware_rejects_missing() -> None:
     request = Request(scope, receive=lambda: None)
     response = await middleware.dispatch(request, DummyCallNext())
     assert response.status_code == HTTPStatus.NOT_ACCEPTABLE
-    assert b"Not Acceptable" in response.body
+    assert b"GET requests must have Accept 'application/fhir+json'" in response.body
 
 
 @pytest.mark.asyncio
