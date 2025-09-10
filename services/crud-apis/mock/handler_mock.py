@@ -23,7 +23,7 @@ def handler(event: Dict[str, object], context: object) -> Dict[str, object]:
     response_body = {"error": "Not found"}
     content_type = "application/json"
 
-    if path in ("/ping", "/health"):
+    if path in ("/ping", "/status"):
         status_code = 200
         response_body = {"status": "OK"}
     else:

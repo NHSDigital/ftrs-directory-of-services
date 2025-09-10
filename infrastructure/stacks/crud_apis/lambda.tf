@@ -28,7 +28,7 @@ module "organisation_api_lambda" {
   ignore_source_code_hash = false
   timeout                 = var.organisation_api_lambda_timeout
   memory_size             = var.organisation_api_lambda_memory_size
-  create                  = var.environment != "dev"
+  create                  = var.environment != "sandbox"
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.organisation_api_lambda_security_group.id]
@@ -160,7 +160,7 @@ module "mock_api_lambda" {
   ignore_source_code_hash = false
   timeout                 = var.mock_api_lambda_timeout
   memory_size             = var.mock_api_lambda_memory_size
-  create                  = var.environment == "dev"
+  create                  = var.environment == "sandbox"
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.organisation_api_lambda_security_group.id]
