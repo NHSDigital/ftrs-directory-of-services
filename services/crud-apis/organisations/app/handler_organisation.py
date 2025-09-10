@@ -40,7 +40,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
                 body_content = response_body[0].decode()
                 crud_organisation_logger.log(
-                    CrudApisLogBase.ORGANISATION_023,
+                    CrudApisLogBase.ORGANISATION_022,
                     error="Validation error",
                     error_message=body_content,
                 )
@@ -48,7 +48,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 return response
         except Exception as e:
             crud_organisation_logger.log(
-                CrudApisLogBase.ORGANISATION_023,
+                CrudApisLogBase.ORGANISATION_022,
                 error="Middleware exception",
                 error_message=str(e),
             )

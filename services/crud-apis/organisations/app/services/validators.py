@@ -13,22 +13,9 @@ ODS_CODE_EMPTY_ERROR = "ODS code cannot be empty."
 class UpdatePayloadValidator(OrganisationUpdatePayload):
     @field_validator("name")
     def validate_name(cls, v: str) -> str:
-        """Validates the name field to ensure it is not empty or whitespace.
-        Checks the length of the field."""
+        """Validates the name field to ensure it is not empty or whitespace."""
         if not v.strip():
-            # crud_organisation_logger.log(
-            #     CrudApisLogBase.ORGANISATION_022,
-            #     field_name="name",
-            #     error_message=NAME_EMPTY_ERROR,
-            # )
             raise ValueError(NAME_EMPTY_ERROR)
-        # if len(v.strip()) > NAME_MAX_LENGTH:
-        #     crud_organisation_logger.log(
-        #         CrudApisLogBase.ORGANISATION_022,
-        #         field_name="name",
-        #         error_message=NAME_MAX_LENGTH_ERROR,
-        #     )
-        #     raise ValueError(NAME_MAX_LENGTH_ERROR)
         return v
 
 

@@ -486,10 +486,6 @@ class CrudApisLogBase(LogBase):
     )
     ORGANISATION_022 = LogReference(
         level=ERROR,
-        message="Validation error on field: {field_name}. With error message: {error_message}.",
-    )
-    ORGANISATION_023 = LogReference(
-        level=ERROR,
         message="Middleware found: {error}. With error message: {error_message}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
