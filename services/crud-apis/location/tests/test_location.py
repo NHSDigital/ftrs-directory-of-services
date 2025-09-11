@@ -20,9 +20,11 @@ def get_mock_location() -> dict:
         "managingOrganisation": "123e4567-e89b-12d3-a456-42661417400a",
         "name": None,
         "address": {
-            "street": "10 made up road",
-            "town": "thingyplace",
-            "postcode": "TP00 9ZZ",
+            "line1": "1 Test Street",
+            "line2": None,
+            "county": "Testshire",
+            "town": "Testville",
+            "postcode": "TE1 1ST",
         },
         "positionGCS": {
             "latitude": "0.000003",
@@ -171,7 +173,9 @@ def test_update_location_success(mock_repository: MockerFixture) -> None:
         "id": str(test_location_id),
         "active": True,
         "address": {
-            "street": "123 Main St",
+            "line1": "123 Main St",
+            "line2": None,
+            "county": "Test County",
             "town": "Test Town",
             "postcode": "AB12 3CD",
         },
@@ -203,7 +207,9 @@ def test_update_location_not_found(mock_repository: MockerFixture) -> None:
     update_payload = {
         "active": True,
         "address": {
-            "street": "123 Main St",
+            "line1": "123 Main St",
+            "line2": None,
+            "county": "Test County",
             "town": "Test Town",
             "postcode": "AB12 3CD",
         },
