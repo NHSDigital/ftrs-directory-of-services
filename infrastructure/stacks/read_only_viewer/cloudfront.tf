@@ -35,7 +35,7 @@ module "read_only_viewer_cloudfront" {
       domain_name = replace(replace(aws_lambda_function_url.frontend_lambda_url.function_url, "https://", ""), "/", "")
       custom_origin_config = {
         http_port              = 80
-        https_port             = 443
+        https_port             = var.https_port
         origin_protocol_policy = "https-only"
         origin_ssl_protocols   = ["TLSv1.2"]
       }

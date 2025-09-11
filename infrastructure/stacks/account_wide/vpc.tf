@@ -39,6 +39,10 @@ module "vpc" {
   flow_log_destination_type = var.flow_log_destination_type
   flow_log_destination_arn  = module.vpc_flow_logs_s3_bucket.s3_bucket_arn
   flow_log_file_format      = var.flow_log_file_format
+
+  # Manage Default NACL rules for the VPC
+  default_network_acl_ingress = []
+  default_network_acl_egress  = []
 }
 
 locals {

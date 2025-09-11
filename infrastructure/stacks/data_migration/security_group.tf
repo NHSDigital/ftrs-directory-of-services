@@ -49,6 +49,15 @@ resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_rds" {
   to_port                      = var.rds_port
 }
 
+resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_processor_lambda" {
+  security_group_id = aws_security_group.processor_lambda_security_group.id
+  description       = "Processor lambda egress rule to allow DynamoDB traffic"
+  prefix_list_id    = data.aws_prefix_list.dynamodb.id
+  ip_protocol       = "tcp"
+  from_port         = var.https_port
+  to_port           = var.https_port
+}
+
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_internet" {
   description       = "Allow egress to internet"

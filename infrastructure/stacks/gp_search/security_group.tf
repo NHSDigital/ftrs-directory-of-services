@@ -15,3 +15,12 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhe
   cidr_ipv4         = "0.0.0.0/0"
   description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
 }
+
+resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_gp_search_lambda" {
+  security_group_id = aws_security_group.gp_search_lambda_security_group.id
+  description       = "GP Search egress rule to allow DynamoDB traffic"
+  prefix_list_id    = data.aws_prefix_list.dynamodb.id
+  ip_protocol       = "tcp"
+  from_port         = var.https_port
+  to_port           = var.https_port
+}

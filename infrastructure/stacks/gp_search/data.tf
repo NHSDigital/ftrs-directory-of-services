@@ -65,3 +65,7 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
     ])
   }
 }
+
+data "aws_prefix_list" "dynamodb" {
+  name = "com.amazonaws.${var.aws_region}.dynamodb"
+}
