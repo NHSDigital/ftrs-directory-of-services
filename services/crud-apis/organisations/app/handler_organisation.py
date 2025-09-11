@@ -47,12 +47,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 error="Validation error",
                 error_message=body_content,
             )
-        if response and response.status_code < STATUS_CODE_MAP["structure"]:
+            return response
+        elif response and response.status_code < STATUS_CODE_MAP["structure"]:
             crud_organisation_logger.log(
                 CrudApisLogBase.ORGANISATION_023,
                 status_code=response.status_code,
             )
-        if response:
             return response
 
 
