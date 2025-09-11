@@ -1,10 +1,14 @@
 from fastapi import FastAPI, Request
 from fastapi.concurrency import iterate_in_threadpool
 from fastapi.responses import JSONResponse
-from ftrs_common.fhir.operation_outcome import OperationOutcomeException
+from ftrs_common.fhir.operation_outcome import (
+    OperationOutcomeException,
+    OperationOutcomeHandler,
+)
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from mangum import Mangum
+from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
@@ -31,28 +35,25 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        try:
-            response = await call_next(request)
+        response = await call_next(request)
 
-            if response and response.status_code == STATUS_CODE_MAP["invalid"]:
-                response_body = [chunk async for chunk in response.body_iterator]
-                response.body_iterator = iterate_in_threadpool(iter(response_body))
+        if response and response.status_code >= STATUS_CODE_MAP["structure"]:
+            response_body = [chunk async for chunk in response.body_iterator]
+            response.body_iterator = iterate_in_threadpool(iter(response_body))
 
-                body_content = response_body[0].decode()
-                crud_organisation_logger.log(
-                    CrudApisLogBase.ORGANISATION_022,
-                    error="Validation error",
-                    error_message=body_content,
-                )
-            if response:
-                return response
-        except Exception as e:
+            body_content = response_body[0].decode()
             crud_organisation_logger.log(
                 CrudApisLogBase.ORGANISATION_022,
-                error="Middleware exception",
-                error_message=str(e),
+                error="Validation error",
+                error_message=body_content,
             )
-            raise
+        if response and response.status_code < STATUS_CODE_MAP["structure"]:
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_023,
+                status_code=response.status_code,
+            )
+        if response:
+            return response
 
 
 app = FastAPI(title="Organisations API")
@@ -72,3 +73,14 @@ async def operation_outcome_exception_handler(
         content=exc.outcome,
         media_type=organisation.FHIR_MEDIA_TYPE,
     )
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(
+    request: Request, exc: ValidationError
+) -> JSONResponse:
+    operation_outcome = OperationOutcomeHandler.build(
+        diagnostics=str(exc), code="invalid", severity="error"
+    )
+
+    raise OperationOutcomeException(operation_outcome)

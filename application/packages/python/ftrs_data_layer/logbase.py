@@ -488,6 +488,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Middleware found: {error}. With error message: {error_message}.",
     )
+    ORGANISATION_023 = LogReference(
+        level=ERROR,
+        message="Middleware found error with status code: {status_code}.",
+    )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
         message="Received request to create healthcare service with name: {name} and type: {type}.",
