@@ -40,6 +40,7 @@ data "aws_iam_role" "app_github_runner_iam_role" {
 }
 
 data "aws_iam_policy_document" "s3_access_policy" {
+  count = local.is_primary_environment ? 1 : 0
   statement {
     effect = "Allow"
     actions = [
@@ -49,8 +50,8 @@ data "aws_iam_policy_document" "s3_access_policy" {
       "s3:ListBucket"
     ]
     resources = [
-      module.migration_store_bucket.s3_bucket_arn,
-      "${module.migration_store_bucket.s3_bucket_arn}/*",
+      module.migration_store_bucket[0].s3_bucket_arn,
+      "${module.migration_store_bucket[0].s3_bucket_arn}/*",
     ]
   }
 }
