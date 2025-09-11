@@ -77,13 +77,13 @@ module "api_gateway" {
   }
 }
 
-resource "aws_route53_record" "gpsearch_api_a_alias" {
-  zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
-  name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-  type    = "A"
-  alias {
-    name                   = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-    zone_id                = module.api_gateway.domain_name_hosted_zone_id
-    evaluate_target_health = false
-  }
-}
+# resource "aws_route53_record" "gpsearch_api_a_alias" {
+#   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
+#   name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
+#   type    = "A"
+#   alias {
+#     name                   = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
+#     zone_id                = module.api_gateway.domain_name_hosted_zone_id
+#     evaluate_target_health = false
+#   }
+# }
