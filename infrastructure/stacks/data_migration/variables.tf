@@ -319,9 +319,3 @@ variable "dns_port" {
   type        = number
   default     = 53
 }
-
-variable "https_port" {
-  description = "The port for HTTPS traffic"
-  type        = number
-  default     = 443
-}

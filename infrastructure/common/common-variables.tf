@@ -110,3 +110,9 @@ variable "s3_logging_bucket_name" {
   description = "The S3 bucket name for access logs"
   type        = string
 }
+
+variable "https_port" {
+  description = "The port for HTTPS traffic"
+  type        = number
+  default     = 443
+}
