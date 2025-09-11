@@ -486,7 +486,7 @@ class CrudApisLogBase(LogBase):
     )
     ORGANISATION_022 = LogReference(
         level=ERROR,
-        message="Middleware found: {error}. With error message: {error_message}.",
+        message="Middleware found error with status code: {status_code}. With error message: {error_message}.",
     )
     ORGANISATION_023 = LogReference(
         level=ERROR,

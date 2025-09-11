@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.concurrency import iterate_in_threadpool
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
@@ -8,7 +9,6 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
 from mangum import Mangum
-from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
@@ -44,7 +44,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             body_content = response_body[0].decode()
             crud_organisation_logger.log(
                 CrudApisLogBase.ORGANISATION_022,
-                error="Validation error",
+                status_code=response.status_code,
                 error_message=body_content,
             )
             return response
@@ -63,6 +63,17 @@ app.include_router(organisation.router)
 handler = Mangum(app, lifespan="off")
 
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    raise OperationOutcomeException(
+        OperationOutcomeHandler.build(
+            diagnostics=str(exc), code="invalid", severity="error"
+        )
+    )
+
+
 @app.exception_handler(OperationOutcomeException)
 async def operation_outcome_exception_handler(
     request: Request, exc: OperationOutcomeException
@@ -73,14 +84,3 @@ async def operation_outcome_exception_handler(
         content=exc.outcome,
         media_type=organisation.FHIR_MEDIA_TYPE,
     )
-
-
-@app.exception_handler(ValidationError)
-async def validation_exception_handler(
-    request: Request, exc: ValidationError
-) -> JSONResponse:
-    operation_outcome = OperationOutcomeHandler.build(
-        diagnostics=str(exc), code="invalid", severity="error"
-    )
-
-    raise OperationOutcomeException(operation_outcome)
