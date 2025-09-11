@@ -94,7 +94,8 @@
                 "arn:aws:iam::*:role/${repo_name}-*",
                 "arn:aws:iam::*:policy/${repo_name}-*",
                 "arn:aws:iam::*:policy/ro_*",
-                "arn:aws:iam::*:policy/rw_*"
+                "arn:aws:iam::*:policy/rw_*",
+                "arn:aws:iam::*:role/dms-vpc-role"
             ]
         },
         {
