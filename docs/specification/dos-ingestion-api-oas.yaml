@@ -10,9 +10,9 @@ info:
 
     Depending on your access mode, you may:
 
-        Create or update health and social care service data
-        Create or update organisation data
-        Create or update location data
+    - Create or update health and social care service data
+    - Create or update organisation data
+    - Create or update location data
 
     The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up to date for use across NHS systems.
 
@@ -68,7 +68,7 @@ info:
     You might find the following open source resources useful:
     | Resource | Description | Link |
     |-----|-----|-----|
-    |Directory of Service Ingress API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
+    |Directory of Service Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
     | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
 
     ## Environments and testing
@@ -79,7 +79,6 @@ info:
     |-------------|----------|
     | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
     | Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
-    | Production | https://api.service.nhs.uk/dos-ingestion/FHIR/R4 |
 
     ### Sandbox
 
@@ -98,11 +97,11 @@ info:
     * is stateful, so can persist updates
     * includes authorisation via API key
 
-    ### Onboarding
+    ## Onboarding
 
     This API is not yet available for onboarding as it's still in the Alpha phase. You need to get your software approved by us before it can go live with this API, with further information to be added in due course.
 
-    ### Resources
+    ## Resources
 
     The following resources are available to assist you with onboarding:
     * [API Documentation](https://digital.nhs.uk/developer/guides-and-documentation) - comprehensive guides and documentation for using our APIs
@@ -115,7 +114,7 @@ info:
     * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
     * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
 
-    ### Contact us
+    ## Contact us
     For help and support connecting to our APIs and to join our developer community, see [Help and support building healthcare software](https://digital.nhs.uk/developer/help-and-support).
 
   version: 1.0.0
