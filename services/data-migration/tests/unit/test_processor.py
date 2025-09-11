@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import NamedTuple
 
 import pytest
 from freezegun import freeze_time
@@ -33,31 +32,6 @@ from pipeline.processor import (
 from pipeline.utils import dbutil
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
-
-
-class SaveTestParams(NamedTuple):
-    opening_times: list[dict]
-    expected_debug_calls: int
-
-
-@pytest.fixture
-def save_test_context(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-    mock_legacy_service: Service,
-    mock_metadata_cache: DoSMetadataCache,
-) -> dict:
-    """
-    Fixture to provide shared dependencies for the test_save function.
-    """
-    return {
-        "mocker": mocker,
-        "mock_config": mock_config,
-        "mock_logger": mock_logger,
-        "mock_legacy_service": mock_legacy_service,
-        "mock_metadata_cache": mock_metadata_cache,
-    }
 
 
 def test_processor_init(
@@ -602,42 +576,13 @@ def test_get_transformer_not_supported(
     ]
 
 
-@pytest.mark.parametrize(
-    "params",
-    [
-        SaveTestParams(
-            opening_times=[],  # Case 1: Empty openingTime
-            expected_debug_calls=0,
-        ),
-        SaveTestParams(
-            opening_times=[
-                {
-                    "allDay": False,
-                    "startTime": "08:00:00",
-                    "dayOfWeek": "mon",
-                    "endTime": "18:30:00",
-                    "category": "availableTime",
-                }
-            ],
-            expected_debug_calls=1,  # Case 2: Non-empty openingTime
-        ),
-    ],
-)
 def test_save(
-    save_test_context: dict,
-    params: SaveTestParams,
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """
-    Test the _save method with different openingTime scenarios.
-    """
-    # Extract dependencies from the context
-    mocker = save_test_context["mocker"]
-    mock_config = save_test_context["mock_config"]
-    mock_logger = save_test_context["mock_logger"]
-    mock_legacy_service = save_test_context["mock_legacy_service"]
-    mock_metadata_cache = save_test_context["mock_metadata_cache"]
-
-    # Arrange
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
@@ -657,32 +602,13 @@ def test_save(
     transformer = processor.get_transformer(mock_legacy_service)
     result = transformer.transform(mock_legacy_service)
 
-    # Set openingTime for healthcare services
-    for hc in result.healthcare_service:
-        hc.openingTime = params.opening_times
-
-    # Mock the logger's debug method
-    mock_debug = mocker.patch.object(processor.logger, "debug")
-
-    # Act
     processor._save(result)
 
-    # Assert repository upserts
-    for org in result.organisation:
-        mock_org_repo.upsert.assert_any_call(org)
+    assert mock_org_repo.upsert.call_count == 1
+    mock_org_repo.upsert.assert_called_once_with(result.organisation[0])
 
-    for loc in result.location:
-        mock_location_repo.upsert.assert_any_call(loc)
+    assert mock_location_repo.upsert.call_count == 1
+    mock_location_repo.upsert.assert_called_once_with(result.location[0])
 
-    for hc in result.healthcare_service:
-        mock_service_repo.upsert.assert_any_call(hc)
-
-    # Assert debug log calls
-    if params.expected_debug_calls > 0:
-        for hc in result.healthcare_service:
-            if hc.openingTime:
-                mock_debug.assert_any_call(
-                    f"HealthcareService with ID {hc.id} has opening times"
-                )
-    else:
-        mock_debug.assert_not_called()
+    assert mock_service_repo.upsert.call_count == 1
+    mock_service_repo.upsert.assert_called_once_with(result.healthcare_service[0])

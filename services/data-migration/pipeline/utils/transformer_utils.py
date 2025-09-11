@@ -1,4 +1,5 @@
-def clean_name(publicname: str) -> str:
+# TODO: remove this logic and replace with ServiceValidator when merged
+def extract_organisation_public_name(publicname: str) -> str:
     """
     Clean the public name by extracting the part before the first hyphen.
     """

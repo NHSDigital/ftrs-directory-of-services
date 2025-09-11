@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import pytest
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain.enums import (
@@ -5,6 +7,7 @@ from ftrs_data_layer.domain.enums import (
     HealthcareServiceType,
 )
 from ftrs_data_layer.domain.legacy import Service
+from ftrs_data_layer.domain.legacy.service import ServiceSGSD
 
 from pipeline.transformer.gp_protected_learning_time import (
     GPProtectedLearningTimeTransformer,
@@ -21,6 +24,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "A12345",
             "name": "PLT - GP COVER",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "Service typeid 200 is not supported",
         },
@@ -30,6 +34,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": None,
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "Service does not have an ODS code",
             # no ODS Code
@@ -39,6 +44,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "q12345",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "ODS code does not match the required format (full length)",
             # lower case letter
@@ -48,6 +54,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "AB12345",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "ODS code does not match the required format (full length)",
             # start with 2 letters
@@ -57,6 +64,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "A1234",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "ODS code does not match the required format (full length)",
             # only 4 digits
@@ -66,6 +74,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "A123456789",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "ODS code does not match the required format (full length)",
             # 9 digits
@@ -75,6 +84,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "A12345A",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "ODS code does not match the required format (full length)",
             # ends with letter
@@ -84,6 +94,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "12345A",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "ODS code does not match the required format (full length)",
             # starts with no letter
@@ -94,6 +105,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "H98765",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "Service typeid 200 is not supported",
             # with invalid service type
@@ -103,6 +115,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "A12345",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "Service name does not contain 'PLT' or 'GP Cover'",
         },  # with valid service type (GP Practice)
@@ -111,6 +124,7 @@ from pipeline.utils.cache import DoSMetadataCache
             "ods_code": "A12345",
             "name": "Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
             "expected_message": "Service name does not contain 'PLT' or 'GP Cover'",
         },  # with valid service type (GP Access Hub)
@@ -118,18 +132,38 @@ from pipeline.utils.cache import DoSMetadataCache
             "service_type_id": 159,
             "ods_code": "A12345",
             "name": "Name",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "postcode": "A01 2BC",
             "expected_result": False,
             "expected_message": "Service name does not contain 'PLT' or 'GP Cover'",
         },  # with valid service type (Primary Care Clinic)
-        # Invalid postcode
+        # Invalid postcode or SG code
         {
             "service_type_id": 100,
             "ods_code": "G123456",
             "name": "PLT - GP COVER",
             "postcode": None,  # no postcode
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": False,
-            "expected_message": "Profile must contain a postcode",
+            "expected_message": "Profile must be linked to at least 1 SG code or contain a postcode",
+        },
+        {
+            "service_type_id": 100,
+            "ods_code": "G123456",
+            "name": "PLT - GP COVER",
+            "postcode": "A01 2BC",
+            "sgsds": [],  # no SG code
+            "expected_result": False,
+            "expected_message": "Profile must be linked to at least 1 SG code or contain a postcode",
+        },
+        {
+            "service_type_id": 100,
+            "ods_code": "G123456",
+            "name": "PLT - GP COVER",
+            "postcode": None,  # no postcode
+            "sgsds": [],  # no SG code
+            "expected_result": False,
+            "expected_message": "Profile must be linked to at least 1 SG code or contain a postcode",
         },
     ],
 )
@@ -144,6 +178,7 @@ def test_is_service_supported_invalid_services(
     mock_legacy_service.odscode = test_data["ods_code"]
     mock_legacy_service.name = test_data["name"]
     mock_legacy_service.postcode = test_data["postcode"]
+    mock_legacy_service.sgsds = test_data["sgsds"]
 
     is_supported, message = GPProtectedLearningTimeTransformer.is_service_supported(
         mock_legacy_service
@@ -162,6 +197,7 @@ def test_is_service_supported_invalid_services(
             "ods_code": "G123456",
             "name": "PLT - GP COVER",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": True,
             "expected_message": None,
         },  # both PLT and GP Cover
@@ -170,6 +206,7 @@ def test_is_service_supported_invalid_services(
             "ods_code": "G123456",
             "name": "PLT - GP COVER",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": True,
             "expected_message": None,
         },  # both PLT and GP Cover
@@ -178,6 +215,7 @@ def test_is_service_supported_invalid_services(
             "ods_code": "G123456",
             "name": "PLT - GP COVER",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": True,
             "expected_message": None,
         },  # both PLT and GP Cover
@@ -186,6 +224,7 @@ def test_is_service_supported_invalid_services(
             "ods_code": "H98765",
             "name": "PLT - Name",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": True,
             "expected_message": None,
         },  # only PLT
@@ -194,6 +233,7 @@ def test_is_service_supported_invalid_services(
             "ods_code": "H98765",
             "name": "Name - GP Cover",
             "postcode": "A01 2BC",
+            "sgsds": [ServiceSGSD(id=1, serviceid=1, sdid=101, sgid=201)],
             "expected_result": True,
             "expected_message": None,
         },  # only GP Cover
@@ -210,6 +250,7 @@ def test_is_service_supported_valid_services(
     mock_legacy_service.odscode = test_data["ods_code"]
     mock_legacy_service.name = test_data["name"]
     mock_legacy_service.postcode = test_data["postcode"]
+    mock_legacy_service.sgsds = test_data["sgsds"]
 
     is_supported, message = GPProtectedLearningTimeTransformer.is_service_supported(
         mock_legacy_service
@@ -251,26 +292,28 @@ def test_should_include_service(
 def test_transform(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
+    mock_logger: MockLogger,
 ) -> None:
     """
     Test that transform method correctly transforms a GP Protected Learning Time Service
     """
-    mock_legacy_service.typeid = 100  # GP Practice
-    mock_legacy_service.odscode = "G123456"  # Valid ODS code
-    mock_legacy_service.name = "GP - Name - PLT - GP COVER"
-    mock_legacy_service.postcode = "A01 2BC"
-    mock_legacy_service.statusid = 1  # Active status
+    transformer = GPProtectedLearningTimeTransformer(mock_logger, mock_metadata_cache)
 
-    transformer = GPProtectedLearningTimeTransformer(MockLogger(), mock_metadata_cache)
+    mock_legacy_service.uid = "903cd48b-5d0f-532f-94f4-937a4517b14d"
     result = transformer.transform(mock_legacy_service)
 
-    # TODO: organisation and location not linked yet, test this, & when public name is empty for orgnaisation.name
     assert len(result.organisation) == 0
     assert len(result.location) == 0
-
     assert len(result.healthcare_service) == 1
-    assert result.healthcare_service[0].name == "GP - Name - PLT - GP COVER"
     assert (
         result.healthcare_service[0].category == HealthcareServiceCategory.GP_SERVICES
     )
     assert result.healthcare_service[0].type == HealthcareServiceType.PLT_SERVICE
+
+    assert mock_logger.get_log("DM_ETL_013") == [
+        {
+            "msg": "Healthcare service has opening times with service id: 903cd48b-5d0f-532f-94f4-937a4517b14d",
+            "reference": "DM_ETL_013",
+            "detail": {"service_id": UUID("903cd48b-5d0f-532f-94f4-937a4517b14d")},
+        }
+    ]

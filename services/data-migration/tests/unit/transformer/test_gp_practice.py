@@ -38,26 +38,13 @@ from pipeline.utils.cache import DoSMetadataCache
             "expected_result": False,
             "expected_message": "ODS code does not match the required format",
         },
+        # potential GP Practice misclassification of PLT is handled
         {
             "service_type_id": 100,
-            "ods_code": "G123456",
+            "ods_code": "G12345",
             "name": "PLT - GP COVER",
             "expected_result": False,
-            "expected_message": "Service fits GP Protected Learning Time criteria",
-        },  # Invalid since it's GP protected learning Time
-        {
-            "service_type_id": 136,
-            "ods_code": "G123456",
-            "name": "PLT - GP COVER",
-            "expected_result": False,
-            "expected_message": "Service fits GP Protected Learning Time criteria",
-        },  # Invalid since it's GP protected learning Time
-        {
-            "service_type_id": 159,
-            "ods_code": "G123456",
-            "name": "PLT - GP COVER",
-            "expected_result": False,
-            "expected_message": "Service fits GP Protected Learning Time criteria",
+            "expected_message": "Service name is PLT specific",
         },  # Invalid since it's GP protected learning Time
     ],
 )

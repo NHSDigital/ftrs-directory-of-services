@@ -195,9 +195,4 @@ class DataMigrationProcessor:
             location_repo.upsert(loc)
 
         for hc in result.healthcare_service:
-            # output if the healthcare service has opening times
-            if hc.openingTime:
-                self.logger.debug(
-                    f"HealthcareService with ID {hc.id} has opening times"
-                )
             service_repo.upsert(hc)

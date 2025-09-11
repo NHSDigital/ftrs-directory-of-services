@@ -5,6 +5,7 @@ from pipeline.transformer.gp_protected_learning_time import (
     GPProtectedLearningTimeTransformer,
 )
 
+# Note: ordered in most common case for efficiency
 SUPPORTED_TRANSFORMERS: list[ServiceTransformer] = [
     GPPracticeTransformer,
     GPEnhancedAccessTransformer,
@@ -16,5 +17,6 @@ __all__ = [
     "ServiceTransformOutput",
     "GPPracticeTransformer",
     "GPEnhancedAccessTransformer",
+    "GPProtectedLearningTimeTransformer",
     "SUPPORTED_TRANSFORMERS",
 ]

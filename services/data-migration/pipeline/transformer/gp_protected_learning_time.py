@@ -7,7 +7,7 @@ from ftrs_data_layer.domain.enums import (
 )
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
-from pipeline.utils.transformer_utils import clean_name
+from pipeline.utils.transformer_utils import extract_organisation_public_name
 
 
 class GPProtectedLearningTimeTransformer(ServiceTransformer):
@@ -38,7 +38,7 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
         For GP Protected Learning Time Services, Organisation Linkage is not required
         """
         organisation = self.build_organisation(service)
-        organisation.name = clean_name(service.publicname)
+        organisation.name = extract_organisation_public_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -47,6 +47,7 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.PLT_SERVICE,
         )
+        self.log_opening_times(healthcare_service)
 
         return ServiceTransformOutput(
             organisation=[],
@@ -76,9 +77,12 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
         if "PLT" not in name and "GP COVER" not in name:
             return False, "Service name does not contain 'PLT' or 'GP Cover'"
 
-        # Profile must contain a postcode (TODO: Profile is linked to at least 1 SG code AND a postcode)
-        if not service.postcode:
-            return False, "Profile must contain a postcode"
+        # Profile is linked to at least 1 SG code AND a postcode
+        if not service.sgsds or not service.postcode:
+            return (
+                False,
+                "Profile must be linked to at least 1 SG code or contain a postcode",
+            )
 
         return True, None
 
