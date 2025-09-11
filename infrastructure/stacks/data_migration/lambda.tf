@@ -18,6 +18,7 @@ resource "aws_lambda_layer_version" "data_layer" {
 
 module "processor_lambda" {
   source                  = "../../modules/lambda"
+  count                   = local.is_primary_environment ? 1 : 0
   function_name           = "${local.resource_prefix}-${var.processor_lambda_name}"
   description             = "Lambda to handle DoS data migration update events"
   handler                 = var.processor_lambda_handler
@@ -33,7 +34,7 @@ module "processor_lambda" {
 
   number_of_policy_jsons = "4"
   policy_jsons = [
-    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.s3_access_policy[0].json,
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json
@@ -61,16 +62,18 @@ module "processor_lambda" {
 }
 
 resource "aws_lambda_permission" "allow_sqs_invoke" {
+  count         = local.is_primary_environment ? 1 : 0
   statement_id  = "AllowSQSTrigger"
   action        = "lambda:InvokeFunction"
-  function_name = module.processor_lambda.lambda_function_name
+  function_name = module.processor_lambda[0].lambda_function_name
   principal     = "sqs.amazonaws.com"
   source_arn    = aws_sqs_queue.dms_event_queue.arn
 }
 
 resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
+  count                              = local.is_primary_environment ? 1 : 0
   event_source_arn                   = aws_sqs_queue.dms_event_queue.arn
-  function_name                      = module.processor_lambda.lambda_function_name
+  function_name                      = module.processor_lambda[0].lambda_function_name
   enabled                            = var.dms_event_queue_enabled
   batch_size                         = var.dms_event_queue_batch_size
   maximum_batching_window_in_seconds = var.dms_event_queue_maximum_batching_window_in_seconds
