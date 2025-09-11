@@ -490,7 +490,7 @@ class CrudApisLogBase(LogBase):
     )
     ORGANISATION_023 = LogReference(
         level=ERROR,
-        message="Middleware found error with status code: {status_code}.",
+        message="Request hit middleware with status code: {status_code}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
