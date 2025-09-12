@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime, time
+from uuid import UUID
 
 import pytest
 from freezegun import freeze_time
@@ -20,6 +21,7 @@ from ftrs_data_layer.domain import (
     SymptomGroupSymptomDiscriminatorPair,
     Telecom,
 )
+from ftrs_data_layer.domain.enums import DayOfWeek
 from ftrs_data_layer.domain.legacy import (
     OpeningTimeDay,
     Service,
@@ -800,4 +802,74 @@ def test_build_dispositions(
             codeValue="Speak to a Primary Care Service within 2 hours",
             time=120,
         ),
+    ]
+
+
+def test_log_opening_times(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    transformer = BasicServiceTransformer(
+        logger=mock_logger,
+        metadata=mock_metadata_cache,
+    )
+
+    # Mock all fields except openingTime
+    healthcare_service = HealthcareService(
+        id="903cd48b-5d0f-532f-94f4-937a4517b14d",
+        identifier_oldDoS_uid="123456",
+        active=True,
+        category="GP Services",
+        type="GP Consultation Service",
+        createdBy="test_user",
+        createdDateTime="2023-10-01T00:00:00Z",
+        providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
+        location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        modifiedBy="test_user",
+        modifiedDateTime="2023-10-01T00:00:00Z",
+        name="Test Healthcare Service",
+        telecom=Telecom(
+            phone_public="123456789",
+            phone_private="987654321",
+            email="example@mail.com",
+            web="www.example.com",
+        ),
+        symptomGroupSymptomDiscriminators=[],
+        dispositions=[],
+        openingTime=[
+            AvailableTime(
+                dayOfWeek=DayOfWeek.MONDAY,
+                startTime=time.fromisoformat("09:00:00"),
+                endTime=time.fromisoformat("17:00:00"),
+            ),
+            AvailableTime(
+                dayOfWeek=DayOfWeek.TUESDAY,
+                startTime=time.fromisoformat("00:00:00"),
+                endTime=time.fromisoformat("23:59:59"),
+                allDay=True,
+            ),
+            AvailableTimeVariation(
+                description="staff training",
+                startTime=datetime.fromisoformat("2025-06-10T10:30:00"),
+                endTime=datetime.fromisoformat("2025-06-10T12:30:00"),
+            ),
+            AvailableTimePublicHolidays(
+                startTime=time.fromisoformat("12:30:00"),
+                endTime=time.fromisoformat("16:30:00"),
+            ),
+            NotAvailable(
+                description="special",
+                startTime=datetime.fromisoformat("2025-07-15T00:00:00"),
+                endTime=datetime.fromisoformat("2025-07-15T23:59:59"),
+            ),
+        ],
+    )
+    transformer.log_opening_times(healthcare_service)
+
+    assert mock_logger.get_log("DM_ETL_013") == [
+        {
+            "msg": "Healthcare service has opening times with service id: 903cd48b-5d0f-532f-94f4-937a4517b14d",
+            "reference": "DM_ETL_013",
+            "detail": {"service_id": UUID("903cd48b-5d0f-532f-94f4-937a4517b14d")},
+        }
     ]

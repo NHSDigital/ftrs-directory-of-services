@@ -29,6 +29,7 @@ from ftrs_data_layer.domain.clinical_code import (
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
 
 from pipeline.utils.cache import DoSMetadataCache
@@ -357,3 +358,13 @@ class ServiceTransformer(ABC):
             source=ClinicalCodeSource.PATHWAYS,
             time=disposition.dispositiontime,
         )
+
+    def log_opening_times(self, healthcare_service: HealthcareService) -> None:
+        """
+        Log debug information about a healthcare service with opening times.
+        """
+        if healthcare_service.openingTime:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_013,
+                service_id=healthcare_service.id,
+            )

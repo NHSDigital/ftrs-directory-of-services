@@ -143,7 +143,10 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="No symptom discriminators found for Symptom Group ID: {sg_id}",
     )
-
+    DM_ETL_013 = LogReference(
+        level=DEBUG,
+        message="Healthcare service has opening times with service id: {service_id}",
+    )
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )
