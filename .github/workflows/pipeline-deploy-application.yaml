@@ -147,6 +147,24 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
+  deploy-sandbox-lambda:
+    name: "Deploy sandbox Lambda"
+    needs:
+      - metadata
+      - build-services
+      - plan-infrastructure
+      - manual-approval
+      - apply-infrastructure
+    if: ${{ needs.metadata.outputs.environment == 'dev' }} || ${{ needs.metadata.outputs.environment == 'sandbox' }}
+    uses: ./.github/workflows/deploy-sandbox.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      type: app
+    secrets: inherit
+
   migrate-data:
     name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
     if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
