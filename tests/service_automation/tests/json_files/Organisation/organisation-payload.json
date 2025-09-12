@@ -1,0 +1,8 @@
+{"resourceType": "Organization",
+ "id": "36fce427-0f31-4a4e-903f-74dcf9e63cfd",
+ "meta": {"profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]},
+ "identifier": [{"use": "official", "system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081046"}],
+ "active": true,
+ "type": [{"coding": [{"system": "TO-DO", "code": "BRANCH SURGERY", "display": "BRANCH SURGERY"}], "text": "BRANCH SURGERY"}],
+ "name": "BRIGSTOCK MEDICAL PRACTICE - !COVID LOCAL VACCINATION SERVICE)",  "telecom": [{"system": "phone", "value": "0123456789"}]
+}

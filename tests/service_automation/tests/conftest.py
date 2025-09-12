@@ -14,6 +14,8 @@ from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
+from utilities.common.constants import SERVICE_BASE_PATH
+import json
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -79,6 +81,38 @@ def api_request_context(playwright):
     yield request_context
     request_context.dispose()
 
+@pytest.fixture
+def api_request_context_api_key(playwright, service_url: str, api_key: str):
+    """Create a Playwright APIRequestContext with API key authentication."""
+    context_options = {
+        "base_url": service_url,
+        "ignore_https_errors": True,
+        "extra_http_headers": {
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+            "apikey": api_key,
+        },
+    }
+    request_context = playwright.request.new_context(**context_options)
+    logger.info(f"Created APIRequestContext with base_url={service_url}")
+    yield request_context
+    request_context.dispose()
+    logger.info("Disposed APIRequestContext")
+
+@pytest.fixture
+def api_request_context_jwt(playwright, service_url: str, jwt_token: str):
+    """Request context with JWT Bearer token."""
+    context_options = {
+        "base_url": service_url,
+        "extra_http_headers": {
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+            "Authorization": f"Bearer {jwt_token}"
+        }
+    }
+    request_context = playwright.request.new_context(**context_options)
+    yield request_context
+    request_context.dispose()
 
 @pytest.fixture(scope="session")
 def chromium():
@@ -137,6 +171,10 @@ def commit_hash() -> str:
     commit_hash = _get_env_var("COMMIT_HASH")
     return commit_hash
 
+@pytest.fixture(scope="session")
+def apigee_environment() -> str:
+    return _get_env_var("APIGEE_ENVIRONMENT", default="internal-dev")
+
 
 @pytest.fixture(scope="session", autouse=True)
 def write_allure_environment(env, workspace, project, commit_hash):
@@ -185,3 +223,25 @@ def get_mtls_certs():
     client_pem_path = create_temp_file(client_pem, ".pem")
     ca_cert_path = create_temp_file(ca_cert, ".crt")
     return client_pem_path, ca_cert_path
+
+
+@pytest.fixture(scope="session")
+def api_key() -> str:
+    """Return the raw API key string from Secrets Manager."""
+    gsw = GetSecretWrapper()
+    key_json = gsw.get_secret("/ftrs-dos/dev/apim-api-key")  # returns {"api_key": "..."}
+    key_dict = json.loads(key_json)
+    api_key = key_dict.get("api_key")
+    if not api_key:
+        raise ValueError("API key not found in secret")
+    logger.info(f"Fetched API key: {api_key[:4]}**** (hidden for safety)")
+    return api_key
+
+@pytest.fixture(scope="session")
+def service_url(apigee_environment: str) -> str:
+    """Return the base URL for API requests."""
+    if apigee_environment == "prod":
+        base = "https://api.service.nhs.uk"
+    else:
+        base = f"https://{apigee_environment}.api.service.nhs.uk"
+    return f"{base.rstrip('/')}/{SERVICE_BASE_PATH}"
