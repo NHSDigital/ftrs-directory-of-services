@@ -14,6 +14,7 @@ from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from utilities.common.resource_name import get_resource_name
 import boto3
 import pprint
+import time
 
 
 # Load feature file
@@ -92,7 +93,7 @@ def get_ods_details(ods_codes: List[str]) -> List[Dict[str, Optional[str]]]:
 
         phone = next(
             (tel.get("value") for tel in org_response.get("telecom", [])
-             if tel.get("system") == "phone"),
+            if tel.get("system") == "phone"),
             None
         )
 
@@ -190,9 +191,50 @@ def lambda_process(context: Context, project, workspace, env , aws_lambda_client
     assert lambda_exists, f"Lambda function {lambda_name} does not exist"
     lambda_params = create_lambda_params(extraction_date)
     lambda_payload = aws_lambda_client.invoke_function(lambda_name, lambda_params)
+    context.lambda_name = lambda_name
     # Validate the lambda response: check status code in payload
     status_code = lambda_payload.get("statusCode")
     assert status_code == 200
+
+@then(parsers.parse('the Lambda extracts, transforms, and publishes the transformed message to SQS'))
+def verify_lambda_processes_and_publishes(context: Context, cloudwatch_logs):
+    """
+    Verify that the Lambda processed and published messages to SQS by checking logs.
+    """
+    # Wait a bit for logs to propagate to CloudWatch
+    time.sleep(5)
+
+    # Look for specific log patterns that indicate successful processing
+    extraction_pattern = "Successfully extracted ODS organisation records"
+    transformation_pattern = "Successfully transformed data"
+    publishing_pattern = "Successfully published to SQS"
+
+    # Check for each pattern in the logs
+    extraction_found = cloudwatch_logs.find_log_message(
+        context.lambda_name,
+        extraction_pattern,
+        context.lambda_invocation_time,
+        30  # Check logs within 30 seconds of invocation
+    )
+
+    transformation_found = cloudwatch_logs.find_log_message(
+        context.lambda_name,
+        transformation_pattern,
+        context.lambda_invocation_time,
+        30
+    )
+
+    publishing_found = cloudwatch_logs.find_log_message(
+        context.lambda_name,
+        publishing_pattern,
+        context.lambda_invocation_time,
+        30
+    )
+
+    # Assert that all expected log messages were found
+    assert extraction_found, f"Log message not found: {extraction_pattern}"
+    assert transformation_found, f"Log message not found: {transformation_pattern}"
+    assert publishing_found, f"Log message not found: {publishing_pattern}"
 
 
 @then(parsers.parse('the organisation data should be updated in DynamoDB for the specified ODS codes'), target_fixture="context")

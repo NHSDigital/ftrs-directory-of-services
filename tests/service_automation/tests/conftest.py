@@ -15,6 +15,7 @@ from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
 from utilities.common.constants import SERVICE_BASE_PATH
+from utilities.infra.logs_util import CloudWatchLogsWrapper
 import json
 
 # Configure Loguru to log into a file and console
@@ -73,6 +74,12 @@ def api_request_context_mtls(playwright, workspace, env, api_name="servicesearch
             logger.error(f"Error deleting download files: {e}")
         request_context.dispose()
 
+
+# Add this fixture
+@pytest.fixture(scope="module")
+def cloudwatch_logs():
+    """Fixture to initialize AWS CloudWatch Logs utility"""
+    return CloudWatchLogsWrapper()
 
 @pytest.fixture
 def api_request_context(playwright):
