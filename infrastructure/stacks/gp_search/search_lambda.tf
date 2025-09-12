@@ -45,6 +45,13 @@ module "lambda" {
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
   }
 
+  allowed_triggers = {
+    AllowExecutionFromAPIGateway = {
+      service    = "apigateway"
+      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+    }
+  }
+
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
