@@ -1,11 +1,18 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from ftrs_common.api_middleware.fhir_type_middleware import (
+    FHIRAcceptHeaderMiddleware,
+    FHIRContentTypeMiddleware,
+)
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from mangum import Mangum
 
 from organisations.app.router import organisation
 
 app = FastAPI(title="Organisations API")
+app.add_middleware(FHIRContentTypeMiddleware)
+app.add_middleware(FHIRAcceptHeaderMiddleware)
+
 app.include_router(organisation.router)
 
 handler = Mangum(app, lifespan="off")

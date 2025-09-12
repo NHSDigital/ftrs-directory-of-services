@@ -113,3 +113,14 @@ def test_status_code_map_values() -> None:
     valid_status_codes = set(HTTPStatus)
     for status_code in STATUS_CODE_MAP.values():
         assert status_code in {s.value for s in valid_status_codes}
+
+
+def test_middlewares_present() -> None:
+    middleware_classes = [mw.cls for mw in app.user_middleware]
+    from ftrs_common.api_middleware.fhir_type_middleware import (
+        FHIRAcceptHeaderMiddleware,
+        FHIRContentTypeMiddleware,
+    )
+
+    assert FHIRContentTypeMiddleware in middleware_classes
+    assert FHIRAcceptHeaderMiddleware in middleware_classes
