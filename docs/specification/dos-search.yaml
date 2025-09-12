@@ -116,9 +116,9 @@ paths:
                 type: "searchset"
                 link:
                   - relation: "self"
-                    url: "https://example.org/FHIR/R4/Organization?endpoint.identifier=odsEndpointCode%7CABC123&_include=Organization:endpoint"
+                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
                 entry:
-                  - fullUrl: "https://example.org/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                     resource:
                       resourceType: "Organization"
                       id: "04393ec4-198f-42dd-9507-f4fa5e9ebf96"
@@ -133,28 +133,16 @@ paths:
                         - system: "email"
                           value: "example@example.com"
                       address:
-                        - line: [ "Example Medical Practice", "Example Street" ]
+                        - line: ["Example Medical Practice", "Example Street"]
                           city: "Example City"
                           postalCode: "AB12 3CD"
                           country: "ENGLAND"
                     search:
                       mode: "match"
-                  - fullUrl: "https://example.org/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
                     resource:
                       resourceType: "Endpoint"
                       id: "1b62110d-4db5-4230-bf37-cbe948aecf76"
-                      status: "active"
-                      connectionType:
-                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
-                        code: "hl7-fhir-rest"
-                      managingOrganization:
-                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
-                      payloadType:
-                        - coding:
-                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-                              code: "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType: [ "application/fhir+json" ]
-                      address: "https://nhs.provided.service.uk/endpoint"
                       extension:
                         - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
                           valueInteger: 1
@@ -162,58 +150,48 @@ paths:
                           valueBoolean: false
                         - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
                           valueCode: "primary-recipient"
-                    search:
-                      mode: "include"
-                  - fullUrl: "https://example.org/FHIR/R4/Endpoint/a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
-                    resource:
-                      resourceType: "Endpoint"
-                      id: "a8c3d2e1-5f6g-7h8i-9j0k-1l2m3n4o5p6q"
                       status: "active"
                       connectionType:
                         system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
-                        code: "hl7-fhir-rest"
+                        code: "email"
                       managingOrganization:
                         reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                       payloadType:
                         - coding:
                             - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-                              code: "urn:nhs-itk:interaction:secondaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType: [ "application/fhir+json" ]
-                      address: "https://nhs.provided.service.uk/endpoint2"
+                              code: "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType:
+                        - "application/pdf"
+                      address: "dummy-endpoint-email@nhs.net"
+                    search:
+                      mode: "include"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/5df57f63-7f48-5754-b056-ba362834c1e7"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "5df57f63-7f48-5754-b056-ba362834c1e7"
                       extension:
                         - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
                           valueInteger: 2
                         - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
-                          valueBoolean: true
+                          valueBoolean: false
                         - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
-                          valueCode: "primary-recipient"
-                    search:
-                      mode: "include"
-                  - fullUrl: "https://example.org/FHIR/R4/Endpoint/z9y8x7w6-v5u4-t3s2-r1q0-p9o8n7m6l5k4"
-                    resource:
-                      resourceType: "Endpoint"
-                      id: "090844f9-fc6e-56fb-8af8-bd631505adce"
+                          valueCode: "copy-recipient"
                       status: "active"
                       connectionType:
                         system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
-                        code: "hl7-fhir-rest"
+                        code: "email"
                       managingOrganization:
                         reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                       payloadType:
                         - coding:
                             - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-                              code: "urn:nhs-itk:interaction:backupEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType: [ "application/fhir+json" ]
-                      address: "https://nhs.provided.service.uk/endpoint3"
-                      extension:
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
-                          valueInteger: 3
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
-                          valueBoolean: false
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
-                          valueCode: "copy-recipient"
+                              code: "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType:
+                        - "application/pdf"
+                      address: "dummy-endpoint-email@nhs.net"
                     search:
                       mode: "include"
+
         '400':
           description: Bad request
           content:
@@ -234,7 +212,7 @@ paths:
                               version: "1.0.0"
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
-                        diagnostics: "Invalid identifier value: ODS code 'H82028' must follow format ^[A-Z0-9]{5,12}$"
+                        diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
                 missing-revinclude:
                   summary: Missing required _revinclude parameter
                   value:
