@@ -68,7 +68,7 @@ info:
     You might find the following open source resources useful:
     | Resource | Description | Link |
     |-----|-----|-----|
-    |Directory of Service - Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
+    |Directory of Services - Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
     | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
 
     ## Environments and testing
