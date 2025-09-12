@@ -174,7 +174,7 @@ paths:
             pattern: '^odsOrganizationCode\|[A-Za-z0-9]{5,12}$'
             example: "odsOrganizationCode|ABC123"
       - $ref: '#/components/parameters/AcceptFHIR'
-responses:
+      responses:
         '200':
           description: Bundle of Organizations found and returned successfully
           content:
