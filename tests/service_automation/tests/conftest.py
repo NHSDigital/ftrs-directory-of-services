@@ -17,6 +17,7 @@ from utilities.infra.secrets_util import GetSecretWrapper
 from utilities.common.constants import SERVICE_BASE_PATH
 from utilities.infra.logs_util import CloudWatchLogsWrapper
 import json
+from utilities.common.context import Context
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -252,3 +253,12 @@ def service_url(apigee_environment: str) -> str:
     else:
         base = f"https://{apigee_environment}.api.service.nhs.uk"
     return f"{base.rstrip('/')}/{SERVICE_BASE_PATH}"
+
+@pytest.fixture(autouse=True)
+def context() -> Context:
+    """Fixture to create a context object for each test.
+
+    Returns:
+        Context: Context object.
+    """
+    return Context()
