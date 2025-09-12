@@ -30,8 +30,8 @@ data "aws_iam_policy_document" "s3_access_policy" {
       "s3:PutObject"
     ]
     resources = [
-      "${module.crud_apis_bucket.s3_bucket_arn}/",
-      "${module.crud_apis_bucket.s3_bucket_arn}/*",
+      "${module.sandbox_store_bucket.s3_bucket_arn}/",
+      "${module.sandbox_store_bucket.s3_bucket_arn}/*",
     ]
   }
 }

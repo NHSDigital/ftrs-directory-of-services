@@ -89,3 +89,11 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   type        = "String"
   value       = module.api_gateway.api_endpoint
 }
+
+resource "aws_lambda_permission" "allow_apigw_sandbox" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.sandbox_lambda.lambda_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${module.api_gateway.api_execution_arn}/*/*"
+}
