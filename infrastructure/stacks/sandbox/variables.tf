@@ -1,10 +1,10 @@
 variable "application_tag" {
-  description = "The version or tag of the crud api application"
+  description = "The version or tag of the sandbox application"
   type        = string
 }
 
 variable "commit_hash" {
-  description = "The commit hash of the crud api application"
+  description = "The commit hash of the sandbox application"
   type        = string
 }
 
@@ -31,8 +31,8 @@ variable "sandbox_lambda_handler" {
   type        = string
 }
 
-variable "crud_apis_store_bucket_name" {
-  description = "The name of the S3 bucket to use for the crud apis"
+variable "sandbox_store_bucket_name" {
+  description = "The name of the S3 bucket to use for the sandbox"
 }
 
 variable "s3_versioning" {
