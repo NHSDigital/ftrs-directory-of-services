@@ -162,13 +162,16 @@ paths:
         description: |
           Use an optional ID to track transactions across multiple systems.
           Mirrored back in a response header.
+        schema:
+          type: string
+          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
       - in: query
         name: identifier
         description: >
           ODS code in the format "odsOrganizationCode|{CODE}" (FHIR identifier search).
           If omitted, all Organizations will be returned.
           required: false
-          schema:
+        schema:
             type: string
             pattern: '^odsOrganizationCode\|[A-Za-z0-9]{5,12}$'
             example: "odsOrganizationCode|ABC123"
