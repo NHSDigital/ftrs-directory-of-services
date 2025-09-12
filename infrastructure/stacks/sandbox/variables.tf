@@ -8,26 +8,26 @@ variable "commit_hash" {
   type        = string
 }
 
-variable "mock_api_lambda_runtime" {
+variable "sandbox_lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
 
-variable "mock_api_lambda_name" {
-  description = "The name of the mock api Lambda function"
+variable "sandbox_lambda_name" {
+  description = "The name of the sandbox Lambda function"
 }
 
-variable "mock_api_lambda_timeout" {
-  description = "The timeout for the mock api Lambda function"
+variable "sandbox_lambda_timeout" {
+  description = "The timeout for the sandbox Lambda function"
   type        = number
 }
 
-variable "mock_api_lambda_memory_size" {
-  description = "The memory size for the mock api Lambda function"
+variable "sandbox_lambda_memory_size" {
+  description = "The memory size for the sandbox Lambda function"
   type        = number
 }
 
-variable "mock_api_lambda_handler" {
-  description = "The handler for the mock api Lambda function"
+variable "sandbox_lambda_handler" {
+  description = "The handler for the sandbox Lambda function"
   type        = string
 }
 
