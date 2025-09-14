@@ -31,7 +31,7 @@ jobs:
 
       - name: Install proxygen CLI
         run: |
-          curl -sSL https://example.com/proxygen/install.sh | bash
+          pip install proxygen-cli
           echo "$HOME/.proxygen/bin" >> $GITHUB_PATH
 
       - name: Preprocess OAS file
