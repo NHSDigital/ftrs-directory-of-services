@@ -33,7 +33,9 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
     - Service name must not contain excluded patterns: "GP Protected Learning Time (PLT)", "ARI - ", "Primary Care CAS - "
     """
 
-    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+    def transform(
+        self, service: legacy_model.Service, validation_issues: list[str]
+    ) -> ServiceTransformOutput:
         """
         Transform the given GP Enhanced Access service into the new data model format.
 
@@ -46,6 +48,7 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
             None,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.PCN_SERVICE,
+            validation_issues=validation_issues,
         )
 
         return ServiceTransformOutput(
