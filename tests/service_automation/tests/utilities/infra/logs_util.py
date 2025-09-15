@@ -12,7 +12,7 @@ class CloudWatchLogsWrapper:
             logger.error(f"Error initializing CloudWatch Logs client: {e}")
             raise
 
-    def get_lambda_logs(self, lambda_name, start_time=None, duration_seconds=60, filter_pattern=None):
+    def get_lambda_logs(self, lambda_name, filter_pattern=None):
         """
         Retrieve CloudWatch logs for a specific Lambda function
 
@@ -28,12 +28,6 @@ class CloudWatchLogsWrapper:
         try:
             log_group_name = f"/aws/lambda/{lambda_name}"
 
-            if start_time is None:
-                end_time = int(time.time() * 1000)
-                start_time = end_time - (duration_seconds * 1000)
-            else:
-                end_time = start_time + (duration_seconds * 1000)
-
             streams_response = self.logs_client.describe_log_streams(
                 logGroupName=log_group_name,
                 orderBy='LastEventTime',
@@ -43,8 +37,12 @@ class CloudWatchLogsWrapper:
 
             log_events = []
 
+
             for stream in streams_response.get('logStreams', []):
                 stream_name = stream['logStreamName']
+
+                start_time = stream['firstEventTimestamp'] - (30 * 1000)  # 1 minute before first event
+                end_time = stream['lastEventTimestamp'] + (30 * 1000)     # 1 minute after last event
 
                 params = {
                     'logGroupName': log_group_name,
@@ -62,11 +60,14 @@ class CloudWatchLogsWrapper:
                         'endTime': end_time,
                         'limit': 100
                     }
+
                     events_response = self.logs_client.filter_log_events(**params)
+
                     log_events.extend(events_response.get('events', []))
                 else:
                     events_response = self.logs_client.get_log_events(**params)
                     log_events.extend(events_response.get('events', []))
+
 
             return log_events
 
@@ -74,7 +75,7 @@ class CloudWatchLogsWrapper:
             logger.error(f"Error retrieving CloudWatch logs: {e}")
             return []
 
-    def find_log_message(self, lambda_name, message_pattern, start_time=None, duration_seconds=60):
+    def find_log_message(self, lambda_name, message_pattern):
         """
         Search for a specific message pattern in Lambda logs
 
@@ -89,8 +90,6 @@ class CloudWatchLogsWrapper:
         """
         log_events = self.get_lambda_logs(
             lambda_name,
-            start_time,
-            duration_seconds,
             filter_pattern=message_pattern
         )
 

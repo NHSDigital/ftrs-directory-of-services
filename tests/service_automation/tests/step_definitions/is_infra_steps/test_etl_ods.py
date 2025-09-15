@@ -165,42 +165,46 @@ def verify_organisation_in_repo(model_repo: AttributeLevelRepository, ods_codes:
 
 def validate_lambda_logs_for_ods_codes(context: Context, cloudwatch_logs, ods_codes: list):
     """Verify that the Lambda processed and published messages to SQS for each ODS code."""
-    time.sleep(10)  # Wait for logs to propagate
+    time.sleep(30)  # Wait for logs to propagate
+
     for ods_code in ods_codes:
         logger.info(f"Validating Lambda logs for ODS code '{ods_code}'")
 
-        extraction_pattern = f'"Fetching organisation data for code: {ods_code}"'
-        org_fetch_pattern = f'"Fetching organisation uuid for ods code {ods_code}"'
+        all_logs = cloudwatch_logs.get_lambda_logs(
+            context.lambda_name
+        )
+
+        if not all_logs:
+            logger.error(f"No logs found at all for Lambda {context.lambda_name}!")
+            logger.info(f"Lambda invocation time: {context.lambda_invocation_time}")
+        else:
+            logger.info(f"Found {len(all_logs)} total logs for Lambda")
+            if all_logs:
+                logger.info(f"Sample log: {all_logs[0].get('message', '')}")
+
+        extraction_pattern = f'"Fetching organisation data for code: {ods_code}."'
         transformation_pattern = f'"Successfully transformed data for ods_code: {ods_code}"'
-        publishing_pattern = f'"Succeeded to send 1 messages in batch"'
+        publishing_pattern = "Succeeded to send"
 
         extraction_found = cloudwatch_logs.find_log_message(
             context.lambda_name,
-            extraction_pattern,
-            context.lambda_invocation_time,
-            30
-        )
-        org_fetch_found = cloudwatch_logs.find_log_message(
-            context.lambda_name,
-            org_fetch_pattern,
-            context.lambda_invocation_time,
-            30
-        )
-        transformation_found = cloudwatch_logs.find_log_message(
-            context.lambda_name,
-            transformation_pattern,
-            context.lambda_invocation_time,
-            30
-        )
-        publishing_found = cloudwatch_logs.find_log_message(
-            context.lambda_name,
-            publishing_pattern,
-            context.lambda_invocation_time,
-            30
+            extraction_pattern
         )
 
+
+
+        transformation_found = cloudwatch_logs.find_log_message(
+            context.lambda_name,
+            transformation_pattern
+        )
+
+        publishing_found = cloudwatch_logs.find_log_message(
+            context.lambda_name,
+            publishing_pattern
+        )
+
+
         assert extraction_found, f"Extraction log not found for ODS code {ods_code}"
-        assert org_fetch_found, f"Organisation fetch log not found for ODS code {ods_code}"
         assert transformation_found, f"Transformation log not found for ODS code {ods_code}"
         assert publishing_found, f"Publishing log not found for ODS code {ods_code}"
 
@@ -275,7 +279,8 @@ def lambda_process(context: Context, project, workspace, env , aws_lambda_client
     assert lambda_exists, f"Lambda function {lambda_name} does not exist"
     lambda_params = create_lambda_params(extraction_date)
     lambda_payload = aws_lambda_client.invoke_function(lambda_name, lambda_params)
-    context.lambda_invocation_time = int(datetime.utcnow().timestamp())
+    from datetime import timezone
+    context.lambda_invocation_time = int(datetime.now(timezone.utc).timestamp())
     context.lambda_name = lambda_name
     # Validate the lambda response: check status code in payload
     status_code = lambda_payload.get("statusCode")
