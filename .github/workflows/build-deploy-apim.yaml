@@ -11,6 +11,10 @@ on:
       - task/DOSIS*
 
 jobs:
+
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
   build-and-deploy:
     runs-on: ubuntu-latest
 
@@ -18,7 +22,7 @@ jobs:
       ENVIRONMENT: internal-dev
       API_NAME: dos-search
       FHIR_VERSION: FHIR_R4
-      ISSUE_TAG: ${{ github.head_ref }} # branch name or PR ref
+      WORKSPACE: ${{ needs.metadata.outputs.workspace }} # branch name or PR ref
 
     steps:
       - name: Checkout code
@@ -37,7 +41,7 @@ jobs:
       - name: Preprocess OAS file
         run: |
           # Prefix title with issue tag
-          yq '.info.title = "[" + ${env.ISSUE_TAG} + "] " + .info.title' \
+          yq '.info.title = "[" + ${WORKSPACE} + "] " + .info.title' \
             docs/specification/dos-search.yaml > docs/specification/dos-search.yaml
 
       - name: Validate OpenAPI spec
@@ -48,9 +52,9 @@ jobs:
         run: |
           proxygen instance deploy \
             $ENVIRONMENT \
-            "${ISSUE_TAG}-${API_NAME}_${FHIR_VERSION}" \
+            "${WORKSPACE}-${API_NAME}_${FHIR_VERSION}" \
             "docs/specification/dos-search.yaml"
 
       - name: Post-deployment check
         run: |
-          proxygen instance list $ENVIRONMENT | grep "${env.ISSUE_TAG}-${API_NAME}_${FHIR_VERSION}"
+          proxygen instance list $ENVIRONMENT | grep "${WORKSPACE}-${API_NAME}_${FHIR_VERSION}"
