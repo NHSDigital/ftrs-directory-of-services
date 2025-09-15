@@ -15,6 +15,7 @@ from pipeline.transformer import (
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 from pipeline.utils.dbutil import get_repository
+from pipeline.validation.types import ValidationIssue
 
 
 class DataMigrationMetrics(BaseModel):
@@ -24,6 +25,7 @@ class DataMigrationMetrics(BaseModel):
     transformed_records: int = 0
     migrated_records: int = 0
     skipped_records: int = 0
+    invalid_records: int = 0
     errors: int = 0
 
     def reset(self) -> None:
@@ -36,6 +38,7 @@ class DataMigrationMetrics(BaseModel):
         self.transformed_records = 0
         self.migrated_records = 0
         self.skipped_records = 0
+        self.invalid_records = 0
         self.errors = 0
 
 
@@ -52,7 +55,15 @@ class DataMigrationProcessor:
     ) -> None:
         self.logger = logger
         self.config = config
-        self.engine = create_engine(config.db_config.connection_string, echo=False)
+        # Validate the presence of a real connection string to avoid confusing errors when given mocks
+        connection_string = getattr(
+            getattr(config, "db_config", None), "connection_string", None
+        )
+        if not isinstance(connection_string, str) or not connection_string.strip():
+            raise ValueError(
+                "Invalid DataMigrationConfig: db_config.connection_string must be a non-empty string"
+            )
+        self.engine = create_engine(connection_string, echo=False)
         self.metrics = DataMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
@@ -105,7 +116,28 @@ class DataMigrationProcessor:
                 self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
                 return
 
-            result = transformer.transform(service)
+            validation_result = transformer.validator.validate(service)
+            if not validation_result.is_valid:
+                issues = [
+                    issue.model_dump(mode="json") for issue in validation_result.issues
+                ]
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_013,
+                    record_id=service.id,
+                    issue_count=len(issues),
+                    issues=issues,
+                )
+
+            if not validation_result.should_continue:
+                self.metrics.invalid_records += 1
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_014,
+                    record_id=service.id,
+                )
+                return
+
+            issues = self._convert_validation_issues(validation_result.issues)
+            result = transformer.transform(validation_result.sanitised, issues)
             self.metrics.transformed_records += 1
 
             self.logger.log(
@@ -196,3 +228,12 @@ class DataMigrationProcessor:
 
         for hc in result.healthcare_service:
             service_repo.upsert(hc)
+
+    def _convert_validation_issues(self, issues: list[ValidationIssue]) -> list[str]:
+        """
+        Convert validation issues to a list of strings.
+        """
+        return [
+            f"field:{issue.expression} ,error: {issue.code},message:{issue.diagnostics},value:{issue.value}"
+            for issue in issues
+        ]
