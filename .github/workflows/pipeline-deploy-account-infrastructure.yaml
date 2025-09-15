@@ -19,6 +19,7 @@ on:
       - "infrastructure/stacks/logging/**"
       - "infrastructure/modules/dynamodb/**"
       - "infrastructure/modules/s3/**"
+      - "infrastructure/account_wide.tfvars"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
