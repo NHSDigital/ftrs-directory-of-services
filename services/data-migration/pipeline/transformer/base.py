@@ -38,8 +38,6 @@ from pipeline.utils.uuid_utils import generate_uuid
 from pipeline.validation.base import Validator
 from pipeline.validation.service import ServiceValidator
 
-base_logger = Logger.get(service="data_migration")
-
 
 class ServiceTransformOutput(BaseModel):
     """
@@ -192,7 +190,7 @@ class ServiceTransformer(ABC):
             formatted_address = format_address(
                 service.address, service.town, service.postcode
             )
-            base_logger.log(
+            self.logger.log(
                 DataMigrationLogBase.DM_ETL_013,
                 organisation=organisation_id,
                 address=formatted_address,
@@ -200,7 +198,7 @@ class ServiceTransformer(ABC):
 
         else:
             formatted_address = None
-            base_logger.log(
+            self.logger.log(
                 DataMigrationLogBase.DM_ETL_014, organisation=organisation_id
             )
 
