@@ -14,3 +14,7 @@ data "aws_availability_zones" "available_azs" {
     values = ["opt-in-not-required"]
   }
 }
+
+data "aws_iam_role" "app_github_runner_iam_role" {
+  name = "${var.repo_name}-${var.app_github_runner_role_name}"
+}
