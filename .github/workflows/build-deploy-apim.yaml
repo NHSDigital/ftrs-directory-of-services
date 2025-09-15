@@ -38,19 +38,19 @@ jobs:
         run: |
           # Prefix title with issue tag
           yq '.info.title = "[" + env.ISSUE_TAG + "] " + .info.title' \
-            apis/${{ env.API_NAME }}.yaml > apis/${{ env.API_NAME }}-${{ env.ISSUE_TAG }}.yaml
+            docs/specification/dos-search.yaml > docs/specification/dos-search.yaml
 
       - name: Validate OpenAPI spec
         run: |
-          npx @redocly/cli lint apis/${{ env.API_NAME }}-${{ env.ISSUE_TAG }}.yaml
+          npx @redocly/cli lint docs/specification/dos-search.yaml
 
       - name: Deploy to APIM
         run: |
           proxygen instance deploy \
             $ENVIRONMENT \
-            "${API_NAME}-${ISSUE_TAG}_${FHIR_VERSION}" \
-            "apis/${API_NAME}-${ISSUE_TAG}.yaml"
+            "${ISSUE_TAG}-${API_NAME}_${FHIR_VERSION}" \
+            "docs/specification/dos-search.yaml"
 
       - name: Post-deployment check
         run: |
-          proxygen instance list $ENVIRONMENT | grep "${API_NAME}-${ISSUE_TAG}_${FHIR_VERSION}"
+          proxygen instance list $ENVIRONMENT | grep "${ISSUE_TAG}-${API_NAME}_${FHIR_VERSION}"
