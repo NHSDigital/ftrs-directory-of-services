@@ -141,3 +141,17 @@ variable "enable_flow_log" {
   type        = bool
   default     = false
 }
+
+variable "migration_pipeline_store_bucket_name" {
+  description = "The name of the S3 bucket to use for the data migration pipeline"
+}
+
+variable "s3_versioning" {
+  description = "Whether to enable versioning on the S3 bucket"
+  type        = bool
+}
+
+variable "dynamodb_exports_s3_expiration_days" {
+  description = "The number of days after which DynamoDB exports in S3 will expire"
+  type        = number
+}

@@ -111,3 +111,74 @@ module "trust_store_s3_bucket" {
   bucket_name       = local.s3_trust_store_bucket_name
   s3_logging_bucket = local.s3_logging_bucket
 }
+
+# Bucket to store migration pipeline data
+module "migration_store_bucket" {
+  source      = "../../modules/s3"
+  bucket_name = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
+  versioning  = var.s3_versioning
+
+  lifecycle_rule_inputs = [
+    {
+      id      = "delete_logs_older_than_x_days"
+      enabled = true
+      filter = {
+        prefix = "exports/"
+      }
+      expiration = {
+        days = var.dynamodb_exports_s3_expiration_days
+      }
+    }
+  ]
+}
+
+resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {
+  bucket = module.migration_store_bucket.s3_bucket_id
+  policy = data.aws_iam_policy_document.migration_store_bucket_policy_document.json
+}
+
+data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
+  # statement {
+  #   principals {
+  #     type = "AWS"
+  #     identifiers = [
+  #       module.processor_lambda.lambda_role_arn,
+  #     ]
+  #   }
+
+  #   actions = [
+  #     "s3:GetObject",
+  #     "s3:PutObject",
+  #     "s3:ListBucket",
+  #     "s3:DeleteObject"
+  #   ]
+
+  #   resources = [
+  #     module.migration_store_bucket.s3_bucket_arn,
+  #     "${module.migration_store_bucket.s3_bucket_arn}/*"
+  #   ]
+  # }
+
+  statement {
+    principals {
+      type = "AWS"
+      identifiers = concat(
+        local.env_sso_roles,
+        [
+          data.aws_iam_role.app_github_runner_iam_role.arn
+        ]
+      )
+    }
+
+    actions = [
+      "s3:*",
+    ]
+
+    resources = [
+      module.migration_store_bucket.s3_bucket_arn,
+      "${module.migration_store_bucket.s3_bucket_arn}/*",
+    ]
+  }
+}
+
+

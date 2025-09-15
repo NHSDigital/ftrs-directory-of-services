@@ -8,15 +8,6 @@ variable "commit_hash" {
   type        = string
 }
 
-variable "migration_pipeline_store_bucket_name" {
-  description = "The name of the S3 bucket to use for the data migration pipeline"
-}
-
-variable "s3_versioning" {
-  description = "Whether to enable versioning on the S3 bucket"
-  type        = bool
-}
-
 variable "target_rds_database" {
   description = "The name of the target RDS database"
   type        = string
@@ -201,11 +192,6 @@ variable "queue_populator_lambda_logs_retention" {
 variable "data_collection_date" {
   description = "The date the data has been collected"
   type        = string
-}
-
-variable "dynamodb_exports_s3_expiration_days" {
-  description = "The number of days after which DynamoDB exports in S3 will expire"
-  type        = number
 }
 
 variable "rds_event_listener_lambda_name" {
