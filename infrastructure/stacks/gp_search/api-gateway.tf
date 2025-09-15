@@ -5,27 +5,30 @@ module "api_gateway" {
   name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
   description   = "FtRS Service Search API Gateway"
   protocol_type = "HTTP"
-  # TODO: To be disabled after APIM integration
-  # disable_execute_api_endpoint = true
 
-  create_domain_name    = false
-  create_domain_records = false
+  # As soon as you tell the module to create a domain, the execute api endpoint will be disabled
+  # so all routing will have to run through the domain (r53 route)
+  # The module will create both A (IP4) and AAAA (IP6) records
+  # HTTP API Gateways support TLS v1.2 and 1.3 only (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-ciphers.html)
+  create_domain_name    = true
+  create_domain_records = true
+  hosted_zone_name      = local.env_domain_name
+  domain_name           = "servicesearch${local.workspace_suffix}.${local.env_domain_name}"
 
+  # We do not need to create a certificate because we are using a shared one, specified in the domain_name_certificate_arn
+  create_certificate          = false
+  domain_name_certificate_arn = data.aws_acm_certificate.domain_cert.arn
+
+  mutual_tls_authentication = {
+    truststore_uri = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
+  }
+
+  # JP - At some point we may want to implement CORS
   # cors_configuration = {
   #   allow_headers = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
   #   allow_methods = ["*"]
   #   allow_origins = ["*"]
   # }
-
-  # SSL Cert:
-  # NB. I think the module will only support TLS_1.2 and an endpoint_type of REGIONAL.
-  domain_name                 = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-  domain_name_certificate_arn = data.aws_acm_certificate.domain_cert.arn
-
-  # Mtls
-  mutual_tls_authentication = {
-    truststore_uri = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
-  }
 
   routes = {
     "GET /Organization" = {
@@ -35,6 +38,15 @@ module "api_gateway" {
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
+  }
+
+  stage_default_route_settings = {
+    detailed_metrics_enabled = true
+    #   triggers = {
+    #     redeployment = sha1(jsonencode([
+    #       module.search_rest_api
+    #     ]))
+    # }
   }
 
   stage_access_log_settings = {
@@ -65,25 +77,4 @@ module "api_gateway" {
       }
     })
   }
-
-  stage_default_route_settings = {
-    detailed_metrics_enabled = true
-    xray_tracing_enabled     = true
-    #   triggers = {
-    #     redeployment = sha1(jsonencode([
-    #       module.search_rest_api
-    #     ]))
-    # }
-  }
 }
-
-# resource "aws_route53_record" "gpsearch_api_a_alias" {
-#   zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
-#   name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-#   type    = "A"
-#   alias {
-#     name                   = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-#     zone_id                = module.api_gateway.domain_name_hosted_zone_id
-#     evaluate_target_health = false
-#   }
-# }

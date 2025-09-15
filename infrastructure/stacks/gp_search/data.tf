@@ -23,12 +23,11 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_route53_zone" "dev_ftrs_cloud" {
-  name         = local.root_domain_name
+  name         = local.env_domain_name
   private_zone = false
 }
-
 data "aws_acm_certificate" "domain_cert" {
-  domain      = "*.${local.root_domain_name}"
+  domain      = "*.${local.env_domain_name}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
