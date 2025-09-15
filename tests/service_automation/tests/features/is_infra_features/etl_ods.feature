@@ -21,7 +21,7 @@ Feature: Ensure messages from Lambda are processed and stored correctly in Dynam
     When I invoke the lambda with the valid date
     Then the Lambda extracts, transforms, and publishes the transformed message to SQS for "all" ODS codes
     # And the consumer calls the CRUD API through APIM
-     Then the organisation data should be updated in DynamoDB for "all" ODS codes
+    Then the organisation data should be updated in DynamoDB for "all" ODS codes
 
 
 
