@@ -155,7 +155,7 @@ class DataMigrationLogBase(LogBase):
         level=INFO,
         message="Address for Organisation ID {organisation} is {address}",
     )
-    DM_ETL_015 = LogReference(
+    DM_ETL_016 = LogReference(
         level=WARNING,
         message="No address found for Organisation ID {organisation}, setting address to None",
     )

@@ -189,7 +189,7 @@ class ServiceTransformer(ABC):
                 service.address, service.town, service.postcode
             )
             self.logger.log(
-                DataMigrationLogBase.DM_ETL_013,
+                DataMigrationLogBase.DM_ETL_015,
                 organisation=organisation_id,
                 address=formatted_address,
             )
@@ -197,7 +197,7 @@ class ServiceTransformer(ABC):
         else:
             formatted_address = None
             self.logger.log(
-                DataMigrationLogBase.DM_ETL_014, organisation=organisation_id
+                DataMigrationLogBase.DM_ETL_016, organisation=organisation_id
             )
 
         return Location(
