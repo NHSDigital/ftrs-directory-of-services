@@ -1,7 +1,6 @@
 from pytest_bdd import given, parsers, scenarios, then
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
-from datetime import datetime, timedelta
 from typing import Optional, List, Dict
 from utilities.common.constants import BASE_ODS_API_URL, BASE_ODS_FHIR_API_URL
 from utilities.common.context import Context
@@ -15,6 +14,8 @@ from utilities.common.resource_name import get_resource_name
 import boto3
 import pprint
 import time
+import re
+from datetime import datetime ,timedelta
 
 
 # Load feature file
@@ -55,24 +56,31 @@ def extract_primary_role_display(org_response: dict) -> Optional[str]:
     return None
 
 
-def get_ods_codes(last_change_date: str, limit: int = 5) -> List[str]:
+def get_ods_codes(last_change_date: str, limit: int = 10) -> List[str]:
     """
-    Fetch a list of ODS codes from the sync API.
+    Fetch a list of valid ODS codes from the  ODS API.
+    Only codes matching ^[A-Za-z0-9]{5,12}$ are returned.
     """
     sync_url = f"{BASE_ODS_API_URL}/sync?LastChangeDate={last_change_date}"
     logger.info(f"Fetching ODS codes from URL: {sync_url}")
     response = make_api_request_with_retries("GET", sync_url)
-
     ods_codes = []
+    pattern = re.compile(r"^[A-Za-z0-9]{5,12}$")
     for org in response.get("Organisations", []):
         org_link = org.get("OrgLink", "")
         ods_code = org_link.rstrip("/").split("/")[-1]
-        ods_codes.append(ods_code)
+        if pattern.match(ods_code):
+            ods_codes.append(ods_code)
+            logger.debug(f"Accepted ODS code: {ods_code}")
+        else:
+            logger.warning(f"Rejected invalid ODS code: {ods_code}")
         if len(ods_codes) >= limit:
             logger.debug(f"Reached ODS code fetch limit: {limit}")
             break
-
-    logger.info(f"Fetched ODS codes: {ods_codes}")
+    if not ods_codes:
+        logger.error("No valid ODS codes found matching regex ^[A-Za-z0-9]{5,12}$")
+    else:
+        logger.info(f"Fetched valid ODS codes: {ods_codes}")
     return ods_codes
 
 
@@ -133,22 +141,98 @@ def assert_org_details_match(item: DBModel, expected_org: dict) -> None:
     assert getattr(item, "modifiedBy", None) == "ODS_ETL_PIPELINE"
     logger.info(f"Organisation data matches expected details for ODS code '{expected_org['ods_code']}'.")
 
+def verify_organisation_in_repo(model_repo: AttributeLevelRepository, ods_codes: list, organisation_details: list):
+    """
+    Verify that DynamoDB records for the given ODS codes match expected organisation details.
+    """
+    if not ods_codes:
+        raise ValueError("No ODS codes provided for verification")
+    if isinstance(ods_codes, str):
+        ods_codes = [ods_codes]
+    for ods_code in ods_codes:
+        logger.info(f"Validating organisation data for ODS code '{ods_code}' in repository")
+        item = get_from_repo(model_repo, ods_code)
+        if item is None:
+            raise AssertionError(f"No record found in repository for ODS code '{ods_code}'")
+        try:
+            item_to_log = vars(item) if not isinstance(item, dict) else item
+        except Exception:
+            item_to_log = item
+        logger.info(f"Retrieved DynamoDB item for ODS code '{ods_code}':\n{pprint.pformat(item_to_log)}")
+        expected_org = next((org for org in organisation_details if org["ods_code"] == ods_code), None)
+        assert expected_org is not None, f"No organisation details found for ODS code {ods_code}"
+        assert_org_details_match(item, expected_org)
+
+def validate_lambda_logs_for_ods_codes(context: Context, cloudwatch_logs, ods_codes: list):
+    """Verify that the Lambda processed and published messages to SQS for each ODS code."""
+    time.sleep(10)  # Wait for logs to propagate
+    for ods_code in ods_codes:
+        logger.info(f"Validating Lambda logs for ODS code '{ods_code}'")
+
+        extraction_pattern = f'"Fetching organisation data for code: {ods_code}"'
+        org_fetch_pattern = f'"Fetching organisation uuid for ods code {ods_code}"'
+        transformation_pattern = f'"Successfully transformed data for ods_code: {ods_code}"'
+        publishing_pattern = f'"Succeeded to send 1 messages in batch"'
+
+        extraction_found = cloudwatch_logs.find_log_message(
+            context.lambda_name,
+            extraction_pattern,
+            context.lambda_invocation_time,
+            30
+        )
+        org_fetch_found = cloudwatch_logs.find_log_message(
+            context.lambda_name,
+            org_fetch_pattern,
+            context.lambda_invocation_time,
+            30
+        )
+        transformation_found = cloudwatch_logs.find_log_message(
+            context.lambda_name,
+            transformation_pattern,
+            context.lambda_invocation_time,
+            30
+        )
+        publishing_found = cloudwatch_logs.find_log_message(
+            context.lambda_name,
+            publishing_pattern,
+            context.lambda_invocation_time,
+            30
+        )
+
+        assert extraction_found, f"Extraction log not found for ODS code {ods_code}"
+        assert org_fetch_found, f"Organisation fetch log not found for ODS code {ods_code}"
+        assert transformation_found, f"Transformation log not found for ODS code {ods_code}"
+        assert publishing_found, f"Publishing log not found for ODS code {ods_code}"
+
+        logger.info(f"All logs validated successfully for ODS code '{ods_code}'")
+
 
 @pytest.fixture(scope="session")
 def shared_ods_data() -> Dict[str, List[Dict[str, Optional[str]]]]:
     """
     Fetch ODS codes and organisation details once per test session.
+    Default: yesterday. Falls back up to 7 days if no codes found.
     """
     logger.info("Building shared ODS data for session.")
-    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
-    ods_codes = get_ods_codes(yesterday)
-    organisation_details = get_ods_details(ods_codes)
+    today = datetime.utcnow().date()
+    ods_codes, organisation_details, chosen_date = None, None, None
+    for days_back in range(1, 8):  # yesterday first, then keep going back
+        candidate = today - timedelta(days=days_back)
+        date_str = candidate.strftime("%Y-%m-%d")
+        logger.info(f"Trying ODS extraction date: {date_str}")
+        ods_codes = get_ods_codes(date_str)
+        if ods_codes:
+            organisation_details = get_ods_details(ods_codes)
+            chosen_date = date_str
+            break
+    if not ods_codes:
+        pytest.fail("No valid ODS codes found in the last 7 days.")
     logger.info(f"Shared ODS data prepared with codes: {ods_codes}")
     logger.info(f"Organisation details:\n{pprint.pformat(organisation_details)}")
     return {
         "ods_codes": ods_codes,
         "organisation_details": organisation_details,
-        "date": yesterday
+        "date": chosen_date,
     }
 
 
@@ -191,69 +275,45 @@ def lambda_process(context: Context, project, workspace, env , aws_lambda_client
     assert lambda_exists, f"Lambda function {lambda_name} does not exist"
     lambda_params = create_lambda_params(extraction_date)
     lambda_payload = aws_lambda_client.invoke_function(lambda_name, lambda_params)
+    context.lambda_invocation_time = int(datetime.utcnow().timestamp())
     context.lambda_name = lambda_name
     # Validate the lambda response: check status code in payload
     status_code = lambda_payload.get("statusCode")
     assert status_code == 200
 
-@then(parsers.parse('the Lambda extracts, transforms, and publishes the transformed message to SQS'))
-def verify_lambda_processes_and_publishes(context: Context, cloudwatch_logs):
+
+@then(parsers.parse('the Lambda extracts, transforms, and publishes the transformed message to SQS for "{ods_type}" ODS codes'))
+def verify_lambda_logs(context: Context, cloudwatch_logs, ods_type: str):
     """
-    Verify that the Lambda processed and published messages to SQS by checking logs.
+    Validate Lambda logs for either a single ODS or all ODS codes.
+    ods_type: "single" or "all"
     """
-    # Wait a bit for logs to propagate to CloudWatch
-    time.sleep(5)
+    if not context.ods_codes:
+        raise ValueError("No ODS codes in context to validate")
+    if ods_type.lower() == "single":
+        ods_codes = [context.ods_codes[0]]
+    elif ods_type.lower() == "all":
+        ods_codes = context.ods_codes
+    else:
+        raise ValueError(f"Invalid ods_type '{ods_type}'. Use 'single' or 'all'.")
+    validate_lambda_logs_for_ods_codes(context, cloudwatch_logs, ods_codes)
 
-    # Look for specific log patterns that indicate successful processing
-    extraction_pattern = "Successfully extracted ODS organisation records"
-    transformation_pattern = "Successfully transformed data"
-    publishing_pattern = "Successfully published to SQS"
-
-    # Check for each pattern in the logs
-    extraction_found = cloudwatch_logs.find_log_message(
-        context.lambda_name,
-        extraction_pattern,
-        context.lambda_invocation_time,
-        30  # Check logs within 30 seconds of invocation
-    )
-
-    transformation_found = cloudwatch_logs.find_log_message(
-        context.lambda_name,
-        transformation_pattern,
-        context.lambda_invocation_time,
-        30
-    )
-
-    publishing_found = cloudwatch_logs.find_log_message(
-        context.lambda_name,
-        publishing_pattern,
-        context.lambda_invocation_time,
-        30
-    )
-
-    # Assert that all expected log messages were found
-    assert extraction_found, f"Log message not found: {extraction_pattern}"
-    assert transformation_found, f"Log message not found: {transformation_pattern}"
-    assert publishing_found, f"Log message not found: {publishing_pattern}"
+@then(parsers.parse('the organisation data should be updated in DynamoDB for "{ods_type}" ODS codes'))
+def verify_dynamodb_records(context: Context, model_repo: AttributeLevelRepository, ods_type: str):
+    """
+    Validate DynamoDB records for either a single ODS or all ODS codes.
+    """
+    if not context.ods_codes:
+        raise ValueError("No ODS codes in context to validate")
+    if ods_type.lower() == "single":
+        ods_codes = [context.ods_codes[0]]
+    elif ods_type.lower() == "all":
+        ods_codes = context.ods_codes
+    else:
+        raise ValueError(f"Invalid ods_type '{ods_type}'. Use 'single' or 'all'.")
+    verify_organisation_in_repo(model_repo, ods_codes, context.organisation_details)
 
 
-@then(parsers.parse('the organisation data should be updated in DynamoDB for the specified ODS codes'), target_fixture="context")
-def check_organisation_in_repo(context: Context, model_repo: AttributeLevelRepository, project, workspace, env) -> Context:
-    for ods_code in context.ods_codes:
-        logger.info(f"Validating organisation data for ODS code '{ods_code}' in repository")
-        item = get_from_repo(model_repo, ods_code)
-        if item is None:
-            raise AssertionError(f"No record found in repository for ODS code '{ods_code}'")
-        # Log the complete retrieved DynamoDB item
-        try:
-            item_to_log = vars(item) if not isinstance(item, dict) else item
-        except Exception:
-            item_to_log = item
-        logger.info(f"Retrieved DynamoDB item for ODS code '{ods_code}':\n{pprint.pformat(item_to_log)}")
-        expected_org = next((org for org in context.organisation_details if org["ods_code"] == ods_code), None)
-        assert expected_org is not None, f"No organisation details found in context for ODS code {ods_code}"
-        assert_org_details_match(item, expected_org)
-    return context
 
 def create_lambda_params(date: str) -> dict:
     """
@@ -266,3 +326,4 @@ def create_lambda_params(date: str) -> dict:
         dict: Lambda input parameters.
     """
     return {"date": date}
+

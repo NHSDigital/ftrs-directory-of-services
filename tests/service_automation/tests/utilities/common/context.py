@@ -14,6 +14,10 @@ class Context:
     saved_models: Dict[str, Organisation] = field(default_factory=dict)
     other: Dict[str, Any] = field(default_factory=dict)
 
+    # Lambda-specific fields
+    lambda_name: Optional[str] = None
+    lambda_invocation_time: Optional[Any] = None  # datetime object
+
     def __repr__(self: Self) -> str:
         """Return a readable string representation of the Context."""
         return (
@@ -22,5 +26,7 @@ class Context:
             f"organisation_details={self.organisation_details}, "
             f"saved_models_keys={list(self.saved_models.keys())}, "
             f"extraction_date={self.extraction_date}, "
+            f"lambda_name={self.lambda_name}, "
+            f"lambda_invocation_time={self.lambda_invocation_time}, "
             f"other_keys={list(self.other.keys())})"
         )

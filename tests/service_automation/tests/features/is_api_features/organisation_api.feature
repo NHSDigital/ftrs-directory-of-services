@@ -2,9 +2,14 @@
 Feature: Organisation API Endpoint
 
   Background: Set stack and seed repo
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+  Given that the stack is "organisation"
+  And I have a organisation repo
+  And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+
+@smoke
+  Scenario: Ping endpoint should be healthy
+  When I send a GET request to the "health" endpoint
+  Then I receive a status code "200" in response
 
   Scenario: update Organisation for specific ODS Code
   When I update the organisation details for ODS Code

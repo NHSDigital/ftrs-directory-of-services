@@ -242,7 +242,6 @@ def api_key() -> str:
     api_key = key_dict.get("api_key")
     if not api_key:
         raise ValueError("API key not found in secret")
-    logger.info(f"Fetched API key: {api_key[:4]}**** (hidden for safety)")
     return api_key
 
 @pytest.fixture(scope="session")
