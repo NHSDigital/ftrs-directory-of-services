@@ -5,26 +5,27 @@ PYTHON_VERSION ?= 3.12
 TEST_DIR := parameter_files
 WORKSPACE_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket-${WORKSPACE}
 MAIN_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket
+JMETER_PLUGINS_MANAGER_VERSION := 1.11
+CMDRUNNER_VERSION := 2.3
 
 install: config
-	make install-jmeter-plugins
 
 config:
 	make _install-dependencies
+	make install-jmeter-plugins
 
 install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required plugins
 	echo "Installing jmeter plugin manager"
-	curl --output-dir  ~/.asdf/installs/jmeter/5.6.3/lib/ext -O https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/1.11/jmeter-plugins-manager-1.11.jar
+	curl --output-dir  $$(asdf where jmeter)/lib/ext -O https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/${JMETER_PLUGINS_MANAGER_VERSION}/jmeter-plugins-manager-${JMETER_PLUGINS_MANAGER_VERSION}.jar
 
 	echo "Installing jmeter command runner"
-	curl --output-dir  ~/.asdf/installs/jmeter/5.6.3/lib -O https://repo1.maven.org/maven2/kg/apc/cmdrunner/2.0/cmdrunner-2.0.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/kg/apc/cmdrunner/${CMDRUNNER_VERSION}/cmdrunner-${CMDRUNNER_VERSION}.jar
 
-	echo "Installing jmeter plugin installer"
-	-java -cp lib/ext/jmeter-plugins-manager-1.11.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
+	echo "Setting up jmeter command runner"
+	java -cp $$(asdf where jmeter)/lib/ext/jmeter-plugins-manager-${JMETER_PLUGINS_MANAGER_VERSION}.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
 
 	echo "Installing jmeter plugins"
-	/bin/bash ~/.asdf/installs/jmeter/5.6.3/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional
-
+	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional
 
 performance-test: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [TEST_DATA=name of performance test data jtl file]
 	echo "running performance tests against ${PLAN_NAME}..."
