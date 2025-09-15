@@ -138,27 +138,6 @@ resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {
 }
 
 data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
-  # statement {
-  #   principals {
-  #     type = "AWS"
-  #     identifiers = [
-  #       module.processor_lambda.lambda_role_arn,
-  #     ]
-  #   }
-
-  #   actions = [
-  #     "s3:GetObject",
-  #     "s3:PutObject",
-  #     "s3:ListBucket",
-  #     "s3:DeleteObject"
-  #   ]
-
-  #   resources = [
-  #     module.migration_store_bucket.s3_bucket_arn,
-  #     "${module.migration_store_bucket.s3_bucket_arn}/*"
-  #   ]
-  # }
-
   statement {
     principals {
       type = "AWS"
