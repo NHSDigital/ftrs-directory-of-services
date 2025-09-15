@@ -1,8 +1,5 @@
 team_owner = "future-directory"
 
-migration_pipeline_store_bucket_name = "pipeline-store"
-s3_versioning                        = false
-
 source_rds_database = "data_migration"
 target_rds_database = "dos"
 rds_port            = 5432
