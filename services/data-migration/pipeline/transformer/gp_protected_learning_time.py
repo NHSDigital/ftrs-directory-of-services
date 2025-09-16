@@ -7,7 +7,7 @@ from ftrs_data_layer.domain.enums import (
 )
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
-from pipeline.utils.transformer_utils import extract_organisation_public_name
+from pipeline.validation.service import GPPracticeValidator
 
 
 class GPProtectedLearningTimeTransformer(ServiceTransformer):
@@ -15,6 +15,7 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
     STATUS_COMMISSIONING = 3
     SUPPORTED_TYPE_IDS = (100, 136, 159)
     ODS_CODE_REGEX = re.compile(r"^[A-Z][0-9]{5,8}$")
+    VALIDATOR_CLS = GPPracticeValidator
 
     """
     Transformer for GP Protected Learning Time Services
@@ -31,14 +32,15 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
     - Profile is linked to at least 1 SG code AND a postcode
     """
 
-    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+    def transform(
+        self, service: legacy_model.Service, validation_issues: list[str]
+    ) -> ServiceTransformOutput:
         """
         Transform the given GP Protected Learning Time Services into the new data model format
 
         For GP Protected Learning Time Services, Organisation Linkage is not required
         """
         organisation = self.build_organisation(service)
-        organisation.name = extract_organisation_public_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -46,6 +48,7 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
             location.id,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.PLT_SERVICE,
+            validation_issues=validation_issues,
         )
 
         return ServiceTransformOutput(
