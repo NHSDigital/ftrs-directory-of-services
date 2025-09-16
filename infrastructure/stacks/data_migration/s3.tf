@@ -21,7 +21,7 @@ module "migration_store_bucket" {
 resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {
   count  = local.is_primary_environment ? 1 : 0
   bucket = module.migration_store_bucket[0].s3_bucket_id
-  policy = data.aws_iam_policy_document.migration_store_bucket_policy_document.json
+  policy = data.aws_iam_policy_document.migration_store_bucket_policy_document[0].json
 }
 
 data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
