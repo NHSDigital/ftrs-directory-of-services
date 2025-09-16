@@ -300,7 +300,8 @@ def test_transform(
     transformer = GPProtectedLearningTimeTransformer(mock_logger, mock_metadata_cache)
 
     mock_legacy_service.uid = "903cd48b-5d0f-532f-94f4-937a4517b14d"
-    result = transformer.transform(mock_legacy_service)
+    validation_issues = []
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
     assert len(result.organisation) == 0
     assert len(result.location) == 0

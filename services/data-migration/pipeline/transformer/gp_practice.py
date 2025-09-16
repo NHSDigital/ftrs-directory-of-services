@@ -4,7 +4,6 @@ from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceT
 from ftrs_data_layer.domain import legacy as legacy_model
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
-from pipeline.utils.transformer_utils import extract_organisation_public_name
 from pipeline.validation.service import GPPracticeValidator
 
 
@@ -41,7 +40,6 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
-        organisation.name = extract_organisation_public_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
