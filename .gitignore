@@ -33,7 +33,7 @@ coverage-*.xml
 
 # Test specific
 
-tests/**/reports/*
+tests/**/report*/*
 tests/*/downloads/*
 tests/**/parameter_files/*
 tests/*/*allure-reports/*
@@ -41,6 +41,8 @@ tests/*/*allure-results/*
 tests/**/config.yaml
 tests/**/*.log
 tests/performance/**/*.jtl
+tests/performance/**/*.csv
+tests/performance/**/*.pfx
 tests/**/.env
 
 scans/*
