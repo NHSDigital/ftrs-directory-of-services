@@ -12,7 +12,7 @@ module "api_gateway" {
   routes = {
     "GET /Organization" = {
       integration = {
-        uri                    = var.environment == "dev" ? module.sandbox_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
+        uri                    = var.environment == "dev" ? data.aws_ssm_parameter.sandbox_lambda_function_arn.value : module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
@@ -20,7 +20,7 @@ module "api_gateway" {
 
     "ANY /Organization/{proxy+}" = {
       integration = {
-        uri                    = var.environment == "dev" ? module.sandbox_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
+        uri                    = var.environment == "dev" ? data.aws_ssm_parameter.sandbox_lambda_function_arn.value : module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
@@ -93,7 +93,7 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
 resource "aws_lambda_permission" "allow_apigw_sandbox" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = module.sandbox_lambda.lambda_name
+  function_name = data.aws_ssm_parameter.sandbox_lambda_function_name.value
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${module.api_gateway.api_execution_arn}/*/*"
 }

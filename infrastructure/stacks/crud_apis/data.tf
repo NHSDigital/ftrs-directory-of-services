@@ -55,3 +55,11 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
     ])
   }
 }
+
+data "aws_ssm_parameter" "sandbox_lambda_function_arn" {
+  name = "/${local.resource_prefix}/sandbox-lambda/function-arn"
+}
+
+data "aws_ssm_parameter" "sandbox_lambda_function_name" {
+  name = "/${local.resource_prefix}/sandbox-lambda/function-name"
+}

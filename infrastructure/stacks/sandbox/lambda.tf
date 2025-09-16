@@ -37,3 +37,17 @@ module "sandbox_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 }
+
+resource "aws_ssm_parameter" "sandbox_lambda_function_arn" {
+  name        = "/${local.resource_prefix}/sandbox-lambda/function-arn"
+  description = "The function ARN for the sandbox Lambda"
+  type        = "String"
+  value       = module.sandbox_lambda.lambda_function_arn
+}
+
+resource "aws_ssm_parameter" "sandbox_lambda_function_name" {
+  name        = "/${local.resource_prefix}/sandbox-lambda/function-name"
+  description = "The function name for the sandbox Lambda"
+  type        = "String"
+  value       = module.sandbox_lambda.lambda_function_name
+}
