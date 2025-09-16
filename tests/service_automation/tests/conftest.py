@@ -71,6 +71,13 @@ def api_request_context_mtls(playwright, workspace, env, api_name="servicesearch
             logger.error(f"Error deleting download files: {e}")
         request_context.dispose()
 
+@pytest.fixture()
+def api_request_no_auth(playwright):
+    """Create a new Playwright API request context without auth."""
+    request_context = playwright.request.new_context()
+    yield request_context
+    request_context.dispose()
+
 
 @pytest.fixture
 def api_request_context(playwright):
