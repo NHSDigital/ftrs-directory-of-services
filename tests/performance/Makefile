@@ -13,6 +13,7 @@ install: config
 config:
 	make _install-dependencies
 	make install-jmeter-plugins
+	make install-jmeter-dependencies
 
 install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required plugins
 	echo "Installing jmeter plugin manager"
@@ -31,7 +32,7 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	echo "Installing jmeter dependencies"
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/auth0/java-jwt/4.5.0/java-jwt-4.5.0.jar
 
-performance-test: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs]
+performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs]
 	echo "running performance tests against ${PLAN_NAME}..."
 	export PLAN_NAME=${PLAN_NAME} ; \
 	export ENDPOINT=${ENDPOINT} ; \
@@ -39,6 +40,14 @@ performance-test: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][
 	export PFX_PASSWORD=${PFX_PASSWORD} ; \
 	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}";
 
+performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [PROXYENDPOINT=endpoint for APIM proxy][APIKEY=API key for APIM proxy] [ENDPOINT=endpoint of APIs] [KID=Name of key for JWT token]
+	echo "running performance tests against ${PLAN_NAME}..."
+	export PLAN_NAME=${PLAN_NAME} ; \
+	export ENDPOINT=${ENDPOINT} ; \
+	export PROXYENDPOINT=${PROXYENDPOINT} ; \
+	export APIKEY=${APIKEY} ; \
+	export KID=${KID} ; \
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -J proxyendpoint=${PROXYENDPOINT} -J apikey=${APIKEY} -J kid=${KID} -f -l result.jtl -e -o "report" ;
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
