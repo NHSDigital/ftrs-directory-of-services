@@ -39,7 +39,7 @@ module "sandbox_lambda" {
 }
 
 resource "aws_ssm_parameter" "sandbox_lambda_function_arn" {
-  # checkov:skip=CKV_AWS_337: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
+  # checkov:skip=CKV2_AWS_34: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
   name        = "/${local.resource_prefix}/sandbox-lambda/function-arn"
   description = "The function ARN for the sandbox Lambda"
   type        = "String"
@@ -47,7 +47,7 @@ resource "aws_ssm_parameter" "sandbox_lambda_function_arn" {
 }
 
 resource "aws_ssm_parameter" "sandbox_lambda_function_name" {
-  # checkov:skip=CKV_AWS_337: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
+  # checkov:skip=CKV2_AWS_34: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
   name        = "/${local.resource_prefix}/sandbox-lambda/function-name"
   description = "The function name for the sandbox Lambda"
   type        = "String"
