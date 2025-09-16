@@ -5,7 +5,7 @@ permissions:
   contents: read
 
 on:
-  pull_request:
+  push:
     branches:
       - main
       - task/DOSIS*
@@ -41,7 +41,7 @@ jobs:
       - name: Preprocess OAS file
         run: |
           # Prefix title with issue tag
-          yq '.info.title = "[" + ${WORKSPACE} + "] " + .info.title' \
+          yq '.info.title = "[" + "${WORKSPACE}" + "] " + .info.title' \
             docs/specification/dos-search.yaml > docs/specification/dos-search.yaml
 
       - name: Validate OpenAPI spec
