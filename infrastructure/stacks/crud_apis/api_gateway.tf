@@ -9,11 +9,10 @@ module "api_gateway" {
   create_domain_name    = false
   create_domain_records = false
 
-  # TODO: FDOS-370 - Setup to use mTLS or API Keys
   routes = {
     "GET /Organization" = {
       integration = {
-        uri                    = module.organisation_api_lambda.lambda_function_arn
+        uri                    = var.environment == "dev" ? module.sandbox_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
@@ -21,7 +20,7 @@ module "api_gateway" {
 
     "ANY /Organization/{proxy+}" = {
       integration = {
-        uri                    = module.organisation_api_lambda.lambda_function_arn
+        uri                    = var.environment == "dev" ? module.sandbox_lambda.lambda_function_arn : module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
@@ -89,4 +88,12 @@ resource "aws_ssm_parameter" "crud_api_endpoint" {
   description = "The endpoint URL for the CRUD API Gateway"
   type        = "String"
   value       = module.api_gateway.api_endpoint
+}
+
+resource "aws_lambda_permission" "allow_apigw_sandbox" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.sandbox_lambda.lambda_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${module.api_gateway.api_execution_arn}/*/*"
 }

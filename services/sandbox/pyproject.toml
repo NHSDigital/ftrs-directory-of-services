@@ -1,5 +1,5 @@
 [project]
-name = "crud-apis"
+name = "sandbox"
 version = "0.1.0"
 description = ""
 authors = [
@@ -45,16 +45,11 @@ poetry-plugin-export = ">=1.8"
 
 [tool.poetry]
 packages = [
-  { include = "organisations" },
-  { include = "healthcare_service" },
-  { include = "location" },
-  { include = "mock" }
+  { include = "responses" },
 ]
 
 [tool.poe.tasks]
-start-healthcare-api = "uvicorn healthcare_service.app.handler_healthcare_service:app --host 0.0.0.0 --port 8002 --reload"
-start-organisations-api = "uvicorn organisations.app.handler_organisation:app --host 0.0.0.0 --port 8001 --reload"
-start-location-api = "uvicorn location.app.handler_location:app --host 0.0.0.0 --port 6000 --reload"
+start-sandbox-api = "uvicorn sandbox.app.handler_sandbox:app --host 0.0.0.0 --port 6000 --reload"
 start-all-apis = "uvicorn handler_main:app --host 0.0.0.0 --port 9000 --reload"
 
 

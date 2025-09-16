@@ -1,0 +1,66 @@
+name: Deploy Sandbox
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      workspace:
+        required: true
+        type: string
+      application_tag:
+        required: false
+        type: string
+      commit_hash:
+        required: false
+        type: string
+      type:
+        required: true
+        type: string
+
+jobs:
+  deploy-sandbox:
+    name: "Deploy Sandbox"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v5
+
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Package Sandbox"
+        run: |
+          cd services/sandbox
+          zip -r ../../build/services/sandbox/sandbox.zip handler.py responses
+
+      - name: "Upload Lambda Artifact to S3"
+        run: |
+          aws s3 cp ../../build/services/sandbox/sandbox.zip s3://$SANDBOX_BUCKET/${{ inputs.workspace }}/${{ inputs.commit_hash }}/sandbox-${{ inputs.application_tag || 'latest' }}.zip
+        env:
+          SANDBOX_BUCKET: ${{ secrets.SANDBOX_BUCKET }}
+
+      - name: "Deploy Lambda with Terraform"
+        run: |
+          cd infrastructure/stacks/sandbox
+          terraform init
+          terraform apply -auto-approve \
+            -var="environment=${{ inputs.environment }}" \
+            -var="workspace=${{ inputs.workspace }}" \
+            -var="application_tag=${{ inputs.application_tag }}" \
+            -var="commit_hash=${{ inputs.commit_hash }}"
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
