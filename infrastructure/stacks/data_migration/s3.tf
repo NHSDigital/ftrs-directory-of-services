@@ -1,5 +1,6 @@
 module "migration_store_bucket" {
   source      = "../../modules/s3"
+  count       = local.is_primary_environment ? 1 : 0
   bucket_name = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
   versioning  = var.s3_versioning
 
@@ -18,32 +19,13 @@ module "migration_store_bucket" {
 }
 
 resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {
-  bucket = module.migration_store_bucket.s3_bucket_id
+  count  = local.is_primary_environment ? 1 : 0
+  bucket = module.migration_store_bucket[0].s3_bucket_id
   policy = data.aws_iam_policy_document.migration_store_bucket_policy_document.json
 }
 
 data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
-  statement {
-    principals {
-      type = "AWS"
-      identifiers = [
-        module.processor_lambda.lambda_role_arn,
-      ]
-    }
-
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:ListBucket",
-      "s3:DeleteObject"
-    ]
-
-    resources = [
-      module.migration_store_bucket.s3_bucket_arn,
-      "${module.migration_store_bucket.s3_bucket_arn}/*"
-    ]
-  }
-
+  count = local.is_primary_environment ? 1 : 0
   statement {
     principals {
       type = "AWS"
@@ -60,8 +42,8 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
     ]
 
     resources = [
-      module.migration_store_bucket.s3_bucket_arn,
-      "${module.migration_store_bucket.s3_bucket_arn}/*",
+      module.migration_store_bucket[0].s3_bucket_arn,
+      "${module.migration_store_bucket[0].s3_bucket_arn}/*",
     ]
   }
 }
