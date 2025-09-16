@@ -42,11 +42,6 @@ module "api_gateway" {
 
   stage_default_route_settings = {
     detailed_metrics_enabled = true
-    #   triggers = {
-    #     redeployment = sha1(jsonencode([
-    #       module.search_rest_api
-    #     ]))
-    # }
   }
 
   stage_access_log_settings = {
