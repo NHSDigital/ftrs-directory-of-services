@@ -9,6 +9,7 @@ sandbox_lambda_handler     = "handler.handler"
 
 #S3
 sandbox_store_bucket_name = "sandbox-store"
+s3_versioning             = false
 
 # API Gateway
 api_gateway_authorization_type         = "AWS_IAM"
