@@ -190,7 +190,7 @@ def test_process_service(
     assert isinstance(output, ServiceTransformOutput)
     assert len(output.organisation) == 1
     assert output.organisation[0] == Organisation(
-        id="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        id="4aa7403f-b143-596c-85d5-7da8190d8530",
         createdBy="DATA_MIGRATION",
         createdDateTime="2025-07-25T12:00:00+00:00",
         modifiedBy="DATA_MIGRATION",
@@ -215,7 +215,7 @@ def test_process_service(
                 description="Primary",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="http://example.com/endpoint",
-                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                managedByOrganisation="4aa7403f-b143-596c-85d5-7da8190d8530",
                 service=None,
                 order=1,
                 isCompressionEnabled=True,
@@ -234,7 +234,7 @@ def test_process_service(
                 description="Copy",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="mailto:test@example.com",
-                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                managedByOrganisation="4aa7403f-b143-596c-85d5-7da8190d8530",
                 service=None,
                 order=2,
                 isCompressionEnabled=False,
@@ -253,7 +253,7 @@ def test_process_service(
         active=True,
         category="GP Services",
         type="GP Consultation Service",
-        providedBy="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        providedBy="4aa7403f-b143-596c-85d5-7da8190d8530",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         migrationNotes=[],
         name="Test Service",
@@ -390,7 +390,7 @@ def test_process_service(
             town="Leeds",
             postcode="AB12 3CD",
         ),
-        managingOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        managingOrganisation="4aa7403f-b143-596c-85d5-7da8190d8530",
         name=None,
         positionGCS=PositionGCS(
             latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")

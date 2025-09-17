@@ -13,6 +13,7 @@ from pipeline.transformer.gp_protected_learning_time import (
     GPProtectedLearningTimeTransformer,
 )
 from pipeline.utils.cache import DoSMetadataCache
+from pipeline.utils.uuid_utils import generate_uuid
 
 
 @pytest.mark.parametrize(
@@ -318,3 +319,24 @@ def test_transform(
             "detail": {"service_id": UUID("903cd48b-5d0f-532f-94f4-937a4517b14d")},
         }
     ]
+
+
+def test_transform_truncates_odscode(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    mock_logger: MockLogger,
+) -> None:
+    """
+    Test that transform method correctly transforms a GP Protected Learning Time Service
+    with a truncated ODS code
+    """
+    transformer = GPProtectedLearningTimeTransformer(mock_logger, mock_metadata_cache)
+
+    mock_legacy_service.uid = "903cd48b-5d0f-532f-94f4-937a4517b14d"
+    mock_legacy_service.odscode = "A1234567"  # ODS code longer than 6 characters
+    validation_issues = []
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    organisation_id = generate_uuid("A12345", "organisation")
+    # Assert that the transformation output contains the truncated ODS code
+    assert result.healthcare_service[0].providedBy == organisation_id
