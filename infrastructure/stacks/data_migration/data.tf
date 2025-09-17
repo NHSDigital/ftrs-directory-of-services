@@ -39,22 +39,6 @@ data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.app_github_runner_role_name}"
 }
 
-data "aws_iam_policy_document" "s3_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:HeadBucket",
-      "s3:ListBucket"
-    ]
-    resources = [
-      module.migration_store_bucket.s3_bucket_arn,
-      "${module.migration_store_bucket.s3_bucket_arn}/*",
-    ]
-  }
-}
-
 data "aws_iam_policy_document" "secrets_access_policy" {
   statement {
     effect = "Allow"
