@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "value",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data"
+          }
+        ]
+      },
+      "diagnostics": "Invalid identifier value: ODS code 'H82028' must follow format ^[A-Z0-9]{5,12}$"
+    }
+  ]
+}
