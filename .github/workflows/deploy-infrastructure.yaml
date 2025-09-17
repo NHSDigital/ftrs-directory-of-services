@@ -70,6 +70,25 @@ jobs:
       fail-fast: false
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
+        include:
+          - stack: sandbox
+            deploy: ${{ inputs.environment == 'dev' }}
+          - stack: crud_apis
+            deploy: ${{ inputs.environment != 'dev' }}
+          - stack: database
+            deploy: true
+          - stack: data_migration
+            deploy: true
+          - stack: read_only_viewer
+            deploy: true
+          - stack: opensearch
+            deploy: true
+          - stack: etl_ods
+            deploy: true
+          - stack: gp_search
+            deploy: true
+          - stack: is_performance
+            deploy: true
 
     outputs:
       plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
@@ -88,18 +107,14 @@ jobs:
 
       - name: "Download Terraform Plan Artifact"
         uses: actions/download-artifact@v5
-        if: ${{ inputs.action == 'apply' }}
+        if: ${{ inputs.action == 'apply' && matrix.deploy }}
         with:
           name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ./
 
       - name: "Deploy infrastructure stack"
         id: deploy_stack
-        if: ${{
-          (matrix.stack == 'sandbox' && inputs.environment == 'dev') ||
-          (matrix.stack == 'crud_apis' && inputs.environment != 'dev') ||
-          (matrix.stack != 'sandbox' && matrix.stack != 'crud_apis')
-          }}
+        if: ${{ matrix.deploy }}
         uses: ./.github/actions/action-infrastructure-stack
         with:
           environment: ${{ inputs.environment }}
@@ -113,7 +128,7 @@ jobs:
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v4
-        if: ${{ inputs.action == 'plan' }}
+        if: ${{ inputs.action == 'plan' && matrix.deploy }}
         with:
           name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ${{ matrix.stack }}.tfplan
