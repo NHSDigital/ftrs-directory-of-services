@@ -1,5 +1,5 @@
 module "api_gateway" {
-  source = "./../../../infrastructure/modules/api-gateway-v2-http"
+  source = "github.com/NHSDigital/ftrs-directory-of-services?ref=2cc250e/infrastructure/modules/api-gateway-v2-http"
 
   name        = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
   description = "FtRS Service Search API Gateway"
