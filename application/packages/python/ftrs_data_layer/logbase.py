@@ -151,6 +151,14 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="Record {record_id} failed validation and was not migrated",
     )
+    DM_ETL_015 = LogReference(
+        level=INFO,
+        message="Address for Organisation ID {organisation} is {address}",
+    )
+    DM_ETL_016 = LogReference(
+        level=WARNING,
+        message="No address found for Organisation ID {organisation}, setting address to None",
+    )
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
@@ -241,6 +249,27 @@ class UtilsLogBase(LogBase):
     UTILS_VALIDATOR_010 = LogReference(
         level=ERROR,
         message="File already exists: {parsed_path}. Please provide a different path.",
+    )
+
+    UTILS_ADDRESS_FORMATTER_000 = LogReference(
+        level=INFO,
+        message="Formatting address with address: {address}, town: {town}, postcode: {postcode}",
+    )
+    UTILS_ADDRESS_FORMATTER_001 = LogReference(
+        level=DEBUG, message="Searching county for name: {county_name}"
+    )
+    UTILS_ADDRESS_FORMATTER_002 = LogReference(
+        level=WARNING, message="Error searching for county{county_name}: {error}"
+    )
+    UTILS_ADDRESS_FORMATTER_003 = LogReference(
+        level=DEBUG, message="Matched county name: {county_name}"
+    )
+    UTILS_ADDRESS_FORMATTER_004 = LogReference(
+        level=DEBUG,
+        message="No county match found for name falling back to predefined list: {county_name}",
+    )
+    UTILS_ADDRESS_FORMATTER_005 = LogReference(
+        level=DEBUG, message="No county found for name: {county_name}"
     )
 
 
