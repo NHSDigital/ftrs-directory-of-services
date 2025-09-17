@@ -12,7 +12,7 @@ module "api_gateway" {
   routes = {
     "GET /Organization" = {
       integration = {
-        uri                    = module.organisation_api_lambda.lambda_function_arn
+        uri                    = module.sandbox_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
@@ -64,18 +64,18 @@ module "api_gateway" {
 }
 
 
-resource "aws_ssm_parameter" "crud_api_endpoint" {
-  # checkov:skip=CKV2_AWS_34: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
-  name        = "/${local.resource_prefix}${local.workspace_suffix}/endpoint"
-  description = "The endpoint URL for the CRUD API Gateway"
-  type        = "String"
-  value       = module.api_gateway.api_endpoint
-}
+# resource "aws_ssm_parameter" "crud_api_endpoint" {
+#   # checkov:skip=CKV2_AWS_34: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
+#   name        = "/${local.resource_prefix}${local.workspace_suffix}/endpoint"
+#   description = "The endpoint URL for the CRUD API Gateway"
+#   type        = "String"
+#   value       = module.api_gateway.api_endpoint
+# }
 
-resource "aws_lambda_permission" "allow_apigw_sandbox" {
-  statement_id  = "AllowExecutionFromAPIGateway"
-  action        = "lambda:InvokeFunction"
-  function_name = data.aws_ssm_parameter.sandbox_lambda_function_name.value
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${module.api_gateway.api_execution_arn}/*/*"
-}
+# resource "aws_lambda_permission" "allow_apigw_sandbox" {
+#   statement_id  = "AllowExecutionFromAPIGateway"
+#   action        = "lambda:InvokeFunction"
+#   function_name = data.aws_ssm_parameter.sandbox_lambda_function_name.value
+#   principal     = "apigateway.amazonaws.com"
+#   source_arn    = "${module.api_gateway.api_execution_arn}/*/*"
+# }
