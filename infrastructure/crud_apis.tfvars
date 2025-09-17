@@ -17,10 +17,6 @@ location_api_lambda_runtime               = "python3.12"
 location_api_lambda_timeout               = 30
 location_api_lambda_memory_size           = 512
 location_api_lambda_handler               = "location/app/handler_location.handler"
-mock_api_lambda_runtime                   = "python3.12"
-mock_api_lambda_timeout                   = 30
-mock_api_lambda_memory_size               = 512
-mock_api_lambda_handler                   = "mock/handler_mock.handler"
 
 #S3
 crud_apis_store_bucket_name = "crud-api-store"
