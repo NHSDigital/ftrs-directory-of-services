@@ -212,7 +212,7 @@ paths:
                               version: "1.0.0"
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
-                        diagnostics: "Invalid identifier value: ODS code 'H82028' must follow format ^[A-Z0-9]{5,12}$"
+                        diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
                 missing-revinclude:
                   summary: Missing required _revinclude parameter
                   value:
