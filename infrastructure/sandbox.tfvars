@@ -1,5 +1,5 @@
 # Resource names
-sandbox_lambda_name        = "sandbox-lambda"
+sandbox_lambda_name = "sandbox-lambda"
 
 # Lambda
 sandbox_lambda_runtime     = "python3.12"
