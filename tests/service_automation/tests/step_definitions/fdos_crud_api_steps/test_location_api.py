@@ -6,7 +6,7 @@ from utilities.infra.dns_util import wait_for_dns
 
 
 # Load feature file
-scenarios("./fdos_crud_features/organization_api.feature")
+scenarios("./fdos_crud_features/location_api.feature")
 
 
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))

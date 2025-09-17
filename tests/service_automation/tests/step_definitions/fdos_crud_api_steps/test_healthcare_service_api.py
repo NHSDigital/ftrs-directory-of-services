@@ -6,13 +6,7 @@ from utilities.infra.dns_util import wait_for_dns
 
 
 # Load feature file
-scenarios("./fdos_crud_features/organization_api.feature")
-
-
-@given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
-def dns_resolvable(api_name, env, workspace):
-    r53 = get_r53(workspace, api_name, env)
-    assert wait_for_dns(r53)
+scenarios("./fdos_crud_features/healthcare_service_api.feature")
 
 
 @when(
