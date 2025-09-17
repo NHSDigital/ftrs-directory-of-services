@@ -24,7 +24,6 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
     - The service type must be 'GP Practice' (100) or 'GP Access Hub' (136) or 'Primary Care Clinic' (159)
     - The service must have an ODS code
         - 6-9 characters, beginning with a letter, and the remaining characters being numbers.
-        - on import, only the first 6 characters are retained, and duplicates are removed
 
     Filter critiera:
     - Service status must be Active or Commissioning
@@ -38,8 +37,15 @@ class GPProtectedLearningTimeTransformer(ServiceTransformer):
         """
         Transform the given GP Protected Learning Time Services into the new data model format
 
-        For GP Protected Learning Time Services, Organisation Linkage is not required
+        ODS Code:
+        - on import, the service ODS code retains only the first 6 characters are retained
+        - duplicate truncated ODS codes are removed
+        - when it comes to linking to a location with duplicates, this is to be resolved as none of them are correct
+
+        Linkages:
+        - for GP Protected Learning Time Services, Organisation Linkage is not required
         """
+        service.odscode = service.odscode[:6]
         organisation = self.build_organisation(service)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(

@@ -112,7 +112,7 @@ class ServiceTransformer(ABC):
         """
         Create an Organisation instance from the source DoS service data.
         """
-        organisation_id = generate_uuid(service.id, "organisation")
+        organisation_id = generate_uuid(service.odscode, "organisation")
         service_type = self.metadata.service_types.get(service.typeid)
 
         return Organisation(
