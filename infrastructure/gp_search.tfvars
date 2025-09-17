@@ -15,5 +15,5 @@ lambda_memory_size = 512
 # current Lambda event handlers require. To move to 2.0 we'd need to use some different
 # lambda libraries.
 api_gateway_payload_format_version     = "1.0"
-api_gateway_integration_timeout        = 20000
+api_gateway_integration_timeout        = 10000
 api_gateway_access_logs_retention_days = 7
