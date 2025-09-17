@@ -22,10 +22,9 @@ module "health_check_lambda" {
   security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
 
   environment_variables = {
-    "ENVIRONMENT"         = var.environment
-    "PROJECT_NAME"        = var.project
-    "WORKSPACE"           = terraform.workspace == "default" ? "" : terraform.workspace
-    "DYNAMODB_TABLE_NAME" = "${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}"
+    "ENVIRONMENT"  = var.environment
+    "PROJECT_NAME" = var.project
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
   }
 
   account_id     = data.aws_caller_identity.current.account_id

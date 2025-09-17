@@ -8,7 +8,10 @@ from health_check.health_check_function import lambda_handler
 
 @pytest.fixture
 def lambda_event():
-    return {}
+    return {
+        "httpMethod": "GET",
+        "path": "/_status",
+    }
 
 
 @pytest.fixture
@@ -16,58 +19,41 @@ def lambda_context():
     return Mock(spec=LambdaContext)
 
 
-@pytest.fixture
-def mock_dynamodb():
-    return Mock()
-
-
-@pytest.fixture
-def mock_boto3_client(mock_dynamodb):
-    with patch("boto3.client", return_value=mock_dynamodb) as mock:
-        yield mock
-
-
-@pytest.fixture
-def mock_config():
-    with patch("health_check.health_check_function.GpHealthCheckSettings") as mock:
-        mock.return_value.dynamodb_table_name = "test-table"
-        yield mock
-
-
 class TestHealthCheckFunction:
+    @patch("health_check.health_check_function.get_service_repository")
     def test_lambda_handler_returns_200_when_table_active(
-        self,
-        lambda_event,
-        lambda_context,
-        mock_boto3_client,
-        mock_dynamodb,
-        mock_config,
+        self, mock_get_repository, lambda_event, lambda_context
     ):
-        mock_dynamodb.describe_table.return_value = {"Table": {"TableStatus": "ACTIVE"}}
+        mock_table = Mock()
+        mock_table.table_status = "ACTIVE"
+        mock_repository = Mock()
+        mock_repository.table = mock_table
+        mock_get_repository.return_value = mock_repository
 
         result = lambda_handler(lambda_event, lambda_context)
 
-        assert result == {"statusCode": 200}
-        mock_dynamodb.describe_table.assert_called_once_with(TableName="test-table")
+        assert result["statusCode"] == 200
 
-    def test_lambda_handler_when_describe_table_fails(
-        self, lambda_event, lambda_context, mock_boto3_client, mock_config
+    @patch("health_check.health_check_function.get_service_repository")
+    def test_lambda_handler_when_get_repository_fails(
+        self, mock_get_repository, lambda_event, lambda_context
     ):
-        mock_boto3_client.return_value.describe_table.side_effect = Exception(
-            "Failed to describe table"
-        )
+        mock_get_repository.side_effect = Exception("Failed to get repository")
 
         result = lambda_handler(lambda_event, lambda_context)
 
-        assert result == {"statusCode": 500}
+        assert result["statusCode"] == 500
 
+    @patch("health_check.health_check_function.get_service_repository")
     def test_lambda_handler_when_table_inactive(
-        self, lambda_event, lambda_context, mock_boto3_client, mock_config
+        self, mock_get_repository, lambda_event, lambda_context
     ):
-        mock_boto3_client.return_value.describe_table.return_value = {
-            "Table": {"TableStatus": "CREATING"}
-        }
+        mock_table = Mock()
+        mock_table.table_status = "CREATING"
+        mock_repository = Mock()
+        mock_repository.table = mock_table
+        mock_get_repository.return_value = mock_repository
 
         result = lambda_handler(lambda_event, lambda_context)
 
-        assert result == {"statusCode": 500}
+        assert result["statusCode"] == 500
