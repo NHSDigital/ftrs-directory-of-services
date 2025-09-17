@@ -6,7 +6,6 @@ from uuid import UUID
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
     PAYLOAD_MIMETYPE_MAPPING,
-    Address,
     AvailableTime,
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
@@ -30,8 +29,10 @@ from ftrs_data_layer.domain.clinical_code import (
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
 
+from pipeline.utils.address_formatter import format_address
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.uuid_utils import generate_uuid
 from pipeline.validation.base import Validator
@@ -185,16 +186,27 @@ class ServiceTransformer(ABC):
             if service.latitude and service.longitude
             else None
         )
+        if service.address and service.address != "Not Available":
+            formatted_address = format_address(
+                service.address, service.town, service.postcode
+            )
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_015,
+                organisation=organisation_id,
+                address=formatted_address,
+            )
+
+        else:
+            formatted_address = None
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_016, organisation=organisation_id
+            )
 
         return Location(
             id=generate_uuid(service.id, "location"),
             active=True,
             managingOrganisation=organisation_id,
-            address=Address(
-                street=service.address,
-                town=service.town,
-                postcode=service.postcode,
-            ),
+            address=formatted_address,
             name=None,
             positionGCS=position,
             # TODO: defaulting will consider how to define for Fhir schema in future.
