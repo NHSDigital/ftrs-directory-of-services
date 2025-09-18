@@ -36,7 +36,7 @@ from pipeline.utils.cache import DoSMetadataCache
 
 class BasicServiceTransformer(ServiceTransformer):
     def transform(self, service: Service) -> dict:
-        return super().transform(service)
+        return super().transform(service, validation_issues=[])
 
     @classmethod
     def is_service_supported(cls, service: Service) -> tuple[bool, str | None]:
@@ -261,8 +261,10 @@ def test_build_location(
         active=True,
         managingOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         address=Address(
-            street="123 Test Street$Test City",
-            town="Test City",
+            line1="123 Main St",
+            line2=None,
+            county="West Yorkshire",
+            town="Leeds",
             postcode="AB12 3CD",
         ),
         name=None,
@@ -305,8 +307,10 @@ def test_build_location_no_position(
         active=True,
         managingOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         address=Address(
-            street="123 Test Street$Test City",
-            town="Test City",
+            line1="123 Main St",
+            line2=None,
+            county="West Yorkshire",
+            town="Leeds",
             postcode="AB12 3CD",
         ),
         name=None,
@@ -346,6 +350,7 @@ def test_build_healthcare_service(
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         identifier_oldDoS_uid="test-uid",
         active=True,
+        migrationNotes=None,
         category="GP Services",
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -354,7 +359,7 @@ def test_build_healthcare_service(
         telecom=Telecom(
             phone_public="01234 567890",
             phone_private="09876 543210",
-            email="test@example.com",
+            email="firstname.lastname@nhs.net",
             web="http://example.com",
         ),
         openingTime=[

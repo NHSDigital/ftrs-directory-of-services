@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+from typing import Type
 from uuid import UUID
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
     PAYLOAD_MIMETYPE_MAPPING,
-    Address,
     AvailableTime,
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
@@ -29,10 +29,14 @@ from ftrs_data_layer.domain.clinical_code import (
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
 
+from pipeline.utils.address_formatter import format_address
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.uuid_utils import generate_uuid
+from pipeline.validation.base import Validator
+from pipeline.validation.service import ServiceValidator
 
 
 class ServiceTransformOutput(BaseModel):
@@ -54,17 +58,22 @@ class ServiceTransformer(ABC):
 
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
     MIGRATION_USER = "DATA_MIGRATION"
+    VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
     def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
         self.metadata = metadata
+        self.validator = self.VALIDATOR_CLS(logger)
 
     @abstractmethod
-    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+    def transform(
+        self, service: legacy_model.Service, validation_issues: list[str]
+    ) -> ServiceTransformOutput:
         """
         Transform the given service data into a dictionary format.
 
+        :param validation_issues:
         :param service: The service data to transform.
         :return: A dictionary representation of the transformed service data.
         """
@@ -177,16 +186,27 @@ class ServiceTransformer(ABC):
             if service.latitude and service.longitude
             else None
         )
+        if service.address and service.address != "Not Available":
+            formatted_address = format_address(
+                service.address, service.town, service.postcode
+            )
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_015,
+                organisation=organisation_id,
+                address=formatted_address,
+            )
+
+        else:
+            formatted_address = None
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_016, organisation=organisation_id
+            )
 
         return Location(
             id=generate_uuid(service.id, "location"),
             active=True,
             managingOrganisation=organisation_id,
-            address=Address(
-                street=service.address,
-                town=service.town,
-                postcode=service.postcode,
-            ),
+            address=formatted_address,
             name=None,
             positionGCS=position,
             # TODO: defaulting will consider how to define for Fhir schema in future.
@@ -205,6 +225,7 @@ class ServiceTransformer(ABC):
         location_id: UUID,
         category: HealthcareServiceCategory | None = None,
         type: HealthcareServiceType | None = None,
+        validation_issues: list[str] | None = None,
     ) -> HealthcareService:
         """
         Create a HealthcareService instance from the source DoS service data.
@@ -232,6 +253,7 @@ class ServiceTransformer(ABC):
             openingTime=self.build_opening_times(service),
             symptomGroupSymptomDiscriminators=self.build_sgsds(service),
             dispositions=self.build_dispositions(service),
+            migrationNotes=validation_issues,
         )
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:

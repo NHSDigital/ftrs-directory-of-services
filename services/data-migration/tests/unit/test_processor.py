@@ -32,6 +32,7 @@ from pipeline.processor import (
 from pipeline.utils import dbutil
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
+from pipeline.validation.types import ValidationIssue, ValidationResult
 
 
 def test_processor_init(
@@ -54,6 +55,7 @@ def test_processor_init(
         "total_records": 0,
         "transformed_records": 0,
         "unsupported_records": 0,
+        "invalid_records": 0,
     }
 
 
@@ -161,6 +163,7 @@ def test_process_service(
         transformed_records=0,
         migrated_records=0,
         skipped_records=0,
+        invalid_records=0,
         errors=0,
     )
 
@@ -173,6 +176,7 @@ def test_process_service(
         transformed_records=1,
         migrated_records=1,
         skipped_records=0,
+        invalid_records=0,
         errors=0,
     )
 
@@ -251,11 +255,12 @@ def test_process_service(
         type="GP Consultation Service",
         providedBy="4539600c-e04e-5b35-a582-9fb36858d0e0",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        migrationNotes=[],
         name="Test Service",
         telecom=Telecom(
-            phone_public="01234 567890",
-            phone_private="09876 543210",
-            email="test@example.com",
+            phone_public="01234567890",
+            phone_private="09876543210",
+            email="firstname.lastname@nhs.net",
             web="http://example.com",
         ),
         openingTime=[
@@ -379,8 +384,10 @@ def test_process_service(
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         active=True,
         address=Address(
-            street="123 Test Street$Test City",
-            town="Test City",
+            line1="123 Main St",
+            line2=None,
+            county="West Yorkshire",
+            town="Leeds",
             postcode="AB12 3CD",
         ),
         managingOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
@@ -462,6 +469,69 @@ def test_process_service_skipped_service(
             "reference": "DM_ETL_005",
         }
     ]
+
+
+def test_handles_invalid_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    # Arrange transformer and patch lookup to return it
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (True, None)
+    mock_transformer.should_include_service.return_value = (True, None)
+    mock_transformer.return_value = mock_transformer
+    mocker.patch("pipeline.processor.SUPPORTED_TRANSFORMERS", [mock_transformer])
+
+    # A fatal issue => is_valid == False and should_continue == False
+    fatal_issue = ValidationIssue(
+        severity="fatal",
+        code="TEST_FATAL",
+        diagnostics="Invalid data encountered",
+        value=None,
+        expression=["some.field"],
+    )
+    validation_result = ValidationResult(
+        origin_record_id=mock_legacy_service.id,
+        issues=[fatal_issue],
+        sanitised=mock_legacy_service,  # pass the (sanitised) service, not metadata
+    )
+    mock_transformer.validator.validate.return_value = validation_result
+
+    processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._save = mocker.MagicMock()
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=0,
+        supported_records=0,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        invalid_records=0,
+        errors=0,
+    )
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        invalid_records=1,
+        errors=0,
+    )
+    mock_transformer.transform.assert_not_called()
+    processor._save.assert_not_called()
 
 
 def test_process_service_error(
@@ -598,9 +668,9 @@ def test_save(
         "ftrs-dos-test-database-healthcare-service-test_workspace": mock_service_repo,
         "ftrs-dos-test-database-location-test_workspace": mock_location_repo,
     }
-
+    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
     processor._save(result)
 
