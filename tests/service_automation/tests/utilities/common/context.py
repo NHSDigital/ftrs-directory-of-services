@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Self
-from ftrs_data_layer.domain import Organisation # Or your appropriate model class
+from ftrs_data_layer.domain import Organisation
 
 
 @dataclass(init=True)

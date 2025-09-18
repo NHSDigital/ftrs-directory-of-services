@@ -12,12 +12,12 @@ from utilities.common.constants import ENDPOINTS
 scenarios("./is_api_features/organisation_api.feature")
 
 
-def update_organisation(payload: dict, api_request_context_api_key, service_url: str, api_key: str):
+def update_organisation(payload: dict, api_request_context_api_key, service_url: str):
     """Send PUT request to update an organisation."""
     org_id = payload.get("id")
     if not org_id:
         raise ValueError("Payload must include 'id'")
-    full_url = f"{service_url.rstrip('/')}/Organization/{org_id}"
+    full_url = f"{service_url.rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
     logger.info(f"Full URL: {full_url}\nPayload: {json.dumps(payload, indent=2)}")
     response = api_request_context_api_key.put(full_url, data=json.dumps(payload))
     try:
@@ -77,26 +77,26 @@ def update_payload_field(field: str, value: str):
 
 @when('I update the organisation details for ODS Code', target_fixture="fresponse")
 @when('I update the organisation details using the same data for the ODS Code', target_fixture="fresponse")
-def update_organisation_details(api_request_context_api_key, service_url, api_key, context: Context):
+def update_organisation_details(api_request_context_api_key, service_url, context: Context):
     payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
     context.other["current_payload"] = payload
-    return update_organisation(payload, api_request_context_api_key, service_url, api_key)
+    return update_organisation(payload, api_request_context_api_key, service_url)
 
 
 @when('I update the organisation details for ODS Code with mandatory fields only', target_fixture="fresponse")
-def update_organisation_details_mandatoryfield(api_request_context_api_key, service_url, api_key, context: Context):
+def update_organisation_details_mandatoryfield(api_request_context_api_key, service_url, context: Context):
     payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
     payload.pop("telecom", None)
     logger.info(f"Payload with mandatory fields only: {json.dumps(payload, indent=2)}")
     context.other["current_payload"] = payload
-    return update_organisation(payload, api_request_context_api_key, service_url, api_key)
+    return update_organisation(payload, api_request_context_api_key, service_url)
 
 
 @when(parsers.cfparse('I set the "{field}" field to "{value}"'), target_fixture="fresponse")
-def set_field_and_update(field: str, value: str, context: Context, api_request_context_api_key, service_url, api_key):
+def set_field_and_update(field: str, value: str, context: Context, api_request_context_api_key, service_url):
     payload = update_payload_field(field, value)
     context.other["current_payload"] = payload
-    return update_organisation(payload, api_request_context_api_key, service_url, api_key)
+    return update_organisation(payload, api_request_context_api_key, service_url)
 
 
 @then('the data in the database matches the inserted payload')

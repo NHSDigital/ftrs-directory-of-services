@@ -75,8 +75,6 @@ def api_request_context_mtls(playwright, workspace, env, api_name="servicesearch
             logger.error(f"Error deleting download files: {e}")
         request_context.dispose()
 
-
-# Add this fixture
 @pytest.fixture(scope="module")
 def cloudwatch_logs():
     """Fixture to initialize AWS CloudWatch Logs utility"""
@@ -107,28 +105,12 @@ def api_request_context_api_key(playwright, service_url: str, api_key: str):
     request_context.dispose()
     logger.info("Disposed APIRequestContext")
 
-@pytest.fixture
-def api_request_context_jwt(playwright, service_url: str, jwt_token: str):
-    """Request context with JWT Bearer token."""
-    context_options = {
-        "base_url": service_url,
-        "extra_http_headers": {
-            "Content-Type": "application/fhir+json",
-            "Accept": "application/fhir+json",
-            "Authorization": f"Bearer {jwt_token}"
-        }
-    }
-    request_context = playwright.request.new_context(**context_options)
-    yield request_context
-    request_context.dispose()
-
 @pytest.fixture(scope="session")
 def chromium():
     with sync_playwright() as p:
         chromium = p.chromium.launch()
         yield chromium
         chromium.close()
-
 
 @pytest.fixture
 def result_page(page: Page) -> NewAccountPage:

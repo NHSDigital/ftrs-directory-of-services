@@ -5,4 +5,5 @@ SERVICE_BASE_PATH = "dos-ingestion/FHIR/R4/"
 ENDPOINTS = {
     "health": "/_ping",
     "status": "/_status",
+    "organization": "/Organization",
 }

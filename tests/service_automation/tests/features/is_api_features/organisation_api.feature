@@ -1,4 +1,4 @@
-@ds-api @ftrs-pipeline @organisation-api
+ @ftrs-pipeline @organisation-api
 Feature: Organisation API Endpoint
 
   Background: Set stack and seed repo

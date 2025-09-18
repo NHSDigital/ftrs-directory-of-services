@@ -20,8 +20,6 @@ from datetime import datetime ,timedelta
 
 # Load feature file
 scenarios("./is_infra_features/etl_ods.feature")
-MAX_RETRIES = 10
-RETRY_DELAY = 1
 
 @pytest.fixture(scope="module")
 def aws_lambda_client():
