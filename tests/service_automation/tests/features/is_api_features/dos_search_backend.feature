@@ -1,6 +1,11 @@
+<<<<<<< HEAD:tests/service_automation/tests/features/is_api_features/gp_search_api.feature
 @is-api @ftrs-pipeline @gp-search-api
 @nhsd_apim_authorization(access="application",level="level3")
 Feature: API GP Endpoint Search
+=======
+@is-api @is-pipeline @gp-search-api
+Feature: API DoS Service Search Backend
+>>>>>>> f7e5640a (DOSIS-18121 Committing to be able to switch branches):tests/service_automation/tests/features/is_api_features/dos_search_backend.feature
 
   Background: Set stack and seed repo
     Given that the stack is "gp-search"
@@ -8,13 +13,6 @@ Feature: API GP Endpoint Search
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-@test
-  Scenario: I search APIM for GP Endpoint by ODS Code with valid query parameters
-    When I request data from the APIM "servicesearch" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
-    Then I receive a status code "200" in response
-    And the response body contains a bundle
-    And the bundle contains "1" "Organization" resources
-    And the bundle contains "4" "Endpoint" resources
 
 @test
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters

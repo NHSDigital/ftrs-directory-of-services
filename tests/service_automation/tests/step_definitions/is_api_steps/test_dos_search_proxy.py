@@ -1,7 +1,14 @@
+from loguru import logger
 import pytest
 import requests
 import json
 from uuid import uuid4
+
+@pytest.fixture(scope="module")
+def r53_name() -> str:
+    r53_name = os.getenv("R53_NAME", "different")
+    logger.info(f"r53_name : {r53_name}")
+    return r53_name
 
 def test_ping_endpoint(nhsd_apim_proxy_url):
     """

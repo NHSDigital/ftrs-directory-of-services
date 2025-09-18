@@ -1,5 +1,5 @@
 import pytest
-import requests
+import os
 from loguru import logger
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
@@ -20,24 +20,28 @@ INVALID_SEARCH_DATA_CODING = {
 }
 
 # Load feature file
-scenarios("./is_api_features/gp_search_api.feature")
+scenarios("./is_api_features/dos_search_backend.feature","./is_api_features/dos_search_apim.feature")
 
-@pytest.mark.nhsd_apim_authorization(access="application", level="level3")
-def test_app_level3_access(nhsd_apim_proxy_url, nhsd_apim_auth_headers):
-    resp = requests.get(
-        nhsd_apim_proxy_url + "/Organization?_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M81046", headers=nhsd_apim_auth_headers
-    )
-    assert resp.status_code == 200
-    logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
-    logger.info(f"response: {resp.text}")
-    # assert resp.json() == expected_json
+# @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
+# def test_app_level3_access(nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+#     resp = requests.get(
+#         nhsd_apim_proxy_url + "/Organization?_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M81046", headers=nhsd_apim_auth_headers
+#     )
+#     assert resp.status_code == 200
+#     logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
+#     logger.info(f"response: {resp.text}")
+#     # assert resp.json() == expected_json
 
+
+@pytest.fixture(scope="module")
+def r53_name() -> str:
+    r53_name = os.getenv("R53_NAME", "servicesearch")
+    return r53_name
 
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
 def dns_resolvable(api_name, env, workspace):
     r53 = get_r53(workspace, api_name, env)
     assert wait_for_dns(r53)
-
 
 @when(
     parsers.re(r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
@@ -61,7 +65,7 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
     target_fixture="fresponse",
 )
-def test_send_to_apim_get_with_params(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+def send_to_apim_get_with_params(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
     url = nhsd_apim_proxy_url + "/" + resource_name
     logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
     # Handle None or empty params
