@@ -10,6 +10,6 @@ resource "aws_vpc_security_group_egress_rule" "vpce_allow_all_egress" {
   security_group_id = aws_security_group.vpce_rds_security_group.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
-  from_port         = 0
-  to_port           = 0
+  from_port         = var.rds_port
+  to_port           = var.rds_port
 }
