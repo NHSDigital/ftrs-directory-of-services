@@ -29,12 +29,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -46,9 +40,8 @@ jobs:
           sudo wget https://github.com/mikefarah/yq/releases/download/v4.44.1/yq_linux_amd64 -O /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Install dependencies
+      - name: Install proxygen CLI
         run: |
-          npm install @redocly/cli
           pip install proxygen-cli
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "$HOME/.proxygen/bin" >> $GITHUB_PATH
