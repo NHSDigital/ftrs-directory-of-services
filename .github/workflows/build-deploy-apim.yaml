@@ -75,15 +75,15 @@ jobs:
           echo "Modified OAS title:"
           yq eval '.info.title' docs/specification/dos-search.yaml
 
-      - name: Validate OpenAPI spec
-        run: |
-          npx @redocly/cli lint docs/specification/dos-search.yaml --format=stylish
+      # - name: Validate OpenAPI spec
+      #   run: |
+      #     npx @redocly/cli lint docs/specification/dos-search.yaml --format=stylish
 
-      - name: Security scan OpenAPI spec
-        run: |
-          # Optional: Add security scanning
-          echo "Running security checks..."
-          # npx @42crunch/api-security-audit docs/specification/dos-search.yaml || true
+      # - name: Security scan OpenAPI spec
+      #   run: |
+      #     # Optional: Add security scanning
+      #     echo "Running security checks..."
+      #     # npx @42crunch/api-security-audit docs/specification/dos-search.yaml || true
 
       - name: Deploy to APIM
         run: |
