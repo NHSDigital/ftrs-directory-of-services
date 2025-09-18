@@ -19,19 +19,19 @@ INVALID_SEARCH_DATA_CODING = {
     ]
 }
 
+INVALID_AUTH_CODING = {
+    "coding": [
+        {
+            "system": "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode",
+            "version": "1",
+            "code": "UNAUTHORIZED",
+            "display": "Unauthorized"
+        }
+    ]
+}
+
 # Load feature file
 scenarios("./is_api_features/dos_search_backend.feature","./is_api_features/dos_search_apim.feature")
-
-# @pytest.mark.nhsd_apim_authorization(access="application", level="level3")
-# def test_app_level3_access(nhsd_apim_proxy_url, nhsd_apim_auth_headers):
-#     resp = requests.get(
-#         nhsd_apim_proxy_url + "/Organization?_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M81046", headers=nhsd_apim_auth_headers
-#     )
-#     assert resp.status_code == 200
-#     logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
-#     logger.info(f"response: {resp.text}")
-#     # assert resp.json() == expected_json
-
 
 @pytest.fixture(scope="module")
 def r53_name() -> str:
@@ -61,23 +61,53 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
         )
     return response
 
+# @when(
+#     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
+#     target_fixture="fresponse",
+# )
+# def send_to_apim_get_with_params(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+#     url = nhsd_apim_proxy_url + "/" + resource_name
+#     logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
+#     # Handle None or empty params
+#     if params is None or not params.strip():
+#         param_dict = {}
+#     else:
+#         # Parse the params string into a dictionary
+#         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
+#     logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
+#     response = apim_request_context.get(
+#             url,  params=param_dict, headers=nhsd_apim_auth_headers
+#         )
+#     logger.info(f"response: {response.text}")
+#     return response
+
 @when(
-    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
+    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" and "(?P<token_type>.*?)" access token'),
     target_fixture="fresponse",
 )
-def send_to_apim_get_with_params(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+def send_to_apim_with_invalid_token(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers, token_type):
     url = nhsd_apim_proxy_url + "/" + resource_name
-    logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
+    logger.info(f"token_type : {token_type}")
     # Handle None or empty params
     if params is None or not params.strip():
         param_dict = {}
     else:
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-    logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
-    response = apim_request_context.get(
-            url,  params=param_dict, headers=nhsd_apim_auth_headers
+    if token_type == "valid":
+        response = apim_request_context.get(
+        url,  params=param_dict, headers=nhsd_apim_auth_headers
         )
+    elif token_type in ("missing", "no"):
+        response = apim_request_context.get(
+                url,  params=param_dict
+            )
+    elif token_type == "invalid":
+        response = apim_request_context.get(
+            url,  params=param_dict, headers={"Authorization": "Bearer invalid_token"}
+        )
+    else:
+        raise ValueError(f"Unknown token_type: {token_type}")
     logger.info(f"response: {response.text}")
     return response
 
@@ -141,6 +171,14 @@ def api_check_operation_outcome_any_issue_details_invalid_search_data(fresponse)
         fresponse,
         key="details",
         value=INVALID_SEARCH_DATA_CODING
+    )
+
+@then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding'))
+def api_check_operation_outcome_any_issue_details_invalid_auth_coding(fresponse):
+    api_check_operation_outcome_any_issue_diagnostics(
+        fresponse,
+        key="details",
+        value=INVALID_AUTH_CODING
     )
 
 
