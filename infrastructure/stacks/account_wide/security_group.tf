@@ -4,7 +4,7 @@ resource "aws_security_group" "vpce_rds_security_group" {
   vpc_id      = module.vpc.vpc_id
 }
 
-# TODO - Lock down egress traffic
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "vpce_allow_all_egress" {
   description       = "Allow ALL egress to any IP"
   security_group_id = aws_security_group.vpce_rds_security_group.id
