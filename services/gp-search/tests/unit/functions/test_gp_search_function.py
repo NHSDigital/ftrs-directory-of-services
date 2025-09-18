@@ -38,7 +38,7 @@ def mock_logger():
 @pytest.fixture
 def event(ods_code):
     return {
-        "path": "/Organization",
+        "path": "/Org",
         "httpMethod": "GET",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{ods_code}",
