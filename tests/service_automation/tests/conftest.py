@@ -145,6 +145,17 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
         except Exception as e:
             logger.error(f"Error disposing context: {e}")
 
+@pytest.mark.nhsd_apim_authorization(access="application",level="level3")
+@pytest.fixture
+def new_apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+    """Create a new Playwright API request context."""
+    apim_headers = nhsd_apim_auth_headers
+    logger.info(f"_auth_headers : {nhsd_apim_auth_headers}")
+    logger.info(f"headers : {apim_headers}")
+    apim_request_context = playwright.request.new_context( extra_http_headers = apim_headers,)
+    logger.info(f"apim_request_context : {apim_request_context}")
+    yield apim_request_context
+    apim_request_context.dispose()
 
 @pytest.fixture(scope="session")
 def chromium():

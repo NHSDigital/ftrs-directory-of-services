@@ -1,4 +1,4 @@
-@is-api @is-pipeline @gp-search-api @test
+@is-api @is-pipeline @gp-search-api
 @nhsd_apim_authorization(access="application",level="level3")
 Feature: API DoS Service Search APIM
 
@@ -6,6 +6,7 @@ Feature: API DoS Service Search APIM
     Given that the stack is "gp-search"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+
 
   Scenario: I can access APIM for the 'ping' Endpoint and no access is required
     When I request data from the APIM "servicesearch" endpoint "_ping" with query params "" and "no" access token
@@ -16,9 +17,9 @@ Feature: API DoS Service Search APIM
   #   When I request data from the APIM "servicesearch" endpoint "_status" with query params "" and "valid" access token
   #   Then I receive a status code "200" in response
 
-
+@test
   Scenario: I search APIM for GP Endpoint by ODS Code with valid query parameters and a valid access token
-    When I request data from the APIM "servicesearch" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046" and "valid" access token
+    When I request data from the APIM "servicesearch" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources

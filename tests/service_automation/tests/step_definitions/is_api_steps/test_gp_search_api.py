@@ -61,25 +61,24 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
         )
     return response
 
-# @when(
-#     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
-#     target_fixture="fresponse",
-# )
-# def send_to_apim_get_with_params(apim_request_context, params, resource_name, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
-#     url = nhsd_apim_proxy_url + "/" + resource_name
-#     logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
-#     # Handle None or empty params
-#     if params is None or not params.strip():
-#         param_dict = {}
-#     else:
-#         # Parse the params string into a dictionary
-#         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-#     logger.info(f"nhsd_apim_auth_headers : {nhsd_apim_auth_headers}")
-#     response = apim_request_context.get(
-#             url,  params=param_dict, headers=nhsd_apim_auth_headers
-#         )
-#     logger.info(f"response: {response.text}")
-#     return response
+@when(
+    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
+    target_fixture="fresponse",
+)
+def send_to_apim_get_with_params(new_apim_request_context, params, resource_name, nhsd_apim_proxy_url):
+    url = nhsd_apim_proxy_url + "/" + resource_name
+    logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
+    # Handle None or empty params
+    if params is None or not params.strip():
+        param_dict = {}
+    else:
+        # Parse the params string into a dictionary
+        param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
+    response = new_apim_request_context.get(
+            url,  params=param_dict
+        )
+    logger.info(f"response: {response.text}")
+    return response
 
 @when(
     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" and "(?P<token_type>.*?)" access token'),
@@ -94,11 +93,7 @@ def send_to_apim_with_invalid_token(apim_request_context, params, resource_name,
     else:
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-    if token_type == "valid":
-        response = apim_request_context.get(
-        url,  params=param_dict, headers=nhsd_apim_auth_headers
-        )
-    elif token_type in ("missing", "no"):
+    if token_type in ("missing", "no"):
         response = apim_request_context.get(
                 url,  params=param_dict
             )
