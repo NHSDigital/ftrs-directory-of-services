@@ -25,7 +25,7 @@ module "api_gateway" {
   # }
 
   routes = {
-    "GET /Org" = {
+    "GET /Organization" = {
       integration = {
         uri                    = module.lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version

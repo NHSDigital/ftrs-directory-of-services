@@ -7,7 +7,7 @@ if __name__ == "__main__":
     ods_code = os.environ.get("ODS_CODE")
 
     test_event = {
-        "path": "/org",
+        "path": "/organization",
         "httpMethod": "GET",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{ods_code}",
