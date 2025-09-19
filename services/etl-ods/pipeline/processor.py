@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timezone
 
 import requests
+from aws_lambda_powertools.logging import correlation_paths
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
@@ -94,6 +95,11 @@ def process_organisation(ods_code: str) -> str | None:
         return None
 
 
+@ods_processor_logger.inject_lambda_context(
+    correlation_id_path=correlation_paths.API_GATEWAY_REST,
+    log_event=True,
+    clear_state=True,
+)
 def processor_lambda_handler(event: dict, context: any) -> dict:
     """
     Lambda handler for triggering the processor with a date parameter.

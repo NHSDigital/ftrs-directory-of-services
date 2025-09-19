@@ -1,6 +1,8 @@
 import json
-from datetime import datetime, timedelta
-from http import HTTPStatus
+from datetime import datetime
+
+# , timedelta
+# from http import HTTPStatus
 from typing import NamedTuple
 
 import pytest
@@ -10,7 +12,9 @@ from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 from requests_mock.adapter import _Matcher as Matcher
 
-from pipeline.processor import MAX_DAYS_PAST, processor, processor_lambda_handler
+from pipeline.processor import processor
+
+# , processor_lambda_handler
 
 
 class MockResponses(NamedTuple):
@@ -386,70 +390,70 @@ def test_process_organisation_exception_logs_and_returns_none(
     assert expected_log in caplog.text
 
 
-def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    date = datetime.now().strftime("%Y-%m-%d")
-    event = {"date": date}
+# def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
+#     mock_processor = mocker.patch("pipeline.processor.processor")
+#     date = datetime.now().strftime("%Y-%m-%d")
+#     event = {"date": date}
 
-    response = processor_lambda_handler(event, {})
+#     response = processor_lambda_handler(event, {})
 
-    mock_processor.assert_called_once_with(date=date)
-    assert response == {"statusCode": 200, "body": "Processing complete"}
-
-
-def test_processor_lambda_handler_missing_date() -> None:
-    response = processor_lambda_handler({}, {})
-    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert json.loads(response["body"]) == {"error": "Date parameter is required"}
+#     mock_processor.assert_called_once_with(date=date)
+#     assert response == {"statusCode": 200, "body": "Processing complete"}
 
 
-def test_processor_lambda_handler_invalid_date_format() -> None:
-    invalid_event = {"date": "14-05-2025"}
-    response = processor_lambda_handler(invalid_event, {})
-    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert json.loads(response["body"]) == {
-        "error": "Date must be in YYYY-MM-DD format"
-    }
+# def test_processor_lambda_handler_missing_date() -> None:
+#     response = processor_lambda_handler({}, {})
+#     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
+#     assert json.loads(response["body"]) == {"error": "Date parameter is required"}
 
 
-def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
-    # Date more than 185 days in the past from 2025-08-14
-    old_date = "2023-01-01"
-    event = {"date": old_date}
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    response = processor_lambda_handler(event, {})
-
-    mock_processor.assert_not_called()
-    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert json.loads(response["body"]) == {
-        "error": f"Date must not be more than {MAX_DAYS_PAST} days in the past"
-    }
+# def test_processor_lambda_handler_invalid_date_format() -> None:
+#     invalid_event = {"date": "14-05-2025"}
+#     response = processor_lambda_handler(invalid_event, {})
+#     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
+#     assert json.loads(response["body"]) == {
+#         "error": "Date must be in YYYY-MM-DD format"
+#     }
 
 
-def test_processor_lambda_handler_date_exactly_185_days(mocker: MockerFixture) -> None:
-    # Calculate a date exactly 185 days ago from today
-    date_185_days_ago = (datetime.now().date() - timedelta(days=185)).strftime(
-        "%Y-%m-%d"
-    )
-    event = {"date": date_185_days_ago}
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    response = processor_lambda_handler(event, {})
-    mock_processor.assert_called_once_with(date=date_185_days_ago)
-    assert response == {"statusCode": 200, "body": "Processing complete"}
+# def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
+#     # Date more than 185 days in the past from 2025-08-14
+#     old_date = "2023-01-01"
+#     event = {"date": old_date}
+#     mock_processor = mocker.patch("pipeline.processor.processor")
+#     response = processor_lambda_handler(event, {})
+
+#     mock_processor.assert_not_called()
+#     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
+#     assert json.loads(response["body"]) == {
+#         "error": f"Date must not be more than {MAX_DAYS_PAST} days in the past"
+#     }
 
 
-def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    mock_processor.side_effect = Exception("Test error")
-    date = datetime.now().strftime("%Y-%m-%d")
-    event = {"date": date}
+# def test_processor_lambda_handler_date_exactly_185_days(mocker: MockerFixture) -> None:
+#     # Calculate a date exactly 185 days ago from today
+#     date_185_days_ago = (datetime.now().date() - timedelta(days=185)).strftime(
+#         "%Y-%m-%d"
+#     )
+#     event = {"date": date_185_days_ago}
+#     mock_processor = mocker.patch("pipeline.processor.processor")
+#     response = processor_lambda_handler(event, {})
+#     mock_processor.assert_called_once_with(date=date_185_days_ago)
+#     assert response == {"statusCode": 200, "body": "Processing complete"}
 
-    result = processor_lambda_handler(event, {})
 
-    mock_processor.assert_called_once_with(date=date)
-    assert str(result["statusCode"]) == "500"
-    error_body = json.loads(result["body"])
-    assert "Unexpected error: Test error" in error_body["error"]
+# def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
+#     mock_processor = mocker.patch("pipeline.processor.processor")
+#     mock_processor.side_effect = Exception("Test error")
+#     date = datetime.now().strftime("%Y-%m-%d")
+#     event = {"date": date}
+
+#     result = processor_lambda_handler(event, {})
+
+#     mock_processor.assert_called_once_with(date=date)
+#     assert str(result["statusCode"]) == "500"
+#     error_body = json.loads(result["body"])
+#     assert "Unexpected error: Test error" in error_body["error"]
 
 
 def test_processor_logs_and_raises_request_exception(

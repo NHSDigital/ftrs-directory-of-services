@@ -3,6 +3,10 @@ from http import HTTPStatus
 
 import requests
 from ftrs_common.logger import Logger
+from ftrs_common.utils.correlation_id import (
+    correlation_id_context,
+    generate_correlation_id,
+)
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.utilities import get_base_apim_api_url, make_request
@@ -57,6 +61,14 @@ def process_message_and_send_request(record: dict) -> None:
         body = record.get("body")
 
     message_id = record["messageId"]
+
+    correlation_id = generate_correlation_id()
+
+    # Use context manager to set correlation ID for this scope
+    with correlation_id_context(correlation_id):
+        ods_consumer_logger.append_keys(
+            message_id=message_id, correlation_id=correlation_id
+        )
 
     if not path or not body:
         err_msg = ods_consumer_logger.log(
