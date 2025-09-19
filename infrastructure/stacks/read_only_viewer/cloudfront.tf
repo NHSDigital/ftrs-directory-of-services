@@ -85,7 +85,7 @@ module "read_only_viewer_cloudfront" {
     cloudfront_default_certificate = true
   }
 
-  web_acl_id = aws_wafv2_web_acl.read_only_viewer_waf_web_acl.arn
+  web_acl_id = aws_wafv2_web_acl.read_only_viewer_waf_web_acl[0].arn
   logging_config = {
     include_cookies = false
     bucket          = module.access_logging_bucket.s3_bucket_bucket_domain_name
