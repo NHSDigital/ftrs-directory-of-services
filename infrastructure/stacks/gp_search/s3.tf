@@ -5,7 +5,7 @@ module "s3" {
   s3_logging_bucket = local.s3_logging_bucket
 }
 
-module "s3" {
+module "proxygen-s3" {
   source            = "../../modules/s3"
   bucket_name       = "${local.resource_prefix}-${var.s3_bucket_name}-proxygen"
   force_destroy     = true
