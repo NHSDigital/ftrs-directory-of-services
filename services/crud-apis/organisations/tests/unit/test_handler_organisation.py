@@ -1,14 +1,17 @@
 from http import HTTPStatus
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from starlette.testclient import TestClient
 
 from organisations.app.handler_organisation import (
     STATUS_CODE_MAP,
+    RequestLoggingMiddleware,
     app,
+    crud_organisation_logger,
     handler,
     operation_outcome_exception_handler,
 )
@@ -113,3 +116,43 @@ def test_status_code_map_values() -> None:
     valid_status_codes = set(HTTPStatus)
     for status_code in STATUS_CODE_MAP.values():
         assert status_code in {s.value for s in valid_status_codes}
+
+
+@pytest.fixture
+def app_with_logging_middleware() -> FastAPI:
+    app = FastAPI()
+    app.add_middleware(RequestLoggingMiddleware)
+
+    @app.get("/success")
+    async def success() -> JSONResponse:
+        return JSONResponse(content={"result": "ok"})
+
+    @app.get("/fail")
+    async def fail() -> JSONResponse:
+        return JSONResponse(
+            status_code=422, content={"detail": [{"msg": "Validation error"}]}
+        )
+
+    return app
+
+
+@pytest.fixture
+def client_with_logging(app_with_logging_middleware: FastAPI) -> TestClient:
+    return TestClient(app_with_logging_middleware)
+
+
+def test_dispatch_success_response(client_with_logging: TestClient) -> None:
+    response = client_with_logging.get("/success")
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {"result": "ok"}
+
+
+@patch.object(crud_organisation_logger, "log")
+def test_dispatch_logs_on_422(
+    mock_log: MagicMock, client_with_logging: TestClient
+) -> None:
+    response = client_with_logging.get("/fail")
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert mock_log.called
+    _, kwargs = mock_log.call_args
+    assert "Validation error" in kwargs.get("error_message", "")
