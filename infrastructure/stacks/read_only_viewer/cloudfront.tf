@@ -94,6 +94,7 @@ module "read_only_viewer_cloudfront" {
 }
 
 data "aws_wafv2_web_acl" "waf_web_acl" {
-  name  = "${local.resource_prefix}-${var.waf_name}"
-  scope = var.waf_scope
+  name   = "${local.resource_prefix}-${var.waf_name}"
+  scope  = var.waf_scope
+  region = var.aws_region_us_east_1
 }
