@@ -18,3 +18,8 @@ vpc = {
 enable_flow_log              = true
 flow_log_s3_force_destroy    = false
 flow_logs_s3_expiration_days = 30
+
+# One NAT Gateway per availability zone
+enable_nat_gateway     = true
+single_nat_gateway     = false
+one_nat_gateway_per_az = true
