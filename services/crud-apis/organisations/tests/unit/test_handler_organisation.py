@@ -1,17 +1,13 @@
 from http import HTTPStatus
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from starlette.testclient import TestClient
 
 from organisations.app.handler_organisation import (
-    STATUS_CODE_MAP,
-    RequestLoggingMiddleware,
     app,
-    crud_organisation_logger,
     handler,
     operation_outcome_exception_handler,
 )
@@ -111,57 +107,16 @@ async def test_operation_outcome_exception_handler_response_content() -> None:
     )
 
 
-def test_status_code_map_values() -> None:
-    """Test that STATUS_CODE_MAP values are valid HTTP status codes."""
-    valid_status_codes = set(HTTPStatus)
-    for status_code in STATUS_CODE_MAP.values():
-        assert status_code in {s.value for s in valid_status_codes}
-
-
-@pytest.fixture
-def app_with_logging_middleware() -> FastAPI:
-    app = FastAPI()
-    app.add_middleware(RequestLoggingMiddleware)
-
-    @app.get("/success")
-    async def success() -> JSONResponse:
-        return JSONResponse(content={"result": "ok"})
-
-    @app.get("/fail")
-    async def fail() -> JSONResponse:
-        return JSONResponse(
-            status_code=422, content={"detail": [{"msg": "Validation error"}]}
-        )
-
-    return app
-
-
-@pytest.fixture
-def client_with_logging(app_with_logging_middleware: FastAPI) -> TestClient:
-    return TestClient(app_with_logging_middleware)
-
-
-def test_dispatch_success_response(client_with_logging: TestClient) -> None:
-    response = client_with_logging.get("/success")
-    assert response.status_code == HTTPStatus.OK
-    assert response.json() == {"result": "ok"}
-
-
-@patch.object(crud_organisation_logger, "log")
-def test_dispatch_logs_on_422(
-    mock_log: MagicMock, client_with_logging: TestClient
-) -> None:
-    response = client_with_logging.get("/fail")
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert mock_log.called
-    _, kwargs = mock_log.call_args
-    assert "Validation error" in kwargs.get("error_message", "")
 def test_middlewares_present() -> None:
     middleware_classes = [mw.cls for mw in app.user_middleware]
     from ftrs_common.api_middleware.fhir_type_middleware import (
         FHIRAcceptHeaderMiddleware,
         FHIRContentTypeMiddleware,
     )
+    from ftrs_common.api_middleware.response_logging_middleware import (
+        ResponseLoggingMiddleware,
+    )
 
     assert FHIRContentTypeMiddleware in middleware_classes
     assert FHIRAcceptHeaderMiddleware in middleware_classes
+    assert ResponseLoggingMiddleware in middleware_classes

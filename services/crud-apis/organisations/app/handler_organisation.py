@@ -1,21 +1,20 @@
 from fastapi import FastAPI, Request
-from fastapi.concurrency import iterate_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from ftrs_common.fhir.operation_outcome import (
-    OperationOutcomeException,
-    OperationOutcomeHandler,
-)
-from ftrs_common.logger import Logger
-from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_common.api_middleware.fhir_type_middleware import (
     FHIRAcceptHeaderMiddleware,
     FHIRContentTypeMiddleware,
 )
-from ftrs_common.fhir.operation_outcome import OperationOutcomeException
+from ftrs_common.api_middleware.response_logging_middleware import (
+    ResponseLoggingMiddleware,
+)
+from ftrs_common.fhir.operation_outcome import (
+    OperationOutcomeException,
+    OperationOutcomeHandler,
+)
+from ftrs_common.fhir.operation_outcome_status_mapper import STATUS_CODE_MAP
+from ftrs_common.logger import Logger
 from mangum import Mangum
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import Response
 
 from organisations.app.router import organisation
 
@@ -23,51 +22,11 @@ crud_organisation_logger = Logger.get(service="crud_organisation_logger")
 app = FastAPI(title="Organisations API")
 app.add_middleware(FHIRContentTypeMiddleware)
 app.add_middleware(FHIRAcceptHeaderMiddleware)
-app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(ResponseLoggingMiddleware)
 
 app.include_router(organisation.router)
 
 handler = Mangum(app, lifespan="off")
-
-STATUS_CODE_MAP = {
-    "not-found": 404,
-    "invalid": 422,
-    "exception": 500,
-    "forbidden": 403,
-    "processing": 202,
-    "duplicate": 409,
-    "structure": 400,
-    "security": 401,
-    "not-supported": 405,
-    "business-rule": 422,
-    "informational": 200,
-}
-
-
-class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
-        response = await call_next(request)
-
-        if response and response.status_code >= STATUS_CODE_MAP["structure"]:
-            response_body = [chunk async for chunk in response.body_iterator]
-            response.body_iterator = iterate_in_threadpool(iter(response_body))
-
-            body_content = response_body[0].decode()
-            crud_organisation_logger.log(
-                CrudApisLogBase.ORGANISATION_022,
-                status_code=response.status_code,
-                error_message=body_content,
-            )
-            return response
-        elif response and response.status_code < STATUS_CODE_MAP["structure"]:
-            crud_organisation_logger.log(
-                CrudApisLogBase.ORGANISATION_023,
-                status_code=response.status_code,
-            )
-            return response
-
 
 
 @app.exception_handler(RequestValidationError)
