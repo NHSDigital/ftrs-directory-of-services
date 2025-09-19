@@ -88,22 +88,30 @@ def api_request_context(playwright):
     request_context.dispose()
 
 @pytest.fixture
-def api_request_context_api_key(playwright, service_url: str, api_key: str):
-    """Create a Playwright APIRequestContext with API key authentication."""
-    context_options = {
-        "base_url": service_url,
-        "ignore_https_errors": True,
-        "extra_http_headers": {
-            "Content-Type": "application/fhir+json",
-            "Accept": "application/fhir+json",
-            "apikey": api_key,
-        },
-    }
-    request_context = playwright.request.new_context(**context_options)
-    logger.info(f"Created APIRequestContext with base_url={service_url}")
-    yield request_context
-    request_context.dispose()
-    logger.info("Disposed APIRequestContext")
+def api_request_context_api_key_factory(playwright, api_key: str, service_url_factory):
+    """Factory to create API request contexts dynamically based on API name."""
+    contexts = []
+
+    def _create_context(api_name: str):
+        service_url = service_url_factory(api_name)
+        context = playwright.request.new_context(
+            base_url=service_url,
+            ignore_https_errors=True,
+            extra_http_headers={
+                "Content-Type": "application/fhir+json",
+                "Accept": "application/fhir+json",
+                "apikey": api_key,
+            },
+        )
+        contexts.append(context)
+        return context
+
+    yield _create_context
+    for ctx in contexts:
+        try:
+            ctx.dispose()
+        except Exception as e:
+            logger.error(f"Error disposing context: {e}")
 
 @pytest.fixture(scope="session")
 def chromium():
@@ -226,14 +234,25 @@ def api_key() -> str:
         raise ValueError("API key not found in secret")
     return api_key
 
+
 @pytest.fixture(scope="session")
-def service_url(apigee_environment: str) -> str:
-    """Return the base URL for API requests."""
+def service_url_factory(apigee_environment: str):
+    """
+    Factory fixture to return service URLs based on environment and API name.
+    Args:
+        apigee_environment (str): The Apigee environment
+    """
     if apigee_environment == "prod":
         base = "https://api.service.nhs.uk"
     else:
         base = f"https://{apigee_environment}.api.service.nhs.uk"
-    return f"{base.rstrip('/')}/{SERVICE_BASE_PATH}"
+    def _build_url(api_name: str) -> str:
+        return f"{base.rstrip('/')}/{api_name}/FHIR/R4/"
+    return _build_url
+
+@pytest.fixture(scope="module")
+def dos_ingestion_service_url(service_url_factory, api_name="dos-ingestion"):
+    return service_url_factory(api_name)
 
 @pytest.fixture(autouse=True)
 def context() -> Context:

@@ -1,4 +1,4 @@
- @ftrs-pipeline @organisation-api
+@organisation-api @apim-test
 Feature: Organisation API Endpoint
 
   Background: Set stack and seed repo

@@ -2,24 +2,23 @@ import json
 from loguru import logger
 from pytest_bdd import scenarios, when, then, parsers
 from utilities.common.json_helper import read_json_file
-from step_definitions.common_steps.data_steps import *  # explicit import
+from step_definitions.common_steps.data_steps import * # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from step_definitions.common_steps.api_steps import *  # noqa: F403
 from utilities.common.context import Context
 from utilities.common.constants import ENDPOINTS
 
 # Load feature file
-scenarios("./is_api_features/organisation_api.feature")
+scenarios("././apim_crud_apis_features/organisation_api.feature")
 
-
-def update_organisation(payload: dict, api_request_context_api_key, service_url: str):
-    """Send PUT request to update an organisation."""
+def update_organisation(payload: dict, api_request_context_api_key_factory, dos_ingestion_service_url: str):
+    """Send PUT request to update an organization."""
     org_id = payload.get("id")
     if not org_id:
         raise ValueError("Payload must include 'id'")
-    full_url = f"{service_url.rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
+    full_url = f"{dos_ingestion_service_url.rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
     logger.info(f"Full URL: {full_url}\nPayload: {json.dumps(payload, indent=2)}")
-    response = api_request_context_api_key.put(full_url, data=json.dumps(payload))
+    response = api_request_context_api_key_factory("dos-ingestion").put(full_url, data=json.dumps(payload))
     try:
         logger.info(f"Response body: {response.json()}")
     except Exception:
@@ -77,26 +76,26 @@ def update_payload_field(field: str, value: str):
 
 @when('I update the organisation details for ODS Code', target_fixture="fresponse")
 @when('I update the organisation details using the same data for the ODS Code', target_fixture="fresponse")
-def update_organisation_details(api_request_context_api_key, service_url, context: Context):
+def update_organisation_details(api_request_context_api_key_factory, dos_ingestion_service_url, context: Context):
     payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
     context.other["current_payload"] = payload
-    return update_organisation(payload, api_request_context_api_key, service_url)
+    return update_organisation(payload, api_request_context_api_key_factory, dos_ingestion_service_url)
 
 
 @when('I update the organisation details for ODS Code with mandatory fields only', target_fixture="fresponse")
-def update_organisation_details_mandatoryfield(api_request_context_api_key, service_url, context: Context):
+def update_organisation_details_mandatoryfield(api_request_context_api_key_factory, dos_ingestion_service_url, context: Context):
     payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
     payload.pop("telecom", None)
     logger.info(f"Payload with mandatory fields only: {json.dumps(payload, indent=2)}")
     context.other["current_payload"] = payload
-    return update_organisation(payload, api_request_context_api_key, service_url)
+    return update_organisation(payload, api_request_context_api_key_factory, dos_ingestion_service_url)
 
 
 @when(parsers.cfparse('I set the "{field}" field to "{value}"'), target_fixture="fresponse")
-def set_field_and_update(field: str, value: str, context: Context, api_request_context_api_key, service_url):
+def set_field_and_update(field: str, value: str, context: Context, api_request_context_api_key_factory, dos_ingestion_service_url):
     payload = update_payload_field(field, value)
     context.other["current_payload"] = payload
-    return update_organisation(payload, api_request_context_api_key, service_url)
+    return update_organisation(payload, api_request_context_api_key_factory, dos_ingestion_service_url)
 
 
 @then('the data in the database matches the inserted payload')
@@ -152,11 +151,11 @@ def validate_db_field(field: str, value: str, context: Context, model_repo):
     assert actual == expected, f"{field} mismatch: expected {expected}, got {actual}"
 
 @when(parsers.parse('I send a GET request to the "{endpoint}" endpoint'), target_fixture="fresponse")
-def send_get_request(endpoint: str, api_request_context_api_key, service_url: str, api_key: str):
+def send_get_request(endpoint: str, api_request_context_api_key_factory, dos_ingestion_service_url: str, api_key: str):
     """Send a GET request to the specified endpoint."""
-    url = f"{service_url.rstrip('/')}{ENDPOINTS.get(endpoint, endpoint)}"
+    url = f"{dos_ingestion_service_url.rstrip('/')}{ENDPOINTS.get(endpoint, endpoint)}"
     logger.info(f"Sending GET request to {url}")
-    response = api_request_context_api_key.get(url)
+    response = api_request_context_api_key_factory("dos-ingestion").get(url)
     try:
         logger.info(f"Response [{response.status}]: {response.json()}")
     except Exception:

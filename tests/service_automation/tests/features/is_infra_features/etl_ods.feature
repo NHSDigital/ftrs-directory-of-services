@@ -1,4 +1,4 @@
-@ds-infra @ftrs-pipeline @etl-ods
+@etl-ods @apim-test
 Feature: ETL Event Flow
 Feature: Ensure messages from Lambda are processed and stored correctly in DynamoDB
 
