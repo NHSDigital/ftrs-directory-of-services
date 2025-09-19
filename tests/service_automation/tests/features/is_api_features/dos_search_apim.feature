@@ -27,7 +27,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario Outline: I search APIM for GP Endpoint without an access token
-    When I request data from the APIM "servicesearch" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046" and "<token_type>" access token
+    When I request data from the APIM "servicesearch" endpoint "Organization" with valid query params and "<token_type>" access token
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
