@@ -27,11 +27,6 @@ variable "source_rds_database" {
   type        = string
 }
 
-variable "rds_port" {
-  description = "The port RDS will listen on"
-  type        = string
-}
-
 variable "rds_engine" {
   description = "The engine for the RDS instance"
   type        = string

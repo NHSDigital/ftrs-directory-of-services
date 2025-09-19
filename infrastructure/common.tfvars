@@ -22,3 +22,5 @@ root_domain_name = "ftrs.cloud.nhs.uk"
 s3_trust_store_bucket_name = "truststore"
 
 gp_search_organisation_table_name = "organisation"
+
+rds_port = 5432

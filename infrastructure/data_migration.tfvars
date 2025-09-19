@@ -6,7 +6,6 @@ dynamodb_exports_s3_expiration_days  = 30
 
 source_rds_database = "data_migration"
 target_rds_database = "dos"
-rds_port            = 5432
 rds_engine          = "aurora-postgresql"
 rds_engine_version  = "16.6"
 rds_engine_mode     = "provisioned"

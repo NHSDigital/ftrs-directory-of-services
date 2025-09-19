@@ -11,7 +11,8 @@
                 "lambda:*",
                 "states:DescribeStateMachine",
                 "states:ListStateMachines",
-                "tag:GetResources"
+                "tag:GetResources",
+                "tiros:*"
             ],
             "Effect": "Allow",
             "Resource": "*"
