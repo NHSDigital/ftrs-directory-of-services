@@ -1,8 +1,7 @@
-resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
-  count       = local.is_primary_environment ? 1 : 0
-  name        = "${local.resource_prefix}-${var.read_only_viewer_waf_name}"
-  description = "WAF Web ACL for read only viewer"
-  scope       = var.read_only_viewer_waf_scope
+resource "aws_wafv2_web_acl" "waf_web_acl" {
+  name        = "${local.resource_prefix}-${var.waf_name}"
+  description = "WAF Web ACL"
+  scope       = var.waf_scope
 
   default_action {
     allow {}
@@ -176,9 +175,8 @@ resource "aws_wafv2_web_acl" "read_only_viewer_waf_web_acl" {
   provider = aws.us-east-1
 }
 
-resource "aws_wafv2_web_acl_logging_configuration" "read_only_viewer_waf_logging_configuration" {
-  count                   = local.is_primary_environment ? 1 : 0
-  log_destination_configs = [aws_cloudwatch_log_group.read_only_viewer_waf_log_group[0].arn]
-  resource_arn            = aws_wafv2_web_acl.read_only_viewer_waf_web_acl[0].arn
+resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
+  log_destination_configs = [aws_cloudwatch_log_group.waf_log_group.arn]
+  resource_arn            = aws_wafv2_web_acl.waf_web_acl.arn
   provider                = aws.us-east-1
 }
