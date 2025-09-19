@@ -4,6 +4,7 @@ from enum import Enum
 from functools import cache
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
+from ftrs_common.utils.correlation_id import get_correlation_id
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,9 @@ class Logger(PowertoolsLogger):
         Log a message with a specific log reference.
         Returns the formatted log message.
         """
+        correlation_id = get_correlation_id()
+        if correlation_id:
+            self.append_keys(correlation_id=correlation_id)
         log_key = log_reference.name
         log_details = log_reference.value
         formatted_message = self.format_message(log_reference, **detail)

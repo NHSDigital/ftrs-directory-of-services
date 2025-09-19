@@ -7,6 +7,7 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeHandler,
 )
 from ftrs_common.logger import Logger
+from ftrs_common.middlewaretemp.correlation_id import CorrelationIdMiddleware
 from ftrs_data_layer.logbase import CrudApisLogBase
 from mangum import Mangum
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -59,6 +60,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 app = FastAPI(title="Organisations API")
 app.add_middleware(RequestLoggingMiddleware)
 app.include_router(organisation.router)
+app.add_middleware(CorrelationIdMiddleware)
 
 handler = Mangum(app, lifespan="off")
 

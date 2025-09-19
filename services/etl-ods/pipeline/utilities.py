@@ -7,6 +7,7 @@ import requests
 from botocore.exceptions import ClientError
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_common.logger import Logger
+from ftrs_common.utils.correlation_id import generate_correlation_id, get_correlation_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
@@ -66,6 +67,8 @@ def build_headers(options: dict) -> dict:
     json_string = options.get("json_string")
     fhir = options.get("fhir")
     api_key_required = options.get("api_key_required", False)
+    correlation_id = get_correlation_id() or generate_correlation_id()
+    headers["X-Correlation-ID"] = correlation_id
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
@@ -106,6 +109,7 @@ def make_request(
             "api_key_required": api_key_required,
         }
     )
+    ods_utils_logger.append_keys(correlation_id=headers.get("X-Correlation-ID"))
 
     try:
         TIMEOUT_SECONDS = 20
@@ -118,6 +122,12 @@ def make_request(
             **kwargs,
         )
         response.raise_for_status()
+
+        response_correlation_id = response.headers.get("X-Correlation-ID")
+        if response_correlation_id:
+            ods_utils_logger.append_keys(
+                response_correlation_id=response_correlation_id
+            )
 
         if fhir:
             data = response.json()
