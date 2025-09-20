@@ -14,7 +14,6 @@ from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
-from utilities.common.constants import SERVICE_BASE_PATH
 from utilities.infra.logs_util import CloudWatchLogsWrapper
 import json
 from utilities.common.context import Context
