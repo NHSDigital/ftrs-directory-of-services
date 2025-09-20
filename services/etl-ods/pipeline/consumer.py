@@ -69,7 +69,9 @@ def process_message_and_send_request(record: dict) -> None:
     api_url = api_url + "/Organization/" + path
 
     try:
-        response = make_request(api_url, method="PUT", json=body, api_key_required=True)
+        response = make_request(
+            api_url, method="PUT", json=body, fhir=True, api_key_required=True
+        )
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_007,
             status_code=response.status_code,

@@ -7,7 +7,6 @@ from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from starlette.testclient import TestClient
 
 from organisations.app.handler_organisation import (
-    STATUS_CODE_MAP,
     app,
     handler,
     operation_outcome_exception_handler,
@@ -108,8 +107,16 @@ async def test_operation_outcome_exception_handler_response_content() -> None:
     )
 
 
-def test_status_code_map_values() -> None:
-    """Test that STATUS_CODE_MAP values are valid HTTP status codes."""
-    valid_status_codes = set(HTTPStatus)
-    for status_code in STATUS_CODE_MAP.values():
-        assert status_code in {s.value for s in valid_status_codes}
+def test_middlewares_present() -> None:
+    middleware_classes = [mw.cls for mw in app.user_middleware]
+    from ftrs_common.api_middleware.fhir_type_middleware import (
+        FHIRAcceptHeaderMiddleware,
+        FHIRContentTypeMiddleware,
+    )
+    from ftrs_common.api_middleware.response_logging_middleware import (
+        ResponseLoggingMiddleware,
+    )
+
+    assert FHIRContentTypeMiddleware in middleware_classes
+    assert FHIRAcceptHeaderMiddleware in middleware_classes
+    assert ResponseLoggingMiddleware in middleware_classes
