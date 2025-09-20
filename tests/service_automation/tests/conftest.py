@@ -50,35 +50,48 @@ def playwright():
 
 
 @pytest.fixture(scope="module")
-def api_request_context_mtls(playwright, workspace, env, api_name="servicesearch"):
-    """Create a new Playwright API request context."""
-    url = get_url(api_name)
-    try:
-        # Get mTLS certs
-        client_pem_path, ca_cert_path = get_mtls_certs()
-        context_options = {
-            "ignore_https_errors": True,
-            "client_certificates": [
-                {
-                    "origin": url,
-                    "certPath": ca_cert_path,
-                    "keyPath": client_pem_path,
-                }
-            ],
-        }
-        request_context = playwright.request.new_context(**context_options)
-        yield request_context
-    finally:
+def api_request_context_mtls_factory(playwright, workspace, env):
+    """Factory to create mTLS API request contexts dynamically based on API name."""
+    contexts = []
+
+    def _create_context(api_name: str):
+        url = get_url(api_name)
         try:
-            delete_download_files()
+            client_pem_path, ca_cert_path = get_mtls_certs()
+            context_options = {
+                "ignore_https_errors": True,
+                "client_certificates": [
+                    {
+                        "origin": url,
+                        "certPath": ca_cert_path,
+                        "keyPath": client_pem_path,
+                    }
+                ],
+            }
+            context = playwright.request.new_context(**context_options)
+            contexts.append(context)
+            return context
         except Exception as e:
-            logger.error(f"Error deleting download files: {e}")
-        request_context.dispose()
+            logger.error(f"Failed to create mTLS context for {api_name}: {e}")
+            raise
+
+    yield _create_context
+    try:
+        delete_download_files()
+    except Exception as e:
+        logger.error(f"Error deleting download files: {e}")
+    for ctx in contexts:
+        try:
+            ctx.dispose()
+        except Exception as e:
+            logger.error(f"Error disposing mTLS context: {e}")
+
 
 @pytest.fixture(scope="module")
 def cloudwatch_logs():
     """Fixture to initialize AWS CloudWatch Logs utility"""
     return CloudWatchLogsWrapper()
+
 
 @pytest.fixture
 def api_request_context(playwright):
@@ -86,6 +99,7 @@ def api_request_context(playwright):
     request_context = playwright.request.new_context()
     yield request_context
     request_context.dispose()
+
 
 @pytest.fixture
 def api_request_context_api_key_factory(playwright, api_key: str, service_url_factory):
@@ -113,12 +127,14 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
         except Exception as e:
             logger.error(f"Error disposing context: {e}")
 
+
 @pytest.fixture(scope="session")
 def chromium():
     with sync_playwright() as p:
         chromium = p.chromium.launch()
         yield chromium
         chromium.close()
+
 
 @pytest.fixture
 def result_page(page: Page) -> NewAccountPage:
@@ -168,6 +184,7 @@ def project() -> str:
 def commit_hash() -> str:
     commit_hash = _get_env_var("COMMIT_HASH")
     return commit_hash
+
 
 @pytest.fixture(scope="session")
 def apigee_environment() -> str:
@@ -227,7 +244,9 @@ def get_mtls_certs():
 def api_key() -> str:
     """Return the raw API key string from Secrets Manager."""
     gsw = GetSecretWrapper()
-    key_json = gsw.get_secret("/ftrs-dos/dev/apim-api-key")  # returns {"api_key": "..."}
+    key_json = gsw.get_secret(
+        "/ftrs-dos/dev/apim-api-key"
+    )  # returns {"api_key": "..."}
     key_dict = json.loads(key_json)
     api_key = key_dict.get("api_key")
     if not api_key:
@@ -246,13 +265,17 @@ def service_url_factory(apigee_environment: str):
         base = "https://api.service.nhs.uk"
     else:
         base = f"https://{apigee_environment}.api.service.nhs.uk"
+
     def _build_url(api_name: str) -> str:
         return f"{base.rstrip('/')}/{api_name}/FHIR/R4/"
+
     return _build_url
+
 
 @pytest.fixture(scope="module")
 def dos_ingestion_service_url(service_url_factory, api_name="dos-ingestion"):
     return service_url_factory(api_name)
+
 
 @pytest.fixture(autouse=True)
 def context() -> Context:
@@ -262,3 +285,13 @@ def context() -> Context:
         Context: Context object.
     """
     return Context()
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls(api_request_context_mtls_factory):
+    return api_request_context_mtls_factory("servicesearch")
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls_crud(api_request_context_mtls_factory):
+    return api_request_context_mtls_factory("crud")
