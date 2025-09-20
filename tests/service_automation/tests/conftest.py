@@ -14,6 +14,9 @@ from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
+from utilities.infra.logs_util import CloudWatchLogsWrapper
+import json
+from utilities.common.context import Context
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -46,30 +49,47 @@ def playwright():
 
 
 @pytest.fixture(scope="module")
-def api_request_context_mtls(playwright, workspace, env, api_name="servicesearch"):
-    """Create a new Playwright API request context."""
-    url = get_url(api_name)
-    try:
-        # Get mTLS certs
-        client_pem_path, ca_cert_path = get_mtls_certs()
-        context_options = {
-            "ignore_https_errors": True,
-            "client_certificates": [
-                {
-                    "origin": url,
-                    "certPath": ca_cert_path,
-                    "keyPath": client_pem_path,
-                }
-            ],
-        }
-        request_context = playwright.request.new_context(**context_options)
-        yield request_context
-    finally:
+def api_request_context_mtls_factory(playwright, workspace, env):
+    """Factory to create mTLS API request contexts dynamically based on API name."""
+    contexts = []
+
+    def _create_context(api_name: str):
+        url = get_url(api_name)
         try:
-            delete_download_files()
+            client_pem_path, ca_cert_path = get_mtls_certs()
+            context_options = {
+                "ignore_https_errors": True,
+                "client_certificates": [
+                    {
+                        "origin": url,
+                        "certPath": ca_cert_path,
+                        "keyPath": client_pem_path,
+                    }
+                ],
+            }
+            context = playwright.request.new_context(**context_options)
+            contexts.append(context)
+            return context
         except Exception as e:
-            logger.error(f"Error deleting download files: {e}")
-        request_context.dispose()
+            logger.error(f"Failed to create mTLS context for {api_name}: {e}")
+            raise
+
+    yield _create_context
+    try:
+        delete_download_files()
+    except Exception as e:
+        logger.error(f"Error deleting download files: {e}")
+    for ctx in contexts:
+        try:
+            ctx.dispose()
+        except Exception as e:
+            logger.error(f"Error disposing mTLS context: {e}")
+
+
+@pytest.fixture(scope="module")
+def cloudwatch_logs():
+    """Fixture to initialize AWS CloudWatch Logs utility"""
+    return CloudWatchLogsWrapper()
 
 
 @pytest.fixture
@@ -78,6 +98,33 @@ def api_request_context(playwright):
     request_context = playwright.request.new_context()
     yield request_context
     request_context.dispose()
+
+
+@pytest.fixture
+def api_request_context_api_key_factory(playwright, api_key: str, service_url_factory):
+    """Factory to create API request contexts dynamically based on API name."""
+    contexts = []
+
+    def _create_context(api_name: str):
+        service_url = service_url_factory(api_name)
+        context = playwright.request.new_context(
+            base_url=service_url,
+            ignore_https_errors=True,
+            extra_http_headers={
+                "Content-Type": "application/fhir+json",
+                "Accept": "application/fhir+json",
+                "apikey": api_key,
+            },
+        )
+        contexts.append(context)
+        return context
+
+    yield _create_context
+    for ctx in contexts:
+        try:
+            ctx.dispose()
+        except Exception as e:
+            logger.error(f"Error disposing context: {e}")
 
 
 @pytest.fixture(scope="session")
@@ -138,6 +185,11 @@ def commit_hash() -> str:
     return commit_hash
 
 
+@pytest.fixture(scope="session")
+def apigee_environment() -> str:
+    return _get_env_var("APIGEE_ENVIRONMENT", default="internal-dev")
+
+
 @pytest.fixture(scope="session", autouse=True)
 def write_allure_environment(env, workspace, project, commit_hash):
     allure_dir = os.getenv("ALLURE_RESULTS", "allure-results")
@@ -185,3 +237,60 @@ def get_mtls_certs():
     client_pem_path = create_temp_file(client_pem, ".pem")
     ca_cert_path = create_temp_file(ca_cert, ".crt")
     return client_pem_path, ca_cert_path
+
+
+@pytest.fixture(scope="session")
+def api_key() -> str:
+    """Return the raw API key string from Secrets Manager."""
+    gsw = GetSecretWrapper()
+    key_json = gsw.get_secret(
+        "/ftrs-dos/dev/apim-api-key"
+    )  # returns {"api_key": "..."}
+    key_dict = json.loads(key_json)
+    api_key = key_dict.get("api_key")
+    if not api_key:
+        raise ValueError("API key not found in secret")
+    return api_key
+
+
+@pytest.fixture(scope="session")
+def service_url_factory(apigee_environment: str):
+    """
+    Factory fixture to return service URLs based on environment and API name.
+    Args:
+        apigee_environment (str): The Apigee environment
+    """
+    if apigee_environment == "prod":
+        base = "https://api.service.nhs.uk"
+    else:
+        base = f"https://{apigee_environment}.api.service.nhs.uk"
+
+    def _build_url(api_name: str) -> str:
+        return f"{base.rstrip('/')}/{api_name}/FHIR/R4/"
+
+    return _build_url
+
+
+@pytest.fixture(scope="module")
+def dos_ingestion_service_url(service_url_factory, api_name="dos-ingestion"):
+    return service_url_factory(api_name)
+
+
+@pytest.fixture(autouse=True)
+def context() -> Context:
+    """Fixture to create a context object for each test.
+
+    Returns:
+        Context: Context object.
+    """
+    return Context()
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls(api_request_context_mtls_factory):
+    return api_request_context_mtls_factory("servicesearch")
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls_crud(api_request_context_mtls_factory):
+    return api_request_context_mtls_factory("crud")
