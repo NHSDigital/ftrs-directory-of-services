@@ -36,9 +36,9 @@ performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk f
 	echo "running performance tests against ${PLAN_NAME}..."
 	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}";
 
-performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [PROXYENDPOINT=endpoint for APIM proxy][APIKEY=API key for APIM proxy] [ENDPOINT=endpoint of APIs] [KID=Name of key for JWT token]
+performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy][APIKEY=API key for APIM proxy [KID=Name of key for JWT token]
 	echo "running performance tests against ${PLAN_NAME}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -J proxyendpoint=${PROXYENDPOINT} -J apikey=${APIKEY} -J kid=${KID} -f -l result.jtl -e -o "report" ;
+	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J apikey=${APIKEY} -J kid=${KID} -f -l result.jtl -e -o "report" ;
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
