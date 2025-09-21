@@ -32,7 +32,7 @@ make install
 ## Test Configuration
 
 ### GUI setup
-To be able to run a test plan from the GUI you will need to create a csv file called plan_params.csv that contains 3 data items
+To be able to run a test plan from the GUI you will need to create a csv file called plan_params.csv that contains 4 data items. These 4 items are required to be able to run any of the test plans
 ```
 internal R53 endpoint address, APIM Env address , APIM API Key, kid name
 
@@ -66,9 +66,9 @@ jmeter
 
 ## Running the test plan
 Example parameter values:
-PLAN_NAME = IS_Proxy_Test_Plan
+PLAN_NAME = IS_Proxy_Test_Plan or IS_Test_Plan
 SERVICEENDPOINT = test.dev.ftrs.cloud.nhs.uk
-PROXYENDPOINT = internal-dev.api.service.nhs.uk
+APIM_ENV = internal-dev
 APIKEY = tr24234yyr2342
 KID = my-kid
 
@@ -87,7 +87,7 @@ This is then passed to *Get Bearer Token* request a bearer token to be sent in t
 
 
 ```
-jmeter -n -t IS_Proxy_Test_Plan.jmx -f -l result.jtl -e -o "report" -J serviceendpoint=<endpoint> -J proxyendpoint=<proxyendpoint>  -J apikey=<apikey> -J kid=<kid>
+jmeter -n -t IS_Proxy_Test_Plan.jmx -f -l result.jtl -e -o "report" -J apim_env=<apim_env>  -J apikey=<apikey> -J kid=<kid>
 ```
 
 To generate a dashboard report in the folder reports based on the result.jtl file generated when the test plan ran
