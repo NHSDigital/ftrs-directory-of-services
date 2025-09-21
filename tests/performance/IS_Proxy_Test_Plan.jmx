@@ -5,10 +5,12 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
-        <stringProp name="HTTPSampler.domain">${apim_env}${apim_domain}</stringProp>
+        <stringProp name="HTTPSampler.domain">${Apim_Env}${Apim_Domain}</stringProp>
         <stringProp name="HTTPSampler.protocol">https</stringProp>
         <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
           <collectionProp name="Arguments.arguments"/>
@@ -22,7 +24,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">360000</longProp>
@@ -80,8 +82,8 @@ public static String readFileContent(Path filePath) throws IOException {
     KeyFactory kf = KeyFactory.getInstance(&quot;RSA&quot;);
     RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(spec);
 
-    String apim_env = vars.get(&quot;apim_env&quot;);
-    String apim_domain = vars.get(&quot;apim_domain&quot;);
+    String apim_env = vars.get(&quot;Apim_Env&quot;);
+    String apim_domain = vars.get(&quot;Apim_Domain&quot;);
     String fullendpoint = &quot;https://&quot;+apim_env+apim_domain+&quot;/oauth2/token&quot;;
     log.info(fullendpoint);
     String subject = apikey;
@@ -113,7 +115,7 @@ public static String readFileContent(Path filePath) throws IOException {
             <stringProp name="scriptLanguage">groovy</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token" enabled="true">
             <stringProp name="HTTPSampler.path">/oauth2/token</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -146,7 +148,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">content-type</stringProp>
@@ -155,14 +157,14 @@ public static String readFileContent(Path filePath) throws IOException {
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
               <stringProp name="JSONPostProcessor.referenceNames">varBearer</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">$.access_token</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             </JSONPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
             <stringProp name="HTTPSampler.path">/dos-search/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -199,7 +201,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </Arguments>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer">
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">3000</stringProp>
           </ConstantTimer>
           <hashTree/>
@@ -208,7 +210,7 @@ public static String readFileContent(Path filePath) throws IOException {
       <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
         <collectionProp name="UserParameters.names">
           <stringProp name="1974762314">ServiceEndpoint</stringProp>
-          <stringProp name="979730497">apim_env</stringProp>
+          <stringProp name="1044343873">Apim_Env</stringProp>
           <stringProp name="1967532549">ApiKey</stringProp>
           <stringProp name="75430">Kid</stringProp>
         </collectionProp>
@@ -262,8 +264,8 @@ public static String readFileContent(Path filePath) throws IOException {
       <hashTree/>
       <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments">
-          <elementProp name="apim_domain" elementType="Argument">
-            <stringProp name="Argument.name">apim_domain</stringProp>
+          <elementProp name="Apim_Domain" elementType="Argument">
+            <stringProp name="Argument.name">Apim_Domain</stringProp>
             <stringProp name="Argument.value">.api.service.nhs.uk</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
