@@ -43,7 +43,9 @@ def update_organisation(payload: dict, api_request_context_mtls_crud):
     full_url = f"{get_url('crud')}{ENDPOINTS['organization']}/{org_id}"
     logger.info(f"Full URL: {full_url}\nPayload: {json.dumps(payload, indent=2)}")
     response = api_request_context_mtls_crud.put(
-        full_url, data=json.dumps(payload), headers={"Content-Type": "application/json"}
+        full_url,
+        data=json.dumps(payload),
+        headers={"Content-Type": "application/fhir+json"},
     )
     try:
         logger.info(f"Response body: {response.json()}")
