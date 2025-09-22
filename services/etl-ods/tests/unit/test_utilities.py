@@ -178,12 +178,50 @@ def test_handle_fhir_response_no_operation_outcome(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """
-    Test handle_fhir_response returns data if not OperationOutcome.
+    Test handle_fhir_response returns None if not OperationOutcome.
     """
     data = {"resourceType": "Patient", "id": "123"}
     with caplog.at_level("INFO"):
-        result = handle_fhir_response(data)
-    assert result == data
+        result = handle_fhir_response(data, "GET")
+    assert result is None
+
+
+def test_handle_fhir_response_operation_outcome_error() -> None:
+    """
+    Test handle_fhir_response raises for OperationOutcome with error severity.
+    """
+    data = {
+        "resourceType": "OperationOutcome",
+        "issue": [{"severity": "error", "code": "processing", "diagnostics": "fail"}],
+    }
+    with pytest.raises(OperationOutcomeException):
+        handle_fhir_response(data, "GET")
+
+
+def test_handle_fhir_response_operation_outcome_information_put() -> None:
+    data = {
+        "resourceType": "OperationOutcome",
+        "issue": [{"severity": "information", "code": "success", "diagnostics": "ok"}],
+    }
+    assert handle_fhir_response(data, "PUT") is None
+
+
+def test_handle_fhir_response_operation_outcome_put_raises() -> None:
+    data = {
+        "resourceType": "OperationOutcome",
+        "issue": [{"severity": "error", "code": "success", "diagnostics": "ok"}],
+    }
+    with pytest.raises(OperationOutcomeException):
+        handle_fhir_response(data, "PUT")
+
+
+def test_handle_fhir_response_operation_outcome_non_put_raises() -> None:
+    data = {
+        "resourceType": "OperationOutcome",
+        "issue": [{"severity": "information", "code": "success", "diagnostics": "ok"}],
+    }
+    with pytest.raises(OperationOutcomeException):
+        handle_fhir_response(data, "GET")
 
 
 def test_build_headers_fhir_and_json() -> None:

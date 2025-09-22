@@ -1,28 +1,43 @@
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from ftrs_common.fhir.operation_outcome import OperationOutcomeException
+from ftrs_common.api_middleware.fhir_type_middleware import (
+    FHIRAcceptHeaderMiddleware,
+    FHIRContentTypeMiddleware,
+)
+from ftrs_common.api_middleware.response_logging_middleware import (
+    ResponseLoggingMiddleware,
+)
+from ftrs_common.fhir.operation_outcome import (
+    OperationOutcomeException,
+    OperationOutcomeHandler,
+)
+from ftrs_common.fhir.operation_outcome_status_mapper import STATUS_CODE_MAP
+from ftrs_common.logger import Logger
 from mangum import Mangum
 
 from organisations.app.router import organisation
 
+crud_organisation_logger = Logger.get(service="crud_organisation_logger")
 app = FastAPI(title="Organisations API")
+app.add_middleware(FHIRContentTypeMiddleware)
+app.add_middleware(FHIRAcceptHeaderMiddleware)
+app.add_middleware(ResponseLoggingMiddleware)
+
 app.include_router(organisation.router)
 
 handler = Mangum(app, lifespan="off")
 
-STATUS_CODE_MAP = {
-    "not-found": 404,
-    "invalid": 422,
-    "exception": 500,
-    "forbidden": 403,
-    "processing": 202,
-    "duplicate": 409,
-    "structure": 400,
-    "security": 401,
-    "not-supported": 405,
-    "business-rule": 422,
-    "informational": 200,
-}
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    raise OperationOutcomeException(
+        OperationOutcomeHandler.build(
+            diagnostics=str(exc), code="invalid", severity="error"
+        )
+    )
 
 
 @app.exception_handler(OperationOutcomeException)
