@@ -2,17 +2,18 @@ import json
 from http import HTTPStatus
 
 import requests
+from aws_lambda_powertools.logging import correlation_paths
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import (
     correlation_id_context,
     generate_correlation_id,
 )
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
-from aws_lambda_powertools.logging import correlation_paths
 
 from pipeline.utilities import get_base_apim_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
+
 
 @ods_consumer_logger.inject_lambda_context(
     correlation_id_path=correlation_paths.API_GATEWAY_REST,

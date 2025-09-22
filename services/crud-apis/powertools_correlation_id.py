@@ -1,6 +1,6 @@
 import uuid
 
-from aws_lambda_powertools.utilities.correlation_ids import correlation_id
+from aws_lambda_powertools.shared.functions import correlation_id
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
