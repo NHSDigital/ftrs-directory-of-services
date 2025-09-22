@@ -30,7 +30,7 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
   database_name = var.source_rds_database
 
   secrets_manager_arn             = aws_secretsmanager_secret.source_rds_credentials[0].arn
-  secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access.arn
+  secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access[0].arn
 }
 
 resource "aws_dms_endpoint" "dms_target_endpoint" {

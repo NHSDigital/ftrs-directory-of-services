@@ -30,6 +30,8 @@ resource "aws_iam_role_policy" "rds_lambda_invoke_policy" {
 }
 
 resource "aws_iam_role" "dms_secrets_access" {
+  count = local.is_primary_environment ? 1 : 0
+
   name = "${local.resource_prefix}-dms-secrets-access"
 
   assume_role_policy = jsonencode({
@@ -47,7 +49,9 @@ resource "aws_iam_role" "dms_secrets_access" {
 }
 
 resource "aws_iam_role_policy" "dms_secrets_access_policy" {
-  role = aws_iam_role.dms_secrets_access.id
+  count = local.is_primary_environment ? 1 : 0
+
+  role = aws_iam_role.dms_secrets_access[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
