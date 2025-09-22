@@ -1,6 +1,3 @@
-enable_nat_gateway                     = true
-single_nat_gateway                     = false
-one_nat_gateway_per_az                 = true
 create_database_subnet_group           = true
 create_database_route_table            = true
 create_database_internet_gateway_route = false
