@@ -58,6 +58,9 @@ markers = [
     "gp-search-api: marks test as gp search related",
     "test: marks test as generic test",
     "data-repo: marks test as data repository test",
+    "crud-org-api: marks test as CRUD API for endpoint Organization test",
+    "crud-healthcare-service-api: marks test as CRUD API for endpoint HealthcareService test",
+    "crud-location-api: marks test as CRUD API for endpoint Location test",
     "test-db-fixture: marks test as using the test db fixture",
 
 ]
