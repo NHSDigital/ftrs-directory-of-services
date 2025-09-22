@@ -1,4 +1,4 @@
-@fdos-healthcare-service-api
+@crud-healthcare-service-api
 Feature: API tests for fdos Healthcare resources
 
 

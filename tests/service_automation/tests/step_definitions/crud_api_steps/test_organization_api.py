@@ -1,10 +1,13 @@
-"""
-
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
+
+
+# Load feature file
+scenarios("./crud_api_features/organization_api.feature")
+
 
 
 @when(
@@ -16,6 +19,7 @@ def send_get(api_request_context_mtls_crud, api_name, resource_name):
     # Handle None or empty params
     response = api_request_context_mtls_crud.get(url)
     return response
+
 
 @then(parsers.parse('I receive a status code "{status_code:d}" in response'))
 def status_code(fresponse, status_code):
@@ -51,4 +55,3 @@ def count_resources(lambda_response, resource_type):
         entry.get("resource", {}).get("resourceType") == resource_type
         for entry in lambda_response.get("entry", [])
     )
-"""

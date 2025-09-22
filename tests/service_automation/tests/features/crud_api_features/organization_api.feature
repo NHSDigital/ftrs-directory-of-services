@@ -1,4 +1,4 @@
-@fdos-org-api @is-pipeline
+@crud-org-api @is-pipeline
 Feature: API tests for Fdos Organization resource including linked Endpoint resources
 
 
