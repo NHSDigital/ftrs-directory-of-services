@@ -8,12 +8,17 @@ from ftrs_common.utils.correlation_id import (
     generate_correlation_id,
 )
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from aws_lambda_powertools.logging import correlation_paths
 
 from pipeline.utilities import get_base_apim_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
-
+@ods_consumer_logger.inject_lambda_context(
+    correlation_id_path=correlation_paths.API_GATEWAY_REST,
+    log_event=True,
+    clear_state=True,
+)
 def consumer_lambda_handler(event: dict, context: any) -> dict:
     if event:
         ods_consumer_logger.log(

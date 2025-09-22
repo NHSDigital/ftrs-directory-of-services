@@ -14,6 +14,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.responses import Response
 
 from organisations.app.router import organisation
+from powertools_correlation_id import PowertoolsCorrelationIdMiddleware
 
 crud_organisation_logger = Logger.get(service="crud_organisation_logger")
 
@@ -58,6 +59,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
 
 app = FastAPI(title="Organisations API")
+app.add_middleware(PowertoolsCorrelationIdMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.include_router(organisation.router)
 app.add_middleware(CorrelationIdMiddleware)
