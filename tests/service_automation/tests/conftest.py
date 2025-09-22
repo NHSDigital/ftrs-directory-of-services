@@ -50,7 +50,7 @@ def api_request_context_mtls_factory(playwright, workspace, env):
     """Factory to create API request contexts with different api_names."""
     contexts = []
 
-    def _create_context(api_name="servicesearch"):
+    def _create_context(api_name="servicesearch", headers=None):
         url = get_url(api_name)
         try:
             # Get mTLS certs
@@ -64,6 +64,7 @@ def api_request_context_mtls_factory(playwright, workspace, env):
                         "keyPath": client_pem_path,
                     }
                 ],
+                "extra_http_headers": headers,
             }
             request_context = playwright.request.new_context(**context_options)
             contexts.append(request_context)
@@ -96,7 +97,7 @@ def api_request_context_mtls(api_request_context_mtls_factory):
 @pytest.fixture(scope="module")
 def api_request_context_mtls_crud(api_request_context_mtls_factory):
     """Create a new Playwright API request context with default api_name."""
-    return api_request_context_mtls_factory("crud")
+    return api_request_context_mtls_factory("crud", headers={"Accept": "application/fhir+json"})
 
 @pytest.fixture
 def api_request_context(playwright):
