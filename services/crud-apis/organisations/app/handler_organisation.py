@@ -5,6 +5,9 @@ from ftrs_common.api_middleware.fhir_type_middleware import (
     FHIRAcceptHeaderMiddleware,
     FHIRContentTypeMiddleware,
 )
+from ftrs_common.api_middleware.powertools_correlation_id import (
+    PowertoolsCorrelationIdMiddleware,
+)
 from ftrs_common.api_middleware.response_logging_middleware import (
     ResponseLoggingMiddleware,
 )
@@ -18,7 +21,6 @@ from ftrs_common.middlewaretemp.correlation_id import CorrelationIdMiddleware
 from mangum import Mangum
 
 from organisations.app.router import organisation
-from powertools_correlation_id import PowertoolsCorrelationIdMiddleware
 
 crud_organisation_logger = Logger.get(service="crud_organisation_logger")
 app = FastAPI(title="Organisations API")
