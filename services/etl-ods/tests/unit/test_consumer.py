@@ -165,8 +165,17 @@ def test_process_message_and_send_request_success(
 ) -> None:
     mock_call = requests_mock.put(
         "http://test-apim-api/Organization/uuid",
-        json={"status": "success"},
-        status_code=HTTPStatus.OK,
+        json={
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "information",
+                    "code": "success",
+                    "diagnostics": "Organization updated successfully",
+                }
+            ],
+            "status_code": 200,
+        },
     )
 
     record = {
@@ -180,7 +189,6 @@ def test_process_message_and_send_request_success(
         status_code=200
     )
     assert expected_success_log in caplog.text
-
     assert mock_call.called_once
     assert mock_call.last_request.path == "/organization/uuid"
     assert mock_call.last_request.json() == {"name": "Organization Name"}

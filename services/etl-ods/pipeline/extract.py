@@ -55,7 +55,8 @@ def fetch_ods_organisation_data(ods_code: str) -> dict | None:
         OdsETLPipelineLogBase.ETL_PROCESSOR_003,
         ods_code=ods_code,
     )
-    return make_request(ods_org_data_uri, fhir=True)
+    response = make_request(ods_org_data_uri, fhir=True)
+    return response.json()
 
 
 def fetch_organisation_uuid(ods_code: str) -> str | None:
@@ -79,7 +80,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             method="GET",
             api_key_required=True,
             fhir=True,
-        )
+        ).json()
         if isinstance(response, dict) and response.get("resourceType") == "Bundle":
             entries = response.get("entry", [])
             for entry in entries:

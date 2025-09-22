@@ -46,31 +46,58 @@ def playwright():
 
 
 @pytest.fixture(scope="module")
-def api_request_context_mtls(playwright, workspace, env, api_name="servicesearch"):
-    """Create a new Playwright API request context."""
-    url = get_url(api_name)
-    try:
-        # Get mTLS certs
-        client_pem_path, ca_cert_path = get_mtls_certs()
-        context_options = {
-            "ignore_https_errors": True,
-            "client_certificates": [
-                {
-                    "origin": url,
-                    "certPath": ca_cert_path,
-                    "keyPath": client_pem_path,
-                }
-            ],
-        }
-        request_context = playwright.request.new_context(**context_options)
-        yield request_context
-    finally:
-        try:
-            delete_download_files()
-        except Exception as e:
-            logger.error(f"Error deleting download files: {e}")
-        request_context.dispose()
+def api_request_context_mtls_factory(playwright, workspace, env):
+    """Factory to create API request contexts with different api_names."""
+    contexts = []
 
+    def _create_context(api_name="servicesearch", headers=None):
+        url = get_url(api_name)
+        try:
+            # Get mTLS certs
+            client_pem_path, ca_cert_path = get_mtls_certs()
+            context_options = {
+                "ignore_https_errors": True,
+                "client_certificates": [
+                    {
+                        "origin": url,
+                        "certPath": ca_cert_path,
+                        "keyPath": client_pem_path,
+                    }
+                ],
+                "extra_http_headers": headers,
+            }
+            request_context = playwright.request.new_context(**context_options)
+            contexts.append(request_context)
+            return request_context
+        except Exception as e:
+            logger.error(f"Error creating context: {e}")
+            raise
+
+    yield _create_context
+
+    # Cleanup all created contexts
+    try:
+        delete_download_files()
+    except Exception as e:
+        logger.error(f"Error deleting download files: {e}")
+
+    for context in contexts:
+        try:
+            context.dispose()
+        except Exception as e:
+            logger.error(f"Error disposing context: {e}")
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls(api_request_context_mtls_factory):
+    """Create a new Playwright API request context with default api_name."""
+    return api_request_context_mtls_factory("servicesearch")
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls_crud(api_request_context_mtls_factory):
+    """Create a new Playwright API request context with default api_name."""
+    return api_request_context_mtls_factory("crud", headers={"Accept": "application/fhir+json"})
 
 @pytest.fixture
 def api_request_context(playwright):
