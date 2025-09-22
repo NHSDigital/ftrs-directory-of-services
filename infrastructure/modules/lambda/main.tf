@@ -33,4 +33,7 @@ module "lambda" {
   layers                = var.layers
 
   cloudwatch_logs_retention_in_days = var.cloudwatch_logs_retention
+
+  logging_log_group        = "/aws/lambda/${var.function_name}${local.workspace_suffix}"
+  logging_system_log_level = var.cloudwatch_log_level
 }

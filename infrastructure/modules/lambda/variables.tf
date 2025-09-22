@@ -132,3 +132,9 @@ variable "cloudwatch_logs_retention" {
   type        = number
   default     = 30
 }
+
+variable "cloudwatch_log_level" {
+  description = "Logging level for CloudWatch logs"
+  type        = string
+  default     = "INFO"
+}

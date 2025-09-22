@@ -115,3 +115,15 @@ variable "api_gateway_throttling_rate_limit" {
   description = "The rate limit for API Gateway throttling"
   type        = number
 }
+
+variable "crud_api_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs for CRUD apis"
+  type        = number
+  default     = 14
+}
+
+variable "crud_api_lambda_log_level" {
+  description = "The log level for CloudWatch logs for CRUD apis"
+  type        = string
+  default     = "INFO"
+}
