@@ -20,9 +20,7 @@ def mock_lambda_context() -> LambdaContext:
     context = LambdaContext()
     context._function_name = "test-function"
     context._function_version = "LATEST"
-    context._invoked_function_arn = (
-        "test-function"
-    )
+    context._invoked_function_arn = "test-function"
     context._memory_limit_in_mb = 1
     context._aws_request_id = "test-request-id"
     context._log_group_name = "/aws/lambda/test-function"
