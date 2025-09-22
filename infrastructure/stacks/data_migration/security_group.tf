@@ -142,6 +142,16 @@ resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_fr
   to_port                      = var.rds_port
 }
 
+resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_from_vpce" {
+  count                        = local.is_primary_environment ? 1 : 0
+  security_group_id            = aws_security_group.dms_replication_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpce_rds_security_group.id
+  description                  = "Allow ingress on port ${var.rds_port} from Live DoS VPC Endpoint"
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
+}
+
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_rds" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.dms_replication_security_group[0].id
@@ -183,6 +193,16 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_
   from_port         = var.dns_port
   ip_protocol       = "udp"
   to_port           = var.dns_port
+}
+
+resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_vpce" {
+  count                        = local.is_primary_environment ? 1 : 0
+  security_group_id            = aws_security_group.dms_replication_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpce_rds_security_group.id
+  description                  = "Allow egress to Live DoS VPC Endpoint"
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
 }
 
 resource "aws_security_group" "rds_event_listener_lambda_security_group" {

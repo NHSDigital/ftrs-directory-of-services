@@ -50,12 +50,13 @@ def playwright():
 
 @pytest.fixture(scope="module")
 def api_request_context_mtls_factory(playwright, workspace, env):
-    """Factory to create mTLS API request contexts dynamically based on API name."""
+    """Factory to create API request contexts with different api_names."""
     contexts = []
 
-    def _create_context(api_name: str):
+    def _create_context(api_name="servicesearch", headers=None):
         url = get_url(api_name)
         try:
+            # Get mTLS certs
             client_pem_path, ca_cert_path = get_mtls_certs()
             context_options = {
                 "ignore_https_errors": True,
@@ -66,30 +67,46 @@ def api_request_context_mtls_factory(playwright, workspace, env):
                         "keyPath": client_pem_path,
                     }
                 ],
+                "extra_http_headers": headers,
             }
-            context = playwright.request.new_context(**context_options)
-            contexts.append(context)
-            return context
+            request_context = playwright.request.new_context(**context_options)
+            contexts.append(request_context)
+            return request_context
         except Exception as e:
-            logger.error(f"Failed to create mTLS context for {api_name}: {e}")
+            logger.error(f"Error creating context: {e}")
             raise
 
     yield _create_context
+
+    # Cleanup all created contexts
     try:
         delete_download_files()
     except Exception as e:
         logger.error(f"Error deleting download files: {e}")
-    for ctx in contexts:
+
+    for context in contexts:
         try:
-            ctx.dispose()
+            context.dispose()
         except Exception as e:
-            logger.error(f"Error disposing mTLS context: {e}")
+            logger.error(f"Error disposing context: {e}")
 
 
 @pytest.fixture(scope="module")
-def cloudwatch_logs():
-    """Fixture to initialize AWS CloudWatch Logs utility"""
-    return CloudWatchLogsWrapper()
+def api_request_context_mtls(api_request_context_mtls_factory):
+    """Create a new Playwright API request context with default api_name."""
+    return api_request_context_mtls_factory("servicesearch")
+
+
+@pytest.fixture(scope="module")
+def api_request_context_mtls_crud(api_request_context_mtls_factory):
+    """Create a new Playwright API request context with default api_name."""
+    return api_request_context_mtls_factory(
+        "crud",
+        headers={
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+        },
+    )
 
 
 @pytest.fixture
@@ -284,13 +301,3 @@ def context() -> Context:
         Context: Context object.
     """
     return Context()
-
-
-@pytest.fixture(scope="module")
-def api_request_context_mtls(api_request_context_mtls_factory):
-    return api_request_context_mtls_factory("servicesearch")
-
-
-@pytest.fixture(scope="module")
-def api_request_context_mtls_crud(api_request_context_mtls_factory):
-    return api_request_context_mtls_factory("crud")
