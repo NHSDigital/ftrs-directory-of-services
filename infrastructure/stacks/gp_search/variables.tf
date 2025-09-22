@@ -24,13 +24,25 @@ variable "lambda_timeout" {
 variable "application_tag" {
   description = "The version or tag of the gp search application"
   type        = string
+  default     = "latest"
 }
 variable "commit_hash" {
   description = "The commit hash of the gp search application"
   type        = string
 }
-variable "retention_in_days" {
-  description = "The retention period in days for anything that can be retained"
+variable "api_gateway_access_logs_retention_days" {
+  description = "The retention period in days for API Gateway logging"
   type        = number
   default     = 7
+}
+
+variable "api_gateway_payload_format_version" {
+  description = "The version of the payload format"
+  type        = string
+  default     = "1.0"
+}
+
+variable "api_gateway_integration_timeout" {
+  description = "Timeout to integration ARN"
+  type        = number
 }

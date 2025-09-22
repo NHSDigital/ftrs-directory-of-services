@@ -45,17 +45,15 @@ module "lambda" {
     "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
   }
 
+  allowed_triggers = {
+    AllowExecutionFromAPIGateway = {
+      service    = "apigateway"
+      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+    }
+  }
+
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
-}
-
-module "search_api_gateway_permissions" {
-  source = "../../modules/api-gateway-permissions"
-
-  account_id           = local.account_id
-  aws_region           = var.aws_region
-  lambda_function_name = "${local.resource_prefix}-${var.lambda_name}"
-  rest_api_id          = module.search_rest_api.rest_api_id
 }
