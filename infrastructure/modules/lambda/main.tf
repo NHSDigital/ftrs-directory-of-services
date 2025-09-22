@@ -15,6 +15,7 @@ module "lambda" {
   policy_jsons           = local.additional_json_policies
   timeout                = var.timeout
   memory_size            = var.memory_size
+  create                 = var.create == "" ? true : var.create
 
   create_package          = var.s3_bucket_name == "" ? var.create_package : false
   local_existing_package  = var.s3_bucket_name == "" ? var.local_existing_package : null
