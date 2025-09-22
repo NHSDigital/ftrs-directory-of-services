@@ -96,7 +96,7 @@ def process_organisation(ods_code: str) -> str | None:
 
 
 @ods_processor_logger.inject_lambda_context(
-    correlation_id_path=correlation_paths.API_GATEWAY_REST,
+    correlation_id_path=correlation_paths.VPC_LATTICE,
     log_event=True,
     clear_state=True,
 )
