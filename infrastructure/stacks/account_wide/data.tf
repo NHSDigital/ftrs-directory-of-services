@@ -14,3 +14,7 @@ data "aws_availability_zones" "available_azs" {
     values = ["opt-in-not-required"]
   }
 }
+
+data "aws_security_group" "dms_replication_security_group" {
+  name = "${var.project}-${var.environment}-*-etl-replication-sg"
+}
