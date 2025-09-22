@@ -5,6 +5,10 @@
 # ENVIRONMENT - The name of the environment to run the terraform action on, e.g. dev, test
 # WORKSPACE - The name of the workspace to action the terraform into, e.g. DR-123
 # REPOSITORY - The name of the repository to action the terraform on e.g. uec-dos-service-management
+# APPLICATION_TAG - The tag of the application artefact to deploy. This will be required for any stack that deploys a Lambda
+#                   artefact. For development it would usually be latest
+# COMMIT_HASH - The short commit hash that is used to build and store the Lambda functions. This will be required for any
+#               stack that deploys a Lambda artefact. For development it would usually be the latest commit hash of the pushed branch
 
 # fail on first error
 set -e
