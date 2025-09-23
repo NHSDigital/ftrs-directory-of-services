@@ -57,9 +57,12 @@ resource "aws_iam_role_policy" "dms_secrets_access_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = ["secretsmanager:GetSecretValue"]
-        Resource = aws_secretsmanager_secret.source_rds_credentials[0].arn
+        Effect = "Allow"
+        Action = ["secretsmanager:GetSecretValue"]
+        Resource = [
+          aws_secretsmanager_secret.source_rds_credentials[0].arn,
+          aws_secretsmanager_secret.target_rds_credentials[0].arn
+        ]
       }
     ]
   })
