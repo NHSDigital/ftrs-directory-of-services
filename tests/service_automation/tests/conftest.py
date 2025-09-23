@@ -1,4 +1,6 @@
 import os
+import sys
+from pathlib import Path
 
 import boto3
 import pytest
@@ -17,6 +19,8 @@ from utilities.infra.secrets_util import GetSecretWrapper
 from utilities.infra.logs_util import CloudWatchLogsWrapper
 import json
 from utilities.common.context import Context
+
+pytest_plugins = ["data_migration_fixtures"]
 
 # Configure Loguru to log into a file and console
 logger.add(
