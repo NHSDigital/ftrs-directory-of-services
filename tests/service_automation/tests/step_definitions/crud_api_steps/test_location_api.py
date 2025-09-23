@@ -1,4 +1,3 @@
-"""
 from http import HTTPStatus
 
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -19,7 +18,9 @@ def dns_resolvable(api_name, env, workspace):
 
 
 @when(
-    parsers.re(r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)"'),
+    parsers.re(
+        r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)"'
+    ),
     target_fixture="fresponse",
 )
 def send_get(api_request_context_mtls_crud, api_name, resource_name):
@@ -46,7 +47,7 @@ def api_error_message(fresponse, error_message):
     assert response["issue"][0]["details"]["text"] == (error_message)
 
 
-@then('the response body contains a bundle')
+@then("the response body contains a bundle")
 def api_check_bundle(fresponse):
     response = fresponse.json()
     assert response["resourceType"] == "Bundle"
@@ -63,4 +64,3 @@ def count_resources(lambda_response, resource_type):
         entry.get("resource", {}).get("resourceType") == resource_type
         for entry in lambda_response.get("entry", [])
     )
-"""

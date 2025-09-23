@@ -1,4 +1,4 @@
-@is-api @is-pipeline @gp-search-api
+@is-api @ftrs-pipeline @gp-search-api
 Feature: API GP Endpoint Search
 
   Background: Set stack and seed repo
