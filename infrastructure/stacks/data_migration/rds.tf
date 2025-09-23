@@ -76,7 +76,7 @@ module "rds" {
   manage_master_user_password = false
   master_username             = random_pet.rds_username[0].id
   master_password             = random_password.rds_password[0].result
-  database_name               = var.source_rds_database
+  database_name               = var.replica_rds_database
 
   iam_database_authentication_enabled = true
 
