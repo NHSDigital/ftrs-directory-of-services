@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 
 # Load all scenarios from the feature file
-scenarios('./data_migration/database_dynamodb.feature')
+scenarios('./data_migration_features/database_dynamodb.feature')
 
 
 @given("the DoS database fixture is available")
