@@ -93,6 +93,18 @@ files = [
     {file = "boto3_stubs-1.40.10.tar.gz", hash = "sha256:5c1589edf93ed0337c8df3ba7f9d9a924770bc6c09e9ac6b0df0c02ecf3672c3"},
 ]
 
+[[package]]
+name = "aws-xray-sdk"
+version = "2.14.0"
+description = "The AWS X-Ray SDK for Python (the SDK) enables Python developers to record and emit information from within their applications to the AWS X-Ray service."
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "aws_xray_sdk-2.14.0-py2.py3-none-any.whl", hash = "sha256:cfbe6feea3d26613a2a869d14c9246a844285c97087ad8f296f901633554ad94"},
+    {file = "aws_xray_sdk-2.14.0.tar.gz", hash = "sha256:aab843c331af9ab9ba5cefb3a303832a19db186140894a523edafc024cc0493c"},
+]
+
 [package.dependencies]
 botocore-stubs = "*"
 mypy-boto3-dynamodb = {version = ">=1.40.0,<1.41.0", optional = true, markers = "extra == \"dynamodb\""}
