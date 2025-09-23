@@ -1,7 +1,7 @@
 #trivy:ignore:AVD-AWS-0066
 module "lambda" {
-  # Module version: 7.21.0
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=f1f06ed88f567ec75815bd37897d612092e7941c"
+  # Module version: 8.1.0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=1c3b16a8d9ee8944ba33f5327bdf011c6639cceb"
 
   function_name          = "${var.function_name}${local.workspace_suffix}"
   handler                = var.handler
