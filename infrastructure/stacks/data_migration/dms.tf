@@ -40,7 +40,6 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
   endpoint_id   = "${local.resource_prefix}-etl-target"
   endpoint_type = "target"
   engine_name   = var.dms_engine
-  server_name   = module.rds_replication_target_db[0].cluster_endpoint
   database_name = var.target_rds_database
 
   secrets_manager_arn             = aws_secretsmanager_secret.target_rds_credentials[0].arn
