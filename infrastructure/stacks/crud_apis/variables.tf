@@ -121,9 +121,3 @@ variable "crud_api_lambda_logs_retention" {
   type        = number
   default     = 14
 }
-
-variable "crud_api_lambda_log_level" {
-  description = "The log level for CloudWatch logs for CRUD apis"
-  type        = string
-  default     = "INFO"
-}

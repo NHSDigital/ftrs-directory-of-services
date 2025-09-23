@@ -60,7 +60,6 @@ module "organisation_api_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
-  cloudwatch_log_level      = var.crud_api_lambda_log_level
 }
 
 module "healthcare_service_api_lambda" {
@@ -106,7 +105,6 @@ module "healthcare_service_api_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
-  cloudwatch_log_level      = var.crud_api_lambda_log_level
 }
 
 module "location_api_lambda" {
@@ -152,5 +150,4 @@ module "location_api_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
-  cloudwatch_log_level      = var.crud_api_lambda_log_level
 }
