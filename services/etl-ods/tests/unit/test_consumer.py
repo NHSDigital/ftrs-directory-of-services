@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -26,6 +27,13 @@ def mock_lambda_context() -> LambdaContext:
     context._log_group_name = "/aws/lambda/test-function"
     context._log_stream_name = "test-stream"
     return context
+
+
+@pytest.fixture(autouse=True)
+def mock_tracer() -> Generator[MagicMock, None, None]:
+    with patch("pipeline.consumer.tracer") as mock_tracer:
+        mock_tracer.capture_lambda_handler.return_value = lambda f: f
+        yield mock_tracer
 
 
 @patch("pipeline.consumer.process_message_and_send_request")

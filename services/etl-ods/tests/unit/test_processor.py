@@ -3,7 +3,8 @@ from datetime import datetime
 
 # , timedelta
 # from http import HTTPStatus
-from typing import NamedTuple
+from typing import Generator, NamedTuple
+from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -21,6 +22,13 @@ class MockResponses(NamedTuple):
     ods_sync: Matcher
     ods_abc123: Matcher
     apim_org_abc123: Matcher
+
+
+@pytest.fixture(autouse=True)
+def mock_tracer() -> Generator[MagicMock, None, None]:
+    with patch("pipeline.consumer.tracer") as mock_tracer:
+        mock_tracer.capture_lambda_handler.return_value = lambda f: f
+        yield mock_tracer
 
 
 @pytest.fixture
