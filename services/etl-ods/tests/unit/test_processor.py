@@ -170,6 +170,7 @@ def test_processor_processing_organisations_successful(
                 ],
                 "telecom": [],
             },
+            "correlation_id": None,
         }
     ]
 
@@ -320,6 +321,7 @@ def test_processor_continue_on_validation_failure(
                 ],
                 "telecom": [],
             },
+            "correlation_id": None,
         }
     ]
 
