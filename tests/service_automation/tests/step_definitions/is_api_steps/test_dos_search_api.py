@@ -61,32 +61,36 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
         )
     return response
 
-@when(
-    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with valid query params and a valid access token'),
-    target_fixture="fresponse",
-)
-def send_to_apim_get_with_params(new_apim_request_context, resource_name, nhsd_apim_proxy_url):
-    params = "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
-    url = nhsd_apim_proxy_url + "/" + resource_name
-    logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
-    # Handle None or empty params
-    if params is None or not params.strip():
-        param_dict = {}
-    else:
-        # Parse the params string into a dictionary
-        param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-    response = new_apim_request_context.get(
-            url,  params=param_dict
-        )
-    logger.info(f"response: {response.text}")
-    return response
+
+# @when(
+#     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with valid query params and access token'),
+#     target_fixture="fresponse",
+# )
+# def send_to_apim_get_with_params(new_apim_request_context, resource_name, nhsd_apim_proxy_url):
+#     params = "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+#     url = nhsd_apim_proxy_url + "/" + resource_name
+#     logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
+#     # Handle None or empty params
+#     if params is None or not params.strip():
+#         param_dict = {}
+#     else:
+#         # Parse the params string into a dictionary
+#         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
+#     response = new_apim_request_context.get(
+#             url,  params=param_dict
+#         )
+#     logger.info(f"response: {response.text}")
+#     return response
 
 @when(
-    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with valid query params and "(?P<token_type>.*?)" access token'),
+    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with "(?P<param_type>.*?)" query params and "(?P<token_type>.*?)" access token'),
     target_fixture="fresponse",
 )
-def send_to_apim_with_invalid_token(new_apim_request_context, resource_name, nhsd_apim_proxy_url, token_type):
-    params = "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+def send_to_apim_with_invalid_token(new_apim_request_context, resource_name, param_type, nhsd_apim_proxy_url, token_type):
+    if param_type == "valid":
+        params = "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    else:
+        params = ""
     url = nhsd_apim_proxy_url + "/" + resource_name
     logger.info(f"token_type : {token_type}")
     # Handle None or empty params
@@ -103,60 +107,14 @@ def send_to_apim_with_invalid_token(new_apim_request_context, resource_name, nhs
         response = new_apim_request_context.get(
             url,  params=param_dict, headers={"Authorization": "Bearer invalid_token"}
         )
+    elif token_type == "valid":
+        response = new_apim_request_context.get(
+            url,  params=param_dict
+        )
     else:
         raise ValueError(f"Unknown token_type: {token_type}")
     logger.info(f"response: {response.text}")
     return response
-
-
-@then(parsers.parse('I receive the error code "{error_code}"'))
-def api_error_code(fresponse, error_code):
-    response = fresponse.json()
-    assert response["issue"][0]["details"]["coding"][0]["code"] == error_code
-
-
-@then(parsers.parse('I receive the message "{error_message}"'))
-def api_error_message(fresponse, error_message):
-    response = fresponse.json()
-    assert response["issue"][0]["details"]["text"] == (error_message)
-
-
-@then(parsers.parse('I receive the diagnostics "{diagnostics}"'))
-def api_diagnostics(fresponse, diagnostics):
-    response = fresponse.json()
-    assert (response["issue"][0]["diagnostics"]).startswith(diagnostics)
-
-
-@then('the response body contains a bundle')
-def api_check_bundle(fresponse):
-    response = fresponse.json()
-    assert response["resourceType"] == "Bundle"
-
-
-@then(parsers.parse('the bundle contains "{number:d}" "{resource_type}" resources'))
-def api_number_resources(fresponse, number, resource_type):
-    response = fresponse.json()
-    assert count_resources(response, resource_type) == number
-
-
-@then(parsers.parse('the response body contains JSON with a key "{key}" and value "{value}"'))
-def api_json_key_value(fresponse, key, value):
-    response = fresponse.json()
-    assert response[key] == value
-
-
-
-@then(parsers.parse('the resource has an id of "{resource_id}"'))
-def api_check_resource_id(fresponse, resource_id):
-    response = fresponse.json()
-    assert response["id"] == resource_id
-
-
-@then(parsers.parse('the OperationOutcome has issues all with {key} "{value}"'))
-def api_check_operation_outcome_all_issue_diagnostics(fresponse, key, value):
-    response = fresponse.json()
-    assert all(issue.get(key) == value for issue in response["issue"])
-
 
 @then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding'))
 def api_check_operation_outcome_any_issue_details_invalid_search_data(fresponse):
@@ -174,9 +132,3 @@ def api_check_operation_outcome_any_issue_details_invalid_auth_coding(fresponse)
         value=INVALID_AUTH_CODING
     )
 
-
-def count_resources(lambda_response, resource_type):
-    return sum(
-        entry.get("resource", {}).get("resourceType") == resource_type
-        for entry in lambda_response.get("entry", [])
-    )

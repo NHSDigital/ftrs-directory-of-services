@@ -7,9 +7,9 @@ Feature: API DoS Service Search APIM
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-
+@test
   Scenario: I can access APIM for the 'ping' Endpoint and no access is required
-    When I request data from the APIM "servicesearch" endpoint "_ping" with query params "" and "no" access token
+    When I request data from the APIM "servicesearch" endpoint "_ping" with "" query params and "no" access token
     Then I receive a status code "200" in response
 
 # Waiting for dosis-1893 to be done
@@ -19,15 +19,15 @@ Feature: API DoS Service Search APIM
 
 
   Scenario: I search APIM for GP Endpoint by ODS Code with valid query parameters and a valid access token
-    When I request data from the APIM "servicesearch" endpoint "Organization" with valid query params and a valid access token
+    When I request data from the APIM "servicesearch" endpoint "Organization" with "valid" query params and "valid" access token
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
     And the bundle contains "4" "Endpoint" resources
 
-@test
+
   Scenario Outline: I search APIM for GP Endpoint without an access token
-    When I request data from the APIM "servicesearch" endpoint "Organization" with valid query params and "<token_type>" access token
+    When I request data from the APIM "servicesearch" endpoint "Organization" with "valid" query params and "<token_type>" access token
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
