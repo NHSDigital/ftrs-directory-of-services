@@ -92,9 +92,3 @@ module "read_only_viewer_cloudfront" {
     prefix          = var.access_logs_prefix
   }
 }
-
-data "aws_wafv2_web_acl" "waf_web_acl" {
-  name     = "${var.project}-${var.environment}-account-wide-${var.waf_name}"
-  scope    = var.waf_scope
-  provider = aws.us-east-1
-}
