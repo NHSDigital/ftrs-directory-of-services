@@ -1,5 +1,29 @@
 resource "aws_iam_role" "ods_etl_scheduler_invoke_role" {
-  name               = "${local.resource_prefix}-ods-etl-scheduler-invoke-role${local.workspace_suffix}"
-  assume_role_policy = data.aws_iam_policy_document.ods_etl_scheduler_invoke_policy.json
-  description        = "IAM role to allow the ODS ETL scheduler to invoke the processor lambda"
+  name        = "${local.resource_prefix}-ods-etl-scheduler-invoke-role${local.workspace_suffix}"
+  description = "IAM role to allow the ODS ETL scheduler to invoke the processor lambda"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "ods_etl_scheduler_invoke_policy" {
+  name        = "${local.resource_prefix}-ods-etl-scheduler-invoke-policy${local.workspace_suffix}"
+  description = "IAM policy to allow the ODS ETL scheduler to invoke the processor lambda"
+  policy      = data.aws_iam_policy_document.ods_etl_scheduler_invoke_policy.json
+}
+
+resource "aws_iam_policy_attachment" "ods_etl_scheduler_invoke_policy_attachment" {
+  name       = "${local.resource_prefix}-ods-etl-scheduler-invoke-policy-attachment${local.workspace_suffix}"
+  roles      = [aws_iam_role.ods_etl_scheduler_invoke_role.name]
+  policy_arn = aws_iam_policy.ods_etl_scheduler_invoke_policy.arn
 }
