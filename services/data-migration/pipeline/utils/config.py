@@ -33,7 +33,7 @@ class DatabaseConfig(BaseModel):
 
     @classmethod
     def source_db_credentials(cls) -> str:
-        return "source-rds-credentials"
+        return "replica-rds-credentials"
 
     @classmethod
     def from_uri(cls, db_uri: str) -> "DatabaseConfig":
