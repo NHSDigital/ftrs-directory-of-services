@@ -1,4 +1,4 @@
-@is-api @is-pipeline @gp-search-api
+@is-api @ftrs-pipeline @gp-search-api
 @nhsd_apim_authorization(access="application",level="level3")
 Feature: API DoS Service Search APIM
 
@@ -17,15 +17,15 @@ Feature: API DoS Service Search APIM
   #   When I request data from the APIM "servicesearch" endpoint "_status" with query params "" and "valid" access token
   #   Then I receive a status code "200" in response
 
-@test
+
   Scenario: I search APIM for GP Endpoint by ODS Code with valid query parameters and a valid access token
-    When I request data from the APIM "servicesearch" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the APIM "servicesearch" endpoint "Organization" with valid query params and a valid access token
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
     And the bundle contains "4" "Endpoint" resources
 
-
+@test
   Scenario Outline: I search APIM for GP Endpoint without an access token
     When I request data from the APIM "servicesearch" endpoint "Organization" with valid query params and "<token_type>" access token
     Then I receive a status code "401" in response

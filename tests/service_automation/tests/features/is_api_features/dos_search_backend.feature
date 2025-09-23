@@ -1,11 +1,6 @@
-<<<<<<< HEAD:tests/service_automation/tests/features/is_api_features/gp_search_api.feature
 @is-api @ftrs-pipeline @gp-search-api
-@nhsd_apim_authorization(access="application",level="level3")
-Feature: API GP Endpoint Search
-=======
-@is-api @is-pipeline @gp-search-api
+
 Feature: API DoS Service Search Backend
->>>>>>> f7e5640a (DOSIS-18121 Committing to be able to switch branches):tests/service_automation/tests/features/is_api_features/dos_search_backend.feature
 
   Background: Set stack and seed repo
     Given that the stack is "gp-search"
