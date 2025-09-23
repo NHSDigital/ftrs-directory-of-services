@@ -39,6 +39,10 @@ packages = [{include = "tests"}]
 
 [tool.poetry.group.shared.dependencies]
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
+testcontainers = "^3.7.1"
+testcontainers-postgres = "^0.0.1rc1"
+testcontainers-localstack = "^0.0.1rc1"
+
 
 [tool.pytest.ini_options]
 testpaths = "tests"
@@ -58,6 +62,8 @@ markers = [
     "crud-org-api: marks test as CRUD API for endpoint Organization test",
     "crud-healthcare-service-api: marks test as CRUD API for endpoint HealthcareService test",
     "crud-location-api: marks test as CRUD API for endpoint Location test",
+    "test-db-fixture: marks test as using the test db fixture",
+
 ]
 filterwarnings = [
     'ignore:.*datetime.datetime.utcnow*',
