@@ -1,69 +1,39 @@
-module "search_rest_api" {
-  source = "../../modules/api-gateway-rest-api"
+module "api_gateway" {
+  source = "github.com/NHSDigital/ftrs-directory-of-services?ref=2cc250e/infrastructure/modules/api-gateway-v2-http"
 
-  rest_api_name = "${local.resource_prefix}-api-gateway"
-}
+  name        = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
+  description = "FtRS Service Search API Gateway"
 
-resource "aws_api_gateway_deployment" "deployment" {
-  rest_api_id = module.search_rest_api.rest_api_id
-  lifecycle {
-    create_before_destroy = true
+  # As soon as you tell the module to create a domain, the execute api endpoint will be disabled
+  # so all routing will have to run through the domain (r53 route)
+  # The module will create both A (IP4) and AAAA (IP6) records
+  # HTTP API Gateways support TLS v1.2 and 1.3 only (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-ciphers.html)
+  create_domain_name    = true
+  create_domain_records = true
+  hosted_zone_name      = local.env_domain_name
+  domain_name           = "servicesearch${local.workspace_suffix}.${local.env_domain_name}"
+
+  # We do not need to create a certificate because we are using a shared one, specified in the domain_name_certificate_arn
+  domain_certificate_arn = data.aws_acm_certificate.domain_cert.arn
+  mtls_truststore_uri    = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
+
+  # JP - At some point we may want to implement CORS
+  # cors_configuration = {
+  #   allow_headers = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
+  #   allow_methods = ["*"]
+  #   allow_origins = ["*"]
+  # }
+
+  routes = {
+    "GET /Organization" = {
+      integration = {
+        uri                    = module.lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
   }
-  depends_on = [
-    aws_api_gateway_method.search_get,
-  ]
-  triggers = {
-    redeployment = sha1(jsonencode([
-      module.search_rest_api
-    ]))
-  }
-}
 
-# trivy:ignore:AVD-AWS-0001 : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-407
-resource "aws_api_gateway_stage" "stage" {
-  # checkov:skip=CKV_AWS_76: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
-  # checkov:skip=CKV_AWS_120: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
-  # checkov:skip=CKV2_AWS_4: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
-  # checkov:skip=CKV2_AWS_51: TODO https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1840
-  depends_on           = [aws_cloudwatch_log_group.api_gateway_execution_logs]
-  deployment_id        = aws_api_gateway_deployment.deployment.id
-  rest_api_id          = module.search_rest_api.rest_api_id
-  stage_name           = "default"
-  xray_tracing_enabled = true
-}
+  api_gateway_access_logs_retention_days = var.api_gateway_access_logs_retention_days
 
-resource "aws_cloudwatch_log_group" "api_gateway_execution_logs" {
-  # checkov:skip=CKV_AWS_158: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-404
-  # checkov:skip=CKV_AWS_338: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-404
-  name              = "/aws/apigateway/${local.resource_prefix}-api-gateway-execution-logs${local.workspace_suffix}/default"
-  retention_in_days = var.retention_in_days
-}
-
-resource "aws_api_gateway_domain_name" "api_custom_domain" {
-  domain_name              = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-  regional_certificate_arn = data.aws_acm_certificate.domain_cert.arn
-  security_policy          = "TLS_1_2"
-  endpoint_configuration {
-    types = ["REGIONAL"]
-  }
-  mutual_tls_authentication {
-    truststore_uri = "s3://${local.s3_trust_store_bucket_name}/${local.trust_store_file_path}"
-  }
-}
-
-resource "aws_api_gateway_base_path_mapping" "mapping" {
-  api_id      = module.search_rest_api.rest_api_id
-  stage_name  = aws_api_gateway_stage.stage.stage_name
-  domain_name = aws_api_gateway_domain_name.api_custom_domain.domain_name
-}
-
-resource "aws_route53_record" "gpsearch_api_a_alias" {
-  zone_id = data.aws_route53_zone.dev_ftrs_cloud.zone_id
-  name    = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
-  type    = "A"
-  alias {
-    name                   = aws_api_gateway_domain_name.api_custom_domain.regional_domain_name
-    zone_id                = aws_api_gateway_domain_name.api_custom_domain.regional_zone_id
-    evaluate_target_health = false
-  }
 }
