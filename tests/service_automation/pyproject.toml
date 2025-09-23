@@ -38,6 +38,10 @@ packages = [{include = "tests"}]
 
 [tool.poetry.group.shared.dependencies]
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
+testcontainers = "^3.7.1"
+testcontainers-postgres = "^0.0.1rc1"
+testcontainers-localstack = "^0.0.1rc1"
+
 
 [tool.pytest.ini_options]
 testpaths = "tests"
@@ -53,7 +57,9 @@ markers = [
     "is-s3: marks test as IS S3 related",
     "gp-search-api: marks test as gp search related",
     "test: marks test as generic test",
-    "data-repo: marks test as data repository test"
+    "data-repo: marks test as data repository test",
+    "test-db-fixture: marks test as using the test db fixture",
+
 ]
 filterwarnings = [
     'ignore:.*datetime.datetime.utcnow*',
