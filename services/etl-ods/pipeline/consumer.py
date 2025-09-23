@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 import requests
 from ftrs_common.logger import Logger
-from ftrs_common.utils.correlation_id import correlation_id_context, get_correlation_id
+from ftrs_common.utils.correlation_id import correlation_id_context
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.utilities import get_base_apim_api_url, make_request
@@ -52,13 +52,14 @@ def process_message_and_send_request(record: dict) -> None:
         body_content = json.loads(json.loads(record.get("body")))
         path = body_content.get("path")
         body = body_content.get("body")
+        correlation_id = record.get("correlation_id")  # Extract from message
 
     else:
         path = record.get("path")
         body = record.get("body")
+        correlation_id = record.get("correlation_id")  # Extract from message
 
     message_id = record["messageId"]
-    correlation_id = get_correlation_id()
 
     # correlation_id = generate_correlation_id()
 
