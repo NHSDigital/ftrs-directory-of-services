@@ -260,9 +260,7 @@ def get_mtls_certs():
 def api_key() -> str:
     """Return the raw API key string from Secrets Manager."""
     gsw = GetSecretWrapper()
-    key_json = gsw.get_secret(
-        "/ftrs-dos/dev/apim-api-key"
-    )  # returns {"api_key": "..."}
+    key_json = gsw.get_secret("/ftrs-dos/dev/apim-api-key")
     key_dict = json.loads(key_json)
     api_key = key_dict.get("api_key")
     if not api_key:

@@ -1,5 +1,5 @@
-@organisation-api @apim-test
-Feature: Organisation API Endpoint via APIM
+@organization-api @apim-test
+Feature: Organization API Endpoint via APIM
 
   Background: Set stack and seed repo
     Given that the stack is "organisation"
@@ -11,8 +11,8 @@ Feature: Organisation API Endpoint via APIM
     When I send a GET request to the "health" endpoint
     Then I receive a status code "200" in response
 
-  Scenario: update Organisation for specific ODS Code via APIM
-    When I update the organisation details for ODS Code via APIM
+  Scenario:Update organization for specific ODS Code via APIM
+    When I update the organization details for ODS Code via APIM
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
