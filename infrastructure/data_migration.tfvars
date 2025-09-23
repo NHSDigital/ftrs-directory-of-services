@@ -4,12 +4,13 @@ migration_pipeline_store_bucket_name = "pipeline-store"
 s3_versioning                        = false
 dynamodb_exports_s3_expiration_days  = 30
 
-source_rds_database = "data_migration"
-target_rds_database = "dos"
-rds_engine          = "aurora-postgresql"
-rds_engine_version  = "16.6"
-rds_engine_mode     = "provisioned"
-rds_instance_class  = "db.serverless"
+source_rds_database  = "pathwaysdos_future"
+target_rds_database  = "dos"
+replica_rds_database = "data_migration"
+rds_engine           = "aurora-postgresql"
+rds_engine_version   = "16.6"
+rds_engine_mode      = "provisioned"
+rds_instance_class   = "db.serverless"
 
 lambda_runtime               = "python3.12"
 data_collection_date         = "05-03-25"
@@ -53,6 +54,7 @@ full_migration_completion_event_queue_name = "full-migration-completion-event"
 target_rds_credentials                     = "target-rds-credentials"
 dms_user_password                          = "dms-user-password"
 source_rds_credentials                     = "source-rds-credentials"
+replica_rds_credentials                    = "replica-rds-credentials"
 
 dms_replication_instance_class = "dms.t3.small"
 dms_engine                     = "aurora-postgresql"
