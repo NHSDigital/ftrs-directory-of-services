@@ -29,7 +29,7 @@ class HealthcareServiceCategory(str, Enum):
 class HealthcareServiceType(str, Enum):
     GP_CONSULTATION_SERVICE = "GP Consultation Service"
     PCN_SERVICE = "Primary Care Network Enhanced Access Service"
-    SAS_SERVICE = "GP Special Allocation Scheme Service"
+    SAS_SERVICE = "GP Special Allocation Scheme"
 
 
 class EndpointStatus(str, Enum):

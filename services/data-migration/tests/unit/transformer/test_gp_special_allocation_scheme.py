@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import pytest
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain.enums import (
@@ -162,27 +164,29 @@ def test_should_include_service(
 def test_transform(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
+    mock_logger: MockLogger,
 ) -> None:
     """
     Test that transform method correctly transforms a GP Special Allocation Scheme Service
     """
-    mock_legacy_service.typeid = 100  # GP Practice
-    mock_legacy_service.odscode = "G12345"  # GP Practice
-    mock_legacy_service.name = "GP - Name - Special Allocation Scheme"
-    mock_legacy_service.statusid = 1  # Active status
+    transformer = GPSpecialAllocationSchemeTransformer(mock_logger, mock_metadata_cache)
 
-    transformer = GPSpecialAllocationSchemeTransformer(
-        MockLogger(), mock_metadata_cache
-    )
-    result = transformer.transform(mock_legacy_service)
+    mock_legacy_service.uid = "903cd48b-5d0f-532f-94f4-937a4517b14d"
+    validation_issues = []
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
-    # TODO: organisation and location not linked yet, test this, & when public name is empty for organisation.name
     assert len(result.organisation) == 0
     assert len(result.location) == 0
-
     assert len(result.healthcare_service) == 1
-    assert result.healthcare_service[0].name == "GP - Name - Special Allocation Scheme"
     assert (
         result.healthcare_service[0].category == HealthcareServiceCategory.GP_SERVICES
     )
     assert result.healthcare_service[0].type == HealthcareServiceType.SAS_SERVICE
+
+    assert mock_logger.get_log("DM_ETL_017") == [
+        {
+            "msg": "Healthcare service has opening times with service id: 903cd48b-5d0f-532f-94f4-937a4517b14d",
+            "reference": "DM_ETL_017",
+            "detail": {"service_id": UUID("903cd48b-5d0f-532f-94f4-937a4517b14d")},
+        }
+    ]

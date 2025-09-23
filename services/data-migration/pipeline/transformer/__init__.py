@@ -5,6 +5,7 @@ from pipeline.transformer.gp_special_allocation_scheme import (
     GPSpecialAllocationSchemeTransformer,
 )
 
+# Note: ordered in most common case for efficiency
 SUPPORTED_TRANSFORMERS: list[ServiceTransformer] = [
     GPPracticeTransformer,
     GPEnhancedAccessTransformer,

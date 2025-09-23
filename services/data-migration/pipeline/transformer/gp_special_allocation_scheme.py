@@ -7,12 +7,14 @@ from ftrs_data_layer.domain.enums import (
 )
 
 from pipeline.transformer.base import ServiceTransformer, ServiceTransformOutput
+from pipeline.validation.service import GPPracticeValidator
 
 
 class GPSpecialAllocationSchemeTransformer(ServiceTransformer):
     STATUS_ACTIVE = 1
     SUPPORTED_TYPE_ID = 100
     ODS_CODE_REGEX = re.compile(r"^[A-Z][0-9]{5}$")  # 6 characters: 1 letter + 5 digits
+    VALIDATOR_CLS = GPPracticeValidator
 
     """
     Transformer for GP Special Allocation Scheme Services
@@ -27,15 +29,16 @@ class GPSpecialAllocationSchemeTransformer(ServiceTransformer):
     - Service name contains the following text: "SAS" OR "Special Allocation Scheme"
     """
 
-    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+    def transform(
+        self, service: legacy_model.Service, validation_issues: list[str]
+    ) -> ServiceTransformOutput:
         """
         Transform the given GP Special Allocation Scheme Service into the new data model format
 
         For GP Special Allocation Scheme Services, Organisation Linkage is not required
-        Create only the healthcare service without organisation and location entities
+        Creates only the healthcare service without organisation and location entities
         """
         organisation = self.build_organisation(service)
-        organisation.name = self.clean_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -43,6 +46,7 @@ class GPSpecialAllocationSchemeTransformer(ServiceTransformer):
             location.id,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.SAS_SERVICE,
+            validation_issues=validation_issues,
         )
 
         return ServiceTransformOutput(
@@ -92,9 +96,3 @@ class GPSpecialAllocationSchemeTransformer(ServiceTransformer):
             return False, "Service is not 'active'"
 
         return True, None
-
-    @classmethod
-    def clean_name(cls, publicname: str) -> str:
-        if publicname:
-            return publicname.split("-", maxsplit=1)[0].rstrip()
-        raise ValueError("publicname is not set")
