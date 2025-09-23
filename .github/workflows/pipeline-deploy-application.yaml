@@ -260,7 +260,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       tag: ${{ inputs.tag }}
-      test_tag: "is-pipeline"
+      test_tag: "ftrs-pipeline"
       test_type: "api"
       type: app
     secrets: inherit
