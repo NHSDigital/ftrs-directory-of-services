@@ -2,12 +2,13 @@ import json
 from datetime import datetime, timezone
 
 import requests
-from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools.tracing import Tracer
 from ftrs_common.logger import Logger
+from ftrs_common.utils.correlation_id import set_correlation_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import load_data
+from pipeline.utilities import generate_correlation_id, get_correlation_id
 
 from .extract import (
     extract_ods_code,
@@ -75,6 +76,7 @@ def process_organisation(ods_code: str) -> str | None:
     Process a single organisation by extracting data, transforming it, and returning the payload.
     """
     try:
+        correlation_id = get_correlation_id()
         organisation_data = fetch_ods_organisation_data(ods_code)
         fhir_organisation = transform_to_payload(organisation_data, ods_code)
         org_uuid = fetch_organisation_uuid(ods_code)
@@ -86,7 +88,13 @@ def process_organisation(ods_code: str) -> str | None:
                 error_message="Organisation UUID not found.",
             )
             return None
-        return json.dumps({"path": org_uuid, "body": fhir_organisation.model_dump()})
+        return json.dumps(
+            {
+                "path": org_uuid,
+                "body": fhir_organisation.model_dump(),
+                "correlation_id": correlation_id,
+            }
+        )
 
     except Exception as e:
         ods_processor_logger.log(
@@ -97,17 +105,15 @@ def process_organisation(ods_code: str) -> str | None:
         return None
 
 
-@ods_processor_logger.inject_lambda_context(
-    correlation_id_path=correlation_paths.VPC_LATTICE,
-    log_event=True,
-    clear_state=True,
-)
-@tracer.capture_lambda_handler
 def processor_lambda_handler(event: dict, context: any) -> dict:
     """
     Lambda handler for triggering the processor with a date parameter.
     """
     try:
+        correlation_id = generate_correlation_id()
+        set_correlation_id(correlation_id)
+        ods_processor_logger.append_keys(correlation_id=correlation_id)
+
         date = event.get("date")
         if not date:
             return _error_response(400, "Date parameter is required")

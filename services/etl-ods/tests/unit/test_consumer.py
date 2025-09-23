@@ -1,10 +1,8 @@
 import logging
 from http import HTTPStatus
-from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
-from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests_mock import Mocker as RequestsMock
 
@@ -14,32 +12,30 @@ from pipeline.consumer import (
     process_message_and_send_request,
 )
 
+# @pytest.fixture
+# def mock_lambda_context() -> LambdaContext:
+#     """Mock Lambda context for testing."""
+#     context = LambdaContext()
+#     context._function_name = "test-function"
+#     context._function_version = "LATEST"
+#     context._invoked_function_arn = "test-function"
+#     context._memory_limit_in_mb = 1
+#     context._aws_request_id = "test-request-id"
+#     context._log_group_name = "/aws/lambda/test-function"
+#     context._log_stream_name = "test-stream"
+#     return context
 
-@pytest.fixture
-def mock_lambda_context() -> LambdaContext:
-    """Mock Lambda context for testing."""
-    context = LambdaContext()
-    context._function_name = "test-function"
-    context._function_version = "LATEST"
-    context._invoked_function_arn = "test-function"
-    context._memory_limit_in_mb = 1
-    context._aws_request_id = "test-request-id"
-    context._log_group_name = "/aws/lambda/test-function"
-    context._log_stream_name = "test-stream"
-    return context
 
-
-@pytest.fixture(autouse=True)
-def mock_tracer() -> Generator[MagicMock, None, None]:
-    with patch("pipeline.consumer.tracer") as mock_tracer:
-        mock_tracer.capture_lambda_handler.return_value = lambda f: f
-        yield mock_tracer
+# @pytest.fixture(autouse=True)
+# def mock_tracer() -> Generator[MagicMock, None, None]:
+#     with patch("pipeline.consumer.tracer") as mock_tracer:
+#         mock_tracer.capture_lambda_handler.return_value = lambda f: f
+#         yield mock_tracer
 
 
 @patch("pipeline.consumer.process_message_and_send_request")
 def test_consumer_lambda_handler_success(
     mock_process_message: MagicMock,
-    mock_lambda_context: LambdaContext,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     event = {
@@ -49,7 +45,7 @@ def test_consumer_lambda_handler_success(
         ]
     }
 
-    response = consumer_lambda_handler(event, mock_lambda_context)
+    response = consumer_lambda_handler(event, {})
 
     assert response["batchItemFailures"] == []
     assert str(mock_process_message.call_count) == "2"
@@ -77,10 +73,8 @@ def test_consumer_lambda_handler_success(
 
 
 @patch("pipeline.consumer.process_message_and_send_request")
-def test_consumer_lambda_handler_no_event_data(
-    mock_process_message: MagicMock, mock_lambda_context: LambdaContext
-) -> None:
-    consumer_lambda_handler({}, mock_lambda_context)
+def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) -> None:
+    consumer_lambda_handler({}, {})
 
     assert str(mock_process_message.call_count) == "0"
 
@@ -88,7 +82,6 @@ def test_consumer_lambda_handler_no_event_data(
 @patch("pipeline.consumer.process_message_and_send_request")
 def test_consumer_lambda_handler_failure(
     mock_process_message: MagicMock,
-    mock_lambda_context: LambdaContext,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     event = {
@@ -100,7 +93,7 @@ def test_consumer_lambda_handler_failure(
 
     mock_process_message.side_effect = [Exception("Test exception"), None]
 
-    response = consumer_lambda_handler(event, mock_lambda_context)
+    response = consumer_lambda_handler(event, {})
 
     assert response["batchItemFailures"] == [{"itemIdentifier": "1"}]
     assert str(mock_process_message.call_count) == "2"
@@ -140,7 +133,6 @@ def test_consumer_lambda_handler_failure(
 def test_consumer_lambda_handler_handle_missing_message_parameters(
     path: str,
     body: dict,
-    mock_lambda_context: LambdaContext,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     event = {
@@ -153,7 +145,7 @@ def test_consumer_lambda_handler_handle_missing_message_parameters(
         ]
     }
 
-    consumer_lambda_handler(event, mock_lambda_context)
+    consumer_lambda_handler(event, {})
 
     assert any(
         record.levelname == "WARNING"
