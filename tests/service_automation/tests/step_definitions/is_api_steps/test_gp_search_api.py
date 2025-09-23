@@ -1,6 +1,7 @@
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
+from step_definitions.common_steps.api_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
 
@@ -85,34 +86,16 @@ def api_json_key_value(fresponse, key, value):
     assert response[key] == value
 
 
-@then(parsers.parse('the response body contains an "{resource_type}" resource'))
-def api_check_resource_type(fresponse, resource_type):
-    response = fresponse.json()
-    assert response["resourceType"] == resource_type
-
-
 @then(parsers.parse('the resource has an id of "{resource_id}"'))
 def api_check_resource_id(fresponse, resource_id):
     response = fresponse.json()
     assert response["id"] == resource_id
 
 
-@then(parsers.parse('the OperationOutcome contains an issue with {key} "{value}"'))
-def api_check_operation_outcome_any_issue_diagnostics(fresponse, key, value):
-    response = fresponse.json()
-    assert any(issue.get(key) == value for issue in response["issue"])
-
-
 @then(parsers.parse('the OperationOutcome has issues all with {key} "{value}"'))
 def api_check_operation_outcome_all_issue_diagnostics(fresponse, key, value):
     response = fresponse.json()
     assert all(issue.get(key) == value for issue in response["issue"])
-
-
-@then(parsers.parse('the OperationOutcome contains "{number:d}" issues'))
-def api_check_operation_outcome_issue_count(fresponse, number):
-    response = fresponse.json()
-    assert len(response["issue"]) == number
 
 
 @then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding'))
