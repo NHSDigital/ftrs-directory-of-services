@@ -24,7 +24,7 @@ from organisations.app.router import organisation
 
 crud_organisation_logger = Logger.get(service="crud_organisation_logger")
 app = FastAPI(title="Organisations API")
-app.add_middleware(PowertoolsCorrelationIdMiddleware)
+app.add_middleware(PowertoolsCorrelationIdMiddleware, logger=crud_organisation_logger)
 app.add_middleware(FHIRContentTypeMiddleware)
 app.add_middleware(FHIRAcceptHeaderMiddleware)
 app.add_middleware(ResponseLoggingMiddleware)

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 import requests
 from aws_lambda_powertools.logging import correlation_paths
+from aws_lambda_powertools.tracing import Tracer
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
@@ -19,6 +20,7 @@ from .transform import transform_to_payload
 MAX_DAYS_PAST = 185
 BATCH_SIZE = 10
 ods_processor_logger = Logger.get(service="ods_processor")
+tracer = Tracer()
 
 
 def processor(date: str) -> None:
@@ -100,6 +102,7 @@ def process_organisation(ods_code: str) -> str | None:
     log_event=True,
     clear_state=True,
 )
+@tracer.capture_lambda_handler
 def processor_lambda_handler(event: dict, context: any) -> dict:
     """
     Lambda handler for triggering the processor with a date parameter.

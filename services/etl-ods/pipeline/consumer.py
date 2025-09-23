@@ -3,16 +3,14 @@ from http import HTTPStatus
 
 import requests
 from aws_lambda_powertools.logging import correlation_paths
+from aws_lambda_powertools.tracing import Tracer
 from ftrs_common.logger import Logger
-from ftrs_common.utils.correlation_id import (
-    correlation_id_context,
-    generate_correlation_id,
-)
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.utilities import get_base_apim_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
+tracer = Tracer()
 
 
 @ods_consumer_logger.inject_lambda_context(
@@ -20,6 +18,7 @@ ods_consumer_logger = Logger.get(service="ods_consumer")
     log_event=True,
     clear_state=True,
 )
+@tracer.capture_lambda_handler
 def consumer_lambda_handler(event: dict, context: any) -> dict:
     if event:
         ods_consumer_logger.log(
@@ -68,13 +67,13 @@ def process_message_and_send_request(record: dict) -> None:
 
     message_id = record["messageId"]
 
-    correlation_id = generate_correlation_id()
+    # correlation_id = generate_correlation_id()
 
-    # Use context manager to set correlation ID for this scope
-    with correlation_id_context(correlation_id):
-        ods_consumer_logger.append_keys(
-            message_id=message_id, correlation_id=correlation_id
-        )
+    # # Use context manager to set correlation ID for this scope
+    # with correlation_id_context(correlation_id):
+    #     ods_consumer_logger.append_keys(
+    #         message_id=message_id, correlation_id=correlation_id
+    #     )
 
     if not path or not body:
         err_msg = ods_consumer_logger.log(
