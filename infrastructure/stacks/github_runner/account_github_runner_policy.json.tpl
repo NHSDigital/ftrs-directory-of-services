@@ -142,6 +142,16 @@
                 "iam:ListPolicies"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "WAFFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "waf:*",
+                "wafv2:*",
+                "waf-regional:*"
+            ],
+            "Resource": "*"
         }
     ]
 }
