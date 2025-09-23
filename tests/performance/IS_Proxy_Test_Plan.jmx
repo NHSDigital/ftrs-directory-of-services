@@ -18,7 +18,7 @@
         <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
       </ConfigTestElement>
       <hashTree/>
-      <CacheManager guiclass="CacheManagerGui" testclass="CacheManager" testname="Plan HTTP Cache Manager">
+      <CacheManager guiclass="CacheManagerGui" testclass="CacheManager" testname="Plan HTTP Cache Manager" enabled="true">
         <boolProp name="clearEachIteration">true</boolProp>
         <boolProp name="useExpires">true</boolProp>
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
@@ -37,7 +37,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Transaction Controller">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Transaction Controller" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
@@ -148,7 +148,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">content-type</stringProp>
@@ -164,7 +164,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </JSONPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">/dos-search/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -175,7 +175,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
               <stringProp name="delimiter">,</stringProp>
               <stringProp name="fileEncoding"></stringProp>
               <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -187,7 +187,7 @@ public static String readFileContent(Path filePath) throws IOException {
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">Authorization</stringProp>
@@ -196,7 +196,7 @@ public static String readFileContent(Path filePath) throws IOException {
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="false">
               <collectionProp name="Arguments.arguments"/>
             </Arguments>
             <hashTree/>
@@ -206,8 +206,14 @@ public static String readFileContent(Path filePath) throws IOException {
           </ConstantTimer>
           <hashTree/>
         </hashTree>
+        <DebugSampler guiclass="TestBeanGUI" testclass="DebugSampler" testname="Debug Sampler">
+          <boolProp name="displayJMeterProperties">true</boolProp>
+          <boolProp name="displayJMeterVariables">true</boolProp>
+          <boolProp name="displaySystemProperties">true</boolProp>
+        </DebugSampler>
+        <hashTree/>
       </hashTree>
-      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
+      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="false">
         <collectionProp name="UserParameters.names">
           <stringProp name="1974762314">ServiceEndpoint</stringProp>
           <stringProp name="1044343873">Apim_Env</stringProp>
@@ -271,6 +277,49 @@ public static String readFileContent(Path filePath) throws IOException {
           </elementProp>
         </collectionProp>
       </Arguments>
+      <hashTree/>
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+        <stringProp name="scriptLanguage">groovy</stringProp>
+        <stringProp name="parameters">${pp_apim_env},${__CSVRead(parameter_files/plan_params.csv,3)}</stringProp>
+        <stringProp name="filename"></stringProp>
+        <stringProp name="cacheKey">false</stringProp>
+        <stringProp name="script">
+def kid = props.get(&quot;kid&quot;)
+if (kid == null || kid == &quot;&quot;) {
+  kid = vars.get(&quot;pp_kid&quot;)
+}
+vars.put(&quot;Kid&quot;, kid)
+
+
+def Apim_Env = props.get(&quot;apim_env&quot;)
+if (Apim_Env == null || Apim_Env == &quot;&quot;) {
+    Apim_Env = vars.get(&quot;pp_apim_env&quot;)
+}
+
+OUT.println(&quot;this is the apim env &quot;+Apim_Env)
+vars.put(&quot;Apim_Env&quot;, Apim_Env)
+log.info(args[0])
+
+def apikey = props.get(&quot;apikey&quot;)
+if (apikey == null || apikey == &quot;&quot;) {
+    apikey = vars.get(&quot;pp_apikey&quot;)
+}
+vars.put(&quot;ApiKey&quot;, apikey)
+
+</stringProp>
+      </JSR223PreProcessor>
+      <hashTree/>
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
+        <stringProp name="filename">parameter_files/plan_params.csv</stringProp>
+        <stringProp name="fileEncoding"></stringProp>
+        <stringProp name="variableNames">pp_endpoint,pp_apim_env,pp_apikey,pp_kid</stringProp>
+        <boolProp name="ignoreFirstLine">false</boolProp>
+        <stringProp name="delimiter">,</stringProp>
+        <boolProp name="quotedData">false</boolProp>
+        <boolProp name="recycle">true</boolProp>
+        <boolProp name="stopThread">false</boolProp>
+        <stringProp name="shareMode">shareMode.all</stringProp>
+      </CSVDataSet>
       <hashTree/>
     </hashTree>
   </hashTree>
