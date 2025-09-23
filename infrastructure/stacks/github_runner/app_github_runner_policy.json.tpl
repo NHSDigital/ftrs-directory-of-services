@@ -149,8 +149,7 @@
                         "scheduler.amazonaws.com",
                         "pipes.amazonaws.com",
                         "osis-pipelines.amazonaws.com",
-                        "rds.amazonaws.com",
-                        "dms.amazonaws.com"
+                        "rds.amazonaws.com"
                     ]
                 }
             }
