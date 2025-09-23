@@ -21,3 +21,9 @@ flow_log_destination_type    = "s3"
 flow_log_file_format         = "parquet"
 flow_log_s3_versioning       = false
 flow_logs_s3_expiration_days = 10
+
+# WAF
+waf_name            = "frontend-waf-web-acl"
+waf_scope           = "CLOUDFRONT"
+waf_log_group       = "web-acl-logs"
+waf_log_group_class = "STANDARD"
