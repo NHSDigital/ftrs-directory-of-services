@@ -52,7 +52,7 @@ def process_message_and_send_request(record: dict) -> None:
         body_content = json.loads(json.loads(record.get("body")))
         path = body_content.get("path")
         body = body_content.get("body")
-        correlation_id = record.get("correlation_id")  # Extract from message
+        correlation_id = body_content.get("correlation_id")
 
     else:
         path = record.get("path")

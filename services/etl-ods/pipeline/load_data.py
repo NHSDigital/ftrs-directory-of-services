@@ -3,6 +3,7 @@ import os
 
 import boto3
 from ftrs_common.logger import Logger
+from ftrs_common.utils.correlation_id import get_correlation_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_processor_logger = Logger.get(service="ods_processor")
@@ -35,6 +36,10 @@ def get_queue_url(queue_name: str, sqs: any) -> any:
 
 def load_data(transformed_data: list[str]) -> None:
     try:
+        correlation_id = get_correlation_id()
+        if correlation_id:
+            ods_processor_logger.append_keys(correlation_id=correlation_id)
+
         batch = []
         for index, item in enumerate(transformed_data, start=1):
             batch.append({"Id": str(index), "MessageBody": json.dumps(item)})
