@@ -5,7 +5,7 @@ resource "aws_scheduler_schedule_group" "etl_schedule_group" {
 }
 
 
-
+# checkov:skip=CKV_AWS_297: TODO Determine if we need a KMS key for Scheduler
 resource "aws_scheduler_schedule" "ods_etl_schedule" {
   name        = "${local.resource_prefix}-ods-etl-schedule${local.workspace_suffix}"
   group_name  = aws_scheduler_schedule_group.etl_schedule_group.name
