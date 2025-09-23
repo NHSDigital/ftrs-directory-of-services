@@ -4,11 +4,14 @@ from datetime import datetime, timezone
 import requests
 from aws_lambda_powertools.tracing import Tracer
 from ftrs_common.logger import Logger
-from ftrs_common.utils.correlation_id import set_correlation_id
+from ftrs_common.utils.correlation_id import (
+    generate_correlation_id,
+    get_correlation_id,
+    set_correlation_id,
+)
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import load_data
-from pipeline.utilities import generate_correlation_id, get_correlation_id
 
 from .extract import (
     extract_ods_code,
