@@ -38,3 +38,9 @@ data "aws_iam_policy_document" "execute_api_policy" {
     ]
   }
 }
+
+data "aws_wafv2_web_acl" "waf_web_acl" {
+  name     = "${var.project}-${var.environment}-account-wide-${var.waf_name}"
+  scope    = var.waf_scope
+  provider = aws.us-east-1
+}
