@@ -17,3 +17,8 @@ vpc = {
 
 enable_flow_log           = true
 flow_log_s3_force_destroy = true
+
+# Single NAT Gateway
+enable_nat_gateway     = true
+single_nat_gateway     = true
+one_nat_gateway_per_az = false

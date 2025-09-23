@@ -26,11 +26,11 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
   endpoint_id   = "${local.resource_prefix}-etl-source"
   endpoint_type = "source"
   engine_name   = var.dms_engine
-  username      = aws_secretsmanager_secret_version.rds_username[0].secret_string
-  password      = aws_secretsmanager_secret_version.rds_password[0].secret_string
-  server_name   = module.rds[0].cluster_endpoint
-  port          = var.rds_port
+  ssl_mode      = "require"
   database_name = var.source_rds_database
+
+  secrets_manager_arn             = aws_secretsmanager_secret.source_rds_credentials[0].arn
+  secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access[0].arn
 }
 
 resource "aws_dms_endpoint" "dms_target_endpoint" {
@@ -40,11 +40,11 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
   endpoint_id   = "${local.resource_prefix}-etl-target"
   endpoint_type = "target"
   engine_name   = var.dms_engine
-  username      = aws_secretsmanager_secret_version.rds_username[0].secret_string
-  password      = aws_secretsmanager_secret_version.rds_password[0].secret_string
   server_name   = module.rds_replication_target_db[0].cluster_endpoint
-  port          = var.rds_port
   database_name = var.target_rds_database
+
+  secrets_manager_arn             = aws_secretsmanager_secret.target_rds_credentials[0].arn
+  secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access[0].arn
 }
 
 resource "aws_dms_replication_task" "dms_full_replication_task" {

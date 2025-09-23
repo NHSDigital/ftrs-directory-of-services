@@ -98,3 +98,24 @@ resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
     dbname   = var.target_rds_database
   })
 }
+
+resource "aws_secretsmanager_secret" "replica_rds_credentials" {
+  # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  count = local.is_primary_environment ? 1 : 0
+
+  name = "/${var.project}/${var.environment}/${var.replica_rds_credentials}"
+}
+
+resource "aws_secretsmanager_secret_version" "replica_rds_credentials" {
+  count = local.is_primary_environment ? 1 : 0
+
+  secret_id = aws_secretsmanager_secret.replica_rds_credentials[0].id
+  secret_string = jsonencode({
+    host     = module.rds[0].cluster_endpoint,
+    port     = var.rds_port,
+    username = aws_secretsmanager_secret_version.rds_username[0].secret_string,
+    password = aws_secretsmanager_secret_version.rds_password[0].secret_string,
+    dbname   = var.replica_rds_database
+  })
+}

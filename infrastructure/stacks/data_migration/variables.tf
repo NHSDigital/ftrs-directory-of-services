@@ -27,6 +27,11 @@ variable "source_rds_database" {
   type        = string
 }
 
+variable "replica_rds_database" {
+  description = "The name of the read replica RDS database"
+  type        = string
+}
+
 variable "rds_engine" {
   description = "The engine for the RDS instance"
   type        = string
@@ -306,6 +311,11 @@ variable "dms_user_password" {
 
 variable "source_rds_credentials" {
   description = "The secrets manager name for the source RDS credentials"
+  type        = string
+}
+
+variable "replica_rds_credentials" {
+  description = "The secrets manager name for the replica RDS credentials"
   type        = string
 }
 

@@ -1,7 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
 from loguru import logger
-import json
 
 class ApiGatewayToService:
     """

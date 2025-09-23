@@ -1,5 +1,3 @@
-"""
-
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
@@ -10,8 +8,11 @@ from utilities.infra.dns_util import wait_for_dns
 # Load feature file
 scenarios("./crud_api_features/healthcare_service_api.feature")
 
+
 @when(
-    parsers.re(r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)"'),
+    parsers.re(
+        r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)"'
+    ),
     target_fixture="fresponse",
 )
 def send_get(api_request_context_mtls_crud, api_name, resource_name):
@@ -19,6 +20,7 @@ def send_get(api_request_context_mtls_crud, api_name, resource_name):
     # Handle None or empty params
     response = api_request_context_mtls_crud.get(url)
     return response
+
 
 @then(parsers.parse('I receive a status code "{status_code:d}" in response'))
 def status_code(fresponse, status_code):
@@ -37,7 +39,7 @@ def api_error_message(fresponse, error_message):
     assert response["issue"][0]["details"]["text"] == (error_message)
 
 
-@then('the response body contains a bundle')
+@then("the response body contains a bundle")
 def api_check_bundle(fresponse):
     response = fresponse.json()
     assert response["resourceType"] == "Bundle"
@@ -54,4 +56,3 @@ def count_resources(lambda_response, resource_type):
         entry.get("resource", {}).get("resourceType") == resource_type
         for entry in lambda_response.get("entry", [])
     )
-"""

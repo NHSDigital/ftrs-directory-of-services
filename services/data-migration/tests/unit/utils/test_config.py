@@ -29,7 +29,7 @@ def test_db_config_successful() -> None:
         == "DatabaseConfig(host=host, port=5432, username=username, password=****, dbname=dbname)"
     )
 
-    assert db_config.source_db_credentials() == "source-rds-credentials"
+    assert db_config.source_db_credentials() == "replica-rds-credentials"
 
 
 def test_db_config_from_uri() -> None:
@@ -64,7 +64,7 @@ def test_db_config_from_secretsmanager(mocker: MockerFixture) -> None:
 
     db_config = DatabaseConfig.from_secretsmanager()
 
-    mock_get_secret.assert_called_once_with("source-rds-credentials", transform="json")
+    mock_get_secret.assert_called_once_with("replica-rds-credentials", transform="json")
 
     assert db_config.host == "host"
     assert db_config.port == POSTGRES_DEFAULT_PORT
