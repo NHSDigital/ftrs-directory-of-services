@@ -1,12 +1,15 @@
 import pytest
 import boto3
-from typing import Generator, Any
+from typing import Generator
+from loguru import logger
 
 from sqlalchemy import text, MetaData
 from testcontainers.postgres import PostgresContainer
 from testcontainers.localstack import LocalStackContainer
 from sqlmodel import create_engine, SQLModel, Session
 from ftrs_data_layer.domain import legacy
+from utilities.common.rds_data import gp_service
+from utilities.common.dynamoDB_tables import dynamodb_tables
 
 
 # Session-scoped containers (keep these as session-scoped for efficiency)
@@ -47,7 +50,7 @@ def _cleanup_database(engine):
             conn.commit()
     except Exception as e:
         # Log error but don't fail the test
-        print(f"Warning: Failed to cleanup database: {e}")
+        logger.error(f"Warning: Failed to cleanup database: {e}")
 
 
 # Change scope to "function" to create new DB connection for each test
@@ -123,53 +126,8 @@ def fixture_dynamodb(localstack_container: LocalStackContainer) -> Generator[dic
 
 
 def _seed_gp_organisations(session: Session) -> None:
-    """Seed database with GP organisation test data."""
-    gp_organisations = [
-        legacy.Service(
-            id=1,
-            uid="service-1",  # Add required uid field
-            name="Greenway Medical Centre",
-            typeid=1,  # Add required typeid field
-            openallhours=False,
-            restricttoreferrals=False,
-            postcode="SW1A 1AA",
-            address="123 Medical Street",
-            town="London",
-            web="https://greenwaymedical.nhs.uk",
-            email="enquiries@greenwaymedical.nhs.uk",
-            publicphone="020 7946 0958",
-        ),
-        legacy.Service(
-            id=2,
-            uid="service-2",  # Add required uid field
-            name="Riverside Health Centre",
-            typeid=1,  # Add required typeid field
-            openallhours=False,
-            restricttoreferrals=False,
-            postcode="M1 1AA",
-            address="456 River Road",
-            town="Manchester",
-            web="https://riversidehealth.nhs.uk",
-            email="reception@riversidehealth.nhs.uk",
-            publicphone="0161 496 0123",
-        ),
-        legacy.Service(
-            id=3,
-            uid="service-3",  # Add required uid field
-            name="Hillside Surgery",
-            typeid=1,  # Add required typeid field
-            openallhours=False,
-            restricttoreferrals=False,
-            postcode="B1 1AA",
-            address="789 Hill Avenue",
-            town="Birmingham",
-            web="https://hillsidesurgery.nhs.uk",
-            email="admin@hillsidesurgery.nhs.uk",
-            publicphone="0121 496 0789",
-        )
-    ]
-
-    for org in gp_organisations:
+    """Seed the database with GP organisations for testing."""
+    for org in gp_service:
         session.add(org)
 
     session.commit()
@@ -177,40 +135,7 @@ def _seed_gp_organisations(session: Session) -> None:
 
 def _create_dynamodb_tables(client) -> None:
     """Create DynamoDB tables for testing."""
-    tables = [
-        {
-            "TableName": "organisation",
-            "KeySchema": [
-                {"AttributeName": "id", "KeyType": "HASH"}
-            ],
-            "AttributeDefinitions": [
-                {"AttributeName": "id", "AttributeType": "S"}
-            ],
-            "BillingMode": "PAY_PER_REQUEST"
-        },
-        {
-            "TableName": "location",
-            "KeySchema": [
-                {"AttributeName": "id", "KeyType": "HASH"}
-            ],
-            "AttributeDefinitions": [
-                {"AttributeName": "id", "AttributeType": "S"}
-            ],
-            "BillingMode": "PAY_PER_REQUEST"
-        },
-        {
-            "TableName": "healthcare-service",
-            "KeySchema": [
-                {"AttributeName": "id", "KeyType": "HASH"}
-            ],
-            "AttributeDefinitions": [
-                {"AttributeName": "id", "AttributeType": "S"}
-            ],
-            "BillingMode": "PAY_PER_REQUEST"
-        }
-    ]
-
-    for table_config in tables:
+    for table_config in dynamodb_tables:
         try:
             client.create_table(**table_config)
             waiter = client.get_waiter('table_exists')
@@ -231,7 +156,7 @@ def _cleanup_dynamodb_tables(client) -> None:
                 waiter.wait(TableName=table_name)
             except Exception as e:
                 # Log error but continue with other tables
-                print(f"Warning: Failed to delete table {table_name}: {e}")
+                logger(f"Warning: Failed to delete table {table_name}: {e}")
     except Exception as e:
         # Log error but don't fail the test
         print(f"Warning: Failed to cleanup DynamoDB tables: {e}")
