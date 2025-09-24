@@ -100,6 +100,7 @@
                 "iam:Get*",
                 "iam:CreateRole",
                 "iam:DeleteRole",
+                "iam:PassRole",
                 "iam:CreateServiceLinkedRole",
                 "iam:DeleteServiceLinkedRole",
                 "iam:CreatePolicy",
@@ -115,7 +116,8 @@
                 "iam:TagPolicy",
                 "iam:UntagPolicy",
                 "iam:TagOpenIDConnectProvider",
-                "iam:UpdateOpenIDConnectProviderThumbprint"
+                "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:UpdateAssumeRolePolicy"
             ],
             "Resource": [
                 "arn:aws:iam::*:role/${repo_name}-*",
