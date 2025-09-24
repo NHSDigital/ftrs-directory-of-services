@@ -30,8 +30,8 @@ def _get_api_key() -> str:
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
         return os.environ["LOCAL_API_KEY"]
     try:
-        resource_prefix = get_resource_prefix()
-        secret_name = f"/ftrs-dos/internal-qa/apim-api-key"
+        # resource_prefix = get_resource_prefix()
+        secret_name = "/ftrs-dos/internal-qa/apim-api-key"
         client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
         response = client.get_secret_value(SecretId=secret_name)
         secret = response["SecretString"]
