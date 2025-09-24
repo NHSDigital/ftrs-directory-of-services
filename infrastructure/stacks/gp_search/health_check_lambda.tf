@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
       "dynamodb:DescribeTable",
     ]
     resources = [
-      local.gp_search_organisation_table_arn
+      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}*"
     ]
   }
 }

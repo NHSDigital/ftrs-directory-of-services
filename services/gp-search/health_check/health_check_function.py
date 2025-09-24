@@ -1,10 +1,11 @@
+from aws_lambda_powertools import Logger
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
-from mypy_boto3_dynamodb import DynamoDBServiceResource
 
 app = APIGatewayRestResolver()
+logger = Logger(service="gp-search-health")
 
 
 @app.get("/_status")
@@ -17,9 +18,14 @@ def get_status() -> Response:
 def _is_table_active() -> bool:
     try:
         repository = get_service_repository(Organisation, "organisation")
-        table: DynamoDBServiceResource.Table = repository.table
+        table = repository.table
         table_status: str = table.table_status
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "Health check failed",
+            exception_type=exc.__class__.__name__,
+            exception=str(exc),
+        )
         return False
     else:
         return table_status == "ACTIVE"
