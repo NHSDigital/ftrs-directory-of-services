@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.source_rds_credentials}-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.replica_rds_credentials}-*"
     ]
   }
 }
