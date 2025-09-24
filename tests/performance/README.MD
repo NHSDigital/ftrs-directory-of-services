@@ -32,7 +32,7 @@ make install
 ## Test Configuration
 
 ### GUI setup
-To be able to run a test plan from the GUI you will need to create a csv file called plan_params.csv that contains 3 data items
+To be able to run a test plan from the GUI you will need to create a csv file called plan_params.csv that contains 4 data items. These 4 items are required to be able to run any of the test plans
 ```
 internal R53 endpoint address, APIM Env address , APIM API Key, kid name
 
@@ -65,11 +65,29 @@ jmeter
 ```
 
 ## Running the test plan
+Example parameter values:
+PLAN_NAME = IS_Proxy_Test_Plan or IS_Test_Plan
+SERVICEENDPOINT = test.dev.ftrs.cloud.nhs.uk
+APIM_ENV = internal-dev
+APIKEY = tr24234yyr2342
+KID = my-kid
+
+Store the pem file that corresponds to the APIKEY and KID in /parameter_files
 
 ### From command line and sending a mtls pfx file
 
 ```
-jmeter -n -t IS_Test_Plan.jmx -f -l result.jtl -e -o "report"  -J serviceendpoint=<endpoint> -D javax.net.ssl.keyStore="<full path to pfx file>" -D javax.net.ssl.keyStorePassword='<password for pfx file>'
+jmeter -n -t IS_Test_Plan.jmx -f -l result.jtl -e -o "report"  -J serviceendpoint=<endpoint> -D javax.net.ssl.keyStore="<full paths to pfx file>" -D javax.net.ssl.keyStorePassword='<password for pfx file>'
+```
+
+### From command line and sending a request with a JWT token
+
+The *Generate JWT Token - JSR223 PreProcessor* generates a JWT token based on the provided KID and API Key.
+This is then passed to *Get Bearer Token* request a bearer token to be sent in the request header
+
+
+```
+jmeter -n -t IS_Proxy_Test_Plan.jmx -f -l result.jtl -e -o "report" -J apim_env=<apim_env>  -J apikey=<apikey> -J kid=<kid>
 ```
 
 To generate a dashboard report in the folder reports based on the result.jtl file generated when the test plan ran

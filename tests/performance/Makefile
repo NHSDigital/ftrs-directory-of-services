@@ -13,6 +13,7 @@ install: config
 config:
 	make _install-dependencies
 	make install-jmeter-plugins
+	make install-jmeter-dependencies
 
 install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required plugins
 	echo "Installing jmeter plugin manager"
@@ -27,9 +28,17 @@ install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required pl
 	echo "Installing jmeter plugins"
 	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional
 
-performance-test: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [TEST_DATA=name of performance test data jtl file]
+install-jmeter-dependencies: ## Installs jmeter dependencies
+	echo "Installing jmeter dependencies"
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/auth0/java-jwt/4.5.0/java-jwt-4.5.0.jar
+
+performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs]
 	echo "running performance tests against ${PLAN_NAME}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l ${TEST_DATA}.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}"
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}";
+
+performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy][APIKEY=API key for APIM proxy [KID=Name of key for JWT token]
+	echo "running performance tests against ${PLAN_NAME}..."
+	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J apikey=${APIKEY} -J kid=${KID} -f -l result.jtl -e -o "report" ;
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
