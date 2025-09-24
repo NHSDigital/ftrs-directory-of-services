@@ -24,6 +24,12 @@ class GPPracticeTransformer(ServiceTransformer):
 
     Filter criteria:
     - The service must be active
+
+    Note on potential GP Practice misclassification:
+    A SAS could be mistaken for a GP Practice if:
+    - It has Typeid = 100, Status = Active, and a valid ODSCode (same format as GP Practices)
+    To avoid misclassification, if the GP Practice transformer is chosen, the criteria must also:
+    - Exclude orgs that match SAS filters, by excluding names with "SAS" or "Special Allocation Scheme"
     """
 
     def transform(
@@ -33,7 +39,6 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
-        organisation.name = self.clean_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -57,6 +62,10 @@ class GPPracticeTransformer(ServiceTransformer):
         """
         Check if the service is a GP practice.
         """
+        name = (service.name or "").upper()
+        if "SAS" in name or "SPECIAL ALLOCATION SCHEME" in name:
+            return False, "Service name fits GP Special Allocation Scheme criteria"
+
         if service.typeid != cls.GP_PRACTICE_TYPE_ID:
             return False, "Service type is not GP Practice (100)"
 
@@ -79,9 +88,3 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
-
-    @classmethod
-    def clean_name(cls, publicname: str) -> str:
-        if publicname:
-            return publicname.split("-", maxsplit=1)[0].rstrip()
-        raise ValueError("publicname is not set")

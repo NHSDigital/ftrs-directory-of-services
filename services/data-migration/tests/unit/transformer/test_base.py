@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime, time
+from uuid import UUID
 
 import pytest
 from freezegun import freeze_time
@@ -89,7 +90,7 @@ def test_service_transformer_build_organisation(
 
     assert isinstance(result, Organisation)
     assert result == Organisation(
-        id="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        id="4aa7403f-b143-596c-85d5-7da8190d8530",
         name="Test Service",
         type="GP Practice",
         active=True,
@@ -113,7 +114,7 @@ def test_service_transformer_build_organisation(
                 description="Primary",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="http://example.com/endpoint",
-                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                managedByOrganisation="4aa7403f-b143-596c-85d5-7da8190d8530",
                 service=None,
                 order=1,
                 isCompressionEnabled=True,
@@ -132,7 +133,7 @@ def test_service_transformer_build_organisation(
                 description="Copy",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="mailto:test@example.com",
-                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                managedByOrganisation="4aa7403f-b143-596c-85d5-7da8190d8530",
                 service=None,
                 order=2,
                 isCompressionEnabled=False,
@@ -473,6 +474,14 @@ def test_build_healthcare_service(
             ),
         ],
     )
+
+    assert mock_logger.get_log("DM_ETL_017") == [
+        {
+            "msg": "Healthcare service has opening times with service id: 903cd48b-5d0f-532f-94f4-937a4517b14d",
+            "reference": "DM_ETL_017",
+            "detail": {"service_id": UUID("903cd48b-5d0f-532f-94f4-937a4517b14d")},
+        }
+    ]
 
 
 def test_build_opening_times(
