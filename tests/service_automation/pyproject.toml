@@ -53,7 +53,7 @@ markers = [
     "ui: mark test as UI test",
     "is-api: mark test as IS API test",
     "is-infra: mark test as IS infra test",
-    "is-pipeline: mark test to be run in the IS pipeline",
+    "ftrs-pipeline: mark test to be run in the IS pipeline",
     "is-lambda: marks test as IS lambda related",
     "is-s3: marks test as IS S3 related",
     "gp-search-api: marks test as gp search related",
@@ -63,7 +63,8 @@ markers = [
     "crud-healthcare-service-api: marks test as CRUD API for endpoint HealthcareService test",
     "crud-location-api: marks test as CRUD API for endpoint Location test",
     "test-db-fixture: marks test as using the test db fixture",
-
+    "db-dos: marks test as using the DOS db fixture",
+    "dynamodb: marks test as using the DynamoDB fixture",
 ]
 filterwarnings = [
     'ignore:.*datetime.datetime.utcnow*',

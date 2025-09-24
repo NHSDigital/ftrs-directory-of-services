@@ -46,7 +46,7 @@ def then_can_access_dynamodb_tables(dynamodb):
 
     # Verify our test tables exist
     table_names = response["TableNames"]
-    expected_tables = ["organisation", "location", "healthcare-service"]
+    expected_tables = ["organisation", "location", "healthcare-service","triage-code"]
 
     for table_name in expected_tables:
         assert table_name in table_names, f"Expected table '{table_name}' should exist"
