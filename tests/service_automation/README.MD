@@ -96,7 +96,7 @@ This dotenv file will be automatically loaded when running the tests.
 The workspace is defined as:
 
 ```shell
-WORKSPACE=default # when running against the main branch
+WORKSPACE= # when running against the main branch
 WORKSPACE=dr-xxx  # when running against task branch dr-xxx
 ```
 

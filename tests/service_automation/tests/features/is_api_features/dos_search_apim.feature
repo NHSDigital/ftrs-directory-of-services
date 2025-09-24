@@ -1,4 +1,4 @@
-@is-api @ftrs-pipeline @gp-search-api
+@is-api @manual @gp-search-api
 @nhsd_apim_authorization(access="application",level="level3")
 Feature: API DoS Service Search APIM
 
@@ -7,7 +7,7 @@ Feature: API DoS Service Search APIM
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-@test
+
   Scenario: I can access APIM for the 'ping' Endpoint and no access is required
     When I request data from the APIM "servicesearch" endpoint "_ping" with "" query params and "no" access token
     Then I receive a status code "200" in response

@@ -150,10 +150,7 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
 def new_apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
     """Create a new Playwright API request context."""
     apim_headers = nhsd_apim_auth_headers
-    logger.info(f"_auth_headers : {nhsd_apim_auth_headers}")
-    logger.info(f"headers : {apim_headers}")
     apim_request_context = playwright.request.new_context( extra_http_headers = apim_headers,)
-    logger.info(f"apim_request_context : {apim_request_context}")
     yield apim_request_context
     apim_request_context.dispose()
 
@@ -300,9 +297,29 @@ def service_url_factory(apigee_environment: str):
     return _build_url
 
 
+@pytest.fixture(scope="session")
+def service_proxy_factory(apigee_environment: str):
+    """
+    Factory fixture to return service proxies based on environment and API name.
+    Args:
+        apigee_proxy (str): The Apigee proxy
+    """
+    def _build_proxy(api_name: str) -> str:
+        return f"{api_name}--{apigee_environment}--{api_name}_FHIR_R4"
+
+    return _build_proxy
+
+
+
 @pytest.fixture(scope="module")
 def dos_ingestion_service_url(service_url_factory, api_name="dos-ingestion"):
     return service_url_factory(api_name)
+
+
+@pytest.fixture(scope="module")
+def dos_search_service_proxy(service_proxy_factory, api_name="dos-search"):
+    logger.info(f"service_proxy_factory : {service_proxy_factory}")
+    return service_proxy_factory(api_name)
 
 
 @pytest.fixture(autouse=True)
@@ -338,3 +355,4 @@ def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
         return cast(Callable, marked)
     except (SyntaxError, AttributeError, ValueError):
         return None
+
