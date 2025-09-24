@@ -31,7 +31,7 @@ def _get_api_key() -> str:
         return os.environ["LOCAL_API_KEY"]
     try:
         resource_prefix = get_resource_prefix()
-        secret_name = f"/{resource_prefix}/apim-api-key"
+        secret_name = f"/ftrs-dos/internal-qa/apim-api-key"
         client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
         response = client.get_secret_value(SecretId=secret_name)
         secret = response["SecretString"]
