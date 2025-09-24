@@ -136,6 +136,9 @@ Or you can run tests for multiple markers
 make test MARKERS="is-api is-infra"
 ```
 
+### Running Data Migration tests
+make test MARKERS="data-migration"
+
 ### Running specific feature tests
 
 ```shell
