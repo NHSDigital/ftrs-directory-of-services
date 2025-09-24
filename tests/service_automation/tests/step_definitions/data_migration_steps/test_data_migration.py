@@ -12,4 +12,4 @@ def run_hello_world_test():
 
 @then("I see a hello world result in the output")
 def see_hello_world_result():
-    print("Data migration test ran successfully.")
+    print("Hello World!Data migration test ran successfully.")
