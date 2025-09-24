@@ -1,6 +1,6 @@
 from pytest_bdd import scenarios, given, when, then
 
-scenarios("../features/data_migration_features/hello_world.feature")
+scenarios("../features/data_migration_features/data_migration.feature")
 
 @given("the data migration system is ready")
 def data_migration_system_ready():
