@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
-from botocore.exceptions import ClientError
+
+# from botocore.exceptions import ClientError
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
