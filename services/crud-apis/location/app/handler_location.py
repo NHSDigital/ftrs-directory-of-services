@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from ftrs_common.api_middleware.correlation_id import CorrelationIdMiddleware
+from ftrs_common.api_middleware.correlation_id_middleware import CorrelationIdMiddleware
 from ftrs_common.logger import Logger
 from mangum import Mangum
 
