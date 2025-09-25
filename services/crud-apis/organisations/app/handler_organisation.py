@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from ftrs_common.api_middleware.correlation_id import CorrelationIdMiddleware
 from ftrs_common.api_middleware.fhir_type_middleware import (
     FHIRAcceptHeaderMiddleware,
     FHIRContentTypeMiddleware,
@@ -18,7 +19,6 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.fhir.operation_outcome_status_mapper import STATUS_CODE_MAP
 from ftrs_common.logger import Logger
-from ftrs_common.middlewaretemp.correlation_id import CorrelationIdMiddleware
 from mangum import Mangum
 
 from organisations.app.router import organisation
