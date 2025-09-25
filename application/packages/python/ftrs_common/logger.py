@@ -4,9 +4,7 @@ from enum import Enum
 from functools import cache
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
-from pipeline.utilities import get_correlation_id
-
-# from ftrs_common.utils.correlation_id import get_correlation_id
+from ftrs_common.utils.correlation_id import get_correlation_id
 
 
 @dataclass(frozen=True)
