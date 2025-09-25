@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timezone
 
 import requests
-from aws_lambda_powertools.tracing import Tracer
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import (
     generate_correlation_id,
@@ -24,7 +23,6 @@ from .transform import transform_to_payload
 MAX_DAYS_PAST = 185
 BATCH_SIZE = 10
 ods_processor_logger = Logger.get(service="ods_processor")
-tracer = Tracer()
 
 
 def processor(date: str) -> None:
