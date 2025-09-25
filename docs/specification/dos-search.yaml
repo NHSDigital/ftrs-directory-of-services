@@ -528,7 +528,7 @@ x-nhsd-apim:
     security:
       type: mtls
       # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
-      secret: dos-search-mtls-secret
+      secret: ftrs-service-search-mtls-secret
   access:
     - title: Application-restricted with Private Key JWT
       grants:
