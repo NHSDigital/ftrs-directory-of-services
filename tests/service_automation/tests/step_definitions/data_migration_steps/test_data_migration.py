@@ -10,6 +10,6 @@ def data_migration_system_ready():
 def run_hello_world_test():
     pass
 
-@then("I see a hello world result in the output")
+@then("I see a hello world result")
 def see_hello_world_result():
     print("Hello World!Data migration test ran successfully.")

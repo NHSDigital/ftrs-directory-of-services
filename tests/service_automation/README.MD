@@ -137,7 +137,10 @@ make test MARKERS="is-api is-infra"
 ```
 
 ### Running Data Migration tests
+
+```shell
 make test MARKERS="data-migration"
+```
 
 ### Running specific feature tests
 
