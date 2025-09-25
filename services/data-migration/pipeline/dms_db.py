@@ -1,49 +1,57 @@
-import logging
-import os
 from pathlib import Path
 
 import boto3
-from aws_lambda_powertools.utilities.parameters import get_secret
 from botocore.exceptions import ClientError
+from ftrs_common.logger import Logger
+from ftrs_data_layer.domain import legacy
+from pydantic import SecretStr
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
-# Set up logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from pipeline.utils.config import DatabaseConfig, DmsDatabaseConfig
 
-TABLE_NAME = "pathwaysdos.services"
-
-secrets_client = boto3.client("secretsmanager")
-rds_client = boto3.client("rds")
+LOGGER = Logger.get(service="DMS-DB-Trigger")
 
 
-def fetch_environment_variables() -> tuple[str, str, str, str]:
-    try:
-        target_rds_details = os.environ["TARGET_RDS_DETAILS"]
-        dms_user_details = os.environ["DMS_USER_DETAILS"]
-        trigger_lambda_arn = os.environ["TRIGGER_LAMBDA_ARN"]
-    except KeyError:
-        logger.exception("Missing environment variable")
-        raise
-    else:
-        return target_rds_details, dms_user_details, trigger_lambda_arn
+# Initialize config and fetch environment variables
+target_rds_details, dms_user_details, trigger_lambda_arn = (
+    DmsDatabaseConfig().get_values()
+)
 
 
-# Fetch environment variables
-target_rds_details, dms_user_details, trigger_lambda_arn = fetch_environment_variables()
+def get_sqlalchemy_engine_from_config(db_config: DatabaseConfig) -> Engine:
+    """Create and configure an SQLAlchemy engine from DatabaseConfig with optimized settings."""
+    return create_engine(
+        db_config.connection_string,
+        # Connection pool settings for better performance
+        pool_size=10,  # Number of connections to maintain in a pool
+        max_overflow=20,  # Additional connections beyond pool_size
+        pool_pre_ping=True,  # Validate connections before use
+        pool_recycle=3600,  # Recycle connections after 1 hour
+        # Connection timeout settings
+        connect_args={
+            "connect_timeout": 30,  # Connection timeout in seconds
+            "application_name": "dms_pipeline",  # Identify your application in pg_stat_activity
+        },
+        # Enable connection pooling optimizations
+        pool_reset_on_return="commit",  # Reset connections on return to pool
+    )
 
 
 def get_sqlalchemy_engine(
     host: str, db: str, user: str, password: str, port: int
 ) -> Engine:
-    url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
-    return create_engine(url)
+    """Create and configure an SQLAlchemy engine for PostgreSQL with optimized settings."""
+    # Create a DatabaseConfig instance and use the optimized function
+    db_config = DatabaseConfig(
+        host=host, port=port, username=user, password=SecretStr(password), dbname=db
+    )
+    return get_sqlalchemy_engine_from_config(db_config)
 
 
 def execute_rds_command(engine: Engine, rds_username: str, rds_password: str) -> None:
     try:
-        # Create a SQL command with password placeholder
+        # Create a SQL command with a password placeholder
         command = f"""DO $$ BEGIN
                 IF NOT EXISTS (
                 SELECT FROM pg_catalog.pg_roles WHERE rolname = '{rds_username}'
@@ -54,14 +62,14 @@ def execute_rds_command(engine: Engine, rds_username: str, rds_password: str) ->
                 END IF;
                 END $$;"""
 
-        # Using parameterized query to avoid password in logs
+        # Using a parameterized query to avoid password in logs
         with engine.connect() as connection:
             # Execute the command with parameters
             connection.execute(text(command), {"password": rds_password})
             connection.commit()
-        logger.info("RDS command executed successfully.")
+        LOGGER.log("RDS command executed successfully.")
     except Exception:
-        logger.exception("Failed to execute RDS command")
+        LOGGER.exception("Failed to execute RDS command")
         raise
 
 
@@ -81,36 +89,19 @@ def execute_postgresql_trigger(
         sql_commands = sql_template.replace("${user}", rds_username)
         sql_commands = sql_commands.replace("${lambda_arn}", lambda_arn)
         sql_commands = sql_commands.replace("${aws_region}", aws_region)
-        sql_commands = sql_commands.replace("${table_name}", TABLE_NAME)
+        sql_commands = sql_commands.replace(
+            "${table_name}", legacy.Services.__tablename__
+        )
 
         # Execute the SQL commands as a single statement
         with engine.connect() as connection:
             connection.execute(text(sql_commands))
             connection.commit()
 
-        logger.info("PostgreSQL trigger executed successfully.")
+        LOGGER.info("PostgreSQL trigger executed successfully.")
     except Exception:
-        logger.exception("Failed to execute PostgreSQL trigger")
+        LOGGER.exception("Failed to execute PostgreSQL trigger")
         raise
-
-
-def get_target_rds_details() -> tuple[str, str, int, str, str]:
-    target_rds_details_secret = get_secret(name=target_rds_details, transform="json")
-
-    cluster_endpoint = target_rds_details_secret["host"]
-    database_name = target_rds_details_secret["dbname"]
-    port = target_rds_details_secret["port"]
-    username = target_rds_details_secret["username"]
-    password = target_rds_details_secret["password"]
-
-    return cluster_endpoint, database_name, port, username, password
-
-
-def get_dms_user_details() -> tuple[str, str]:
-    rds_password = get_secret(name=dms_user_details)
-    rds_username = "dms_user"
-
-    return rds_username, rds_password
 
 
 def lambda_handler(event: dict, context: dict) -> None:
@@ -118,20 +109,13 @@ def lambda_handler(event: dict, context: dict) -> None:
         # Execute PostgreSQL trigger
         aws_region = boto3.session.Session().region_name
 
-        cluster_endpoint, database_name, port, username, password = (
-            get_target_rds_details()
-        )
+        # Use the optimized DatabaseConfig object
+        dms_config = DmsDatabaseConfig()
+        target_db_config = dms_config.get_target_rds_details()
+        rds_username, rds_password = dms_config.get_dms_user_details()
 
-        rds_username, rds_password = get_dms_user_details()
-
-        # Connect to the RDS instance using SQLAlchemy
-        engine = get_sqlalchemy_engine(
-            host=cluster_endpoint,
-            db=database_name,
-            user=username,
-            password=password,
-            port=port,
-        )
+        # Connect to the RDS instance using the optimized engine creation
+        engine = get_sqlalchemy_engine_from_config(target_db_config)
 
         # Execute RDS command
         execute_rds_command(engine, rds_username, rds_password)
@@ -139,10 +123,9 @@ def lambda_handler(event: dict, context: dict) -> None:
         execute_postgresql_trigger(engine, rds_username, trigger_lambda_arn, aws_region)
 
     except ClientError:
-        logger.exception("Error fetching secret")
+        LOGGER.exception("Error fetching secret for target RDS details or DMS user")
     except Exception:
-        logger.exception("Unexpected error")
+        LOGGER.exception("Error something went wrong in the lambda handler")
     finally:
         if "engine" in locals():
             engine.dispose()
-            logger.info("Database engine disposed.")
