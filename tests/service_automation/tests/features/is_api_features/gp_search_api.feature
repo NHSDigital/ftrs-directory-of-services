@@ -93,6 +93,6 @@ Feature: API GP Endpoint Search
 
 
   # New health check scenario for GET /_status
-  Scenario: I request a healthcheck of the GP Endpoint
+  Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
     When I request data from the "servicesearch" endpoint "_status" with query params ""
     Then I receive a status code "200" in response
