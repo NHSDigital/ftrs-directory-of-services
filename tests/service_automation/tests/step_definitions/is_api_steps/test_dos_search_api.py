@@ -66,7 +66,7 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with "(?P<param_type>.*?)" query params and "(?P<token_type>.*?)" access token'),
     target_fixture="fresponse",
 )
-def send_to_apim_with_invalid_token(new_apim_request_context, resource_name, param_type, nhsd_apim_proxy_url, token_type):
+def send_to_apim(api_request_context, new_apim_request_context, resource_name, param_type, nhsd_apim_proxy_url, token_type):
     if param_type == "valid":
         params = "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     else:
@@ -79,13 +79,17 @@ def send_to_apim_with_invalid_token(new_apim_request_context, resource_name, par
     else:
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-    if token_type in ("missing", "no", "valid"):
-        response = new_apim_request_context.get(
+    if token_type in ("missing", "no"):
+        response = api_request_context.get(
                 url,  params=param_dict
             )
     elif token_type == "invalid":
         response = new_apim_request_context.get(
             url,  params=param_dict, headers={"Authorization": "Bearer invalid_token"}
+        )
+    elif token_type == "valid":
+        response = new_apim_request_context.get(
+            url,  params=param_dict
         )
     else:
         raise ValueError(f"Unknown token_type: {token_type}")
