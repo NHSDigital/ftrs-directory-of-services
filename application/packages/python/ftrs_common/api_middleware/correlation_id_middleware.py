@@ -1,10 +1,11 @@
-from fastapi import Request, Response
 from ftrs_common.utils.correlation_id import (
     add_correlation_id_header,
     extract_correlation_id,
     set_correlation_id,
 )
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.requests import Request
+from starlette.responses import Response
 
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):

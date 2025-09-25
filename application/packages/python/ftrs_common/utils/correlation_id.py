@@ -85,27 +85,27 @@ def add_correlation_id_header(response: T, correlation_id: Optional[str] = None)
     return response
 
 
-# Conditional import of FastAPI middleware
-try:
-    from fastapi import Request, Response
-    from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+# # Conditional import of FastAPI middleware
+# try:
+#     from fastapi import Request, Response
+#     from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
-    class CorrelationIdMiddleware(BaseHTTPMiddleware):
-        """
-        Middleware to handle correlation IDs in requests and responses.
-        Only available if FastAPI is installed.
-        """
+#     class CorrelationIdMiddleware(BaseHTTPMiddleware):
+#         """
+#         Middleware to handle correlation IDs in requests and responses.
+#         Only available if FastAPI is installed.
+#         """
 
-        async def dispatch(
-            self, request: Request, call_next: RequestResponseEndpoint
-        ) -> Response:
-            correlation_id = extract_correlation_id(request)
-            set_correlation_id(correlation_id)
+#         async def dispatch(
+#             self, request: Request, call_next: RequestResponseEndpoint
+#         ) -> Response:
+#             correlation_id = extract_correlation_id(request)
+#             set_correlation_id(correlation_id)
 
-            response = await call_next(request)
+#             response = await call_next(request)
 
-            return add_correlation_id_header(response, correlation_id)
+#             return add_correlation_id_header(response, correlation_id)
 
-except ImportError:
-    # FastAPI not available, middleware not defined
-    pass
+# except ImportError:
+#     # FastAPI not available, middleware not defined
+#     pass

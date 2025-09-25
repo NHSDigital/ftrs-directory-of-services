@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from ftrs_common.api_middleware.correlation_id import CorrelationIdMiddleware
+from ftrs_common.api_middleware.correlation_id_middleware import CorrelationIdMiddleware
 from ftrs_common.api_middleware.fhir_type_middleware import (
     FHIRAcceptHeaderMiddleware,
     FHIRContentTypeMiddleware,
