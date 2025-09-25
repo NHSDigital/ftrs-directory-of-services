@@ -16,7 +16,7 @@ resource "aws_scheduler_schedule" "ods_etl_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(15 * * * ? *)" # At minute 15 past every hour
+  schedule_expression          = "cron(0 6 * * ? *)" # At 6:00 AM every day
   schedule_expression_timezone = "Europe/London"
 
   target {
@@ -32,4 +32,5 @@ resource "aws_scheduler_schedule" "ods_etl_schedule" {
       maximum_retry_attempts       = 90
     }
   }
+
 }
