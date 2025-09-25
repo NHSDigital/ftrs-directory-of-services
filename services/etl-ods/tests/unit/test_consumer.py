@@ -12,26 +12,6 @@ from pipeline.consumer import (
     process_message_and_send_request,
 )
 
-# @pytest.fixture
-# def mock_lambda_context() -> LambdaContext:
-#     """Mock Lambda context for testing."""
-#     context = LambdaContext()
-#     context._function_name = "test-function"
-#     context._function_version = "LATEST"
-#     context._invoked_function_arn = "test-function"
-#     context._memory_limit_in_mb = 1
-#     context._aws_request_id = "test-request-id"
-#     context._log_group_name = "/aws/lambda/test-function"
-#     context._log_stream_name = "test-stream"
-#     return context
-
-
-# @pytest.fixture(autouse=True)
-# def mock_tracer() -> Generator[MagicMock, None, None]:
-#     with patch("pipeline.consumer.tracer") as mock_tracer:
-#         mock_tracer.capture_lambda_handler.return_value = lambda f: f
-#         yield mock_tracer
-
 
 @patch("pipeline.consumer.process_message_and_send_request")
 def test_consumer_lambda_handler_success(
