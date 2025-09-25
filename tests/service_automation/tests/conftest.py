@@ -14,7 +14,7 @@ from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
 from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
-from utilities.infra.repo_util import check_record_in_repo, model_from_json_file
+from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
 from utilities.infra.logs_util import CloudWatchLogsWrapper
 import json
@@ -254,7 +254,6 @@ def organisation_repo_seeded(organisation_repo):
     organisation_repo.delete(organisation.id)
 
 
-
 def get_mtls_certs():
     # Fetch secrets from AWS
     gsw = GetSecretWrapper()
@@ -297,29 +296,9 @@ def service_url_factory(apigee_environment: str):
     return _build_url
 
 
-@pytest.fixture(scope="session")
-def service_proxy_factory(apigee_environment: str):
-    """
-    Factory fixture to return service proxies based on environment and API name.
-    Args:
-        apigee_proxy (str): The Apigee proxy
-    """
-    def _build_proxy(api_name: str) -> str:
-        return f"{api_name}--{apigee_environment}--{api_name}_FHIR_R4"
-
-    return _build_proxy
-
-
-
 @pytest.fixture(scope="module")
 def dos_ingestion_service_url(service_url_factory, api_name="dos-ingestion"):
     return service_url_factory(api_name)
-
-
-@pytest.fixture(scope="module")
-def dos_search_service_proxy(service_proxy_factory, api_name="dos-search"):
-    logger.info(f"service_proxy_factory : {service_proxy_factory}")
-    return service_proxy_factory(api_name)
 
 
 @pytest.fixture(autouse=True)

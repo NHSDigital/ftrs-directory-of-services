@@ -62,26 +62,6 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     return response
 
 
-# @when(
-#     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with valid query params and access token'),
-#     target_fixture="fresponse",
-# )
-# def send_to_apim_get_with_params(new_apim_request_context, resource_name, nhsd_apim_proxy_url):
-#     params = "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
-#     url = nhsd_apim_proxy_url + "/" + resource_name
-#     logger.info(f"nhsd_apim_proxy_url : {nhsd_apim_proxy_url}")
-#     # Handle None or empty params
-#     if params is None or not params.strip():
-#         param_dict = {}
-#     else:
-#         # Parse the params string into a dictionary
-#         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-#     response = new_apim_request_context.get(
-#             url,  params=param_dict
-#         )
-#     logger.info(f"response: {response.text}")
-#     return response
-
 @when(
     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with "(?P<param_type>.*?)" query params and "(?P<token_type>.*?)" access token'),
     target_fixture="fresponse",
@@ -99,17 +79,13 @@ def send_to_apim_with_invalid_token(new_apim_request_context, resource_name, par
     else:
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-    if token_type in ("missing", "no"):
+    if token_type in ("missing", "no", "valid"):
         response = new_apim_request_context.get(
                 url,  params=param_dict
             )
     elif token_type == "invalid":
         response = new_apim_request_context.get(
             url,  params=param_dict, headers={"Authorization": "Bearer invalid_token"}
-        )
-    elif token_type == "valid":
-        response = new_apim_request_context.get(
-            url,  params=param_dict
         )
     else:
         raise ValueError(f"Unknown token_type: {token_type}")

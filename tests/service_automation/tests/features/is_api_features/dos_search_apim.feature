@@ -14,7 +14,7 @@ Feature: API DoS Service Search APIM
 
 # Waiting for dosis-1893 to be done
   # Scenario: I can access APIM for the 'status' Endpoint and access is required
-  #   When I request data from the APIM "servicesearch" endpoint "_status" with query params "" and "valid" access token
+  #   When I request data from the APIM "servicesearch" endpoint "_status" with "" query params and "valid" access token
   #   Then I receive a status code "200" in response
 
 

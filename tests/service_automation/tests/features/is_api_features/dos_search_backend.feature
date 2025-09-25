@@ -1,5 +1,4 @@
 @is-api @ftrs-pipeline @gp-search-api
-
 Feature: API DoS Service Search Backend
 
   Background: Set stack and seed repo
@@ -9,7 +8,6 @@ Feature: API DoS Service Search Backend
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
-@test
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters
     When I request data from the "servicesearch" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
