@@ -7,7 +7,11 @@ import requests
 from botocore.exceptions import ClientError
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_common.logger import Logger
-from ftrs_common.utils.correlation_id import get_correlation_id
+from ftrs_common.utils.correlation_id import (
+    generate_correlation_id,
+    get_correlation_id,
+    set_correlation_id,
+)
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
@@ -68,6 +72,10 @@ def build_headers(options: dict) -> dict:
     fhir = options.get("fhir")
     api_key_required = options.get("api_key_required", False)
     correlation_id = get_correlation_id()
+    if not correlation_id:
+        # Ensure we always propagate a non-empty correlation ID downstream
+        correlation_id = generate_correlation_id()
+    set_correlation_id(correlation_id)
     headers["X-Correlation-ID"] = correlation_id
     # Prepare JSON body if present
     if json_data is not None:
