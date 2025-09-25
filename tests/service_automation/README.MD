@@ -115,6 +115,12 @@ make test MARKERS="ui"
 ```shell
 make test MARKERS="is-api"
 ```
+### Running crud-api tests
+
+### Running crud-api for organization tests
+```shell
+make test MARKERS="crud-org-api"
+```
 
 ### Running IS Infrastructure tests
 

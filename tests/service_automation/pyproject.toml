@@ -38,6 +38,10 @@ packages = [{include = "tests"}]
 
 [tool.poetry.group.shared.dependencies]
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
+testcontainers = "^3.7.1"
+testcontainers-postgres = "^0.0.1rc1"
+testcontainers-localstack = "^0.0.1rc1"
+
 
 [tool.pytest.ini_options]
 testpaths = "tests"
@@ -48,7 +52,7 @@ markers = [
     "ui: mark test as UI test",
     "is-api: mark test as IS API test",
     "is-infra: mark test as IS infra test",
-    "is-pipeline: mark test to be run in the IS pipeline",
+    "ftrs-pipeline: mark test to be run in the IS pipeline",
     "is-lambda: marks test as IS lambda related",
     "is-s3: marks test as IS S3 related",
     "gp-search-api: marks test as gp search related",
@@ -57,6 +61,9 @@ markers = [
     "crud-org-api: marks test as CRUD API for endpoint Organization test",
     "crud-healthcare-service-api: marks test as CRUD API for endpoint HealthcareService test",
     "crud-location-api: marks test as CRUD API for endpoint Location test",
+    "test-db-fixture: marks test as using the test db fixture",
+    "db-dos: marks test as using the DOS db fixture",
+    "dynamodb: marks test as using the DynamoDB fixture",
 ]
 filterwarnings = [
     'ignore:.*datetime.datetime.utcnow*',
