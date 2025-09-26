@@ -58,6 +58,8 @@ module "organisation_api_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
 }
 
 module "healthcare_service_api_lambda" {
@@ -101,6 +103,8 @@ module "healthcare_service_api_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
 }
 
 module "location_api_lambda" {
@@ -144,4 +148,6 @@ module "location_api_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
 }

@@ -141,3 +141,34 @@ variable "enable_flow_log" {
   type        = bool
   default     = false
 }
+
+variable "waf_name" {
+  description = "The Web ACL name for WAF"
+  type        = string
+}
+
+variable "waf_scope" {
+  description = "The scope for WAF"
+  type        = string
+}
+
+variable "waf_log_group" {
+  description = "Name for the WAF Web ACL log group"
+  type        = string
+}
+variable "waf_log_group_class" {
+  description = "The log group class for WAF"
+  type        = string
+}
+
+variable "waf_log_group_name_prefix" {
+  description = "Prefix for WAF CloudWatch Log Group Name"
+  type        = string
+  default     = "aws-waf-logs-"
+}
+
+variable "waf_log_group_retention_days" {
+  description = "The retention period for the Read only viewer Web ACL Log group"
+  type        = number
+  default     = 365
+}

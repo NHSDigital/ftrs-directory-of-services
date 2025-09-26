@@ -130,6 +130,12 @@ Run specific marked tests, for example `@is-api`
 make test MARKERS="is-api"
 ```
 
+### Running Data Migration tests
+
+```shell
+make test MARKERS="data-migration"
+```
+
 Or you can run tests for multiple markers
 
 ```shell
