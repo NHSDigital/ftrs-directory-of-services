@@ -70,10 +70,13 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates invalid characters in the "<field_path>" with value "<invalid_value>"
 
     Examples:
-      | field   | value            | field_path       | invalid_value    |
-      | name    | !BRANCH SURGERY* | name             | !BRANCH SURGERY* |
-      | type    | BRANCH SURGERY*  | type[0].text     | BRANCH SURGERY*  |
-      | telecom | 0123456789*      | telecom[0].value | 0123456789*      |
+      | field   | value           | field_path       | invalid_value   |
+      | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
+      | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
+      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH SURGERY |
+      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#SURGERY  |
+      | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
+
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization
