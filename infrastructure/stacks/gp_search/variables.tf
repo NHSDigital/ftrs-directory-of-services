@@ -39,7 +39,7 @@ variable "api_gateway_access_logs_retention_days" {
 variable "api_gateway_payload_format_version" {
   description = "The version of the payload format"
   type        = string
-  default     = "1.0"
+  default     = "2.0"
 }
 
 variable "api_gateway_integration_timeout" {
