@@ -34,37 +34,6 @@ def send_get(api_request_context_mtls_crud, api_name, resource_name):
     return response
 
 
-@then(parsers.parse('I receive the error code "{error_code}"'))
-def api_error_code(fresponse, error_code):
-    response = fresponse.json()
-    assert response["issue"][0]["details"]["coding"][0]["code"] == error_code
-
-
-@then(parsers.parse('I receive the message "{error_message}"'))
-def api_error_message(fresponse, error_message):
-    response = fresponse.json()
-    assert response["issue"][0]["details"]["text"] == (error_message)
-
-
-@then("the response body contains a bundle")
-def api_check_bundle(fresponse):
-    response = fresponse.json()
-    assert response["resourceType"] == "Bundle"
-
-
-@then(parsers.parse('the bundle contains "{number:d}" "{resource_type}" resources'))
-def api_number_resources(fresponse, number, resource_type):
-    response = fresponse.json()
-    assert count_resources(response, resource_type) == number
-
-
-def count_resources(lambda_response, resource_type):
-    return sum(
-        entry.get("resource", {}).get("resourceType") == resource_type
-        for entry in lambda_response.get("entry", [])
-    )
-
-
 def _load_default_payload() -> dict:
     """Load the default organisation payload."""
     return read_json_file(DEFAULT_PAYLOAD_PATH)

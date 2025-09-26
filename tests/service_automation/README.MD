@@ -96,7 +96,7 @@ This dotenv file will be automatically loaded when running the tests.
 The workspace is defined as:
 
 ```shell
-WORKSPACE=default # when running against the main branch
+WORKSPACE= # when running against the main branch
 WORKSPACE=dr-xxx  # when running against task branch dr-xxx
 ```
 
@@ -191,3 +191,19 @@ export COMMIT_HASH=abc123   # replacing with actual 6-character commit hash
 - If reports are blank, ensure that the command to generate the report has been run in the same directory as the allure-results directory
 - If you encounter issues with asdf tools, try `asdf reshim` to update the shims
 - For Playwright issues, try `poetry run playwright install --with-deps` to install all system dependencies
+
+## NOTE - TODO
+
+The Feature: API DoS Service Search APIM has been defined with the tag manual as the supporting APIM proxy infrastructure is not yet available.
+
+These tests can only be run from command line for the main workspace at current and with the api-name and proxy-name passed in.
+First export the APIGEE_ACCESS_TOKEN
+```
+export APIGEE_ACCESS_TOKEN=$(proxygen pytest-nhsd-apim --api dos-search get-token | jq -r .pytest_nhsd_apim_token | tr -d '\n')
+```
+
+Then add a test tag to the feature file and then run the command below replacing "api-name" and "api proxy name" for the relevant data
+
+```
+poetry run pytest -m "test" --api-name=<api-name>  --proxy-name=<api proxy name> -p allure_pytest_bdd --alluredir=allure-results
+```
