@@ -90,3 +90,9 @@ Feature: API GP Endpoint Search
     And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'identifier'"
     And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '_revinclude'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+
+
+  # New health check scenario for GET /_status
+  Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
+    When I request data from the "servicesearch" endpoint "_status" with query params ""
+    Then I receive a status code "200" in response
