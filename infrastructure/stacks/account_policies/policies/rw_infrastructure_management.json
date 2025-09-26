@@ -117,6 +117,12 @@
                 "servicequotas:CreateSupportCase"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "SupportFullAccess",
+            "Effect": "Allow",
+            "Action": "support:*",
+            "Resource": "*"
         }
     ]
 }
