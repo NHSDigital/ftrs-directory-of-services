@@ -1,6 +1,7 @@
 # SNS Topic for Shield DDoS alerts
 resource "aws_sns_topic" "shield_ddos_alerts" {
-  name = "${var.resource_prefix}-shield-ddos-alerts"
+  name              = "${var.resource_prefix}-shield-ddos-alerts"
+  kms_master_key_id = "alias/aws/sns"
 
   tags = {
     Name = "${var.resource_prefix}-shield-ddos-alerts"
