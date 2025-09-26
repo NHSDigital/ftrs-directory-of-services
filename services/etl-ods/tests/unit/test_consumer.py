@@ -15,7 +15,8 @@ from pipeline.consumer import (
 
 @patch("pipeline.consumer.process_message_and_send_request")
 def test_consumer_lambda_handler_success(
-    mock_process_message: MagicMock, caplog: pytest.LogCaptureFixture
+    mock_process_message: MagicMock,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     event = {
         "Records": [
@@ -60,7 +61,8 @@ def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) 
 
 @patch("pipeline.consumer.process_message_and_send_request")
 def test_consumer_lambda_handler_failure(
-    mock_process_message: MagicMock, caplog: pytest.LogCaptureFixture
+    mock_process_message: MagicMock,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     event = {
         "Records": [
@@ -109,7 +111,9 @@ def test_consumer_lambda_handler_failure(
     ],
 )
 def test_consumer_lambda_handler_handle_missing_message_parameters(
-    path: str, body: dict, caplog: pytest.LogCaptureFixture
+    path: str,
+    body: dict,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     event = {
         "Records": [

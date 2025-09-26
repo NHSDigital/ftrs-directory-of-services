@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from ftrs_common.api_middleware.correlation_id_middleware import CorrelationIdMiddleware
 from ftrs_common.api_middleware.fhir_type_middleware import (
     FHIRAcceptHeaderMiddleware,
     FHIRContentTypeMiddleware,
@@ -23,6 +24,7 @@ app = FastAPI(title="Organisations API")
 app.add_middleware(FHIRContentTypeMiddleware)
 app.add_middleware(FHIRAcceptHeaderMiddleware)
 app.add_middleware(ResponseLoggingMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
 
 app.include_router(organisation.router)
 
