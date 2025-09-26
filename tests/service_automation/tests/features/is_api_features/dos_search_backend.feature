@@ -1,5 +1,5 @@
 @is-api @ftrs-pipeline @gp-search-api
-Feature: API GP Endpoint Search
+Feature: API DoS Service Search Backend
 
   Background: Set stack and seed repo
     Given that the stack is "gp-search"

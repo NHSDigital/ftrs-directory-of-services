@@ -20,7 +20,7 @@ from playwright.sync_api import APIRequestContext, sync_playwright
 
 
 # Load feature file
-scenarios("./is_infra_features/etl_ods.feature")
+scenarios("./infra_features/etl_ods.feature")
 
 
 @pytest.fixture(scope="module")

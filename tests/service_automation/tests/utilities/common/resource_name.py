@@ -7,4 +7,3 @@ def get_resource_name(project, workspace, env, stack, resource):
     resource_name = f"{project}-{env}-{stack}-{resource}{workspace_suffix}"
     logger.debug("resource name {}", resource_name)
     return resource_name
-

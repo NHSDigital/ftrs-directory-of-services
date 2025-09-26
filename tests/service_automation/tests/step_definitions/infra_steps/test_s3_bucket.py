@@ -8,7 +8,7 @@ from utilities.common.resource_name import get_resource_name
 
 
 # Load feature file
-scenarios("./is_infra_features/s3.feature")
+scenarios("./infra_features/s3.feature")
 # scenarios("./is_infra_features/")
 
 
