@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Directory of Services Search API DOSIS-2192
+  title: Directory of Services Search API
   description: |
     ## Overview
     Use this API to access healthcare services details profiled in the Directory of Services. This API provides read-only access to the data held in the directory.
@@ -524,7 +524,7 @@ x-nhsd-apim:
   target:
     type: external
     healthcheck: /_status
-    url: https://servicesearch-dosis-2192.dev.ftrs.cloud.nhs.uk
+    url: https://servicesearch.dev.ftrs.cloud.nhs.uk
     security:
       type: mtls
       # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
