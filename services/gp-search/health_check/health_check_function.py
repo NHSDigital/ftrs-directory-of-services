@@ -1,10 +1,10 @@
 from aws_lambda_powertools import Logger
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
+from aws_lambda_powertools.event_handler import APIGatewayHttpResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 
-app = APIGatewayRestResolver()
+app = APIGatewayHttpResolver()
 logger = Logger(service="gp-search-health")
 
 

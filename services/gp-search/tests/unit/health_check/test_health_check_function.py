@@ -9,8 +9,8 @@ from health_check.health_check_function import lambda_handler
 @pytest.fixture
 def lambda_event():
     return {
-        "httpMethod": "GET",
-        "path": "/_status",
+        "version": "2.0",
+        "rawPath": "/_status",
     }
 
 
