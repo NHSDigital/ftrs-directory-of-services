@@ -214,6 +214,21 @@ def step_remove_field(field: str, api_request_context_mtls_crud):
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
+@when(
+    parsers.cfparse(
+        'I remove the "{field}" field from the payload and update the organization via APIM'
+    ),
+    target_fixture="fresponse",
+)
+def step_remove_field_apim(
+    field: str, api_request_context_api_key_factory, dos_ingestion_service_url
+):
+    payload = remove_field(_load_default_payload(), field)
+    return update_organisation_apim(
+        payload, api_request_context_api_key_factory, dos_ingestion_service_url
+    )
+
+
 @when("I update the organization with a non-existent ID", target_fixture="fresponse")
 def step_nonexistent_id(api_request_context_mtls_crud):
     payload = set_nonexistent_id(_load_default_payload())

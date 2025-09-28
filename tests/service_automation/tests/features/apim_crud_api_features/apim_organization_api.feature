@@ -17,7 +17,7 @@ Feature: Organization API Endpoint via APIM
     And the data in the database matches the inserted payload
 
   Scenario Outline: Update Organization with missing "<field>" field
-    When I remove the "<field>" field from the payload and update the organization
+    When I remove the "<field>" field from the payload and update the organization via APIM
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues

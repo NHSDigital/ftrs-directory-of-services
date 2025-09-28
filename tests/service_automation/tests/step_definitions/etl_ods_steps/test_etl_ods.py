@@ -213,6 +213,41 @@ def shared_ods_data(playwright) -> Dict[str, List[Dict[str, Optional[str]]]]:
         request_context.dispose()
 
 
+def invoke_lambda_generic(
+    context: Context,
+    project: str,
+    workspace: str,
+    env: str,
+    aws_lambda_client,  # type: LambdaWrapper
+    date_param: Optional[str] = None,
+) -> Context:
+    """
+    Invokes the 'etl-ods-processor' lambda with optional date parameter.
+    Stores the response in context.lambda_response and sets context.lambda_name.
+    """
+    lambda_name = get_resource_name(
+        project, workspace, env, "etl-ods-processor", "lambda"
+    )
+
+    context.lambda_name = lambda_name
+
+    payload = {"date": date_param} if date_param else {}
+    logger.info(
+        f"[STEP] Invoking Lambda '{lambda_name}'"
+        + (f" with date: {date_param}" if date_param else " without parameters")
+    )
+
+    try:
+        response = aws_lambda_client.invoke_function(lambda_name, payload)
+        logger.info(f"[INFO] Lambda response received: {response}")
+    except Exception as e:
+        logger.exception(f"[ERROR] Failed to invoke Lambda: {e}")
+        raise
+
+    context.lambda_response = response
+    return context
+
+
 @pytest.fixture
 def context(shared_ods_data) -> Context:
     ctx = Context()
@@ -242,79 +277,48 @@ def load_organisation_info(context):
     parsers.parse('I invoke the lambda with invalid date "{invalid_date}"'),
     target_fixture="context",
 )
-def invoke_lambda_with_invalid_date(
+def step_invoke_invalid_date(
     context: Context, invalid_date, project, workspace, env, aws_lambda_client
 ):
-    lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
+    return invoke_lambda_generic(
+        context, project, workspace, env, aws_lambda_client, date_param=invalid_date
     )
-    logger.info(
-        f"[STEP] Invoking Lambda '{lambda_name}' with invalid date: {invalid_date}"
-    )
-    lambda_params = {"date": invalid_date}
-    try:
-        response = aws_lambda_client.invoke_function(lambda_name, lambda_params)
-        logger.info(f"[INFO] Lambda response received: {response}")
-    except Exception as e:
-        logger.exception(f"[ERROR] Failed to invoke Lambda: {e}")
-        raise
-    context.lambda_response = response
-    return context
 
 
 @given("I invoke the lambda without required parameters", target_fixture="context")
-def invoke_lambda_missing_params(
+def step_invoke_missing_params(
     context: Context, project, workspace, env, aws_lambda_client
 ):
-    lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
-    )
-    logger.info(f"[STEP] Invoking Lambda '{lambda_name}' with missing parameters")
-    try:
-        response = aws_lambda_client.invoke_function(lambda_name, {})
-        logger.info(f"[INFO] Lambda response received: {response}")
-    except Exception as e:
-        logger.exception(f"[ERROR] Failed to invoke Lambda: {e}")
-        raise
-    context.lambda_response = response
-    return context
+    return invoke_lambda_generic(context, project, workspace, env, aws_lambda_client)
 
 
 @given(
     parsers.parse('I invoke the lambda with a long past date "{past_date}"'),
     target_fixture="context",
 )
-def invoke_lambda_long_past_date(
+def step_invoke_long_past_date(
     context: Context, past_date, project, workspace, env, aws_lambda_client
 ):
-    lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
+    return invoke_lambda_generic(
+        context, project, workspace, env, aws_lambda_client, date_param=past_date
     )
-    logger.info(
-        f"[STEP] Invoking Lambda '{lambda_name}' with long past date: {past_date}"
-    )
-    lambda_params = {"date": past_date}
-    try:
-        response = aws_lambda_client.invoke_function(lambda_name, lambda_params)
-        logger.info(f"[INFO] Lambda response received: {response}")
-    except Exception as e:
-        logger.exception(f"[ERROR] Failed to invoke Lambda: {e}")
-        raise
-    context.lambda_response = response
-    return context
 
 
-@when("I invoke the lambda with the valid date")
-def lambda_process(context: Context, project, workspace, env, aws_lambda_client):
-    lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
+@when("I invoke the lambda with the valid date", target_fixture="context")
+def step_invoke_valid_date(
+    context: Context, project, workspace, env, aws_lambda_client
+):
+    context = invoke_lambda_generic(
+        context,
+        project,
+        workspace,
+        env,
+        aws_lambda_client,
+        date_param=context.extraction_date,
     )
-    assert aws_lambda_client.check_function_exists(lambda_name)
-    lambda_params = {"date": context.extraction_date}
-    lambda_payload = aws_lambda_client.invoke_function(lambda_name, lambda_params)
     context.lambda_invocation_time = int(datetime.now(timezone.utc).timestamp())
-    context.lambda_name = lambda_name
-    assert lambda_payload.get("statusCode") == 200
+    assert context.lambda_response.get("statusCode") == 200
+    return context
 
 
 @then(
