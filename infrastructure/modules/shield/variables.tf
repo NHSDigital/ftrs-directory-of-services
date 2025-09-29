@@ -4,6 +4,18 @@ variable "arns_to_protect" {
   default     = {}
 }
 
+variable "health_check_associations" {
+  description = "Map of resource name to health check ARN for association with Shield protection"
+  type        = map(string)
+  default     = {}
+}
+
+variable "distribution_ids_to_protect" {
+  description = "List of Distribution Ids to be protected with automatic DDoS mitigation"
+  type        = list(string)
+  default     = []
+}
+
 variable "evaluation_period" {
   description = "The evaluation period for the CloudWatch alarm"
   default     = 20
@@ -38,6 +50,12 @@ variable "isProactiveEngagementEnabled" {
 
 variable "isSRTAccessEnabled" {
   description = "Whether to enable Shield Response Team (SRT) access"
+  type        = bool
+  default     = false
+}
+
+variable "isAutomaticResponseEnabled" {
+  description = "Whether to enable Automatic Application Layer DDoS mitigation"
   type        = bool
   default     = false
 }
