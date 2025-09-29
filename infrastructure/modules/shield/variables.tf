@@ -42,19 +42,19 @@ variable "emergency_contacts" {
   default = []
 }
 
-variable "isProactiveEngagementEnabled" {
+variable "isShieldProactiveEngagementEnabled" {
   description = "Whether to enable Proactive Engagement for AWS Shield Advanced"
   type        = bool
   default     = false
 }
 
-variable "isSRTAccessEnabled" {
+variable "isShieldSRTAccessEnabled" {
   description = "Whether to enable Shield Response Team (SRT) access"
   type        = bool
   default     = false
 }
 
-variable "isAutomaticResponseEnabled" {
+variable "isShieldAutomaticResponseEnabled" {
   description = "Whether to enable Automatic Application Layer DDoS mitigation"
   type        = bool
   default     = false
