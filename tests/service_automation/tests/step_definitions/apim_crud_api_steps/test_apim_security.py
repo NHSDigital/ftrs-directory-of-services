@@ -1,12 +1,13 @@
-from pytest_bdd import when, then, parsers, scenarios
+from pytest_bdd import when, parsers, scenarios
 from utilities.common.constants import ENDPOINTS
 from utilities.common.json_helper import read_json_file
 from step_definitions.common_steps.api_steps import *
 from loguru import logger
 from pathlib import Path
 from typing import Optional
+import json
 
-# Load feature file
+# Load the feature file
 scenarios("./apim_crud_api_features/apim_security.feature")
 
 DEFAULT_PAYLOAD_PATH = (
@@ -15,93 +16,83 @@ DEFAULT_PAYLOAD_PATH = (
 )
 
 
-def _load_default_payload() -> dict:
-    """Load the default organisation payload from JSON."""
-    logger.info(f"Loading default payload from {DEFAULT_PAYLOAD_PATH}")
-    return read_json_file(DEFAULT_PAYLOAD_PATH)
+def load_payload() -> dict:
+    """Load fresh organisation payload from JSON file."""
+    payload = read_json_file(DEFAULT_PAYLOAD_PATH)
+    logger.info(f"Loaded payload: {payload}")
+    return payload
 
 
-def build_endpoint(endpoint: str, org_id: Optional[str] = None) -> str:
-    """Construct full endpoint URL including optional org_id."""
-    logger.info(f"Building endpoint for: endpoint={endpoint}, org_id={org_id}")
-    base_endpoint = ENDPOINTS.get(endpoint)
-    if not base_endpoint:
-        raise ValueError(f"Endpoint '{endpoint}' not found in ENDPOINTS")
-    return f"{base_endpoint}/{org_id}" if org_id else base_endpoint
-
-
-def send_api_request(
-    request_context,
+def send_request(
+    playwright,
     method: str,
+    base_url: str,
     endpoint: str,
-    dos_ingestion_service_url: str,
     api_key: Optional[str] = None,
     payload: Optional[dict] = None,
-    content_type: str = "application/fhir+json",
+    org_id: Optional[str] = None,
 ):
-    """Generic function to send an API request with Playwright sync API."""
-    url = f"{dos_ingestion_service_url.rstrip('/')}{endpoint}"
-    headers = {"Content-Type": content_type}
+    """Send GET or PUT request, optionally with API key and payload."""
+    if method.upper() == "PUT" and payload is None:
+        payload = load_payload()
+        if org_id is None:
+            org_id = payload.get("id")
+
+    url = f"{base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+    if org_id:
+        url = f"{url}/{org_id}"
+
+    headers = {"Content-Type": "application/fhir+json"}
     if api_key:
         headers["apikey"] = api_key
 
-    data = payload if payload else None
-    logger.info(f"Sending {method} request to {url}")
+    logger.info(f"➡️ {method.upper()} {url}")
     logger.info(f"Headers: {headers}")
     if payload:
-        logger.info(f"Payload: {payload}")
+        logger.info(f"Payload: {json.dumps(payload, indent=2)}")
 
-    if method.upper() == "GET":
-        response = request_context.get(url, headers=headers)
-    elif method.upper() == "PUT":
-        response = request_context.put(url, headers=headers, data=payload)
-    else:
-        raise ValueError(f"Unsupported HTTP method: {method}")
-
-    logger.info(f"Response received: Status Code = {response.status}")
+    context = playwright.request.new_context(ignore_https_errors=True)
     try:
-        logger.info(f"Response Body: {response.json()}")
-    except Exception:
-        logger.info(f"Response Body (non-JSON): {response.text()}")
-    return response
+        if method.upper() == "GET":
+            response = context.get(url, headers=headers)
+        elif method.upper() == "PUT":
+            response = context.put(url, headers=headers, data=json.dumps(payload))
+        else:
+            raise ValueError(f"Unsupported HTTP method: {method}")
 
-
-def _send_put_request(
-    request_context,
-    dos_ingestion_service_url: str,
-    endpoint: str,
-    api_key: Optional[str],
-):
-    """Helper to send a PUT request with optional API key."""
-    payload = _load_default_payload()
-    org_id = payload.get("id")
-    full_endpoint = build_endpoint(endpoint, org_id)
-    return send_api_request(
-        request_context,
-        "PUT",
-        full_endpoint,
-        dos_ingestion_service_url,
-        api_key,
-        payload,
-    )
+        logger.info(f"⬅️ Response Status: {response.status}")
+        try:
+            logger.info(f"Response Body: {response.json()}")
+        except Exception:
+            logger.info(f"Response Body (non-JSON): {response.text()}")
+        return response
+    finally:
+        context.dispose()
 
 
 @when(
     parsers.parse('I send a GET request to the "{endpoint}" endpoint'),
     target_fixture="fresponse",
 )
+def step_get(playwright, dos_ingestion_service_url: str, endpoint: str, api_key: str):
+    return send_request(
+        playwright,
+        "GET",
+        dos_ingestion_service_url,
+        ENDPOINTS.get(endpoint, endpoint),
+        api_key=api_key,
+    )
+
+
 @when(
     parsers.cfparse(
         'I send a GET request to the "{endpoint}" endpoint without authentication'
     ),
     target_fixture="fresponse",
 )
-def step_get(api_request_context_mtls, dos_ingestion_service_url: str, endpoint: str):
-    return send_api_request(
-        api_request_context_mtls,
-        "GET",
-        ENDPOINTS.get(endpoint, endpoint),
-        dos_ingestion_service_url,
+def step_get_no_auth(playwright, dos_ingestion_service_url: str, endpoint: str):
+    return send_request(
+        playwright, "GET", dos_ingestion_service_url, ENDPOINTS.get(endpoint, endpoint)
     )
 
 
@@ -111,11 +102,16 @@ def step_get(api_request_context_mtls, dos_ingestion_service_url: str, endpoint:
     ),
     target_fixture="fresponse",
 )
-def step_put_no_auth(
-    api_request_context_mtls, dos_ingestion_service_url: str, endpoint: str
-):
-    return _send_put_request(
-        api_request_context_mtls, dos_ingestion_service_url, endpoint, api_key=None
+def step_put_no_auth(playwright, dos_ingestion_service_url: str, endpoint: str):
+    payload = load_payload()
+    org_id = payload.get("id")
+    return send_request(
+        playwright,
+        "PUT",
+        dos_ingestion_service_url,
+        ENDPOINTS.get(endpoint, endpoint),
+        payload=payload,
+        org_id=org_id,
     )
 
 
@@ -126,11 +122,16 @@ def step_put_no_auth(
     target_fixture="fresponse",
 )
 def step_put_invalid_key(
-    api_request_context_mtls,
-    dos_ingestion_service_url: str,
-    endpoint: str,
-    api_key: str,
+    playwright, dos_ingestion_service_url: str, endpoint: str, api_key: str
 ):
-    return _send_put_request(
-        api_request_context_mtls, dos_ingestion_service_url, endpoint, api_key
+    payload = load_payload()
+    org_id = payload.get("id")
+    return send_request(
+        playwright,
+        "PUT",
+        dos_ingestion_service_url,
+        ENDPOINTS.get(endpoint, endpoint),
+        payload=payload,
+        org_id=org_id,
+        api_key=api_key,
     )
