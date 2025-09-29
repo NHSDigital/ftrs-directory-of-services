@@ -84,7 +84,19 @@ variable "access_logs_prefix" {
 variable "cloudfront_5xx_error_threshold" {
   description = "Threshold percentage for CloudFront 5xx errors that triggers the alarm"
   type        = number
+  default     = 2
+}
+
+variable "cloudfront_4xx_error_threshold" {
+  description = "Threshold percentage for CloudFront 4xx errors that triggers the alarm"
+  type        = number
   default     = 5
+}
+
+variable "cloudfront_latency_threshold" {
+  description = "Threshold in milliseconds for CloudFront latency that triggers the alarm"
+  type        = number
+  default     = 2000
 }
 
 variable "isShieldProactiveEngagementEnabled" {
@@ -100,4 +112,9 @@ variable "isShieldSRTAccessEnabled" {
 variable "isShieldAutomaticResponseEnabled" {
   description = "Whether to enable Automatic Application Layer DDoS mitigation"
   type        = bool
+}
+
+variable "realtime_metrics_subscription_status" {
+  description = "The status of additional CloudWatch Metrics for CloudFront distributions"
+  type        = string
 }

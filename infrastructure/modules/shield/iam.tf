@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "srt_policy_document" {
 }
 
 resource "aws_iam_role" "srt_role" {
-  name               = "${var.resource_name}-srt_role"
+  name               = "${var.resource_prefix}-${var.resource_name}-srt-role"
   assume_role_policy = data.aws_iam_policy_document.srt_policy_document.json
 }
 

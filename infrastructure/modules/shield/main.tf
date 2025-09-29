@@ -10,7 +10,7 @@ resource "aws_shield_protection" "shield_advanced_protection" {
 
 # Health check association for protected resources
 resource "aws_shield_protection_health_check_association" "health_check_association" {
-  count = var.isShieldProactiveEngagementEnabled ? 1 : 0
+  count = var.isShieldProactiveEngagementEnabled && try(length(var.health_check_association_arn) > 0, false) ? 1 : 0
 
   shield_protection_id = aws_shield_protection.shield_advanced_protection.id
   health_check_arn     = var.health_check_association_arn
