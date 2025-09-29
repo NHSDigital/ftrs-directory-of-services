@@ -1,4 +1,4 @@
-@test-db-fixture @db-dos @dynamodb
+@test-db-fixture
 Feature: Test Database Fixtures
   As a test developer
   I want to verify that database fixtures are working correctly
