@@ -80,3 +80,9 @@ variable "access_logs_prefix" {
   type        = string
   default     = "cloudfront"
 }
+
+variable "cloudfront_5xx_error_threshold" {
+  description = "Threshold percentage for CloudFront 5xx errors that triggers the alarm"
+  type        = number
+  default     = 5
+}
