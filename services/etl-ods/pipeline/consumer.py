@@ -5,7 +5,7 @@ import requests
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import (
     correlation_id_context,
-    generate_correlation_id,
+    ensure_correlation_id,
 )
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
@@ -65,7 +65,9 @@ def process_message_and_send_request(record: dict) -> None:
     message_id = record["messageId"]
 
     if not correlation_id:
-        correlation_id = generate_correlation_id()
+        correlation_id = ensure_correlation_id()
+    else:
+        ensure_correlation_id(correlation_id)
     with correlation_id_context(correlation_id):
         ods_consumer_logger.append_keys(
             message_id=message_id, correlation_id=correlation_id

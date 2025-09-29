@@ -8,7 +8,6 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 middleware_logger = Logger.get(service="common_middleware_logger")
-# middleware_logger.set_correlation_id
 
 
 class ResponseLoggingMiddleware(BaseHTTPMiddleware):

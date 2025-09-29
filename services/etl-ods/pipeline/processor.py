@@ -3,11 +3,7 @@ from datetime import datetime, timezone
 
 import requests
 from ftrs_common.logger import Logger
-from ftrs_common.utils.correlation_id import (
-    generate_correlation_id,
-    get_correlation_id,
-    set_correlation_id,
-)
+from ftrs_common.utils.correlation_id import ensure_correlation_id, get_correlation_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import load_data
@@ -111,8 +107,9 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
     Lambda handler for triggering the processor with a date parameter.
     """
     try:
-        correlation_id = generate_correlation_id()
-        set_correlation_id(correlation_id)
+        correlation_id = ensure_correlation_id(
+            event.get("headers", {}).get("X-Correlation-ID")
+        )
         ods_processor_logger.append_keys(correlation_id=correlation_id)
 
         date = event.get("date")

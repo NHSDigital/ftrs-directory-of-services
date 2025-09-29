@@ -3,6 +3,8 @@ import uuid
 from contextlib import contextmanager
 from typing import Generator, Optional, Protocol, TypeVar
 
+CORRELATION_ID_HEADER = "X-Correlation-ID"
+
 # Context variable to store correlation ID throughout request processing
 current_correlation_id = contextvars.ContextVar("correlation_id", default=None)
 
@@ -38,14 +40,14 @@ def correlation_id_context(correlation_id: Optional[str] = None) -> Generator:
 
 # Define protocols for request and response-like objects without importing FastAPI
 class RequestLike(Protocol):
-    """Protocol for objects that have headers like a FastAPI Request."""
+    """Protocol for request objects that have headers."""
 
     @property
     def headers(self) -> dict: ...
 
 
 class ResponseLike(Protocol):
-    """Protocol for objects that have headers like a FastAPI Response."""
+    """Protocol for response objects that have headers."""
 
     @property
     def headers(self) -> dict: ...
@@ -54,58 +56,31 @@ class ResponseLike(Protocol):
 T = TypeVar("T")
 
 
-# FastAPI-specific functions, using Protocol types instead of direct imports
-def extract_correlation_id(request: RequestLike) -> str:
+def ensure_correlation_id(existing: str | None = None) -> str:
     """
-    Extract correlation ID from request headers or generate a new one.
+    Ensure a correlation ID exists in context and return it.
+    - If an explicit (valid) existing value is provided, use it.
+    - Else reuse context value if present.
+    - Else generate, set, return.
+    """
+    if existing:
+        set_correlation_id(existing)
+        return existing
+    current = get_correlation_id()
+    if current:
+        return current
+    new_id = generate_correlation_id()
+    set_correlation_id(new_id)
+    return new_id
 
-    Args:
-        request: An object with a headers attribute (like FastAPI Request)
-    """
-    correlation_id = request.headers.get("X-Correlation-ID")
-    if not correlation_id:
-        correlation_id = generate_correlation_id()
-    return correlation_id
+
+def extract_correlation_id(request: RequestLike) -> str:
+    correlation_id = request.headers.get(CORRELATION_ID_HEADER)
+    return ensure_correlation_id(correlation_id)
 
 
 def add_correlation_id_header(response: T, correlation_id: Optional[str] = None) -> T:
-    """
-    Add the correlation ID to the response headers.
-
-    Args:
-        response: An object with a headers attribute (like FastAPI Response)
-        correlation_id: The correlation ID to add, or None to use the current one
-    """
-    if correlation_id is None:
-        correlation_id = get_correlation_id()
-
-    if correlation_id and hasattr(response, "headers"):
-        response.headers["X-Correlation-ID"] = correlation_id
-
+    correlation_id = ensure_correlation_id(correlation_id)
+    if hasattr(response, "headers"):
+        response.headers[CORRELATION_ID_HEADER] = correlation_id
     return response
-
-
-# # Conditional import of FastAPI middleware
-# try:
-#     from fastapi import Request, Response
-#     from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-
-#     class CorrelationIdMiddleware(BaseHTTPMiddleware):
-#         """
-#         Middleware to handle correlation IDs in requests and responses.
-#         Only available if FastAPI is installed.
-#         """
-
-#         async def dispatch(
-#             self, request: Request, call_next: RequestResponseEndpoint
-#         ) -> Response:
-#             correlation_id = extract_correlation_id(request)
-#             set_correlation_id(correlation_id)
-
-#             response = await call_next(request)
-
-#             return add_correlation_id_header(response, correlation_id)
-
-# except ImportError:
-#     # FastAPI not available, middleware not defined
-#     pass
