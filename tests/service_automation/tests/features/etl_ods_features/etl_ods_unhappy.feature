@@ -13,7 +13,7 @@ Feature: ETL Event Flow - Error Handling
       | invalid-date |
       | ""           |
 
-  Scenario: ETL processor lambda invoked without required parameters
+  Scenario: ETL processor lambda invoked without required date parameter
     Given I invoke the lambda without required parameters
     Then the lambda should return status code 400
     And the error message should be "Date parameter is required"

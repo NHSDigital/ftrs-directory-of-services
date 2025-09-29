@@ -44,17 +44,11 @@ def update_name(payload: dict, value: str):
 
 
 def update_type(payload: dict, value: str):
-    if not payload.get("type"):
-        payload["type"] = [{"coding": [], "text": value}]
-    else:
-        payload["type"][0]["text"] = value
+    payload["type"][0]["text"] = value
 
 
 def update_telecom(payload: dict, value: str):
-    if not payload.get("telecom"):
-        payload["telecom"] = [{"system": "phone", "value": value}]
-    else:
-        payload["telecom"][0]["value"] = value
+    payload["telecom"][0]["value"] = value
 
 
 FIELD_UPDATERS = {"name": update_name, "type": update_type, "telecom": update_telecom}
