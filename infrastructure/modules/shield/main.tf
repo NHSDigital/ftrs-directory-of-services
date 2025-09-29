@@ -1,10 +1,10 @@
 # Shield Advanced Protection for specified resources
 resource "aws_shield_protection" "shield_advanced_protection" {
-  name         = var.resource_name
+  name         = "${var.resource_prefix}-${var.resource_name}-shield-protection"
   resource_arn = var.arn_to_protect
 
   tags = {
-    Name = var.resource_name
+    Name = "${var.resource_prefix}-${var.resource_name}-shield-protection"
   }
 }
 
