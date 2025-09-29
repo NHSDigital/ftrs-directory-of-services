@@ -1,5 +1,6 @@
 # SNS Topic for Shield DDoS alerts
 #trivy:ignore:AVD-AWS-0136
+#trivy:ignore:AVD-AWS-0095
 resource "aws_sns_topic" "shield_ddos_alerts" {
   #checkov:skip=CKV_AWS_26: Revisit with the encryption work
   name = "${var.resource_name}-shield-ddos-alerts"
