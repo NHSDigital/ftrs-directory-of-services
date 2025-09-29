@@ -3,10 +3,10 @@
 #trivy:ignore:AVD-AWS-0095
 resource "aws_sns_topic" "shield_ddos_alerts" {
   #checkov:skip=CKV_AWS_26: Revisit with the encryption work
-  name = "${var.resource_name}-shield-ddos-alerts"
+  name = "${var.resource_prefix}-${var.resource_name}-shield-ddos-alerts"
 
   tags = {
-    Name = "${var.resource_name}-shield-ddos-alerts"
+    Name = "${var.resource_prefix}-${var.resource_name}-shield-ddos-alerts"
   }
 }
 
