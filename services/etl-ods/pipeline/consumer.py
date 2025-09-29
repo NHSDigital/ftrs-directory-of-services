@@ -16,6 +16,10 @@ ods_consumer_logger = Logger.get(service="ods_consumer")
 
 def consumer_lambda_handler(event: dict, context: any) -> dict:
     if event:
+        correlation_id = ensure_correlation_id(
+            event.get("headers", {}).get("X-Correlation-ID")
+        )
+        ods_consumer_logger.append_keys(correlation_id=correlation_id)
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_001,
         )
@@ -60,7 +64,7 @@ def process_message_and_send_request(record: dict) -> None:
     else:
         path = record.get("path")
         body = record.get("body")
-        correlation_id = record.get("correlation_id")  # Extract from message
+        correlation_id = record.get("correlation_id")
 
     message_id = record["messageId"]
 
