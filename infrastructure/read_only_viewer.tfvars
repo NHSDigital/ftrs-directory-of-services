@@ -6,3 +6,6 @@ frontend_lambda_connection_timeout = 30
 frontend_lambda_memory_size        = 256
 waf_name                           = "frontend-waf-web-acl"
 waf_scope                          = "CLOUDFRONT"
+
+# CloudFront Real-time Metrics
+realtime_metrics_subscription_status = "Enabled" #Options are Enabled or Disabled
