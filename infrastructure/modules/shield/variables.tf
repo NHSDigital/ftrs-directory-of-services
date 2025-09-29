@@ -1,29 +1,27 @@
-variable "arns_to_protect" {
-  description = "Map of name to arn to be protected with shield"
-  type        = map(string)
-  default     = {}
+variable "arn_to_protect" {
+  description = "The arn to be protected with shield"
+  type        = string
 }
 
-variable "health_check_associations" {
-  description = "Map of resource name to health check ARN for association with Shield protection"
-  type        = map(string)
-  default     = {}
+variable "resource_name" {
+  description = "The resource name to be protected with shield"
+  type        = string
 }
 
-variable "distribution_ids_to_protect" {
-  description = "List of Distribution Ids to be protected with automatic DDoS mitigation"
-  type        = list(string)
-  default     = []
+variable "health_check_association_arn" {
+  description = "The health check ARN for association with Shield protection"
+  type        = string
+  default     = ""
+}
+
+variable "distribution_id_to_protect" {
+  description = "Distribution Id to be protected with automatic DDoS mitigation"
+  type        = string
 }
 
 variable "evaluation_period" {
   description = "The evaluation period for the CloudWatch alarm"
   default     = 20
-  type        = string
-}
-
-variable "resource_prefix" {
-  description = "The prefix to use for resource names"
   type        = string
 }
 
