@@ -1,6 +1,6 @@
 # CloudWatch Metric Alarm to monitor DDoS events for each protected resource
 resource "aws_cloudwatch_metric_alarm" "shield_advanced_cloudwatch_metric" {
-  alarm_name          = "${var.resource_name}-shield-ddos-alarm"
+  alarm_name          = "${var.resource_prefix}-${var.resource_name}-shield-ddos-alarm"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.evaluation_period
   metric_name         = "DDoSDetected"

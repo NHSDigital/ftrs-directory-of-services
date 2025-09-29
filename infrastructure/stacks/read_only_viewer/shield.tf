@@ -6,6 +6,7 @@ module "shield_protection" {
   health_check_association_arn       = ""
   distribution_id_to_protect         = module.read_only_viewer_cloudfront.cloudfront_distribution_id
   resource_name                      = "cloudfront-read-only-viewer"
+  resource_prefix                    = local.resource_prefix
   alarm_notification_email           = []
   emergency_contacts                 = []
   isShieldProactiveEngagementEnabled = var.isShieldProactiveEngagementEnabled

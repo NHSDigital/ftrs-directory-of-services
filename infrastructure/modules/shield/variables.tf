@@ -8,6 +8,11 @@ variable "resource_name" {
   type        = string
 }
 
+variable "resource_prefix" {
+  description = "The resource prefix for the resource protected with shield"
+  type        = string
+}
+
 variable "health_check_association_arn" {
   description = "The health check ARN for association with Shield protection"
   type        = string
