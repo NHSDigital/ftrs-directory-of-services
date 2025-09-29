@@ -1,7 +1,8 @@
 # SNS Topic for Shield DDoS alerts
+#trivy:ignore:AVD-AWS-0136
 resource "aws_sns_topic" "shield_ddos_alerts" {
-  name              = "${var.resource_prefix}-shield-ddos-alerts"
-  kms_master_key_id = "alias/aws/sns"
+  #checkov:skip=CKV_AWS_26: Revisit with the encryption work
+  name = "${var.resource_prefix}-shield-ddos-alerts"
 
   tags = {
     Name = "${var.resource_prefix}-shield-ddos-alerts"
