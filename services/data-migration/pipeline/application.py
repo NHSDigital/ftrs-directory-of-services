@@ -65,6 +65,7 @@ class DataMigrationApplication:
             event=event.model_dump(),
         )
 
+    # TODO: FDOS-383 - get data from "pathwaysdos.serviceagerange"
     def handle_full_sync_event(self) -> None:
         """
         Handle a full sync event.

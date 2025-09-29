@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Type
 from uuid import UUID
 
@@ -218,6 +219,10 @@ class ServiceTransformer(ABC):
             modifiedDateTime=self.start_time,
         )
 
+    # TODO: FDOS-383 - add ageEligibilityCriteria field
+    # * Where a service profile has an age range assigned,
+    # * * this should be imported and linked to the healthcare service in the "ageEligibilityCriteria" field.
+    # * Age range data on imported healthcare services is imported and linked correctly to each service
     def build_healthcare_service(
         self,
         service: legacy_model.Service,
@@ -254,6 +259,7 @@ class ServiceTransformer(ABC):
             symptomGroupSymptomDiscriminators=self.build_sgsds(service),
             dispositions=self.build_dispositions(service),
             migrationNotes=validation_issues,
+            ageEligibilityCriteria=self.build_age_eligibility_criteria(service),
         )
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:
@@ -379,3 +385,89 @@ class ServiceTransformer(ABC):
             source=ClinicalCodeSource.PATHWAYS,
             time=disposition.dispositiontime,
         )
+
+    # TODO: FDOS-383 - add function to build ageEligibilityCriteria
+    # * Where there are multiple consecutive age ranges, these should be combined to a single range.
+    # * Where there are multiple non consecutive age ranges, these should each be an item in the list.
+    # * Values copied across, should all be in type "days"
+    def build_age_eligibility_criteria(
+        self, service: legacy_model.Service
+    ) -> list | None:
+        """
+        Build age eligibility criteria from the service's age ranges.
+
+        This method processes legacy age ranges and converts them to the new format.
+        It handles standard DoS age groups, for example:
+            * 0-364.25 days
+            * 365.25-1825.25 days
+            * 1826.25-5843 days
+            * 5844-47481.5 days
+
+        Examples of output:
+            For a service with age ranges 0-364.25 and 365.25-1825.25, returns:
+            [{"range": {"rangeFrom": 0, "rangeTo": 1825.25}, "type": "days"}]
+            For a service with age ranges 0-364.25 and 1826.25-5843, returns:
+            [{"range": {"rangeFrom": 0, "rangeTo": 364.25}, "type": "days"},
+            {"range": {"rangeFrom": 1826.25, "rangeTo": 5843}, "type": "days"}]
+            For a service with no age ranges, returns None and logs this fact.
+            For a service with age ranges, 0-364.25, 365.25-1825.25, 1826.25-5843, 5844-47481.5, 23741.25-47481.5 returns:
+            [{"range": {"rangeFrom": 0, "rangeTo": 47481.5}, "type": "days"}]
+        """
+        # Check if there are any age ranges to process, return None if not and log this fact
+        if not service.age_range:
+            self.logger.log(DataMigrationLogBase.DM_ETL_017, service_id=service.id)
+            return None
+
+        # Define a small tolerance for comparing Decimal values
+        # This helps handle floating point comparison issues
+        TOLERANCE = Decimal("1")
+
+        # Sort age ranges by their start day (daysfrom)
+        sorted_ranges = sorted(service.age_range, key=lambda x: x.daysfrom)
+
+        # Initialize result list and the first range
+        result = []
+        if not sorted_ranges:
+            return result
+
+        # Start with the first range
+        current_range = {
+            "range": {
+                "rangeFrom": sorted_ranges[0].daysfrom,
+                "rangeTo": sorted_ranges[0].daysto,
+            },
+            "type": "days",
+        }
+
+        # Process each subsequent range
+        for age_range in sorted_ranges[1:]:
+            # Get the current end value and the next start value
+            current_end = current_range["range"]["rangeTo"]
+            next_start = age_range.daysfrom
+            next_end = age_range.daysto
+
+            # Check if ranges are consecutive
+            # Two ranges are consecutive if the end of one is very close to the start of the next
+            if abs(next_start - current_end) <= TOLERANCE:
+                # Extend the current range to include this range
+                current_range["range"]["rangeTo"] = next_end
+            # Check if ranges overlap
+            elif next_start <= current_end:
+                # If the next range starts before the current one ends,
+                # extend the current range if needed
+                if next_end > current_end:
+                    current_range["range"]["rangeTo"] = next_end
+            else:
+                # Non-consecutive range - add the current range to the result
+                # and start a new one
+                result.append(current_range)
+                current_range = {
+                    "range": {"rangeFrom": next_start, "rangeTo": next_end},
+                    "type": "days",
+                }
+
+        # Add the final range
+        result.append(current_range)
+
+        # return consolidated ranges
+        return result

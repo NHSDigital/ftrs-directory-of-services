@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import UUID
 
 from ftrs_data_layer.domain.availability import OpeningTime
@@ -9,6 +10,7 @@ from ftrs_data_layer.domain.clinical_code import (
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
     HealthcareServiceType,
+    TimeUnit,
 )
 from pydantic import BaseModel
 
@@ -18,6 +20,36 @@ class Telecom(BaseModel):
     phone_private: str | None
     email: str | None
     web: str | None
+
+
+# TODO: FDOS-383 - add ageEligibilityCriteria field
+# Fields: ageEligibilityCriteria
+# Description: map containing range, and type of age eligibility criteria.
+# Data Type: List of maps
+# Cardinialty: 0..*
+#
+# Format:
+# [
+# 	{
+# 		"range": {  "from": 0,  "to": 180 },
+# 		"type": "days"
+# 	},
+# 	...
+# ]
+#
+# Notes:
+# * type can be of values: days, months, years
+# * from is a keyword in python, so using rangeFrom and rangeTo instead temporarily
+
+
+class AgeRange(BaseModel):
+    rangeFrom: Decimal
+    rangeTo: Decimal
+
+
+class AgeRangeType(BaseModel):
+    range: AgeRange
+    type: TimeUnit
 
 
 class HealthcareService(DBModel):
@@ -33,3 +65,4 @@ class HealthcareService(DBModel):
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[Disposition]
     migrationNotes: list[str] | None = None
+    ageEligibilityCriteria: list[AgeRangeType] | None = None
