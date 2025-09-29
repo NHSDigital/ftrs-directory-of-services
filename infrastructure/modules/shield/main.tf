@@ -1,21 +1,19 @@
 # Shield Advanced Protection for specified resources
 resource "aws_shield_protection" "shield_advanced_protection" {
-  for_each     = var.arns_to_protect
-  name         = "${var.resource_prefix}-${each.key}"
-  resource_arn = each.value
+  name         = var.resource_name
+  resource_arn = var.arn_to_protect
 
   tags = {
-    Name = "${var.resource_prefix}-${each.key}"
+    Name = var.resource_name
   }
 }
 
 # Health check association for protected resources
 resource "aws_shield_protection_health_check_association" "health_check_association" {
-  count    = var.isShieldProactiveEngagementEnabled ? 1 : 0
-  for_each = var.health_check_associations
+  count = var.isShieldProactiveEngagementEnabled ? 1 : 0
 
-  shield_protection_id = aws_shield_protection.shield_advanced_protection[each.key].id
-  health_check_arn     = each.value
+  shield_protection_id = aws_shield_protection.shield_advanced_protection.id
+  health_check_arn     = var.health_check_association_arn
 }
 
 # To set up proactive engagement for AWS Shield Advanced SRT team.
@@ -44,8 +42,6 @@ resource "aws_shield_drt_access_role_arn_association" "enable_srt_access" {
 resource "aws_shield_application_layer_automatic_response" "automatic_mitigation" {
   count = var.isShieldAutomaticResponseEnabled ? 1 : 0
 
-  for_each = toset(var.distribution_ids_to_protect)
-
-  resource_arn = each.value
+  resource_arn = var.distribution_id_to_protect
   action       = "COUNT"
 }
