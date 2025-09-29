@@ -86,3 +86,18 @@ variable "cloudfront_5xx_error_threshold" {
   type        = number
   default     = 5
 }
+
+variable "isShieldProactiveEngagementEnabled" {
+  description = "Whether to enable Proactive Engagement for AWS Shield Advanced"
+  type        = bool
+}
+
+variable "isShieldSRTAccessEnabled" {
+  description = "Whether to enable Shield Response Team (SRT) access"
+  type        = bool
+}
+
+variable "isShieldAutomaticResponseEnabled" {
+  description = "Whether to enable Automatic Application Layer DDoS mitigation"
+  type        = bool
+}
