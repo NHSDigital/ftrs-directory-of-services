@@ -67,7 +67,6 @@ class DataMigrationProcessor:
         self.metrics = DataMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
-    # TODO: FDOS-383 - legacy data imported here
     def sync_all_services(self) -> None:
         """
         Run the full sync process.
@@ -209,7 +208,6 @@ class DataMigrationProcessor:
         with Session(self.engine) as session:
             yield from session.scalars(stmt)
 
-    # TODO: FDOS-383 - save as expected here
     def _save(self, result: ServiceTransformOutput) -> None:
         """
         Save the transformed result to DynamoDB.

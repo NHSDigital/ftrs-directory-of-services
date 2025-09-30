@@ -161,7 +161,7 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_017 = LogReference(
         level=INFO,
-        message="No ageEligibilityCriteria created for Service ID {service_id} as no age ranges found",
+        message="No ageEligibilityCriteria created for Service ID {service_id} as no age range found",
     )
 
     DM_ETL_999 = LogReference(

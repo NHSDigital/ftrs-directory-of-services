@@ -811,30 +811,27 @@ def test_build_dispositions(
     ]
 
 
-# TODO: FDOS-383 add tests for build_age_eligibility_criteria
-
-
 def test_build_age_eligibility_criteria_empty(
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test when service has no age ranges."""
+    """Test when service has no age range."""
     transformer = BasicServiceTransformer(
         logger=mock_logger, metadata=mock_metadata_cache
     )
 
-    # Create a service with no age ranges
+    # Create a service with no age range
     service = Service(id=1)
     service.age_range = []
 
     result = transformer.build_age_eligibility_criteria(service)
 
-    # Should return None when no age ranges
+    # Should return None when no age range
     assert result is None
-    # Should log with the appropriate code
+    # Should log if service created without an ageEligibilityCriteria
     assert mock_logger.get_log("DM_ETL_017") == [
         {
-            "msg": "No ageEligibilityCriteria created for Service ID 1 as no age ranges found",
+            "msg": "No ageEligibilityCriteria created for Service ID 1 as no age range found",
             "reference": "DM_ETL_017",
             "detail": {"service_id": 1},
         }
@@ -1008,7 +1005,7 @@ def test_build_age_eligibility_criteria_complex_case(
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test the complex case from the docstring."""
+    """Test a complex case with multiple overlapping and consecutive ranges."""
     transformer = BasicServiceTransformer(
         logger=mock_logger, metadata=mock_metadata_cache
     )
@@ -1260,13 +1257,6 @@ def test_build_age_eligibility_criteria_tolerance_check(
     * 365.25-1825.25 days (1-4 years)
     * 1826.25-5843 days (5-15 years)
     * 5844-47481.5 days (16-129 years)
-
-    Parameters:
-        mock_logger: Mock logger for testing
-        mock_metadata_cache: Mock metadata cache for testing
-        age_ranges: List of ServiceAgeRange objects to test
-        expected_result: Expected consolidation result
-        test_description: Description of the test case
     """
     transformer = BasicServiceTransformer(
         logger=mock_logger, metadata=mock_metadata_cache

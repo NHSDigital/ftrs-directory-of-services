@@ -22,26 +22,6 @@ class Telecom(BaseModel):
     web: str | None
 
 
-# TODO: FDOS-383 - add ageEligibilityCriteria field
-# Fields: ageEligibilityCriteria
-# Description: map containing range, and type of age eligibility criteria.
-# Data Type: List of maps
-# Cardinialty: 0..*
-#
-# Format:
-# [
-# 	{
-# 		"range": {  "from": 0,  "to": 180 },
-# 		"type": "days"
-# 	},
-# 	...
-# ]
-#
-# Notes:
-# * type can be of values: days, months, years
-# * from is a keyword in python, so using rangeFrom and rangeTo instead temporarily
-
-
 class AgeRange(BaseModel):
     rangeFrom: Decimal
     rangeTo: Decimal

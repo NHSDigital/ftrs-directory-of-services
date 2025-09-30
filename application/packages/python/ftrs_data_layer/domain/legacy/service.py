@@ -143,7 +143,6 @@ class ServiceDisposition(LegacyDoSModel, table=True):
     dispositionid: int = Field(foreign_key="dispositions.id")
 
 
-# TODO: FDOS-383 - add tables for serviceageranges (and not serviceagegroups)
 class ServiceAgeRange(LegacyDoSModel, table=True):
     __tablename__ = "serviceagerange"
 
