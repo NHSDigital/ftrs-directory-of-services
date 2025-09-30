@@ -36,6 +36,7 @@ from pydantic import BaseModel, Field
 
 from pipeline.utils.address_formatter import format_address
 from pipeline.utils.cache import DoSMetadataCache
+from pipeline.utils.number_formatter import clean_decimal
 from pipeline.utils.uuid_utils import generate_uuid
 from pipeline.validation.base import Validator
 from pipeline.validation.service import ServiceValidator
@@ -407,8 +408,8 @@ class ServiceTransformer(ABC):
         result = []
         current_range = {
             "range": {
-                "rangeFrom": sorted_ranges[0].daysfrom,
-                "rangeTo": sorted_ranges[0].daysto,
+                "rangeFrom": clean_decimal(sorted_ranges[0].daysfrom),
+                "rangeTo": clean_decimal(sorted_ranges[0].daysto),
             },
             "type": TimeUnit.DAYS,
         }
@@ -420,19 +421,22 @@ class ServiceTransformer(ABC):
             # Check if ranges are consecutive
             if abs(next_start - current_end) <= TOLERANCE:
                 # Extend the current range to include this range
-                current_range["range"]["rangeTo"] = next_end
+                current_range["range"]["rangeTo"] = clean_decimal(next_end)
             # Check if ranges overlap
             elif next_start <= current_end:
                 # If the next range starts before the current one ends,
                 # extend the current range if needed
                 if next_end > current_end:
-                    current_range["range"]["rangeTo"] = next_end
+                    current_range["range"]["rangeTo"] = clean_decimal(next_end)
             else:
                 # Non-consecutive range - add the current range to the result
                 # and start a new one
                 result.append(current_range)
                 current_range = {
-                    "range": {"rangeFrom": next_start, "rangeTo": next_end},
+                    "range": {
+                        "rangeFrom": clean_decimal(next_start),
+                        "rangeTo": clean_decimal(next_end),
+                    },
                     "type": TimeUnit.DAYS,
                 }
 
