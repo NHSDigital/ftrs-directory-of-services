@@ -16,14 +16,8 @@ resource "aws_iam_role" "ods_etl_scheduler_invoke_role" {
   })
 }
 
-resource "aws_iam_policy" "ods_etl_scheduler_invoke_policy" {
-  name        = "${local.resource_prefix}-ods-etl-scheduler-invoke-policy${local.workspace_suffix}"
-  description = "IAM policy to allow the ODS ETL scheduler to invoke the processor lambda"
-  policy      = data.aws_iam_policy_document.ods_etl_scheduler_invoke_policy.json
-}
-
-resource "aws_iam_policy_attachment" "ods_etl_scheduler_invoke_policy_attachment" {
-  name       = "${local.resource_prefix}-ods-etl-scheduler-invoke-policy-attachment${local.workspace_suffix}"
-  roles      = [aws_iam_role.ods_etl_scheduler_invoke_role.name]
-  policy_arn = aws_iam_policy.ods_etl_scheduler_invoke_policy.arn
+resource "aws_iam_role_policy" "ods_etl_scheduler_invoke_policy" {
+  name   = "${local.resource_prefix}-ods-etl-scheduler-invoke-policy${local.workspace_suffix}"
+  role   = aws_iam_role.ods_etl_scheduler_invoke_role.id
+  policy = data.aws_iam_policy_document.ods_etl_scheduler_invoke_policy.json
 }
