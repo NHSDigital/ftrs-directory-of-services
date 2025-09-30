@@ -118,3 +118,17 @@ variable "realtime_metrics_subscription_status" {
   description = "The status of additional CloudWatch Metrics for CloudFront distributions"
   type        = string
 }
+
+variable "alarm_notification_email" {
+  description = "List of email addresses to receive SNS notifications for Shield DDoS alarms"
+  type        = list(string)
+}
+
+variable "emergency_contacts" {
+  description = "List of emergency contacts for Proactive engagement from AWS Shield Advanced SRT"
+  type = list(object({
+    email_address = string
+    phone_number  = string
+    contact_notes = optional(string)
+  }))
+}

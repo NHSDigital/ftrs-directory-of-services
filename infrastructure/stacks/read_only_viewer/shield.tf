@@ -7,12 +7,12 @@ module "shield_protection" {
   }
 
   arn_to_protect                     = module.read_only_viewer_cloudfront.cloudfront_distribution_arn
-  health_check_association_arn       = ""
+  health_check_association_arn       = aws_route53_health_check.calculated_health_check.arn
   distribution_id_to_protect         = module.read_only_viewer_cloudfront.cloudfront_distribution_id
   resource_name                      = "cloudfront-read-only-viewer"
   resource_prefix                    = local.resource_prefix
-  alarm_notification_email           = []
-  emergency_contacts                 = []
+  alarm_notification_email           = var.alarm_notification_email
+  emergency_contacts                 = var.emergency_contacts
   isShieldProactiveEngagementEnabled = var.isShieldProactiveEngagementEnabled
   isShieldSRTAccessEnabled           = var.isShieldSRTAccessEnabled
   isShieldAutomaticResponseEnabled   = var.isShieldAutomaticResponseEnabled

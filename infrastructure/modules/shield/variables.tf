@@ -42,7 +42,6 @@ variable "emergency_contacts" {
     phone_number  = string
     contact_notes = optional(string)
   }))
-  default = []
 }
 
 variable "isShieldProactiveEngagementEnabled" {

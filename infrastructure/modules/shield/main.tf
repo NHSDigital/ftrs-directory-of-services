@@ -49,7 +49,7 @@ resource "aws_shield_drt_access_role_arn_association" "enable_srt_access" {
 }
 
 resource "aws_shield_application_layer_automatic_response" "automatic_mitigation" {
-  count = var.isShieldAutomaticResponseEnabled ? 1 : 0
+  count = var.isShieldAutomaticResponseEnabled && try(length(var.distribution_id_to_protect) > 0, false) ? 1 : 0
 
   resource_arn = var.distribution_id_to_protect
   action       = "COUNT"
