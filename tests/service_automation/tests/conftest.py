@@ -1,12 +1,14 @@
 import ast
 import os
-from typing import Callable, cast
+from typing import Callable, cast, Any, Dict
 import sys
 from pathlib import Path
 
 import boto3
 import pytest
 from dotenv import load_dotenv
+from sqlmodel import Session
+
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
@@ -338,3 +340,21 @@ def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
     except (SyntaxError, AttributeError, ValueError):
         return None
 
+@pytest.fixture(scope="function")
+def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
+    context = {
+        "db_session": dos_db_with_migration,
+        "test_data": {},  # Store any test data created during scenarios
+        "results": {},    # Store query results or other test outcomes
+    }
+    return context
+
+
+@pytest.fixture(scope="function")
+def regular_context(dos_db: Session) -> Dict[str, Any]:
+    context = {
+        "db_session": dos_db,
+        "test_data": {},
+        "results": {},
+    }
+    return context
