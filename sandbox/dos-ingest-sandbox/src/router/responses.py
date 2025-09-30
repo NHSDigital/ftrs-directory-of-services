@@ -1,8 +1,3 @@
-"""
-FHIR response templates for the DOS Search API mock
-"""
-
-# Successful response for valid ODS code
 SUCCESS_RESPONSE = {
     "resourceType": "Bundle",
     "id": "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe",
@@ -97,7 +92,6 @@ SUCCESS_RESPONSE = {
     ]
 }
 
-# Error responses
 INVALID_IDENTIFIER_VALUE_RESPONSE = {
     "resourceType": "OperationOutcome",
     "issue": [
