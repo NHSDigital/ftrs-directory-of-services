@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "6.5.0"
+    }
+  }
+}
+
 # Shield Advanced Protection for specified resources
 resource "aws_shield_protection" "shield_advanced_protection" {
   name         = "${var.resource_prefix}-${var.resource_name}-shield-protection"
