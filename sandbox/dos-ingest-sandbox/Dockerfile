@@ -4,10 +4,6 @@ WORKDIR /app
 
 COPY pyproject.toml poetry.lock* /app/
 
-COPY certs/kainos-chain.pem /usr/local/share/ca-certificates/kainos-chain.pem
-
-RUN update-ca-certificates
-
 RUN pip install --trusted-host pypi.python.org \
 				--trusted-host pypi.org \
 				--trusted-host files.pythonhosted.org \
