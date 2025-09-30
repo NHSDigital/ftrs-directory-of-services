@@ -102,3 +102,17 @@ resource "aws_route53_health_check" "cloudfront_4xx_errors" {
   }
   provider = aws.us-east-1
 }
+
+resource "aws_route53_health_check" "calculated_health_check" {
+  type                   = "CALCULATED"
+  child_health_threshold = 2
+  child_healthchecks = [
+    aws_route53_health_check.cloudfront_5xx_errors.id,
+    aws_route53_health_check.cloudfront_latency.id,
+    aws_route53_health_check.cloudfront_4xx_errors.id
+  ]
+
+  tags = {
+    Name = "${local.resource_prefix}-calculated-health-check${local.workspace_suffix}"
+  }
+}
