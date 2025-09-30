@@ -142,6 +142,12 @@ make test MARKERS="is-api"
 make test MARKERS="data-migration"
 ```
 
+### Running ETL-ODS tests
+
+```shell
+make test MARKERS="etl-ods"
+```
+
 Or you can run tests for multiple markers
 
 ```shell
