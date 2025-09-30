@@ -860,7 +860,8 @@ def test_build_age_eligibility_criteria_single_range(
     # Should return a list with one item
     assert result == [
         {
-            "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("364.25")},
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("364.25"),
             "type": "days",
         }
     ]
@@ -891,7 +892,8 @@ def test_build_age_eligibility_criteria_consecutive_ranges(
     # Should consolidate into a single range
     assert result == [
         {
-            "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("1825.25")},
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("1825.25"),
             "type": "days",
         }
     ]
@@ -922,7 +924,8 @@ def test_build_age_eligibility_criteria_overlapping_ranges(
     # Should merge into a single range
     assert result == [
         {
-            "range": {"rangeFrom": Decimal("5844"), "rangeTo": Decimal("47481.5")},
+            "rangeFrom": Decimal("5844"),
+            "rangeTo": Decimal("47481.5"),
             "type": "days",
         }
     ]
@@ -953,11 +956,13 @@ def test_build_age_eligibility_criteria_non_consecutive_ranges(
     # Should keep as separate ranges
     assert result == [
         {
-            "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("364.25")},
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("364.25"),
             "type": "days",
         },
         {
-            "range": {"rangeFrom": Decimal("1826.25"), "rangeTo": Decimal("5843")},
+            "rangeFrom": Decimal("1826.25"),
+            "rangeTo": Decimal("5843"),
             "type": "days",
         },
     ]
@@ -991,11 +996,13 @@ def test_build_age_eligibility_criteria_mixed_ranges(
     # Should consolidate the first two ranges but keep the third separate
     assert result == [
         {
-            "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("1825.25")},
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("1825.25"),
             "type": "days",
         },
         {
-            "range": {"rangeFrom": Decimal("23741.25"), "rangeTo": Decimal("47481.5")},
+            "rangeFrom": Decimal("23741.25"),
+            "rangeTo": Decimal("47481.5"),
             "type": "days",
         },
     ]
@@ -1035,7 +1042,8 @@ def test_build_age_eligibility_criteria_complex_case(
     # Should consolidate all ranges into a single range
     assert result == [
         {
-            "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("47481.5")},
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("47481.5"),
             "type": "days",
         }
     ]
@@ -1059,7 +1067,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("1825.25")},
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 }
             ],
@@ -1082,10 +1091,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {
-                        "rangeFrom": Decimal("365.25"),
-                        "rangeTo": Decimal("5843"),
-                    },
+                    "rangeFrom": Decimal("365.25"),
+                    "rangeTo": Decimal("5843"),
                     "type": "days",
                 }
             ],
@@ -1108,10 +1115,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {
-                        "rangeFrom": Decimal("1826.25"),
-                        "rangeTo": Decimal("47481.5"),
-                    },
+                    "rangeFrom": Decimal("1826.25"),
+                    "rangeTo": Decimal("47481.5"),
                     "type": "days",
                 }
             ],
@@ -1131,7 +1136,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("1825.25")},
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 }
             ],
@@ -1163,7 +1169,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("47481.5")},
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("47481.5"),
                     "type": "days",
                 }
             ],
@@ -1183,7 +1190,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("1825.25")},
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 }
             ],
@@ -1203,14 +1211,13 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("363")},
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("363"),
                     "type": "days",
                 },
                 {
-                    "range": {
-                        "rangeFrom": Decimal("366"),
-                        "rangeTo": Decimal("1825.25"),
-                    },
+                    "rangeFrom": Decimal("366"),
+                    "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 },
             ],
@@ -1236,7 +1243,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "range": {"rangeFrom": Decimal("0"), "rangeTo": Decimal("5843")},
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("5843"),
                     "type": "days",
                 }
             ],

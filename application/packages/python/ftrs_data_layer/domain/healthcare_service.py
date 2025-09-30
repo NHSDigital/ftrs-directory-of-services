@@ -12,7 +12,7 @@ from ftrs_data_layer.domain.enums import (
     HealthcareServiceType,
     TimeUnit,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class Telecom(BaseModel):
@@ -22,13 +22,9 @@ class Telecom(BaseModel):
     web: str | None
 
 
-class AgeRange(BaseModel):
-    rangeFrom: Decimal = Field(alias="from")
-    rangeTo: Decimal = Field(alias="to")
-
-
 class AgeRangeType(BaseModel):
-    range: AgeRange
+    rangeFrom: Decimal
+    rangeTo: Decimal
     type: TimeUnit
 
 

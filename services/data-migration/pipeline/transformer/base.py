@@ -407,36 +407,32 @@ class ServiceTransformer(ABC):
 
         result = []
         current_range = {
-            "range": {
-                "rangeFrom": clean_decimal(sorted_ranges[0].daysfrom),
-                "rangeTo": clean_decimal(sorted_ranges[0].daysto),
-            },
+            "rangeFrom": clean_decimal(sorted_ranges[0].daysfrom),
+            "rangeTo": clean_decimal(sorted_ranges[0].daysto),
             "type": TimeUnit.DAYS,
         }
 
         for age_range in sorted_ranges[1:]:
-            current_end = current_range["range"]["rangeTo"]
+            current_end = current_range["rangeTo"]
             next_start = age_range.daysfrom
             next_end = age_range.daysto
             # Check if ranges are consecutive
             if abs(next_start - current_end) <= TOLERANCE:
                 # Extend the current range to include this range
-                current_range["range"]["rangeTo"] = clean_decimal(next_end)
+                current_range["rangeTo"] = clean_decimal(next_end)
             # Check if ranges overlap
             elif next_start <= current_end:
                 # If the next range starts before the current one ends,
                 # extend the current range if needed
                 if next_end > current_end:
-                    current_range["range"]["rangeTo"] = clean_decimal(next_end)
+                    current_range["rangeTo"] = clean_decimal(next_end)
             else:
                 # Non-consecutive range - add the current range to the result
                 # and start a new one
                 result.append(current_range)
                 current_range = {
-                    "range": {
-                        "rangeFrom": clean_decimal(next_start),
-                        "rangeTo": clean_decimal(next_end),
-                    },
+                    "rangeFrom": clean_decimal(next_start),
+                    "rangeTo": clean_decimal(next_end),
                     "type": TimeUnit.DAYS,
                 }
 
