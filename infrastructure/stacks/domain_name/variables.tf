@@ -31,8 +31,3 @@ variable "isShieldAutomaticResponseEnabled" {
   description = "Whether to enable Automatic Application Layer DDoS mitigation"
   type        = bool
 }
-
-variable "realtime_metrics_subscription_status" {
-  description = "The status of additional CloudWatch Metrics for CloudFront distributions"
-  type        = string
-}
