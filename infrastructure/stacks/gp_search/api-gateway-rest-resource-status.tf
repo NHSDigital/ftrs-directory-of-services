@@ -10,7 +10,9 @@ resource "aws_api_gateway_method" "status" {
   rest_api_id   = aws_api_gateway_rest_api.api-gateway.id
   resource_id   = aws_api_gateway_resource.status.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+
+  request_validator_id = aws_api_gateway_request_validator.validator.id
 }
 
 resource "aws_api_gateway_integration" "status" {
