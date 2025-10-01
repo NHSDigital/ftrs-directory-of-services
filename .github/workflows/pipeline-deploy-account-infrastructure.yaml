@@ -103,7 +103,7 @@ jobs:
     concurrency:
       group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
       cancel-in-progress: false
-    if: github.ref == 'refs/heads/main'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/task/FDOS-601_AWS_Shield_Advanced')
     needs:
       - metadata
       - manual-approval
