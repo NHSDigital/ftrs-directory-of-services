@@ -17,7 +17,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 }
 
 module "lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=57b53f778381f3c4cfaded5770a5eddd3ff8f6f5/infrastructure/modules/lambda"
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=f5cc045/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
   description            = "This lambda provides search logic to returns an organisation and its endpoints"
   handler                = "functions/gp_search_function.lambda_handler"
@@ -48,7 +48,7 @@ module "lambda" {
   allowed_triggers = {
     AllowExecutionFromAPIGateway = {
       service    = "apigateway"
-      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+      source_arn = "${aws_api_gateway_rest_api.api-gateway.execution_arn}/*/*"
     }
   }
 

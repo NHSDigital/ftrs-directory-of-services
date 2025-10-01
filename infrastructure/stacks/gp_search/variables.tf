@@ -30,31 +30,62 @@ variable "commit_hash" {
   description = "The commit hash of the gp search application"
   type        = string
 }
-variable "api_gateway_access_logs_retention_days" {
-  description = "The retention period in days for API Gateway logging"
-  type        = number
-  default     = 7
+
+#####################################################
+
+# API Gateway
+
+variable "api_gateway_name" {
+  description = "The name of the API Gateway"
+  default     = "default"
 }
 
-variable "api_gateway_payload_format_version" {
-  description = "The version of the payload format"
-  type        = string
-  default     = "2.0"
+variable "api_gateway_description" {
+  description = "The description of the API Gateway"
+  default     = "DoS Search API"
 }
 
-variable "api_gateway_integration_timeout" {
-  description = "Timeout to integration ARN"
-  type        = number
+variable "api_gateway_log_group_class" {
+  description = "The logging group class of the API Gateway log group"
+  default     = "STANDARD"
 }
 
-variable "lambda_cloudwatch_logs_retention_days" {
-  description = "Number of days to retain CloudWatch logs for the main search Lambda"
-  type        = number
-  default     = 30
+variable "api_gateway_log_group_retention_days" {
+  description = "The period of time in days to retain logs for the API Gateway log group"
+  default     = "7"
 }
 
-variable "health_check_lambda_cloudwatch_logs_retention_days" {
-  description = "Number of days to retain CloudWatch logs for the health check Lambda"
-  type        = number
-  default     = 7
+variable "api_gateway_xray_tracing" {
+  description = "Flag to enable or disable xray tracing at the API Gateway"
+  default     = true
+}
+
+variable "api_gateway_cache_cluster_enabled" {
+  description = "Flag to enable or disable caching at the API Gateway"
+  default     = true
+}
+
+variable "api_gateway_cache_cluster_size" {
+  description = "If caching at the API Gateway is enabled, the size of the cache"
+  default     = 0.5
+}
+
+variable "api_gateway_logging_level" {
+  description = "The level of logging"
+  default     = "INFO"
+}
+
+variable "api_gateway_method_cache_enabled" {
+  description = "Configure caching at the method level"
+  default     = true
+}
+
+variable "api_gateway_method_metrics_enabled" {
+  description = "Configure gathering metrics at end point level"
+  default     = true
+}
+
+variable "api_gateway_tls_security_policy" {
+  description = "The TLS security policy of the API Gateway when negotiating SSL handshakes"
+  default     = "TLS_1_2"
 }
