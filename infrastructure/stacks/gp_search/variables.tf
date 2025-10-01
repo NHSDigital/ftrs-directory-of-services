@@ -46,3 +46,19 @@ variable "api_gateway_integration_timeout" {
   description = "Timeout to integration ARN"
   type        = number
 }
+
+#####################################################
+
+# API Gateway
+
+variable "api_gateway_name" {
+  description = "The name of the API Gateway"
+  default     = "default"
+}
+
+variable "api_gateway_description" {
+  description = "The description of the API Gateway"
+  default     = "DoS Search API"
+}
+
+
