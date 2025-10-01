@@ -19,6 +19,8 @@ on:
       - "infrastructure/stacks/logging/**"
       - "infrastructure/modules/dynamodb/**"
       - "infrastructure/modules/s3/**"
+      - "infrastructure/stacks/account_security/**"
+      - "infrastructure/modules/shield/**"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
@@ -51,7 +53,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies','domain_name','logging']"
+      stacks: "['terraform_management','account_wide','github_runner','artefact_management','account_policies','domain_name','logging','account_security']"
       type: account
     secrets: inherit
 
@@ -69,13 +71,13 @@ jobs:
         include:
           - name: "account"
             environment: ${{ needs.metadata.outputs.account_type }}
-            stacks: "['github_runner','account_policies']"
+            stacks: "['github_runner','account_policies','account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
             stacks: "['terraform_management','account_wide','domain_name','logging']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name','logging']"
+            stacks: "['terraform_management','github_runner','account_security','artefact_management','account_policies','domain_name','logging']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -113,13 +115,13 @@ jobs:
         include:
           - name: "account"
             environment: ${{ needs.metadata.outputs.account_type }}
-            stacks: "['github_runner','account_policies']"
+            stacks: "['github_runner','account_policies','account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
             stacks: "['terraform_management','account_wide','domain_name','logging']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','github_runner','artefact_management','account_policies','domain_name','logging']"
+            stacks: "['terraform_management','github_runner','account_security','artefact_management','account_policies','domain_name','logging']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
