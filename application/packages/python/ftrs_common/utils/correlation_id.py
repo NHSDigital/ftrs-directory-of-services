@@ -56,7 +56,7 @@ class ResponseLike(Protocol):
 T = TypeVar("T")
 
 
-def ensure_correlation_id(existing: str | None = None) -> str:
+def fetch_or_set_correlation_id(existing: str | None = None) -> str:
     """
     Ensure a correlation ID exists in context and return it.
     - If an explicit (valid) existing value is provided, use it.
@@ -76,11 +76,11 @@ def ensure_correlation_id(existing: str | None = None) -> str:
 
 def extract_correlation_id(request: RequestLike) -> str:
     correlation_id = request.headers.get(CORRELATION_ID_HEADER)
-    return ensure_correlation_id(correlation_id)
+    return fetch_or_set_correlation_id(correlation_id)
 
 
 def add_correlation_id_header(response: T, correlation_id: Optional[str] = None) -> T:
-    correlation_id = ensure_correlation_id(correlation_id)
+    correlation_id = fetch_or_set_correlation_id(correlation_id)
     if hasattr(response, "headers"):
         response.headers[CORRELATION_ID_HEADER] = correlation_id
     return response

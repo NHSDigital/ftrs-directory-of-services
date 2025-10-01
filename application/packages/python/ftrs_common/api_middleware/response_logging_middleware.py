@@ -22,8 +22,7 @@ class ResponseLoggingMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         response = await call_next(request)
 
-        cid = get_correlation_id()
-        if cid:
+        if cid := get_correlation_id():
             middleware_logger.append_keys(correlation_id=cid)
 
         if response and response.status_code >= STATUS_CODE_MAP["structure"]:

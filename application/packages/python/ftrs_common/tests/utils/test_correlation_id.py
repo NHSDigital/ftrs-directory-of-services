@@ -2,8 +2,8 @@ from ftrs_common.utils.correlation_id import (
     CORRELATION_ID_HEADER,
     add_correlation_id_header,
     correlation_id_context,
-    ensure_correlation_id,
     extract_correlation_id,
+    fetch_or_set_correlation_id,
     generate_correlation_id,
     get_correlation_id,
     set_correlation_id,
@@ -55,31 +55,31 @@ def test_correlation_id_context_without_id() -> None:
     assert get_correlation_id() == original_id
 
 
-def test_ensure_correlation_id_uses_provided_id() -> None:
-    """Test that ensure_correlation_id uses the provided ID."""
+def test_fetch_or_set_correlation_id_uses_provided_id() -> None:
+    """Test that fetch_or_set_correlation_id uses the provided ID."""
     provided_id = "provided-id"
-    result = ensure_correlation_id(provided_id)
+    result = fetch_or_set_correlation_id(provided_id)
 
     assert result == provided_id
     assert get_correlation_id() == provided_id
 
 
-def test_ensure_correlation_id_uses_context_id() -> None:
-    """Test that ensure_correlation_id uses the context ID if no ID is provided."""
+def test_fetch_or_set_correlation_id_uses_context_id() -> None:
+    """Test that fetch_or_set_correlation_id uses the context ID if no ID is provided."""
     context_id = "context-id"
     set_correlation_id(context_id)
 
-    result = ensure_correlation_id()
+    result = fetch_or_set_correlation_id()
 
     assert result == context_id
     assert get_correlation_id() == context_id
 
 
-def test_ensure_correlation_id_generates_new_id() -> None:
-    """Test that ensure_correlation_id generates a new ID if none is provided or in context."""
+def test_fetch_or_set_correlation_id_generates_new_id() -> None:
+    """Test that fetch_or_set_correlation_id generates a new ID if none is provided or in context."""
     set_correlation_id(None)
 
-    result = ensure_correlation_id()
+    result = fetch_or_set_correlation_id()
 
     assert result is not None
     assert get_correlation_id() == result

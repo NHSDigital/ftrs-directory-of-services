@@ -1,10 +1,10 @@
+from http import HTTPStatus
+
 import pytest
 from ftrs_common.api_middleware.correlation_id_middleware import CorrelationIdMiddleware
 from ftrs_common.utils.correlation_id import CORRELATION_ID_HEADER, get_correlation_id
 from starlette.requests import Request
 from starlette.responses import Response
-
-ERROR_STATUS_CODE = 500
 
 
 class DummyCallNext:
@@ -137,7 +137,7 @@ async def test_middleware_with_error_response() -> None:
 
     class ErrorCallNext:
         async def __call__(self, request: Request) -> Response:
-            return Response("Error", status_code=ERROR_STATUS_CODE)
+            return Response("Error", status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     middleware = CorrelationIdMiddleware(ErrorCallNext())
     scope = {
@@ -150,7 +150,7 @@ async def test_middleware_with_error_response() -> None:
 
     response = await middleware.dispatch(request, ErrorCallNext())
 
-    assert response.status_code == ERROR_STATUS_CODE
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     assert CORRELATION_ID_HEADER in response.headers
     assert response.headers[CORRELATION_ID_HEADER] is not None
 
@@ -159,7 +159,6 @@ async def test_middleware_with_error_response() -> None:
 async def test_middleware_with_custom_response_headers() -> None:
     """Test that middleware works with responses that already have custom headers."""
 
-    # Setup
     class CustomHeaderCallNext:
         async def __call__(self, request: Request) -> Response:
             response = Response("OK", status_code=200)

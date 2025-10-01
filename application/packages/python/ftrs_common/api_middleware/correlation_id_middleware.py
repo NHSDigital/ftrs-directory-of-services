@@ -1,7 +1,7 @@
 from ftrs_common.utils.correlation_id import (
     add_correlation_id_header,
-    ensure_correlation_id,
     extract_correlation_id,
+    fetch_or_set_correlation_id,
 )
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -22,6 +22,6 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         correlation_id = extract_correlation_id(request)
-        ensure_correlation_id(correlation_id)
+        fetch_or_set_correlation_id(correlation_id)
         response = await call_next(request)
         return add_correlation_id_header(response, correlation_id)

@@ -38,8 +38,7 @@ class Logger(PowertoolsLogger):
         Log a message with a specific log reference.
         Returns the formatted log message.
         """
-        correlation_id = get_correlation_id()
-        if correlation_id:
+        if correlation_id := get_correlation_id():
             self.append_keys(correlation_id=correlation_id)
         log_key = log_reference.name
         log_details = log_reference.value
