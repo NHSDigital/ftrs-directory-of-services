@@ -1,4 +1,4 @@
-SUCCESS_RESPONSE = {
+GET_SUCCESS_RESPONSE = {
     "resourceType": "Bundle",
     "id": "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe",
     "type": "searchset",
@@ -92,22 +92,23 @@ SUCCESS_RESPONSE = {
     ]
 }
 
+PUT_SUCCESS_RESPONSE = {
+    "resourceType": "OperationOutcome",
+    "issue": [
+        {
+            "severity": "information",
+            "code": "success",
+            "diagnostics": "Organisation updated successfully"
+        }
+    ]
+}
+
 INVALID_IDENTIFIER_VALUE_RESPONSE = {
     "resourceType": "OperationOutcome",
     "issue": [
         {
             "severity": "error",
-            "code": "value",
-            "details": {
-                "coding": [
-                    {
-                        "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
-                        "version": "1.0.0",
-                        "code": "INVALID_SEARCH_DATA",
-                        "display": "Invalid search data"
-                    }
-                ]
-            },
+            "code": "invalid",
             "diagnostics": "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
         }
     ]
@@ -118,18 +119,30 @@ INVALID_IDENTIFIER_SYSTEM_RESPONSE = {
     "issue": [
         {
             "severity": "error",
-            "code": "code-invalid",
-            "details": {
-                "coding": [
-                    {
-                        "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
-                        "version": "1.0.0",
-                        "code": "INVALID_SEARCH_DATA",
-                        "display": "Invalid search data"
-                    }
-                ]
-            },
+            "code": "invalid",
             "diagnostics": "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
+        }
+    ]
+}
+
+GET_NOT_FOUND_RESPONSE = {
+    "resourceType": "OperationOutcome",
+    "issue": [
+        {
+            "severity": "error",
+            "code": "not-found",
+            "diagnostics": "Organisation with ODS code 'DEF456' not found"
+        }
+    ]
+}
+
+PUT_NOT_FOUND_RESPONSE = {
+    "resourceType": "OperationOutcome",
+    "issue": [
+        {
+            "severity": "error",
+            "code": "not-found",
+            "diagnostics": "Organisation not found."
         }
     ]
 }
@@ -180,7 +193,7 @@ INTERNAL_SERVER_ERROR_RESPONSE = {
     "resourceType": "OperationOutcome",
     "issue": [
         {
-            "severity": "fatal",
+            "severity": "error",
             "code": "exception",
             "diagnostics": "Internal server error"
         }
