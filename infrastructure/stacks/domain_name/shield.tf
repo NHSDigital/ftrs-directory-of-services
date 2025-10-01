@@ -1,5 +1,5 @@
 module "shield_protection_mgmt_root_domain" {
-  count  = var.environment == "mgmt" ? 1 : 0
+  count  = var.environment == "mgmt" && local.is_primary_environment ? 1 : 0
   source = "../../modules/shield"
 
   providers = {
@@ -21,7 +21,7 @@ module "shield_protection_mgmt_root_domain" {
 }
 
 module "shield_protection_env_domain" {
-  count  = var.environment == "mgmt" ? 0 : 1
+  count  = var.environment == "mgmt" && local.is_primary_environment ? 0 : 1
   source = "../../modules/shield"
 
   providers = {
