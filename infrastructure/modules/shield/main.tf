@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "6.5.0"
-    }
-  }
-}
-
 # Shield Advanced Protection for specified resources
 resource "aws_shield_protection" "shield_advanced_protection" {
   name         = "${var.resource_prefix}-${var.resource_name}-shield-protection"
@@ -19,7 +10,7 @@ resource "aws_shield_protection" "shield_advanced_protection" {
 
 # Health check association for protected resources
 resource "aws_shield_protection_health_check_association" "health_check_association" {
-  count = var.isShieldProactiveEngagementEnabled && try(length(var.health_check_association_arn) > 0, false) ? 1 : 0
+  count = var.isShieldProactiveEngagementEnabled && var.health_check_association_arn != "" ? 1 : 0
 
   shield_protection_id = aws_shield_protection.shield_advanced_protection.id
   health_check_arn     = var.health_check_association_arn
@@ -49,8 +40,8 @@ resource "aws_shield_drt_access_role_arn_association" "enable_srt_access" {
 }
 
 resource "aws_shield_application_layer_automatic_response" "automatic_mitigation" {
-  count = var.isShieldAutomaticResponseEnabled && try(length(var.distribution_id_to_protect) > 0, false) ? 1 : 0
+  count = var.isShieldAutomaticResponseEnabled ? 1 : 0
 
-  resource_arn = var.distribution_id_to_protect
+  resource_arn = var.arn_to_protect
   action       = "COUNT"
 }

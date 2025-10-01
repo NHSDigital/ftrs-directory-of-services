@@ -8,7 +8,6 @@ module "shield_protection_mgmt_root_domain" {
 
   arn_to_protect                     = aws_route53_zone.root_zone[0].arn
   health_check_association_arn       = ""
-  distribution_id_to_protect         = ""
   resource_name                      = "route53-mgmt-root-domain"
   resource_prefix                    = local.resource_prefix
   alarm_notification_email           = var.alarm_notification_email
@@ -30,7 +29,6 @@ module "shield_protection_env_domain" {
 
   arn_to_protect                     = aws_route53_zone.environment_zone[0].arn
   health_check_association_arn       = ""
-  distribution_id_to_protect         = ""
   resource_name                      = "route53-env-domain"
   resource_prefix                    = local.resource_prefix
   alarm_notification_email           = var.alarm_notification_email

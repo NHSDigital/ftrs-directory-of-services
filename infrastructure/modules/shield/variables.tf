@@ -19,11 +19,6 @@ variable "health_check_association_arn" {
   default     = ""
 }
 
-variable "distribution_id_to_protect" {
-  description = "Distribution Id to be protected with automatic DDoS mitigation"
-  type        = string
-}
-
 variable "evaluation_period" {
   description = "The evaluation period for the CloudWatch alarm"
   default     = 20
