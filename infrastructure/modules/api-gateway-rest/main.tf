@@ -7,6 +7,10 @@ resource "aws_api_gateway_rest_api" "api-gateway" {
   endpoint_configuration {
     types = ["REGIONAL"]
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_api_gateway_resource" "organization" {
