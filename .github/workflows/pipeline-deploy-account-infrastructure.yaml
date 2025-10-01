@@ -88,7 +88,7 @@ jobs:
 
   manual-approval:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} infrastructure deployment"
-    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/task/FDOS-601_AWS_Shield_Advanced') && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
       - plan-infrastructure
