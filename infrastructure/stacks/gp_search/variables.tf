@@ -47,14 +47,18 @@ variable "api_gateway_integration_timeout" {
   type        = number
 }
 
-variable "lambda_cloudwatch_logs_retention_days" {
-  description = "Number of days to retain CloudWatch logs for the main search Lambda"
-  type        = number
-  default     = 30
+#####################################################
+
+# API Gateway
+
+variable "api_gateway_name" {
+  description = "The name of the API Gateway"
+  default     = "default"
 }
 
-variable "health_check_lambda_cloudwatch_logs_retention_days" {
-  description = "Number of days to retain CloudWatch logs for the health check Lambda"
-  type        = number
-  default     = 7
+variable "api_gateway_description" {
+  description = "The description of the API Gateway"
+  default     = "DoS Search API"
 }
+
+
