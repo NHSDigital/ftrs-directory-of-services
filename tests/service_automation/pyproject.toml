@@ -63,6 +63,7 @@ markers = [
   "test-db-fixture: marks test as using the test db fixture",
   "apim-test: marks test as APIM related",
   "etl-ods: marks test as ETL ODS related",
+  "data-migration: marks test as data migration related",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

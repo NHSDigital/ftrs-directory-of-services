@@ -12,31 +12,11 @@ from testcontainers.postgres import PostgresContainer
 from testcontainers.localstack import LocalStackContainer
 from sqlmodel import create_engine, Session
 from ftrs_data_layer.domain import legacy
+from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
 from utilities.common.rds_data import gp_service
 from utilities.common.dynamoDB_tables import dynamodb_tables
 
 
-# Tables to migrate data from source database
-MIGRATION_TABLES = [
-    "servicestatuses",
-    "servicetypes",
-    "services",
-    "agegroups",
-    "dispositions",
-    "dispositionservicetypes",
-    "dispositiongroups",
-    "dispositiongroupdispositions",
-    "dispositiongroupservicetypes",
-    "genders",
-    "locations",
-    "openingtimedays",
-    "organisationtypes",
-    "referralroles",
-    "symptomdiscriminators",
-    "symptomdiscriminatorsynonyms",
-    "symptomgroups",
-    "symptomgroupsymptomdiscriminators",
-]
 
 
 # Session-scoped containers (keep these as session-scoped for efficiency)
@@ -87,7 +67,7 @@ def _dump_schema_and_data(
 
     # Then dump data for specific tables only
     table_args = []
-    for table in MIGRATION_TABLES:
+    for table in LEGACY_DOS_TABLES:
         table_args.extend(["--table", f"pathwaysdos.{table}"])
 
     data_cmd = [
@@ -114,7 +94,7 @@ def _dump_schema_and_data(
     if schema_result.returncode != 0:
         raise RuntimeError(f"Schema dump failed: {schema_result.stderr}")
 
-    logger.info(f"Dumping data for tables: {', '.join(MIGRATION_TABLES)}")
+    logger.info(f"Dumping data for tables: {', '.join(LEGACY_DOS_TABLES)}")
     data_result = subprocess.run(data_cmd, env=env, capture_output=True, text=True)
 
     if data_result.returncode != 0:

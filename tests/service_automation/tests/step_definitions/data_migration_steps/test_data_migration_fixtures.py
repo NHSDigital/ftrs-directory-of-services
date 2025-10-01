@@ -1,6 +1,8 @@
 from sqlalchemy import text
 from sqlmodel import Session
 
+from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
+
 
 class TestDoSDbWithMigrationFixture:
     """Test suite for the dos_db_with_migration fixture."""
@@ -18,26 +20,6 @@ class TestDoSDbWithMigrationFixture:
 
     def test_migration_fixture_creates_tables(self, dos_db_with_migration: Session):
         """Test that the migration fixture creates all required tables."""
-        expected_tables = [
-            "servicestatuses",
-            "servicetypes",
-            "services",
-            "agegroups",
-            "dispositions",
-            "dispositionservicetypes",
-            "dispositiongroups",
-            "dispositiongroupdispositions",
-            "dispositiongroupservicetypes",
-            "genders",
-            "locations",
-            "openingtimedays",
-            "organisationtypes",
-            "referralroles",
-            "symptomdiscriminators",
-            "symptomdiscriminatorsynonyms",
-            "symptomgroups",
-            "symptomgroupsymptomdiscriminators",
-        ]
 
         # Query for all tables in the pathwaysdos schema
         result = dos_db_with_migration.exec(
@@ -52,7 +34,7 @@ class TestDoSDbWithMigrationFixture:
         actual_tables = [row[0] for row in result.fetchall()]
 
         # Check that all expected tables exist
-        for table in expected_tables:
+        for table in LEGACY_DOS_TABLES:
             assert table in actual_tables, (
                 f"Table {table} not found in migrated database"
             )
