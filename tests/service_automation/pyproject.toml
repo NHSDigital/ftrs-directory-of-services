@@ -2,31 +2,30 @@
 name = "service-test-automation"
 version = "0.1.0"
 description = "Service Test Automation Framework using pytest-bdd and Playwright"
-authors = [
-    {name = "NHS England"}
-]
+authors = [{ name = "NHS England" }]
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<4.0.0"
 dependencies = [
-    "allure-pytest>=2.13.5",
-    "allure-pytest-bdd>=2.13.5",
-    "aws-lambda-powertools (>=3.12.0,<3.13.0)",
-    "boto3>=1.37.6",
-    "boto3-stubs[dynamodb] (>=1.37.6,<2.0.0)",
-    "jsonschema>=4.17.0",
-    "loguru>=0.6.0",
-    "numpy (>=1.26.4,<2.0.0)",
-    "openapi-spec-validator>=0.7.1",
-    "playwright>=1.50.0",
-    "pydantic-settings (>=2.9.1,<3.0.0)",
-    "pytest>=8.3.4",
-    "pytest-bdd>=8.1.0",
-    "pytest-html>=4.1.1",
-    "pytest-metadata>=3.1.1",
-    "pytest-playwright>=0.7.0",
-    "pyyaml>=6.0.2",
-    "python.dotenv>=1.1.1",
-    "requests>=2.32.4",
+  "allure-pytest>=2.13.5",
+  "allure-pytest-bdd>=2.13.5",
+  "aws-lambda-powertools (>=3.12.0,<3.13.0)",
+  "boto3>=1.37.6",
+  "boto3-stubs[dynamodb] (>=1.37.6,<2.0.0)",
+  "jsonschema>=4.17.0",
+  "loguru>=0.6.0",
+  "numpy (>=1.26.4,<2.0.0)",
+  "openapi-spec-validator>=0.7.1",
+  "playwright>=1.50.0",
+  "pydantic-settings (>=2.9.1,<3.0.0)",
+  "pytest>=8.3.4",
+  "pytest-bdd>=8.1.0",
+  "pytest-html>=4.1.1",
+  "pytest-metadata>=3.1.1",
+  "pytest-playwright>=0.7.0",
+  "pyyaml>=6.0.2",
+  "python.dotenv>=1.1.1",
+  "requests>=2.32.4",
+  "pytest-nhsd-apim (>=5.0.3,<6.0.0)",
 ]
 
 [build-system]
@@ -34,10 +33,14 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-packages = [{include = "tests"}]
+packages = [{ include = "tests" }]
 
 [tool.poetry.group.shared.dependencies]
-ftrs-python-packages = {path = "../../application/packages/python", develop = true}
+ftrs-python-packages = { path = "../../application/packages/python", develop = true }
+testcontainers = "^3.7.1"
+testcontainers-postgres = "^0.0.1rc1"
+testcontainers-localstack = "^0.0.1rc1"
+
 
 [tool.pytest.ini_options]
 testpaths = "tests"
@@ -45,19 +48,21 @@ addopts = "-p no:allure_pytest_bdd -p no:allure_pytest"
 log_level = "INFO"
 bdd_features_base_dir = "tests/features/"
 markers = [
-    "ui: mark test as UI test",
-    "is-api: mark test as IS API test",
-    "is-infra: mark test as IS infra test",
-    "is-pipeline: mark test to be run in the IS pipeline",
-    "is-lambda: marks test as IS lambda related",
-    "is-s3: marks test as IS S3 related",
-    "gp-search-api: marks test as gp search related",
-    "test: marks test as generic test",
-    "data-repo: marks test as data repository test",
-    "crud-org-api: marks test as CRUD API for endpoint Organization test",
-    "crud-healthcare-service-api: marks test as CRUD API for endpoint HealthcareService test",
-    "crud-location-api: marks test as CRUD API for endpoint Location test",
+  "ui: mark test as UI test",
+  "is-api: mark test as IS API test",
+  "is-infra: mark test as IS infra test",
+  "ftrs-pipeline: mark test to be run in the ftrs pipeline",
+  "is-lambda: marks test as IS lambda related",
+  "is-s3: marks test as IS S3 related",
+  "gp-search-api: marks test as gp search related",
+  "test: marks test as generic test",
+  "data-repo: marks test as data repository test",
+  "crud-org-api: marks test as CRUD API for endpoint Organization test",
+  "crud-healthcare-service-api: marks test as CRUD API for endpoint HealthcareService test",
+  "crud-location-api: marks test as CRUD API for endpoint Location test",
+  "test-db-fixture: marks test as using the test db fixture",
+  "apim-test: marks test as APIM related",
+  "etl-ods: marks test as ETL ODS related",
+  "ftrs-pipeline: marks test to be run in the FTRS pipeline",
 ]
-filterwarnings = [
-    'ignore:.*datetime.datetime.utcnow*',
-]
+filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

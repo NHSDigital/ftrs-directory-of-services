@@ -8,7 +8,7 @@ from utilities.common.resource_name import get_resource_name
 from utilities.infra.lambda_util import LambdaWrapper
 
 # Load feature file
-scenarios("./is_infra_features/lambda.feature")
+scenarios("./infra_features/gp-search-lambda.feature")
 
 @pytest.fixture(scope="module")
 def aws_lambda_client():
@@ -80,14 +80,18 @@ def count_resources(lambda_response, resource_type):
 
 def create_lambda_params(odscode):
     return {
-        "path": "/Organization",
-        "httpMethod": "GET",
+        "version": "2.0",
+        "rawPath": "/Organization",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{odscode}",
             "_revinclude": "Endpoint:organization",
         },
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
+            "stage": "$default",
+            "http": {
+                "method": "GET",
+            },
         },
         "body": None,
     }

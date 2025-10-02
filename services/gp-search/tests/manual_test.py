@@ -7,14 +7,18 @@ if __name__ == "__main__":
     ods_code = os.environ.get("ODS_CODE")
 
     test_event = {
-        "path": "/organization",
-        "httpMethod": "GET",
+        "version": "2.0",
+        "rawPath": "/Organization",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{ods_code}",
             "_revinclude": "Endpoint:organization",
         },
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
+            "stage": "$default",
+            "http": {
+                "method": "GET",
+            },
         },
         "body": None,
     }

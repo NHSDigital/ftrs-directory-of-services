@@ -126,6 +126,24 @@
                 "s3-object-lambda:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "GlueFullAccess",
+            "Effect": "Allow",
+            "Action": "glue:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "AthenaFullAccess",
+            "Effect": "Allow",
+            "Action": "athena:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "QuicksiteFullAccess",
+            "Effect": "Allow",
+            "Action": "quicksight:*",
+            "Resource": "*"
         }
     ]
 }

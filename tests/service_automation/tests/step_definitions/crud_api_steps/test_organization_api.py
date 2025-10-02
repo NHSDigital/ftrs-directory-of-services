@@ -5,11 +5,11 @@ from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
 from utilities.common.json_helper import read_json_file
 from step_definitions.common_steps.api_steps import *  # noqa: F403
-from utilities.common.context import Context
 from utilities.common.constants import ENDPOINTS
-from utilities.infra.api_util import get_url
-import json
 from loguru import logger
+from uuid import uuid4
+import ast
+import json
 
 
 # Load feature file
@@ -17,6 +17,8 @@ scenarios(
     "./crud_api_features/organization_api.feature",
     "./apim_crud_api_features/apim_organization_api.feature",
 )
+
+DEFAULT_PAYLOAD_PATH = "../../json_files/Organisation/organisation-payload.json"
 
 
 @when(
@@ -32,88 +34,97 @@ def send_get(api_request_context_mtls_crud, api_name, resource_name):
     return response
 
 
-@then(parsers.parse('I receive a status code "{status_code:d}" in response'))
-def status_code(fresponse, status_code):
-    assert fresponse.status == status_code
+def _load_default_payload() -> dict:
+    """Load the default organisation payload."""
+    return read_json_file(DEFAULT_PAYLOAD_PATH)
 
 
-@then(parsers.parse('I receive the error code "{error_code}"'))
-def api_error_code(fresponse, error_code):
-    response = fresponse.json()
-    assert response["issue"][0]["details"]["coding"][0]["code"] == error_code
+def update_name(payload: dict, value: str):
+    payload["name"] = value
 
 
-@then(parsers.parse('I receive the message "{error_message}"'))
-def api_error_message(fresponse, error_message):
-    response = fresponse.json()
-    assert response["issue"][0]["details"]["text"] == (error_message)
+def update_type(payload: dict, value: str):
+    payload["type"][0]["text"] = value
 
 
-@then("the response body contains a bundle")
-def api_check_bundle(fresponse):
-    response = fresponse.json()
-    assert response["resourceType"] == "Bundle"
+def update_telecom(payload: dict, value: str):
+    payload["telecom"][0]["value"] = value
 
 
-@then(parsers.parse('the bundle contains "{number:d}" "{resource_type}" resources'))
-def api_number_resources(fresponse, number, resource_type):
-    response = fresponse.json()
-    assert count_resources(response, resource_type) == number
+FIELD_UPDATERS = {"name": update_name, "type": update_type, "telecom": update_telecom}
 
 
-def count_resources(lambda_response, resource_type):
-    return sum(
-        entry.get("resource", {}).get("resourceType") == resource_type
-        for entry in lambda_response.get("entry", [])
+def update_payload_field(field: str, value: str) -> dict:
+    """Update a single field in the default organisation payload."""
+    payload = _load_default_payload()
+    updater = FIELD_UPDATERS.get(field)
+    if not updater:
+        raise ValueError(f"Unknown field: {field}")
+    updater(payload, value)
+    logger.info(
+        f"Updated field '{field}' with '{value}':\n{json.dumps(payload, indent=2)}"
     )
+    return payload
+
+
+def remove_field(payload: dict, field: str) -> dict:
+    payload.pop(field, None)
+    logger.info(f"Removed field '{field}':\n{json.dumps(payload, indent=2)}")
+    return payload
+
+
+def add_extra_field(payload: dict, field: str, value: str) -> dict:
+    payload[field] = value
+    logger.info(f"Added extra field '{field}':\n{json.dumps(payload, indent=2)}")
+    return payload
+
+
+def set_nonexistent_id(payload: dict) -> dict:
+    payload["id"] = str(uuid4())
+    logger.info(f"Set non-existent ID:\n{json.dumps(payload, indent=2)}")
+    return payload
+
+
+def update_organisation_generic(payload: dict, api_context, base_url: str):
+    org_id = payload.get("id")
+    if not org_id:
+        raise ValueError("Payload must include 'id'")
+
+    url = f"{base_url.rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
+    logger.info(
+        f"Updating organisation at {url}\nPayload:\n{json.dumps(payload, indent=2)}"
+    )
+
+    response = api_context.put(url, data=json.dumps(payload))
+    response.request_body = payload
+    try:
+        logger.info(f"Response [{response.status}]: {response.json()}")
+    except (ValueError, AttributeError):
+        logger.info(f"Response [{response.status}]: {response.text}")
+    return response
 
 
 def update_organisation_apim(
     payload: dict, api_request_context_api_key_factory, dos_ingestion_service_url: str
 ):
-    """Send PUT request to update an organization."""
-    org_id = payload.get("id")
-    if not org_id:
-        raise ValueError("Payload must include 'id'")
-    full_url = (
-        f"{dos_ingestion_service_url.rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
-    )
-    logger.info(f"Full URL: {full_url}\nPayload: {json.dumps(payload, indent=2)}")
-    response = api_request_context_api_key_factory("dos-ingestion").put(
-        full_url, data=json.dumps(payload)
-    )
-    try:
-        logger.info(f"Response body: {response.json()}")
-    except Exception:
-        logger.info(f"Response body: {response.text}")
-    return response
+    api_context = api_request_context_api_key_factory("dos-ingestion")
+    return update_organisation_generic(payload, api_context, dos_ingestion_service_url)
 
 
 def update_organisation(payload: dict, api_request_context_mtls_crud):
-    """Send PUT request to update an organization."""
-    org_id = payload.get("id")
-    if not org_id:
-        raise ValueError("Payload must include 'id'")
-    full_url = f"{get_url('crud')}{ENDPOINTS['organization']}/{org_id}"
-    logger.info(f"Full URL: {full_url}\nPayload: {json.dumps(payload, indent=2)}")
-    response = api_request_context_mtls_crud.put(full_url, data=json.dumps(payload))
-    try:
-        logger.info(f"Response body: {response.json()}")
-    except Exception:
-        logger.info(f"Response body: {response.text}")
-    return response
+    return update_organisation_generic(
+        payload, api_request_context_mtls_crud, get_url("crud")
+    )
 
 
 def get_db_item(model_repo, payload: dict):
-    """Fetch item from DB by ODS code."""
     ods_code = payload["identifier"][0]["value"]
     item = get_from_repo(model_repo, ods_code)
-    assert item, f"No data found in repository for ODS code {ods_code}"
+    assert item, f"No data found for ODS code {ods_code}"
     return item
 
 
-def assert_item_matches_payload(item, payload, mandatory_only=False):
-    """Assert DB item matches payload."""
+def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = False):
     expected = {
         "identifier_ODS_ODSCode": payload["identifier"][0]["value"],
         "name": payload["name"],
@@ -130,40 +141,27 @@ def assert_item_matches_payload(item, payload, mandatory_only=False):
         assert actual == exp, f"{attr} mismatch: {actual} != {exp}"
 
 
-def update_payload_field(field: str, value: str):
-    """Update a specific field in the payload."""
-    payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
-
-    if field == "name":
-        payload["name"] = value
-    elif field == "type":
-        if "type" not in payload or not payload["type"]:
-            payload["type"] = [{"coding": [], "text": value}]
-        else:
-            payload["type"][0]["text"] = value
-    elif field == "telecom":
-        if "telecom" not in payload or not payload["telecom"]:
-            payload["telecom"] = [{"system": "phone", "value": value}]
-        else:
-            payload["telecom"][0]["value"] = value
-    else:
-        raise ValueError(f"Unknown field: {field}")
-
-    logger.info(
-        f"Updated payload field '{field}' with value '{value}': {json.dumps(payload, indent=2)}"
-    )
-    return payload
+def get_diagnostics_list(fresponse):
+    diagnostics_raw = fresponse.json()["issue"][0].get("diagnostics", "")
+    if not diagnostics_raw:
+        raise AssertionError("Diagnostics field is missing or empty.")
+    try:
+        diagnostics_list = ast.literal_eval(diagnostics_raw)
+    except (ValueError, SyntaxError) as e:
+        raise AssertionError(f"Failed to parse diagnostics: {e}")
+    if not isinstance(diagnostics_list, list):
+        raise AssertionError(
+            f"Diagnostics should be a list, got {type(diagnostics_list).__name__}"
+        )
+    return diagnostics_list
 
 
 @when(
     "I update the organization details for ODS Code via APIM",
     target_fixture="fresponse",
 )
-def update_organisation_details_apim(
-    api_request_context_api_key_factory, dos_ingestion_service_url, context: Context
-):
-    payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
-    context.other["current_payload"] = payload
+def step_update_apim(api_request_context_api_key_factory, dos_ingestion_service_url):
+    payload = _load_default_payload()
     return update_organisation_apim(
         payload, api_request_context_api_key_factory, dos_ingestion_service_url
     )
@@ -174,9 +172,8 @@ def update_organisation_details_apim(
     "I update the organisation details using the same data for the ODS Code",
     target_fixture="fresponse",
 )
-def update_organisation_details(api_request_context_mtls_crud, context: Context):
-    payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
-    context.other["current_payload"] = payload
+def step_update_crud(api_request_context_mtls_crud):
+    payload = _load_default_payload()
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -184,13 +181,10 @@ def update_organisation_details(api_request_context_mtls_crud, context: Context)
     "I update the organization details for ODS Code with mandatory fields only",
     target_fixture="fresponse",
 )
-def update_organisation_details_mandatoryfield(
-    api_request_context_mtls_crud, context: Context
-):
-    payload = read_json_file("../../json_files/Organisation/organisation-payload.json")
+def step_update_mandatory(api_request_context_mtls_crud):
+    payload = _load_default_payload()
     payload.pop("telecom", None)
-    logger.info(f"Payload with mandatory fields only: {json.dumps(payload, indent=2)}")
-    context.other["current_payload"] = payload
+    logger.info(f"Payload with mandatory fields only:\n{json.dumps(payload, indent=2)}")
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -198,91 +192,180 @@ def update_organisation_details_mandatoryfield(
     parsers.cfparse('I set the "{field}" field to "{value}"'),
     target_fixture="fresponse",
 )
-def set_field_and_update(
-    field: str, value: str, context: Context, api_request_context_mtls_crud
-):
+def step_set_field(field: str, value: str, api_request_context_mtls_crud):
     payload = update_payload_field(field, value)
-    context.other["current_payload"] = payload
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
+@when(
+    parsers.cfparse(
+        'I remove the "{field}" field from the payload and update the organization'
+    ),
+    target_fixture="fresponse",
+)
+def step_remove_field(field: str, api_request_context_mtls_crud):
+    payload = remove_field(_load_default_payload(), field)
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.cfparse(
+        'I remove the "{field}" field from the payload and update the organization via APIM'
+    ),
+    target_fixture="fresponse",
+)
+def step_remove_field_apim(
+    field: str, api_request_context_api_key_factory, dos_ingestion_service_url
+):
+    payload = remove_field(_load_default_payload(), field)
+    return update_organisation_apim(
+        payload, api_request_context_api_key_factory, dos_ingestion_service_url
+    )
+
+
+@when("I update the organization with a non-existent ID", target_fixture="fresponse")
+def step_nonexistent_id(api_request_context_mtls_crud):
+    payload = set_nonexistent_id(_load_default_payload())
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse(
+        'I add an extra field "{extra_field}" with value "{value}" to the payload and update the organization'
+    ),
+    target_fixture="fresponse",
+)
+def step_add_extra_field(extra_field: str, value: str, api_request_context_mtls_crud):
+    payload = add_extra_field(_load_default_payload(), extra_field, value)
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse(
+        "I send a PUT request with invalid Content-Type to the organization API"
+    ),
+    target_fixture="fresponse",
+)
+def step_send_invalid_content_type(api_request_context_mtls_crud):
+    payload = _load_default_payload()
+    org_id = payload.get("id")
+    url = f"{get_url('crud').rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
+    headers = {"Content-Type": "application/json"}
+    response = api_request_context_mtls_crud.put(
+        url, data=json.dumps(payload), headers=headers
+    )
+    response.request_body = payload
+    try:
+        logger.info(f"Response [{response.status}]: {response.json()}")
+    except Exception:
+        logger.info(f"Response [{response.status}]: {response.text}")
+    return response
+
+
+@then(parsers.parse('the OperationOutcome contains an issue with code "{code}"'))
+def step_check_operation_outcome_code(fresponse, code):
+    body = fresponse.json()
+    assert body.get("resourceType") == "OperationOutcome", (
+        f"Unexpected response: {body}"
+    )
+    assert any(issue.get("code") == code for issue in body.get("issue", [])), (
+        f"Expected code '{code}' not found"
+    )
+
+
 @then("the data in the database matches the inserted payload")
-def assert_model_matches_repo(model_repo, context: Context):
-    payload = context.other.get("current_payload")
+def step_validate_db(model_repo, fresponse):
+    payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
     assert_item_matches_payload(item, payload)
 
 
 @then("the data in the database matches the inserted payload with telecom null")
-def assert_model_matches_repo_mandatory_only(model_repo, context: Context):
-    payload = context.other.get("current_payload")
+def step_validate_db_mandatory(model_repo, fresponse):
+    payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
     assert_item_matches_payload(item, payload, mandatory_only=True)
     actual_telecom = getattr(item, "telecom", None)
-    logger.info(f"Actual telecom in DB: {actual_telecom}")
-    assert actual_telecom is None, (
-        f"telecom is expected to be null, but got: {actual_telecom}"
-    )
+    assert actual_telecom is None, f"telecom expected to be null, got: {actual_telecom}"
 
 
-@then('I receive a status code "200" in response and save the modifiedBy timestamp')
-def validate_status_and_save_modified(fresponse, context: Context, model_repo):
+@then(
+    'I receive a status code "200" in response and save the modifiedBy timestamp',
+    target_fixture="saved_data",
+)
+def step_save_modified(fresponse, model_repo):
     assert fresponse.status == 200, f"Expected 200, got {fresponse.status}"
-    payload = context.other.get("current_payload")
+    payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
-    context.other["modifiedBy_timestamp"] = getattr(item, "modifiedBy", None)
-    context.other["modifiedDateTime"] = getattr(item, "modifiedDateTime", None)
-    logger.info(
-        f"Saved modifiedBy: {context.other['modifiedBy_timestamp']}, modifiedDateTime: {context.other['modifiedDateTime']}"
-    )
+    saved_data = {
+        "modifiedBy": getattr(item, "modifiedBy", None),
+        "modifiedDateTime": getattr(item, "modifiedDateTime", None),
+        "payload": payload,
+    }
+    logger.info(f"Saved modifiedBy: {saved_data['modifiedBy']}")
+    logger.info(f"Saved modifiedDateTime: {saved_data['modifiedDateTime']}")
+    return saved_data
 
 
 @then("the database matches the inserted payload with the same modifiedBy timestamp")
-def assert_database_modifiedBy_unchanged(context: Context, model_repo):
-    payload = context.other.get("current_payload")
+def step_validate_modified_unchanged(saved_data, model_repo):
+    payload = saved_data["payload"]
     item = get_db_item(model_repo, payload)
     assert_item_matches_payload(item, payload)
-    saved_modifiedDateTime = context.other.get("modifiedDateTime")
-    current_modifiedDateTime = getattr(item, "modifiedDateTime", None)
-    assert current_modifiedDateTime == saved_modifiedDateTime, (
-        f"modifiedDateTime changed! First: {saved_modifiedDateTime}, Now: {current_modifiedDateTime}"
+    saved_dt = saved_data["modifiedDateTime"]
+    current_dt = getattr(item, "modifiedDateTime")
+    logger.info(f"Comparing modifiedDateTime: saved={saved_dt}, current={current_dt}")
+    assert current_dt == saved_dt, (
+        f"modifiedDateTime mismatch: expected {saved_dt}, got {current_dt}"
     )
-    logger.info(f"modifiedDateTime unchanged: {current_modifiedDateTime}")
 
 
-@then(parsers.cfparse('the database reflects "{field}" with value "{value}"'))
-def validate_db_field(field: str, value: str, context: Context, model_repo):
-    if field == "active":
-        logger.info("Skipping DB validation for 'active' field")
-        return
-    payload = context.other.get("current_payload")
+@then(parsers.parse('the database reflects "{field}" with value "{value}"'))
+def step_validate_db_field(field: str, value: str, model_repo, fresponse):
+    payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
     actual = (
         getattr(item, field, None)
         if field != "telecom"
         else getattr(item, "telecom", None)
     )
-    expected = value
-    logger.info(f"Validating DB field '{field}': expected={expected}, actual={actual}")
-    assert actual == expected, f"{field} mismatch: expected {expected}, got {actual}"
+    assert actual == value, f"{field} mismatch: expected {value}, got {actual}"
 
 
-@when(
-    parsers.parse('I send a GET request to the "{endpoint}" endpoint'),
-    target_fixture="fresponse",
+@then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
+def step_diagnostics_missing(fresponse, field):
+    diagnostics_list = get_diagnostics_list(fresponse)
+    assert len(diagnostics_list) == 1
+    diagnostic = diagnostics_list[0]
+    assert diagnostic["type"] == "missing"
+    assert diagnostic["loc"] == ("body", field)
+    assert diagnostic["msg"] == "Field required"
+    assert isinstance(diagnostic["input"], dict)
+
+
+@then(
+    parsers.cfparse(
+        'the diagnostics message indicates invalid characters in the "{field_path}" with value "{invalid_value}"'
+    )
 )
-def send_get_request(
-    endpoint: str,
-    api_request_context_api_key_factory,
-    dos_ingestion_service_url: str,
-    api_key: str,
-):
-    """Send a GET request to the specified endpoint."""
-    url = f"{dos_ingestion_service_url.rstrip('/')}{ENDPOINTS.get(endpoint, endpoint)}"
-    logger.info(f"Sending GET request to {url}")
-    response = api_request_context_api_key_factory("dos-ingestion").get(url)
-    try:
-        logger.info(f"Response [{response.status}]: {response.json()}")
-    except Exception:
-        logger.info(f"Response [{response.status}]: {response.text}")
-    return response
+def step_diagnostics_invalid_chars(fresponse, field_path, invalid_value):
+    issue = fresponse.json()["issue"][0]
+    diagnostics = issue.get("diagnostics", "")
+    assert issue.get("code") == "invalid"
+    assert field_path in diagnostics
+    assert invalid_value in diagnostics
+    assert "contains invalid characters" in diagnostics
+
+
+@then(
+    parsers.cfparse(
+        'the diagnostics message indicates unexpected field "{field}" with value "{value}"'
+    )
+)
+def step_diagnostics_extra_field(fresponse, field, value):
+    diagnostic = get_diagnostics_list(fresponse)[0]
+    assert diagnostic.get("type") == "extra_forbidden"
+    loc = diagnostic.get("loc", [])
+    assert field in loc or field == loc
+    assert diagnostic.get("msg") == "Extra inputs are not permitted"
+    assert diagnostic.get("input") == value
