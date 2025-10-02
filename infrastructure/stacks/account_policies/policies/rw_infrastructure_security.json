@@ -103,6 +103,24 @@
                 "iam:DeleteServiceLinkedRole"
             ],
             "Resource": "arn:aws:iam::*:role/aws-service-role/acm.amazonaws.com/AWSServiceRoleForCertificateManager*"
+        },
+        {
+            "Sid": "ShieldFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "shield:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "shield.amazonaws.com"
+                }
+            }
         }
     ]
 }

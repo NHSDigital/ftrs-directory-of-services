@@ -96,6 +96,25 @@
                     "iam:AWSServiceName": "health.amazonaws.com"
                 }
             }
+        },
+        {
+            "Sid": "SupportReadOnlyAccess",
+            "Effect": "Allow",
+            "Action": [
+                "support:DescribeAttachment",
+                "support:DescribeCases",
+                "support:DescribeCommunications",
+                "support:DescribeServices",
+                "support:DescribeSeverityLevels",
+                "support:DescribeSupportLevel",
+                "support:DescribeTrustedAdvisorCheck",
+                "support:DescribeTrustedAdvisorCheckRefreshStatuses",
+                "support:DescribeTrustedAdvisorCheckResult",
+                "support:DescribeTrustedAdvisorCheckSummaries",
+                "support:DescribeTrustedAdvisorChecks",
+                "support:SearchForCases"
+            ],
+            "Resource": "*"
         }
     ]
 }

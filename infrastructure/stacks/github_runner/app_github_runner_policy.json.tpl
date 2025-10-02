@@ -123,7 +123,8 @@
                 "arn:aws:iam::*:role/${repo_name}-*",
                 "arn:aws:iam::*:role/${project}-*",
                 "arn:aws:iam::*:policy/${project}-*",
-                "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+                "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
+                "arn:aws:iam::*:role/AWSServiceRoleForAWSShield"
             ]
         },
         {
@@ -173,7 +174,8 @@
             "route53:ListResourceRecordSets",
             "route53:ListHostedZonesByName",
             "route53:ListTagsForResource",
-            "route53:ChangeTagsForResource"
+            "route53:ChangeTagsForResource",
+            "route53:CreateHealthCheck"
           ],
           "Resource": "*"
         },
@@ -187,6 +189,14 @@
             "acm:ListTagsForCertificate"
           ],
           "Resource": "*"
+        },
+        {
+            "Sid": "ShieldFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "shield:*"
+            ],
+            "Resource": "*"
         }
     ]
 }

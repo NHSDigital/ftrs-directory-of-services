@@ -31,7 +31,8 @@
                 "opensearch:*",
                 "aoss:*",
                 "secretsmanager:*",
-                "ssm:*"
+                "ssm:*",
+                "sns:*"
             ],
             "Resource": "*"
         },
@@ -95,7 +96,9 @@
                 "arn:aws:iam::*:policy/${repo_name}-*",
                 "arn:aws:iam::*:policy/ro_*",
                 "arn:aws:iam::*:policy/rw_*",
-                "arn:aws:iam::*:role/dms-vpc-role"
+                "arn:aws:iam::*:role/dms-vpc-role",
+                "arn:aws:iam::*:role/ftrs-dos-*",
+                "arn:aws:iam::*:policy/ftrs-dos-*"
             ]
         },
         {
@@ -150,6 +153,14 @@
                 "waf:*",
                 "wafv2:*",
                 "waf-regional:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ShieldFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "shield:*"
             ],
             "Resource": "*"
         }
