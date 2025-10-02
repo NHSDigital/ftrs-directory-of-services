@@ -133,6 +133,16 @@
                 "amplify:ListResourcesForWebACL"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "ShieldReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "shield:Describe*",
+                "shield:Get*",
+                "shield:List*"
+            ],
+            "Resource": "*"
         }
     ]
 }
