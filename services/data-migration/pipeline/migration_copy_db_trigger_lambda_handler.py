@@ -11,6 +11,7 @@ SQS_CLIENT = boto3.client("sqs")
 
 def lambda_handler(event: dict, context: dict) -> None:
     message = get_message_from_event(event)
+    workspaces = get_dms_workspaces()
 
     for workspace_queue_url in workspaces:
         try:
@@ -34,6 +35,3 @@ def get_message_from_event(event: dict) -> dict:
 
     message = {"source": "aurora_trigger", "event": event}
     return message
-
-
-workspaces = get_dms_workspaces()
