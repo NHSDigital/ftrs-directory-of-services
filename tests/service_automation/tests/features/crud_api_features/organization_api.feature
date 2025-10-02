@@ -1,15 +1,13 @@
 @crud-org-api @ftrs-pipeline
 Feature: Organization API Endpoint
 
-
   Scenario: Retrieve Organization
     When I request data from the "crud" endpoint "Organization"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "10" "Organization" resources
 
-
-  Scenario: Update organization for specific ODS Code
+  Scenario: Update Organization for specific ODS Code
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
@@ -22,7 +20,7 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with diagnostics "Organisation updated successfully"
     And the data in the database matches the inserted payload
 
-  Scenario: Updating an organisation with identical data returns a successful response
+  Scenario: Updating an Organisation with identical data returns a successful response
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
@@ -65,5 +63,60 @@ Feature: Organization API Endpoint
       | type    | !SURGERY                        |
       | telecom | 9876543210(                     |
 
+  Scenario Outline: Reject Organization update with invalid special characters in specific fields
+    When I set the "<field>" field to "<value>"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the diagnostics message indicates invalid characters in the "<field_path>" with value "<invalid_value>"
+
+    Examples:
+      | field   | value           | field_path       | invalid_value   |
+      | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
+      | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
+      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH SURGERY |
+      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#SURGERY  |
+      | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
 
 
+  Scenario Outline: Update Organization with missing "<field>" field
+    When I remove the "<field>" field from the payload and update the organization
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the diagnostics message indicates "<field>" is missing
+
+    Examples:
+      | field  |
+      | name   |
+      | type   |
+      | active |
+
+  Scenario: Update Organization with non-existent ID
+    When I update the organization with a non-existent ID
+    Then I receive a status code "404" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "not-found"
+    And the OperationOutcome contains an issue with diagnostics "Organisation not found."
+
+
+  Scenario: Update Organization with unexpected field in payload
+    When I add an extra field "newfield" with value "foobar" to the payload and update the organization
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the diagnostics message indicates unexpected field "newfield" with value "foobar"
+
+  Scenario: Reject request with invalid Content-Type
+    When I send a PUT request with invalid Content-Type to the organization API
+    Then I receive a status code "415" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "unsupported-media-type"
+    And the OperationOutcome contains an issue with diagnostics "PUT requests must have Content-Type 'application/fhir+json'"

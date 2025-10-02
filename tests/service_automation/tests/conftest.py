@@ -1,4 +1,8 @@
+import ast
 import os
+from typing import Callable, cast
+import sys
+from pathlib import Path
 
 import boto3
 import pytest
@@ -14,9 +18,10 @@ from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
-from utilities.infra.logs_util import CloudWatchLogsWrapper
 import json
 from utilities.common.context import Context
+
+pytest_plugins = ["data_migration_fixtures"]
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -143,6 +148,14 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
         except Exception as e:
             logger.error(f"Error disposing context: {e}")
 
+
+@pytest.fixture
+def new_apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+    """Create a new Playwright API request context."""
+    apim_headers = nhsd_apim_auth_headers
+    apim_request_context = playwright.request.new_context( extra_http_headers = apim_headers,)
+    yield apim_request_context
+    apim_request_context.dispose()
 
 @pytest.fixture(scope="session")
 def chromium():
@@ -299,3 +312,29 @@ def context() -> Context:
         Context: Context object.
     """
     return Context()
+
+def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
+    """
+    Fix for pytest-bdd not correctly parsing marker arguments from Gherkin feature files.
+
+    When using markers with parameters in Gherkin tags (e.g., @nhsd_apim_authorization(access="application",level="level3")),
+    pytest-bdd passes the entire tag as a string rather than parsing the arguments. This hook intercepts
+    such tags and manually parses the arguments to create the proper pytest marker.
+    """
+    if not tag.startswith("nhsd_apim_authorization"):
+        # Fall back to default behaviour
+        return None
+    try:
+        tree = ast.parse(tag)
+        body = tree.body[0].value
+        if isinstance(body, ast.Call):
+            name = body.func.id
+            kwargs = {keyword.arg: keyword.value.value for keyword in body.keywords if isinstance(keyword.value, ast.Constant)}
+            mark = getattr(pytest.mark, name)(**kwargs)
+        else:
+            mark = getattr(pytest.mark, tag)
+        marked = mark(function)
+        return cast(Callable, marked)
+    except (SyntaxError, AttributeError, ValueError):
+        return None
+

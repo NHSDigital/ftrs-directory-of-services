@@ -32,6 +32,13 @@ module "api_gateway" {
         timeout_milliseconds   = var.api_gateway_integration_timeout
       }
     }
+    "GET /_status" = {
+      integration = {
+        uri                    = module.health_check_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
   }
 
   api_gateway_access_logs_retention_days = var.api_gateway_access_logs_retention_days
