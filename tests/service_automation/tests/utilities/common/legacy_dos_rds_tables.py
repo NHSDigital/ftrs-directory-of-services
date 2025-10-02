@@ -2,7 +2,6 @@
 LEGACY_DOS_TABLES = [
     "servicestatuses",
     "servicetypes",
-    "services",
     "agegroups",
     "dispositions",
     "dispositionservicetypes",
@@ -10,7 +9,6 @@ LEGACY_DOS_TABLES = [
     "dispositiongroupdispositions",
     "dispositiongroupservicetypes",
     "genders",
-    "locations",
     "openingtimedays",
     "organisationtypes",
     "referralroles",

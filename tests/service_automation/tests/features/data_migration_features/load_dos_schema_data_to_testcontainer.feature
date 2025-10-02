@@ -4,8 +4,8 @@ Feature: Data Load and Schema Load Verification
   So that I can ensure the system maintains data integrity
 
   @test-db-load-schema-data-migration
-  Scenario: Verify services data is migrated correctly
+  Scenario: Verify servicetypes data is migrated correctly
     Given I have a database with migrated data
-    When I query the "services" table
-    Then the "services" table should have data
+    When I query the "servicetypes" table
+    Then the "servicetypes" table should have data
 

@@ -197,7 +197,7 @@ def _init_database_with_migration(postgres_container: PostgresContainer):
         data_path = data_file.name
 
     try:
-        # Dump schema and data from source
+        # Dump schema and data from the source
         _dump_schema_and_data(source_config, schema_path, data_path)
 
         # Load schema and data into test container

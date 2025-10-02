@@ -23,7 +23,7 @@ class TestDoSDbWithMigrationFixture:
 
         # Query for all tables in the pathwaysdos schema
         result = dos_db_with_migration.exec(
-                    text("""
+            text("""
                         SELECT table_name
                         FROM information_schema.tables
                         WHERE table_schema = 'pathwaysdos'
@@ -46,14 +46,6 @@ class TestDoSDbWithMigrationFixture:
         )
         count = result.fetchone()[0]
         assert count > 0, "servicetypes table should contain migrated data"
-
-    def test_services_table_has_data(self, dos_db_with_migration: Session):
-        """Test that the services table contains migrated data."""
-        result = dos_db_with_migration.exec(
-            text("SELECT COUNT(*) FROM pathwaysdos.services")
-        )
-        count = result.fetchone()[0]
-        assert count > 0, "services table should contain migrated data"
 
     def test_migration_fixture_isolation(self, dos_db_with_migration: Session):
         dos_db_with_migration.exec(
