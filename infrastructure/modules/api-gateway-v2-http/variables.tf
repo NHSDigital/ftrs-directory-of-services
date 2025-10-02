@@ -43,9 +43,3 @@ variable "routes" {
   description = "A map of routes for the API Gateway and their integrations"
   type        = map(any)
 }
-
-variable "api_gateway_access_logs_retention_days" {
-  description = "The number of days to store the API Gateway logs for in Cloudwatch"
-  type        = string
-}
-

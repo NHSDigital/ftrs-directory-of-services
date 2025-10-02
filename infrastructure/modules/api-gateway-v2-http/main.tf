@@ -47,8 +47,8 @@ module "api_gateway" {
   }
 
   stage_access_log_settings = {
-    create_log_group            = true
-    log_group_retention_in_days = var.api_gateway_access_logs_retention_days
+    create_log_group = true
+    # log_group_retention_in_days and log_group_name removed so stacks supply them explicitly
     format = jsonencode({
       context = {
         domainName              = "$context.domainName"

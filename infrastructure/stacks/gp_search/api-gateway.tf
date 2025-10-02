@@ -1,7 +1,12 @@
+locals {
+  api_name      = format("%s-api-gateway%s", local.resource_prefix, local.workspace_suffix != "" ? local.workspace_suffix : "")
+  api_log_group = format("/aws/apigateway/%s", local.api_name)
+}
+
 module "api_gateway" {
   source = "github.com/NHSDigital/ftrs-directory-of-services?ref=2cc250e/infrastructure/modules/api-gateway-v2-http"
 
-  name        = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
+  name        = local.api_name
   description = "FtRS Service Search API Gateway"
 
   # As soon as you tell the module to create a domain, the execute api endpoint will be disabled
@@ -41,6 +46,37 @@ module "api_gateway" {
     }
   }
 
-  api_gateway_access_logs_retention_days = var.api_gateway_access_logs_retention_days
+  stage_access_log_settings = {
+    create_log_group            = true
+    log_group_name              = local.api_log_group
+    log_group_retention_in_days = var.api_gateway_access_logs_retention_days
+    format = jsonencode({
+      context = {
+        domainName              = "$context.domainName"
+        integrationErrorMessage = "$context.integrationErrorMessage"
+        protocol                = "$context.protocol"
+        requestId               = "$context.requestId"
+        requestTime             = "$context.requestTime"
+        responseLength          = "$context.responseLength"
+        routeKey                = "$context.routeKey"
+        stage                   = "$context.stage"
+        status                  = "$context.status"
+        error = {
+          message      = "$context.error.message"
+          responseType = "$context.error.responseType"
+        }
+        identity = {
+          sourceIP = "$context.identity.sourceIp"
+        }
+        integration = {
+          error             = "$context.integration.error"
+          integrationStatus = "$context.integration.integrationStatus"
+        }
+      }
+    })
+  }
 
+  stage_default_route_settings = {
+    detailed_metrics_enabled = true
+  }
 }

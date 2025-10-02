@@ -56,4 +56,6 @@ module "lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.lambda_cloudwatch_logs_retention_days
 }
