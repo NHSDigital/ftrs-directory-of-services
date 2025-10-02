@@ -4,7 +4,7 @@ locals {
 }
 
 module "api_gateway" {
-  source = "../../modules/api-gateway-v2-http"
+  source = "github.com/NHSDigital/ftrs-directory-of-services?ref=57b53f778381f3c4cfaded5770a5eddd3ff8f6f5/infrastructure/modules/api-gateway-v2-http"
 
   name        = local.api_name
   description = "FtRS Service Search API Gateway"
