@@ -99,7 +99,7 @@
                 "arn:aws:iam::*:role/dms-vpc-role",
                 "arn:aws:iam::*:role/ftrs-dos-*",
                 "arn:aws:iam::*:policy/ftrs-dos-*",
-                "arn:aws:iam::*:role/AWSServiceRoleForAWSShield"
+                "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
             ]
         },
         {
