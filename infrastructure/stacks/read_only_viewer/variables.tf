@@ -132,3 +132,8 @@ variable "emergency_contacts" {
     contact_notes = optional(string)
   }))
 }
+
+variable "create_monitoring_subscription" {
+  description = "The resource for monitoring subscription will be created."
+  type        = bool
+}
