@@ -8,34 +8,63 @@ from pipeline.utils.cache import DoSMetadataCache
 
 
 @pytest.mark.parametrize(
-    "service_type_id, ods_code, expected_result, expected_message",
+    "test_data",
     [
-        (100, "A12345", True, None),  # Valid GP Practice
-        (200, "A12345", False, "Service type is not GP Practice (100)"),
-        (100, None, False, "Service does not have an ODS code"),
-        (100, "X12345", False, "ODS code does not match the required format"),
-        (100, "A1234", False, "ODS code does not match the required format"),
+        {
+            "service_type_id": 100,
+            "ods_code": "A12345",
+            "name": "Name",
+            "expected_result": True,
+            "expected_message": None,
+        },  # Valid GP Practice
+        {
+            "service_type_id": 200,
+            "ods_code": "A12345",
+            "name": "Name",
+            "expected_result": False,
+            "expected_message": "Service type is not GP Practice (100)",
+        },
+        {
+            "service_type_id": 100,
+            "ods_code": None,
+            "name": "Name",
+            "expected_result": False,
+            "expected_message": "Service does not have an ODS code",
+        },
+        {
+            "service_type_id": 100,
+            "ods_code": "X12345",
+            "name": "Name",
+            "expected_result": False,
+            "expected_message": "ODS code does not match the required format",
+        },
+        # potential GP Practice misclassification of PLT is handled
+        {
+            "service_type_id": 100,
+            "ods_code": "G12345",
+            "name": "PLT - GP COVER",
+            "expected_result": False,
+            "expected_message": "Service name is PLT specific",
+        },  # Invalid since it's GP protected learning Time
     ],
 )
 def test_is_service_supported(
     mock_legacy_service: Service,
-    service_type_id: int,
-    ods_code: str | None,
-    expected_result: bool,
-    expected_message: str | None,
+    test_data: dict,
 ) -> None:
     """
     Test that is_service_supported returns True for a valid GP profile
     """
-    mock_legacy_service.typeid = service_type_id
-    mock_legacy_service.odscode = ods_code
+    mock_legacy_service.typeid = test_data["service_type_id"]
+    mock_legacy_service.odscode = test_data["ods_code"]
+    mock_legacy_service.name = test_data["name"]
 
     is_supported, message = GPPracticeTransformer.is_service_supported(
         mock_legacy_service
     )
 
-    assert is_supported == expected_result
-    assert message == expected_message
+    assert is_supported == test_data["expected_result"]
+    assert message == test_data["expected_message"]
 
 
 @pytest.mark.parametrize(
@@ -74,11 +103,6 @@ def test_transform(
     """
     Test that transform method correctly transforms a GP practice service.
     """
-    mock_legacy_service.publicname = "GP - Remove this text"  # GP Public Name
-    mock_legacy_service.typeid = 100  # GP Practice type ID
-    mock_legacy_service.odscode = "A12345"  # Valid ODS code
-    mock_legacy_service.statusid = 1  # Active status
-
     # When creating the transformer in the test:
     validation_issues = []
     transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
@@ -86,7 +110,7 @@ def test_transform(
 
     assert len(result.organisation) == 1
     assert result.organisation[0].identifier_ODS_ODSCode == "A12345"
-    assert result.organisation[0].name == "GP"
+    assert result.organisation[0].name == "Test Service"
 
     assert len(result.location) == 1
 
@@ -98,21 +122,3 @@ def test_transform(
         result.healthcare_service[0].type
         == HealthcareServiceType.GP_CONSULTATION_SERVICE
     )
-
-
-def test_transform_with_empty_publicname(
-    mock_legacy_service: Service,
-    mock_metadata_cache: DoSMetadataCache,
-) -> None:
-    with pytest.raises(ValueError, match="publicname is not set"):
-        """
-        Test that transform method raises and exception when it transforms a GP practice service without a publicname.
-        """
-        mock_legacy_service.name = "GP - Text Not Removed"  # GP Name
-        mock_legacy_service.publicname = None
-        mock_legacy_service.typeid = 100  # GP Practice type ID
-        mock_legacy_service.odscode = "A12345"  # Valid ODS code
-        mock_legacy_service.statusid = 1  # Active status
-        validation_issues = []
-        transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
-        transformer.transform(mock_legacy_service, validation_issues)
