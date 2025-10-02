@@ -5,7 +5,7 @@ GET_SUCCESS_RESPONSE = {
     "link": [
         {
             "relation": "self",
-            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
+            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123"
         }
     ],
     "entry": [
@@ -151,9 +151,19 @@ INTERNAL_SERVER_ERROR_RESPONSE = {
     "resourceType": "OperationOutcome",
     "issue": [
         {
-            "severity": "error",
+            "severity": "fatal",
             "code": "exception",
-            "diagnostics": "Internal server error"
+            "details": {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
+                        "code": "exception",
+                        "display": "Exception"
+                    }
+                ],
+                "text": "An unexpected error occurred: please try again later."
+            },
+            "diagnostics": "please try again later."
         }
     ]
 }

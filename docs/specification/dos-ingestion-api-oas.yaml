@@ -318,14 +318,15 @@ paths:
               example:
                 resourceType: OperationOutcome
                 issue:
-                  - severity: error
+                  - severity: fatal
                     code: exception
                     details:
                       coding:
                         - system: "http://terminology.hl7.org/CodeSystem/operation-outcome"
                           code: "exception"
                           display: "Exception"
-                    diagnostics: "An unexpected error occurred: please try again later."
+                      text: "An unexpected error occurred: please try again later."
+                    diagnostics: "please try again later."
   '/Organization/{id}':
     put:
       security:
