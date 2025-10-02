@@ -7,7 +7,7 @@ resource "aws_secretsmanager_secret" "api_ca_pk_secret" {
 }
 
 data "aws_kms_key" "by_id" {
-  key_id = "uec-dos-sm-rds-key-manual-twr"
+  key_id = "alias/uec-dos-sm-rds-key-manual-twr"
 }
 
 
