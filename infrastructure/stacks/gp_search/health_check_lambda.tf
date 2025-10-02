@@ -38,6 +38,8 @@ module "health_check_lambda" {
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.health_check_lambda_cloudwatch_logs_retention_days
 }
 
 data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
