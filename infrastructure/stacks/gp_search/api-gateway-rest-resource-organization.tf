@@ -7,7 +7,7 @@ resource "aws_api_gateway_resource" "organization" {
 # Method request / response and integration request / response
 
 resource "aws_api_gateway_method" "organization" {
-  # checkov:skip=CKV_AWS_59:
+  # checkov:skip=CKV_AWS_59: False positive; all the endpoints will be authenticated via mTLS
   rest_api_id   = aws_api_gateway_rest_api.api-gateway.id
   resource_id   = aws_api_gateway_resource.organization.id
   http_method   = "GET"
