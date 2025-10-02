@@ -6,7 +6,7 @@ resource "aws_api_gateway_resource" "organization" {
 
 # Method request / response and integration request / response
 
-# checkov:skip=CKV2_AWS_59: False positive as all endpoints are protected by TLS
+# checkov:skip=CKV_AWS_59: False positive as all endpoints are protected by mTLS
 resource "aws_api_gateway_method" "organization" {
   rest_api_id   = aws_api_gateway_rest_api.api-gateway.id
   resource_id   = aws_api_gateway_resource.organization.id
