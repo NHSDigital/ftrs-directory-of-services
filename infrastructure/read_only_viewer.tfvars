@@ -9,6 +9,7 @@ waf_scope                          = "CLOUDFRONT"
 
 # CloudFront Real-time Metrics
 realtime_metrics_subscription_status = "Enabled" #Options are Enabled or Disabled
+create_monitoring_subscription       = true
 
 #Shield Configurations
 isShieldProactiveEngagementEnabled = false
