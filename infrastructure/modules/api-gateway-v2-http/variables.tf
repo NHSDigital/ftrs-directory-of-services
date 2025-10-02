@@ -43,3 +43,15 @@ variable "routes" {
   description = "A map of routes for the API Gateway and their integrations"
   type        = map(any)
 }
+
+variable "api_gateway_access_logs_retention_days" {
+  description = "Number of days to retain API Gateway access logs. Stacks can override this to configure per-environment retention."
+  type        = number
+  default     = 30
+}
+
+variable "api_gateway_access_logs_log_group_name" {
+  description = "Optional explicit CloudWatch log group name for API Gateway access logs. If set, the module will create/manage this log group."
+  type        = string
+  default     = null
+}
