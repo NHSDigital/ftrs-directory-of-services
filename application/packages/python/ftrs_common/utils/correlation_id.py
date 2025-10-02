@@ -1,7 +1,10 @@
 import contextvars
 import uuid
 from contextlib import contextmanager
-from typing import Generator, Optional, Protocol, TypeVar
+from typing import Generator, Optional
+
+from starlette.requests import Request
+from starlette.responses import Response
 
 CORRELATION_ID_HEADER = "X-Correlation-ID"
 
@@ -38,24 +41,6 @@ def correlation_id_context(correlation_id: Optional[str] = None) -> Generator:
             current_correlation_id.reset(token)
 
 
-# Define protocols for request and response-like objects without importing FastAPI
-class RequestLike(Protocol):
-    """Protocol for request objects that have headers."""
-
-    @property
-    def headers(self) -> dict: ...
-
-
-class ResponseLike(Protocol):
-    """Protocol for response objects that have headers."""
-
-    @property
-    def headers(self) -> dict: ...
-
-
-T = TypeVar("T")
-
-
 def fetch_or_set_correlation_id(existing: str | None = None) -> str:
     """
     Ensure a correlation ID exists in context and return it.
@@ -74,12 +59,22 @@ def fetch_or_set_correlation_id(existing: str | None = None) -> str:
     return new_id
 
 
-def extract_correlation_id(request: RequestLike) -> str:
+def extract_correlation_id(request: "Request") -> str:
+    """
+    Extract or generate a correlation ID from a Starlette/FastAPI Request.
+    Type-safe version using Starlette's Request type.
+    """
     correlation_id = request.headers.get(CORRELATION_ID_HEADER)
     return fetch_or_set_correlation_id(correlation_id)
 
 
-def add_correlation_id_header(response: T, correlation_id: Optional[str] = None) -> T:
+def add_correlation_id_header(
+    response: "Response", correlation_id: Optional[str] = None
+) -> "Response":
+    """
+    Add correlation ID to a Starlette/FastAPI Response.
+    Type-safe version using Starlette's Response type.
+    """
     correlation_id = fetch_or_set_correlation_id(correlation_id)
     if hasattr(response, "headers"):
         response.headers[CORRELATION_ID_HEADER] = correlation_id
