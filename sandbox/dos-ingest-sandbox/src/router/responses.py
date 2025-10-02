@@ -147,48 +147,6 @@ PUT_NOT_FOUND_RESPONSE = {
     ]
 }
 
-UNAUTHORIZED_RESPONSE = {
-    "resourceType": "OperationOutcome",
-    "issue": [
-        {
-            "severity": "error",
-            "code": "security",
-            "diagnostics": "Invalid or missing authentication token",
-            "details": {
-                "coding": [
-                    {
-                        "system": "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode",
-                        "version": "1",
-                        "code": "UNAUTHORIZED",
-                        "display": "Unauthorized"
-                    }
-                ]
-            }
-        }
-    ]
-}
-
-FORBIDDEN_RESPONSE = {
-    "resourceType": "OperationOutcome",
-    "issue": [
-        {
-            "severity": "error",
-            "code": "forbidden",
-            "diagnostics": "Insufficient permissions to access this resource",
-            "details": {
-                "coding": [
-                    {
-                        "system": "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode",
-                        "version": "1",
-                        "code": "FORBIDDEN",
-                        "display": "Forbidden"
-                    }
-                ]
-            }
-        }
-    ]
-}
-
 INTERNAL_SERVER_ERROR_RESPONSE = {
     "resourceType": "OperationOutcome",
     "issue": [
