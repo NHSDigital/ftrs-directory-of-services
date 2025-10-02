@@ -30,7 +30,7 @@ module "health_check_lambda" {
   allowed_triggers = {
     AllowExecutionFromAPIGateway = {
       service    = "apigateway"
-      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
+      source_arn = "${aws_api_gateway_rest_api.api-gateway.execution_arn}/*/*"
     }
   }
 
