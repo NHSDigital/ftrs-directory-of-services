@@ -138,6 +138,12 @@
             "Effect": "Allow",
             "Action": "athena:*",
             "Resource": "*"
+        },
+        {
+            "Sid": "QuicksiteFullAccess",
+            "Effect": "Allow",
+            "Action": "quicksight:*",
+            "Resource": "*"
         }
     ]
 }
