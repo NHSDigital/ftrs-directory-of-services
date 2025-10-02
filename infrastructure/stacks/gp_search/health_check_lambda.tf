@@ -1,5 +1,5 @@
 module "health_check_lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ea49dff/infrastructure/modules/lambda"
+  source                 = "../../modules/lambda"
   function_name          = "${local.resource_prefix}-${var.health_check_lambda_name}"
   description            = "This lambda provides a health check for the search lambda"
   handler                = "health_check/health_check_function.lambda_handler"

@@ -4,7 +4,7 @@ locals {
 }
 
 module "api_gateway" {
-  source = "github.com/NHSDigital/ftrs-directory-of-services?ref=2cc250e/infrastructure/modules/api-gateway-v2-http"
+  source = "../../modules/api-gateway-v2-http"
 
   name        = local.api_name
   description = "FtRS Service Search API Gateway"
@@ -46,37 +46,7 @@ module "api_gateway" {
     }
   }
 
-  stage_access_log_settings = {
-    create_log_group            = true
-    log_group_name              = local.api_log_group
-    log_group_retention_in_days = var.api_gateway_access_logs_retention_days
-    format = jsonencode({
-      context = {
-        domainName              = "$context.domainName"
-        integrationErrorMessage = "$context.integrationErrorMessage"
-        protocol                = "$context.protocol"
-        requestId               = "$context.requestId"
-        requestTime             = "$context.requestTime"
-        responseLength          = "$context.responseLength"
-        routeKey                = "$context.routeKey"
-        stage                   = "$context.stage"
-        status                  = "$context.status"
-        error = {
-          message      = "$context.error.message"
-          responseType = "$context.error.responseType"
-        }
-        identity = {
-          sourceIP = "$context.identity.sourceIp"
-        }
-        integration = {
-          error             = "$context.integration.error"
-          integrationStatus = "$context.integration.integrationStatus"
-        }
-      }
-    })
-  }
-
-  stage_default_route_settings = {
-    detailed_metrics_enabled = true
-  }
+  # Provide retention days expected by the module/wrapper (stack exposes this variable)
+  api_gateway_access_logs_retention_days = var.api_gateway_access_logs_retention_days
+  api_gateway_access_logs_log_group_name = local.api_log_group
 }

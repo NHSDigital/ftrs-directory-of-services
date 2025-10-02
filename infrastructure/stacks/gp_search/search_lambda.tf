@@ -17,7 +17,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 }
 
 module "lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=ea49dff/infrastructure/modules/lambda"
+  source                 = "../../modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
   description            = "This lambda provides search logic to returns an organisation and its endpoints"
   handler                = "functions/gp_search_function.lambda_handler"
