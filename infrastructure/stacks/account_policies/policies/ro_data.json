@@ -76,6 +76,24 @@
                 "s3-object-lambda:List*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "AthenaLimitedAccess",
+            "Effect": "Allow",
+            "Action": [
+              "athena:Get*",
+              "athena:List*",
+              "athena:StartQueryExecution",
+              "athena:DeleteNamedQuery",
+              "athena:DeletePreparedStatement",
+              "athena:UpdateNamedQuery",
+              "athena:StopQueryExecution",
+              "athena:CreatePreparedStatement",
+              "athena:UpdatePreparedStatement",
+              "athena:CreateNamedQuery",
+              "athena:CancelQueryExecution"
+            ],
+            "Resource": "*"
         }
     ]
 }
