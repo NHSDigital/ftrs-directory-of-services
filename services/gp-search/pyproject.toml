@@ -17,6 +17,7 @@ dependencies = [
     "numpy (>=1.26.4,<2.0.0)",
     "boto3 (>=1.37.24,<2.0.0)",
     "boto3-stubs[dynamodb] (>=1.37.24,<2.0.0)",
+    "starlette (>=0.40.0,<0.47.0)",
 ]
 
 [build-system]
