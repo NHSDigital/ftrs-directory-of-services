@@ -115,15 +115,15 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
 }
 
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
-#resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
-#  count             = local.is_primary_environment ? 1 : 0
-#  security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-#  description       = "Allow egress to internet on port ${var.https_port}"
-#  cidr_ipv4         = "0.0.0.0/0"
-#  from_port         = var.https_port
-#  ip_protocol       = "tcp"
-#  to_port           = var.https_port
-#}
+resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
+  count             = local.is_primary_environment ? 1 : 0
+  security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description       = "Allow egress to internet on port ${var.https_port}"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = var.https_port
+  ip_protocol       = "tcp"
+  to_port           = var.https_port
+}
 
 resource "aws_security_group" "dms_replication_security_group" {
   count       = local.is_primary_environment ? 1 : 0
