@@ -20,24 +20,9 @@ resource "aws_iam_role_policy_attachment" "dms_vpc_role_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole"
 }
 
-resource "aws_iam_role" "shield_service_role" {
-  name        = "AWSServiceRoleForAWSShield"
-  description = "Allows Shield Advanced to automatically respond to DDoS attacks"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "shield.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      },
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "shield_service_role_policy_attachment" {
-  role       = aws_iam_role.shield_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSShieldServiceRolePolicy"
+# Create the service-linked role for Shield Advanced
+# This ensures the role exists before we try to use Shield Advanced features
+resource "aws_iam_service_linked_role" "shield" {
+  aws_service_name = "shield.amazonaws.com"
+  description      = "Service-linked role for AWS Shield Advanced"
 }
