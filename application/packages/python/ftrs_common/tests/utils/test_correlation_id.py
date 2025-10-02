@@ -2,7 +2,6 @@ from ftrs_common.utils.correlation_id import (
     CORRELATION_ID_HEADER,
     add_correlation_id_header,
     correlation_id_context,
-    extract_correlation_id,
     fetch_or_set_correlation_id,
     generate_correlation_id,
     get_correlation_id,
@@ -80,34 +79,6 @@ def test_fetch_or_set_correlation_id_generates_new_id() -> None:
     set_correlation_id(None)
 
     result = fetch_or_set_correlation_id()
-
-    assert result is not None
-    assert get_correlation_id() == result
-
-
-class MockRequest:
-    """Mock request class that implements the RequestLike protocol."""
-
-    def __init__(self, headers: dict) -> None:
-        self.headers = headers
-
-
-def test_extract_correlation_id_from_headers() -> None:
-    """Test that extract_correlation_id extracts the ID from request headers."""
-    header_id = "header-id"
-    request = MockRequest({CORRELATION_ID_HEADER: header_id})
-
-    result = extract_correlation_id(request)
-
-    assert result == header_id
-    assert get_correlation_id() == header_id
-
-
-def test_extract_correlation_id_generates_id_if_not_in_headers() -> None:
-    """Test that extract_correlation_id generates an ID if not in headers."""
-    request = MockRequest({})
-
-    result = extract_correlation_id(request)
 
     assert result is not None
     assert get_correlation_id() == result
