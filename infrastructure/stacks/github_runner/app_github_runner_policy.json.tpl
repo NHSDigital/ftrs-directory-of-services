@@ -124,7 +124,7 @@
                 "arn:aws:iam::*:role/${project}-*",
                 "arn:aws:iam::*:policy/${project}-*",
                 "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
-                "arn:aws:iam::*:role/AWSServiceRoleForAWSShield"
+                "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
             ]
         },
         {
