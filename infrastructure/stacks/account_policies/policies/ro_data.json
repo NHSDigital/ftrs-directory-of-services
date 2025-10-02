@@ -84,8 +84,6 @@
               "athena:Get*",
               "athena:List*",
               "athena:StartQueryExecution",
-              "athena:DeleteNamedQuery",
-              "athena:DeletePreparedStatement",
               "athena:UpdateNamedQuery",
               "athena:StopQueryExecution",
               "athena:CreatePreparedStatement",
