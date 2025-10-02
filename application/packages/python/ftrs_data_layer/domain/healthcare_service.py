@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import UUID
 
 from ftrs_data_layer.domain.availability import OpeningTime
@@ -9,6 +10,7 @@ from ftrs_data_layer.domain.clinical_code import (
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
     HealthcareServiceType,
+    TimeUnit,
 )
 from pydantic import BaseModel
 
@@ -18,6 +20,12 @@ class Telecom(BaseModel):
     phone_private: str | None
     email: str | None
     web: str | None
+
+
+class AgeRangeType(BaseModel):
+    rangeFrom: Decimal
+    rangeTo: Decimal
+    type: TimeUnit
 
 
 class HealthcareService(DBModel):
@@ -33,3 +41,4 @@ class HealthcareService(DBModel):
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[Disposition]
     migrationNotes: list[str] | None = None
+    ageEligibilityCriteria: list[AgeRangeType] | None = None
