@@ -150,8 +150,6 @@ terraform-initialise
 
 terraform workspace select -or-create "$WORKSPACE"
 
-terraform force-unlock -force 58383888-06ef-44a5-544c-d31d17403d43
-
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   terraform plan -out $STACK.tfplan \
