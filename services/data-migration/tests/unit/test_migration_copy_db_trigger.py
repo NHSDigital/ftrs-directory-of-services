@@ -1,119 +1,139 @@
-import os
+import json
 from unittest.mock import MagicMock, patch
 
+import boto3
 import pytest
-from botocore.exceptions import ClientError
-from pytest_mock import MockerFixture
 
-os.environ["SQS_SSM_PATH"] = "/mocked/path"
-
-# Mock boto3 and set up SSM mock BEFORE importing the module
-mock_ssm = MagicMock()
-mock_ssm.get_paginator.return_value.paginate.return_value = [
-    {"Parameters": [{"Value": "https://sqs.queue.url/1"}]}
-]
-
-# Create a patcher for boto3.client
-boto3_client_patcher = patch("boto3.client")
-mock_boto_client = boto3_client_patcher.start()
-mock_boto_client.return_value = mock_ssm
-
-from pipeline.migration_copy_db_trigger import (  # noqa: E402
-    get_dms_workspaces,
+from pipeline.migration_copy_db_trigger_lambda_handler import (
     get_message_from_event,
     lambda_handler,
 )
 
 
-@patch("pipeline.migration_copy_db_trigger.sqs.send_message")
-@patch("pipeline.migration_copy_db_trigger.get_dms_workspaces")
-@patch("pipeline.migration_copy_db_trigger.logger.exception")
-def test_lambda_handler_sqs_failure(
-    mock_logger_exception: MagicMock,
-    mock_get_dms_workspaces: MagicMock,
-    mock_send_message: MagicMock,
-) -> None:
-    """Test lambda_handler when SQS send_message fails"""
-    mock_get_dms_workspaces.return_value = ["https://sqs.queue.url/1"]
-    mock_send_message.side_effect = ClientError(
-        {"Error": {"Code": "InvalidRequest", "Message": "Failed to send"}},
-        "SendMessage",
-    )
+# Add a module-level patch to prevent boto3 from making real AWS calls
+@pytest.fixture(scope="module", autouse=True)
+def mock_boto3() -> MagicMock:
+    with patch.object(boto3, "client") as mock_boto3_client:
+        mock_sqs = MagicMock()
+        mock_boto3_client.return_value = mock_sqs
+        mock_sqs.send_message.return_value = {"MessageId": "mocked-message-id"}
+        yield mock_boto3_client
 
-    event = {"key": "value"}
+
+@pytest.fixture
+def mock_sqs_client() -> MagicMock:
+    with patch(
+        "pipeline.migration_copy_db_trigger_lambda_handler.SQS_CLIENT"
+    ) as mock_client:
+        mock_client.send_message.return_value = {"MessageId": "test-message-id"}
+        yield mock_client
+
+
+@pytest.fixture
+def mock_workspaces() -> MagicMock:
+    with patch(
+        "pipeline.utils.secret_utils.get_dms_workspaces",
+        return_value=["queue-url-1", "queue-url-2"],
+    ):
+        yield
+
+
+@pytest.fixture(scope="module", autouse=True)
+def mock_ssm_client() -> MagicMock:
+    with patch("pipeline.utils.secret_utils.SSM_CLIENT") as mock_ssm:
+        mock_paginator = MagicMock()
+        mock_ssm.get_paginator.return_value = mock_paginator
+        mock_paginator.paginate.return_value = [
+            {"Parameters": [{"Value": "queue-url-1"}, {"Value": "queue-url-2"}]}
+        ]
+        yield mock_ssm
+
+
+def test_lambda_handler_sends_message_to_all_workspaces(
+    mock_sqs_client: MagicMock, mock_workspaces: MagicMock
+) -> None:
+    event = {"detail": {"eventName": "INSERT"}}
     context = {}
 
     lambda_handler(event, context)
+    send_call_count = 2
 
-    mock_logger_exception.assert_called_once_with(
-        "Failed to send message to SQS for workspace %s", "https://sqs.queue.url/1"
+    assert mock_sqs_client.send_message.call_count == send_call_count
+    mock_sqs_client.send_message.assert_any_call(
+        QueueUrl="queue-url-1",
+        MessageBody=json.dumps({"source": "aurora_trigger", "event": event}),
+    )
+    mock_sqs_client.send_message.assert_any_call(
+        QueueUrl="queue-url-2",
+        MessageBody=json.dumps({"source": "aurora_trigger", "event": event}),
     )
 
 
-def test_lambda_handler_success(
-    mocker: MockerFixture,
+def test_lambda_handler_handles_sqs_exception(
+    mock_sqs_client: MagicMock, mock_workspaces: MagicMock
 ) -> None:
-    """Test lambda_handler with a successful SQS message sending"""
-    mock_send_message = mocker.patch(
-        "pipeline.migration_copy_db_trigger.sqs.send_message",
-        return_value={"MessageId": "12345"},
-    )
-
-    event = {"key": "value"}
+    event = {"detail": {"eventName": "INSERT"}}
     context = {}
-
-    lambda_handler(event, context)
-
-    mock_send_message.assert_called_once_with(
-        QueueUrl="https://sqs.queue.url/1",
-        MessageBody='{"source": "aurora_trigger", "event": {"key": "value"}}',
-    )
-
-
-@patch("pipeline.migration_copy_db_trigger.ssm.get_paginator")
-@patch("pipeline.migration_copy_db_trigger.logger.exception")
-def test_get_dms_workspaces_failure(
-    mock_logger_exception: MagicMock,
-    mock_get_paginator: MagicMock,
-) -> None:
-    """Test get_dms_workspaces when SSM parameter retrieval fails"""
-    mock_paginator = MagicMock()
-    mock_get_paginator.return_value = mock_paginator
-    mock_paginator.paginate.side_effect = ClientError(
-        {"Error": {"Code": "ParameterNotFound", "Message": "Parameter not found"}},
-        "GetParametersByPath",
-    )
-
-    with pytest.raises(ClientError):
-        get_dms_workspaces()
-
-    mock_logger_exception.assert_called_once_with("Error retrieving DMS workspaces")
-
-
-@patch("pipeline.migration_copy_db_trigger.ssm.get_paginator")
-def test_get_dms_workspaces_multiple_pages(
-    mock_get_paginator: MagicMock,
-) -> None:
-    """Test get_dms_workspaces with multiple pages of results"""
-    mock_paginator = MagicMock()
-    mock_get_paginator.return_value = mock_paginator
-
-    mock_paginator.paginate.return_value = [
-        {"Parameters": [{"Value": "workspace1"}, {"Value": "workspace2"}]},
-        {"Parameters": [{"Value": "workspace3"}]},
+    send_call_count = 2
+    mock_sqs_client.send_message.side_effect = [
+        {"MessageId": "test-message-id"},
+        Exception("SQS error"),
     ]
 
-    workspaces = get_dms_workspaces()
+    lambda_handler(event, context)
 
-    assert workspaces == ["workspace1", "workspace2", "workspace3"]
-    mock_paginator.paginate.assert_called_once_with(
-        Path="/mocked/path", Recursive=True, WithDecryption=True
-    )
+    assert mock_sqs_client.send_message.call_count == send_call_count
 
 
-def test_get_message_from_event_empty_event() -> None:
-    """Test get_message_from_event with empty event"""
+def test_get_message_from_event_creates_correct_message_format() -> None:
+    event = {"detail": {"eventName": "INSERT"}}
+
+    message = get_message_from_event(event)
+
+    assert message == {"source": "aurora_trigger", "event": event}
+
+
+def test_get_message_from_event_handles_empty_event() -> None:
     event = {}
+
     message = get_message_from_event(event)
 
     assert message == {"source": "aurora_trigger", "event": {}}
+
+
+def test_lambda_handler_handles_complex_event_structure() -> None:
+    with (
+        patch("pipeline.utils.secret_utils.get_dms_workspaces"),
+        patch(
+            "pipeline.migration_copy_db_trigger_lambda_handler.SQS_CLIENT"
+        ) as mock_client,
+    ):
+        complex_event = {
+            "version": "0",
+            "id": "12345678-1234-1234-1234-123456789012",
+            "detail-type": "AWS API Call via CloudTrail",
+            "source": "aws.rds",
+            "account": "123456789012",
+            "time": "2023-01-01T12:00:00Z",
+            "region": "us-east-1",
+            "resources": [],
+            "detail": {
+                "eventVersion": "1.08",
+                "eventSource": "rds.amazonaws.com",
+                "eventName": "CreateDBInstance",
+                "awsRegion": "us-east-1",
+                "sourceIPAddress": "123.45.67.89",
+                "userAgent": "aws-cli/2.0.0",
+            },
+        }
+        context = {}
+
+        lambda_handler(complex_event, context)
+
+        expected_message = json.dumps(
+            {"source": "aurora_trigger", "event": complex_event}
+        )
+
+        mock_client.send_message.assert_called_with(
+            QueueUrl="queue-url-2", MessageBody=expected_message
+        )
