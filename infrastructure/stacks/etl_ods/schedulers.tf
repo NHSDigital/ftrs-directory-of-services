@@ -21,7 +21,7 @@ resource "aws_scheduler_schedule" "ods_etl_schedule" {
     role_arn = aws_iam_role.ods_etl_scheduler_invoke_role.arn
 
     input = jsonencode({
-      "date" = "${formatdate("YYYY-MM-DD", timeadd(timestamp(), "-24h"))}"
+      "trigger-time" = "<aws.scheduler.scheduled-time>"
     })
 
     retry_policy {

@@ -397,6 +397,18 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
 
+def test_processor_lambda_handler_success_tigger_datetime(mocker: MockerFixture) -> None:
+    mock_processor = mocker.patch("pipeline.processor.processor")
+    trigger_datetime = datetime.now()
+    event = {"trigger-time": trigger_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+    response = processor_lambda_handler(event, {})
+
+    previous_date = (trigger_datetime - timedelta(days=1)).strftime("%Y-%m-%d")
+    mock_processor.assert_called_once_with(date=previous_date)
+    assert response == {"statusCode": 200, "body": "Processing complete"}
+
+
 def test_processor_lambda_handler_missing_date() -> None:
     response = processor_lambda_handler({}, {})
     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
@@ -411,6 +423,13 @@ def test_processor_lambda_handler_invalid_date_format() -> None:
         "error": "Date must be in YYYY-MM-DD format"
     }
 
+def test_processor_lambda_handler_invalid_trigger_datetime_format() -> None:
+    invalid_event = {"trigger-time": "2025/08/14 12:00:00"}
+    response = processor_lambda_handler(invalid_event, {})
+    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
+    assert json.loads(response["body"]) == {
+        "error": "trigger-time must be in YYYY-MM-DDTHH:MM:SSZ format"
+    }
 
 def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
     # Date more than 185 days in the past from 2025-08-14
