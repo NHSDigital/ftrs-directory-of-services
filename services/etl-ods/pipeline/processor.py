@@ -107,7 +107,9 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
             if not valid:
                 return _error_response(400, error_message)
             # If trigger-time is provided, use the previous day as the date
-            date = datetime.strptime(trigger_datetime, "%Y-%m-%dT%H:%M:%SZ") - timedelta(days=1)
+            date = datetime.strptime(
+                trigger_datetime, "%Y-%m-%dT%H:%M:%SZ"
+            ) - timedelta(days=1)
             date = date.strftime("%Y-%m-%d")
         if not date:
             return _error_response(400, "Date parameter is required")
@@ -139,6 +141,7 @@ def _validate_date(date_str: str) -> tuple[bool, str | None]:
     if (today - input_date).days > MAX_DAYS_PAST:
         return False, f"Date must not be more than {MAX_DAYS_PAST} days in the past"
     return True, None
+
 
 def _validate_trigger_datetime(trigger_datetime: str) -> tuple[bool, str | None]:
     """Validate the trigger-time string for format."""
