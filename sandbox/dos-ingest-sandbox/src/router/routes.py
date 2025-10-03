@@ -40,7 +40,7 @@ async def search_organizations(
 
     if len(ods_code) < 5 or len(ods_code) > 12 or not ods_code.isalnum():
         return JSONResponse(
-            status_code=400,
+            status_code=422,
             content=responses.INVALID_IDENTIFIER_VALUE_RESPONSE
         )
 
