@@ -17,6 +17,17 @@
                 "tag:GetResources"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "RunAthenaLambdas",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:InvokeFunction"
+            ],
+            "Resource": [
+              "arn:aws:lambda:*:*:function:athenafederatedcatalog_athena_federated_twr",
+              "arn:aws:lambda:*:*:function:athenafederatedcatalog_athena_federated_rds_twr"
+            ]
         }
     ]
 }
