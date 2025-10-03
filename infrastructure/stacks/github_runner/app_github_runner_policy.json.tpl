@@ -175,7 +175,9 @@
             "route53:ListHostedZonesByName",
             "route53:ListTagsForResource",
             "route53:ChangeTagsForResource",
-            "route53:CreateHealthCheck"
+            "route53:CreateHealthCheck",
+            "route53:GetHealthCheck",
+            "route53:DeleteHealthCheck"
           ],
           "Resource": "*"
         },

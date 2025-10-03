@@ -18,7 +18,9 @@ module "read_only_viewer_cloudfront" {
     }
   }
 
-  http_version = "http2and3"
+  http_version                         = "http2and3"
+  realtime_metrics_subscription_status = var.realtime_metrics_subscription_status
+  create_monitoring_subscription       = var.create_monitoring_subscription
 
   geo_restriction = {
     restriction_type = "whitelist"

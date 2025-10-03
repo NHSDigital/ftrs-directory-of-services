@@ -1,6 +1,28 @@
-variable "aws_accounts" {
-  description = "List of AWS account environments"
-  type        = list(string)
+variable "arn_to_protect" {
+  description = "The arn to be protected with shield"
+  type        = string
+}
+
+variable "resource_name" {
+  description = "The resource name to be protected with shield"
+  type        = string
+}
+
+variable "resource_prefix" {
+  description = "The resource prefix for the resource protected with shield"
+  type        = string
+}
+
+variable "health_check_association_arn" {
+  description = "The health check ARN for association with Shield protection"
+  type        = string
+  default     = ""
+}
+
+variable "evaluation_period" {
+  description = "The evaluation period for the CloudWatch alarm"
+  default     = 20
+  type        = string
 }
 
 variable "alarm_notification_email" {
@@ -20,14 +42,17 @@ variable "emergency_contacts" {
 variable "isShieldProactiveEngagementEnabled" {
   description = "Whether to enable Proactive Engagement for AWS Shield Advanced"
   type        = bool
+  default     = false
 }
 
 variable "isShieldSRTAccessEnabled" {
   description = "Whether to enable Shield Response Team (SRT) access"
   type        = bool
+  default     = false
 }
 
 variable "isShieldAutomaticResponseEnabled" {
   description = "Whether to enable Automatic Application Layer DDoS mitigation"
   type        = bool
+  default     = false
 }

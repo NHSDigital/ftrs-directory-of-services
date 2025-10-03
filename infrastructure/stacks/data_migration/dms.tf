@@ -69,6 +69,11 @@ resource "aws_dms_replication_task" "dms_full_replication_task" {
     },
     StopTaskCachedChangesApplied = true
   })
+
+  # Ignore changes to replication_task_settings as AWS adds many default values
+  lifecycle {
+    ignore_changes = [replication_task_settings]
+  }
 }
 
 resource "aws_dms_replication_task" "dms_cdc_replication_task" {
@@ -90,4 +95,9 @@ resource "aws_dms_replication_task" "dms_cdc_replication_task" {
       EnableLogging = var.dms_task_logging_enabled
     }
   })
+
+  # Ignore changes to replication_task_settings as AWS adds many default values
+  lifecycle {
+    ignore_changes = [replication_task_settings]
+  }
 }
