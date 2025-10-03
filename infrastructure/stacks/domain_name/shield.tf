@@ -16,5 +16,5 @@ module "shield_protection_domain" {
   isShieldSRTAccessEnabled           = var.isShieldSRTAccessEnabled
   isShieldAutomaticResponseEnabled   = var.isShieldAutomaticResponseEnabled
 
-  depends_on = var.environment == "mgmt" ? [aws_route53_zone.root_zone] : [aws_route53_zone.environment_zone]
+  depends_on = flatten([var.environment == "mgmt" ? [aws_route53_zone.root_zone] : [aws_route53_zone.environment_zone]])
 }
