@@ -124,7 +124,7 @@
                 "arn:aws:iam::*:role/${project}-*",
                 "arn:aws:iam::*:policy/${project}-*",
                 "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
-                "arn:aws:iam::*:role/AWSServiceRoleForAWSShield"
+                "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
             ]
         },
         {
@@ -175,7 +175,9 @@
             "route53:ListHostedZonesByName",
             "route53:ListTagsForResource",
             "route53:ChangeTagsForResource",
-            "route53:CreateHealthCheck"
+            "route53:CreateHealthCheck",
+            "route53:GetHealthCheck",
+            "route53:DeleteHealthCheck"
           ],
           "Resource": "*"
         },

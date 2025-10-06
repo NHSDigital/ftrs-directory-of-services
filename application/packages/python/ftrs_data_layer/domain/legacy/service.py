@@ -51,6 +51,7 @@ class Service(LegacyDoSModel, table=True):
     specified_opening_times: list["ServiceSpecifiedOpeningDate"] = Relationship()
     sgsds: list["ServiceSGSD"] = Relationship()
     dispositions: list["ServiceDisposition"] = Relationship()
+    age_range: list["ServiceAgeRange"] = Relationship()
 
 
 class ServiceType(LegacyDoSModel, table=True):
@@ -140,3 +141,12 @@ class ServiceDisposition(LegacyDoSModel, table=True):
     id: int = Field(primary_key=True)
     serviceid: int = Field(foreign_key="services.id")
     dispositionid: int = Field(foreign_key="dispositions.id")
+
+
+class ServiceAgeRange(LegacyDoSModel, table=True):
+    __tablename__ = "serviceagerange"
+
+    id: int = Field(primary_key=True)
+    serviceid: int = Field(foreign_key="services.id")
+    daysfrom: Decimal
+    daysto: Decimal
