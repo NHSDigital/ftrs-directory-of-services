@@ -159,6 +159,10 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="No address found for Organisation ID {organisation}, setting address to None",
     )
+    DM_ETL_017 = LogReference(
+        level=INFO,
+        message="No ageEligibilityCriteria created for Service ID {service_id} as no age range found",
+    )
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
