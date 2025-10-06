@@ -9,6 +9,7 @@ from .clinical_codes import (
 from .service import (
     OpeningTimeDay,
     Service,
+    ServiceAgeRange,
     ServiceDayOpening,
     ServiceDayOpeningTime,
     ServiceDisposition,
@@ -37,4 +38,5 @@ __all__ = [
     "SymptomDiscriminatorSynonym",
     "Disposition",
     "ServiceDisposition",
+    "ServiceAgeRange",
 ]

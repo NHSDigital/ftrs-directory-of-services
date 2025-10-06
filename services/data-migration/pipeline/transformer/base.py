@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Type
 from uuid import UUID
 
@@ -29,11 +30,13 @@ from ftrs_data_layer.domain.clinical_code import (
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.domain.enums import TimeUnit
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
 
 from pipeline.utils.address_formatter import format_address
 from pipeline.utils.cache import DoSMetadataCache
+from pipeline.utils.number_formatter import clean_decimal
 from pipeline.utils.uuid_utils import generate_uuid
 from pipeline.validation.base import Validator
 from pipeline.validation.service import ServiceValidator
@@ -254,6 +257,7 @@ class ServiceTransformer(ABC):
             symptomGroupSymptomDiscriminators=self.build_sgsds(service),
             dispositions=self.build_dispositions(service),
             migrationNotes=validation_issues,
+            ageEligibilityCriteria=self.build_age_eligibility_criteria(service),
         )
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:
@@ -379,3 +383,59 @@ class ServiceTransformer(ABC):
             source=ClinicalCodeSource.PATHWAYS,
             time=disposition.dispositiontime,
         )
+
+    def build_age_eligibility_criteria(
+        self, service: legacy_model.Service
+    ) -> list | None:
+        """
+        Build age eligibility criteria from the service's age ranges, in days.
+        * Where there are multiple consecutive age ranges, these should be combined to a single range.
+        * Where there are multiple non consecutive age ranges, these should each be an item in the list.
+
+        It handles standard DoS age groups (in days):
+        * 0-364.25, 365.25-1825.25, 1826.25-5843, 5844-47481.5
+        * Two ranges are consecutive if the end of one is very close to the start of the next.
+        * Tolerance of 1 day is used to determine if ranges are consecutive.
+        """
+        if not service.age_range:
+            self.logger.log(DataMigrationLogBase.DM_ETL_017, service_id=service.id)
+            return None
+
+        TOLERANCE = Decimal("1")
+
+        sorted_ranges = sorted(service.age_range, key=lambda x: x.daysfrom)
+
+        result = []
+        current_range = {
+            "rangeFrom": clean_decimal(sorted_ranges[0].daysfrom),
+            "rangeTo": clean_decimal(sorted_ranges[0].daysto),
+            "type": TimeUnit.DAYS,
+        }
+
+        for age_range in sorted_ranges[1:]:
+            current_end = current_range["rangeTo"]
+            next_start = age_range.daysfrom
+            next_end = age_range.daysto
+            # Check if ranges are consecutive
+            if abs(next_start - current_end) <= TOLERANCE:
+                # Extend the current range to include this range
+                current_range["rangeTo"] = clean_decimal(next_end)
+            # Check if ranges overlap
+            elif next_start <= current_end:
+                # If the next range starts before the current one ends,
+                # extend the current range if needed
+                if next_end > current_end:
+                    current_range["rangeTo"] = clean_decimal(next_end)
+            else:
+                # Non-consecutive range - add the current range to the result
+                # and start a new one
+                result.append(current_range)
+                current_range = {
+                    "rangeFrom": clean_decimal(next_start),
+                    "rangeTo": clean_decimal(next_end),
+                    "type": TimeUnit.DAYS,
+                }
+
+        result.append(current_range)
+
+        return result
