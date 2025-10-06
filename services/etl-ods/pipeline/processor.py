@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import requests
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import (
+    current_correlation_id,
     fetch_or_set_correlation_id,
     get_correlation_id,
 )
@@ -110,6 +111,7 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
     Lambda handler for triggering the processor with a date parameter.
     """
     try:
+        current_correlation_id.set(None)
         correlation_id = fetch_or_set_correlation_id(
             event.get("headers", {}).get("X-Correlation-ID")
         )
