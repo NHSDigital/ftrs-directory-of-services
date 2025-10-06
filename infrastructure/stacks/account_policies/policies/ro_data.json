@@ -78,6 +78,14 @@
             "Resource": "*"
         },
         {
+            "Sid": "S3ForAthena",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": "s3://ftrs-athena-spike-outputs-twr/*"
+        },
+        {
             "Sid": "AthenaLimitedAccess",
             "Effect": "Allow",
             "Action": [
