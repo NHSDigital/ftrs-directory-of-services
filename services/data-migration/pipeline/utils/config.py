@@ -119,7 +119,7 @@ class DmsDatabaseConfig:
         )
         return DatabaseConfig(**target_rds_details_secret)
 
-    def get_dms_user_details(self) -> tuple[str, str]:
+    def get_dms_user_details(self) -> tuple[str, SecretStr]:
         """Get DMS user details using existing secret retrieval methods."""
         rds_password = get_secret(name=self.dms_user_details)
         rds_username = "dms_user"

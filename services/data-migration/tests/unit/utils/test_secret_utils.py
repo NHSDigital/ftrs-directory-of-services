@@ -1,4 +1,3 @@
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -39,7 +38,7 @@ def test_get_secret_success(mocker: MockerFixture) -> None:
 )
 def test_get_secret_missing_env_vars(mocker: MockerFixture, env_vars: dict) -> None:
     """
-    Test that error is raised when environment or project name is missing
+    Test that error is raised when the environment or project name is missing
     """
     mocker.patch(
         "os.getenv",
@@ -50,102 +49,51 @@ def test_get_secret_missing_env_vars(mocker: MockerFixture, env_vars: dict) -> N
         get_secret("my_secret")
 
 
-@pytest.fixture
-def mock_ssm_client() -> MagicMock:
-    with patch("pipeline.utils.secret_utils.SSM_CLIENT") as mock_client:
-        mock_paginator = MagicMock()
-        mock_client.get_paginator.return_value = mock_paginator
-        yield mock_client, mock_paginator
-
-
-def test_get_dms_workspaces_returns_list_of_workspace_values(
-    mock_ssm_client: MagicMock,
+@patch("pipeline.utils.secret_utils.os.environ.get")
+@patch("pipeline.utils.secret_utils.provider.get_multiple")
+def test_returns_list_of_workspaces_when_ssm_path_exists(
+    mock_get_multiple: MagicMock, mock_environ_get: MagicMock
 ) -> None:
-    mock_client, mock_paginator = mock_ssm_client
-    mock_paginator.paginate.return_value = [
-        {"Parameters": [{"Value": "workspace-url-1"}, {"Value": "workspace-url-2"}]}
-    ]
+    # Arrange
+    mock_environ_get.return_value = "/path/to/ssm"
+    mock_get_multiple.return_value = {"param1": "workspace1", "param2": "workspace2"}
 
-    with patch.dict(os.environ, {"SQS_SSM_PATH": "/test/path"}):
-        result = get_dms_workspaces()
+    # Act
+    result = get_dms_workspaces()
 
-    assert result == ["workspace-url-1", "workspace-url-2"]
-    mock_paginator.paginate.assert_called_once_with(
-        Path="/test/path", Recursive=True, WithDecryption=True
+    # Assert
+    assert result == ["workspace1", "workspace2"]
+    mock_environ_get.assert_called_once_with("SQS_SSM_PATH")
+    mock_get_multiple.assert_called_once_with(
+        "/path/to/ssm", recursive=True, decrypt=True, max_age=300
     )
 
 
-def test_get_dms_workspaces_returns_empty_list_when_no_parameters(
-    mock_ssm_client: MagicMock,
+@patch("pipeline.utils.secret_utils.os.environ.get")
+def test_raises_value_error_when_ssm_path_missing(mock_environ_get: MagicMock) -> None:
+    # Arrange
+    mock_environ_get.return_value = None
+
+    # Act & Assert
+    with pytest.raises(
+        ValueError, match="Missing required environment variable: SQS_SSM_PATH"
+    ):
+        get_dms_workspaces()
+    mock_environ_get.assert_called_once_with("SQS_SSM_PATH")
+
+
+@patch("pipeline.utils.secret_utils.os.environ.get")
+@patch("pipeline.utils.secret_utils.provider.get_multiple")
+def test_returns_empty_list_when_no_parameters_found(
+    mock_get_multiple: MagicMock, mock_environ_get: MagicMock
 ) -> None:
-    mock_client, mock_paginator = mock_ssm_client
-    mock_paginator.paginate.return_value = [{"Parameters": []}]
+    # Arrange
+    mock_environ_get.return_value = "/path/to/ssm"
+    mock_get_multiple.return_value = {}
 
-    with patch.dict(os.environ, {"SQS_SSM_PATH": "/test/path"}):
-        result = get_dms_workspaces()
+    # Act
+    result = get_dms_workspaces()
 
+    # Assert
     assert result == []
-
-
-def test_get_dms_workspaces_handles_multiple_pages(mock_ssm_client: MagicMock) -> None:
-    mock_client, mock_paginator = mock_ssm_client
-    mock_paginator.paginate.return_value = [
-        {"Parameters": [{"Value": "workspace-url-1"}, {"Value": "workspace-url-2"}]},
-        {"Parameters": [{"Value": "workspace-url-3"}]},
-    ]
-
-    with patch.dict(os.environ, {"SQS_SSM_PATH": "/test/path"}):
-        result = get_dms_workspaces()
-
-    assert result == ["workspace-url-1", "workspace-url-2", "workspace-url-3"]
-
-
-def test_get_dms_workspaces_handles_none_path_parameter(
-    mock_ssm_client: MagicMock,
-) -> None:
-    mock_client, mock_paginator = mock_ssm_client
-    mock_paginator.paginate.side_effect = Exception(
-        "Invalid type for parameter Path, value: None, type: <class 'NoneType'>, valid types: <class 'str'>"
-    )
-
-    with patch.dict(os.environ, {}, clear=True):  # Ensure SQS_SSM_PATH is not set
-        with pytest.raises(Exception) as excinfo:
-            get_dms_workspaces()
-
-    assert "Invalid type for parameter Path" in str(excinfo.value)
-
-
-def test_get_dms_workspaces_handles_access_denied_error(
-    mock_ssm_client: MagicMock,
-) -> None:
-    mock_client, mock_paginator = mock_ssm_client
-    mock_paginator.paginate.side_effect = Exception("AccessDeniedException")
-
-    with patch.dict(os.environ, {"SQS_SSM_PATH": "/test/path"}):
-        with pytest.raises(Exception) as excinfo:
-            get_dms_workspaces()
-
-    assert "AccessDeniedException" in str(excinfo.value)
-
-
-def test_get_dms_workspaces_handles_pagination_token(
-    mock_ssm_client: MagicMock,
-) -> None:
-    mock_client, mock_paginator = mock_ssm_client
-
-    # Create a more complex mock to test pagination behavior
-    def paginate_side_effect(**kwargs: dict[str, object]) -> list[dict]:
-        assert kwargs.get("Path") == "/test/path"
-        assert kwargs.get("Recursive") is True
-        assert kwargs.get("WithDecryption") is True
-        return [
-            {"Parameters": [{"Value": "workspace-url-1"}], "NextToken": "page2token"},
-            {"Parameters": [{"Value": "workspace-url-2"}]},
-        ]
-
-    mock_paginator.paginate.side_effect = paginate_side_effect
-
-    with patch.dict(os.environ, {"SQS_SSM_PATH": "/test/path"}):
-        result = get_dms_workspaces()
-
-    assert result == ["workspace-url-1", "workspace-url-2"]
+    mock_get_multiple.assert_called_once()

@@ -1,4 +1,4 @@
-"""Tests for dms_lambda_handler.py."""
+"""Tests for dms_db_lambda_handler.py."""
 
 from typing import NoReturn
 from unittest.mock import MagicMock, patch
@@ -7,7 +7,7 @@ import pytest
 from botocore.exceptions import ClientError
 from sqlalchemy.exc import SQLAlchemyError
 
-from pipeline.dms_lambda_handler import lambda_handler
+from pipeline.dms_db_lambda_handler import lambda_handler
 
 
 @pytest.fixture

@@ -10,7 +10,6 @@ from pipeline.migration_copy_db_trigger_lambda_handler import (
 )
 
 
-# Add a module-level patch to prevent boto3 from making real AWS calls
 @pytest.fixture(scope="module", autouse=True)
 def mock_boto3() -> MagicMock:
     with patch.object(boto3, "client") as mock_boto3_client:
@@ -32,21 +31,10 @@ def mock_sqs_client() -> MagicMock:
 @pytest.fixture
 def mock_workspaces() -> MagicMock:
     with patch(
-        "pipeline.utils.secret_utils.get_dms_workspaces",
-        return_value=["queue-url-1", "queue-url-2"],
-    ):
-        yield
-
-
-@pytest.fixture(scope="module", autouse=True)
-def mock_ssm_client() -> MagicMock:
-    with patch("pipeline.utils.secret_utils.SSM_CLIENT") as mock_ssm:
-        mock_paginator = MagicMock()
-        mock_ssm.get_paginator.return_value = mock_paginator
-        mock_paginator.paginate.return_value = [
-            {"Parameters": [{"Value": "queue-url-1"}, {"Value": "queue-url-2"}]}
-        ]
-        yield mock_ssm
+        "pipeline.migration_copy_db_trigger_lambda_handler.get_dms_workspaces"
+    ) as mock_get_workspaces:
+        mock_get_workspaces.return_value = ["queue-url-1", "queue-url-2"]
+        yield mock_get_workspaces
 
 
 def test_lambda_handler_sends_message_to_all_workspaces(
@@ -101,39 +89,33 @@ def test_get_message_from_event_handles_empty_event() -> None:
     assert message == {"source": "aurora_trigger", "event": {}}
 
 
-def test_lambda_handler_handles_complex_event_structure() -> None:
-    with (
-        patch("pipeline.utils.secret_utils.get_dms_workspaces"),
-        patch(
-            "pipeline.migration_copy_db_trigger_lambda_handler.SQS_CLIENT"
-        ) as mock_client,
-    ):
-        complex_event = {
-            "version": "0",
-            "id": "12345678-1234-1234-1234-123456789012",
-            "detail-type": "AWS API Call via CloudTrail",
-            "source": "aws.rds",
-            "account": "123456789012",
-            "time": "2023-01-01T12:00:00Z",
-            "region": "us-east-1",
-            "resources": [],
-            "detail": {
-                "eventVersion": "1.08",
-                "eventSource": "rds.amazonaws.com",
-                "eventName": "CreateDBInstance",
-                "awsRegion": "us-east-1",
-                "sourceIPAddress": "123.45.67.89",
-                "userAgent": "aws-cli/2.0.0",
-            },
-        }
-        context = {}
+def test_lambda_handler_handles_complex_event_structure(
+    mock_sqs_client: MagicMock, mock_workspaces: MagicMock
+) -> None:
+    complex_event = {
+        "version": "0",
+        "id": "12345678-1234-1234-1234-123456789012",
+        "detail-type": "AWS API Call via CloudTrail",
+        "source": "aws.rds",
+        "account": "123456789012",
+        "time": "2023-01-01T12:00:00Z",
+        "region": "us-east-1",
+        "resources": [],
+        "detail": {
+            "eventVersion": "1.08",
+            "eventSource": "rds.amazonaws.com",
+            "eventName": "CreateDBInstance",
+            "awsRegion": "us-east-1",
+            "sourceIPAddress": "123.45.67.89",
+            "userAgent": "aws-cli/2.0.0",
+        },
+    }
+    context = {}
 
-        lambda_handler(complex_event, context)
+    lambda_handler(complex_event, context)
 
-        expected_message = json.dumps(
-            {"source": "aurora_trigger", "event": complex_event}
-        )
+    expected_message = json.dumps({"source": "aurora_trigger", "event": complex_event})
 
-        mock_client.send_message.assert_called_with(
-            QueueUrl="queue-url-2", MessageBody=expected_message
-        )
+    mock_sqs_client.send_message.assert_called_with(
+        QueueUrl="queue-url-2", MessageBody=expected_message
+    )
