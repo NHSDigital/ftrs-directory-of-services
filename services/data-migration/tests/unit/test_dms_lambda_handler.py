@@ -1,5 +1,3 @@
-"""Tests for dms_db_lambda_handler.py."""
-
 from typing import NoReturn
 from unittest.mock import MagicMock, patch
 
@@ -23,7 +21,7 @@ def mock_session() -> MagicMock:
 @pytest.fixture
 def mock_dms_config() -> MagicMock:
     """Mock DMS database configuration."""
-    with patch("pipeline.dms_lambda_handler.DmsDatabaseConfig") as mock_class:
+    with patch("pipeline.dms_db_lambda_handler.DmsDatabaseConfig") as mock_class:
         mock_config = MagicMock()
         mock_config.get_target_rds_details.return_value = MagicMock()
         mock_config.get_dms_user_details.return_value = ("dms_user", "password123")
@@ -38,7 +36,7 @@ def mock_dms_config() -> MagicMock:
 def mock_engine() -> MagicMock:
     """Mock SQLAlchemy engine."""
     with patch(
-        "pipeline.dms_lambda_handler.get_sqlalchemy_engine_from_config"
+        "pipeline.dms_db_lambda_handler.get_sqlalchemy_engine_from_config"
     ) as mock_get_engine:
         mock_engine_obj = MagicMock()
         mock_get_engine.return_value = mock_engine_obj
@@ -48,14 +46,14 @@ def mock_engine() -> MagicMock:
 @pytest.fixture
 def mock_create_dms_user() -> MagicMock:
     """Mock create_dms_user function."""
-    with patch("pipeline.dms_lambda_handler.create_dms_user") as mock:
+    with patch("pipeline.dms_db_lambda_handler.create_dms_user") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_create_rds_trigger() -> MagicMock:
     """Mock create_rds_trigger_replica_db function."""
-    with patch("pipeline.dms_lambda_handler.create_rds_trigger_replica_db") as mock:
+    with patch("pipeline.dms_db_lambda_handler.create_rds_trigger_replica_db") as mock:
         yield mock
 
 
