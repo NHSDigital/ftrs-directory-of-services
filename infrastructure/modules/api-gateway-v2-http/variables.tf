@@ -45,7 +45,13 @@ variable "routes" {
 }
 
 variable "api_gateway_access_logs_retention_days" {
-  description = "The number of days to store the API Gateway logs for in Cloudwatch"
-  type        = string
+  description = "Number of days to retain API Gateway access logs. Stacks can override this to configure per-environment retention."
+  type        = number
+  default     = 30
 }
 
+variable "api_gateway_access_logs_log_group_name" {
+  description = "Optional explicit CloudWatch log group name for API Gateway access logs. If set, the module will create/manage this log group."
+  type        = string
+  default     = null
+}

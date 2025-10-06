@@ -8,52 +8,30 @@ resource "aws_wafv2_web_acl" "waf_web_acl" {
   }
 
   rule {
-    name     = "AWSManagedRulesCommonRuleSet"
-    priority = 1
-
-    override_action {
-      none {}
+    name     = "allowed-countries-rule"
+    priority = 11
+    action {
+      block {}
     }
-
     statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesCommonRuleSet"
-        vendor_name = "AWS"
+      not_statement {
+        statement {
+          geo_match_statement {
+            country_codes = ["GB", "JE", "IM"]
+          }
+        }
       }
     }
-
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "AWSManagedRulesCommonRuleSet"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
-    name     = "AWSManagedRulesKnownBadInputsRuleSet"
-    priority = 2
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesKnownBadInputsRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "AWSManagedRulesKnownBadInputsRuleSet"
+      metric_name                = "allowed-countries-rule"
       sampled_requests_enabled   = true
     }
   }
 
   rule {
     name     = "AWSManagedRulesAmazonIpReputationList"
-    priority = 3
+    priority = 21
 
     override_action {
       none {}
@@ -75,7 +53,7 @@ resource "aws_wafv2_web_acl" "waf_web_acl" {
 
   rule {
     name     = "AWSManagedRulesAnonymousIpList"
-    priority = 4
+    priority = 31
 
     override_action {
       none {}
@@ -96,30 +74,8 @@ resource "aws_wafv2_web_acl" "waf_web_acl" {
   }
 
   rule {
-    name     = "AWSManagedRulesAdminProtectionRuleSet"
-    priority = 5
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesAdminProtectionRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "AWSManagedRulesAdminProtectionRuleSet"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
     name     = "rate-limit-rule"
-    priority = 6
+    priority = 41
 
     action {
       block {}
@@ -143,25 +99,68 @@ resource "aws_wafv2_web_acl" "waf_web_acl" {
       sampled_requests_enabled   = true
     }
   }
-
   rule {
-    name     = "allowed-countries-rule"
-    priority = 7
-    action {
-      block {}
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 51
+
+    override_action {
+      none {}
     }
+
     statement {
-      not_statement {
-        statement {
-          geo_match_statement {
-            country_codes = ["GB", "JE", "IM"]
-          }
-        }
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
       }
     }
+
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "allowed-countries-rule"
+      metric_name                = "AWSManagedRulesCommonRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 61
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWSManagedRulesKnownBadInputsRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesAdminProtectionRuleSet"
+    priority = 71
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesAdminProtectionRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWSManagedRulesAdminProtectionRuleSet"
       sampled_requests_enabled   = true
     }
   }
