@@ -29,8 +29,8 @@ info:
     ## Access modes
 
     This API has two access modes. They are:
-      * application restricted - addition of new resource allowed / replacement of organization allowed
-      * user restricted - healthcare worker access for authentication via a UI (User Interface)
+      * [application restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis) - addition of new resource allowed / replacement of organization allowed
+      * [user restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis) - healthcare worker access for authentication via a UI (User Interface)
 
     ## Roadmap
     We're currently finalising our roadmap and we'll update this content in due course.
