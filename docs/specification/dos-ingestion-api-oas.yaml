@@ -6,29 +6,31 @@ info:
   description: |
     ## Overview
 
-    Use this API to submit health and social care service data from your system to the NHS Directory of Services (DoS). This API enables data partners to send structured updates on health and social care services: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the Directory of Services.
+    Use this API to submit health and social care service data from your system to the NHS Directory of Services (DoS).
+
+    This API enables data partners to send structured updates on health and social care services: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the Directory of Services.
 
     Depending on your access mode, you may:
 
-    - Create or update health and social care service data
-    - Create or update organisation data
-    - Create or update location data
+    - create or update health and social care service data
+    - create or update organisation data
+    - create or update location data
 
-    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up to date for use across NHS systems.
+    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up-to-date for use across NHS systems.
 
     ## Who can use this API
 
-    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organizations, local authorities, or trusted third-party systems that manage health and social care service data.
+    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organisations, local authorities, or trusted third-party systems that manage health and social care service data.
 
     To use this API, both your organization and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the Directory of Services.
 
-    See **Onboarding**
+    [See Onboarding](#Onboarding).
 
     ## Access modes
 
     This API has two access modes. They are:
-      * Application Restricted - Addition of new resource allowed / replacement of organization allowed
-      * User Restricted - Healthcare worker access for authentication via a UI (User Interface)
+      * application restricted - addition of new resource allowed / replacement of organization allowed
+      * user restricted - healthcare worker access for authentication via a UI (User Interface)
 
     ## Roadmap
     We're currently finalising our roadmap and we'll update this content in due course.
@@ -128,14 +130,14 @@ paths:
     get:
       security:
         - app-level0: []
-      summary: Search for organizations by ODS code to return Organization details
+      summary: Search for organisations by ODS code to return organization details
       description: |
         ## Overview
-        Retrieve an Organization identified by an ODS code, or all Organizations if no identifier is provided.
+        Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
 
-        ## Request Requirements
-        - If the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 5, maximum 12 alphanumeric characters).
-        - If the `identifier` parameter is omitted, all Organizations will be returned.
+        ## Request requirements
+        - if the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 5, maximum 12 alphanumeric characters).
+        - if the `identifier` parameter is omitted, all organizations will be returned.
 
         The search is performed using the FHIR-compliant identifier parameter:
         - identifier=odsOrganizationCode|{CODE}
@@ -167,7 +169,7 @@ paths:
         name: identifier
         description: >
           ODS code in the format "odsOrganizationCode|{CODE}" (FHIR identifier search).
-          If omitted, all Organizations will be returned.
+          If omitted, all organizations will be returned.
           required: false
         schema:
             type: string
@@ -176,7 +178,7 @@ paths:
       - $ref: '#/components/parameters/AcceptFHIR'
       responses:
         '200':
-          description: Bundle of Organizations found and returned successfully
+          description: Bundle of organizations found and returned successfully
           content:
             application/fhir+json:
               schema:
@@ -233,8 +235,8 @@ paths:
     put:
       security:
         - app-level0: []
-      summary: Update/overwrite an Organization resource
-      description: Update or overwrite an existing Organization resource by ID.
+      summary: Update/overwrite an organization resource
+      description: Update or overwrite an existing organization resource by ID.
       parameters:
       - in: header
         name: apiKey
