@@ -20,9 +20,7 @@ resource "aws_scheduler_schedule" "ods_etl_schedule" {
     arn      = module.processor_lambda.lambda_function_arn
     role_arn = aws_iam_role.ods_etl_scheduler_invoke_role.arn
 
-    input = jsonencode({
-      "trigger-time" = "\u003caws.scheduler.scheduled-time\u003e"
-    })
+    input = jsonencode({ "is_scheduled" = true })
 
     retry_policy {
       maximum_event_age_in_seconds = 43200
