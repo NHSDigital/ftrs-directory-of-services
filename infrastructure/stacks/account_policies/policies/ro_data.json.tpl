@@ -78,6 +78,14 @@
             "Resource": "*"
         },
         {
+            "Sid": "S3ForAthena",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": "arn:aws:s3:::${athena_output_bucket_name}/*"
+        },
+        {
             "Sid": "AthenaLimitedAccess",
             "Effect": "Allow",
             "Action": [

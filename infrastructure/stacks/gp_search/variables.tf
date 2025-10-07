@@ -46,3 +46,15 @@ variable "api_gateway_integration_timeout" {
   description = "Timeout to integration ARN"
   type        = number
 }
+
+variable "lambda_cloudwatch_logs_retention_days" {
+  description = "Number of days to retain CloudWatch logs for the main search Lambda"
+  type        = number
+  default     = 30
+}
+
+variable "health_check_lambda_cloudwatch_logs_retention_days" {
+  description = "Number of days to retain CloudWatch logs for the health check Lambda"
+  type        = number
+  default     = 7
+}

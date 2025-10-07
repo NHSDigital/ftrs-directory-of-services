@@ -23,7 +23,8 @@ paths = [
   '''scripts/workflow/create-vpn-client-cert.sh''',
   '''services/data-migration/tests/unit/''',
   '''application/packages/python/ftrs_data_layer/domain/legacy/''',
-  '''application/packages/python/ftrs_data_layer/legacy_model.py'''
+  '''application/packages/python/ftrs_data_layer/legacy_model.py''',
+  '''infrastructure/stacks/account_policies/policies/ro_data.json.tpl'''
 ]
 regexes = [
   '''=========================================''',

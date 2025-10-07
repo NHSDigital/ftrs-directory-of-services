@@ -1,7 +1,12 @@
-module "api_gateway" {
-  source = "github.com/NHSDigital/ftrs-directory-of-services?ref=2cc250e/infrastructure/modules/api-gateway-v2-http"
+locals {
+  api_name      = format("%s-api-gateway%s", local.resource_prefix, local.workspace_suffix != "" ? local.workspace_suffix : "")
+  api_log_group = format("/aws/apigateway/%s", local.api_name)
+}
 
-  name        = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
+module "api_gateway" {
+  source = "github.com/NHSDigital/ftrs-directory-of-services?ref=57b53f778381f3c4cfaded5770a5eddd3ff8f6f5/infrastructure/modules/api-gateway-v2-http"
+
+  name        = local.api_name
   description = "FtRS Service Search API Gateway"
 
   # As soon as you tell the module to create a domain, the execute api endpoint will be disabled
@@ -41,6 +46,7 @@ module "api_gateway" {
     }
   }
 
+  # Provide retention days expected by the module/wrapper (stack exposes this variable)
   api_gateway_access_logs_retention_days = var.api_gateway_access_logs_retention_days
-
+  api_gateway_access_logs_log_group_name = local.api_log_group
 }
