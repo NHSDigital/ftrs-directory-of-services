@@ -23,6 +23,16 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
   to_port                      = var.rds_port
 }
 
+resource "aws_vpc_security_group_ingress_rule" "rds_ingress_from_connector" {
+  count                        = local.is_primary_environment ? 0 : 1
+  security_group_id            = aws_security_group.rds_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.rds_connector_security_group.id
+  description                  = "Allow incoming Postgres from Athena RDS Connector Lambda"
+  ip_protocol                  = "tcp"
+  from_port                    = var.rds_port
+  to_port                      = var.rds_port
+}
+
 resource "aws_security_group" "processor_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.processor_lambda_name}${local.workspace_suffix}-sg"
@@ -115,15 +125,16 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
 }
 
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
-resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  description       = "Allow egress to internet on port ${var.https_port}"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
-}
+#resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
+#  count             = local.is_primary_environment ? 1 : 0
+#  security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+#  description       = "Allow egress to internet on port ${var.https_port}"
+#  cidr_ipv4         = "0.0.0.0/0"
+#  from_port         = var.https_port
+#  ip_protocol       = "tcp"
+#  to_port           = var.https_port
+#}
+
 
 resource "aws_security_group" "dms_replication_security_group" {
   count       = local.is_primary_environment ? 1 : 0

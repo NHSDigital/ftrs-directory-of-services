@@ -172,3 +172,23 @@ variable "waf_log_group_retention_days" {
   type        = number
   default     = 365
 }
+
+variable "athena_spill_bucket_retention_days" {
+  description = "The retention period for the Athena spill bucket"
+  type        = number
+}
+
+variable "athena_output_bucket_retention_days" {
+  description = "The retention period for the Athena output bucket"
+  type        = number
+}
+
+variable "athena_postgres_connector_app_id" {
+  description = "SAR application ID for the Athena PostgreSQL Connector"
+  type        = string
+}
+
+variable "athena_dynamodb_connector_app_id" {
+  description = "SAR application ID for the Athena DynamoDB Connector"
+  type        = string
+}

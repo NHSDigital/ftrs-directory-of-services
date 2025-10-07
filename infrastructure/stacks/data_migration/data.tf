@@ -22,6 +22,10 @@ data "aws_security_group" "vpce_rds_security_group" {
   name = "${local.account_prefix}-current-dos-rds-vpc-endpoint-sg"
 }
 
+# data "aws_security_group" "rds_connector_security_group" {
+#   name = "${local.account_prefix}-rds-connector-sg"
+# }
+
 data "aws_subnets" "private_subnets" {
   filter {
     name   = "vpc-id"
