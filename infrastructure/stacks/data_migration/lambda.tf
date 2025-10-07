@@ -159,6 +159,7 @@ module "rds_event_listener_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.rds_event_listener_lambda_logs_retention
+  layers                    = [aws_lambda_layer_version.python_dependency_layer.arn, aws_lambda_layer_version.data_layer.arn]
 
   depends_on = [aws_sqs_queue.dms_event_queue]
 }
@@ -192,8 +193,7 @@ module "dms_db_lambda" {
     "TRIGGER_LAMBDA_ARN" = module.rds_event_listener_lambda[0].lambda_function_arn
   }
 
-  layers = [aws_lambda_layer_version.python_dependency_layer.arn]
-
+  layers         = [aws_lambda_layer_version.python_dependency_layer.arn, aws_lambda_layer_version.data_layer.arn]
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
