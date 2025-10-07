@@ -99,18 +99,12 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
     Lambda handler for triggering the processor with a date parameter.
     """
     try:
-        trigger_datetime = event.get("trigger-time")
-        if not trigger_datetime:
+        is_scheduled = event.get("is_scheduled", False)
+        if not is_scheduled:
             date = event.get("date")
         else:
-            valid, error_message = _validate_trigger_datetime(trigger_datetime)
-            if not valid:
-                return _error_response(400, error_message)
-            # If trigger-time is provided, use the previous day as the date
-            date = datetime.strptime(
-                trigger_datetime, "%Y-%m-%dT%H:%M:%SZ"
-            ) - timedelta(days=1)
-            date = date.strftime("%Y-%m-%d")
+            # if triggered by EventBridge Scheduler, use the scheduled time minus one day
+            date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
         if not date:
             return _error_response(400, "Date parameter is required")
 
@@ -140,15 +134,6 @@ def _validate_date(date_str: str) -> tuple[bool, str | None]:
     today = datetime.now(timezone.utc)
     if (today - input_date).days > MAX_DAYS_PAST:
         return False, f"Date must not be more than {MAX_DAYS_PAST} days in the past"
-    return True, None
-
-
-def _validate_trigger_datetime(trigger_datetime: str) -> tuple[bool, str | None]:
-    """Validate the trigger-time string for format."""
-    try:
-        datetime.strptime(trigger_datetime, "%Y-%m-%dT%H:%M:%SZ")
-    except ValueError:
-        return False, "trigger-time must be in YYYY-MM-DDTHH:MM:SSZ format"
     return True, None
 
 
