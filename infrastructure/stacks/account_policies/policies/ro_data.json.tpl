@@ -83,7 +83,7 @@
             "Action": [
                 "s3:PutObject"
             ],
-            "Resource": "s3://${athena_output_bucket_name}/*"
+            "Resource": "arn:aws:s3:::${athena_output_bucket_name}"
         },
         {
             "Sid": "AthenaLimitedAccess",
