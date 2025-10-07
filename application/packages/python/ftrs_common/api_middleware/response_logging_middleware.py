@@ -1,6 +1,7 @@
 from ftrs_common.fhir.operation_outcome_status_mapper import STATUS_CODE_MAP
 from ftrs_common.logbase import MiddlewareLogBase
 from ftrs_common.logger import Logger
+from ftrs_common.utils.correlation_id import get_correlation_id
 from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -20,6 +21,9 @@ class ResponseLoggingMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         response = await call_next(request)
+
+        if cid := get_correlation_id():
+            middleware_logger.append_keys(correlation_id=cid)
 
         if response and response.status_code >= STATUS_CODE_MAP["structure"]:
             response_body = [chunk async for chunk in response.body_iterator]
