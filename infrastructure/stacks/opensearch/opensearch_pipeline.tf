@@ -24,7 +24,7 @@ resource "aws_osis_pipeline" "dynamodb_to_opensearch_osis_pipeline" {
     index_name           = "${each.value}${local.workspace_suffix}"
     s3_bucket            = module.s3.s3_bucket_id
     s3_prefix            = var.ddb_export_s3_prefix
-    network_policy_name  = "pipeline-${data.aws_opensearchserverless_security_policy.opensearch_serverless_network_access_policy.name}"
+    network_policy_name  = try("pipeline-${aws_opensearchserverless_security_policy.opensearch_serverless_network_access_policy[0].name}", "pipeline-${data.aws_opensearchserverless_security_policy.opensearch_serverless_network_access_policy[0].name}")
     max_sink_retries     = var.max_sink_retries
     s3_dlq_bucket        = module.s3_opensearch_pipeline_dlq_bucket.s3_bucket_id
     s3_dlq_bucket_prefix = var.opensearch_pipeline_s3_dlq_prefix

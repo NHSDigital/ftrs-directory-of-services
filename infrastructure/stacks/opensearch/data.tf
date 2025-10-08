@@ -27,6 +27,7 @@ data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
 }
 
 data "aws_opensearchserverless_security_policy" "opensearch_serverless_network_access_policy" {
-  name = "${var.environment}-${var.stack_name}-nap"
-  type = "network"
+  count = local.is_primary_environment ? 0 : 1
+  name  = "${var.environment}-${var.stack_name}-nap"
+  type  = "network"
 }
