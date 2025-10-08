@@ -97,7 +97,8 @@
               "athena:CreatePreparedStatement",
               "athena:UpdatePreparedStatement",
               "athena:CreateNamedQuery",
-              "athena:CancelQueryExecution"
+              "athena:CancelQueryExecution",
+              "athena:BatchGetNamedQuery"
             ],
             "Resource": "*"
         }
