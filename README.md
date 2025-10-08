@@ -162,7 +162,7 @@ Examples of invalid branch names
 
 A valid commit message must
 
-- start with a valid type — e.g. feat, fix, chore, docs, style, refactor, performance (perf), continuous integration (ci), or test
+- start with a valid type — e.g. feat, fix, chore, docs, style, refactor, test
 - include a valid Jira reference (to aid traceability of changes eg when building a release) and
 - consist of at least three words (to prompt a meaningful description of the commit)
 - not exceed 100 characters (encouraging concise wording for readability essentially)
