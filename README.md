@@ -104,7 +104,7 @@ Before you make any commits, make sure you have enabled **GPG** key signing by d
 git config --global commit.gpgsign true
 ```
 
-Make sure your pre-commit githooks are working, some setups may not work when running ``make githooks-config`` and instead you will have to run the scripts directly from ``scripts/init.mk`` specifically lines **34-37**
+Make sure your pre-commit githooks are working, some setups may not work when running `make githooks-config` and instead you will have to run the scripts directly from `scripts/init.mk` specifically lines **34-37**
 
 ```shell
 pre-commit install --config scripts/config/pre-commit.yaml --install-hooks
@@ -140,8 +140,8 @@ Describe or link templates on how to raise an issue, feature request or make a c
 A valid branch name is made up of these elements - in this order
 
 - branch type - must be one of task, hotfix
-- jira ref    - the unique identifier of the Jira ticket prompting the change
-- separator   - either a hyphen or an underscore
+- jira ref - the unique identifier of the Jira ticket prompting the change
+- separator - either a hyphen or an underscore
 - description - Must start with an alphanumeric and contain only alphanumerics/hyphens/underscores with a min length of 10 characters and a max length of 45
 
 Examples of valid branch names
@@ -149,20 +149,21 @@ Examples of valid branch names
 - task/XXX-123_My_valid_branch_name - words of description separated by underscores
 - task/xxx-123_My_valid_branch_name - lower case jira ref words of description separated by underscores
 - task/XXX-123-My-valid-branch-name - words of description separated by hyphens
-- task/XXX-123_MyValidBranchName    - camelcase description
+- task/XXX-123_MyValidBranchName - camelcase description
 - task/XXX-123-My-valid_branch_name - description with mix of underscores and hyphens
 
 Examples of invalid branch names
 
-- XXX-123_My_Invalid_branch_name  - does not start with branch type of ie - task or hotfix
-- task/MyInvalidbranchName        - does not include JIRA reference
+- XXX-123_My_Invalid_branch_name - does not start with branch type of ie - task or hotfix
+- task/MyInvalidbranchName - does not include JIRA reference
 - task/XXX-123MyInvalidBranchName - no separator after JIRA reference
 
 ### Commit message convention
 
 A valid commit message must
 
-- start with a valid Jira reference (to aid traceability of changes eg when building a release) and
+- start with a valid type — e.g. feat, fix, chore, docs, style, refactor, perf, ci, or test
+- include a valid Jira reference (to aid traceability of changes eg when building a release) and
 - consist of at least three words (to prompt a meaningful description of the commit)
 - not exceed 100 characters (encouraging concise wording for readability essentially)
 
