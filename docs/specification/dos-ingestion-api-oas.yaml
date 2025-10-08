@@ -401,12 +401,6 @@ paths:
                   - severity: error
                     code: not-found
                     diagnostics: Organisation not found.
-        4XX:
-          description: Error
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
 components:
   parameters:
     AcceptFHIR:
