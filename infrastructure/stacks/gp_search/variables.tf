@@ -61,4 +61,13 @@ variable "api_gateway_description" {
   default     = "DoS Search API"
 }
 
+variable "api_gateway_log_group_class" {
+  description = "The logging group class of the API Gateway log group"
+  default     = "STANDARD"
+}
+
+variable "api_gateway_log_group_retention_days" {
+  description = "The period of time in days to retain logs for the API Gateway log group"
+  default     = "7"
+}
 

@@ -35,9 +35,10 @@ resource "aws_api_gateway_method_settings" "all" {
   method_path = "*/*"
 
   settings {
+    caching_enabled    = true
     metrics_enabled    = true
     logging_level      = "OFF"
-    data_trace_enabled = true
+    data_trace_enabled = false
 
     throttling_burst_limit = -1
     throttling_rate_limit  = -1
