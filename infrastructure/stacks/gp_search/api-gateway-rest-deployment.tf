@@ -30,6 +30,7 @@ resource "aws_api_gateway_deployment" "deployment" {
 }
 
 resource "aws_api_gateway_method_settings" "all" {
+  # checkov:skip=CKV2_AWS_4: False positive, we are configuring custom logging
   rest_api_id = aws_api_gateway_rest_api.api-gateway.id
   stage_name  = aws_api_gateway_stage.default.stage_name
   method_path = "*/*"
@@ -38,9 +39,12 @@ resource "aws_api_gateway_method_settings" "all" {
     caching_enabled      = true
     cache_data_encrypted = true
     metrics_enabled      = true
-    logging_level        = "OFF"
-    data_trace_enabled   = false
+    # Turn logging off at this level because we are configuring custom logging
+    logging_level      = "OFF"
+    data_trace_enabled = false
 
+    # This is where throttling can be defined at path (or endpoint level)
+    # DOSIS-2264
     throttling_burst_limit = -1
     throttling_rate_limit  = -1
   }
