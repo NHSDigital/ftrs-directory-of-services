@@ -40,6 +40,7 @@ resource "aws_api_gateway_stage" "default" {
 }
 
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
+  # checkov:skip=CKV_AWS_158: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-404
   name              = "/aws/api-gateway/${local.resource_prefix}${local.workspace_suffix}"
   retention_in_days = var.api_gateway_log_group_retention_days
   log_group_class   = var.api_gateway_log_group_class
