@@ -112,17 +112,15 @@ def test_rds_trigger_creation_propagates_exception_when_database_error_occurs(
 
 
 def test_rds_trigger_creation_propagates_exception_when_template_file_not_found(
-    mock_engine: MagicMock,
+    mock_engine: MagicMock, mock_file_open: MagicMock
 ) -> None:
-    with patch(
-        "pathlib.Path.open", side_effect=FileNotFoundError("Template file not found")
-    ):
-        username = "dms_user"
-        lambda_arn = "arn:aws:lambda:eu-west-2:123456789012:function:my-function"
-        aws_region = "eu-west-2"
+    mock_file_open.side_effect = FileNotFoundError("Template file not found")
+    username = "dms_user"
+    lambda_arn = "arn:aws:lambda:eu-west-2:123456789012:function:my-function"
+    aws_region = "eu-west-2"
 
-        with pytest.raises(FileNotFoundError):
-            create_rds_trigger_replica_db(mock_engine, username, lambda_arn, aws_region)
+    with pytest.raises(FileNotFoundError):
+        create_rds_trigger_replica_db(mock_engine, username, lambda_arn, aws_region)
 
 
 def test_rds_trigger_creation_handles_all_parameter_substitutions(

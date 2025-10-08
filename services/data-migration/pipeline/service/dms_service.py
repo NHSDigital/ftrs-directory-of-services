@@ -39,7 +39,7 @@ def create_rds_trigger_replica_db(
 ) -> None:
     try:
         # Read the SQL template file
-        template_path = Path(__file__).parent / "templates" / "trigger.sql.tmpl"
+        template_path = Path(__file__).parent / "trigger.sql.tmpl"
         with open(template_path, "r") as file:
             sql_template = file.read()
 
