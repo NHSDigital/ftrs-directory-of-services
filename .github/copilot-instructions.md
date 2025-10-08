@@ -4,7 +4,7 @@ We are using **Conventional Commits** for all commit messages. Please follow the
 
 ---
 
-### 1. Format
+## 1. Format
 
 `<type>(<scope>): <description>`
 
@@ -12,7 +12,7 @@ We are using **Conventional Commits** for all commit messages. Please follow the
 
 ---
 
-### 2. Types
+## 2. Types
 
 - `feat:` → New feature (**MINOR** version bump)
 - `fix:` → Bug fix (**PATCH** version bump)
@@ -26,7 +26,7 @@ We are using **Conventional Commits** for all commit messages. Please follow the
 
 ---
 
-### 3. Scope
+## 3. Scope
 
 Optional — usually the module, feature, or area affected.
 
@@ -34,7 +34,7 @@ Optional — usually the module, feature, or area affected.
 
 ---
 
-### 4. Description
+## 4. Description
 
 - Short, imperative, and written in present tense.
 - Capitalize the first word.
@@ -43,7 +43,7 @@ Optional — usually the module, feature, or area affected.
 
 ---
 
-### 5. Guidelines
+## 5. Guidelines
 
 - Always include the correct Jira ticket.
 - Be concise but descriptive.
@@ -51,7 +51,7 @@ Optional — usually the module, feature, or area affected.
 
 ---
 
-### Example Commit Messages Copilot Should Generate
+## Example Commit Messages Copilot Should Generate
 
 - `feat(data-migration): Add user sync logic`
 - `fix(crud-apis): Resolve token refresh issue`
