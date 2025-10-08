@@ -38,7 +38,7 @@ resource "aws_api_gateway_method_settings" "all" {
     caching_enabled      = true
     cache_data_encrypted = true
     metrics_enabled      = true
-    logging_level        = "INFO"
+    logging_level        = "OFF"
     data_trace_enabled   = false
 
     throttling_burst_limit = -1
