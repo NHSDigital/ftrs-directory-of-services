@@ -25,3 +25,8 @@ data "aws_subnet" "private_subnets_details" {
 data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
   name = "${var.project}-${var.environment}-osc"
 }
+
+data "aws_opensearchserverless_security_policy" "opensearch_serverless_network_access_policy" {
+  name = "${var.environment}-${var.stack_name}-nap"
+  type = "network"
+}
