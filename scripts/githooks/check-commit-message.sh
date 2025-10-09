@@ -16,14 +16,14 @@ function check_jira_ref {
   if [[ "$COMMIT_MESSAGE" =~ ^(feat|fix|chore|docs|style|refactor|perf|test)(\([a-z0-9-]+\))?:[[:space:]] ]] &&
     [[ "$JIRA_REF" =~ ^(FTRS|FDOS|DOSIS|SIA)-[0-9]+$ ]] &&
     [[ "$COMMIT_MESSAGE" != *"$JIRA_REF"* ]]; then
-    COMMIT_MESSAGE=$(echo "$COMMIT_MESSAGE" | sed -E "s/^((feat|fix|chore|docs|style|refactor|perf|test)(\([a-z0-9-]+\))?:)/\1 $JIRA_REF/")
+    COMMIT_MESSAGE=$(echo "$COMMIT_MESSAGE" | sed -E "s/^((feat|fix|chore|docs|style|refactor|perf|test|ci|build|revert|style)(\([a-z0-9-]+\))?:)/\1 $JIRA_REF/")
   fi
   echo $COMMIT_MESSAGE
 }
 
 function check_commit_message_format {
     COMMIT_MESSAGE="$1"
-    local REGEX='^(feat|fix|chore|docs|style|refactor|perf|test|ci)(\([a-z0-9-]+\))?: (FTRS|FDOS|DOSIS|SIA)-[0-9]+ .+'
+    local REGEX='^(feat|fix|chore|docs|style|refactor|perf|test|ci|build|revert|style)(\([a-z0-9-]+\))?: (FTRS|FDOS|DOSIS|SIA)-[0-9]+ .+'
 
     if ! [[ $COMMIT_MESSAGE =~ $REGEX ]]; then
         echo -e "\033[0;31mInvalid conventional commit message format! Expected: <type>(<scope>): <JIRA-1234> <Description>\033[0m"

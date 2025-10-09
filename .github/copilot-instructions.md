@@ -23,6 +23,10 @@ We are using **Conventional Commits** for all commit messages. Please follow the
 - `perf:` → Performance improvements (no version bump)
 - `test:` → Adding or updating tests (no version bump)
 - `feat!:` → Breaking change (**MAJOR** version bump)
+- `ci:` → Changes to CI configuration or scripts (no version bump)
+- `build:` → Changes affecting the build system or external dependencies (no version bump)
+- `revert:` → Reverts a previous commit (no version bump)
+- `style:` → Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc) (no version bump)
 
 ---
 
