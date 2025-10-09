@@ -6,9 +6,10 @@ resource "aws_api_gateway_stage" "default" {
   rest_api_id   = aws_api_gateway_rest_api.api-gateway.id
   stage_name    = "default"
 
-  cache_cluster_enabled = true
+  cache_cluster_enabled = var.api_gateway_cache_cluster_enabled
+  cache_cluster_size    = var.api_gateway_cache_cluster_size
 
-  xray_tracing_enabled = true
+  xray_tracing_enabled = var.api_gateway_xray_tracing
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gateway_log_group.arn
