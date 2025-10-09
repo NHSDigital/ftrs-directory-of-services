@@ -1,7 +1,7 @@
 resource "aws_api_gateway_domain_name" "domain_name" {
   domain_name = "servicesearch${local.workspace_suffix}.${local.root_domain_name}"
 
-  security_policy          = "TLS_1_2"
+  security_policy          = var.api_gateway_tls_security_policy
   regional_certificate_arn = data.aws_acm_certificate.issued_domain_certificate.arn
 
   endpoint_configuration {
