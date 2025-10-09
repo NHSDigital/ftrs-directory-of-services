@@ -40,18 +40,12 @@ Optional — usually the module, feature, or area affected.
 
 ## 4. Description
 
-- Short, imperative, and written in present tense.
+- Short, imperative, and written in present tense (e.g., “Add login validation logic”)
 - Capitalize the first word.
 - Avoid punctuation at the end.
-- Example: “Add login validation logic”
-
----
-
-## 5. Guidelines
-
 - Always include the correct Jira ticket.
 - Be concise but descriptive.
-- Ensure consistency and readability.
+- Stay under 100 characters for readability.
 
 ---
 
