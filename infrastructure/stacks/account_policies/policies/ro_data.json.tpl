@@ -83,7 +83,7 @@
             "Action": [
                 "s3:PutObject"
             ],
-            "Resource": "s3://${athena_output_bucket_name}/*"
+            "Resource": "arn:aws:s3:::${athena_output_bucket_name}/*"
         },
         {
             "Sid": "AthenaLimitedAccess",
@@ -97,7 +97,8 @@
               "athena:CreatePreparedStatement",
               "athena:UpdatePreparedStatement",
               "athena:CreateNamedQuery",
-              "athena:CancelQueryExecution"
+              "athena:CancelQueryExecution",
+              "athena:BatchGetNamedQuery"
             ],
             "Resource": "*"
         }

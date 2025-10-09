@@ -89,3 +89,17 @@ data "aws_iam_policy_document" "secretsmanager_api_key_access_policy" {
     ]
   }
 }
+
+data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "lambda:InvokeFunction"
+    ]
+
+    resources = [
+      module.processor_lambda.lambda_function_arn
+    ]
+  }
+}
