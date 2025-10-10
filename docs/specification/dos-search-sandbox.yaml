@@ -484,7 +484,7 @@ components:
 
 x-nhsd-apim:
   target:
-    $ref: x-nhsd-apim/target-sandbox.yaml
+    $ref: x-nhsd-apim/target-sandbox-dos-search.yaml
   access:
     - title: Application-restricted with API key
       grants:
