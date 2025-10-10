@@ -3,7 +3,7 @@
 ## Overview
 
 - A lightweight FastAPI app that serves the canned responses defined in `docs/specification/dos-search-sandbox.yaml` for the
-  Organization search endpoint.
+  Organization (FHIR resource) search endpoint.
 - Intended for APIM Sandbox usage to support example requests and responses without backend services.
 
 ## Endpoints (served by the container)
@@ -17,7 +17,21 @@
 
 ## Quick start (local)
 
-1. Build
+1. Navigate to the service directory (recommended)
+
+```bash
+# From the repository root
+cd sandbox/dos-search
+```
+
+Or build from the repository root without changing directories:
+
+```bash
+# Run from the repository root
+docker build -t dos-search:local sandbox/dos-search
+```
+
+1. Build (when inside `sandbox/dos-search`)
 
 ```bash
 docker build -t dos-search:local .
@@ -27,6 +41,12 @@ docker build -t dos-search:local .
 
 ```bash
 docker run --rm -p 9000:9000 dos-search:local
+```
+
+Tip: Add `-d` to run in detached mode so you can use the same terminal to run the curl commands below:
+
+```bash
+docker run -d --rm -p 9000:9000 dos-search:local
 ```
 
 1. Try it
@@ -57,20 +77,69 @@ test -x scripts/smoke.sh || chmod +x scripts/smoke.sh
 BASE_URL=http://localhost:9000 ./scripts/smoke.sh
 ```
 
+## Using Podman (alternative to Docker)
+
+You can use Podman with equivalent commands.
+
+- Build from the service directory:
+
+```bash
+# From the repository root
+cd sandbox/dos-search
+podman build -t dos-search:local .
+```
+
+- Or build from the repository root without changing directories:
+
+```bash
+podman build -t dos-search:local sandbox/dos-search
+```
+
+- Run the container:
+
+```bash
+podman run --rm -p 9000:9000 dos-search:local
+```
+
+Tip: Add `-d` to run in detached mode so you can use the same terminal to run the curl commands below:
+
+```bash
+podman run -d --rm -p 9000:9000 dos-search:local
+```
+
+- Smoke test (optional):
+
+```bash
+# From the sandbox/dos-search directory
+BASE_URL=http://localhost:9000 ./scripts/smoke.sh
+```
+
+Note for macOS and Windows users (non-Linux hosts):
+
+On macOS and Windows, Podman runs containers inside a lightweight Linux VM, so you need to ensure the Podman machine is running. On Linux hosts, you can skip this step.
+
+```bash
+# First-time setup (only once)
+podman machine init
+
+# Start the Podman machine (per session)
+podman machine start
+```
+
 ## Expected sandbox requests (via APIM)
 
 ```bash
 # 200 example
-GET https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization'
 
 # 400 invalid-identifier-value
-GET https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization'
 
 # 400 missing-revinclude
-GET https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=odsOrganisationCode|ABC123'
 
 # 400 invalid-identifier-system
-GET https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=foo|ABC123&_revinclude=Endpoint:organization
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=foo|ABC123&_revinclude=Endpoint:organization'
 ```
 
 ## Notes
