@@ -1,12 +1,3 @@
-resource "aws_lambda_layer_version" "python_dependency_layer" {
-  layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
-  compatible_runtimes = [var.lambda_runtime]
-  description         = "Common Python dependencies for Lambda functions"
-
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
-}
-
 resource "aws_lambda_layer_version" "common_packages_layer" {
   layer_name          = "${local.resource_prefix}-common-packages-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
@@ -14,6 +5,15 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
 
   s3_bucket = local.artefacts_bucket
   s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+}
+
+resource "aws_lambda_layer_version" "python_dependency_layer" {
+  layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common Python dependencies for Lambda functions"
+
+  s3_bucket = local.artefacts_bucket
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "processor_lambda" {
@@ -40,9 +40,9 @@ module "processor_lambda" {
   ]
 
   layers = concat(
-    [aws_lambda_layer_version.python_dependency_layer.arn],
     [aws_lambda_layer_version.common_packages_layer.arn],
-    var.aws_lambda_layers
+    var.aws_lambda_layers,
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   environment_variables = {
@@ -84,9 +84,9 @@ module "consumer_lambda" {
   ]
 
   layers = concat(
-    [aws_lambda_layer_version.python_dependency_layer.arn],
     [aws_lambda_layer_version.common_packages_layer.arn],
-    var.aws_lambda_layers
+    var.aws_lambda_layers,
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   environment_variables = {

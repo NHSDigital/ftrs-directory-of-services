@@ -10,6 +10,9 @@ WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
 DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
 
+# Ensure Poetry does not inherit an external virtualenv
+POETRY ?= env -u VIRTUAL_ENV poetry
+
 .PHONY: install lint test build
 
 ensure-build-dir:
@@ -24,26 +27,26 @@ install: install-dependencies
 
 install-dependencies:
 	asdf install
-	poetry install --no-interaction
+	$(POETRY) install --no-interaction
 
 lint:
-	poetry run ruff check
-	poetry run ruff format --check
+	$(POETRY) run ruff check
+	$(POETRY) run ruff format --check
 
 test: unit-test
 
 unit-test:
-	poetry run pytest tests/unit
+	$(POETRY) run pytest tests/unit
 
 build: ensure-build-dir build-dependency-layer
-	poetry build -f wheel -o $(BUILD_DIR)
+	$(POETRY) build -f wheel -o $(BUILD_DIR)
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
+	$(POETRY) export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
 build-dependency-layer: clean
 	mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
+	$(POETRY) export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
 	--platform $(PLATFORM) \
 	--target $(DEPENDENCY_DIR)/python \
