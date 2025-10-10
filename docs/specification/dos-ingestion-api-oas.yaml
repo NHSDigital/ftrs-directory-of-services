@@ -10,11 +10,11 @@ info:
 
     This API enables data partners to send structured updates on health and social care services: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the Directory of Services.
 
-    Depending on your access mode, you may:
+    Depending on your access mode, you may create or update:
 
-    - create or update health and social care service data
-    - create or update organisation data
-    - create or update location data
+    - health and social care service data
+    - organisation data
+    - location data
 
     The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up-to-date for use across NHS systems.
 
@@ -24,20 +24,20 @@ info:
 
     To use this API, both your organization and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the Directory of Services.
 
-    [See Onboarding](#Onboarding).
+    [See Onboarding](#overview--onboarding).
 
     ## Access modes
 
     This API has two access modes. They are:
       * [application restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis) - addition of new resource allowed / replacement of organization allowed
-      * [user restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis) - healthcare worker access for authentication via a UI (User Interface)
+      * [user restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis) - via a UI where healthcare workers authenticate
 
     ## Roadmap
-    We're currently finalising our roadmap and we'll update this content in due course.
+    At the time of writing (October 2025), we're currently finalising our roadmap and we'll update this content in due course
 
     ## Service level
 
-    The service level for this API is currently being determined, and this page will be updated in due course.
+    At the time of writing (October 2025), we're currently finalising our service level and we'll update this content in due course
 
     ## Technology
 
@@ -101,7 +101,7 @@ info:
 
     ## Onboarding
 
-    This API is not yet available for onboarding as it's still in the Alpha phase. You need to get your software approved by us before it can go live with this API, with further information to be added in due course.
+    This API is not yet available for onboarding as it's still [in development](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#statuses). You need to get your software approved by us before it can go live with this API, with further information to be added in due course.
 
     ## Resources
 
@@ -114,16 +114,16 @@ info:
 
     The following APIs are related to this one:
     * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
-    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
+    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-soap) - use this API to access information on a wide range of health and care services across England
 
     ## Contact us
     For help and support connecting to our APIs and to join our developer community, see [Help and support building healthcare software](https://digital.nhs.uk/developer/help-and-support).
 
   version: 1.0.0
 servers:
-  - url: https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4
+  - url: https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4
     description: Sandbox Environment
-  - url: https://int.api.service.nhs.uk/dos-ingest/FHIR/R4
+  - url: https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4
     description: Integration Environment
 paths:
   '/Organization':
