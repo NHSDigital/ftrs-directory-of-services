@@ -299,57 +299,57 @@ def test_make_request_with_api_key(
     assert mock_call.last_request.headers["apikey"] == "test-api-key"
 
 
-# @patch.dict(
-#     os.environ,
-#     {
-#         "PROJECT_NAME": "ftrs-dos",
-#         "ENVIRONMENT": "dev",
-#         "WORKSPACE": "test-workspace",
-#     },
-# )
-# @patch("pipeline.utilities.boto3.client")
-# def test__get_api_key_returns_value_from_json_secret(
-#     mock_boto_client: MagicMock,
-# ) -> None:
-#     mock_secretsmanager = MagicMock()
-#     mock_boto_client.return_value = mock_secretsmanager
-#     mock_secretsmanager.get_secret_value.return_value = {
-#         "SecretString": '{"api_key": "super-secret-key"}'
-#     }
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test__get_api_key_returns_value_from_json_secret(
+    mock_boto_client: MagicMock,
+) -> None:
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    mock_secretsmanager.get_secret_value.return_value = {
+        "SecretString": '{"api_key": "super-secret-key"}'
+    }
 
-#     api_key = _get_api_key()
-#     expected_secret_name = "/ftrs-dos/dev/apim-api-key"
-#     mock_secretsmanager.get_secret_value.assert_called_once_with(
-#         SecretId=expected_secret_name
-#     )
-#     assert api_key == "super-secret-key"
+    api_key = _get_api_key()
+    expected_secret_name = "/ftrs-dos/dev/apim-api-key"
+    mock_secretsmanager.get_secret_value.assert_called_once_with(
+        SecretId=expected_secret_name
+    )
+    assert api_key == "super-secret-key"
 
 
-# @patch.dict(
-#     os.environ,
-#     {
-#         "PROJECT_NAME": "ftrs-dos",
-#         "ENVIRONMENT": "dev",
-#         "WORKSPACE": "test-workspace",
-#     },
-# )
-# @patch("pipeline.utilities.boto3.client")
-# def test__get_api_key_client_error_logs(
-#     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
-# ) -> None:
-#     mock_secretsmanager = MagicMock()
-#     mock_boto_client.return_value = mock_secretsmanager
-#     error_response = {"Error": {"Code": "ResourceNotFoundException"}}
-#     mock_secretsmanager.get_secret_value.side_effect = ClientError(
-#         error_response, "GetSecretValue"
-#     )
-#     with caplog.at_level("WARNING"):
-#         with pytest.raises(ClientError):
-#             _get_api_key()
-#         assert (
-#             "Error with secret: /ftrs-dos/dev/apim-api-key with message An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation"
-#             in caplog.text
-#         )
+@patch.dict(
+    os.environ,
+    {
+        "PROJECT_NAME": "ftrs-dos",
+        "ENVIRONMENT": "dev",
+        "WORKSPACE": "test-workspace",
+    },
+)
+@patch("pipeline.utilities.boto3.client")
+def test__get_api_key_client_error_logs(
+    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+) -> None:
+    mock_secretsmanager = MagicMock()
+    mock_boto_client.return_value = mock_secretsmanager
+    error_response = {"Error": {"Code": "ResourceNotFoundException"}}
+    mock_secretsmanager.get_secret_value.side_effect = ClientError(
+        error_response, "GetSecretValue"
+    )
+    with caplog.at_level("WARNING"):
+        with pytest.raises(ClientError):
+            _get_api_key()
+        assert (
+            "Error with secret: /ftrs-dos/dev/apim-api-key with message An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation"
+            in caplog.text
+        )
 
 
 @patch.dict(
