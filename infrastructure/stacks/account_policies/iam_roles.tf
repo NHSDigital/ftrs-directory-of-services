@@ -78,6 +78,6 @@ resource "aws_iam_role" "steampipe_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "steampipe_role_policy_attachment" {
-  role       = aws_iam_role.steampipie_role.name
+  role       = aws_iam_role.steampipe_role.name
   policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
 }
