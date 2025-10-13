@@ -1,4 +1,6 @@
 from datetime import UTC, date, datetime, time
+from decimal import Decimal
+from typing import List
 
 import pytest
 from freezegun import freeze_time
@@ -23,6 +25,7 @@ from ftrs_data_layer.domain import (
 from ftrs_data_layer.domain.legacy import (
     OpeningTimeDay,
     Service,
+    ServiceAgeRange,
     ServiceDayOpening,
     ServiceDayOpeningTime,
     ServiceEndpoint,
@@ -806,3 +809,472 @@ def test_build_dispositions(
             time=120,
         ),
     ]
+
+
+def test_build_age_eligibility_criteria_empty(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test when service has no age range."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with no age range
+    service = Service(id=1)
+    service.age_range = []
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Should return None when no age range
+    assert result is None
+    # Should log if service created without an ageEligibilityCriteria
+    assert mock_logger.get_log("DM_ETL_017") == [
+        {
+            "msg": "No ageEligibilityCriteria created for Service ID 1 as no age range found",
+            "reference": "DM_ETL_017",
+            "detail": {"service_id": 1},
+        }
+    ]
+
+
+def test_build_age_eligibility_criteria_single_range(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test processing a single age range."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with one age range
+    service = Service(id=1)
+    service.age_range = [
+        ServiceAgeRange(
+            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+        )
+    ]
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Should return a list with one item
+    assert result == [
+        {
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("364.25"),
+            "type": "days",
+        }
+    ]
+
+
+def test_build_age_eligibility_criteria_consecutive_ranges(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test consolidation of consecutive age ranges."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with two consecutive age ranges
+    service = Service(id=1)
+    service.age_range = [
+        ServiceAgeRange(
+            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+        ),
+        ServiceAgeRange(
+            id=2, serviceid=1, daysfrom=Decimal("365.25"), daysto=Decimal("1825.25")
+        ),
+    ]
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Should consolidate into a single range
+    assert result == [
+        {
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("1825.25"),
+            "type": "days",
+        }
+    ]
+
+
+def test_build_age_eligibility_criteria_overlapping_ranges(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test consolidation of overlapping age ranges."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with overlapping age ranges
+    service = Service(id=1)
+    service.age_range = [
+        ServiceAgeRange(
+            id=1, serviceid=1, daysfrom=Decimal("5844"), daysto=Decimal("47481.5")
+        ),
+        ServiceAgeRange(
+            id=2, serviceid=1, daysfrom=Decimal("23741.25"), daysto=Decimal("47481.5")
+        ),
+    ]
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Should merge into a single range
+    assert result == [
+        {
+            "rangeFrom": Decimal("5844"),
+            "rangeTo": Decimal("47481.5"),
+            "type": "days",
+        }
+    ]
+
+
+def test_build_age_eligibility_criteria_non_consecutive_ranges(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test handling of non-consecutive age ranges."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with non-consecutive age ranges
+    service = Service(id=1)
+    service.age_range = [
+        ServiceAgeRange(
+            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+        ),
+        ServiceAgeRange(
+            id=2, serviceid=1, daysfrom=Decimal("1826.25"), daysto=Decimal("5843")
+        ),
+    ]
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Should keep as separate ranges
+    assert result == [
+        {
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("364.25"),
+            "type": "days",
+        },
+        {
+            "rangeFrom": Decimal("1826.25"),
+            "rangeTo": Decimal("5843"),
+            "type": "days",
+        },
+    ]
+
+
+def test_build_age_eligibility_criteria_mixed_ranges(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test a mix of consecutive and non-consecutive ranges."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with mixed age ranges
+    service = Service(id=1)
+    service.age_range = [
+        ServiceAgeRange(
+            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+        ),
+        ServiceAgeRange(
+            id=2, serviceid=1, daysfrom=Decimal("365.25"), daysto=Decimal("1825.25")
+        ),
+        ServiceAgeRange(
+            id=3, serviceid=1, daysfrom=Decimal("23741.25"), daysto=Decimal("47481.5")
+        ),
+    ]
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Should consolidate the first two ranges but keep the third separate
+    assert result == [
+        {
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("1825.25"),
+            "type": "days",
+        },
+        {
+            "rangeFrom": Decimal("23741.25"),
+            "rangeTo": Decimal("47481.5"),
+            "type": "days",
+        },
+    ]
+
+
+def test_build_age_eligibility_criteria_complex_case(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test a complex case with multiple overlapping and consecutive ranges."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with complex age ranges
+    service = Service(id=1)
+    service.age_range = [
+        ServiceAgeRange(
+            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+        ),
+        ServiceAgeRange(
+            id=2, serviceid=1, daysfrom=Decimal("365.25"), daysto=Decimal("1825.25")
+        ),
+        ServiceAgeRange(
+            id=3, serviceid=1, daysfrom=Decimal("1826.25"), daysto=Decimal("5843")
+        ),
+        ServiceAgeRange(
+            id=4, serviceid=1, daysfrom=Decimal("5844"), daysto=Decimal("47481.5")
+        ),
+        ServiceAgeRange(
+            id=5, serviceid=1, daysfrom=Decimal("23741.25"), daysto=Decimal("47481.5")
+        ),
+    ]
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Should consolidate all ranges into a single range
+    assert result == [
+        {
+            "rangeFrom": Decimal("0"),
+            "rangeTo": Decimal("47481.5"),
+            "type": "days",
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    "age_range,expected_result",
+    [
+        # Test case 1: Standard consecutive ranges (0-11 months → 1-4 years)
+        (
+            [
+                ServiceAgeRange(
+                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+                ),
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("365.25"),
+                    daysto=Decimal("1825.25"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("1825.25"),
+                    "type": "days",
+                }
+            ],
+        ),
+        # Test case 2: Standard consecutive ranges (1-4 years → 5-15 years)
+        (
+            [
+                ServiceAgeRange(
+                    id=1,
+                    serviceid=1,
+                    daysfrom=Decimal("365.25"),
+                    daysto=Decimal("1825.25"),
+                ),
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("1826.25"),
+                    daysto=Decimal("5843"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("365.25"),
+                    "rangeTo": Decimal("5843"),
+                    "type": "days",
+                }
+            ],
+        ),
+        # Test case 3: Standard consecutive ranges (5-15 years → 16-129 years)
+        (
+            [
+                ServiceAgeRange(
+                    id=1,
+                    serviceid=1,
+                    daysfrom=Decimal("1826.25"),
+                    daysto=Decimal("5843"),
+                ),
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("5844"),
+                    daysto=Decimal("47481.5"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("1826.25"),
+                    "rangeTo": Decimal("47481.5"),
+                    "type": "days",
+                }
+            ],
+        ),
+        # Test case 4: Ranges with small gap that should still consolidate (TOLERANCE=1)
+        (
+            [
+                ServiceAgeRange(
+                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364")
+                ),
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("365"),
+                    daysto=Decimal("1825.25"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("1825.25"),
+                    "type": "days",
+                }
+            ],
+        ),
+        # Test case 5: Multiple consecutive ranges (all 4 standard ranges)
+        (
+            [
+                ServiceAgeRange(
+                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+                ),
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("365.25"),
+                    daysto=Decimal("1825.25"),
+                ),
+                ServiceAgeRange(
+                    id=3,
+                    serviceid=1,
+                    daysfrom=Decimal("1826.25"),
+                    daysto=Decimal("5843"),
+                ),
+                ServiceAgeRange(
+                    id=4,
+                    serviceid=1,
+                    daysfrom=Decimal("5844"),
+                    daysto=Decimal("47481.5"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("47481.5"),
+                    "type": "days",
+                }
+            ],
+        ),
+        # Test case 6: Almost consecutive ranges with fractional difference within tolerance
+        (
+            [
+                ServiceAgeRange(
+                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.3")
+                ),
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("365.2"),
+                    daysto=Decimal("1825.25"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("1825.25"),
+                    "type": "days",
+                }
+            ],
+        ),
+        # Test case 7: Gap larger than tolerance - should not consolidate
+        (
+            [
+                ServiceAgeRange(
+                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("363")
+                ),
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("366"),
+                    daysto=Decimal("1825.25"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("363"),
+                    "type": "days",
+                },
+                {
+                    "rangeFrom": Decimal("366"),
+                    "rangeTo": Decimal("1825.25"),
+                    "type": "days",
+                },
+            ],
+        ),
+        # Test case 8: Out of order ranges (should sort and then consolidate)
+        (
+            [
+                ServiceAgeRange(
+                    id=2,
+                    serviceid=1,
+                    daysfrom=Decimal("1826.25"),
+                    daysto=Decimal("5843"),
+                ),
+                ServiceAgeRange(
+                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+                ),
+                ServiceAgeRange(
+                    id=3,
+                    serviceid=1,
+                    daysfrom=Decimal("365.25"),
+                    daysto=Decimal("1825.25"),
+                ),
+            ],
+            [
+                {
+                    "rangeFrom": Decimal("0"),
+                    "rangeTo": Decimal("5843"),
+                    "type": "days",
+                }
+            ],
+        ),
+    ],
+)
+def test_build_age_eligibility_criteria_tolerance_check(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+    age_range: List[ServiceAgeRange],
+    expected_result: List[dict],
+) -> None:
+    """
+    Test that the tolerance is applied correctly for consecutive age ranges.
+
+    This parametrized test covers different combinations of standard age ranges:
+    * 0-364.25 days (0-11 months)
+    * 365.25-1825.25 days (1-4 years)
+    * 1826.25-5843 days (5-15 years)
+    * 5844-47481.5 days (16-129 years)
+    """
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Create a service with the specified age ranges
+    service = Service(id=1)
+    service.age_range = age_range
+
+    result = transformer.build_age_eligibility_criteria(service)
+
+    # Check if the consolidation matches the expected result
+    assert result == expected_result
