@@ -48,7 +48,7 @@ def create_rds_trigger_replica_db(
         sql_commands = sql_commands.replace("${lambda_arn}", lambda_arn)
         sql_commands = sql_commands.replace("${aws_region}", aws_region)
         sql_commands = sql_commands.replace(
-            "${table_name}", legacy.Service.__tablename__
+            "${table_name}", "pathwaysdos." + legacy.Service.__tablename__
         )
 
         # Execute the SQL commands as a single statement
