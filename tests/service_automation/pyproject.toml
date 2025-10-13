@@ -65,5 +65,7 @@ markers = [
   "apim-test: marks test as APIM related",
   "etl-ods: marks test as ETL ODS related",
   "ftrs-pipeline: marks test to be run in the FTRS pipeline",
+  "data-migration: marks test as data migration related",
+  "manual: marks test as manual test"
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']
