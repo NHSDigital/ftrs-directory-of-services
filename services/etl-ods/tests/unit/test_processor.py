@@ -409,6 +409,20 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
 
+def test_processor_lambda_handler_success_is_scheduled(
+    mocker: MockerFixture,
+) -> None:
+    mock_processor = mocker.patch("pipeline.processor.processor")
+
+    event = {"is_scheduled": True}
+
+    response = processor_lambda_handler(event, {})
+
+    previous_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    mock_processor.assert_called_once_with(date=previous_date)
+    assert response == {"statusCode": 200, "body": "Processing complete"}
+
+
 def test_processor_lambda_handler_missing_date() -> None:
     response = processor_lambda_handler({}, {})
     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
