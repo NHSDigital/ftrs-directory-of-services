@@ -165,6 +165,28 @@ resource "aws_wafv2_web_acl" "waf_web_acl" {
     }
   }
 
+  rule {
+    name     = "AWSManagedRulesBotControlRuleSet"
+    priority = 81
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesBotControlRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWSManagedRulesBotControlRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
   visibility_config {
     cloudwatch_metrics_enabled = true
     metric_name                = "${local.resource_prefix}-metric"
