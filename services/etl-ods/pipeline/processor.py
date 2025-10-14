@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import requests
 from ftrs_common.logger import Logger
@@ -99,7 +99,12 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
     Lambda handler for triggering the processor with a date parameter.
     """
     try:
-        date = event.get("date")
+        is_scheduled = event.get("is_scheduled", False)
+        if not is_scheduled:
+            date = event.get("date")
+        else:
+            # if triggered by EventBridge Scheduler, use the scheduled time minus one day
+            date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
         if not date:
             return _error_response(400, "Date parameter is required")
 
