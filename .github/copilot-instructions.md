@@ -45,7 +45,7 @@ Optional — usually the module, feature, or area affected.
 - Avoid punctuation at the end.
 - Always include the correct Jira ticket.
 - Be concise but descriptive.
-- Stay under 100 characters for readability.
+- Must Stay under 100 characters for readability.
 
 ---
 
