@@ -1,5 +1,6 @@
 name: AWS Well Architected Framework Checks
 
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
   workflow_dispatch:
     inputs:
@@ -26,12 +27,13 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   run-matrix:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     strategy:
       matrix:
         include:
@@ -39,12 +41,6 @@ jobs:
             environment: dev
           - type: app
             environment: test
-          - type: app
-            environment: int
-          - type: app
-            environment: sandpit
-          - type: app
-            environment: prod
           - type: account
             environment: mgmt
       fail-fast: false

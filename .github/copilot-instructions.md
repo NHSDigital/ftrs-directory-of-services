@@ -49,16 +49,26 @@ Optional — usually the module, feature, or area affected.
 - Avoid punctuation at the end.
 - Always include the correct Jira ticket immediately after the colon (e.g., `feat(scope): FTRS-123 ...`).
 - Be concise but descriptive.
-- Must Stay under 100 characters for readability.
+- **CRITICAL:** The total length of `<type>(<scope>): <description>` MUST be under 100 characters.
+- If approaching the limit, prioritize clarity over detail. Abbreviate where reasonable.
+
+---
+
+## 5. Validation Rule
+
+Before generating a commit message, verify:
+1. Count the total characters in the format: `<type>(<scope>): <description>`
+2. If count ≥ 100, abbreviate the description
+3. Never sacrifice the type or required punctuation to meet the limit
 
 ---
 
 ### Example Commit Messages Copilot Should Generate
 
-- `feat(data-migration): FTRS-1607 Add user sync logic`
-- `fix(crud-apis): FTRS-1711 Resolve token refresh issue`
-- `docs(readme): FTRS-1680 Update installation instructions`
-- `chore(ci): FTRS-1654 Update build pipeline`
+- `feat(data-migration): Add user sync logic`
+- `fix(crud-apis): Resolve token refresh issue`
+- `docs(readme): Update installation instructions`
+- `chore(ci): Update build pipeline`
 
 ---
 
