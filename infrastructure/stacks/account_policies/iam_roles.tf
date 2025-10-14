@@ -68,7 +68,7 @@ data "aws_iam_policy_document" "trust_github_runner_roles" {
       identifiers = [data.aws_iam_role.github_account_role.arn, data.aws_iam_role.github_app_role.arn]
     }
 
-    actions = ["sts:AssumeRole"]
+    actions = ["sts:AssumeRole", "sts:TagSession"]
   }
 }
 
