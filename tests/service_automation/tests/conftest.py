@@ -58,18 +58,18 @@ def api_request_context_mtls_factory(playwright, workspace, env):
     """Factory to create API request contexts with different api_names."""
     contexts = []
 
-    def _create_context(api_name="servicesearch", headers=None):
+    def _create_context(api_name="servicesearch", headers=None, env=env):
         url = get_url(api_name)
         try:
             # Get mTLS certs
-            client_pem_path, ca_cert_path = get_mtls_certs()
+            client_pem, ca_cert = get_mtls_certs(env)
             context_options = {
                 "ignore_https_errors": True,
                 "client_certificates": [
                     {
                         "origin": url,
-                        "certPath": ca_cert_path,
-                        "keyPath": client_pem_path,
+                        "cert": ca_cert,
+                        "key": client_pem,
                     }
                 ],
                 "extra_http_headers": headers,
@@ -257,16 +257,16 @@ def organisation_repo_seeded(organisation_repo):
     organisation_repo.delete(organisation.id)
 
 
-def get_mtls_certs():
+def get_mtls_certs(env):
     # Fetch secrets from AWS
     gsw = GetSecretWrapper()
-    client_pem = gsw.get_secret("/temp/dev/api-ca-pk")  # Combined client cert + key
-    ca_cert = gsw.get_secret("/temp/dev/api-ca-cert")  # CA cert for server verification
+    logger.info(f"Fetching mTLS certs for env: {env}")
+    client_pem = gsw.get_secret(f"/ftrs-directory-of-services/{env}/api-ca-pk")  # Combined client cert + key
+    ca_cert = gsw.get_secret(f"/ftrs-directory-of-services/{env}/api-ca-cert")  # CA cert for server verification
 
-    # Write to temp files
-    client_pem_path = create_temp_file(client_pem, ".pem")
-    ca_cert_path = create_temp_file(ca_cert, ".crt")
-    return client_pem_path, ca_cert_path
+    client_pem = client_pem.encode('utf-8')
+    ca_cert = ca_cert.encode('utf-8')
+    return client_pem, ca_cert
 
 
 @pytest.fixture(scope="session")
