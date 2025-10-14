@@ -54,6 +54,7 @@ Optional — usually the module, feature, or area affected.
 ## 5. Validation Rule
 
 Before generating a commit message, verify:
+
 1. Count the total characters in the format: `<type>(<scope>): <description>`
 2. If count ≥ 100, abbreviate the description
 3. Never sacrifice the type or required punctuation to meet the limit
