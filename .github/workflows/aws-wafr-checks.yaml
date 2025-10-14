@@ -34,6 +34,7 @@ permissions:
 jobs:
   run-matrix:
     runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
     strategy:
       matrix:
         include:
@@ -88,7 +89,6 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ matrix.type }}
-          environment: ${{ steps.set-env.outputs.environment }}
 
       # Assume steampipe-readonly-role using GitHub Action
       - name: Assume steampipe-readonly-role
