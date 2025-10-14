@@ -1,0 +1,151 @@
+name: AWS Well Architected Framework Checks
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: "Type of workflow (app or account)"
+        required: true
+        default: "app"
+        type: choice
+        options:
+          - app
+          - account
+      environment:
+        description: "Defines the Github environment from which to pull environment variables from"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - int
+          - sandpit
+          - mgmt
+          - prod
+      tag:
+        description: "The git tag to checkout or, if not passed in, the current branch"
+        required: false
+        type: string
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  run-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - type: app
+            environment: dev
+          - type: app
+            environment: test
+          - type: app
+            environment: int
+          - type: app
+            environment: sandpit
+          - type: app
+            environment: prod
+          - type: account
+            environment: mgmt
+      fail-fast: false
+
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      (
+        matrix.type == github.event.inputs.type &&
+        (
+          github.event.inputs.environment == '' ||
+          matrix.environment == github.event.inputs.environment
+        )
+      )
+
+        permissions:
+            contents: read
+            id-token: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+              with:
+                  ref: ${{ inputs.tag }}
+
+            - name: Set environment output
+              id: set-env
+              run: |
+                  # Set the environment value to GITHUB_OUTPUT
+                  echo "environment=${{ matrix.environment }}" >> $GITHUB_OUTPUT
+                  echo "Selected environment: ${{ matrix.environment }}"
+
+            - name: "Configure AWS credentials"
+              uses: ./.github/actions/configure-credentials
+              with:
+                  aws_account_id: ${{ secrets.ACCOUNT_ID }}
+                  aws_region: ${{ vars.AWS_REGION }}
+                  type: ${{ matrix.type }}
+                  environment: ${{ steps.set-env.outputs.environment }}
+
+            # Assume steampipe-readonly-role using GitHub Action
+            - name: Assume steampipe-readonly-role
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/steampipe-readonly-role
+                  aws-region: ${{ vars.AWS_REGION }}
+                  role-session-name: GitHubActionsSteampipe
+                  # The credentials from the previous step will be used to assume this role
+
+            # Install Steampipe using official GitHub Action
+            - name: Setup Steampipe
+              uses: turbot/steampipe-action-setup@v1
+              with:
+                  steampipe-version: "latest"
+                  plugin-connections: |
+                      connection "aws" {
+                          plugin     = "aws"
+                          regions    = ["us-east-1", "eu-west-2"]
+                      }
+
+            # Install Powerpipe CLI
+            - name: Install Powerpipe
+              run: |
+                  curl -s -o install.sh https://powerpipe.io/install.sh
+                  echo "actual-checksum-value  install.sh" | sha256sum --check --status
+                  if [ $? -ne 0 ]; then
+                    echo "Checksum verification failed!" >&2
+                    exit 1
+                  fi
+                  bash install.sh
+                  rm install.sh
+                  powerpipe --version
+
+            # Install the AWS Well-Architected Framework mod
+            - name: Install AWS Well Architected mod
+              run: |
+                  mkdir -p mods
+                  cd mods
+                  powerpipe mod install turbot/aws_well_architected
+
+            # Run the Powerpipe report
+            - name: Run AWS Well Architected Framework checks
+              id: generate_reports
+              run: |
+                  mkdir -p reports
+                  cd mods
+                  DATE=$(date +%Y-%m-%d)
+                  echo "Generating reports with date stamp: $DATE"
+                  # Generate JSON report
+                  if ! powerpipe benchmark run well_architected_framework --output json > "../reports/aws_wafr_report_${DATE}.json"; then
+                    echo "Warning: JSON report generation had issues but continuing..."
+                  fi
+                  # Generate HTML report
+                  if ! powerpipe benchmark run well_architected_framework --output html > "../reports/aws_wafr_report_${DATE}.html"; then
+                    echo "Warning: HTML report generation had issues but continuing..."
+                  fi
+
+            # Upload report artifacts for download
+            - name: Upload reports
+              uses: actions/upload-artifact@v4.6.1
+              with:
+                  name: aws-wafr-reports-${{ matrix.type }}-${{ matrix.environment }}
+                  path: reports/
+                  if-no-files-found: warn
+                  retention-days: 90
