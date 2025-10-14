@@ -1,16 +1,26 @@
 import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from typing import NamedTuple
+from typing import Generator, NamedTuple
 
 import pytest
 import requests
+from ftrs_common.utils.correlation_id import set_correlation_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 from requests_mock.adapter import _Matcher as Matcher
 
 from pipeline.processor import MAX_DAYS_PAST, processor, processor_lambda_handler
+
+TEST_CORRELATION_ID = "test-correlation"
+
+
+@pytest.fixture(autouse=True)
+def fixed_correlation_id() -> Generator[None, None, None]:
+    set_correlation_id(TEST_CORRELATION_ID)
+    yield
+    set_correlation_id(None)
 
 
 class MockResponses(NamedTuple):
@@ -158,6 +168,7 @@ def test_processor_processing_organisations_successful(
                 ],
                 "telecom": [],
             },
+            "correlation_id": TEST_CORRELATION_ID,
         }
     ]
 
@@ -308,6 +319,7 @@ def test_processor_continue_on_validation_failure(
                 ],
                 "telecom": [],
             },
+            "correlation_id": TEST_CORRELATION_ID,
         }
     ]
 

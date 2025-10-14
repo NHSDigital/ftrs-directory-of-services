@@ -33,11 +33,11 @@ info:
       * [user restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis) - via a UI where healthcare workers authenticate
 
     ## Roadmap
-    At the time of writing (October 2025), we're currently finalising our roadmap and we'll update this content in due course
+    At the time of writing (October 2025), we're currently finalising our roadmap and we'll update this content in due course.
 
     ## Service level
 
-    At the time of writing (October 2025), we're currently finalising our service level and we'll update this content in due course
+    At the time of writing (October 2025), we're currently finalising our service level and we'll update this content in due course.
 
     ## Technology
 
@@ -178,7 +178,14 @@ paths:
       - $ref: '#/components/parameters/AcceptFHIR'
       responses:
         '200':
-          description: Bundle of organizations found and returned successfully
+          description: Bundle of Organizations found and returned successfully
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
@@ -266,6 +273,13 @@ paths:
                       mode: "include"
         '400':
           description: Bad request (e.g., invalid format of parameters)
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
@@ -278,6 +292,13 @@ paths:
                     diagnostics: Invalid format for identifier parameter
         '404':
           description: Organization not found
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
@@ -290,6 +311,13 @@ paths:
                     diagnostics: Organisation with ODS code 'DEF456' not found
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
@@ -313,6 +341,13 @@ paths:
                         diagnostics: "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
         '500':
           description: Internal server error
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
@@ -391,6 +426,13 @@ paths:
                     diagnostics: Organisation updated successfully
         '404':
           description: Organization not found
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:

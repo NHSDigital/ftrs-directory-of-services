@@ -3,6 +3,11 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 from ftrs_common.logger import Logger
+from ftrs_common.utils.correlation_id import (
+    current_correlation_id,
+    fetch_or_set_correlation_id,
+    get_correlation_id,
+)
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import load_data
@@ -72,6 +77,7 @@ def process_organisation(ods_code: str) -> str | None:
     Process a single organisation by extracting data, transforming it, and returning the payload.
     """
     try:
+        correlation_id = get_correlation_id()
         organisation_data = fetch_ods_organisation_data(ods_code)
         fhir_organisation = transform_to_payload(organisation_data, ods_code)
         org_uuid = fetch_organisation_uuid(ods_code)
@@ -83,7 +89,13 @@ def process_organisation(ods_code: str) -> str | None:
                 error_message="Organisation UUID not found.",
             )
             return None
-        return json.dumps({"path": org_uuid, "body": fhir_organisation.model_dump()})
+        return json.dumps(
+            {
+                "path": org_uuid,
+                "body": fhir_organisation.model_dump(),
+                "correlation_id": correlation_id,
+            }
+        )
 
     except Exception as e:
         ods_processor_logger.log(
@@ -99,6 +111,12 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
     Lambda handler for triggering the processor with a date parameter.
     """
     try:
+        current_correlation_id.set(None)
+        correlation_id = fetch_or_set_correlation_id(
+            event.get("headers", {}).get("X-Correlation-ID")
+        )
+        ods_processor_logger.append_keys(correlation_id=correlation_id)
+
         is_scheduled = event.get("is_scheduled", False)
         if not is_scheduled:
             date = event.get("date")
