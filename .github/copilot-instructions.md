@@ -49,7 +49,7 @@ Optional — usually the module, feature, or area affected.
 - Avoid punctuation at the end.
 - Always include the correct Jira ticket immediately after the colon (e.g., `feat(scope): FTRS-123 ...`).
 - Be concise but descriptive.
-- Stay under 100 characters for readability.
+- Must Stay under 100 characters for readability.
 
 ---
 
