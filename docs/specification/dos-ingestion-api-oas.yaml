@@ -6,36 +6,38 @@ info:
   description: |
     ## Overview
 
-    Use this API to submit health and social care service data from your system to the NHS Directory of Services (DoS). This API enables data partners to send structured updates on health and social care services: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the Directory of Services.
+    Use this API to submit health and social care service data from your system to the NHS Directory of Services (DoS).
 
-    Depending on your access mode, you may:
+    This API enables data partners to send structured updates on health and social care services: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the Directory of Services.
 
-    - Create or update health and social care service data
-    - Create or update organisation data
-    - Create or update location data
+    Depending on your access mode, you may create or update:
 
-    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up to date for use across NHS systems.
+    - health and social care service data
+    - organisation data
+    - location data
+
+    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up-to-date for use across NHS systems.
 
     ## Who can use this API
 
-    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organizations, local authorities, or trusted third-party systems that manage health and social care service data.
+    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organisations, local authorities, or trusted third-party systems that manage health and social care service data.
 
     To use this API, both your organization and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the Directory of Services.
 
-    See **Onboarding**
+    [See Onboarding](#overview--onboarding).
 
     ## Access modes
 
     This API has two access modes. They are:
-      * Application Restricted - Addition of new resource allowed / replacement of organization allowed
-      * User Restricted - Healthcare worker access for authentication via a UI (User Interface)
+      * [application restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis) - addition of new resource allowed / replacement of organization allowed
+      * [user restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis) - via a UI where healthcare workers authenticate
 
     ## Roadmap
-    We're currently finalising our roadmap and we'll update this content in due course.
+    At the time of writing (October 2025), we're currently finalising our roadmap and we'll update this content in due course.
 
     ## Service level
 
-    The service level for this API is currently being determined, and this page will be updated in due course.
+    At the time of writing (October 2025), we're currently finalising our service level and we'll update this content in due course.
 
     ## Technology
 
@@ -99,7 +101,7 @@ info:
 
     ## Onboarding
 
-    This API is not yet available for onboarding as it's still in the Alpha phase. You need to get your software approved by us before it can go live with this API, with further information to be added in due course.
+    This API is not yet available for onboarding as it's still [in development](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#statuses). You need to get your software approved by us before it can go live with this API, with further information to be added in due course.
 
     ## Resources
 
@@ -112,30 +114,30 @@ info:
 
     The following APIs are related to this one:
     * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
-    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-soap) - use this API to access information on a wide range of health and care services across England
+    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-soap) - use this API to access information on a wide range of health and care services across England
 
     ## Contact us
     For help and support connecting to our APIs and to join our developer community, see [Help and support building healthcare software](https://digital.nhs.uk/developer/help-and-support).
 
   version: 1.0.0
 servers:
-  - url: https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4
+  - url: https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4
     description: Sandbox Environment
-  - url: https://int.api.service.nhs.uk/dos-ingest/FHIR/R4
+  - url: https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4
     description: Integration Environment
 paths:
   '/Organization':
     get:
       security:
         - app-level0: []
-      summary: Search for organizations by ODS code to return Organization details
+      summary: Search for organisations by ODS code to return organization details
       description: |
         ## Overview
-        Retrieve an Organization identified by an ODS code, or all Organizations if no identifier is provided.
+        Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
 
-        ## Request Requirements
-        - If the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 5, maximum 12 alphanumeric characters).
-        - If the `identifier` parameter is omitted, all Organizations will be returned.
+        ## Request requirements
+        - if the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 5, maximum 12 alphanumeric characters).
+        - if the `identifier` parameter is omitted, all organizations will be returned.
 
         The search is performed using the FHIR-compliant identifier parameter:
         - identifier=odsOrganizationCode|{CODE}
@@ -167,7 +169,7 @@ paths:
         name: identifier
         description: >
           ODS code in the format "odsOrganizationCode|{CODE}" (FHIR identifier search).
-          If omitted, all Organizations will be returned.
+          If omitted, all organizations will be returned.
           required: false
         schema:
             type: string
@@ -366,8 +368,8 @@ paths:
     put:
       security:
         - app-level0: []
-      summary: Update/overwrite an Organization resource
-      description: Update or overwrite an existing Organization resource by ID.
+      summary: Update/overwrite an organization resource
+      description: Update or overwrite an existing organization resource by ID.
       parameters:
       - in: header
         name: apiKey
@@ -441,12 +443,6 @@ paths:
                   - severity: error
                     code: not-found
                     diagnostics: Organisation not found.
-        4XX:
-          description: Error
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
 components:
   parameters:
     AcceptFHIR:
