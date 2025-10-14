@@ -18,10 +18,7 @@ on:
         options:
           - dev
           - test
-          - int
-          - sandpit
           - mgmt
-          - prod
       tag:
         description: "The git tag to checkout or, if not passed in, the current branch"
         required: false
@@ -52,23 +49,36 @@ jobs:
             environment: mgmt
       fail-fast: false
 
-    if: |
-      github.event_name != 'workflow_dispatch' ||
-      (
-        matrix.type == github.event.inputs.type &&
-        (
-          github.event.inputs.environment == '' ||
-          matrix.environment == github.event.inputs.environment
-        )
-      )
-
     steps:
+      - name: Check if should run
+        id: should-run
+        run: |
+          SHOULD_RUN="true"
+
+          # If manually triggered, check if this matrix entry matches the inputs
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Check type matches
+            if [[ "${{ matrix.type }}" != "${{ inputs.type }}" ]]; then
+              SHOULD_RUN="false"
+            fi
+
+            # Check environment matches (if specified)
+            if [[ -n "${{ inputs.environment }}" ]] && [[ "${{ matrix.environment }}" != "${{ inputs.environment }}" ]]; then
+              SHOULD_RUN="false"
+            fi
+          fi
+
+          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          echo "Should run: $SHOULD_RUN"
+
       - name: Checkout repository
+        if: steps.should-run.outputs.should_run == 'true'
         uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag }}
 
       - name: Set environment output
+        if: steps.should-run.outputs.should_run == 'true'
         id: set-env
         run: |
           # Set the environment value to GITHUB_OUTPUT
@@ -76,6 +86,7 @@ jobs:
           echo "Selected environment: ${{ matrix.environment }}"
 
       - name: "Configure AWS credentials"
+        if: steps.should-run.outputs.should_run == 'true'
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
@@ -85,6 +96,7 @@ jobs:
 
       # Assume steampipe-readonly-role using GitHub Action
       - name: Assume steampipe-readonly-role
+        if: steps.should-run.outputs.should_run == 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/steampipe-readonly-role
@@ -93,6 +105,7 @@ jobs:
 
       # Install Steampipe using official GitHub Action
       - name: Setup Steampipe
+        if: steps.should-run.outputs.should_run == 'true'
         uses: turbot/steampipe-action-setup@v1
         with:
           steampipe-version: "latest"
@@ -104,6 +117,7 @@ jobs:
 
       # Install Powerpipe CLI
       - name: Install Powerpipe
+        if: steps.should-run.outputs.should_run == 'true'
         run: |
           curl -s -o install.sh https://powerpipe.io/install.sh
           echo "actual-checksum-value  install.sh" | sha256sum --check --status
@@ -117,6 +131,7 @@ jobs:
 
       # Install the AWS Well-Architected Framework mod
       - name: Install AWS Well Architected mod
+        if: steps.should-run.outputs.should_run == 'true'
         run: |
           mkdir -p mods
           cd mods
@@ -124,6 +139,7 @@ jobs:
 
       # Run the Powerpipe report
       - name: Run AWS Well Architected Framework checks
+        if: steps.should-run.outputs.should_run == 'true'
         id: generate_reports
         run: |
           mkdir -p reports
@@ -141,6 +157,7 @@ jobs:
 
       # Upload report artifacts for download
       - name: Upload reports
+        if: steps.should-run.outputs.should_run == 'true'
         uses: actions/upload-artifact@v4.6.1
         with:
           name: aws-wafr-reports-${{ matrix.type }}-${{ matrix.environment }}
