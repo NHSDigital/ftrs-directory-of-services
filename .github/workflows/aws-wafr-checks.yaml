@@ -90,14 +90,15 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ matrix.type }}
 
-      # Assume steampipe-readonly-role using GitHub Action
+      # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
         if: steps.should-run.outputs.should_run == 'true'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/steampipe-readonly-role
-          aws-region: ${{ vars.AWS_REGION }}
+          role-chaining: true
           role-session-name: GitHubActionsSteampipe
+          aws-region: ${{ vars.AWS_REGION }}
 
       # Install Steampipe using official GitHub Action
       - name: Setup Steampipe
