@@ -30,14 +30,14 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "echo 0.1.0 > .version"
+        "prepareCmd": "echo ${nextRelease.version} > .version"
       }
     ],
     "@semantic-release/release-notes-generator",
     [
       "@semantic-release/git",
       {
-        "assets": [],
+        "assets": [".version"],
         "message": "chore(release): ${nextRelease.version} [skip ci]"
       }
     ],
