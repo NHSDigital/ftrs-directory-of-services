@@ -269,7 +269,7 @@ jobs:
       - metadata
       - apply-infrastructure
       - service-automation-tests
-    if: startsWith(github.ref, 'refs/heads/task/FTRS-315-Add-pre-release-versioning')
+    if: needs.metadata.outputs.workspace != 'default'
     # if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
