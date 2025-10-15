@@ -19,8 +19,14 @@ jobs:
         with:
           node-version: 20
 
-      - name: "Install semantic-release"
-        run: npm install -g semantic-release @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git
+      - name: "Install semantic-release and required plugins"
+        run: npm install -g \
+          semantic-release \
+          @semantic-release/github \
+          @semantic-release/git \
+          @semantic-release/commit-analyzer \
+          @semantic-release/release-notes-generator \
+          conventional-changelog-conventionalcommits
 
       - name: "Generate prerelease"
         run: semantic-release
