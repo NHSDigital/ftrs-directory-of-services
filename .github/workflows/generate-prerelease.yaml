@@ -8,7 +8,8 @@ on:
   workflow_call: {}
 
 jobs:
-  prerelease:
+  generate-prerelease:
+    name: "Prerelease Tag Automation"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
@@ -20,7 +21,7 @@ jobs:
           node-version: 20
 
       - name: "Install semantic-release and required plugins"
-        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/commit-analyzer @semantic-release/release-notes-generator conventional-changelog-conventionalcommits
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/exec @semantic-release/commit-analyzer @semantic-release/release-notes-generator conventional-changelog-conventionalcommits
 
       - name: "Generate prerelease"
         run: semantic-release
