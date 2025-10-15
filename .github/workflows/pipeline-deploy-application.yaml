@@ -295,6 +295,7 @@ jobs:
       - deploy-read-only-viewer-service
       - deploy-data-migration-service
       - service-automation-tests
+      - generate-prerelease
       - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
