@@ -2,7 +2,7 @@ name: Application Deployment Pipeline
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 on:
   push:
@@ -267,6 +267,9 @@ jobs:
     name: "Generate Prerelease Tag"
     needs:
       - metadata
+      - apply-infrastructure
+      - service-automation-tests
+    if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
 
