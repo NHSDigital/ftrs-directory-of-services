@@ -397,51 +397,7 @@ paths:
         content:
           application/fhir+json:
             schema:
-              type: object
-              required:
-                - identifier_ODS_ODSCode
-                - active
-                - name
-                - type
-                - createdBy
-              properties:
-                identifier_ODS_ODSCode:
-                  type: string
-                  description: ODS organization code
-                  example: "ABC123"
-                  minLength: 5
-                  maxLength: 12
-                  pattern: "^[A-Za-z0-9]{5,12}$"
-                active:
-                  type: boolean
-                  description: Whether the organization is currently active
-                  example: true
-                name:
-                  type: string
-                  description: Name of the organization
-                  example: "Test Organisation"
-                  maxLength: 100
-                telecom:
-                  type: string
-                  description: Contact details for the organization
-                  example: "01234 567890"
-                type:
-                  type: string
-                  description: Type of organization
-                  example: "GP Practice"
-                endpoints:
-                  type: array
-                  description: List of endpoints associated with the organization
-                  items:
-                    type: object
-                  default: []
-                createdBy:
-                  type: string
-                  description: User or system that created this organization record
-                  example: "SYSTEM"
-                  pattern: "^[a-zA-Z]+$"
-                  maxLength: 100
-                  minLength: 1
+            $ref: '#/components/schemas/Organization'
       responses:
         '201':
           description: Organization created successfully
@@ -625,47 +581,7 @@ paths:
         content:
           application/fhir+json:
             schema:
-              type: object
-              required:
-                - organization
-                - participatingOrganization
-                - code
-              properties:
-                organization:
-                  type: string
-                  description: UUID reference to the primary organization
-                  example: "00000000-0000-0000-0000-11111111111"
-                  format: uuid
-                participatingOrganization:
-                  type: string
-                  description: UUID reference to the participating organization
-                  example: "00000000-0000-0000-0000-22222222222"
-                  format: uuid
-                code:
-                  type: string
-                  description: Code representing the type of relationship between the organizations
-                  example: "provider"
-                  enum:
-                    - provider
-                    - agency
-                    - research
-                    - payer
-                    - diagnostics
-                    - supplier
-                    - HIE/HIO
-                    - member
-                period:
-                  type: object
-                  description: The period during which the affiliation is/was effective
-                  properties:
-                    start:
-                      type: string
-                      format: date-time
-                      example: "2023-01-01T00:00:00Z"
-                    end:
-                      type: string
-                      format: date-time
-                      example: "2024-01-01T00:00:00Z"
+              $ref: '#/components/schemas/OrganizationAffiliation'
       responses:
         '201':
           description: OrganizationAffiliation created successfully
