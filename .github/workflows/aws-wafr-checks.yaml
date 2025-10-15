@@ -124,6 +124,8 @@ jobs:
           cd mods
           powerpipe mod init
           powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
+          # List installed mods to verify
+          powerpipe mod list
 
       # Run the Powerpipe report
       - name: Run AWS Well Architected Framework checks
@@ -132,14 +134,15 @@ jobs:
         run: |
           mkdir -p reports
           cd mods
+          ls -la
           DATE=$(date +%Y-%m-%d)
           echo "Generating reports with date stamp: $DATE"
           # Generate JSON report
-          if ! powerpipe benchmark run well_architected_framework --output json > "../reports/aws_wafr_report_${DATE}.json"; then
+          if ! powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output json > "../reports/aws_wafr_report_${DATE}.json"; then
             echo "Warning: JSON report generation had issues but continuing..."
           fi
           # Generate HTML report
-          if ! powerpipe benchmark run well_architected_framework --output html > "../reports/aws_wafr_report_${DATE}.html"; then
+          if ! powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output html > "../reports/aws_wafr_report_${DATE}.html"; then
             echo "Warning: HTML report generation had issues but continuing..."
           fi
 
