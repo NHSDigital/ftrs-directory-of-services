@@ -14,6 +14,11 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: "Fetch tags"
+        run: git fetch --tags
 
       - name: "Setup Node.js"
         uses: actions/setup-node@v4
@@ -27,3 +32,8 @@ jobs:
         run: semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Semantic Release
+        uses: go-semantic-release/action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
