@@ -269,6 +269,8 @@ jobs:
       - metadata
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
+    with:
+      python_version: ${{ needs.metadata.outputs.python_version }}
 
   check-pipeline-status:
     name: "Check Pipeline Status"

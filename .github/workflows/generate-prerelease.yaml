@@ -5,7 +5,12 @@ permissions:
   contents: write
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      python_version:
+        description: "The version of Python"
+        required: true
+        type: string
 
 jobs:
   prerelease:
@@ -14,15 +19,17 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
 
-      - name: "Setup Node.js"
-        uses: actions/setup-node@v4
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
+          python-version: ${{ inputs.python_version }}
 
-      - name: "Install semantic-release and required plugins"
-        run: npm install -g semantic-release @semantic-release/github @semantic-release/git @semantic-release/commit-analyzer @semantic-release/release-notes-generator conventional-changelog-conventionalcommits
+      - name: "Install dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-semantic-release
 
-      - name: "Generate prerelease"
-        run: semantic-release
+      - name: "Run semantic-release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release publish
