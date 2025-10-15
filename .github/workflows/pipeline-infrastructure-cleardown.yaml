@@ -25,6 +25,7 @@ on:
         type: choice
         options:
           - dev
+          - test
       workspace:
         description: "Specify the workspace to cleardown"
         required: true
