@@ -154,6 +154,7 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         id: generate_reports
         run: |
+          set -x
           mkdir -p reports
           cd mods
           DATE=$(date +%Y-%m-%d)
@@ -161,7 +162,8 @@ jobs:
 
           powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
             --output html \
-            --export "../reports/aws_wafr_report_${DATE}.html"
+            --export "../reports/aws_wafr_report_${DATE}.html" \
+            --progress
 
           echo "Reports generated successfully"
 
