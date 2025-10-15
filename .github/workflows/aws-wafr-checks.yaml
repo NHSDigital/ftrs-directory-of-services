@@ -128,6 +128,7 @@ jobs:
           powerpipe mod list
 
       - name: Start steampipe service
+        if: steps.should-run.outputs.should_run == 'true'
         run: |
           steampipe service start
 
@@ -138,16 +139,21 @@ jobs:
         run: |
           mkdir -p reports
           cd mods
-          ls -la
           DATE=$(date +%Y-%m-%d)
           echo "Generating reports with date stamp: $DATE"
-          # Generate JSON report
-          if ! powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output json > "../reports/aws_wafr_report_${DATE}.json"; then
-            echo "Warning: JSON report generation had issues but continuing..."
+          if ! powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output json > "../reports/aws_wafr_report_${DATE}.json" 2>&1; then
+            echo "::error::JSON report generation failed"
+            cat "../reports/aws_wafr_report_${DATE}.json" || echo "No output file generated"
+          else
+            echo "JSON report generated successfully"
           fi
-          # Generate HTML report
-          if ! powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output html > "../reports/aws_wafr_report_${DATE}.html"; then
-            echo "Warning: HTML report generation had issues but continuing..."
+
+          echo "Generating HTML report..."
+          if ! powerpipe benchmark run well_architected_framework --output html > "../reports/aws_wafr_report_${DATE}.html" 2>&1; then
+            echo "::error::HTML report generation failed"
+            cat "../reports/aws_wafr_report_${DATE}.html" || echo "No output file generated"
+          else
+            echo "HTML report generated successfully"
           fi
 
       # Upload report artifacts for download
