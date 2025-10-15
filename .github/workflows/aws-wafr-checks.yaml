@@ -154,17 +154,21 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         id: generate_reports
         run: |
-          set -x
           mkdir -p reports
           cd mods
           DATE=$(date +%Y-%m-%d)
           echo "Generating reports with date stamp: $DATE"
 
+          set +e
           powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
             --output html \
             --export "../reports/aws_wafr_report_${DATE}.html" \
             --progress
-
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::error::Powerpipe benchmark run failed with exit code $EXIT_CODE"
+          fi
+          set -e
           echo "Reports generated successfully"
 
       # Upload report artifacts for download
