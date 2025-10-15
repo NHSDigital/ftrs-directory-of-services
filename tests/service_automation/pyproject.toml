@@ -26,6 +26,7 @@ dependencies = [
   "python.dotenv>=1.1.1",
   "requests>=2.32.4",
   "pytest-nhsd-apim (>=5.0.3,<6.0.0)",
+  "authlib (>=1.6.5,<2.0.0)",
 ]
 
 [build-system]
@@ -63,7 +64,9 @@ markers = [
   "test-db-fixture: marks test as using the test db fixture",
   "apim-test: marks test as APIM related",
   "etl-ods: marks test as ETL ODS related",
+  "ftrs-pipeline: marks test to be run in the FTRS pipeline",
   "data-migration: marks test as data migration related",
+  "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']
