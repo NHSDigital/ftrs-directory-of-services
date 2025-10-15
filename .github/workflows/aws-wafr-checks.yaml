@@ -131,6 +131,23 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         run: |
           steampipe service start
+          # Wait for service to be ready
+          echo "Waiting for Steampipe service to be ready..."
+          for i in {1..30}; do
+            if steampipe service status 2>&1 | grep -q "running"; then
+              echo "Steampipe service is ready"
+              steampipe service status
+              break
+            fi
+            echo "Waiting for Steampipe service to start... ($i/30)"
+            sleep 2
+          done
+          # Final check
+          if ! steampipe service status 2>&1 | grep -q "running"; then
+            echo "::error::Steampipe service failed to start"
+            steampipe service status
+            exit 1
+          fi
 
       # Run the Powerpipe report
       - name: Run AWS Well Architected Framework checks
@@ -149,7 +166,7 @@ jobs:
           fi
 
           echo "Generating HTML report..."
-          if ! powerpipe benchmark run well_architected_framework --output html > "../reports/aws_wafr_report_${DATE}.html" 2>&1; then
+          if ! powerpipe benchmark aws_well_architected.benchmark.run well_architected_framework --output html > "../reports/aws_wafr_report_${DATE}.html" 2>&1; then
             echo "::error::HTML report generation failed"
             cat "../reports/aws_wafr_report_${DATE}.html" || echo "No output file generated"
           else
