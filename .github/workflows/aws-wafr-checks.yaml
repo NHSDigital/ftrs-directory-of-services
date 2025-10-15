@@ -116,14 +116,13 @@ jobs:
       - name: Install Powerpipe
         if: steps.should-run.outputs.should_run == 'true'
         run: |
-          curl -s -o install.sh https://powerpipe.io/install.sh
-          echo "actual-checksum-value  install.sh" | sha256sum --check --status
-          if [ $? -ne 0 ]; then
-            echo "Checksum verification failed!" >&2
+          curl -fsSL https://powerpipe.io/install/powerpipe.sh -o powerpipe.sh
+          if [ ! -s powerpipe.sh ]; then
+            echo "Failed to download powerpipe.sh or file is empty" >&2
             exit 1
           fi
-          bash install.sh
-          rm install.sh
+          bash powerpipe.sh
+          rm powerpipe.sh
           powerpipe --version
 
       # Install the AWS Well-Architected Framework mod
@@ -132,7 +131,8 @@ jobs:
         run: |
           mkdir -p mods
           cd mods
-          powerpipe mod install turbot/aws_well_architected
+          powerpipe mod init
+          powerpipe mod install github.com/turbot/aws_well_architected
 
       # Run the Powerpipe report
       - name: Run AWS Well Architected Framework checks
