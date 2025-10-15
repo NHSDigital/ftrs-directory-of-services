@@ -2,7 +2,7 @@
   "branches": [
     {
       "name": "task/FTRS-315-Add-pre-release-versioning",
-      "prerelease": true
+      "prerelease": "pre"
     }
   ],
   "plugins": [
