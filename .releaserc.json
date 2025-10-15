@@ -3,7 +3,8 @@
     "main",
     {
       "name": "task/FTRS-315-Add-pre-release-versioning",
-      "prerelease": "pre"
+      "prerelease": "pre",
+      "initialVersion": "0.1.0"
     }
   ],
   "plugins": [
