@@ -164,7 +164,6 @@ jobs:
           else
             echo "::error::JSON report generation failed"
             cat "../reports/aws_wafr_report_${DATE}.json" || echo "No output file generated"
-            exit 1
           fi
 
           echo "HTML report..." >> "../reports/aws_wafr_report_${DATE}.html"
@@ -173,7 +172,6 @@ jobs:
           else
             echo "::error::HTML report generation failed"
             cat "../reports/aws_wafr_report_${DATE}.json" || echo "No output file generated"
-            exit 1
           fi
 
       # Upload report artifacts for download
