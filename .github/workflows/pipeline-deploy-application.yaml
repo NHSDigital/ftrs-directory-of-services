@@ -8,9 +8,7 @@ on:
   push:
     branches:
       - main
-      - "task/FDOS*"
-      - "task/SIA*"
-      - "task/DOSIS*"
+      - "task/**"
       - "dependabot/**"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
@@ -263,6 +261,17 @@ jobs:
       test_tag: "ftrs-pipeline"
       test_type: "api"
       type: app
+    secrets: inherit
+
+  generate-prerelease:
+    name: "Generate Prerelease Tag"
+    needs:
+      - metadata
+      - apply-infrastructure
+      - service-automation-tests
+    if: startsWith(github.ref, 'refs/heads/task/FTRS-315-Add-pre-release-versioning')
+    # if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
 
   check-pipeline-status:

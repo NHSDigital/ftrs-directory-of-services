@@ -1,0 +1,30 @@
+name: Prerelease Tag Automation
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call: {}
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: "Install semantic-release"
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/git
+
+      - name: "Generate prerelease"
+        run: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
