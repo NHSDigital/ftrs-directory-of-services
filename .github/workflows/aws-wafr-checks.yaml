@@ -127,6 +127,10 @@ jobs:
           # List installed mods to verify
           powerpipe mod list
 
+      - name: Start steampipe service
+        run: |
+          steampipe service start
+
       # Run the Powerpipe report
       - name: Run AWS Well Architected Framework checks
         if: steps.should-run.outputs.should_run == 'true'
