@@ -123,7 +123,7 @@ jobs:
           mkdir -p mods
           cd mods
           powerpipe mod init
-          powerpipe mod install github.com/turbot/aws_well_architected
+          powerpipe mod install turbot/aws_well_architected
 
       # Run the Powerpipe report
       - name: Run AWS Well Architected Framework checks
