@@ -158,21 +158,8 @@ jobs:
           cd mods
           DATE=$(date +%Y-%m-%d)
           echo "Generating reports with date stamp: $DATE"
-          echo "JSON Report" >> "../reports/aws_wafr_report_${DATE}.json"
-          if powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output json >> "../reports/aws_wafr_report_${DATE}.json" 2>&1; then
-            echo "JSON report generated successfully"
-          else
-            echo "::error::JSON report generation failed"
-            cat "../reports/aws_wafr_report_${DATE}.json" || echo "No output file generated"
-          fi
-
-          echo "HTML report..." >> "../reports/aws_wafr_report_${DATE}.html"
-          if powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output html >> "../reports/aws_wafr_report_${DATE}.html" 2>&1; then
-            echo "HTML report generated successfully"
-          else
-            echo "::error::HTML report generation failed"
-            cat "../reports/aws_wafr_report_${DATE}.json" || echo "No output file generated"
-          fi
+          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output json >> "../reports/aws_wafr_report_${DATE}.json"
+          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output html >> "../reports/aws_wafr_report_${DATE}.html"
 
       # Upload report artifacts for download
       - name: Upload reports
