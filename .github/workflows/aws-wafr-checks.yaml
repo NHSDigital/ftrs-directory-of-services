@@ -158,8 +158,16 @@ jobs:
           cd mods
           DATE=$(date +%Y-%m-%d)
           echo "Generating reports with date stamp: $DATE"
-          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output json >> "../reports/aws_wafr_report_${DATE}.json"
-          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework --output html >> "../reports/aws_wafr_report_${DATE}.html"
+
+          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
+            --output json \
+            --export "../reports/aws_wafr_report_${DATE}.json"
+
+          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
+            --output html \
+            --export "../reports/aws_wafr_report_${DATE}.html"
+
+          echo "Reports generated successfully"
 
       # Upload report artifacts for download
       - name: Upload reports
