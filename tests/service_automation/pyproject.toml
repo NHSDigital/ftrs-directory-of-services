@@ -66,6 +66,10 @@ markers = [
   "etl-ods: marks test as ETL ODS related",
   "ftrs-pipeline: marks test to be run in the FTRS pipeline",
   "data-migration: marks test as data migration related",
-  "manual: marks test as manual test"
+  "manual: marks test as manual test",
+  "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
+  "data-migration: marks test as data migration related",
+  "manual: marks test as manual test",
+  "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']
