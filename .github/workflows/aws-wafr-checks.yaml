@@ -100,7 +100,7 @@ jobs:
           role-session-name: GitHubActionsSteampipe
           aws-region: ${{ vars.AWS_REGION }}
 
-      # Install Steampipe using official GitHub Action
+      # Install Steampipe using GitHub Action
       - name: Setup Steampipe
         if: steps.should-run.outputs.should_run == 'true'
         uses: turbot/steampipe-action-setup@v1
@@ -112,18 +112,9 @@ jobs:
                 regions    = ["us-east-1", "eu-west-2"]
             }
 
-      # Install Powerpipe CLI
+      # Install Powerpipe CLI using Github Action
       - name: Install Powerpipe
-        if: steps.should-run.outputs.should_run == 'true'
-        run: |
-          curl -fsSL https://powerpipe.io/install/powerpipe.sh -o powerpipe.sh
-          if [ ! -s powerpipe.sh ]; then
-            echo "Failed to download powerpipe.sh or file is empty" >&2
-            exit 1
-          fi
-          bash powerpipe.sh
-          rm powerpipe.sh
-          powerpipe --version
+        uses: turbot/powerpipe-action-setup@v1
 
       # Install the AWS Well-Architected Framework mod
       - name: Install AWS Well Architected mod
