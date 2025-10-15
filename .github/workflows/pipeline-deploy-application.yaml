@@ -269,7 +269,6 @@ jobs:
       - metadata
       - apply-infrastructure
       - service-automation-tests
-    # if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
 
