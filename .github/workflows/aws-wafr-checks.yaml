@@ -159,9 +159,6 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         id: generate_thrifty_reports
         run: |
-          mkdir -p reports
-          cd reports
-          ls -la
           cd mods
           DATE=$(date +%Y-%m-%d)
           echo "Generating reports with date stamp: $DATE"
