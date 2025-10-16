@@ -1,0 +1,60 @@
+name: AWS Well Architected Framework Checks
+description: "Run AWS Well Architected Framework checks using Steampipe and Powerpipe"
+
+inputs:
+  mod-url:
+    description: "The URL of the mod being used"
+    required: true
+  artifact-exports:
+    description: "The types of artifacts to export (e.g., html, json)"
+    required: false
+    default: "html"
+  benchmarks:
+    description: "The benchmarks to run from the selecte mod"
+    required: true
+
+run:
+  using: "composite"
+  steps:
+  # Install Steampipe using GitHub Action
+  - name: Setup Steampipe
+    uses: turbot/steampipe-action-setup@v1.6.0
+    with:
+      steampipe-version: "latest"
+      plugin-connections: |
+        connection "aws" {
+            plugin     = "aws"
+            regions    = ["us-east-1", "eu-west-2"]
+        }
+
+  # Install Powerpipe CLI using Github Action
+  - name: Install Powerpipe
+    uses: turbot/powerpipe-action-setup@v1
+
+  - name: Start steampipe service
+    run: |
+      steampipe service start
+      # Wait for service to be ready
+      echo "Waiting for Steampipe service to be ready..."
+      for i in {1..30}; do
+        if steampipe service status 2>&1 | grep -q "running"; then
+          echo "Steampipe service is ready"
+          steampipe service status
+          break
+        fi
+        echo "Waiting for Steampipe service to start... ($i/30)"
+        sleep 2
+      done
+      # Final check
+      if ! steampipe service status 2>&1 | grep -q "running"; then
+        echo "::error::Steampipe service failed to start"
+        steampipe service status
+        exit 1
+      fi
+
+  - name: Run Powerpipe benchmark
+    uses: turbot/powerpipe-action-check@v1.0.1
+    with:
+      mod-url: ${{ inputs.mod-url }}
+      benchmarks: ${{ inputs.benchmarks }}
+      artifact-exports: ${{ inputs.artifact-exports }}
