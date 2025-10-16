@@ -1,8 +1,8 @@
-gp_search_service_name = "ftrs-dos-gp-search"
+dos_search_service_name = "ftrs-dos-search"
 
 # Resource names
-s3_bucket_name           = "gp-search-s3"
-lambda_name              = "gp-search-lambda"
+s3_bucket_name           = "dos-search-s3"
+lambda_name              = "dos-search-lambda"
 health_check_lambda_name = "health-check-lambda"
 
 #Lambda

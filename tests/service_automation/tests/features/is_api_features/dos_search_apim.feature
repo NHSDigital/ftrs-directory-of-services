@@ -1,9 +1,9 @@
-@is-api @manual @gp-search-api
+@is-api @manual @dos-search-api
 @nhsd_apim_authorization(access="application",level="level3")
 Feature: API DoS Service Search APIM
 
   Background: Set stack and seed repo
-    Given that the stack is "gp-search"
+    Given that the stack is "dos-search"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
