@@ -147,6 +147,62 @@ jobs:
               {
                 "name": "thrifty_apigateway",
                 "benchmark": "aws_thrifty.benchmark.apigateway"
+              },
+              {
+                "name": "thrifty_cloudfront",
+                "benchmark": "aws_thrifty.benchmark.cloudfront"
+              },
+              {
+                "name": "thrifty_cloudtrail",
+                "benchmark": "aws_thrifty.benchmark.cloudtrail"
+              },
+              {
+                "name": "thrifty_cost_explorer",
+                "benchmark": "aws_thrifty.benchmark.cost_explorer"
+              },
+              {
+                "name": "thrifty_dynamodb",
+                "benchmark": "aws_thrifty.benchmark.dynamodb"
+              },
+              {
+                "name": "thrifty_ebs",
+                "benchmark": "aws_thrifty.benchmark.ebs"
+              },
+              {
+                "name": "thrifty_ec2",
+                "benchmark": "aws_thrifty.benchmark.ec2"
+              },
+              {
+                "name": "thrifty_ecr",
+                "benchmark": "aws_thrifty.benchmark.ecr"
+              },
+              {
+                "name": "thrifty_elasticache",
+                "benchmark": "aws_thrifty.benchmark.elasticache"
+              },
+              {
+                "name": "thrifty_lambda",
+                "benchmark": "aws_thrifty.benchmark.lambda"
+              },
+              {
+                "name": "thrifty_network",
+                "benchmark": "aws_thrifty.benchmark.network"
+              },
+              {
+                "name": "thrifty_rds",
+                "benchmark": "aws_thrifty.benchmark.rds"
+              },
+              {
+                "name": "thrifty_route53",
+                "benchmark": "aws_thrifty.benchmark.route53"
+              },
+              {
+                "name": "thrifty_c3",
+                "benchmark": "aws_thrifty.benchmark.s3"
+              },
+              {
+                "name": "thrifty_csecretsmanager",
+                "benchmark": "aws_thrifty.benchmark.secretsmanager"
               }
             ]
           reports-dir: "reports"
