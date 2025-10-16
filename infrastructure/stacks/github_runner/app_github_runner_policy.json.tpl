@@ -111,6 +111,8 @@
                 "iam:DeleteRolePolicy",
                 "iam:CreatePolicyVersion",
                 "iam:DeletePolicyVersion",
+                "iam:PutRolePermissionsBoundary",
+                "iam:DeleteRolePermissionsBoundary",
                 "iam:TagRole",
                 "iam:UntagRole",
                 "iam:TagPolicy",
@@ -125,6 +127,29 @@
                 "arn:aws:iam::*:policy/${project}-*",
                 "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
                 "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
+            ]
+        },
+        {
+            "Sid": "IAMCreateInstanceProfileWildcard",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateInstanceProfile"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "IAMInstanceProfileForProject",
+            "Effect": "Allow",
+            "Action": [
+                "iam:GetInstanceProfile",
+                "iam:DeleteInstanceProfile",
+                "iam:TagInstanceProfile",
+                "iam:UntagInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:instance-profile/${project}-*"
             ]
         },
         {
@@ -150,7 +175,8 @@
                         "scheduler.amazonaws.com",
                         "pipes.amazonaws.com",
                         "osis-pipelines.amazonaws.com",
-                        "rds.amazonaws.com"
+                        "rds.amazonaws.com",
+                        "ec2.amazonaws.com"
                     ]
                 }
             }
