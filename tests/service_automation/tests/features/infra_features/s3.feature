@@ -2,7 +2,7 @@
 Feature: S3 Bucket Name Validation
 
   Scenario: get a s3 bucket
-    Given I can see the S3 bucket "gp-search-s3" for stack "gp-search"
+    Given I can see the S3 bucket "dos-search-s3" for stack "dos-search"
     And I upload the file "s3_data" to the s3 bucket
     Then I can download the file from the s3 bucket
     And the file contains 4 rows

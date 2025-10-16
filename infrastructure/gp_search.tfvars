@@ -1,4 +1,4 @@
-gp_search_service_name = "ftrs-dos-search"
+dos_search_service_name = "ftrs-dos-search"
 
 # Resource names
 s3_bucket_name           = "dos-search-s3"
