@@ -1,5 +1,3 @@
-Welcome to your new TanStack app!
-
 # Getting Started
 
 To run this application locally:
@@ -27,7 +25,7 @@ npm run test
 
 ## Styling
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+This project uses SCSS for styling, and imports NHS.UK Frontend as the base of all styles. The stylesheets are located in the `src/styles` directory. You can add your own styles to this directory and import them into your components.
 
 
 ## Linting & Formatting

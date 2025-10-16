@@ -1,58 +1,75 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-
-import Header from '../components/Header'
-
-import appCss from '../styles.css?url'
+import Banner from "@/components/Banner";
+import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router'
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { Container, Footer, Header } from "nhsuk-react-components";
+import type { PropsWithChildren } from "react";
+import appStylesUrl from "../styles/App.scss?url";
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
+      { title: "FtRS DoS UI" },
       {
-        charSet: 'utf-8',
-      },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'TanStack Start Starter',
+        name: "viewport",
+        content: "width=device-width, initial-scale=1.0",
       },
     ],
     links: [
       {
-        rel: 'stylesheet',
-        href: appCss,
+        rel: "stylesheet",
+        href: appStylesUrl,
+        type: "text/css",
       },
     ],
   }),
-
-  shellComponent: RootDocument,
-})
-
-function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
+  component: () => (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        <Header />
-        {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+          <RootDocument>
+            <Outlet />
+          </RootDocument>
+          <TanStackRouterDevtools />
         <Scripts />
       </body>
     </html>
+  ),
+  notFoundComponent: () => (
+    <>
+      <h1 className="nhsuk-heading-l">Page not found</h1>
+      <p>This page does not exist.</p>
+      <p>
+        <a href="/">Return to the homepage</a>
+      </p>
+    </>
   )
-}
+});
+
+const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <>
+      <Header transactional={true}>
+        <Header.Container>
+          <Header.Logo href="/" />
+          <Header.ServiceName href="/">
+            Directory of Services
+          </Header.ServiceName>
+        </Header.Container>
+      </Header>
+      <Banner label="DoS UI">
+        This is a basic placeholder landing page.
+      </Banner>
+      <Container className="ftrs-page-container">{children}</Container>
+      <Footer>
+        <Footer.List>
+          <Footer.ListItem href="/">Home</Footer.ListItem>
+        </Footer.List>
+        <Footer.Copyright>
+          &copy; {new Date().getFullYear()} NHS England
+        </Footer.Copyright>
+      </Footer>
+    </>
+  );
+};

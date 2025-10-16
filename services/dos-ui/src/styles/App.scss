@@ -1,0 +1,13 @@
+@use "nhsuk-frontend/packages/nhsuk" as *;
+@import "font-face";
+
+
+.ftrs-page-container {
+  @include nhsuk-responsive-margin(3, "top");
+  @include nhsuk-responsive-padding(5, "bottom");
+  @include nhsuk-responsive-margin(5, "bottom");
+
+
+  min-height: 60vh;
+  min-height: 60vh;
+}
