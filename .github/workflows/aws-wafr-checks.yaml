@@ -5,14 +5,14 @@ on:
   workflow_dispatch:
     inputs:
       type:
-        description: "Type of workflow"
+        description: "Type of workflow (app or account)"
         required: true
         default: "account"
         type: choice
         options:
           - account
       environment:
-        description: "Defines the Github environment variables to fetch the value from"
+        description: "Defines the Github environment from which to pull environment variables from"
         required: true
         type: choice
         options:
@@ -31,18 +31,18 @@ permissions:
 
 jobs:
   wafr-checks:
-    name: "AWS Well Architected Framework Checks"
+    name: "AWS Well Architected Framework Checks - ${{ matrix.environment }}"
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
       matrix:
         include:
-          -  environment: dev
-          -  environment: mgmt
+          - environment: dev
+          - environment: mgmt
       fail-fast: false
 
     steps:
-      - name: Check if should run
+      - name: Check if steps should run
         id: should-run
         run: |
           SHOULD_RUN="true"
@@ -83,13 +83,156 @@ jobs:
           role-session-name: GitHubActionsSteampipe
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Run AWS WAFR checks
+      # Install Steampipe using GitHub Action
+      - name: Setup Steampipe
         if: steps.should-run.outputs.should_run == 'true'
-        uses: ./.github/actions/wafr-checks
+        uses: turbot/steampipe-action-setup@v1.6.0
+        with:
+          steampipe-version: "latest"
+          plugin-connections: |
+            connection "aws" {
+                plugin     = "aws"
+                regions    = ["us-east-1", "eu-west-2"]
+            }
+
+      # Install Powerpipe CLI using Github Action
+      - name: Install Powerpipe
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/powerpipe-action-setup@v1
+
+      - name: Start steampipe service
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          steampipe service start
+          # Wait for service to be ready
+          echo "Waiting for Steampipe service to be ready..."
+          for i in {1..30}; do
+            if steampipe service status 2>&1 | grep -q "running"; then
+              echo "Steampipe service is ready"
+              steampipe service status
+              break
+            fi
+            echo "Waiting for Steampipe service to start... ($i/30)"
+            sleep 2
+          done
+          # Final check
+          if ! steampipe service status 2>&1 | grep -q "running"; then
+            echo "::error::Steampipe service failed to start"
+            steampipe service status
+            exit 1
+          fi
+
+      - name: Run Powerpipe benchmark
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/powerpipe-action-check@v1.0.1
         with:
           mod-url: https://github.com/turbot/steampipe-mod-aws-well-architected
-          benchmarks: aws_well_architected.benchmark.well_architected_framework
+          benchmarks: |
+            aws_well_architected.benchmark.well_architected_framework
           artifact-exports: html
+
+  wafr-thrifty-checks:
+    name: "AWS WAFR Thrifty Checks - ${{ matrix.environment }}"
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include:
+          - environment: dev
+          - environment: mgmt
+      fail-fast: false
+
+    steps:
+      - name: Check if steps should run
+        id: should-run
+        run: |
+          SHOULD_RUN="true"
+
+          # If manually triggered, check if this matrix entry matches the inputs
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+
+            # Check environment matches (if specified)
+            if [[ -n "${{ inputs.environment }}" ]] && [[ "${{ matrix.environment }}" != "${{ inputs.environment }}" ]]; then
+              SHOULD_RUN="false"
+            fi
+          fi
+
+          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          echo "Should run: $SHOULD_RUN"
+
+      - name: Checkout repository
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS credentials"
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      # Assume steampipe-readonly-role using role chaining
+      - name: Assume steampipe-readonly-role
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/steampipe-readonly-role
+          role-chaining: true
+          role-session-name: GitHubActionsSteampipe
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Install Steampipe using GitHub Action
+      - name: Setup Steampipe
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/steampipe-action-setup@v1.6.0
+        with:
+          steampipe-version: "latest"
+          plugin-connections: |
+            connection "aws" {
+                plugin     = "aws"
+                regions    = ["us-east-1", "eu-west-2"]
+            }
+
+      # Install Powerpipe CLI using Github Action
+      - name: Install Powerpipe
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/powerpipe-action-setup@v1
+
+      - name: Start steampipe service
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          steampipe service start
+          # Wait for service to be ready
+          echo "Waiting for Steampipe service to be ready..."
+          for i in {1..30}; do
+            if steampipe service status 2>&1 | grep -q "running"; then
+              echo "Steampipe service is ready"
+              steampipe service status
+              break
+            fi
+            echo "Waiting for Steampipe service to start... ($i/30)"
+            sleep 2
+          done
+          # Final check
+          if ! steampipe service status 2>&1 | grep -q "running"; then
+            echo "::error::Steampipe service failed to start"
+            steampipe service status
+            exit 1
+          fi
+
+      - name: Run Powerpipe Thrifty benchmark
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/powerpipe-action-check@v1.0.1
+        with:
+          mod-url: https://github.com/turbot/steampipe-mod-aws-thrifty
+          benchmarks: |
+            aws_thrifty.benchmark.apigateway
+            aws_thrifty.benchmark.cloudfront
+          artifact-exports: html
+
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
