@@ -2,7 +2,7 @@
 // Scopes permissions to names that include "-jmeter" under this account and project/environment
 
 // Caller/account context
-data "aws_caller_identity" "current" {}
+// Removed duplicate aws_caller_identity data source; using the shared definition from common/provider.tf
 
 // Role name to attach this policy to (matches error: ftrs-directory-of-services-app-github-runner)
 // Adjust if your runner role is environment-specific
@@ -10,6 +10,7 @@ locals {
   target_app_runner_role_name = "${var.repo_name}-${var.app_github_runner_role_name}"
 }
 
+# trivy:ignore:AVD-AWS-0342 : PassRole is required for EC2 to assume the jmeter role; scope limited to EC2 and jmeter-specific ARNs
 resource "aws_iam_policy" "app_github_runner_jmeter_iam" {
   name        = "${local.account_prefix}-app-gh-jmeter-iam"
   description = "Allow app GitHub runner to create/manage JMeter EC2 role & instance profile (scoped to -jmeter names)"
