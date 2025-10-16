@@ -130,6 +130,8 @@ jobs:
           benchmarks: |
             aws_well_architected.benchmark.well_architected_framework
           artifact-exports: html
+        env:
+          POWERPIPE_ARTIFACT_SUFFIX: well-architected
 
   wafr-thrifty-checks:
     name: "AWS WAFR Thrifty Checks - ${{ matrix.environment }}"
@@ -237,6 +239,7 @@ jobs:
     name: "Send Notification to Slack"
     needs:
       - wafr-checks
+      - wafr-thrifty-checks
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
