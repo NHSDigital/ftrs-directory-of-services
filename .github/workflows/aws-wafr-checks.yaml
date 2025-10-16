@@ -146,7 +146,7 @@ jobs:
           set +e
           powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
             --output html \
-            --export "../eports/aws_wafr_report_${DATE}.html"
+            --export "../reports/aws_wafr_report_${DATE}.html"
           EXIT_CODE=$?
           if [ $EXIT_CODE -ne 0 ]; then
             echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
@@ -171,8 +171,6 @@ jobs:
           if [ $EXIT_CODE -ne 0 ]; then
             echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
           fi
-          cd reports
-          ls -la
           set -e
           echo "Reports generated successfully"
 
@@ -181,7 +179,7 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: aws-wafr-reports-${{ inputs.type }}-${{ matrix.environment }}
+          name: aws-wafr-thrifty-reports-${{ inputs.type }}-${{ matrix.environment }}
           path: reports/
           if-no-files-found: warn
           retention-days: 90
