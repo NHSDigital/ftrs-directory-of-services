@@ -397,7 +397,7 @@ paths:
         content:
           application/fhir+json:
             schema:
-            $ref: '#/components/schemas/Organization'
+              $ref: '#/components/schemas/Organization'
       responses:
         '201':
           description: Organization created successfully
@@ -410,13 +410,14 @@ paths:
           content:
             application/fhir+json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Organisation created successfully"
-                  organisation:
-                    $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: information
+                    code: informational
+                    diagnostics: Organisation created successfully
+
         '400':
           description: Bad request (e.g., malformed request body)
           content:
@@ -470,8 +471,7 @@ paths:
                         - system: "http://terminology.hl7.org/CodeSystem/operation-outcome"
                           code: "exception"
                           display: "Exception"
-                      text: "An unexpected error occurred: please try again later."
-                    diagnostics: "please try again later."
+                          diagnostics: "please try again later."
   '/Organization/{id}':
     put:
       security:
@@ -594,13 +594,13 @@ paths:
           content:
             application/fhir+json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "OrganizationAffiliation created successfully"
-                  organizationAffiliation:
-                    $ref: '#/components/schemas/OrganizationAffiliation'
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: information
+                    code: informational
+                    diagnostics: OrganizationAffiliation created successfully
         '400':
           description: Bad request (e.g., malformed request body)
           content:
