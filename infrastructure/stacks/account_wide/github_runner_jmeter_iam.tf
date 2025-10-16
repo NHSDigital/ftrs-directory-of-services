@@ -12,6 +12,8 @@ locals {
 
 # trivy:ignore:AVD-AWS-0342 : PassRole is required for EC2 to assume the jmeter role; scope limited to EC2 and jmeter-specific ARNs
 resource "aws_iam_policy" "app_github_runner_jmeter_iam" {
+  #checkov:skip=CKV_AWS_289: CreateRole/CreateInstanceProfile require wildcard resource; all other actions scoped to jmeter-only ARNs
+  #checkov:skip=CKV_AWS_355: Wildcard resource used only for Create* actions which do not support resource-level permissions
   name        = "${local.account_prefix}-app-gh-jmeter-iam"
   description = "Allow app GitHub runner to create/manage JMeter EC2 role & instance profile (scoped to -jmeter names)"
 
