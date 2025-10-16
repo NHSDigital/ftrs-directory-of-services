@@ -55,7 +55,11 @@ run:
 
   - name: Run Powerpipe benchmark
     uses: turbot/powerpipe-action-check@v1.0.1
+    env:
+      MOD_URL: ${{ inputs.mod-url }}
+      BENCHMARKS: ${{ inputs.benchmarks }}
+      ARTIFACT_EXPORTS: ${{ inputs.artifact-exports }}
     with:
-      mod-url: ${{ inputs.mod-url }}
-      benchmarks: ${{ inputs.benchmarks }}
-      artifact-exports: ${{ inputs.artifact-exports }}
+      mod-url: ${{ env.MOD_URL }}
+      benchmarks: ${{ env.BENCHMARKS }}
+      artifact-exports: ${{ env.ARTIFACT_EXPORTS }}
