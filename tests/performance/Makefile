@@ -7,6 +7,10 @@ WORKSPACE_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-pa
 MAIN_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket
 JMETER_PLUGINS_MANAGER_VERSION := 1.11
 CMDRUNNER_VERSION := 2.3
+AWS_REGION ?= eu-west-2
+JENKINS ?= false
+SSH_USERNAME ?= ec2-user
+SSH_KEY_PATH ?=
 
 install: config
 
@@ -76,3 +80,53 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
 		make _install-dependency name="$${plugin}"; \
 	done
+
+# Discover JMeter EC2 instance by tag Role=jmeter (first match in account/environment)
+JMETER_INSTANCE_ID := $(shell aws ec2 describe-instances --region $(AWS_REGION) \
+	--filters 'Name=tag:Role,Values=jmeter' 'Name=instance-state-name,Values=pending,running,stopping,stopped' \
+	--query 'Reservations[].Instances[0].InstanceId' --output text 2>/dev/null)
+JMETER_PRIVATE_IP := $(shell aws ec2 describe-instances --region $(AWS_REGION) \
+	--instance-ids $(JMETER_INSTANCE_ID) \
+	--query 'Reservations[].Instances[0].PrivateIpAddress' --output text 2>/dev/null)
+
+jmeter-ec2-id:
+	@echo "JMeter EC2 instance id: $(JMETER_INSTANCE_ID)"
+
+jmeter-private-ip:
+	@echo "JMeter EC2 private IP: $(JMETER_PRIVATE_IP)"
+
+jmeter-start: ## Start the JMeter EC2 instance and wait until running
+	@if [ "$(JMETER_INSTANCE_ID)" = "None" ] || [ -z "$(JMETER_INSTANCE_ID)" ]; then \
+		echo "Could not find a JMeter instance (Role=jmeter). Ensure Terraform applied"; exit 1; \
+	fi
+	aws ec2 start-instances --region $(AWS_REGION) --instance-ids $(JMETER_INSTANCE_ID) >/dev/null
+	aws ec2 wait instance-running --region $(AWS_REGION) --instance-ids $(JMETER_INSTANCE_ID)
+	@echo "JMeter instance started: $(JMETER_INSTANCE_ID)"
+
+jmeter-stop: ## Stop the JMeter EC2 instance and wait until stopped
+	@if [ "$(JMETER_INSTANCE_ID)" = "None" ] || [ -z "$(JMETER_INSTANCE_ID)" ]; then \
+		echo "Could not find a JMeter instance (Role=jmeter). Ensure Terraform applied"; exit 1; \
+	fi
+	aws ec2 stop-instances --region $(AWS_REGION) --instance-ids $(JMETER_INSTANCE_ID) >/dev/null
+	aws ec2 wait instance-stopped --region $(AWS_REGION) --instance-ids $(JMETER_INSTANCE_ID)
+	@echo "JMeter instance stopped: $(JMETER_INSTANCE_ID)"
+
+jmeter-ssh: ## SSH into the JMeter EC2 (requires VPN and SSH key); set SSH_KEY_PATH=~/.ssh/key.pem if needed
+	@if [ -z "$(SSH_KEY_PATH)" ]; then echo "SSH_KEY_PATH is required (path to your .pem)"; exit 1; fi
+	@if [ -z "$(JMETER_PRIVATE_IP)" ] || [ "$(JMETER_PRIVATE_IP)" = "None" ]; then echo "Private IP not found; ensure instance is running"; exit 1; fi
+	ssh -o StrictHostKeyChecking=no -i $(SSH_KEY_PATH) $(SSH_USERNAME)@$(JMETER_PRIVATE_IP)
+
+jmeter-copy-plan: ## Copy a JMeter plan to the EC2 via scp (PLAN=IS_Test_Plan.jmx)
+	@if [ -z "$(SSH_KEY_PATH)" ]; then echo "SSH_KEY_PATH is required (path to your .pem)"; exit 1; fi
+	@if [ -z "$(PLAN)" ]; then echo "PLAN is required, e.g., PLAN=IS_Test_Plan.jmx"; exit 1; fi
+	@if [ -z "$(JMETER_PRIVATE_IP)" ] || [ "$(JMETER_PRIVATE_IP)" = "None" ]; then echo "Private IP not found; ensure instance is running"; exit 1; fi
+	scp -o StrictHostKeyChecking=no -i $(SSH_KEY_PATH) $(PLAN) $(SSH_USERNAME)@$(JMETER_PRIVATE_IP):/home/$(SSH_USERNAME)/$(PLAN)
+
+jmeter-version-remote: ## Print JMeter version on the EC2 using SSM
+	@if [ -z "$(JMETER_INSTANCE_ID)" ] || [ "$(JMETER_INSTANCE_ID)" = "None" ]; then echo "Instance not found"; exit 1; fi
+	aws ssm start-session --region $(AWS_REGION) --target $(JMETER_INSTANCE_ID) --document-name AWS-StartInteractiveCommand --parameters 'command=["jmeter -v"]'
+
+jmeter-run-remote: ## Run a JMeter plan on the EC2 using SSM (PLAN=<file in home dir>, ARGS="-n -l out.jtl ...")
+	@if [ -z "$(JMETER_INSTANCE_ID)" ] || [ "$(JMETER_INSTANCE_ID)" = "None" ]; then echo "Instance not found"; exit 1; fi
+	@if [ -z "$(PLAN)" ]; then echo "PLAN is required, e.g., PLAN=IS_Test_Plan.jmx"; exit 1; fi
+	aws ssm start-session --region $(AWS_REGION) --target $(JMETER_INSTANCE_ID) --document-name AWS-StartInteractiveCommand --parameters 'command=["jmeter $(ARGS) -t $(PLAN)"]'

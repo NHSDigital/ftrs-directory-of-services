@@ -20,14 +20,60 @@ This is an Performance Framework using JMeter to load test services within FtRS
 See those in the main README.MD
 
 
-### Install jmeter
+### Install jmeter (local developer machine)
 
 ```shell
-
-# In the performance directory
 cd tests/performance
 make install
 ```
+
+## Running JMeter on EC2 (recommended for performance tests)
+
+The infrastructure provisions an EC2 instance (private subnet) with JMeter pre-installed. Access is via the VPN. Default state is Stopped; start it when needed and stop it when done.
+
+Requirements:
+- Connected to the environment VPN
+- AWS CLI authenticated and set to the correct account/region (default eu-west-2)
+- If using SSH, ensure the instance was launched with your EC2 key pair and you have the corresponding .pem file
+- Alternatively, you can use AWS Systems Manager Session Manager (no SSH key required)
+
+Helper commands (run from tests/performance):
+
+Start/Stop the EC2 instance
+```shell
+make jmeter-start AWS_REGION=eu-west-2
+make jmeter-stop AWS_REGION=eu-west-2
+```
+
+Check instance details
+```shell
+make jmeter-ec2-id AWS_REGION=eu-west-2
+make jmeter-private-ip AWS_REGION=eu-west-2
+```
+
+Verify JMeter version on EC2 via SSM
+```shell
+make jmeter-version-remote AWS_REGION=eu-west-2
+```
+
+SSH into the instance (requires VPN and SSH key)
+```shell
+make jmeter-ssh AWS_REGION=eu-west-2 SSH_KEY_PATH=~/.ssh/your-key.pem
+```
+
+Copy a plan to the instance and run it via SSM
+```shell
+# Copy plan over SSH
+make jmeter-copy-plan AWS_REGION=eu-west-2 SSH_KEY_PATH=~/.ssh/your-key.pem PLAN=IS_Test_Plan.jmx
+
+# Run plan with args via SSM
+make jmeter-run-remote AWS_REGION=eu-west-2 PLAN=IS_Test_Plan.jmx ARGS='-n -l result.jtl'
+```
+
+Notes:
+- The instance installs JMeter, plugin manager and common plugins on first boot and then powers off. This ensures the default state is Stopped.
+- Set a key pair name in Terraform variable ssh_key_pair_name to enable SSH access.
+- You can also SCP parameter files into the instance user home directory before running tests.
 
 ## Test Configuration
 
