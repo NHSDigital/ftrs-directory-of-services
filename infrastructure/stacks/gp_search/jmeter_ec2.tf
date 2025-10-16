@@ -79,7 +79,10 @@ resource "aws_iam_role" "jmeter_ec2_role" {
     }]
   })
   permissions_boundary = var.permissions_boundary_arn != "" ? var.permissions_boundary_arn : null
-  depends_on           = [aws_iam_role_policy.app_runner_jmeter_iam_bootstrap]
+  depends_on = [
+    aws_iam_role_policy.app_runner_jmeter_iam_bootstrap,
+    null_resource.iam_policy_propagation_wait
+  ]
 }
 
 # Optional inline policy: S3 read and/or KMS decrypt
@@ -128,7 +131,8 @@ resource "aws_iam_instance_profile" "jmeter_ec2_profile" {
   name  = "${local.jmeter_name}-instance-profile"
   role  = aws_iam_role.jmeter_ec2_role[0].name
   depends_on = [
-    aws_iam_role_policy.app_runner_jmeter_iam_bootstrap
+    aws_iam_role_policy.app_runner_jmeter_iam_bootstrap,
+    null_resource.iam_policy_propagation_wait
   ]
 }
 

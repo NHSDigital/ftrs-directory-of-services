@@ -90,6 +90,6 @@ resource "null_resource" "iam_policy_propagation_wait" {
   }
 
   provisioner "local-exec" {
-    command = "sleep 10"
+    command = "sleep 30"
   }
 }
