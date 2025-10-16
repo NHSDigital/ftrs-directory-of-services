@@ -1,4 +1,4 @@
-SERVICE ?= gp-search
+SERVICE ?= dos-search
 PYTHON_VERSION ?= 3.12
 BUILD_DIR := ../../build/services/${SERVICE}
 DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
