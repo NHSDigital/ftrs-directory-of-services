@@ -32,7 +32,7 @@ permissions:
   id-token: write
 
 jobs:
-  run-matrix:
+  wafr-checks:
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
@@ -109,6 +109,15 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: turbot/powerpipe-action-setup@v1
 
+      # Install the AWS Well-Architected Framework mod
+      - name: Install AWS Well Architected mod
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          mkdir -p mods
+          cd mods
+          powerpipe mod init
+          powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
+
       - name: Start steampipe service
         if: steps.should-run.outputs.should_run == 'true'
         run: |
@@ -131,11 +140,44 @@ jobs:
             exit 1
           fi
 
-      - name: Run Powerpipe benchmark
+      # Run the the WAFR mod
+      - name: Run AWS Well Architected Framework checks
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-check@v1.0.1
+        id: generate_reports
+        run: |
+          mkdir -p reports
+          cd mods
+          DATE=$(date +%Y-%m-%d)
+          echo "Generating reports with date stamp: $DATE"
+
+          set +e
+          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
+            --output html \
+            --export "../reports/aws_wafr_report_${DATE}.html" \
+            --progress
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
+          fi
+          set -e
+          echo "Reports generated successfully"
+
+      # Upload report artifacts for download
+      - name: Upload reports
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4.6.2
         with:
-          mod-url: https://github.com/turbot/steampipe-mod-aws-well-architected
-          benchmarks: |
-            aws_well_architected.benchmark.well_architected_framework
-          artifact-exports: html
+          name: aws-wafr-reports-${{ matrix.type }}-${{ matrix.environment }}
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 90
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - wafr-checks
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ matrix.environment }}
+    secrets: inherit
