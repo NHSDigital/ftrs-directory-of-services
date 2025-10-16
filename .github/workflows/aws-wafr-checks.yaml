@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   wafr-checks:
-    name: "AWS Well Architected Framework Checks for Security, Reliability and Operational Excellence Pillars"
+    name: "AWS Well Architected Framework Checks"
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
