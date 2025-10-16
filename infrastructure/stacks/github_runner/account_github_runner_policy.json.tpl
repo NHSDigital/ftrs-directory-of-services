@@ -89,7 +89,8 @@
                 "iam:TagPolicy",
                 "iam:UntagPolicy",
                 "iam:TagOpenIDConnectProvider",
-                "iam:UpdateOpenIDConnectProviderThumbprint"
+                "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:UpdateAssumeRolePolicy"
             ],
             "Resource": [
                 "arn:aws:iam::aws:policy/PowerUserAccess",
