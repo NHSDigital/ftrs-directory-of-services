@@ -133,46 +133,24 @@ jobs:
           powerpipe mod install github.com/turbot/steampipe-mod-aws-thrifty
           ls -la
 
-      # Run the WAFR mod
-      - name: Run AWS Well Architected Framework checks
+      # Run Powerpipe benchmarks (WAFR and Thrifty)
+      - name: Run Powerpipe benchmarks
         if: steps.should-run.outputs.should_run == 'true'
-        id: generate_wafr_reports
-        run: |
-          mkdir -p reports
-          cd mods
-          DATE=$(date +%Y-%m-%d)
-          echo "Generating reports with date stamp: $DATE"
-
-          set +e
-          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
-            --output html \
-            --export "../reports/aws_wafr_report_${DATE}.html"
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
-          fi
-          set -e
-          echo "Reports generated successfully"
-
-      # Run the Thrifty mod
-      - name: Run Thrifty checks
-        if: steps.should-run.outputs.should_run == 'true'
-        id: generate_thrifty_reports
-        run: |
-          cd mods
-          DATE=$(date +%Y-%m-%d)
-          echo "Generating reports with date stamp: $DATE"
-
-          set +e
-          powerpipe benchmark run aws_thrifty.benchmark.apigateway \
-            --output html \
-            --export "../reports/aws_thrifty_apigateway_report_${DATE}.html"
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
-          fi
-          set -e
-          echo "Reports generated successfully"
+        uses: ./.github/actions/run-powerpipe-benchmarks
+        with:
+          benchmarks: |
+            [
+              {
+                "name": "wafr",
+                "benchmark": "aws_well_architected.benchmark.well_architected_framework"
+              },
+              {
+                "name": "thrifty_apigateway",
+                "benchmark": "aws_thrifty.benchmark.apigateway"
+              }
+            ]
+          reports-dir: "reports"
+          mods-dir: "mods"
 
       # Upload report artifacts for download
       - name: Upload reports
