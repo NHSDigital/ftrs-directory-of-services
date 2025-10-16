@@ -1,12 +1,14 @@
 import ast
 import os
-from typing import Callable, cast
+from typing import Callable, cast, Dict, Any
 import sys
 from pathlib import Path
 
 import boto3
 import pytest
 from dotenv import load_dotenv
+from sqlmodel import Session
+
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
@@ -58,18 +60,18 @@ def api_request_context_mtls_factory(playwright, workspace, env):
     """Factory to create API request contexts with different api_names."""
     contexts = []
 
-    def _create_context(api_name="servicesearch", headers=None):
+    def _create_context(api_name="servicesearch", headers=None, env=env):
         url = get_url(api_name)
         try:
             # Get mTLS certs
-            client_pem_path, ca_cert_path = get_mtls_certs()
+            client_pem, ca_cert = get_mtls_certs(env)
             context_options = {
                 "ignore_https_errors": True,
                 "client_certificates": [
                     {
                         "origin": url,
-                        "certPath": ca_cert_path,
-                        "keyPath": client_pem_path,
+                        "cert": ca_cert,
+                        "key": client_pem,
                     }
                 ],
                 "extra_http_headers": headers,
@@ -257,16 +259,16 @@ def organisation_repo_seeded(organisation_repo):
     organisation_repo.delete(organisation.id)
 
 
-def get_mtls_certs():
+def get_mtls_certs(env):
     # Fetch secrets from AWS
     gsw = GetSecretWrapper()
-    client_pem = gsw.get_secret("/temp/dev/api-ca-pk")  # Combined client cert + key
-    ca_cert = gsw.get_secret("/temp/dev/api-ca-cert")  # CA cert for server verification
+    logger.info(f"Fetching mTLS certs for env: {env}")
+    client_pem = gsw.get_secret(f"/ftrs-directory-of-services/{env}/api-ca-pk")  # Combined client cert + key
+    ca_cert = gsw.get_secret(f"/ftrs-directory-of-services/{env}/api-ca-cert")  # CA cert for server verification
 
-    # Write to temp files
-    client_pem_path = create_temp_file(client_pem, ".pem")
-    ca_cert_path = create_temp_file(ca_cert, ".crt")
-    return client_pem_path, ca_cert_path
+    client_pem = client_pem.encode('utf-8')
+    ca_cert = ca_cert.encode('utf-8')
+    return client_pem, ca_cert
 
 
 @pytest.fixture(scope="session")
@@ -338,3 +340,21 @@ def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
     except (SyntaxError, AttributeError, ValueError):
         return None
 
+@pytest.fixture(scope="function")
+def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
+    context = {
+        "db_session": dos_db_with_migration,
+        "test_data": {},  # Store any test data created during scenarios
+        "results": {},    # Store query results or other test outcomes
+    }
+    return context
+
+
+@pytest.fixture(scope="function")
+def regular_context(dos_db: Session) -> Dict[str, Any]:
+    context = {
+        "db_session": dos_db,
+        "test_data": {},
+        "results": {},
+    }
+    return context

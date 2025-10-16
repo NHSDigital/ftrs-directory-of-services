@@ -3,7 +3,6 @@ locals {
   compute_rw_policy                   = jsondecode(file("${path.module}/policies/rw_compute.json"))
   compute_ro_policy                   = jsondecode(file("${path.module}/policies/ro_compute.json"))
   data_rw_policy                      = jsondecode(file("${path.module}/policies/rw_data.json"))
-  data_ro_policy                      = jsondecode(file("${path.module}/policies/ro_data.json"))
   networking_rw_policy                = jsondecode(file("${path.module}/policies/rw_networking.json"))
   networking_ro_policy                = jsondecode(file("${path.module}/policies/ro_networking.json"))
   security_rw_policy                  = jsondecode(file("${path.module}/policies/rw_security.json"))
@@ -17,6 +16,9 @@ locals {
   infrastructure_management_rw_policy = jsondecode(file("${path.module}/policies/rw_infrastructure_management.json"))
   infrastructure_management_ro_policy = jsondecode(file("${path.module}/policies/ro_infrastructure_management.json"))
   infrastructure_resilience_rw_policy = jsondecode(file("${path.module}/policies/rw_infrastructure_resilience.json"))
+  data_ro_policy = jsondecode(templatefile("${path.module}/policies/ro_data.json.tpl", {
+    athena_output_bucket_name = var.athena_output_bucket_name
+  }))
 }
 
 resource "aws_iam_policy" "billing_policy_ro" {

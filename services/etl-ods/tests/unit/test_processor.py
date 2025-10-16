@@ -1,16 +1,26 @@
 import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from typing import NamedTuple
+from typing import Generator, NamedTuple
 
 import pytest
 import requests
+from ftrs_common.utils.correlation_id import set_correlation_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 from requests_mock.adapter import _Matcher as Matcher
 
 from pipeline.processor import MAX_DAYS_PAST, processor, processor_lambda_handler
+
+TEST_CORRELATION_ID = "test-correlation"
+
+
+@pytest.fixture(autouse=True)
+def fixed_correlation_id() -> Generator[None, None, None]:
+    set_correlation_id(TEST_CORRELATION_ID)
+    yield
+    set_correlation_id(None)
 
 
 class MockResponses(NamedTuple):
@@ -158,6 +168,7 @@ def test_processor_processing_organisations_successful(
                 ],
                 "telecom": [],
             },
+            "correlation_id": TEST_CORRELATION_ID,
         }
     ]
 
@@ -308,6 +319,7 @@ def test_processor_continue_on_validation_failure(
                 ],
                 "telecom": [],
             },
+            "correlation_id": TEST_CORRELATION_ID,
         }
     ]
 
@@ -394,6 +406,20 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     response = processor_lambda_handler(event, {})
 
     mock_processor.assert_called_once_with(date=date)
+    assert response == {"statusCode": 200, "body": "Processing complete"}
+
+
+def test_processor_lambda_handler_success_is_scheduled(
+    mocker: MockerFixture,
+) -> None:
+    mock_processor = mocker.patch("pipeline.processor.processor")
+
+    event = {"is_scheduled": True}
+
+    response = processor_lambda_handler(event, {})
+
+    previous_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    mock_processor.assert_called_once_with(date=previous_date)
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
 

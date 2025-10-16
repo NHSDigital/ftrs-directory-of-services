@@ -47,29 +47,31 @@ module "api_gateway" {
   }
 
   stage_access_log_settings = {
-    create_log_group            = true
+    create_log_group = true
+    # Allow stacks to supply the explicit log group name and retention through wrapper variables
+    log_group_name              = var.api_gateway_access_logs_log_group_name
     log_group_retention_in_days = var.api_gateway_access_logs_retention_days
     format = jsonencode({
       context = {
-        domainName              = "$context.domainName"
-        integrationErrorMessage = "$context.integrationErrorMessage"
-        protocol                = "$context.protocol"
-        requestId               = "$context.requestId"
-        requestTime             = "$context.requestTime"
-        responseLength          = "$context.responseLength"
-        routeKey                = "$context.routeKey"
-        stage                   = "$context.stage"
-        status                  = "$context.status"
+        domainName              = "${"$"}context.domainName"
+        integrationErrorMessage = "${"$"}context.integrationErrorMessage"
+        protocol                = "${"$"}context.protocol"
+        requestId               = "${"$"}context.requestId"
+        requestTime             = "${"$"}context.requestTime"
+        responseLength          = "${"$"}context.responseLength"
+        routeKey                = "${"$"}context.routeKey"
+        stage                   = "${"$"}context.stage"
+        status                  = "${"$"}context.status"
         error = {
-          message      = "$context.error.message"
-          responseType = "$context.error.responseType"
+          message      = "${"$"}context.error.message"
+          responseType = "${"$"}context.error.responseType"
         }
         identity = {
-          sourceIP = "$context.identity.sourceIp"
+          sourceIP = "${"$"}context.identity.sourceIp"
         }
         integration = {
-          error             = "$context.integration.error"
-          integrationStatus = "$context.integration.integrationStatus"
+          error             = "${"$"}context.integration.error"
+          integrationStatus = "${"$"}context.integration.integrationStatus"
         }
       }
     })
