@@ -140,6 +140,15 @@ jobs:
             aws_well_architected.benchmark.well_architected_framework
           artifact-exports: html
 
+      - name: Run Powerpipe Thrifty benchmark
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/powerpipe-action-check@v1.0.1
+        with:
+          mod-url: https://github.com/turbot/steampipe-mod-aws-thrifty
+          benchmarks: |
+            aws_thrifty.benchmark.thrifty
+          artifact-exports: html
+
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
