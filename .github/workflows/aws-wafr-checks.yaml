@@ -160,6 +160,8 @@ jobs:
         id: generate_thrifty_reports
         run: |
           mkdir -p reports
+          cd reports
+          ls -la
           cd mods
           DATE=$(date +%Y-%m-%d)
           echo "Generating reports with date stamp: $DATE"
@@ -172,6 +174,8 @@ jobs:
           if [ $EXIT_CODE -ne 0 ]; then
             echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
           fi
+          cd reports
+          ls -la
           set -e
           echo "Reports generated successfully"
 
