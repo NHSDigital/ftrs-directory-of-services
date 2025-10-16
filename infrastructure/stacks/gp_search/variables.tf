@@ -58,3 +58,27 @@ variable "health_check_lambda_cloudwatch_logs_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "jmeter_version" {
+  description = "Version of Apache JMeter to install on the EC2 instance"
+  type        = string
+  default     = "5.6.3"
+}
+
+variable "jmeter_instance_type" {
+  description = "EC2 instance type for JMeter host"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "jmeter_volume_size" {
+  description = "Root volume size (GiB) for JMeter EC2 instance"
+  type        = number
+  default     = 16
+}
+
+variable "ssh_key_pair_name" {
+  description = "Optional EC2 key pair name for SSH access (leave empty to disable key attachment)"
+  type        = string
+  default     = ""
+}
