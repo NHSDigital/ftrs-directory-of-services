@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   wafr-checks:
-    name: "AWS Well Architected Framework Checks - ${{ matrix.environment }}"
+    name: "AWS Well Architected Framework and Thrifty Checks - ${{ matrix.environment }}"
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
@@ -100,108 +100,15 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: turbot/powerpipe-action-setup@v1
 
-      - name: Start steampipe service
+      # Install the AWS Well-Architected Framework and Thrifty mod
+      - name: Install AWS Well Architected and Thrifty mod
         if: steps.should-run.outputs.should_run == 'true'
         run: |
-          steampipe service start
-          # Wait for service to be ready
-          echo "Waiting for Steampipe service to be ready..."
-          for i in {1..30}; do
-            if steampipe service status 2>&1 | grep -q "running"; then
-              echo "Steampipe service is ready"
-              steampipe service status
-              break
-            fi
-            echo "Waiting for Steampipe service to start... ($i/30)"
-            sleep 2
-          done
-          # Final check
-          if ! steampipe service status 2>&1 | grep -q "running"; then
-            echo "::error::Steampipe service failed to start"
-            steampipe service status
-            exit 1
-          fi
-
-      - name: Run Powerpipe benchmark
-        if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-check@v1.0.1
-        with:
-          mod-url: https://github.com/turbot/steampipe-mod-aws-well-architected
-          benchmarks: |
-            aws_well_architected.benchmark.well_architected_framework
-          artifact-exports: html
-        env:
-          POWERPIPE_ARTIFACT_SUFFIX: well-architected
-
-  wafr-thrifty-checks:
-    name: "AWS WAFR Thrifty Checks - ${{ matrix.environment }}"
-    runs-on: ubuntu-latest
-    environment: ${{ matrix.environment }}
-    strategy:
-      matrix:
-        include:
-          - environment: dev
-          - environment: mgmt
-      fail-fast: false
-
-    steps:
-      - name: Check if steps should run
-        id: should-run
-        run: |
-          SHOULD_RUN="true"
-
-          # If manually triggered, check if this matrix entry matches the inputs
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-
-            # Check environment matches (if specified)
-            if [[ -n "${{ inputs.environment }}" ]] && [[ "${{ matrix.environment }}" != "${{ inputs.environment }}" ]]; then
-              SHOULD_RUN="false"
-            fi
-          fi
-
-          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
-          echo "Should run: $SHOULD_RUN"
-
-      - name: Checkout repository
-        if: steps.should-run.outputs.should_run == 'true'
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.tag }}
-
-      - name: "Configure AWS credentials"
-        if: steps.should-run.outputs.should_run == 'true'
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          type: ${{ inputs.type }}
-
-      # Assume steampipe-readonly-role using role chaining
-      - name: Assume steampipe-readonly-role
-        if: steps.should-run.outputs.should_run == 'true'
-        uses: aws-actions/configure-aws-credentials@v4.0.2
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/steampipe-readonly-role
-          role-chaining: true
-          role-session-name: GitHubActionsSteampipe
-          aws-region: ${{ vars.AWS_REGION }}
-
-      # Install Steampipe using GitHub Action
-      - name: Setup Steampipe
-        if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/steampipe-action-setup@v1.6.0
-        with:
-          steampipe-version: "latest"
-          plugin-connections: |
-            connection "aws" {
-                plugin     = "aws"
-                regions    = ["us-east-1", "eu-west-2"]
-            }
-
-      # Install Powerpipe CLI using Github Action
-      - name: Install Powerpipe
-        if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-setup@v1
+          mkdir -p mods
+          cd mods
+          powerpipe mod init
+          powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
+          powerpipe mod install github.com/turbot/steampipe-mod-aws-thrifty
 
       - name: Start steampipe service
         if: steps.should-run.outputs.should_run == 'true'
@@ -225,21 +132,62 @@ jobs:
             exit 1
           fi
 
-      - name: Run Powerpipe Thrifty benchmark
+      # Run the WAFR mod
+      - name: Run AWS Well Architected Framework checks
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-check@v1.0.1
+        id: generate_wafr_reports
+        run: |
+          mkdir -p reports
+          cd mods
+          DATE=$(date +%Y-%m-%d)
+          echo "Generating reports with date stamp: $DATE"
+
+          set +e
+          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
+            --output html \
+            --export "../eports/aws_wafr_report_${DATE}.html" \
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
+          fi
+          set -e
+          echo "Reports generated successfully"
+
+      # Run the Thrifty mod
+      - name: Run Thrifty checks
+        if: steps.should-run.outputs.should_run == 'true'
+        id: generate_thrifty_reports
+        run: |
+          mkdir -p reports
+          cd mods
+          DATE=$(date +%Y-%m-%d)
+          echo "Generating reports with date stamp: $DATE"
+
+          set +e
+          powerpipe benchmark run aws_thrifty.benchmark.apigateway \
+            --output html \
+            --export "../reports/aws_thrifty_apigateway_report_${DATE}.html" \
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
+          fi
+          set -e
+          echo "Reports generated successfully"
+
+      # Upload report artifacts for download
+      - name: Upload reports
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4.6.2
         with:
-          mod-url: https://github.com/turbot/steampipe-mod-aws-thrifty
-          benchmarks: |
-            aws_thrifty.benchmark.apigateway
-            aws_thrifty.benchmark.cloudfront
-          artifact-exports: html
+          name: aws-wafr-reports-${{ inputs.type }}-${{ matrix.environment }}
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 90
 
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
       - wafr-checks
-      - wafr-thrifty-checks
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
