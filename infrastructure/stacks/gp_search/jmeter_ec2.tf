@@ -66,9 +66,10 @@ resource "aws_vpc_security_group_egress_rule" "egress_http" {
   to_port           = 80
 }
 
-# IAM role to allow SSM (optional but useful)
+# IAM: support either an existing instance profile (if provided) or create one when allowed
 resource "aws_iam_role" "jmeter_ec2_role" {
-  name = "${local.jmeter_name}-role"
+  count = (var.jmeter_instance_profile_name == "" && var.allow_create_iam) ? 1 : 0
+  name  = "${local.jmeter_name}-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -77,16 +78,67 @@ resource "aws_iam_role" "jmeter_ec2_role" {
       Principal = { Service = "ec2.amazonaws.com" }
     }]
   })
+  permissions_boundary = var.permissions_boundary_arn != "" ? var.permissions_boundary_arn : null
+}
+
+# Optional inline policy: S3 read and/or KMS decrypt
+resource "aws_iam_role_policy" "jmeter_extra_access" {
+  count = (var.jmeter_instance_profile_name == "" && var.allow_create_iam && (var.attach_s3_read || length(var.kms_key_arns) > 0)) ? 1 : 0
+  name  = "${local.jmeter_name}-extra-access"
+  role  = aws_iam_role.jmeter_ec2_role[0].name
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = concat(
+      var.attach_s3_read && length(var.s3_read_bucket_arns) > 0 ? [
+        {
+          Sid      = "S3ListBuckets",
+          Effect   = "Allow",
+          Action   = ["s3:ListBucket"],
+          Resource = var.s3_read_bucket_arns
+        },
+        {
+          Sid      = "S3GetObjects",
+          Effect   = "Allow",
+          Action   = ["s3:GetObject"],
+          Resource = [for b in var.s3_read_bucket_arns : "${b}/*"]
+        }
+      ] : [],
+      length(var.kms_key_arns) > 0 ? [
+        {
+          Sid      = "KMSDecrypt",
+          Effect   = "Allow",
+          Action   = ["kms:Decrypt"],
+          Resource = var.kms_key_arns
+        }
+      ] : []
+    )
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_core" {
-  role       = aws_iam_role.jmeter_ec2_role.name
+  count      = (var.jmeter_instance_profile_name == "" && var.allow_create_iam) ? 1 : 0
+  role       = aws_iam_role.jmeter_ec2_role[0].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_instance_profile" "jmeter_ec2_profile" {
-  name = "${local.jmeter_name}-instance-profile"
-  role = aws_iam_role.jmeter_ec2_role.name
+  count = (var.jmeter_instance_profile_name == "" && var.allow_create_iam) ? 1 : 0
+  name  = "${local.jmeter_name}-instance-profile"
+  role  = aws_iam_role.jmeter_ec2_role[0].name
+}
+
+# Use an existing instance profile if provided
+data "aws_iam_instance_profile" "existing" {
+  count = var.jmeter_instance_profile_name != "" ? 1 : 0
+  name  = var.jmeter_instance_profile_name
+}
+
+# Compute the effective instance profile name to attach to EC2
+locals {
+  created_instance_profile_name          = length(aws_iam_instance_profile.jmeter_ec2_profile) > 0 ? aws_iam_instance_profile.jmeter_ec2_profile[0].name : null
+  existing_instance_profile_name         = length(data.aws_iam_instance_profile.existing) > 0 ? data.aws_iam_instance_profile.existing[0].name : null
+  jmeter_effective_instance_profile_name = coalesce(local.existing_instance_profile_name, local.created_instance_profile_name)
 }
 
 # Pick a private subnet (first one)
@@ -180,7 +232,7 @@ resource "aws_instance" "jmeter" {
   instance_type               = var.jmeter_instance_type
   subnet_id                   = local.jmeter_subnet_id
   vpc_security_group_ids      = [aws_security_group.jmeter_ec2_sg.id]
-  iam_instance_profile        = aws_iam_instance_profile.jmeter_ec2_profile.name
+  iam_instance_profile        = local.jmeter_effective_instance_profile_name
   key_name                    = var.ssh_key_pair_name != "" ? var.ssh_key_pair_name : null
   associate_public_ip_address = false
   ebs_optimized               = true
@@ -200,6 +252,13 @@ resource "aws_instance" "jmeter" {
   }
 
   instance_initiated_shutdown_behavior = "stop"
+
+  lifecycle {
+    precondition {
+      condition     = local.jmeter_effective_instance_profile_name != null
+      error_message = "Provide jmeter_instance_profile_name or set allow_create_iam=true (with pipeline IAM perms) so the stack can create one."
+    }
+  }
 
   # Helpful explicit name; provider also applies default tags
   tags = {

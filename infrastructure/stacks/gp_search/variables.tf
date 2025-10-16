@@ -82,3 +82,39 @@ variable "ssh_key_pair_name" {
   type        = string
   default     = ""
 }
+
+variable "jmeter_instance_profile_name" {
+  description = "Optional: Pre-existing IAM instance profile name to attach to the JMeter EC2. If empty and allow_create_iam is true, this stack will create a role and instance profile with AmazonSSMManagedInstanceCore"
+  type        = string
+  default     = ""
+}
+
+variable "allow_create_iam" {
+  description = "If true (default), allow this stack to create the IAM role and instance profile for JMeter when no pre-existing profile name is provided"
+  type        = bool
+  default     = true
+}
+
+variable "permissions_boundary_arn" {
+  description = "Optional IAM permissions boundary ARN to apply to the created JMeter role (if allow_create_iam is true)"
+  type        = string
+  default     = ""
+}
+
+variable "attach_s3_read" {
+  description = "If true, attach an inline policy to allow s3:GetObject/ListBucket on specified buckets"
+  type        = bool
+  default     = false
+}
+
+variable "s3_read_bucket_arns" {
+  description = "List of S3 bucket ARNs to grant read access to (when attach_s3_read is true)"
+  type        = list(string)
+  default     = []
+}
+
+variable "kms_key_arns" {
+  description = "Optional list of KMS key ARNs to allow kms:Decrypt (for reading KMS-encrypted S3 objects or parameters)"
+  type        = list(string)
+  default     = []
+}
