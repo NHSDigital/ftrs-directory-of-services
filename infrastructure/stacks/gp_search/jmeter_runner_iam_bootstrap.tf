@@ -5,9 +5,9 @@ locals {
 }
 
 # Grant the GitHub app runner minimal IAM create permissions so this stack can provision JMeter role/profile
-#checkov:skip=CKV_AWS_289: Create* actions require wildcard resource; remaining actions are scoped by project prefix
-#checkov:skip=CKV_AWS_355: Wildcard resource used only for Create* actions which do not support resource-level permissions
 resource "aws_iam_role_policy" "app_runner_jmeter_iam_bootstrap" {
+  #checkov:skip=CKV_AWS_289: Create* actions require wildcard resource; remaining actions are scoped by project prefix
+  #checkov:skip=CKV_AWS_355: Wildcard resource used only for Create* actions which do not support resource-level permissions
   name = "${local.account_prefix}-app-runner-jmeter-iam-bootstrap"
   role = local.target_app_runner_role_name
 
@@ -81,4 +81,15 @@ resource "aws_iam_role_policy" "app_runner_jmeter_iam_bootstrap" {
       }
     ]
   })
+}
+
+# Allow a brief delay for IAM policy propagation to avoid AccessDenied immediately after attachment
+resource "null_resource" "iam_policy_propagation_wait" {
+  triggers = {
+    policy_version = aws_iam_role_policy.app_runner_jmeter_iam_bootstrap.id
+  }
+
+  provisioner "local-exec" {
+    command = "sleep 10"
+  }
 }
