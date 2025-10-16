@@ -22,9 +22,8 @@ resource "aws_iam_policy" "app_github_runner_jmeter_iam" {
         Sid    = "JmeterInstanceProfileCRUD",
         Effect = "Allow",
         Action = [
-          "iam:CreateInstanceProfile",
-          "iam:DeleteInstanceProfile",
           "iam:GetInstanceProfile",
+          "iam:DeleteInstanceProfile",
           "iam:TagInstanceProfile",
           "iam:UntagInstanceProfile"
         ],
@@ -33,10 +32,17 @@ resource "aws_iam_policy" "app_github_runner_jmeter_iam" {
         ]
       },
       {
+        Sid    = "CreateJmeterInstanceProfile",
+        Effect = "Allow",
+        Action = [
+          "iam:CreateInstanceProfile"
+        ],
+        Resource = "*"
+      },
+      {
         Sid    = "JmeterRoleCRUD",
         Effect = "Allow",
         Action = [
-          "iam:CreateRole",
           "iam:DeleteRole",
           "iam:GetRole",
           "iam:TagRole",
@@ -47,6 +53,14 @@ resource "aws_iam_policy" "app_github_runner_jmeter_iam" {
         Resource = [
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project}-${var.environment}-*-jmeter*"
         ]
+      },
+      {
+        Sid    = "CreateJmeterRole",
+        Effect = "Allow",
+        Action = [
+          "iam:CreateRole"
+        ],
+        Resource = "*"
       },
       {
         Sid    = "AssociateRoleWithInstanceProfile",
