@@ -46,6 +46,7 @@ resource "aws_vpc_security_group_ingress_rule" "ssh_from_vpn" {
 }
 
 # Egress for package installs and test traffic (HTTPS and HTTP)
+# tfsec:ignore:aws-vpc-no-public-egress-sgr -- JMeter host requires outbound 80/443 to the internet for package and plugin downloads and to reach external test endpoints. Restricting to specific CIDRs is not feasible; traffic still routes via private subnets/NAT or VPC endpoints where present.
 resource "aws_vpc_security_group_egress_rule" "egress_https" {
   security_group_id = aws_security_group.jmeter_ec2_sg.id
   description       = "Allow HTTPS egress"
@@ -55,6 +56,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_https" {
   to_port           = 443
 }
 
+# tfsec:ignore:aws-vpc-no-public-egress-sgr -- See justification above for HTTPS; HTTP is used for some mirrors/tools. Prefer HTTPS where possible.
 resource "aws_vpc_security_group_egress_rule" "egress_http" {
   security_group_id = aws_security_group.jmeter_ec2_sg.id
   description       = "Allow HTTP egress"
@@ -132,7 +134,7 @@ locals {
     JMETER_HOME=/opt/jmeter/apache-jmeter
     PLUGINS_MANAGER_VERSION=1.11
     CMDRUNNER_VERSION=2.3
-    echo "[user-data] Installing JMeter Plugin Manager ${PLUGINS_MANAGER_VERSION} and cmdrunner ${CMDRUNNER_VERSION}"
+    echo "[user-data] Installing JMeter Plugin Manager $${PLUGINS_MANAGER_VERSION} and cmdrunner $${CMDRUNNER_VERSION}"
     curl -fL -o "$${JMETER_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
       "https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/$${PLUGINS_MANAGER_VERSION}/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar"
     curl -fL -o "$${JMETER_HOME}/lib/cmdrunner-$${CMDRUNNER_VERSION}.jar" \
@@ -181,6 +183,8 @@ resource "aws_instance" "jmeter" {
   iam_instance_profile        = aws_iam_instance_profile.jmeter_ec2_profile.name
   key_name                    = var.ssh_key_pair_name != "" ? var.ssh_key_pair_name : null
   associate_public_ip_address = false
+  ebs_optimized               = true
+  monitoring                  = true
 
   user_data = local.jmeter_user_data
 
