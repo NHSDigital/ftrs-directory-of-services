@@ -74,14 +74,6 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: Set environment output
-        if: steps.should-run.outputs.should_run == 'true'
-        id: set-env
-        run: |
-          # Set the environment value to GITHUB_OUTPUT
-          echo "environment=${{ matrix.environment }}" >> $GITHUB_OUTPUT
-          echo "Selected environment: ${{ matrix.environment }}"
-
       - name: "Configure AWS credentials"
         if: steps.should-run.outputs.should_run == 'true'
         uses: ./.github/actions/configure-credentials
@@ -109,23 +101,13 @@ jobs:
           plugin-connections: |
             connection "aws" {
                 plugin     = "aws"
-                regions    = ["us-east-1", "eu-west-2"]
+                regions    = ["*"]
             }
 
       # Install Powerpipe CLI using Github Action
       - name: Install Powerpipe
-        uses: turbot/powerpipe-action-setup@v1
-
-      # Install the AWS Well-Architected Framework mod
-      - name: Install AWS Well Architected mod
         if: steps.should-run.outputs.should_run == 'true'
-        run: |
-          mkdir -p mods
-          cd mods
-          powerpipe mod init
-          powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
-          # List installed mods to verify
-          powerpipe mod list
+        uses: turbot/powerpipe-action-setup@v1
 
       - name: Start steampipe service
         if: steps.should-run.outputs.should_run == 'true'
@@ -149,34 +131,11 @@ jobs:
             exit 1
           fi
 
-      # Run the Powerpipe report
-      - name: Run AWS Well Architected Framework checks
+      - name: Run Powerpipe benchmark
         if: steps.should-run.outputs.should_run == 'true'
-        id: generate_reports
-        run: |
-          mkdir -p reports
-          cd mods
-          DATE=$(date +%Y-%m-%d)
-          echo "Generating reports with date stamp: $DATE"
-
-          set +e
-          powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
-            --output html \
-            --export "../reports/aws_wafr_report_${DATE}.html" \
-            --progress
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "::error::Powerpipe benchmark run failed with exit code $EXIT_CODE"
-          fi
-          set -e
-          echo "Reports generated successfully"
-
-      # Upload report artifacts for download
-      - name: Upload reports
-        if: steps.should-run.outputs.should_run == 'true'
-        uses: actions/upload-artifact@v4.6.1
+        uses: turbot/powerpipe-action-check@v1
         with:
-          name: aws-wafr-reports-${{ matrix.type }}-${{ matrix.environment }}
-          path: reports/
-          if-no-files-found: warn
-          retention-days: 90
+          mod-url: https://github.com/turbot/steampipe-mod-aws-well-architected
+          benchmarks: |
+            aws_well_architected.benchmark.well_architected_framework
+          artifact-exports: html
