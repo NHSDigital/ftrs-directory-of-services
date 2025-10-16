@@ -32,6 +32,7 @@ run:
     uses: turbot/powerpipe-action-setup@v1
 
   - name: Start steampipe service
+    shell: bash
     run: |
       steampipe service start
       # Wait for service to be ready
