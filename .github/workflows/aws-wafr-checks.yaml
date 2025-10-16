@@ -95,7 +95,7 @@ jobs:
       # Install Steampipe using GitHub Action
       - name: Setup Steampipe
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/steampipe-action-setup@v1
+        uses: turbot/steampipe-action-setup@v1.6.0
         with:
           steampipe-version: "latest"
           plugin-connections: |
@@ -133,7 +133,7 @@ jobs:
 
       - name: Run Powerpipe benchmark
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-check@v1
+        uses: turbot/powerpipe-action-check@v1.0.1
         with:
           mod-url: https://github.com/turbot/steampipe-mod-aws-well-architected
           benchmarks: |
