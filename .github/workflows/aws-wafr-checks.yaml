@@ -146,7 +146,8 @@ jobs:
         with:
           mod-url: https://github.com/turbot/steampipe-mod-aws-thrifty
           benchmarks: |
-            thrifty
+            aws_thrifty.benchmark.apigateway
+            aws_thrifty.benchmark.cloudfront
           artifact-exports: html
 
   slack-notifications:
