@@ -91,6 +91,7 @@
                 "iam:UntagPolicy",
                 "iam:TagOpenIDConnectProvider",
                 "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:UpdateAssumeRolePolicy",
                 "iam:CreateInstanceProfile",
                 "iam:DeleteInstanceProfile",
                 "iam:AddRoleToInstanceProfile",
