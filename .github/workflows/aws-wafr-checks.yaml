@@ -101,7 +101,7 @@ jobs:
           plugin-connections: |
             connection "aws" {
                 plugin     = "aws"
-                regions    = ["*"]
+                regions    = ["us-east-1", "eu-west-2"]
             }
 
       # Install Powerpipe CLI using Github Action
