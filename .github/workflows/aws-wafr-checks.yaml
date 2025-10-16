@@ -100,16 +100,6 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: turbot/powerpipe-action-setup@v1
 
-      # Install the AWS Well-Architected Framework and Thrifty mod
-      - name: Install AWS Well Architected and Thrifty mod
-        if: steps.should-run.outputs.should_run == 'true'
-        run: |
-          mkdir -p mods
-          cd mods
-          powerpipe mod init
-          powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
-          powerpipe mod install github.com/turbot/steampipe-mod-aws-thrifty
-
       - name: Start steampipe service
         if: steps.should-run.outputs.should_run == 'true'
         run: |
@@ -132,6 +122,17 @@ jobs:
             exit 1
           fi
 
+        # Install the AWS Well-Architected Framework and Thrifty mod
+      - name: Install AWS Well Architected and Thrifty mod
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          mkdir -p mods
+          cd mods
+          powerpipe mod init
+          powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
+          powerpipe mod install github.com/turbot/steampipe-mod-aws-thrifty
+          ls -la
+
       # Run the WAFR mod
       - name: Run AWS Well Architected Framework checks
         if: steps.should-run.outputs.should_run == 'true'
@@ -145,7 +146,7 @@ jobs:
           set +e
           powerpipe benchmark run aws_well_architected.benchmark.well_architected_framework \
             --output html \
-            --export "../eports/aws_wafr_report_${DATE}.html" \
+            --export "../eports/aws_wafr_report_${DATE}.html"
           EXIT_CODE=$?
           if [ $EXIT_CODE -ne 0 ]; then
             echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
@@ -166,7 +167,7 @@ jobs:
           set +e
           powerpipe benchmark run aws_thrifty.benchmark.apigateway \
             --output html \
-            --export "../reports/aws_thrifty_apigateway_report_${DATE}.html" \
+            --export "../reports/aws_thrifty_apigateway_report_${DATE}.html"
           EXIT_CODE=$?
           if [ $EXIT_CODE -ne 0 ]; then
             echo "::warning::Powerpipe benchmark run failed with exit code $EXIT_CODE"
