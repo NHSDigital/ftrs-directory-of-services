@@ -2,15 +2,13 @@ name: Application Deployment Pipeline
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 on:
   push:
     branches:
       - main
-      - "task/FDOS*"
-      - "task/SIA*"
-      - "task/DOSIS*"
+      - "task/**"
       - "dependabot/**"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
@@ -265,6 +263,19 @@ jobs:
       type: app
     secrets: inherit
 
+  generate-prerelease:
+    name: "Generate prerelease tag"
+    needs:
+      - deploy-read-only-viewer-service
+      - service-automation-tests
+    if: >
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      needs.deploy-read-only-viewer-service.result == 'success' &&
+      needs.service-automation-tests.result == 'success'
+    uses: ./.github/workflows/generate-prerelease.yaml
+    secrets: inherit
+
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
@@ -290,6 +301,7 @@ jobs:
       - deploy-read-only-viewer-service
       - deploy-data-migration-service
       - service-automation-tests
+      - generate-prerelease
       - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
