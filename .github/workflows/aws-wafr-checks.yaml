@@ -4,13 +4,6 @@ name: AWS Well Architected Framework Checks
 on:
   workflow_dispatch:
     inputs:
-      type:
-        description: "Type of workflow (app or account)"
-        required: true
-        default: "account"
-        type: choice
-        options:
-          - account
       environment:
         description: "Defines the Github environment from which to pull environment variables from"
         required: true
@@ -71,7 +64,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          type: ${{ inputs.type }}
+          type: account
 
       # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
@@ -212,7 +205,7 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: aws-wafr-thrifty-reports-${{ inputs.type }}-${{ matrix.environment }}
+          name: aws-wafr-thrifty-reports-${{ matrix.environment }}
           path: reports/
           if-no-files-found: warn
           retention-days: 90
