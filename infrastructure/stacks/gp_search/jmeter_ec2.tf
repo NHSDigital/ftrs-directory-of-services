@@ -181,68 +181,90 @@ locals {
 # User data to install Java 17 and Apache JMeter, then power off the instance
 locals {
   jmeter_user_data = <<-EOT
-    #!/usr/bin/env bash
-    set -euxo pipefail
+#!/usr/bin/env bash
+set -euxo pipefail
 
-    exec > >(tee -a /var/log/user-data.log) 2>&1
+exec > >(tee -a /var/log/user-data.log) 2>&1
 
-    echo "[user-data] Updating packages"
-    dnf -y update || true
+REGION="eu-west-2"
 
-    echo "[user-data] Installing Java 17 (Amazon Corretto) and utilities"
-    dnf -y install java-17-amazon-corretto-headless unzip jq curl wget tar || true
+echo "[user-data] Updating packages"
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y update || true
+elif command -v yum >/dev/null 2>&1; then
+  yum -y update || true
+fi
 
-    # Ensure SSM Agent is present and running so Session Manager works
-    echo "[user-data] Ensuring SSM Agent installed and running"
-    dnf -y install amazon-ssm-agent || true
-    systemctl enable amazon-ssm-agent || true
-    systemctl start amazon-ssm-agent || true
+echo "[user-data] Installing Java 17 (Amazon Corretto) and utilities"
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y install java-17-amazon-corretto-headless unzip jq curl wget tar || true
+else
+  yum -y install java-17-amazon-corretto-headless unzip jq curl wget tar || true
+fi
 
-    JMETER_VERSION="${var.jmeter_version}"
-    JMETER_TGZ="apache-jmeter-$${JMETER_VERSION}.tgz"
-    JMETER_URL="https://archive.apache.org/dist/jmeter/binaries/$${JMETER_TGZ}"
+# Ensure SSM Agent is present and running so Session Manager works
+# Try repo first; if missing, fall back to the regional S3 RPM for AL2023
+echo "[user-data] Ensuring SSM Agent installed and running"
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y install amazon-ssm-agent || true
+elif command -v yum >/dev/null 2>&1; then
+  yum -y install amazon-ssm-agent || true
+fi
+if ! rpm -q amazon-ssm-agent >/dev/null 2>&1; then
+  echo "[user-data] Installing SSM Agent from S3 fallback"
+  rpm -Uvh --force "https://s3.${REGION}.amazonaws.com/amazon-ssm-${REGION}/latest/linux_amd64/amazon-ssm-agent.rpm"
+fi
+systemctl enable amazon-ssm-agent
+systemctl restart amazon-ssm-agent
+sleep 8
+systemctl is-active --quiet amazon-ssm-agent || (systemctl status amazon-ssm-agent --no-pager || true)
+amazon-ssm-agent -version || true
 
-    echo "[user-data] Creating install dirs"
-    install -d -m 0755 /opt /opt/jmeter
+JMETER_VERSION="${var.jmeter_version}"
+JMETER_TGZ="apache-jmeter-$${JMETER_VERSION}.tgz"
+JMETER_URL="https://archive.apache.org/dist/jmeter/binaries/$${JMETER_TGZ}"
 
-    echo "[user-data] Downloading Apache JMeter $${JMETER_VERSION}"
-    cd /opt
-    curl -fL -o "$${JMETER_TGZ}" "$${JMETER_URL}"
+echo "[user-data] Creating install dirs"
+install -d -m 0755 /opt /opt/jmeter
 
-    echo "[user-data] Extracting JMeter"
-    tar -xzf "$${JMETER_TGZ}"
-    rm -f "$${JMETER_TGZ}"
+echo "[user-data] Downloading Apache JMeter $${JMETER_VERSION}"
+cd /opt
+curl -fL -o "$${JMETER_TGZ}" "$${JMETER_URL}"
 
-    if [ -d "/opt/apache-jmeter-$${JMETER_VERSION}" ]; then
-      mv "/opt/apache-jmeter-$${JMETER_VERSION}" /opt/jmeter/apache-jmeter
-    fi
+echo "[user-data] Extracting JMeter"
+tar -xzf "$${JMETER_TGZ}"
+rm -f "$${JMETER_TGZ}"
 
-    ln -sf /opt/jmeter/apache-jmeter/bin/jmeter /usr/local/bin/jmeter
-    ln -sf /opt/jmeter/apache-jmeter/bin/jmeter-server /usr/local/bin/jmeter-server
+if [ -d "/opt/apache-jmeter-$${JMETER_VERSION}" ]; then
+  mv "/opt/apache-jmeter-$${JMETER_VERSION}" /opt/jmeter/apache-jmeter
+fi
 
-    # Install JMeter Plugin Manager, cmdrunner, and common plugins
-    JMETER_HOME=/opt/jmeter/apache-jmeter
-    PLUGINS_MANAGER_VERSION=1.11
-    CMDRUNNER_VERSION=2.3
-    echo "[user-data] Installing JMeter Plugin Manager $${PLUGINS_MANAGER_VERSION} and cmdrunner $${CMDRUNNER_VERSION}"
-    curl -fL -o "$${JMETER_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
-      "https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/$${PLUGINS_MANAGER_VERSION}/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar"
-    curl -fL -o "$${JMETER_HOME}/lib/cmdrunner-$${CMDRUNNER_VERSION}.jar" \
-      "https://repo1.maven.org/maven2/kg/apc/cmdrunner/$${CMDRUNNER_VERSION}/cmdrunner-$${CMDRUNNER_VERSION}.jar"
+ln -sf /opt/jmeter/apache-jmeter/bin/jmeter /usr/local/bin/jmeter
+ln -sf /opt/jmeter/apache-jmeter/bin/jmeter-server /usr/local/bin/jmeter-server
 
-    echo "[user-data] Setting up PluginManagerCMD"
-    java -cp "$${JMETER_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
-      org.jmeterplugins.repository.PluginManagerCMDInstaller || true
+# Install JMeter Plugin Manager, cmdrunner, and common plugins
+JMETER_HOME=/opt/jmeter/apache-jmeter
+PLUGINS_MANAGER_VERSION=1.11
+CMDRUNNER_VERSION=2.3
+echo "[user-data] Installing JMeter Plugin Manager $${PLUGINS_MANAGER_VERSION} and cmdrunner $${CMDRUNNER_VERSION}"
+curl -fL -o "$${JMETER_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/$${PLUGINS_MANAGER_VERSION}/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar"
+curl -fL -o "$${JMETER_HOME}/lib/cmdrunner-$${CMDRUNNER_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/kg/apc/cmdrunner/$${CMDRUNNER_VERSION}/cmdrunner-$${CMDRUNNER_VERSION}.jar"
 
-    echo "[user-data] Installing common JMeter plugins"
-    bash "$${JMETER_HOME}/bin/PluginsManagerCMD.sh" install jpgc-graphs-basic,jpgc-graphs-additional || true
+echo "[user-data] Setting up PluginManagerCMD"
+java -cp "$${JMETER_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
+  org.jmeterplugins.repository.PluginManagerCMDInstaller || true
 
-    echo "[user-data] Installing JWT dependency"
-    curl -fL -o "$${JMETER_HOME}/lib/java-jwt-4.5.0.jar" \
-      "https://repo1.maven.org/maven2/com/auth0/java-jwt/4.5.0/java-jwt-4.5.0.jar"
+echo "[user-data] Installing common JMeter plugins"
+bash "$${JMETER_HOME}/bin/PluginsManagerCMD.sh" install jpgc-graphs-basic,jpgc-graphs-additional || true
 
-    # Provide a simple wrapper to run jmeter non-interactively
-    cat >/usr/local/bin/jmeter-run <<'WRAP'
+echo "[user-data] Installing JWT dependency"
+curl -fL -o "$${JMETER_HOME}/lib/java-jwt-4.5.0.jar" \
+  "https://repo1.maven.org/maven2/com/auth0/java-jwt/4.5.0/java-jwt-4.5.0.jar"
+
+# Provide a simple wrapper to run jmeter non-interactively
+cat >/usr/local/bin/jmeter-run <<'WRAP'
 #!/usr/bin/env bash
 set -euo pipefail
 if ! command -v jmeter >/dev/null 2>&1; then
@@ -251,21 +273,21 @@ if ! command -v jmeter >/dev/null 2>&1; then
 fi
 jmeter "$@"
 WRAP
-    chmod +x /usr/local/bin/jmeter-run
+chmod +x /usr/local/bin/jmeter-run
 
-    echo "[user-data] JMeter version:"
-    jmeter -v || true
+echo "[user-data] JMeter version:"
+jmeter -v || true
 
-    echo "[user-data] Mark installation complete"
-    touch /opt/jmeter/.installed
+echo "[user-data] Mark installation complete"
+touch /opt/jmeter/.installed
 
-    # Optionally power off the instance so default state is Stopped
-    if [ "${var.jmeter_poweroff_after_setup}" = "true" ]; then
-      echo "[user-data] Powering off instance"
-      systemctl poweroff --no-wall || shutdown -h now || true
-    else
-      echo "[user-data] Leaving instance running for SSM/interactive use"
-    fi
+# Optionally power off the instance so default state is Stopped
+if [ "${var.jmeter_poweroff_after_setup}" = "true" ]; then
+  echo "[user-data] Powering off instance"
+  systemctl poweroff --no-wall || shutdown -h now || true
+else
+  echo "[user-data] Leaving instance running for SSM/interactive use"
+fi
   EOT
 }
 
