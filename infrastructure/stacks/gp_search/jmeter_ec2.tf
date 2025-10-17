@@ -46,6 +46,7 @@ resource "aws_vpc_security_group_ingress_rule" "ssh_from_vpn" {
 }
 
 # Egress for package installs and test traffic (HTTPS and HTTP)
+# trivy:ignore:aws-vpc-no-public-egress-sgr : JMeter host requires outbound 80/443 to the internet for package and plugin downloads and to reach external test endpoints. Traffic egresses via NAT/VPC endpoints where present.
 # tfsec:ignore:aws-vpc-no-public-egress-sgr -- JMeter host requires outbound 80/443 to the internet for package and plugin downloads and to reach external test endpoints. Restricting to specific CIDRs is not feasible; traffic still routes via private subnets/NAT or VPC endpoints where present.
 resource "aws_vpc_security_group_egress_rule" "egress_https" {
   security_group_id = aws_security_group.jmeter_ec2_sg.id
@@ -56,6 +57,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_https" {
   to_port           = 443
 }
 
+# trivy:ignore:aws-vpc-no-public-egress-sgr : See justification above for HTTPS; HTTP is used for some mirrors/tools. Prefer HTTPS where possible.
 # tfsec:ignore:aws-vpc-no-public-egress-sgr -- See justification above for HTTPS; HTTP is used for some mirrors/tools. Prefer HTTPS where possible.
 resource "aws_vpc_security_group_egress_rule" "egress_http" {
   security_group_id = aws_security_group.jmeter_ec2_sg.id
@@ -67,6 +69,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_http" {
 }
 
 # DNS resolution is required for SSM agent to reach regional endpoints
+# trivy:ignore:aws-vpc-no-public-egress-sgr : DNS egress to 53/udp is required; resolution targets vary and cannot be feasibly enumerated. Traffic egresses via NAT.
 resource "aws_vpc_security_group_egress_rule" "egress_dns_udp" {
   security_group_id = aws_security_group.jmeter_ec2_sg.id
   description       = "Allow DNS egress (UDP 53)"
@@ -77,6 +80,7 @@ resource "aws_vpc_security_group_egress_rule" "egress_dns_udp" {
 }
 
 # Time sync helps avoid TLS/session issues with SSM
+# trivy:ignore:aws-vpc-no-public-egress-sgr : NTP egress to 123/udp is required for accurate timekeeping; upstream targets vary and are typically AWS/NTP pools via NAT.
 resource "aws_vpc_security_group_egress_rule" "egress_ntp_udp" {
   security_group_id = aws_security_group.jmeter_ec2_sg.id
   description       = "Allow NTP egress (UDP 123)"
