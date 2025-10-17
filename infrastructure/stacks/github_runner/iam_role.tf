@@ -1,8 +1,7 @@
 locals {
   account_github_runner_policy = jsondecode(templatefile("${path.module}/account_github_runner_policy.json.tpl", {
-    project         = var.project
-    repo_name       = var.repo_name
-    resource_prefix = local.resource_prefix
+    project   = var.project
+    repo_name = var.repo_name
   }))
 
   app_github_runner_policy = jsondecode(templatefile("${path.module}/app_github_runner_policy.json.tpl", {
