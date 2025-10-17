@@ -1,0 +1,65 @@
+name: "Run Powerpipe Benchmarks"
+description: "Runs one or more Powerpipe benchmarks and generates HTML reports"
+
+inputs:
+  benchmarks:
+    description: "JSON array of benchmarks to run. Each item should have 'name' and 'benchmark' properties. Example: [{'name': 'wafr', 'benchmark': 'aws_well_architected.benchmark.well_architected_framework'}, {'name': 'thrifty_apigateway', 'benchmark': 'aws_thrifty.benchmark.apigateway'}]"
+    required: true
+  reports-dir:
+    description: "Directory where reports should be saved"
+    required: false
+    default: "reports"
+  mods-dir:
+    description: "Directory where Powerpipe mods are installed"
+    required: false
+    default: "mods"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create reports directory
+      shell: bash
+      run: |
+        mkdir -p "${{ inputs.reports-dir }}"
+
+    - name: Run Powerpipe benchmarks
+      shell: bash
+      run: |
+        cd "${{ inputs.mods-dir }}"
+        DATE=$(date +%Y-%m-%d)
+        echo "Generating reports with date stamp: $DATE"
+
+        # Parse the benchmarks JSON array
+        BENCHMARKS='${{ inputs.benchmarks }}'
+        echo "Processing benchmarks: $BENCHMARKS"
+
+        # Extract benchmark count
+        BENCHMARK_COUNT=$(echo "$BENCHMARKS" | jq '. | length')
+        echo "Found $BENCHMARK_COUNT benchmark(s) to run"
+
+        # Iterate through each benchmark
+        for i in $(seq 0 $((BENCHMARK_COUNT - 1))); do
+          NAME=$(echo "$BENCHMARKS" | jq -r ".[$i].name")
+          BENCHMARK=$(echo "$BENCHMARKS" | jq -r ".[$i].benchmark")
+
+          echo ""
+          echo "========================================"
+          echo "Running benchmark: $NAME"
+          echo "Benchmark path: $BENCHMARK"
+          echo "========================================"
+
+          set +e
+          powerpipe benchmark run "$BENCHMARK" \
+            --output html \
+            --export "../${{ inputs.reports-dir }}/aws_${NAME}_report_${DATE}.html"
+          EXIT_CODE=$?
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Powerpipe benchmark '$NAME' failed with exit code $EXIT_CODE"
+          else
+            echo "Successfully generated report: aws_${NAME}_report_${DATE}.html"
+          fi
+          set -e
+        done
+
+        echo "All reports generated successfully"

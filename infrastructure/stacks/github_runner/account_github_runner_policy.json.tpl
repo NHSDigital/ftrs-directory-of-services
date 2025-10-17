@@ -88,7 +88,8 @@
                 "iam:TagPolicy",
                 "iam:UntagPolicy",
                 "iam:TagOpenIDConnectProvider",
-                "iam:UpdateOpenIDConnectProviderThumbprint"
+                "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:UpdateAssumeRolePolicy"
             ],
             "Resource": [
                 "arn:aws:iam::aws:policy/PowerUserAccess",
@@ -164,6 +165,15 @@
                 "shield:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "AssumeSteamPipeReadOnlyRole",
+            "Effect": "Allow",
+            "Action": [
+                "sts:AssumeRole",
+                "sts:TagSession"
+            ],
+            "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
         }
     ]
 }
