@@ -241,7 +241,7 @@
                 "sts:AssumeRole",
                 "sts:TagSession"
             ],
-            "Resource": "arn:aws:iam::*:role/${resource_prefix}-steampipe-readonly-role"
+            "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
         },
         {
             "Sid": "Inspector2Access",
