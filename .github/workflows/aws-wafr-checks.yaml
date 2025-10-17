@@ -131,7 +131,6 @@ jobs:
           powerpipe mod init
           powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
           powerpipe mod install github.com/turbot/steampipe-mod-aws-thrifty
-          ls -la
 
       # Run Powerpipe benchmarks (WAFR and Thrifty)
       - name: Run Powerpipe benchmarks

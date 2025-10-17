@@ -234,15 +234,6 @@
             "Resource": "*"
         },
         {
-            "Sid": "AssumeSteamPipeReadOnlyRole",
-            "Effect": "Allow",
-            "Action": [
-                "sts:AssumeRole",
-                "sts:TagSession"
-            ],
-            "Resource": "arn:aws:iam::*:role/steampipe-readonly-role"
-        },
-        {
             "Sid": "AppConfigFullAccess",
             "Effect": "Allow",
             "Action": [
