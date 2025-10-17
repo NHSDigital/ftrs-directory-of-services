@@ -28,7 +28,7 @@ resource "aws_network_acl_rule" "jmeter_dns_egress_udp_53" {
   to_port        = 53
 }
 
-resource "aws_network_acl_rule" "jmeter_udp_ephemeral_ingress" {
+resource "aws_network_acl_rule" "jmeter_udp_ephemeral_ingress_low" {
   count          = local.have_effective_jmeter_nacl_id ? 1 : 0
   network_acl_id = local.effective_jmeter_nacl_id
   egress         = false
@@ -37,6 +37,19 @@ resource "aws_network_acl_rule" "jmeter_udp_ephemeral_ingress" {
   rule_action    = "allow"
   cidr_block     = var.ssm_nacl_ingress_cidr
   from_port      = 1024
+  to_port        = 3388
+}
+
+// Exclude RDP port 3389 to comply with CKV_AWS_231
+resource "aws_network_acl_rule" "jmeter_udp_ephemeral_ingress_high" {
+  count          = local.have_effective_jmeter_nacl_id ? 1 : 0
+  network_acl_id = local.effective_jmeter_nacl_id
+  egress         = false
+  rule_number    = var.ssm_nacl_rule_base_number + 3
+  protocol       = "udp"
+  rule_action    = "allow"
+  cidr_block     = var.ssm_nacl_ingress_cidr
+  from_port      = 3390
   to_port        = 65535
 }
 
