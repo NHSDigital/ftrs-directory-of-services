@@ -124,3 +124,28 @@ variable "jmeter_poweroff_after_setup" {
   type        = bool
   default     = true
 }
+
+# Optional: Manage NACL rules for SSM DNS/NTP from this stack
+variable "jmeter_subnet_network_acl_id" {
+  description = "Network ACL ID associated with the JMeter subnet. When set, this stack will add allow rules for DNS (UDP 53 egress) and UDP ephemeral ingress to support SSM over NAT"
+  type        = string
+  default     = ""
+}
+
+variable "ssm_nacl_rule_base_number" {
+  description = "Base rule number to use for SSM NACL rules (uses N, N+1, and optionally N+2)"
+  type        = number
+  default     = 902
+}
+
+variable "ssm_nacl_enable_ntp" {
+  description = "If true, also add an egress rule for NTP (UDP 123)"
+  type        = bool
+  default     = true
+}
+
+variable "ssm_nacl_ingress_cidr" {
+  description = "CIDR for UDP ephemeral ingress rule (use 0.0.0.0/0 for NAT return traffic)"
+  type        = string
+  default     = "0.0.0.0/0"
+}
