@@ -118,3 +118,9 @@ variable "kms_key_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "jmeter_poweroff_after_setup" {
+  description = "If true (default), power off the JMeter instance at the end of user-data setup"
+  type        = bool
+  default     = true
+}
