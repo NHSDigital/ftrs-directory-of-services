@@ -173,7 +173,7 @@
                 "sts:AssumeRole",
                 "sts:TagSession"
             ],
-            "Resource": "arn:aws:iam::*:role/steampipe-readonly-role"
+            "Resource": "arn:aws:iam::*:role/${resource_prefix}-steampipe-readonly-role"
         }
     ]
 }
