@@ -58,3 +58,94 @@ variable "health_check_lambda_cloudwatch_logs_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "jmeter_version" {
+  description = "Version of Apache JMeter to install on the EC2 instance"
+  type        = string
+  default     = "5.6.3"
+}
+
+variable "jmeter_instance_type" {
+  description = "EC2 instance type for JMeter host"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "jmeter_volume_size" {
+  description = "Root volume size (GiB) for JMeter EC2 instance"
+  type        = number
+  default     = 16
+}
+
+variable "ssh_key_pair_name" {
+  description = "Optional EC2 key pair name for SSH access (leave empty to disable key attachment)"
+  type        = string
+  default     = ""
+}
+
+variable "jmeter_instance_profile_name" {
+  description = "Optional: Pre-existing IAM instance profile name to attach to the JMeter EC2. If empty and allow_create_iam is true, this stack will create a role and instance profile with AmazonSSMManagedInstanceCore"
+  type        = string
+  default     = ""
+}
+
+variable "allow_create_iam" {
+  description = "If true (default), allow this stack to create the IAM role and instance profile for JMeter when no pre-existing profile name is provided"
+  type        = bool
+  default     = true
+}
+
+variable "permissions_boundary_arn" {
+  description = "Optional IAM permissions boundary ARN to apply to the created JMeter role (if allow_create_iam is true)"
+  type        = string
+  default     = ""
+}
+
+variable "attach_s3_read" {
+  description = "If true, attach an inline policy to allow s3:GetObject/ListBucket on specified buckets"
+  type        = bool
+  default     = false
+}
+
+variable "s3_read_bucket_arns" {
+  description = "List of S3 bucket ARNs to grant read access to (when attach_s3_read is true)"
+  type        = list(string)
+  default     = []
+}
+
+variable "kms_key_arns" {
+  description = "Optional list of KMS key ARNs to allow kms:Decrypt (for reading KMS-encrypted S3 objects or parameters)"
+  type        = list(string)
+  default     = []
+}
+
+variable "jmeter_poweroff_after_setup" {
+  description = "If true (default), power off the JMeter instance at the end of user-data setup"
+  type        = bool
+  default     = true
+}
+
+# Optional: Manage NACL rules for SSM DNS/NTP from this stack
+variable "jmeter_subnet_network_acl_id" {
+  description = "Network ACL ID associated with the JMeter subnet. When set, this stack will add allow rules for DNS (UDP 53 egress) and UDP ephemeral ingress to support SSM over NAT"
+  type        = string
+  default     = ""
+}
+
+variable "ssm_nacl_rule_base_number" {
+  description = "Base rule number to use for SSM NACL rules (uses N, N+1, and optionally N+2)"
+  type        = number
+  default     = 902
+}
+
+variable "ssm_nacl_enable_ntp" {
+  description = "If true, also add an egress rule for NTP (UDP 123)"
+  type        = bool
+  default     = true
+}
+
+variable "ssm_nacl_ingress_cidr" {
+  description = "CIDR for UDP ephemeral ingress rule (use 0.0.0.0/0 for NAT return traffic)"
+  type        = string
+  default     = "0.0.0.0/0"
+}
