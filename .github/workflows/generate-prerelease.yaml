@@ -1,0 +1,19 @@
+name: Prerelease Tag Automation
+
+permissions:
+  id-token: write
+  contents: write
+
+on:
+  workflow_call: {}
+
+jobs:
+  generate-prerelease:
+    name: "Generate prerelease tag"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v5
+
+      - name: "Generate prerelease tag"
+        uses: ./.github/actions/generate-prerelease
