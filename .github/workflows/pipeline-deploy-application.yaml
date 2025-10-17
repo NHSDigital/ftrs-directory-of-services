@@ -270,6 +270,7 @@ jobs:
       - service-automation-tests
     if: >
       always() &&
+      github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       needs.deploy-read-only-viewer-service.result == 'success' &&
       needs.service-automation-tests.result == 'success'
