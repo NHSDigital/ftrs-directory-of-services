@@ -197,9 +197,35 @@ fi
 
 echo "[user-data] Installing Java 17 (Amazon Corretto) and utilities"
 if command -v dnf >/dev/null 2>&1; then
-  dnf -y install java-17-amazon-corretto-headless unzip jq curl wget tar || true
+  # Base utilities
+  dnf -y install unzip jq curl wget tar || true
+  # Try Corretto first (may not be in default repos on AL2023)
+  dnf -y install java-17-amazon-corretto-headless || true
+  if ! command -v java >/dev/null 2>&1; then
+    echo "[user-data] Corretto 17 not available, falling back to OpenJDK 17"
+    dnf -y install java-17-openjdk-headless || true
+  fi
 else
-  yum -y install java-17-amazon-corretto-headless unzip jq curl wget tar || true
+  # Base utilities
+  yum -y install unzip jq curl wget tar || true
+  # Try Corretto first
+  yum -y install java-17-amazon-corretto-headless || true
+  if ! command -v java >/dev/null 2>&1; then
+    echo "[user-data] Corretto 17 not available, falling back to OpenJDK 17"
+    yum -y install java-17-openjdk-headless || true
+  fi
+fi
+
+# Set JAVA_HOME system-wide if java is present (helps non-login shells)
+if command -v java >/dev/null 2>&1; then
+  JB=$(readlink -f "$(command -v java)" || command -v java)
+  JH=$(dirname "$(dirname "$JB")")
+  echo "export JAVA_HOME=$JH" >/etc/profile.d/java_home.sh
+  echo 'export PATH="$JAVA_HOME/bin:$PATH"' >>/etc/profile.d/java_home.sh
+  chmod 0644 /etc/profile.d/java_home.sh
+  echo "[user-data] JAVA_HOME set to $JH"
+else
+  echo "[user-data][ERROR] Java 17 installation failed (no 'java' found in PATH)" >&2
 fi
 
 # Ensure SSM Agent is present and running so Session Manager works
@@ -239,6 +265,13 @@ if [ -d "/opt/apache-jmeter-$${JMETER_VERSION}" ]; then
   mv "/opt/apache-jmeter-$${JMETER_VERSION}" /opt/jmeter/apache-jmeter
 fi
 
+# Export JMETER_HOME system-wide for convenience
+cat >/etc/profile.d/jmeter.sh <<'ENVJ'
+export JMETER_HOME=/opt/jmeter/apache-jmeter
+export PATH="$JMETER_HOME/bin:$PATH"
+ENVJ
+chmod 0644 /etc/profile.d/jmeter.sh
+
 ln -sf /opt/jmeter/apache-jmeter/bin/jmeter /usr/local/bin/jmeter
 ln -sf /opt/jmeter/apache-jmeter/bin/jmeter-server /usr/local/bin/jmeter-server
 
@@ -267,11 +300,24 @@ curl -fL -o "$${JMETER_HOME}/lib/java-jwt-4.5.0.jar" \
 cat >/usr/local/bin/jmeter-run <<'WRAP'
 #!/usr/bin/env bash
 set -euo pipefail
+# Ensure JAVA_HOME if not set
+if [[ -z "$${JAVA_HOME:-}" ]]; then
+  if command -v java >/dev/null 2>&1; then
+    JB=$(readlink -f "$(command -v java)" 2>/dev/null || command -v java)
+    export JAVA_HOME="$(dirname "$(dirname "$JB")")"
+    export PATH="$JAVA_HOME/bin:$PATH"
+  fi
+fi
+# Ensure JMETER_HOME if not set
+if [[ -z "$${JMETER_HOME:-}" ]]; then
+  export JMETER_HOME="/opt/jmeter/apache-jmeter"
+  export PATH="$JMETER_HOME/bin:$PATH"
+fi
 if ! command -v jmeter >/dev/null 2>&1; then
   echo "jmeter not found in PATH" >&2
   exit 1
 fi
-jmeter "$@"
+exec jmeter "$@"
 WRAP
 chmod +x /usr/local/bin/jmeter-run
 
