@@ -66,6 +66,26 @@ resource "aws_vpc_security_group_egress_rule" "egress_http" {
   to_port           = 80
 }
 
+# DNS resolution is required for SSM agent to reach regional endpoints
+resource "aws_vpc_security_group_egress_rule" "egress_dns_udp" {
+  security_group_id = aws_security_group.jmeter_ec2_sg.id
+  description       = "Allow DNS egress (UDP 53)"
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "udp"
+  from_port         = 53
+  to_port           = 53
+}
+
+# Time sync helps avoid TLS/session issues with SSM
+resource "aws_vpc_security_group_egress_rule" "egress_ntp_udp" {
+  security_group_id = aws_security_group.jmeter_ec2_sg.id
+  description       = "Allow NTP egress (UDP 123)"
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "udp"
+  from_port         = 123
+  to_port           = 123
+}
+
 # IAM: support either an existing instance profile (if provided) or create one when allowed
 resource "aws_iam_role" "jmeter_ec2_role" {
   count = (var.jmeter_instance_profile_name == "" && var.allow_create_iam) ? 1 : 0
@@ -168,6 +188,12 @@ locals {
     echo "[user-data] Installing Java 17 (Amazon Corretto) and utilities"
     dnf -y install java-17-amazon-corretto-headless unzip jq curl wget tar || true
 
+    # Ensure SSM Agent is present and running so Session Manager works
+    echo "[user-data] Ensuring SSM Agent installed and running"
+    dnf -y install amazon-ssm-agent || true
+    systemctl enable amazon-ssm-agent || true
+    systemctl start amazon-ssm-agent || true
+
     JMETER_VERSION="${var.jmeter_version}"
     JMETER_TGZ="apache-jmeter-$${JMETER_VERSION}.tgz"
     JMETER_URL="https://archive.apache.org/dist/jmeter/binaries/$${JMETER_TGZ}"
@@ -229,9 +255,13 @@ WRAP
     echo "[user-data] Mark installation complete"
     touch /opt/jmeter/.installed
 
-    # Power off the instance so default state is Stopped
-    echo "[user-data] Powering off instance"
-    systemctl poweroff --no-wall || shutdown -h now || true
+    # Optionally power off the instance so default state is Stopped
+    if [ "${var.jmeter_poweroff_after_setup}" = "true" ]; then
+      echo "[user-data] Powering off instance"
+      systemctl poweroff --no-wall || shutdown -h now || true
+    else
+      echo "[user-data] Leaving instance running for SSM/interactive use"
+    fi
   EOT
 }
 
@@ -246,7 +276,8 @@ resource "aws_instance" "jmeter" {
   ebs_optimized               = true
   monitoring                  = true
 
-  user_data = local.jmeter_user_data
+  user_data                   = local.jmeter_user_data
+  user_data_replace_on_change = true
 
   root_block_device {
     encrypted   = true
