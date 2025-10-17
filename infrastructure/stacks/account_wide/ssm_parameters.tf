@@ -27,3 +27,18 @@ resource "aws_ssm_parameter" "texas_vpc_endpoint_service_name" {
     ]
   }
 }
+
+resource "aws_ssm_parameter" "cis2_client_config" {
+  # checkov:skip=CKV_AWS_337: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-402
+  name        = "/${var.project}/${var.environment}/cis2-client-config"
+  description = "The CIS2 Client Configuration"
+  type        = "SecureString"
+  tier        = "Standard"
+  value       = "CHANGE_ME" # Placeholder, to be manually updated in AWS Console or via CLI later
+
+  lifecycle {
+    ignore_changes = [
+      value
+    ]
+  }
+}
