@@ -212,7 +212,7 @@ elif command -v yum >/dev/null 2>&1; then
 fi
 if ! rpm -q amazon-ssm-agent >/dev/null 2>&1; then
   echo "[user-data] Installing SSM Agent from S3 fallback"
-  rpm -Uvh --force "https://s3.${REGION}.amazonaws.com/amazon-ssm-${REGION}/latest/linux_amd64/amazon-ssm-agent.rpm"
+  rpm -Uvh --force "https://s3.$${REGION}.amazonaws.com/amazon-ssm-$${REGION}/latest/linux_amd64/amazon-ssm-agent.rpm"
 fi
 systemctl enable amazon-ssm-agent
 systemctl restart amazon-ssm-agent
