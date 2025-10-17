@@ -71,7 +71,7 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/steampipe-readonly-role
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ github.event.repository.name }}-steampipe-readonly-role
           role-chaining: true
           role-session-name: GitHubActionsSteampipe
           aws-region: ${{ vars.AWS_REGION }}
