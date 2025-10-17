@@ -73,7 +73,7 @@ data "aws_iam_policy_document" "trust_github_runner_roles" {
 }
 
 resource "aws_iam_role" "steampipe_role" {
-  name               = "steampipe-readonly-role"
+  name               = "${local.resource_prefix}-${var.steampipe_role_name}"
   assume_role_policy = data.aws_iam_policy_document.trust_github_runner_roles.json
 }
 
