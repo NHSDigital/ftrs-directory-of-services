@@ -1,0 +1,11 @@
+name: "Generate prerelease tag action"
+description: "Generate a prerelease tag for the repository."
+
+runs:
+  using: composite
+  steps:
+    - name: "Generate prerelease tag"
+      id: generate_prerelease
+      shell: bash
+      run: |
+        ./scripts/workflow/generate-prerelease.sh

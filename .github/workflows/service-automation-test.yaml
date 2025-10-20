@@ -1,12 +1,11 @@
 name: service automation test workflow
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 
 on:
   workflow_call:
-
     inputs:
       environment:
         description: The relevant github environment (for secrets and variables)
