@@ -14,9 +14,8 @@ from pipeline.load_data import load_data
 
 from .extract import (
     extract_ods_code,
-    fetch_ods_organisation_data,
     fetch_organisation_uuid,
-    fetch_sync_data,
+    fetch_outdated_organisations,
 )
 from .transform import transform_to_payload
 
@@ -27,35 +26,13 @@ ods_processor_logger = Logger.get(service="ods_processor")
 
 def processor(date: str) -> None:
     """
-    Extract GP practice data from the source, transform to payload, and load in batches.
+    Extract ODS data, transform to payload, and load in batches.
     """
     try:
-        organisations = fetch_sync_data(date)
+        organisations = fetch_outdated_organisations(date)
         if not organisations:
-            ods_processor_logger.log(
-                OdsETLPipelineLogBase.ETL_PROCESSOR_020,
-                date=date,
-            )
             return
-        transformed_batch = []
-        for organisation in organisations:
-            org_link = organisation.get("OrgLink")
-            if not org_link:
-                ods_processor_logger.log(
-                    OdsETLPipelineLogBase.ETL_PROCESSOR_021,
-                )
-                continue
-            organisation_ods_code = extract_ods_code(org_link)
-            transformed_request = process_organisation(organisation_ods_code)
-            if transformed_request is not None:
-                transformed_batch.append(transformed_request)
-
-            if len(transformed_batch) == BATCH_SIZE:
-                load_data(transformed_batch)
-                transformed_batch.clear()
-
-        if transformed_batch:
-            load_data(transformed_batch)
+        _batch_and_load_organisations(organisations)
 
     except requests.exceptions.RequestException as e:
         ods_processor_logger.log(
@@ -63,7 +40,6 @@ def processor(date: str) -> None:
             error_message=str(e),
         )
         raise
-
     except Exception as e:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_023,
@@ -72,23 +48,40 @@ def processor(date: str) -> None:
         raise
 
 
-def process_organisation(ods_code: str) -> str | None:
-    """
-    Process a single organisation by extracting data, transforming it, and returning the payload.
-    """
+def _batch_and_load_organisations(organisations: list[dict]) -> None:
+    transformed_batch = []
+
+    for organisation in organisations:
+        transformed_request = _process_organisation(organisation)
+        if transformed_request is not None:
+            transformed_batch.append(transformed_request)
+
+            if len(transformed_batch) == BATCH_SIZE:
+                load_data(transformed_batch)
+                transformed_batch.clear()
+
+    if transformed_batch:
+        load_data(transformed_batch)
+
+
+def _process_organisation(organisation: dict) -> str | None:
     try:
         correlation_id = get_correlation_id()
-        organisation_data = fetch_ods_organisation_data(ods_code)
-        fhir_organisation = transform_to_payload(organisation_data, ods_code)
+        ods_code = extract_ods_code(organisation)
+
+        # Transform first so API calls to check for UUID are minimized if data is invalid
+        fhir_organisation = transform_to_payload(organisation, ods_code)
         org_uuid = fetch_organisation_uuid(ods_code)
-        fhir_organisation.id = org_uuid
         if org_uuid is None:
             ods_processor_logger.log(
                 OdsETLPipelineLogBase.ETL_PROCESSOR_027,
                 ods_code=ods_code,
-                error_message="Organisation UUID not found.",
+                error_message="Organisation UUID not found in internal system.",
             )
             return None
+
+        fhir_organisation.id = org_uuid
+
         return json.dumps(
             {
                 "path": org_uuid,
@@ -96,7 +89,6 @@ def process_organisation(ods_code: str) -> str | None:
                 "correlation_id": correlation_id,
             }
         )
-
     except Exception as e:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_027,

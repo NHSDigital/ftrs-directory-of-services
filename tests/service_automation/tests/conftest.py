@@ -125,7 +125,7 @@ def api_request_context(playwright):
 
 
 @pytest.fixture
-def api_request_context_api_key_factory(playwright, api_key: str, service_url_factory):
+def api_request_context_api_key_factory(playwright, apim_api_key: str, service_url_factory):
     """Factory to create API request contexts dynamically based on API name."""
     contexts = []
 
@@ -137,7 +137,7 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
             extra_http_headers={
                 "Content-Type": "application/fhir+json",
                 "Accept": "application/fhir+json",
-                "apikey": api_key,
+                "apikey": apim_api_key,
             },
         )
         contexts.append(context)
@@ -149,6 +149,23 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
             ctx.dispose()
         except Exception as e:
             logger.error(f"Error disposing context: {e}")
+
+
+@pytest.fixture
+def api_request_context_ods_terminology(playwright, ods_terminology_api_key: str):
+    """Create API request context for ODS Terminology API."""
+    base_url = "https://api.service.nhs.uk/organisation-data-terminology-api/fhir"
+    context = playwright.request.new_context(
+        base_url=base_url,
+        ignore_https_errors=True,
+        extra_http_headers={
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+            "apikey": ods_terminology_api_key,
+        },
+    )
+    yield context
+    context.dispose()
 
 
 @pytest.fixture
@@ -272,10 +289,22 @@ def get_mtls_certs(env):
 
 
 @pytest.fixture(scope="session")
-def api_key() -> str:
+def apim_api_key() -> str:
     """Return the raw API key string from Secrets Manager."""
     gsw = GetSecretWrapper()
     key_json = gsw.get_secret("/ftrs-dos/dev/apim-api-key")
+    key_dict = json.loads(key_json)
+    api_key = key_dict.get("api_key")
+    if not api_key:
+        raise ValueError("API key not found in secret")
+    return api_key
+
+
+@pytest.fixture(scope="session")
+def ods_terminology_api_key() -> str:
+    """Return the raw ODS Terminology key string from Secrets Manager."""
+    gsw = GetSecretWrapper()
+    key_json = gsw.get_secret("/ftrs-dos/dev/ods-terminology-api-key")
     key_dict = json.loads(key_json)
     api_key = key_dict.get("api_key")
     if not api_key:
