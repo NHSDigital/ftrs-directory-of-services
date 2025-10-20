@@ -6,7 +6,6 @@ from requests import HTTPError
 
 from pipeline.extract import (
     _extract_organizations_from_bundle,
-    extract_ods_code,
     fetch_organisation_uuid,
     fetch_outdated_organisations,
     validate_ods_code,
@@ -219,93 +218,6 @@ def test_fetch_organisation_uuid_no_organisation_returned(
 
     result = fetch_organisation_uuid("XYZ999")
     assert result is None
-
-
-def test_extract_ods_code_success() -> None:
-    """Test extracting ODS code from FHIR Organization resource."""
-    organisation_resource = {
-        "resourceType": "Organization",
-        "id": "ABC123",
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-    }
-    result = extract_ods_code(organisation_resource)
-    assert result == "ABC123"
-
-
-def test_extract_ods_code_multiple_identifiers() -> None:
-    """Test extracting ODS code when multiple identifiers present."""
-    organisation_resource = {
-        "resourceType": "Organization",
-        "id": "XYZ789",
-        "identifier": [
-            {"system": "http://other-system.com", "value": "OTHER123"},
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "XYZ789",
-            },
-        ],
-    }
-    result = extract_ods_code(organisation_resource)
-    assert result == "XYZ789"
-
-
-@pytest.mark.parametrize(
-    "organisation_resource,expected_error",
-    [
-        (
-            {
-                "resourceType": "Organization",
-                "id": "TEST123",
-                "identifier": [
-                    {"system": "http://other-system.com", "value": "OTHER123"}
-                ],
-            },
-            "No ODS code identifier found",
-        ),
-        (
-            {
-                "resourceType": "Organization",
-                "id": "ABC123",
-                "identifier": [
-                    {
-                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                        "value": "",
-                    }
-                ],
-            },
-            "value is empty",
-        ),
-    ],
-)
-def test_extract_ods_code_errors(
-    organisation_resource: dict, expected_error: str
-) -> None:
-    """Test error handling when extracting ODS code from Organization resource."""
-    with pytest.raises(ValueError) as excinfo:
-        extract_ods_code(organisation_resource)
-    assert expected_error in str(excinfo.value)
-
-
-def test_extract_ods_code_malformed_identifier() -> None:
-    """Test that malformed identifiers are skipped."""
-    organisation_resource = {
-        "resourceType": "Organization",
-        "id": "ABC123",
-        "identifier": [
-            "not-a-dict",  # Malformed identifier
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            },
-        ],
-    }
-    result = extract_ods_code(organisation_resource)
-    assert result == "ABC123"
 
 
 @pytest.mark.parametrize(

@@ -90,29 +90,6 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
         raise
 
 
-def extract_ods_code(organisation_resource: dict) -> str:
-    identifiers = organisation_resource.get("identifier", [])
-    for identifier in identifiers:
-        if not isinstance(identifier, dict):
-            continue
-
-        system = identifier.get("system")
-        value = identifier.get("value")
-
-        if system == "https://fhir.nhs.uk/Id/ods-organization-code":
-            if not value:
-                err_msg = "ODS code identifier found but value is empty"
-                raise ValueError(err_msg)
-            return value
-
-    resource_id = organisation_resource.get("id", "unknown")
-    error_msg = (
-        f"No ODS code identifier found in Organization resource (id: {resource_id})"
-    )
-    raise ValueError(error_msg)
-
-
-# To be moved to common package
 def validate_ods_code(ods_code: str) -> None:
     if not isinstance(ods_code, str) or not re.match(r"^[A-Za-z0-9]{5,12}$", ods_code):
         ods_processor_logger.log(

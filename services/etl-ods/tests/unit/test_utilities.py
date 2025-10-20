@@ -554,9 +554,6 @@ def test__get_api_key_for_url_client_error_non_resource_not_found(
 def test__get_api_key_for_url_json_decode_error_logs(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """
-    Test _get_api_key_for_url logs ETL_UTILS_007 when JSONDecodeError is thrown.
-    """
     mock_secretsmanager = MagicMock()
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.return_value = {
@@ -565,7 +562,7 @@ def test__get_api_key_for_url_json_decode_error_logs(
     with caplog.at_level("WARNING"):
         with pytest.raises(json.JSONDecodeError):
             _get_api_key_for_url("https://test-apim-api.example.com/Organization")
-        assert "Error decoding json whith issue:" in caplog.text
+        assert "Error decoding json with issue:" in caplog.text
 
 
 @patch.dict(

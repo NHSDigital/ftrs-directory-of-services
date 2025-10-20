@@ -296,7 +296,10 @@ def test_process_organisation_exception_logs_and_returns_none(
 
     result = processor.__globals__["_process_organisation"](organisation_resource)
     assert result is None
-    assert "ETL_PROCESSOR_027" in caplog.text or "ANYCODE" in caplog.text
+    assert (
+        "Error processing organisation with ods_code unknown: transform failed"
+        in caplog.text
+    )
 
 
 def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:

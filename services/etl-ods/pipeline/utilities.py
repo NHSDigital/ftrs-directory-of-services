@@ -16,6 +16,8 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
 
+TIMEOUT_SECONDS = 20
+
 
 @cache
 def get_base_apim_api_url() -> str:
@@ -134,7 +136,6 @@ def make_request(
     )
     ods_utils_logger.append_keys(correlation_id=headers.get("X-Correlation-ID"))
 
-    TIMEOUT_SECONDS = 20
     try:
         response = requests.request(
             url=url,
