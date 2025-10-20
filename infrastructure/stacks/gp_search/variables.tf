@@ -74,7 +74,11 @@ variable "jmeter_instance_type" {
 variable "jmeter_volume_size" {
   description = "Root volume size (GiB) for JMeter EC2 instance"
   type        = number
-  default     = 16
+  default     = 30
+  validation {
+    condition     = var.jmeter_volume_size >= 30
+    error_message = "jmeter_volume_size must be >= 30 GiB to satisfy the AMI snapshot minimum size"
+  }
 }
 
 variable "ssh_key_pair_name" {
@@ -148,4 +152,11 @@ variable "ssm_nacl_ingress_cidr" {
   description = "CIDR for UDP ephemeral ingress rule (use 0.0.0.0/0 for NAT return traffic)"
   type        = string
   default     = "0.0.0.0/0"
+}
+
+# Feature flag to control deployment of the JMeter EC2 and related resources from this stack
+variable "deploy_jmeter" {
+  description = "If true (default), deploy JMeter EC2 and supporting IAM/SG/NACL resources from this gp_search stack; set to false when migrating to account_wide"
+  type        = bool
+  default     = true
 }
