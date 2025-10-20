@@ -155,8 +155,10 @@ variable "ssm_nacl_ingress_cidr" {
 }
 
 # Feature flag to control deployment of the JMeter EC2 and related resources from this stack
+/*
 variable "deploy_jmeter" {
   description = "If true (default), deploy JMeter EC2 and supporting IAM/SG/NACL resources from this gp_search stack; set to false when migrating to account_wide"
   type        = bool
   default     = true
 }
+*/
