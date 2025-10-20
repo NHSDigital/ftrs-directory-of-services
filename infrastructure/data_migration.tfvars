@@ -8,7 +8,7 @@ source_rds_database  = "pathwaysdos_future"
 target_rds_database  = "dos"
 replica_rds_database = "data_migration"
 rds_engine           = "aurora-postgresql"
-rds_engine_version   = "16.6"
+rds_engine_version   = "16.8"
 rds_engine_mode      = "provisioned"
 rds_instance_class   = "db.serverless"
 
