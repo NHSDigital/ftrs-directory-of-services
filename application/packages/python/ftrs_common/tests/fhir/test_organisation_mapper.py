@@ -103,7 +103,6 @@ def test__extract_ods_code_from_identifiers_success() -> None:
             "use": "official",
             "system": "https://fhir.nhs.uk/Id/ods-organization-code",
             "value": "T6I4F",
-            "assigner": {"display": "NHS ENGLAND"},
         }
     ]
     result = mapper._extract_ods_code_from_identifiers(identifiers)
@@ -123,7 +122,6 @@ def test__extract_ods_code_from_identifiers_multiple_identifiers() -> None:
             "use": "official",
             "system": "https://fhir.nhs.uk/Id/ods-organization-code",
             "value": "ABC123",
-            "assigner": {"display": "NHS ENGLAND"},
         },
     ]
     result = mapper._extract_ods_code_from_identifiers(identifiers)
@@ -318,7 +316,6 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
                 "use": "official",
                 "system": "https://fhir.nhs.uk/Id/ods-organization-code",
                 "value": "C88037",
-                "assigner": {"display": "NHS ENGLAND"},
             }
         ],
         "type": {

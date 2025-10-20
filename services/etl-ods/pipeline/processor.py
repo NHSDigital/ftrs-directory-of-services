@@ -13,7 +13,6 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pipeline.load_data import load_data
 
 from .extract import (
-    extract_ods_code,
     fetch_organisation_uuid,
     fetch_outdated_organisations,
 )
@@ -65,12 +64,16 @@ def _batch_and_load_organisations(organisations: list[dict]) -> None:
 
 
 def _process_organisation(organisation: dict) -> str | None:
+    ods_code = None
     try:
         correlation_id = get_correlation_id()
-        ods_code = extract_ods_code(organisation)
 
         # Transform first so API calls to check for UUID are minimized if data is invalid
-        fhir_organisation = transform_to_payload(organisation, ods_code)
+        fhir_organisation = transform_to_payload(organisation)
+
+        # Extract ODS code from the transformed organisation for logging and UUID lookup
+        ods_code = fhir_organisation.identifier[0].value
+
         org_uuid = fetch_organisation_uuid(ods_code)
         if org_uuid is None:
             ods_processor_logger.log(
@@ -92,7 +95,7 @@ def _process_organisation(organisation: dict) -> str | None:
     except Exception as e:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_027,
-            ods_code=ods_code,
+            ods_code=ods_code if ods_code else "unknown",
             error_message=str(e),
         )
         return None
