@@ -263,8 +263,8 @@ def get_mtls_certs(env):
     # Fetch secrets from AWS
     gsw = GetSecretWrapper()
     logger.info(f"Fetching mTLS certs for env: {env}")
-    client_pem = gsw.get_secret(f"/ftrs-dos/{env}/api-ca-pk")  # Combined client cert + key
-    ca_cert = gsw.get_secret(f"/ftrs-dos/{env}/api-ca-cert")  # CA cert for server verification
+    client_pem = gsw.get_secret(f"/ftrs-directory-of-services/{env}/api-ca-pk")  # Combined client cert + key
+    ca_cert = gsw.get_secret(f"/ftrs-directory-of-services/{env}/api-ca-cert")  # CA cert for server verification
 
     client_pem = client_pem.encode('utf-8')
     ca_cert = ca_cert.encode('utf-8')
