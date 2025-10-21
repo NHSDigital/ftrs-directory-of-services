@@ -151,7 +151,7 @@ def api_request_context_api_key_factory(playwright, apim_api_key: str, service_u
             logger.error(f"Error disposing context: {e}")
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def api_request_context_ods_terminology(playwright, ods_terminology_api_key: str):
     """Create API request context for ODS Terminology API."""
     base_url = "https://api.service.nhs.uk/organisation-data-terminology-api/fhir"
