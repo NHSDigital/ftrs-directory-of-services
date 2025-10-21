@@ -1,0 +1,86 @@
+name: CIS2 Public and Private Key Pair Creation and Management Flow
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment where the key pair operations will be performed"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - int
+          - prod
+      tag:
+        description: "The git tag to checkout or, if not passed in, the current branch"
+        required: false
+        type: string
+  schedule:
+    - cron: "* * 1 JAN *" # Runs on January 1st every year
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  cis2-public-private-key-pair:
+    name: "CIS2 Public and Private Key Pair Creation and Management on - ${{ matrix.environment }} environment"
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include:
+          - environment: dev
+          - environment: test
+          - environment: int
+          - environment: prod
+      fail-fast: false
+
+    steps:
+      - name: Check if steps should run
+        id: should-run
+        run: |
+          SHOULD_RUN="true"
+
+          # If manually triggered, check if this matrix entry matches the inputs
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+
+            # Check environment matches (if specified)
+            if [[ -n "${{ inputs.environment }}" ]] && [[ "${{ matrix.environment }}" != "${{ inputs.environment }}" ]]; then
+              SHOULD_RUN="false"
+            fi
+          fi
+
+          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          echo "Should run: $SHOULD_RUN"
+
+      - name: Checkout repository
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS credentials"
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: account
+
+      - name: Create, Update or Rotate CIS2 Public and Private Key Pair
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          ./scripts/cis2/create-cis2-key-pair.sh
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - cis2-public-private-key-pair
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ matrix.environment }}
+    secrets: inherit
