@@ -14,6 +14,7 @@ from pipeline.utilities import (
     _get_api_key_for_url,
     build_headers,
     get_base_apim_api_url,
+    get_base_ods_terminology_api_url,
     handle_operation_outcomes,
     make_request,
 )
@@ -47,6 +48,57 @@ def test_get_base_apim_api_url_local() -> None:
     get_base_apim_api_url.cache_clear()
     result = get_base_apim_api_url()
     assert result == "http://test-apim-api"
+
+
+@patch.dict(
+    os.environ,
+    {
+        "ENVIRONMENT": "dev",
+        "ODS_URL": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
+    },
+)
+def test_get_base_ods_terminology_api_url() -> None:
+    """Test get_base_ods_terminology_api_url returns ODS_URL from environment."""
+    # Clear the cache to ensure the patched environment variables are used
+    get_base_ods_terminology_api_url.cache_clear()
+    result = get_base_ods_terminology_api_url()
+    assert (
+        result
+        == "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "ENVIRONMENT": "local",
+        "LOCAL_ODS_URL": "http://localhost:8080/ods-api",
+    },
+)
+def test_get_base_ods_terminology_api_url_local() -> None:
+    """Test get_base_ods_terminology_api_url returns LOCAL_ODS_URL for local environment."""
+    # Clear the cache to ensure the patched environment variables are used
+    get_base_ods_terminology_api_url.cache_clear()
+    result = get_base_ods_terminology_api_url()
+    assert result == "http://localhost:8080/ods-api"
+
+
+@patch.dict(
+    os.environ,
+    {
+        "ENVIRONMENT": "local",
+    },
+    clear=True,
+)
+def test_get_base_ods_terminology_api_url_local_fallback() -> None:
+    """Test get_base_ods_terminology_api_url falls back to int URL when LOCAL_ODS_URL is not set."""
+    # Clear the cache to ensure the patched environment variables are used
+    get_base_ods_terminology_api_url.cache_clear()
+    result = get_base_ods_terminology_api_url()
+    assert (
+        result
+        == "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
 
 
 def test_make_request_success(

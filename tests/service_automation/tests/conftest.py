@@ -16,6 +16,7 @@ from loguru import logger
 from pages.ui_pages.result import NewAccountPage
 from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
+from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
 from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
@@ -153,10 +154,12 @@ def api_request_context_api_key_factory(playwright, apim_api_key: str, service_u
 
 @pytest.fixture(scope="module")
 def api_request_context_ods_terminology(playwright, ods_terminology_api_key: str):
-    """Create API request context for ODS Terminology API."""
-    base_url = "https://api.service.nhs.uk/organisation-data-terminology-api/fhir"
+    """
+    Create API request context for ODS Terminology API.
+    Use ODS integration env for testing
+    """
     context = playwright.request.new_context(
-        base_url=base_url,
+        base_url=ODS_TERMINOLOGY_INT_API_URL,
         ignore_https_errors=True,
         extra_http_headers={
             "Content-Type": "application/fhir+json",

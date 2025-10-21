@@ -2,7 +2,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from typing import Optional, List, Dict, Tuple
-from utilities.common.constants import ODS_TERMINOLOGY_API_URL
+from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
 from utilities.common.context import Context
 from utilities.infra.api_util import make_api_request_with_retries
 from utilities.infra.lambda_util import *
@@ -85,7 +85,7 @@ def extract_primary_role_display(org_response: dict) -> Optional[str]:
 def fetch_ods_organizations(
     request_context: APIRequestContext, last_change_date: str, minimum_count: int
 ) -> List[dict]:
-    terminology_url = f"{ODS_TERMINOLOGY_API_URL}?_lastUpdated={last_change_date}"
+    terminology_url = f"{ODS_TERMINOLOGY_INT_API_URL}?_lastUpdated={last_change_date}"
     response = make_api_request_with_retries(
         request_context=request_context, method="GET", url=terminology_url
     )

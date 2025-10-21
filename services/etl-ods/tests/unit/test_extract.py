@@ -58,7 +58,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     assert result[0]["id"] == "ABC123"
     assert result[1]["id"] == "XYZ789"
     make_request_mock.assert_called_once_with(
-        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
+        "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
         params={"_lastUpdated": date},
     )
 

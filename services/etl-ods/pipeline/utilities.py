@@ -29,6 +29,24 @@ def get_base_apim_api_url() -> str:
     return os.environ.get("APIM_URL")
 
 
+@cache
+def get_base_ods_terminology_api_url() -> str:
+    env = os.environ.get("ENVIRONMENT", "local")
+
+    if env == "local":
+        return os.environ.get(
+            "LOCAL_ODS_URL",
+            "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
+        )
+
+    ods_url = os.environ.get("ODS_URL")
+    if ods_url is None:
+        err_msg = "ODS_URL environment variable is not set"
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_006, error_message=err_msg)
+        raise KeyError(err_msg)
+    return ods_url
+
+
 def _get_api_key_for_url(url: str) -> str:
     env = os.environ.get("ENVIRONMENT")
     is_ods_terminology_request = "api.service.nhs.uk" in url

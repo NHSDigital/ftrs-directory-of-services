@@ -99,7 +99,7 @@ def mock_responses(requests_mock: RequestsMock) -> MockResponses:
     ods_terminology_bundle = create_ods_terminology_bundle([org_abc123])
 
     ods_api_mock = requests_mock.get(
-        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
+        "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
         json=ods_terminology_bundle,
     )
 
@@ -196,7 +196,7 @@ def test_processor_continue_on_validation_failure(
     ods_terminology_bundle = create_ods_terminology_bundle([org_abc123, org_efg456])
 
     ods_api_mock = requests_mock.get(
-        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
+        "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
         json=ods_terminology_bundle,
     )
 
@@ -259,7 +259,7 @@ def test_processor_no_outdated_organisations(
 ) -> None:
     """Test when no outdated organisations are found."""
     requests_mock.get(
-        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
+        "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
         json={
             "resourceType": "Bundle",
             "type": "searchset",
