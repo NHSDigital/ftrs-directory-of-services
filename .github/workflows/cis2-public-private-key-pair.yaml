@@ -73,7 +73,7 @@ jobs:
       - name: Create, Update or Rotate CIS2 Public and Private Key Pair
         if: steps.should-run.outputs.should_run == 'true'
         run: |
-          ./scripts/cis2/create-cis2-key-pair.sh
+          ./scripts/cis2/create-cis2-key-pair.sh -r ${{ github.event.repository.name }} -e ${{ matrix.environment }}
 
   slack-notifications:
     name: "Send Notification to Slack"
