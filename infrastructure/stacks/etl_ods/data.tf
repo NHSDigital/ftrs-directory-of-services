@@ -90,6 +90,18 @@ data "aws_iam_policy_document" "secretsmanager_api_key_access_policy" {
   }
 }
 
+data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/apim-jwt-credentials*"
+    ]
+  }
+}
+
 data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
   statement {
     effect = "Allow"
