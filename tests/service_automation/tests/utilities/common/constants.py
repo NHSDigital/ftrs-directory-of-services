@@ -1,5 +1,5 @@
-ODS_TERMINOLOGY_API_URL = (
-    "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+ODS_TERMINOLOGY_INT_API_URL = (
+    "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
 )
 ENDPOINTS = {
     "health": "/_ping",

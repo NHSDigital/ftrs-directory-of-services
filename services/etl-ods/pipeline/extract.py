@@ -5,13 +5,13 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from pipeline.utilities import get_base_apim_api_url, make_request
+from pipeline.utilities import (
+    get_base_apim_api_url,
+    get_base_ods_terminology_api_url,
+    make_request,
+)
 
 ods_processor_logger = Logger.get(service="ods_processor")
-
-ODS_TERMINOLOGY_API_BASE_URL = (
-    "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
-)
 
 
 def fetch_outdated_organisations(date: str) -> list[dict]:
@@ -26,7 +26,8 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
         date=date,
     )
 
-    bundle = make_request(ODS_TERMINOLOGY_API_BASE_URL, params=params)
+    ods_url = get_base_ods_terminology_api_url()
+    bundle = make_request(ods_url, params=params)
     bundle_total = bundle.get("total", 0)
 
     if bundle_total == 0:
