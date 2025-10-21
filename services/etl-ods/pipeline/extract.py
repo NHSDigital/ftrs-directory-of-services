@@ -28,19 +28,18 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
 
     ods_url = get_base_ods_terminology_api_url()
     bundle = make_request(ods_url, params=params)
-    bundle_total = bundle.get("total", 0)
+    organisations = _extract_organizations_from_bundle(bundle)
 
-    if bundle_total == 0:
+    if not organisations:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_020,
             date=date,
         )
         return []
 
-    organisations = _extract_organizations_from_bundle(bundle)
     ods_processor_logger.log(
         OdsETLPipelineLogBase.ETL_PROCESSOR_002,
-        bundle_total=bundle_total,
+        bundle_total=len(organisations),
     )
     return organisations
 
