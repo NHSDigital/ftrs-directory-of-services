@@ -1,13 +1,13 @@
 name: Stop OpenSearch Ingestion Pipelines
 
 permissions:
-      actions: write
-      id-token: write
-      contents: read
+  actions: write
+  id-token: write
+  contents: read
 on:
   # Run daily, at 18:00.
   schedule:
-    - cron: '0 18 * * *'
+    - cron: "0 18 * * *"
 
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
@@ -15,20 +15,19 @@ on:
       environment:
         description: "Deployment environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
           - dev
 
 jobs:
-
   metadata:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
+
   stop_opensearch_ingestion_pipelines:
     if: ${{ needs.metadata.outputs.environment != 'prod' }}
     name: "Stop OpenSearch ingestion pipelines"
-
     timeout-minutes: 15
     environment: ${{ needs.metadata.outputs.environment }}
     needs:

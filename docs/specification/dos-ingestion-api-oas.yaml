@@ -417,7 +417,7 @@ paths:
           content:
             application/fhir+json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OperationOutcome'
               example:
                 resourceType: OperationOutcome
                 issue:

@@ -90,6 +90,8 @@ module "rds" {
   final_snapshot_identifier = "${local.resource_prefix}-rds"
 
   deletion_protection = true
+
+  auto_minor_version_upgrade = false
 }
 
 ## DMS Replication Instance
