@@ -12,13 +12,14 @@ on:
           - dev
           - test
           - int
+          - ref
           - prod
       tag:
         description: "The git tag to checkout or, if not passed in, the current branch"
         required: false
         type: string
   schedule:
-    - cron: "* * 1 JAN *" # Runs on January 1st every year
+    - cron: "* * 1 FEB *" # Runs on Feb 1st every year
 
 permissions:
   contents: read
@@ -35,6 +36,7 @@ jobs:
           - environment: dev
           - environment: test
           - environment: int
+          - environment: ref
           - environment: prod
       fail-fast: false
 

@@ -216,16 +216,8 @@ if aws secretsmanager describe-secret --secret-id "$PRIVATE_KEY_SECRET_NAME" &>/
         exit 1
     fi
 else
-    log_info "Creating new secret for private key..."
-    if aws secretsmanager create-secret \
-        --name "$PRIVATE_KEY_SECRET_NAME" \
-        --description "CIS2 RSA 4096-bit private key for $REPO_NAME in $ENVIRONMENT" \
-        --secret-string "$PRIVATE_KEY_CONTENT" &>/dev/null; then
-        log_info "Private key secret created successfully"
-    else
-        log_error "Failed to create private key secret"
-        exit 1
-    fi
+    log_error "Private key secret does not exist"
+    exit 1
 fi
 
 # Step 5: Store public key (JWKS) in AWS Secrets Manager
@@ -244,16 +236,8 @@ if aws secretsmanager describe-secret --secret-id "$PUBLIC_KEY_SECRET_NAME" &>/d
         exit 1
     fi
 else
-    log_info "Creating new secret for public key..."
-    if aws secretsmanager create-secret \
-        --name "$PUBLIC_KEY_SECRET_NAME" \
-        --description "CIS2 RSA 4096-bit public key (JWKS) for $REPO_NAME in $ENVIRONMENT" \
-        --secret-string "$PUBLIC_KEY_CONTENT" &>/dev/null; then
-        log_info "Public key secret created successfully"
-    else
-        log_error "Failed to create public key secret"
-        exit 1
-    fi
+    log_error "Public key secret does not exist"
+    exit 1
 fi
 
 log_info "========================================"
