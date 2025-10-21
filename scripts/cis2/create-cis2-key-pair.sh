@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Script to create RSA 4096-bit key pair and store in AWS Secrets Manager
 # The private key is stored in PEM format
-# The public key is stored in JWKS format
+# The public key is stored in JWKS format with a kid (key ID) that increments on each rotation
 
 # Color codes for output
 RED='\033[0;31m'
@@ -112,8 +112,43 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+# Determine the kid value by checking existing public key
+log_info "Determining kid value..."
+KID_NUMBER=1
+
+# Try to get the existing public key from Secrets Manager
+if aws secretsmanager describe-secret --secret-id "$PUBLIC_KEY_SECRET_NAME" &>/dev/null; then
+    log_info "Found existing public key secret, extracting previous kid..."
+    EXISTING_JWKS=$(aws secretsmanager get-secret-value --secret-id "$PUBLIC_KEY_SECRET_NAME" --query SecretString --output text 2>/dev/null || echo "")
+
+    if [[ -n "$EXISTING_JWKS" ]]; then
+        # Extract the kid value from the existing JWKS
+        EXISTING_KID=$(echo "$EXISTING_JWKS" | jq -r '.keys[0].kid // empty' 2>/dev/null || echo "")
+
+        if [[ -n "$EXISTING_KID" ]]; then
+            log_info "Found existing kid: $EXISTING_KID"
+            # Extract the number from the kid (format: environment-N)
+            EXISTING_NUMBER=$(echo "$EXISTING_KID" | grep -oE '[0-9]+$' || echo "0")
+            if [[ -n "$EXISTING_NUMBER" ]] && [[ "$EXISTING_NUMBER" =~ ^[0-9]+$ ]]; then
+                KID_NUMBER=$((EXISTING_NUMBER + 1))
+                log_info "Incrementing kid number from $EXISTING_NUMBER to $KID_NUMBER"
+            else
+                log_warning "Could not parse existing kid number, starting from 1"
+            fi
+        else
+            log_info "No existing kid found, starting from 1"
+        fi
+    else
+        log_info "No existing JWKS content found, starting from 1"
+    fi
+else
+    log_info "No existing public key secret found, starting from 1"
+fi
+
+KID_VALUE="${ENVIRONMENT}-${KID_NUMBER}"
+log_info "Using kid value: $KID_VALUE"
+
 # Extract modulus (n) and exponent (e) from public key using openssl
-# Get the public key in text format
 PUBLIC_KEY_TEXT=$(openssl rsa -pubin -in "$PUBLIC_KEY_FILE" -text -noout 2>/dev/null)
 
 if [[ $? -ne 0 ]]; then
@@ -144,12 +179,14 @@ EXPONENT_B64URL=$(echo "$EXPONENT_HEX" | xxd -r -p | base64 | tr '+/' '-_' | tr 
 jq -n \
     --arg n "$MODULUS_B64URL" \
     --arg e "$EXPONENT_B64URL" \
+    --arg kid "$KID_VALUE" \
     '{
         keys: [
             {
                 kty: "RSA",
                 use: "sig",
                 alg: "RS512",
+                kid: $kid,
                 n: $n,
                 e: $e
             }
