@@ -15,6 +15,7 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
 
+
 def get_jwt_authenticator() -> JWTAuthenticator:
     environment = os.environ.get("ENVIRONMENT", "local")
     resource_prefix = get_resource_prefix()
@@ -22,8 +23,9 @@ def get_jwt_authenticator() -> JWTAuthenticator:
     return JWTAuthenticator(
         environment=environment,
         region=os.environ["AWS_REGION"],
-        secret_name=f"/{resource_prefix}/apim-jwt-credentials"
+        secret_name=f"/{resource_prefix}/apim-jwt-credentials",
     )
+
 
 @cache
 def get_base_apim_api_url() -> str:
@@ -33,6 +35,7 @@ def get_base_apim_api_url() -> str:
         return os.environ["LOCAL_APIM_API_URL"]
 
     return os.environ.get("APIM_URL")
+
 
 def get_resource_prefix() -> str:
     project = os.environ.get("PROJECT_NAME")
