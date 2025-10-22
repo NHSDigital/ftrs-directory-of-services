@@ -15,7 +15,7 @@ make install
 Set required environment variables:
 ```bash
 export API_KEY="your-api-key"
-export PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+export PRIVATE_KEY="-----REDACTED-----"
 export KID="your-key-id"
 export TOKEN_URL="https://your-token-endpoint/oauth2/token"
 
@@ -40,7 +40,7 @@ export AWS_SECRET_ACCESS_KEY="your-secret-key"
 export AWS_REGION="eu-west-2"
 ```
 
-Fetch secrets from AWS Secret Manager and generate token for env (e.g dev, int etc)
+Fetch secrets from AWS Secret Manager and generate token for environment (e.g dev, int etc)
 ```bash
 make jwt-token env=dev
 ```
@@ -52,7 +52,7 @@ AWS Secrets Manager secret: `/ftrs-dos/{environment}/apim-jwt-credentials`
 ```json
 {
   "api_key": "your-api-key",
-  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
+  "private_key": "-----REDACTED-----",
   "kid": "your-key-id",
   "token_url": "https://your-token-endpoint/oauth2/token"
 }
