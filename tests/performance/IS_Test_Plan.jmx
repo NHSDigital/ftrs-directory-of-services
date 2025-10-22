@@ -44,7 +44,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
+          <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
             <stringProp name="delimiter">,</stringProp>
             <stringProp name="fileEncoding"></stringProp>
             <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -56,7 +56,7 @@
             <stringProp name="variableNames">ep_odscode</stringProp>
           </CSVDataSet>
           <hashTree/>
-          <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.LatenciesOverTimeGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="jp@gc - Response Latencies Over Time" enabled="true">
+          <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.LatenciesOverTimeGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="jp@gc - Response Latencies Over Time">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -102,7 +102,7 @@
           </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
           <hashTree/>
         </hashTree>
-        <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.HitsPerSecondGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="jp@gc - Hits per Second" enabled="true">
+        <kg.apc.jmeter.vizualizers.CorrectedResultCollector guiclass="kg.apc.jmeter.vizualizers.HitsPerSecondGui" testclass="kg.apc.jmeter.vizualizers.CorrectedResultCollector" testname="jp@gc - Hits per Second">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -148,7 +148,7 @@
         </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
         <hashTree/>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -185,18 +185,6 @@
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
-        <collectionProp name="UserParameters.names">
-          <stringProp name="1974762314">ServiceEndpoint</stringProp>
-        </collectionProp>
-        <collectionProp name="UserParameters.thread_values">
-          <collectionProp name="2135973118">
-            <stringProp name="503388542">${__P(serviceendpoint,${__CSVRead(parameter_files/plan_params.csv,0)})}</stringProp>
-          </collectionProp>
-        </collectionProp>
-        <boolProp name="UserParameters.per_iteration">false</boolProp>
-      </UserParameters>
-      <hashTree/>
       <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
         <stringProp name="cacheKey">true</stringProp>
         <stringProp name="filename"></stringProp>
@@ -204,7 +192,6 @@
         <stringProp name="script">import java.nio.file.Files
 import java.nio.file.Paths
 
-// Path to your CSV file (absolute or relative to JMeter working dir)
 def csvPath = &quot;parameter_files/plan_params.csv&quot;
 def file = new File(csvPath)
 
@@ -217,14 +204,14 @@ if (file.exists()) {
         def values = line.split(&quot;,&quot;)
         log.info(&quot;here1&quot;)
 
-        // Set each value as a JMeter variable, e.g. param_0_0, param_0_1, ...
+        // Set each value as a variable, e.g. param_0_0, param_0_1, ...
         values.eachWithIndex { val, col -&gt;
             vars.put(&quot;param_${idx}_${col}&quot;, val)
         }
     }
 } else {
-    log.warn(&quot;CSV file not found: &quot; + csvPath)
-}
+    log.warn(&quot;Plan_params file not found: &quot; + csvPath)
+    }
 
 
 def pp_endpoint = vars.get(&quot;param_0_0&quot;)
