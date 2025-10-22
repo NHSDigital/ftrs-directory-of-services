@@ -9,7 +9,7 @@
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
-    "check": "biome check"
+    "check": "biome check --write"
   },
   "dependencies": {
     "@tanstack/react-devtools": "^0.7.0",

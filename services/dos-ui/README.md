@@ -1,4 +1,10 @@
-# Getting Started
+# FtRS DoS UI
+
+The FtRS DoS UI is the Find the Right Service Directory of Services Users Interface.
+
+The application is built using React and TypeScript, and uses the TanStack Router for routing and data fetching.
+
+## Getting Started
 
 To run this application locally:
 
@@ -7,7 +13,7 @@ npm install
 npm run dev
 ```
 
-# Building For Production
+## Building For Production
 
 To build this application for production:
 
@@ -27,11 +33,9 @@ npm run test
 
 This project uses SCSS for styling, and imports NHS.UK Frontend as the base of all styles. The stylesheets are located in the `src/styles` directory. You can add your own styles to this directory and import them into your components.
 
-
 ## Linting & Formatting
 
 This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
 
 ```bash
 npm run lint
@@ -39,9 +43,8 @@ npm run format
 npm run check
 ```
 
-
-
 ## Routing
+
 This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
 
 ### Adding A Route
@@ -101,7 +104,6 @@ export const Route = createRootRoute({
 The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
 
 More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
 
 ## Data Fetching
 
@@ -290,10 +292,6 @@ Once we've created the derived store we can use it in the `App` component just l
 
 You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
 
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
+## Learn More
 
 You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).

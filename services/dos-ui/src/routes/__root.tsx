@@ -1,8 +1,13 @@
-import Banner from "@/components/Banner";
-import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Container, Footer, Header } from "nhsuk-react-components";
 import type { PropsWithChildren } from "react";
+import Banner from "@/components/Banner";
 import appStylesUrl from "../styles/App.scss?url";
 
 export const Route = createRootRoute({
@@ -28,10 +33,10 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
-          <RootDocument>
-            <Outlet />
-          </RootDocument>
-          <TanStackRouterDevtools />
+        <RootDocument>
+          <Outlet />
+        </RootDocument>
+        <TanStackRouterDevtools />
         <Scripts />
       </body>
     </html>
@@ -44,7 +49,7 @@ export const Route = createRootRoute({
         <a href="/">Return to the homepage</a>
       </p>
     </>
-  )
+  ),
 });
 
 const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
@@ -58,9 +63,7 @@ const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
           </Header.ServiceName>
         </Header.Container>
       </Header>
-      <Banner label="DoS UI">
-        This is a basic placeholder landing page.
-      </Banner>
+      <Banner label="DoS UI">This is a basic placeholder landing page.</Banner>
       <Container className="ftrs-page-container">{children}</Container>
       <Footer>
         <Footer.List>
