@@ -46,7 +46,7 @@ def generate_jwt(api_key, private_key, kid, token_url):
         "iss": api_key,
         "jti": str(uuid.uuid4()),
         "aud": token_url,
-        "exp": now + 600,  # 10 minutes
+        "exp": now + 300,  # 5 minutes
     }
 
     headers = {"kid": kid}
