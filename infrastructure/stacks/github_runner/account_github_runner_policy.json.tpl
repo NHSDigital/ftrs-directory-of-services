@@ -165,6 +165,14 @@
                 "shield:*"
             ],
             "Resource": "*"
-        }
+        },
+        {
+            "Sid": "APIGatewayAccount",
+            "Effect": "Allow",
+            "Action": [
+                "apigateway:*"
+            ],
+            "Resource": "arn:aws:apigateway:*::/account"
+        },
     ]
 }
