@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_mock import MockerFixture
 
+
 @pytest.fixture(autouse=True)
 def set_environment_variables() -> Generator:
     """Set environment variables for local testing."""

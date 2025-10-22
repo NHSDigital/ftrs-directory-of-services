@@ -1,20 +1,18 @@
-import json
 import os
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
-from botocore.exceptions import ClientError
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
     build_headers,
+    get_jwt_authenticator,
     handle_fhir_response,
     make_request,
-    get_jwt_authenticator,
 )
 
 
@@ -334,8 +332,6 @@ def test_get_jwt_authenticator_returns_configured_instance(mocker: MockerFixture
     """
     mock_jwt_authenticator = mocker.patch("pipeline.utilities.JWTAuthenticator")
 
-    authenticator = get_jwt_authenticator()
-
     mock_jwt_authenticator.assert_called_once_with(
         environment="dev",
         region="eu-west-2",
@@ -355,8 +351,6 @@ def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
     Test that get_jwt_authenticator works with local environment.
     """
     mock_jwt_authenticator = mocker.patch("pipeline.utilities.JWTAuthenticator")
-
-    authenticator = get_jwt_authenticator()
 
     mock_jwt_authenticator.assert_called_once_with(
         environment="local",
