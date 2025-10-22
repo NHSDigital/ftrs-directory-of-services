@@ -14,11 +14,11 @@ make install
 
 **Local Development (environment variables):**
 
-Set required environment variables:
+Set required environment variables
 
 ```bash
 export API_KEY="your-api-key"
-export PRIVATE_KEY="-----REDACTED-----"
+export PRIVATE_KEY="EXAMPLE_PRIVATE_KEY_VALUE"
 export KID="your-key-id"
 export TOKEN_URL="https://your-token-endpoint/oauth2/token"
 ```
@@ -33,7 +33,7 @@ make jwt-token env=local
 
 **AWS Secrets Manager:**
 
-Configure AWS credentials (required for dev/int environments):
+Configure AWS credentials (required for dev/int environments)
 
 ```bash
 aws configure
@@ -47,7 +47,7 @@ export AWS_SECRET_ACCESS_KEY="your-secret-key"
 export AWS_REGION="eu-west-2"
 ```
 
-Fetch secrets from AWS Secrets Manager and generate token for environment (e.g. dev, int, etc.):
+Fetch secrets from AWS Secrets Manager and generate token for environment
 
 ```bash
 make jwt-token env=dev
@@ -61,7 +61,7 @@ AWS Secrets Manager secret:
 ```json
 {
   "api_key": "your-api-key",
-  "private_key": "-----REDACTED-----",
+  "private_key": "EXAMPLE_PRIVATE_KEY_VALUE",
   "kid": "your-key-id",
   "token_url": "https://your-token-endpoint/oauth2/token"
 }
