@@ -274,6 +274,7 @@ def test_make_request_logs_request_exception(
             in caplog.text
         )
 
+
 def test_make_request_with_jwt_auth(
     requests_mock: RequestsMock, mocker: MockerFixture
 ) -> None:
@@ -288,7 +289,9 @@ def test_make_request_with_jwt_auth(
 
     # Mock the JWT authenticator
     mock_jwt_auth = MagicMock()
-    mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer test-jwt-token"}
+    mock_jwt_auth.get_auth_headers.return_value = {
+        "Authorization": "Bearer test-jwt-token"
+    }
     mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
 
     url = "https://api.example.com/resource"
@@ -325,7 +328,9 @@ def test_make_request_without_jwt_auth(requests_mock: RequestsMock) -> None:
         "AWS_REGION": "eu-west-2",
     },
 )
-def test_get_jwt_authenticator_returns_configured_instance(mocker: MockerFixture) -> None:
+def test_get_jwt_authenticator_returns_configured_instance(
+    mocker: MockerFixture,
+) -> None:
     """
     Test that get_jwt_authenticator returns a properly configured JWTAuthenticator instance.
     """

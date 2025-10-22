@@ -21,6 +21,7 @@ def set_environment_variables() -> Generator:
         os.environ["LOCAL_TOKEN_URL"] = "http://test-token-url"
         yield
 
+
 @pytest.fixture(autouse=True)
 def mock_jwt_authenticator_global(mocker: MockerFixture) -> MagicMock:
     """Automatically mock JWT authenticator for all tests."""
