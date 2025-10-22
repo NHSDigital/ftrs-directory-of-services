@@ -49,7 +49,7 @@ def get_base_ods_terminology_api_url() -> str:
 
 def _get_api_key_for_url(url: str) -> str:
     env = os.environ.get("ENVIRONMENT")
-    is_ods_terminology_request = "api.service.nhs.uk" in url
+    is_ods_terminology_request = "organisation-data-terminology-api" in url
 
     if env == "local":
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
