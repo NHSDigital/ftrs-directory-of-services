@@ -89,7 +89,7 @@ def make_request(
     method: str = "GET",
     params: dict = None,
     fhir: bool = False,
-    jwt_required: bool = True,
+    jwt_required: bool = False,
     **kwargs: dict,
 ) -> requests.Response:
     json_data = kwargs.get("json")
