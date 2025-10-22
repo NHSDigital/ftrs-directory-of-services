@@ -173,6 +173,6 @@
                 "apigateway:*"
             ],
             "Resource": "arn:aws:apigateway:*::/account"
-        },
+        }
     ]
 }
