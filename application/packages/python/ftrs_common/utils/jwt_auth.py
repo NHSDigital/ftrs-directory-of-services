@@ -49,15 +49,13 @@ class JWTAuthenticator:
     def _get_aws_credentials(self) -> Dict[str, str]:
         if self.custom_secret_name:
             secret_name = self.custom_secret_name
-        else:
-            project = os.environ.get("PROJECT_NAME", "ftrs")
-            secret_name = f"/{project}/{self.environment}/apim-jwt-credentials"
 
         try:
             client = boto3.client("secretsmanager", region_name=self.region)
             response = client.get_secret_value(SecretId=secret_name)
             secret_str = response["SecretString"]
             creds = json.loads(secret_str)
+            creds["private_key"] = creds["private_key"].replace("\\n", "\n")
 
             required_keys = ["api_key", "private_key", "kid", "token_url"]
             missing_keys = [key for key in required_keys if key not in creds]
