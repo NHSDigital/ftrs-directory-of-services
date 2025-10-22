@@ -11,10 +11,10 @@ from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
-    _get_api_key,
     build_headers,
     handle_fhir_response,
     make_request,
+    get_jwt_authenticator,
 )
 
 
@@ -277,25 +277,47 @@ def test_make_request_logs_request_exception(
             in caplog.text
         )
 
-
-def test_make_request_with_api_key(
+def test_make_request_with_jwt_auth(
     requests_mock: RequestsMock, mocker: MockerFixture
 ) -> None:
     """
-    Test the make_request function with api_key header.
+    Test the make_request function with JWT authentication.
     """
     mock_call = requests_mock.get(
         "https://api.example.com/resource",
         json={"key": "value"},
         status_code=HTTPStatus.OK,
     )
-    # Patch _get_api_key to return a known value
-    mocker.patch("pipeline.utilities._get_api_key", return_value="test-api-key")
+
+    # Mock the JWT authenticator
+    mock_jwt_auth = MagicMock()
+    mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer test-jwt-token"}
+    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+
     url = "https://api.example.com/resource"
-    result = make_request(url, api_key_required=True)
+    result = make_request(url, jwt_required=True)
+
     assert result.status_code == HTTPStatus.OK
     assert result.json() == {"key": "value"}
-    assert mock_call.last_request.headers["apikey"] == "test-api-key"
+    assert mock_call.last_request.headers["Authorization"] == "Bearer test-jwt-token"
+
+
+def test_make_request_without_jwt_auth(requests_mock: RequestsMock) -> None:
+    """
+    Test the make_request function without JWT authentication.
+    """
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
+
+    url = "https://api.example.com/resource"
+    result = make_request(url, jwt_required=False)
+
+    assert result.status_code == HTTPStatus.OK
+    assert result.json() == {"key": "value"}
+    assert "Authorization" not in mock_call.last_request.headers
 
 
 @patch.dict(
@@ -303,75 +325,99 @@ def test_make_request_with_api_key(
     {
         "PROJECT_NAME": "ftrs-dos",
         "ENVIRONMENT": "dev",
-        "WORKSPACE": "test-workspace",
+        "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
-def test__get_api_key_returns_value_from_json_secret(
-    mock_boto_client: MagicMock,
-) -> None:
-    mock_secretsmanager = MagicMock()
-    mock_boto_client.return_value = mock_secretsmanager
-    mock_secretsmanager.get_secret_value.return_value = {
-        "SecretString": '{"api_key": "super-secret-key"}'
+def test_get_jwt_authenticator_returns_configured_instance(mocker: MockerFixture) -> None:
+    """
+    Test that get_jwt_authenticator returns a properly configured JWTAuthenticator instance.
+    """
+    mock_jwt_authenticator = mocker.patch("pipeline.utilities.JWTAuthenticator")
+
+    authenticator = get_jwt_authenticator()
+
+    mock_jwt_authenticator.assert_called_once_with(
+        environment="dev",
+        region="eu-west-2",
+        secret_name="/ftrs-dos/dev/apim-jwt-credentials",
+    )
+
+
+@patch.dict(
+    os.environ,
+    {
+        "ENVIRONMENT": "local",
+        "AWS_REGION": "eu-west-2",
+    },
+)
+def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
+    """
+    Test that get_jwt_authenticator works with local environment.
+    """
+    mock_jwt_authenticator = mocker.patch("pipeline.utilities.JWTAuthenticator")
+
+    authenticator = get_jwt_authenticator()
+
+    mock_jwt_authenticator.assert_called_once_with(
+        environment="local",
+        region="eu-west-2",
+        secret_name="/None/local/apim-jwt-credentials",
+    )
+
+
+def test_build_headers_with_jwt_required(mocker: MockerFixture) -> None:
+    """
+    Test build_headers function includes JWT authentication headers when required.
+    """
+    mock_jwt_auth = MagicMock()
+    mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer test-token"}
+    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+
+    options = {
+        "json_data": {"foo": "bar"},
+        "jwt_required": True,
+        "fhir": False,
     }
 
-    api_key = _get_api_key()
-    expected_secret_name = "/ftrs-dos/dev/apim-api-key"
-    mock_secretsmanager.get_secret_value.assert_called_once_with(
-        SecretId=expected_secret_name
-    )
-    assert api_key == "super-secret-key"
+    headers = build_headers(options)
+
+    assert headers["Authorization"] == "Bearer test-token"
+    assert headers["Content-Type"] == "application/json"
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "ftrs-dos",
-        "ENVIRONMENT": "dev",
-        "WORKSPACE": "test-workspace",
-    },
-)
-@patch("pipeline.utilities.boto3.client")
-def test__get_api_key_client_error_logs(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
-) -> None:
-    mock_secretsmanager = MagicMock()
-    mock_boto_client.return_value = mock_secretsmanager
-    error_response = {"Error": {"Code": "ResourceNotFoundException"}}
-    mock_secretsmanager.get_secret_value.side_effect = ClientError(
-        error_response, "GetSecretValue"
-    )
-    with caplog.at_level("WARNING"):
-        with pytest.raises(ClientError):
-            _get_api_key()
-        assert (
-            "Error with secret: /ftrs-dos/dev/apim-api-key with message An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation"
-            in caplog.text
-        )
-
-
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "ftrs-dos",
-        "ENVIRONMENT": "dev",
-        "WORKSPACE": "test-workspace",
-    },
-)
-@patch("pipeline.utilities.boto3.client")
-def test__get_api_key_json_decode_error_logs(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
-) -> None:
+def test_build_headers_without_jwt_required() -> None:
     """
-    Test _get_api_key logs ETL_UTILS_007 when JSONDecodeError is thrown.
+    Test build_headers function does not include JWT headers when not required.
     """
-    mock_secretsmanager = MagicMock()
-    mock_boto_client.return_value = mock_secretsmanager
-    mock_secretsmanager.get_secret_value.return_value = {
-        "SecretString": "not-a-json-string"
+    options = {
+        "json_data": {"foo": "bar"},
+        "jwt_required": False,
+        "fhir": False,
     }
-    with caplog.at_level("WARNING"):
-        with pytest.raises(json.JSONDecodeError):
-            _get_api_key()
-        assert "Error secret is not in json format" in caplog.text
+
+    headers = build_headers(options)
+
+    assert "Authorization" not in headers
+    assert headers["Content-Type"] == "application/json"
+
+
+def test_build_headers_fhir_with_jwt(mocker: MockerFixture) -> None:
+    """
+    Test build_headers function with both FHIR and JWT requirements.
+    """
+    mock_jwt_auth = MagicMock()
+    mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer fhir-token"}
+    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+
+    options = {
+        "json_data": {"resourceType": "Patient"},
+        "json_string": '{"resourceType": "Patient"}',
+        "fhir": True,
+        "jwt_required": True,
+    }
+
+    headers = build_headers(options)
+
+    assert headers["Authorization"] == "Bearer fhir-token"
+    assert headers["Content-Type"] == "application/fhir+json"
+    assert headers["Accept"] == "application/fhir+json"
