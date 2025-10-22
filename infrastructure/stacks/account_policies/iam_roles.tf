@@ -26,3 +26,47 @@ resource "aws_iam_service_linked_role" "shield" {
   aws_service_name = "shield.amazonaws.com"
   description      = "Service-linked role for AWS Shield Advanced"
 }
+
+# Role and policy for allowing the REST variant of the API Gateway to write logs to specifically named log groups
+# in the account
+resource "aws_iam_role" "cloudwatch_api_gateway_role" {
+  name               = "${var.project}-api-gateway-cloudwatch"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role_policy" "api_gateway_cloudwatch_policy" {
+  name = "${var.project}-api-gateway-cloudwatch"
+  role = aws_iam_role.cloudwatch_api_gateway_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = [
+          "arn:aws:logs:${var.aws_region}:${local.account_id}:log-group:/aws/api-gateway/*"
+        ]
+      }
+    ]
+  })
+}
