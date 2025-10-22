@@ -7,6 +7,7 @@ WORKSPACE_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-pa
 MAIN_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket
 JMETER_PLUGINS_MANAGER_VERSION := 1.11
 CMDRUNNER_VERSION := 2.3
+AWS_REGION ?= eu-west-2
 
 install: config
 
@@ -74,7 +75,7 @@ _install-dependency: # Install asdf dependency - mandatory: name=[listed in the 
 
 _install-dependencies: # Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
-		$(MAKE) _install-dependency name="$${plugin}"; \
+		make _install-dependency name="$${plugin}"; \
 	done
 
 # Discover JMeter EC2 instance by a configurable filter (first match in account/environment)
