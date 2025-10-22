@@ -196,11 +196,7 @@
             "Effect": "Allow",
             "Action": [
                 "securityhub:GetEnabledStandards",
-                "securityhub:BatchDisableStandards",
-                "securityhub:UpdateSecurityHubConfiguration",
-                "securityhub:TagResource",
-                "securityhub:UntagResource",
-                "securityhub:ListTagsForResource"
+                "securityhub:BatchDisableStandards"
             ],
             "Resource": "*"
         }
