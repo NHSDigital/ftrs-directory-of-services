@@ -78,6 +78,7 @@
                 "iam:DeleteServiceLinkedRole",
                 "iam:CreatePolicy",
                 "iam:DeletePolicy",
+                "iam:PutRolePolicy",
                 "iam:AttachRolePolicy",
                 "iam:DetachRolePolicy",
                 "iam:DeleteRolePolicy",
