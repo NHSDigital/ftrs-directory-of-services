@@ -104,6 +104,16 @@
             ]
         },
         {
+            "Sid": "IAMPassRoleAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/ftrs-dos-*"
+            ]
+        },
+        {
             "Sid": "KMSFullAccess",
             "Effect": "Allow",
             "Action": [
@@ -173,6 +183,14 @@
                 "apigateway:*"
             ],
             "Resource": "arn:aws:apigateway:*::/account"
+        },
+        {
+            "Sid": "SecuritHubAccess",
+            "Effect": "Allow",
+            "Action": [
+                "securityhub:BatchEnableStandards"
+            ],
+            "Resource": "*"
         }
     ]
 }
