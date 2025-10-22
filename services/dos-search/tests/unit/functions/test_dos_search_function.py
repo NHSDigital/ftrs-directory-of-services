@@ -5,12 +5,12 @@ from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
-from functions.gp_search_function import lambda_handler
+from functions.dos_search_function import lambda_handler
 
 
 @pytest.fixture
 def mock_error_util():
-    with patch("functions.gp_search_function.error_util") as mock:
+    with patch("functions.dos_search_function.error_util") as mock:
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
 
@@ -24,14 +24,14 @@ def mock_error_util():
 
 @pytest.fixture
 def mock_ftrs_service():
-    with patch("functions.gp_search_function.FtrsService") as mock_class:
+    with patch("functions.dos_search_function.FtrsService") as mock_class:
         mock_service = mock_class.return_value
         yield mock_service
 
 
 @pytest.fixture
 def mock_logger():
-    with patch("functions.gp_search_function.logger") as mock:
+    with patch("functions.dos_search_function.logger") as mock:
         yield mock
 
 
@@ -131,7 +131,7 @@ class TestLambdaHandler:
 
         # Act
         with patch(
-            "functions.gp_search_function.OrganizationQueryParams.model_validate",
+            "functions.dos_search_function.OrganizationQueryParams.model_validate",
             side_effect=validation_error,
         ):
             response = lambda_handler(event, lambda_context)

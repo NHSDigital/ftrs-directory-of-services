@@ -395,6 +395,6 @@ def _cleanup_dynamodb_tables(client) -> None:
 
 # Step definition helpers
 @pytest.fixture(scope="function")  # Also change this to function scope
-def gp_search_context():
+def dos_search_context():
     """Context for storing test data during BDD scenarios."""
     return {}
