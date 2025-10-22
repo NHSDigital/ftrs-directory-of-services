@@ -111,7 +111,14 @@
             ],
             "Resource": [
                 "arn:aws:iam::*:role/ftrs-dos-*"
-            ]
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "iam:PassedToService": [
+                        "apigateway.amazonaws.com"
+                    ]
+                }
+            }
         },
         {
             "Sid": "KMSFullAccess",
@@ -185,7 +192,7 @@
             "Resource": "arn:aws:apigateway:*::/account"
         },
         {
-            "Sid": "SecuritHubAccess",
+            "Sid": "SecurityHubAccess",
             "Effect": "Allow",
             "Action": [
                 "securityhub:BatchEnableStandards"
