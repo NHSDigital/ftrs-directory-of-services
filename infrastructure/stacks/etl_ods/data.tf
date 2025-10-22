@@ -78,18 +78,6 @@ data "aws_iam_policy_document" "execute_api_policy" {
 
 }
 
-data "aws_iam_policy_document" "secretsmanager_api_key_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue"
-    ]
-    resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/apim-api-key*"
-    ]
-  }
-}
-
 data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
   statement {
     effect = "Allow"
