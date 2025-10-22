@@ -10,7 +10,6 @@ from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
     build_headers,
-    get_jwt_authenticator,
     handle_fhir_response,
     make_request,
 )
