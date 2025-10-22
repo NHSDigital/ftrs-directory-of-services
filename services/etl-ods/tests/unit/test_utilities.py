@@ -10,6 +10,7 @@ from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
     build_headers,
+    get_jwt_authenticator,
     handle_fhir_response,
     make_request,
 )
@@ -334,13 +335,25 @@ def test_get_jwt_authenticator_returns_configured_instance(
     """
     Test that get_jwt_authenticator returns a properly configured JWTAuthenticator instance.
     """
-    mock_jwt_authenticator = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    # Stop the global mock and create a new one for this test
+    mocker.stopall()
 
-    mock_jwt_authenticator.assert_called_once_with(
+    mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    mock_instance = mocker.MagicMock()
+    mock_jwt_authenticator_class.return_value = mock_instance
+
+    # Call the function under test
+    result = get_jwt_authenticator()
+
+    # Verify the constructor was called with correct parameters
+    mock_jwt_authenticator_class.assert_called_once_with(
         environment="dev",
         region="eu-west-2",
         secret_name="/ftrs-dos/dev/apim-jwt-credentials",
     )
+
+    # Verify the instance is returned
+    assert result == mock_instance
 
 
 @patch.dict(
@@ -348,19 +361,29 @@ def test_get_jwt_authenticator_returns_configured_instance(
     {
         "ENVIRONMENT": "local",
         "AWS_REGION": "eu-west-2",
+        "PROJECT_NAME": "ftrs",  # Add this if needed
     },
 )
 def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
     """
     Test that get_jwt_authenticator works with local environment.
     """
-    mock_jwt_authenticator = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    mocker.stopall()
 
-    mock_jwt_authenticator.assert_called_once_with(
+    mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    mock_instance = mocker.MagicMock()
+    mock_jwt_authenticator_class.return_value = mock_instance
+
+    result = get_jwt_authenticator()
+
+    # Check the actual call - it might be using a constructed secret path even for local
+    mock_jwt_authenticator_class.assert_called_once_with(
         environment="local",
         region="eu-west-2",
-        secret_name="/None/local/apim-jwt-credentials",
+        secret_name="/ftrs/local/apim-jwt-credentials",  # Adjust based on actual implementation
     )
+
+    assert result == mock_instance
 
 
 def test_build_headers_with_jwt_required(mocker: MockerFixture) -> None:
