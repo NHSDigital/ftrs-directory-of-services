@@ -8,7 +8,6 @@ import requests
 from time import time
 
 def get_config(env_name=None, region_name="eu-west-2"):
-    """Load config from AWS Secrets Manager or environment variables."""
     config = {}
 
     secret_name = None
@@ -25,19 +24,16 @@ def get_config(env_name=None, region_name="eu-west-2"):
         except Exception as e:
             print(f"Could not load secret from AWS Secrets Manager ({secret_name}): {e}")
 
-    # Fallback to environment variables if secret missing or incomplete
     config.setdefault("api_key", os.getenv("API_KEY"))
     config.setdefault("private_key", os.getenv("PRIVATE_KEY"))
     config.setdefault("kid", os.getenv("KID"))
     config.setdefault("token_url", os.getenv("TOKEN_URL"))
 
-    # Validate config
     required = ["api_key", "private_key", "kid", "token_url"]
     missing = [key for key in required if not config.get(key)]
     if missing:
         raise ValueError(f"Missing required configuration keys: {', '.join(missing)}")
 
-    # Restore newlines in private key if escaped
     config["private_key"] = config["private_key"].replace("\\n", "\n")
 
     return config
