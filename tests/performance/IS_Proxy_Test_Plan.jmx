@@ -5,8 +5,6 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -37,11 +35,11 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Transaction Controller" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Transaction Controller">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -111,11 +109,11 @@ public static String readFileContent(Path filePath) throws IOException {
 
     //Save the JWT in the compact string in the jmeter variables
     vars.put(&quot;JWT_Token&quot;, JWT_Token);
-    log.info(JWT_Token);</stringProp>
+</stringProp>
             <stringProp name="scriptLanguage">groovy</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token">
             <stringProp name="HTTPSampler.path">/oauth2/token</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -164,7 +162,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </JSONPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">/dos-search/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -201,13 +199,13 @@ public static String readFileContent(Path filePath) throws IOException {
             </Arguments>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer">
             <stringProp name="ConstantTimer.delay">3000</stringProp>
           </ConstantTimer>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments">
           <elementProp name="Apim_Domain" elementType="Argument">
             <stringProp name="Argument.name">Apim_Domain</stringProp>
@@ -217,46 +215,100 @@ public static String readFileContent(Path filePath) throws IOException {
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
         <stringProp name="scriptLanguage">groovy</stringProp>
-        <stringProp name="parameters">${pp_apim_env},${__CSVRead(parameter_files/plan_params.csv,3)}</stringProp>
+        <stringProp name="parameters"></stringProp>
         <stringProp name="filename"></stringProp>
         <stringProp name="cacheKey">false</stringProp>
-        <stringProp name="script">
+        <stringProp name="script">import java.nio.file.Files
+import java.nio.file.Paths
+
+// Path to your CSV file (absolute or relative to JMeter working dir)
+def csvPath = &quot;parameter_files/plan_params.csv&quot;
+def file = new File(csvPath)
+
+if (file.exists()) {
+
+    def lines = file.readLines()
+
+    // For each line, split by comma and set variables
+    lines.eachWithIndex { line, idx -&gt;
+        def values = line.split(&quot;,&quot;)
+        log.info(&quot;here1&quot;)
+
+        // Set each value as a JMeter variable, e.g. param_0_0, param_0_1, ...
+        values.eachWithIndex { val, col -&gt;
+            vars.put(&quot;param_${idx}_${col}&quot;, val)
+        }
+    }
+} else {
+    log.warn(&quot;CSV file not found: &quot; + csvPath)
+}
+
+
+def pp_apim_env = vars.get(&quot;param_0_1&quot;)
+def pp_apikey = vars.get(&quot;param_0_2&quot;)
+def pp_kid = vars.get(&quot;param_0_3&quot;)
+
+
 def kid = props.get(&quot;kid&quot;)
 if (kid == null || kid == &quot;&quot;) {
-  kid = vars.get(&quot;pp_kid&quot;)
+  kid = pp_kid
 }
 vars.put(&quot;Kid&quot;, kid)
 
 
 def Apim_Env = props.get(&quot;apim_env&quot;)
 if (Apim_Env == null || Apim_Env == &quot;&quot;) {
-    Apim_Env = vars.get(&quot;pp_apim_env&quot;)
+    Apim_Env = pp_apim_env
 }
 vars.put(&quot;Apim_Env&quot;, Apim_Env)
-log.info(args[0])
 
 def apikey = props.get(&quot;apikey&quot;)
 if (apikey == null || apikey == &quot;&quot;) {
-    apikey = vars.get(&quot;pp_apikey&quot;)
+    apikey = pp_apikey
 }
 vars.put(&quot;ApiKey&quot;, apikey)
 
 </stringProp>
       </JSR223PreProcessor>
       <hashTree/>
-      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config" enabled="true">
-        <stringProp name="filename">parameter_files/plan_params.csv</stringProp>
-        <stringProp name="fileEncoding"></stringProp>
-        <stringProp name="variableNames">pp_endpoint,pp_apim_env,pp_apikey,pp_kid</stringProp>
-        <boolProp name="ignoreFirstLine">false</boolProp>
-        <stringProp name="delimiter">,</stringProp>
-        <boolProp name="quotedData">false</boolProp>
-        <boolProp name="recycle">true</boolProp>
-        <boolProp name="stopThread">false</boolProp>
-        <stringProp name="shareMode">shareMode.all</stringProp>
-      </CSVDataSet>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
       <hashTree/>
     </hashTree>
   </hashTree>

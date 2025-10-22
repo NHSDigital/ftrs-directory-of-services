@@ -5,8 +5,6 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -187,7 +185,7 @@
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
+      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
         <collectionProp name="UserParameters.names">
           <stringProp name="1974762314">ServiceEndpoint</stringProp>
         </collectionProp>
@@ -198,6 +196,48 @@
         </collectionProp>
         <boolProp name="UserParameters.per_iteration">false</boolProp>
       </UserParameters>
+      <hashTree/>
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+        <stringProp name="cacheKey">true</stringProp>
+        <stringProp name="filename"></stringProp>
+        <stringProp name="parameters"></stringProp>
+        <stringProp name="script">import java.nio.file.Files
+import java.nio.file.Paths
+
+// Path to your CSV file (absolute or relative to JMeter working dir)
+def csvPath = &quot;parameter_files/plan_params.csv&quot;
+def file = new File(csvPath)
+
+if (file.exists()) {
+
+    def lines = file.readLines()
+
+    // For each line, split by comma and set variables
+    lines.eachWithIndex { line, idx -&gt;
+        def values = line.split(&quot;,&quot;)
+        log.info(&quot;here1&quot;)
+
+        // Set each value as a JMeter variable, e.g. param_0_0, param_0_1, ...
+        values.eachWithIndex { val, col -&gt;
+            vars.put(&quot;param_${idx}_${col}&quot;, val)
+        }
+    }
+} else {
+    log.warn(&quot;CSV file not found: &quot; + csvPath)
+}
+
+
+def pp_endpoint = vars.get(&quot;param_0_0&quot;)
+
+def serviceendpoint = props.get(&quot;serviceendpoint&quot;)
+if (serviceendpoint == null || serviceendpoint == &quot;&quot;) {
+    serviceendpoint = pp_endpoint
+}
+vars.put(&quot;ServiceEndpoint&quot;, serviceendpoint)
+
+</stringProp>
+        <stringProp name="scriptLanguage">groovy</stringProp>
+      </JSR223PreProcessor>
       <hashTree/>
     </hashTree>
   </hashTree>
