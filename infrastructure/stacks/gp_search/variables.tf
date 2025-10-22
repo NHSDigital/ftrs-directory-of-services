@@ -81,30 +81,6 @@ variable "jmeter_volume_size" {
   }
 }
 
-variable "ssh_key_pair_name" {
-  description = "Optional EC2 key pair name for SSH access (leave empty to disable key attachment)"
-  type        = string
-  default     = ""
-}
-
-variable "jmeter_instance_profile_name" {
-  description = "Optional: Pre-existing IAM instance profile name to attach to the JMeter EC2. If empty and allow_create_iam is true, this stack will create a role and instance profile with AmazonSSMManagedInstanceCore"
-  type        = string
-  default     = ""
-}
-
-variable "allow_create_iam" {
-  description = "If true (default), allow this stack to create the IAM role and instance profile for JMeter when no pre-existing profile name is provided"
-  type        = bool
-  default     = true
-}
-
-variable "permissions_boundary_arn" {
-  description = "Optional IAM permissions boundary ARN to apply to the created JMeter role (if allow_create_iam is true)"
-  type        = string
-  default     = ""
-}
-
 variable "attach_s3_read" {
   description = "If true, attach an inline policy to allow s3:GetObject/ListBucket on specified buckets"
   type        = bool
@@ -129,36 +105,15 @@ variable "jmeter_poweroff_after_setup" {
   default     = true
 }
 
-# Optional: Manage NACL rules for SSM DNS/NTP from this stack
-variable "jmeter_subnet_network_acl_id" {
-  description = "Network ACL ID associated with the JMeter subnet. When set, this stack will add allow rules for DNS (UDP 53 egress) and UDP ephemeral ingress to support SSM over NAT"
-  type        = string
-  default     = ""
+variable "jmeter_ami_name_pattern" {
+  description = "Name pattern(s) used to filter AMIs when discovering the latest AMI (default matches Amazon Linux 2023 x86_64). Example: [\"al2023-ami-*-x86_64\"]"
+  type        = list(string)
+  default     = ["al2023-ami-*-x86_64"]
 }
 
-variable "ssm_nacl_rule_base_number" {
-  description = "Base rule number to use for SSM NACL rules (uses N, N+1, and optionally N+2)"
-  type        = number
-  default     = 902
+variable "jmeter_ami_architectures" {
+  description = "List of AMI architectures to filter by (e.g. [\"x86_64\"] or [\"aarch64\"]). Default is [\"x86_64\"]."
+  type        = list(string)
+  default     = ["x86_64"]
 }
 
-variable "ssm_nacl_enable_ntp" {
-  description = "If true, also add an egress rule for NTP (UDP 123)"
-  type        = bool
-  default     = true
-}
-
-variable "ssm_nacl_ingress_cidr" {
-  description = "CIDR for UDP ephemeral ingress rule (use 0.0.0.0/0 for NAT return traffic)"
-  type        = string
-  default     = "0.0.0.0/0"
-}
-
-# Feature flag to control deployment of the JMeter EC2 and related resources from this stack
-/*
-variable "deploy_jmeter" {
-  description = "If true (default), deploy JMeter EC2 and supporting IAM/SG/NACL resources from this gp_search stack; set to false when migrating to account_wide"
-  type        = bool
-  default     = true
-}
-*/
