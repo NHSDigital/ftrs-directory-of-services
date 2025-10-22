@@ -67,7 +67,7 @@ class JWTAuthenticator:
         except ClientError as e:
             raise JWTSecretError(secret_name, e) from e
 
-    def generate_assertion(self, expiry_seconds: int = 300) -> str:
+    def generate_assertion(self, expiry_seconds: int = 600) -> str:
         creds = self.get_jwt_credentials()
         now = int(time())
 
