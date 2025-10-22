@@ -13,8 +13,3 @@ lambda_memory_size = 512
 # API Gateway
 api_gateway_payload_format_version = "2.0"
 api_gateway_integration_timeout    = 10000
-
-# JMeter EC2 IAM: create the role/profile in this stack (do not supply an existing profile)
-# If your pipeline role lacks IAM permissions, grant the minimal actions or run via account-wide stack.
-allow_create_iam             = true
-jmeter_instance_profile_name = ""

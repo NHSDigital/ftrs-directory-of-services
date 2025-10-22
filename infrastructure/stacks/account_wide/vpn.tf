@@ -38,15 +38,6 @@ resource "aws_ec2_client_vpn_authorization_rule" "vpn_authorization_rule" {
   authorize_all_groups   = true
 }
 
-# Also authorize access to private subnets (for EC2 in private subnets)
-resource "aws_ec2_client_vpn_authorization_rule" "vpn_authorization_rule_private" {
-  for_each = var.environment == "dev" ? { for cidr in module.vpc.private_subnets_cidr_blocks : cidr => cidr } : {}
-
-  client_vpn_endpoint_id = aws_ec2_client_vpn_endpoint.vpn[0].id
-  target_network_cidr    = each.value
-  authorize_all_groups   = true
-}
-
 resource "aws_security_group" "vpn_security_group" {
   count       = var.environment == "dev" ? 1 : 0
   name        = "${local.account_prefix}-vpn-sg"
@@ -79,14 +70,6 @@ resource "aws_security_group" "vpn_security_group" {
     from_port   = 5432
     to_port     = 5432
     cidr_blocks = module.vpc.database_subnets_cidr_blocks
-  }
-
-  # Allow SSH to private subnets via VPN
-  egress {
-    protocol    = "tcp"
-    from_port   = 22
-    to_port     = 22
-    cidr_blocks = module.vpc.private_subnets_cidr_blocks
   }
 }
 

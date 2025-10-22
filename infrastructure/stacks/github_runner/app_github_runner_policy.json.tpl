@@ -111,8 +111,6 @@
                 "iam:DeleteRolePolicy",
                 "iam:CreatePolicyVersion",
                 "iam:DeletePolicyVersion",
-                "iam:PutRolePermissionsBoundary",
-                "iam:DeleteRolePermissionsBoundary",
                 "iam:TagRole",
                 "iam:UntagRole",
                 "iam:TagPolicy",
