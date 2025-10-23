@@ -217,65 +217,7 @@ public static String readFileContent(Path filePath) throws IOException {
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
-        <stringProp name="scriptLanguage">groovy</stringProp>
-        <stringProp name="parameters"></stringProp>
-        <stringProp name="filename"></stringProp>
-        <stringProp name="cacheKey">false</stringProp>
-        <stringProp name="script">import java.nio.file.Files
-import java.nio.file.Paths
-
-
-def csvPath = &quot;parameter_files/plan_params.csv&quot;
-def file = new File(csvPath)
-
-if (file.exists()) {
-
-    def lines = file.readLines()
-
-    // For each line, split by comma and set variables
-    lines.eachWithIndex { line, idx -&gt;
-        def values = line.split(&quot;,&quot;)
-        log.info(&quot;here1&quot;)
-
-        // Set each value as a variable, e.g. param_0_0, param_0_1, ...
-        values.eachWithIndex { val, col -&gt;
-            vars.put(&quot;param_${idx}_${col}&quot;, val)
-        }
-    }
-} else {
-    log.warn(&quot;Plan_params file not found: &quot; + csvPath)
-}
-
-
-def pp_apim_env = vars.get(&quot;param_0_1&quot;)
-def pp_apikey = vars.get(&quot;param_0_2&quot;)
-def pp_kid = vars.get(&quot;param_0_3&quot;)
-
-
-def kid = props.get(&quot;kid&quot;)
-if (kid == null || kid == &quot;&quot;) {
-  kid = pp_kid
-}
-vars.put(&quot;Kid&quot;, kid)
-
-
-def Apim_Env = props.get(&quot;apim_env&quot;)
-if (Apim_Env == null || Apim_Env == &quot;&quot;) {
-    Apim_Env = pp_apim_env
-}
-vars.put(&quot;Apim_Env&quot;, Apim_Env)
-
-def apikey = props.get(&quot;apikey&quot;)
-if (apikey == null || apikey == &quot;&quot;) {
-    apikey = pp_apikey
-}
-vars.put(&quot;ApiKey&quot;, apikey)
-
-</stringProp>
-      </JSR223PreProcessor>
-      <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -311,6 +253,16 @@ vars.put(&quot;ApiKey&quot;, apikey)
         </objProp>
         <stringProp name="filename"></stringProp>
       </ResultCollector>
+      <hashTree/>
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
+        <stringProp name="scriptLanguage">groovy</stringProp>
+        <stringProp name="parameters"></stringProp>
+        <stringProp name="filename"></stringProp>
+        <stringProp name="cacheKey">true</stringProp>
+        <stringProp name="script">def scriptFile = new File(&apos;./scripts/LoadParams.groovy&apos;)
+def scriptText = scriptFile.text
+evaluate(scriptText)</stringProp>
+      </JSR223PreProcessor>
       <hashTree/>
     </hashTree>
   </hashTree>
