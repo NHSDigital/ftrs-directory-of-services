@@ -85,41 +85,6 @@ resource "aws_iam_role" "jmeter_ec2_role" {
   ]
 }
 
-# Optional inline policy: S3 read and/or KMS decrypt
-resource "aws_iam_role_policy" "jmeter_extra_access" {
-  count = (var.attach_s3_read || length(var.kms_key_arns) > 0) ? 1 : 0
-  name  = "${local.jmeter_name}-extra-access"
-  role  = aws_iam_role.jmeter_ec2_role.name
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = concat(
-      var.attach_s3_read && length(var.s3_read_bucket_arns) > 0 ? [
-        {
-          Sid      = "S3ListBuckets",
-          Effect   = "Allow",
-          Action   = ["s3:ListBucket"],
-          Resource = var.s3_read_bucket_arns
-        },
-        {
-          Sid      = "S3GetObjects",
-          Effect   = "Allow",
-          Action   = ["s3:GetObject"],
-          Resource = [for b in var.s3_read_bucket_arns : "${b}/*"]
-        }
-      ] : [],
-      length(var.kms_key_arns) > 0 ? [
-        {
-          Sid      = "KMSDecrypt",
-          Effect   = "Allow",
-          Action   = ["kms:Decrypt"],
-          Resource = var.kms_key_arns
-        }
-      ] : []
-    )
-  })
-}
-
 resource "aws_iam_role_policy_attachment" "ssm_core" {
   role       = aws_iam_role.jmeter_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
