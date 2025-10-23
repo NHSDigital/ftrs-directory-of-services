@@ -196,7 +196,8 @@
             "Effect": "Allow",
             "Action": [
                 "securityhub:GetEnabledStandards",
-                "securityhub:BatchDisableStandards"
+                "securityhub:BatchDisableStandards",
+                "securityhub:BatchEnableStandards"
             ],
             "Resource": "*"
         }
