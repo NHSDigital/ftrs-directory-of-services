@@ -127,7 +127,7 @@ Open session to run jmeter tests manually
 
 ```shell
 # Open an interactive Session Manager shell to the instance
-make make -C tests/performance jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+make -C tests/performance jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
 ### Jmeter Run example:
