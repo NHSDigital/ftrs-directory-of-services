@@ -47,8 +47,10 @@ class JWTAuthenticator:
         }
 
     def _get_aws_credentials(self) -> Dict[str, str]:
-        if self.custom_secret_name:
-            secret_name = self.custom_secret_name
+        if not self.custom_secret_name:
+            raise JWTCredentialsError(["secret_name"], "configuration")
+
+        secret_name = self.custom_secret_name
 
         try:
             client = boto3.client("secretsmanager", region_name=self.region)
@@ -62,8 +64,7 @@ class JWTAuthenticator:
 
             if missing_keys:
                 raise JWTCredentialsError(missing_keys, "JWT credential keys")
-            else:
-                return creds
+            return creds
         except ClientError as e:
             raise JWTSecretError(secret_name, e) from e
 
@@ -106,8 +107,8 @@ class JWTAuthenticator:
             token = body.get("access_token")
             if not token:
                 raise JWTTokenError("no_access_token", body)
-            else:
-                return token
+
+            return token
         except requests.exceptions.RequestException as e:
             raise JWTTokenError("request_failed", original_error=e) from e
 

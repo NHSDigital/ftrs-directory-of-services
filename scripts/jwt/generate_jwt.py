@@ -7,6 +7,7 @@ import jwt
 import requests
 from time import time
 
+
 def get_config(env_name=None, region_name="eu-west-2"):
     config = {}
 
@@ -22,7 +23,9 @@ def get_config(env_name=None, region_name="eu-west-2"):
             config.update(secret_dict)
             print(f"Loaded configuration from AWS Secrets Manager: {secret_name}")
         except Exception as e:
-            print(f"Could not load secret from AWS Secrets Manager ({secret_name}): {e}")
+            print(
+                f"Could not load secret from AWS Secrets Manager ({secret_name}): {e}"
+            )
 
     config.setdefault("api_key", os.getenv("API_KEY"))
     config.setdefault("private_key", os.getenv("PRIVATE_KEY"))
@@ -37,6 +40,7 @@ def get_config(env_name=None, region_name="eu-west-2"):
     config["private_key"] = config["private_key"].replace("\\n", "\n")
 
     return config
+
 
 def generate_jwt(api_key, private_key, kid, token_url):
     """Generate a signed JWT using RS512 algorithm."""
@@ -54,6 +58,7 @@ def generate_jwt(api_key, private_key, kid, token_url):
     token = jwt.encode(claims, private_key, algorithm="RS512", headers=headers)
     return token
 
+
 def exchange_for_bearer(jwt_token, token_url):
     """Exchange the signed JWT for a Bearer token."""
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -66,9 +71,12 @@ def exchange_for_bearer(jwt_token, token_url):
     response = requests.post(token_url, data=data, headers=headers)
 
     if response.status_code != 200:
-        raise Exception(f"Token request failed: {response.status_code} - {response.text}")
+        raise Exception(
+            f"Token request failed: {response.status_code} - {response.text}"
+        )
 
     return response.json()["access_token"]
+
 
 def main():
     if len(sys.argv) < 2:
@@ -79,17 +87,14 @@ def main():
     config = get_config(env_name)
 
     jwt_token = generate_jwt(
-        config["api_key"],
-        config["private_key"],
-        config["kid"],
-        config["token_url"]
+        config["api_key"], config["private_key"], config["kid"], config["token_url"]
     )
 
     print("\nGenerated JWT successfully.\n")
 
     bearer_token = exchange_for_bearer(jwt_token, config["token_url"])
 
-    print("🔐 Bearer Token:\n")
+    print("Bearer Token:\n")
     print(bearer_token)
 
 
