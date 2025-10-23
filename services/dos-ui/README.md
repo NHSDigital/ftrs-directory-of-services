@@ -4,6 +4,11 @@ The FtRS DoS UI is the Find the Right Service Directory of Services Users Interf
 
 The application is built using React and TypeScript, and uses the TanStack Router for routing and data fetching.
 
+## Prerequisites
+
+- [Node.js](https://nodejs.org/en/download/) version 18 or later
+- [NPM](https://www.npmjs.com/get-npm) version 8 or later
+
 ## Getting Started
 
 To run this application locally:
