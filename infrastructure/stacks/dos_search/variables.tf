@@ -91,3 +91,8 @@ variable "health_check_lambda_cloudwatch_logs_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "stack_name" {
+  description = "The name of the stack"
+  type        = string
+}
