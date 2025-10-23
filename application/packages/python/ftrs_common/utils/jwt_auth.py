@@ -64,7 +64,8 @@ class JWTAuthenticator:
 
             if missing_keys:
                 raise JWTCredentialsError(missing_keys, "JWT credential keys")
-            return creds
+            else:
+                return creds
         except ClientError as e:
             raise JWTSecretError(secret_name, e) from e
 
@@ -107,8 +108,8 @@ class JWTAuthenticator:
             token = body.get("access_token")
             if not token:
                 raise JWTTokenError("no_access_token", body)
-
-            return token
+            else:
+                return token
         except requests.exceptions.RequestException as e:
             raise JWTTokenError("request_failed", original_error=e) from e
 
