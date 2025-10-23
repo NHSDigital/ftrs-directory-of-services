@@ -22,7 +22,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
@@ -148,7 +148,7 @@
         </kg.apc.jmeter.vizualizers.CorrectedResultCollector>
         <hashTree/>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -185,48 +185,7 @@
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="false">
-        <stringProp name="cacheKey">true</stringProp>
-        <stringProp name="filename"></stringProp>
-        <stringProp name="parameters"></stringProp>
-        <stringProp name="script">import java.nio.file.Files
-import java.nio.file.Paths
-
-def csvPath = &quot;parameter_files/plan_params.csv&quot;
-def file = new File(csvPath)
-
-if (file.exists()) {
-
-    def lines = file.readLines()
-
-    // For each line, split by comma and set variables
-    lines.eachWithIndex { line, idx -&gt;
-        def values = line.split(&quot;,&quot;)
-        log.info(&quot;here1&quot;)
-
-        // Set each value as a variable, e.g. param_0_0, param_0_1, ...
-        values.eachWithIndex { val, col -&gt;
-            vars.put(&quot;param_${idx}_${col}&quot;, val)
-        }
-    }
-} else {
-    log.warn(&quot;Plan_params file not found: &quot; + csvPath)
-    }
-
-
-def pp_endpoint = vars.get(&quot;param_0_0&quot;)
-
-def serviceendpoint = props.get(&quot;serviceendpoint&quot;)
-if (serviceendpoint == null || serviceendpoint == &quot;&quot;) {
-    serviceendpoint = pp_endpoint
-}
-vars.put(&quot;ServiceEndpoint&quot;, serviceendpoint)
-
-</stringProp>
-        <stringProp name="scriptLanguage">groovy</stringProp>
-      </JSR223PreProcessor>
-      <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor">
         <stringProp name="scriptLanguage">groovy</stringProp>
         <stringProp name="parameters"></stringProp>
         <stringProp name="filename"></stringProp>
