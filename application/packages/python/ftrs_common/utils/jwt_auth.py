@@ -1,7 +1,6 @@
 import json
 import os
 import uuid
-from functools import cache
 from time import time
 from typing import Dict, Optional
 
@@ -87,7 +86,6 @@ class JWTAuthenticator:
         )
         return token
 
-    @cache
     def get_bearer_token(self) -> str:
         creds = self.get_jwt_credentials()
         jwt_assertion = self.generate_assertion()
