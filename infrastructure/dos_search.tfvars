@@ -1,4 +1,5 @@
 dos_search_service_name = "ftrs-dos-search"
+stack_name              = "dos-search"
 
 # Resource names
 s3_bucket_name           = "dos-search-s3"
