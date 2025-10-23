@@ -38,16 +38,21 @@ def request_id_context(request_id: Optional[str] = None) -> Generator:
             current_request_id.reset(token)
 
 
-def fetch_or_set_request_id(existing: str | None = None) -> str:
+def fetch_or_set_request_id(
+    context_id: str | None = None, header_id: str | None = None
+) -> str:
     """
     Ensure a request ID exists in context and return it.
     - If an explicit (valid) existing value is provided, use it.
     - Else reuse context value if present.
     - Else generate, set, return.
     """
-    if existing:
-        set_request_id(existing)
-        return existing
+    if header_id:
+        set_request_id(header_id)
+        return header_id
+    elif context_id:
+        set_request_id(context_id)
+        return context_id
     current = get_request_id()
     if current:
         return current

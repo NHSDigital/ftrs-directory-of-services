@@ -8,6 +8,7 @@ from ftrs_common.utils.correlation_id import (
     fetch_or_set_correlation_id,
     get_correlation_id,
 )
+from ftrs_common.utils.request_id import fetch_or_set_request_id, get_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import load_data
@@ -78,6 +79,7 @@ def process_organisation(ods_code: str) -> str | None:
     """
     try:
         correlation_id = get_correlation_id()
+        request_id = get_request_id()
         organisation_data = fetch_ods_organisation_data(ods_code)
         fhir_organisation = transform_to_payload(organisation_data, ods_code)
         org_uuid = fetch_organisation_uuid(ods_code)
@@ -94,6 +96,7 @@ def process_organisation(ods_code: str) -> str | None:
                 "path": org_uuid,
                 "body": fhir_organisation.model_dump(),
                 "correlation_id": correlation_id,
+                "request_id": request_id,
             }
         )
 
@@ -115,7 +118,14 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
         correlation_id = fetch_or_set_correlation_id(
             event.get("headers", {}).get("X-Correlation-ID")
         )
-        ods_processor_logger.append_keys(correlation_id=correlation_id)
+
+        request_id = fetch_or_set_request_id(
+            context_id=getattr(context, "aws_request_id", None) if context else None,
+            header_id=event.get("headers", {}).get("X-Request-ID"),
+        )
+        ods_processor_logger.append_keys(
+            correlation_id=correlation_id, request_id=request_id
+        )
 
         is_scheduled = event.get("is_scheduled", False)
         if not is_scheduled:
