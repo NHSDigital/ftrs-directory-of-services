@@ -16,7 +16,7 @@ ods_processor_logger = Logger.get(service="ods_processor")
 
 def fetch_outdated_organisations(date: str) -> list[dict]:
     """
-    Returns a list of ods organisation FHIR resources that have been modified since a specified date.
+    Returns a list of ods organisation FHIR resources that have been modified on a specified date.
     Uses the ODS Terminology API FHIR endpoint.
     """
     params = {"_lastUpdated": f"{date}"}
