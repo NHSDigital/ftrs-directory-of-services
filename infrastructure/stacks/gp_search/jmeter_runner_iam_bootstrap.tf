@@ -42,7 +42,7 @@ resource "aws_iam_role_policy" "app_runner_jmeter_iam_bootstrap" {
           "iam:RemoveRoleFromInstanceProfile"
         ],
         Resource = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.project}-${var.environment}-*"
+          "arn:aws:iam::${local.account_id}:instance-profile/${var.project}-${var.environment}-*"
         ]
       },
       {
@@ -61,7 +61,7 @@ resource "aws_iam_role_policy" "app_runner_jmeter_iam_bootstrap" {
           "iam:DeleteRolePermissionsBoundary"
         ],
         Resource = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project}-${var.environment}-*"
+          "arn:aws:iam::${local.account_id}:role/${var.project}-${var.environment}-*"
         ]
       },
       {
@@ -71,7 +71,7 @@ resource "aws_iam_role_policy" "app_runner_jmeter_iam_bootstrap" {
           "iam:PassRole"
         ],
         Resource = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project}-${var.environment}-*"
+          "arn:aws:iam::${local.account_id}:role/${var.project}-${var.environment}-*"
         ],
         Condition = {
           StringEquals = {

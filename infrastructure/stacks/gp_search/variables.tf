@@ -81,24 +81,6 @@ variable "jmeter_volume_size" {
   }
 }
 
-variable "attach_s3_read" {
-  description = "If true, attach an inline policy to allow s3:GetObject/ListBucket on specified buckets"
-  type        = bool
-  default     = false
-}
-
-variable "s3_read_bucket_arns" {
-  description = "List of S3 bucket ARNs to grant read access to (when attach_s3_read is true)"
-  type        = list(string)
-  default     = []
-}
-
-variable "kms_key_arns" {
-  description = "Optional list of KMS key ARNs to allow kms:Decrypt (for reading KMS-encrypted S3 objects or parameters)"
-  type        = list(string)
-  default     = []
-}
-
 variable "jmeter_poweroff_after_setup" {
   description = "If true (default), power off the JMeter instance at the end of user-data setup"
   type        = bool
@@ -116,4 +98,3 @@ variable "jmeter_ami_architectures" {
   type        = list(string)
   default     = ["x86_64"]
 }
-
