@@ -195,6 +195,8 @@
             "Sid": "SecurityHubAccess",
             "Effect": "Allow",
             "Action": [
+                "securityhub:GetEnabledStandards",
+                "securityhub:BatchDisableStandards",
                 "securityhub:BatchEnableStandards"
             ],
             "Resource": "*"
