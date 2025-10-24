@@ -22,13 +22,14 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         request_id = request.headers.get(REQUEST_ID_HEADER)
-        if request_id:
-            fetch_or_set_request_id(request_id)
-        elif hasattr(request.state, "aws_event"):
-            request_context = request.state.aws_event.get("requestContext", {})
-            request_id = request_context.get("requestId")
-            if request_id:
-                fetch_or_set_request_id(request_id)
+
+        if not request_id:
+            aws_event = request.scope.get("aws.event")
+            if aws_event:
+                request_context = aws_event.get("requestContext", {})
+                request_id = request_context.get("requestId")
+
+        request_id = fetch_or_set_request_id(request_id)
 
         response = await call_next(request)
         return add_request_id_header(response, request_id)
