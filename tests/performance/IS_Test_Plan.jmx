@@ -5,8 +5,6 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -187,17 +185,16 @@
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
-        <collectionProp name="UserParameters.names">
-          <stringProp name="1974762314">ServiceEndpoint</stringProp>
-        </collectionProp>
-        <collectionProp name="UserParameters.thread_values">
-          <collectionProp name="2135973118">
-            <stringProp name="503388542">${__P(serviceendpoint,${__CSVRead(parameter_files/plan_params.csv,0)})}</stringProp>
-          </collectionProp>
-        </collectionProp>
-        <boolProp name="UserParameters.per_iteration">false</boolProp>
-      </UserParameters>
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor">
+        <stringProp name="scriptLanguage">groovy</stringProp>
+        <stringProp name="parameters"></stringProp>
+        <stringProp name="filename"></stringProp>
+        <stringProp name="cacheKey">true</stringProp>
+        <stringProp name="script">// Run the loadparams groovy script to populate the serviceendpoint
+def scriptFile = new File(&apos;./scripts/LoadParams.groovy&apos;)
+def scriptText = scriptFile.text
+evaluate(scriptText)</stringProp>
+      </JSR223PreProcessor>
       <hashTree/>
     </hashTree>
   </hashTree>
