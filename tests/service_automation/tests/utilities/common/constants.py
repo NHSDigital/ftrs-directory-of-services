@@ -1,6 +1,6 @@
-# Base Spine Directory URL
-BASE_ODS_API_URL = "https://directory.spineservices.nhs.uk/ORD/2-0-0"
-BASE_ODS_FHIR_API_URL = "https://directory.spineservices.nhs.uk/STU3"
+ODS_TERMINOLOGY_INT_API_URL = (
+    "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+)
 ENDPOINTS = {
     "health": "/_ping",
     "status": "/_status",

@@ -1,5 +1,6 @@
 import uuid
 
+import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
@@ -92,6 +93,97 @@ def test__build_identifier() -> None:
     assert identifier[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
     assert identifier[0].value == "ODS1"
     assert identifier[0].use == "official"
+
+
+def test__extract_ods_code_from_identifiers_success() -> None:
+    """Test extracting ODS code from a valid identifier list."""
+    mapper = OrganizationMapper()
+    identifiers = [
+        {
+            "use": "official",
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "T6I4F",
+        }
+    ]
+    result = mapper._extract_ods_code_from_identifiers(identifiers)
+    assert result == "T6I4F"
+
+
+def test__extract_ods_code_from_identifiers_multiple_identifiers() -> None:
+    """Test extracting ODS code when there are multiple identifiers."""
+    mapper = OrganizationMapper()
+    identifiers = [
+        {
+            "use": "secondary",
+            "system": "https://some.other.system/Id/other-code",
+            "value": "OTHER123",
+        },
+        {
+            "use": "official",
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "ABC123",
+        },
+    ]
+    result = mapper._extract_ods_code_from_identifiers(identifiers)
+    assert result == "ABC123"
+
+
+def test__extract_ods_code_from_identifiers_no_matching_system() -> None:
+    """Test that ValueError is raised when no ODS identifier is found."""
+    mapper = OrganizationMapper()
+    identifiers = [
+        {
+            "use": "official",
+            "system": "https://some.other.system/Id/other-code",
+            "value": "OTHER123",
+        }
+    ]
+    with pytest.raises(
+        ValueError, match="No ODS code identifier found in organization resource"
+    ):
+        mapper._extract_ods_code_from_identifiers(identifiers)
+
+
+def test__extract_ods_code_from_identifiers_empty_list() -> None:
+    """Test that ValueError is raised when identifier list is empty."""
+    mapper = OrganizationMapper()
+    identifiers = []
+    with pytest.raises(
+        ValueError, match="No ODS code identifier found in organization resource"
+    ):
+        mapper._extract_ods_code_from_identifiers(identifiers)
+
+
+def test__extract_ods_code_from_identifiers_no_value() -> None:
+    """Test that ValueError is raised when identifier has no value."""
+    mapper = OrganizationMapper()
+    identifiers = [
+        {
+            "use": "official",
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            # Missing value field
+        }
+    ]
+    with pytest.raises(
+        ValueError, match="No ODS code identifier found in organization resource"
+    ):
+        mapper._extract_ods_code_from_identifiers(identifiers)
+
+
+def test__extract_ods_code_from_identifiers_non_dict_in_list() -> None:
+    """Test that non-dict items in the list are skipped gracefully."""
+    mapper = OrganizationMapper()
+    identifiers = [
+        "not a dict",
+        None,
+        {
+            "use": "official",
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "XYZ789",
+        },
+    ]
+    result = mapper._extract_ods_code_from_identifiers(identifiers)
+    assert result == "XYZ789"
 
 
 def test__build_telecom() -> None:
@@ -219,10 +311,13 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
                 ],
             },
         ],
-        "identifier": {
-            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-            "value": "C88037",
-        },
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "C88037",
+            }
+        ],
         "type": {
             "coding": {
                 "system": "https://fhir.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRecordClass-1",

@@ -2,7 +2,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from typing import Optional, List, Dict, Tuple
-from utilities.common.constants import BASE_ODS_API_URL, BASE_ODS_FHIR_API_URL
+from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
 from utilities.common.context import Context
 from utilities.infra.api_util import make_api_request_with_retries
 from utilities.infra.lambda_util import *
@@ -40,20 +40,22 @@ class OdsDateSelector:
         self.lookback_days = lookback_days
         self.min_codes = min_codes
 
-    def find_valid_date(self) -> Tuple[str, List[str]]:
-        today = datetime.utcnow().date()
+    def find_valid_date(self) -> Tuple[str, List[dict]]:
+        today = datetime.now(timezone.utc).date()
         for days_back in range(1, self.lookback_days + 1):
             candidate = today - timedelta(days=days_back)
             date_str = candidate.strftime("%Y-%m-%d")
             logger.info(f"Trying ODS extraction date: {date_str}")
 
-            ods_codes = get_ods_codes(self.request_context, date_str)
-            if ods_codes and len(ods_codes) >= self.min_codes:
-                ods_codes = ods_codes[: self.min_codes]
+            org_resources = fetch_ods_organizations(
+                self.request_context, date_str, self.min_codes
+            )
+            if org_resources:
+                org_resources = org_resources[: self.min_codes]
                 logger.info(
-                    f"Selected date {date_str} with {len(ods_codes)} valid ODS codes."
+                    f"Selected date {date_str} with {len(org_resources)} valid organizations."
                 )
-                return date_str, ods_codes
+                return date_str, org_resources
 
         pytest.fail(
             f"No date found in last {self.lookback_days} days with at least {self.min_codes} valid ODS codes."
@@ -80,52 +82,71 @@ def extract_primary_role_display(org_response: dict) -> Optional[str]:
     return None
 
 
-def get_ods_codes(
-    request_context: APIRequestContext, last_change_date: str, limit: int = 50
-) -> List[str]:
-    sync_url = f"{BASE_ODS_API_URL}/sync?LastChangeDate={last_change_date}"
+def fetch_ods_organizations(
+    request_context: APIRequestContext, last_change_date: str, minimum_count: int
+) -> List[dict]:
+    terminology_url = f"{ODS_TERMINOLOGY_INT_API_URL}?_lastUpdated={last_change_date}"
     response = make_api_request_with_retries(
-        request_context=request_context, method="GET", url=sync_url
+        request_context=request_context, method="GET", url=terminology_url
     )
 
-    ods_codes = []
-    pattern = re.compile(r"^[A-Za-z0-9]{5,12}$")
-    for org in response.get("Organisations", []):
-        org_link = org.get("OrgLink", "")
-        ods_code = org_link.rstrip("/").split("/")[-1]
-        if pattern.match(ods_code):
-            ods_codes.append(ods_code)
-        if len(ods_codes) >= limit:
-            break
-    return ods_codes
+    if response.get("resourceType") != "Bundle":
+        return []
+
+    entries = response.get("entry", [])
+    if len(entries) < minimum_count:
+        return []
+    org_resources = []
+
+    for entry in entries:
+        resource = entry.get("resource", {})
+        if resource.get("resourceType") != "Organization":
+            continue
+
+        # Check if organization has a valid ODS code
+        for identifier in resource.get("identifier", []):
+            if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code":
+                ods_code = identifier.get("value")
+                if ods_code:
+                    org_resources.append(resource)
+                    break
+
+    return org_resources if len(org_resources) >= minimum_count else []
 
 
-def get_ods_details(
-    request_context: APIRequestContext, ods_codes: List[str]
-) -> List[Dict[str, Optional[str]]]:
-    details = []
-    for code in ods_codes:
-        org_url = f"{BASE_ODS_FHIR_API_URL}/Organization/{code}"
-        org_response = make_api_request_with_retries(
-            request_context=request_context, method="GET", url=org_url
-        )
-        details.append(
-            {
-                "ods_code": code,
-                "type": extract_primary_role_display(org_response),
-                "active": org_response.get("active"),
-                "name": org_response.get("name"),
-                "phone": next(
-                    (
-                        tel.get("value")
-                        for tel in org_response.get("telecom", [])
-                        if tel.get("system") == "phone"
-                    ),
-                    None,
+def extract_org_details(org_resources: List[dict]) -> List[Dict[str, Optional[str]]]:
+    return [
+        {
+            "ods_code": next(
+                (
+                    identifier.get("value")
+                    for identifier in org.get("identifier", [])
+                    if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code"
                 ),
-            }
+                None
+            ),
+            "type": extract_primary_role_display(org),
+            "active": org.get("active"),
+            "name": org.get("name"),
+            "phone": next(
+                (
+                    tel.get("value")
+                    for tel in org.get("telecom", [])
+                    if tel.get("system") == "phone"
+                ),
+                None,
+            ),
+        }
+        for org in org_resources
+        if next(
+            (
+                identifier.get("value")
+                for identifier in org.get("identifier", [])
+                if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code"
+            ),
+            None
         )
-    return details
+    ]
 
 
 def assert_org_details_match(item: DBModel, expected_org: dict) -> None:
@@ -169,22 +190,19 @@ def verify_organisation_in_repo(
                 raise
 
 
-def validate_lambda_logs_for_ods_codes(
-    context: Context, cloudwatch_logs, ods_codes: list
+def validate_lambda_logs_for_extraction(
+    context: Context, cloudwatch_logs
 ):
     time.sleep(30)  # Central wait_for_logs()
-    for ods_code in ods_codes:
-        extraction_pattern = f'"Fetching organisation data for code: {ods_code}."'
-        transformation_pattern = (
-            f'"Successfully transformed data for ods_code: {ods_code}"'
-        )
-        publishing_pattern = "Succeeded to send"
+    extraction_pattern = f'"Fetching outdated organizations for date: {context.extraction_date}."'
+    transformation_pattern = '"Fetching ODS Data returned .* outdated organisations."'
+    publishing_pattern = "Succeeded to send"
 
-        assert cloudwatch_logs.find_log_message(context.lambda_name, extraction_pattern)
-        assert cloudwatch_logs.find_log_message(
-            context.lambda_name, transformation_pattern
-        )
-        assert cloudwatch_logs.find_log_message(context.lambda_name, publishing_pattern)
+    assert cloudwatch_logs.find_log_message(context.lambda_name, extraction_pattern)
+    assert cloudwatch_logs.find_log_message(
+        context.lambda_name, transformation_pattern
+    )
+    assert cloudwatch_logs.find_log_message(context.lambda_name, publishing_pattern)
 
 
 @pytest.fixture(scope="module")
@@ -195,22 +213,24 @@ def aws_lambda_client():
 
 
 @pytest.fixture(scope="module")
-def shared_ods_data(playwright) -> Dict[str, List[Dict[str, Optional[str]]]]:
+def shared_ods_data(api_request_context_ods_terminology):
+    """Fetch and prepare ODS organization data for testing."""
     logger.info("Building shared ODS data for session.")
-    request_context = playwright.request.new_context()
-    try:
-        selector = OdsDateSelector(
-            request_context=request_context, lookback_days=7, min_codes=10
-        )
-        chosen_date, ods_codes = selector.find_valid_date()
-        organisation_details = get_ods_details(request_context, ods_codes)
-        yield {
-            "ods_codes": ods_codes,
-            "organisation_details": organisation_details,
-            "date": chosen_date,
-        }
-    finally:
-        request_context.dispose()
+    selector = OdsDateSelector(
+        request_context=api_request_context_ods_terminology,
+        lookback_days=7,
+        min_codes=10
+    )
+    chosen_date, org_resources = selector.find_valid_date()
+    organisation_details = extract_org_details(org_resources)
+
+    ods_codes = [org["ods_code"] for org in organisation_details]
+
+    yield {
+        "ods_codes": ods_codes,
+        "organisation_details": organisation_details,
+        "date": chosen_date,
+    }
 
 
 def invoke_lambda_generic(
@@ -327,10 +347,7 @@ def step_invoke_valid_date(
     )
 )
 def verify_lambda_logs(context: Context, cloudwatch_logs, ods_type: str):
-    ods_codes = (
-        [context.ods_codes[0]] if ods_type.lower() == "single" else context.ods_codes
-    )
-    validate_lambda_logs_for_ods_codes(context, cloudwatch_logs, ods_codes)
+    validate_lambda_logs_for_extraction(context, cloudwatch_logs)
 
 
 @then(
