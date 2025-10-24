@@ -28,8 +28,9 @@ resource "aws_api_gateway_deployment" "deployment" {
     create_before_destroy = true
   }
 }
-# checkov:skip=CKV_AWS_225: Caching breaks the tests
+
 resource "aws_api_gateway_method_settings" "all" {
+  # checkov:skip=CKV_AWS_225: Caching breaks the tests
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   stage_name  = aws_api_gateway_stage.default.stage_name
   method_path = "*/*"
