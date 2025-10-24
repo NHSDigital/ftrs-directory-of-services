@@ -28,6 +28,7 @@ resource "aws_route53_record" "domain_r53" {
 resource "aws_api_gateway_base_path_mapping" "domain_mapping" {
   api_id      = aws_api_gateway_rest_api.api_gateway.id
   domain_name = aws_api_gateway_domain_name.domain_name.domain_name
+  stage_name  = aws_api_gateway_stage.default.stage_name
 }
 
 data "aws_acm_certificate" "issued_domain_certificate" {
