@@ -1,4 +1,4 @@
-# Logging standards for `gp_search` Terraform stack
+# Logging standards for `dos_search` Terraform stack
 
 ## Purpose
 

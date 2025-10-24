@@ -66,7 +66,7 @@ The service uses:
    make config
 
    # Then in the service directory
-   cd services/gp-search
+   cd services/dos-search
    make config
    ```
 
@@ -91,18 +91,18 @@ The service uses:
 ### Code Structure
 
 ```plain
-├── functions/                # Lambda function code
-│   ├── ftrs_service/         # FTRS service implementation
-│   │   ├── fhir_mapper/      # Mapping between data models and FHIR
-│   │   ├── repository/       # Data access layer
-│   │   ├── config.py         # Configuration handling
-│   │   └── ftrs_service.py   # Main service logic
-│   └── gp_search_function.py # Lambda handler entry point
-├── tests/                    # Test suite
-│   ├── unit/                 # Unit tests
-│   ├── conftest.py           # Test configuration and fixtures
-│   └── manual_test.py        # Script for local testing
-└── ...                       # Configuration files
+├── functions/                 # Lambda function code
+│   ├── ftrs_service/          # FTRS service implementation
+│   │   ├── fhir_mapper/       # Mapping between data models and FHIR
+│   │   ├── repository/        # Data access layer
+│   │   ├── config.py          # Configuration handling
+│   │   └── ftrs_service.py    # Main service logic
+│   └── dos_search_function.py # Lambda handler entry point
+├── tests/                     # Test suite
+│   ├── unit/                  # Unit tests
+│   ├── conftest.py            # Test configuration and fixtures
+│   └── manual_test.py         # Script for local testing
+└── ...                        # Configuration files
 ```
 
 ### Testing
@@ -117,13 +117,13 @@ poetry run pytest tests/unit
 poetry run pytest --cov=functions tests/unit
 
 # Run specific test file
-poetry run pytest tests/unit/functions/test_gp_search_function.py
+poetry run pytest tests/unit/functions/test_dos_search_function.py
 ```
 
 Run the lambda function locally for manual testing:
 
 ```shell
-PYTHONPATH=$(git rev-parse --show-toplevel)/services/gp-search/functions poetry run python tests/manual_test.py
+PYTHONPATH=$(git rev-parse --show-toplevel)/services/dos-search/functions poetry run python tests/manual_test.py
 ```
 
 ### Linting and Formatting
@@ -174,7 +174,7 @@ The Lambda function accepts an event with an `odsCode` parameter:
 Use the `manual_test.py` script to test the Lambda function locally:
 
 ```shell
-PYTHONPATH=$(git rev-parse --show-toplevel)/services/gp-search/functions poetry run python tests/manual_test.py
+PYTHONPATH=$(git rev-parse --show-toplevel)/services/dos-search/functions poetry run python tests/manual_test.py
 ```
 
 This will use the ODS_CODE from your environment variables to make a test request.

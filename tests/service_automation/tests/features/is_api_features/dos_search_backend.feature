@@ -1,8 +1,8 @@
-@is-api @ftrs-pipeline @gp-search-api
+@is-api @ftrs-pipeline @dos-search-api
 Feature: API DoS Service Search Backend
 
   Background: Set stack and seed repo
-    Given that the stack is "gp-search"
+    Given that the stack is "dos-search"
     And the dns for "servicesearch" is resolvable
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
