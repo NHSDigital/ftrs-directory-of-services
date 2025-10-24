@@ -1,5 +1,5 @@
 module "health_check_lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=f5cc045/infrastructure/modules/lambda"
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=058acc9/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.health_check_lambda_name}"
   description            = "This lambda provides a health check for the search lambda"
   handler                = "health_check/health_check_function.lambda_handler"
@@ -30,7 +30,7 @@ module "health_check_lambda" {
   allowed_triggers = {
     AllowExecutionFromAPIGateway = {
       service    = "apigateway"
-      source_arn = "${aws_api_gateway_rest_api.api-gateway.execution_arn}/*/*"
+      source_arn = "${aws_api_gateway_rest_api.api_gateway.execution_arn}/*/*"
     }
   }
 

@@ -89,3 +89,15 @@ variable "api_gateway_tls_security_policy" {
   description = "The TLS security policy of the API Gateway when negotiating SSL handshakes"
   default     = "TLS_1_2"
 }
+
+variable "lambda_cloudwatch_logs_retention_days" {
+  description = "Number of days to retain CloudWatch logs for the main search Lambda"
+  type        = number
+  default     = 7
+}
+
+variable "health_check_lambda_cloudwatch_logs_retention_days" {
+  description = "Number of days to retain CloudWatch logs for the health check Lambda"
+  type        = number
+  default     = 7
+}
