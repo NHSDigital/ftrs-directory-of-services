@@ -189,7 +189,7 @@ jobs:
           output_file_path: checkov.sarif
 
       - name: "Publish Checkov report"
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@v5
         if: success() || failure()
         with:
           name: "checkov.sarif"
@@ -223,7 +223,7 @@ jobs:
           exit-code: 1
 
       - name: "Publish Trivy report"
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@v5
         if: success() || failure()
         with:
           name: "trivy.sarif"
