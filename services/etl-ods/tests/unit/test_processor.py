@@ -6,6 +6,7 @@ from typing import Generator, NamedTuple
 import pytest
 import requests
 from ftrs_common.utils.correlation_id import set_correlation_id
+from ftrs_common.utils.request_id import set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
@@ -14,13 +15,16 @@ from requests_mock.adapter import _Matcher as Matcher
 from pipeline.processor import MAX_DAYS_PAST, processor, processor_lambda_handler
 
 TEST_CORRELATION_ID = "test-correlation"
+TEST_REQUEST_ID = "test-request"
 
 
 @pytest.fixture(autouse=True)
-def fixed_correlation_id() -> Generator[None, None, None]:
+def fixed_ids() -> Generator[None, None, None]:
     set_correlation_id(TEST_CORRELATION_ID)
+    set_request_id(TEST_REQUEST_ID)
     yield
     set_correlation_id(None)
+    set_request_id(None)
 
 
 class MockResponses(NamedTuple):
@@ -169,6 +173,7 @@ def test_processor_processing_organisations_successful(
                 "telecom": [],
             },
             "correlation_id": TEST_CORRELATION_ID,
+            "request_id": TEST_REQUEST_ID,
         }
     ]
 
@@ -320,6 +325,7 @@ def test_processor_continue_on_validation_failure(
                 "telecom": [],
             },
             "correlation_id": TEST_CORRELATION_ID,
+            "request_id": TEST_REQUEST_ID,
         }
     ]
 

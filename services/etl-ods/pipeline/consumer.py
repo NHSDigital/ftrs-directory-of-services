@@ -7,6 +7,7 @@ from ftrs_common.utils.correlation_id import (
     correlation_id_context,
     fetch_or_set_correlation_id,
 )
+from ftrs_common.utils.request_id import fetch_or_set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.utilities import get_base_apim_api_url, make_request
@@ -19,7 +20,13 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
         correlation_id = fetch_or_set_correlation_id(
             event.get("headers", {}).get("X-Correlation-ID")
         )
-        ods_consumer_logger.append_keys(correlation_id=correlation_id)
+        request_id = fetch_or_set_request_id(
+            context_id=getattr(context, "aws_request_id", None) if context else None,
+            header_id=event.get("headers", {}).get("X-Request-ID"),
+        )
+        ods_consumer_logger.append_keys(
+            correlation_id=correlation_id, request_id=request_id
+        )
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_001,
         )

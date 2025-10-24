@@ -12,6 +12,7 @@ from ftrs_common.utils.correlation_id import (
     fetch_or_set_correlation_id,
     get_correlation_id,
 )
+from ftrs_common.utils.request_id import REQUEST_ID_HEADER, generate_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
@@ -73,6 +74,8 @@ def build_headers(options: dict) -> dict:
     api_key_required = options.get("api_key_required", False)
     correlation_id = fetch_or_set_correlation_id(get_correlation_id())
     headers[CORRELATION_ID_HEADER] = correlation_id
+    request_id = generate_request_id()
+    headers[REQUEST_ID_HEADER] = request_id
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
@@ -122,7 +125,10 @@ def make_request(
             "api_key_required": api_key_required,
         }
     )
-    ods_utils_logger.append_keys(correlation_id=headers.get("X-Correlation-ID"))
+    ods_utils_logger.append_keys(
+        correlation_id=headers.get(CORRELATION_ID_HEADER),
+        request_id=headers.get(REQUEST_ID_HEADER),
+    )
 
     try:
         TIMEOUT_SECONDS = 20
@@ -136,11 +142,14 @@ def make_request(
         )
         response.raise_for_status()
 
-        response_correlation_id = response.headers.get("X-Correlation-ID")
+        response_correlation_id = response.headers.get(CORRELATION_ID_HEADER)
+        response_request_id = response.headers.get(REQUEST_ID_HEADER)
         if response_correlation_id:
             ods_utils_logger.append_keys(
                 response_correlation_id=response_correlation_id
             )
+        if response_request_id:
+            ods_utils_logger.append_keys(response_request_id=response_request_id)
 
         if fhir:
             handle_fhir_response(response.json(), method)
