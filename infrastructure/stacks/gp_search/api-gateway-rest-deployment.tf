@@ -30,15 +30,14 @@ resource "aws_api_gateway_deployment" "deployment" {
 }
 
 resource "aws_api_gateway_method_settings" "all" {
-  # checkov:skip=CKV_AWS_225: Caching breaks the tests
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   stage_name  = aws_api_gateway_stage.default.stage_name
   method_path = "*/*"
 
   settings {
-    # caching_enabled      = var.api_gateway_method_cache_enabled
-    # cache_data_encrypted = true
-    metrics_enabled = var.api_gateway_method_metrics_enabled
+    caching_enabled      = var.api_gateway_method_cache_enabled
+    cache_data_encrypted = true
+    metrics_enabled      = var.api_gateway_method_metrics_enabled
 
     logging_level      = var.api_gateway_logging_level
     data_trace_enabled = false

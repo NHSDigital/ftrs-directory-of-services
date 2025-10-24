@@ -14,7 +14,7 @@ tracer = Tracer()
 app = APIGatewayRestResolver()
 
 
-@app.get("/Org")
+@app.get("/Organization")
 @tracer.capture_method
 def get_organization() -> Response:
     try:
