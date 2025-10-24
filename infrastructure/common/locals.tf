@@ -14,11 +14,11 @@ locals {
   dynamodb_tables = {
     for table_name in var.dynamodb_table_names :
     table_name => {
-      arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${table_name}${local.workspace_suffix}"
+      arn = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.project}-${var.environment}-database-${table_name}${local.workspace_suffix}"
     }
   }
 
-  dos_search_organisation_table_arn = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${var.dos_search_organisation_table_name}"
+  organisation_table_arn = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.project}-${var.environment}-database-${var.organisation_table_name}"
 
   domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
 

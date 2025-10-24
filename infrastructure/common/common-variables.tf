@@ -101,7 +101,7 @@ variable "sso_roles" {
   default     = []
 }
 
-variable "dos_search_organisation_table_name" {
+variable "organisation_table_name" {
   description = "The dynamodb table name for gp search"
   type        = string
 }
