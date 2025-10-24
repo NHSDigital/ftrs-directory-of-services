@@ -2,7 +2,7 @@ resource "aws_api_gateway_rest_api" "api_gateway" {
   name        = "${local.resource_prefix}-api-gateway-rest${local.workspace_suffix}"
   description = var.api_gateway_description
 
-  disable_execute_api_endpoint = false
+  disable_execute_api_endpoint = true
 
   endpoint_configuration {
     types = ["REGIONAL"]
