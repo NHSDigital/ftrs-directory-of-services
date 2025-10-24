@@ -1,0 +1,24 @@
+@use "nhsuk-frontend/packages/nhsuk" as *;
+@import "font-face";
+
+
+.ftrs-page-container {
+  @include nhsuk-responsive-margin(3, "top");
+  @include nhsuk-responsive-padding(5, "bottom");
+  @include nhsuk-responsive-margin(5, "bottom");
+
+
+  min-height: 60vh;
+  min-height: 60vh;
+}
+
+.care-identity-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  &__image {
+    height: 64px;
+  }
+}

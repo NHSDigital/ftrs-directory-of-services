@@ -8,7 +8,7 @@ source_rds_database  = "pathwaysdos_future"
 target_rds_database  = "dos"
 replica_rds_database = "data_migration"
 rds_engine           = "aurora-postgresql"
-rds_engine_version   = "16.6"
+rds_engine_version   = "16.8"
 rds_engine_mode      = "provisioned"
 rds_instance_class   = "db.serverless"
 
@@ -43,10 +43,10 @@ rds_event_listener_lambda_memory_size        = 1024
 
 schema_name                      = "pathwaysdos"
 sqs_ssm_path_for_ids             = "/ftrs-dos/migration/sqs-ids/"
-migration_copy_db_lambda_trigger = "pipeline.migration_copy_db_trigger.lambda_handler"
+migration_copy_db_lambda_trigger = "pipeline.migration_copy_db_trigger_lambda_handler.lambda_handler"
 
 dms_db_lambda_name               = "dms-db-setup"
-dms_db_lambda_trigger            = "pipeline.dms_db.lambda_handler"
+dms_db_lambda_trigger            = "pipeline.dms_db_lambda_handler.lambda_handler"
 dms_db_lambda_connection_timeout = 300
 dms_db_lambda_memory_size        = 1024
 

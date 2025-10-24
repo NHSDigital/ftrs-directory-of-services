@@ -78,6 +78,7 @@
                 "iam:DeleteServiceLinkedRole",
                 "iam:CreatePolicy",
                 "iam:DeletePolicy",
+                "iam:PutRolePolicy",
                 "iam:AttachRolePolicy",
                 "iam:DetachRolePolicy",
                 "iam:DeleteRolePolicy",
@@ -101,6 +102,23 @@
                 "arn:aws:iam::*:policy/ftrs-dos-*",
                 "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
             ]
+        },
+        {
+            "Sid": "IAMPassRoleAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/ftrs-dos-*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "iam:PassedToService": [
+                        "apigateway.amazonaws.com"
+                    ]
+                }
+            }
         },
         {
             "Sid": "KMSFullAccess",
@@ -162,6 +180,24 @@
             "Effect": "Allow",
             "Action": [
                 "shield:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "APIGatewayAccount",
+            "Effect": "Allow",
+            "Action": [
+                "apigateway:*"
+            ],
+            "Resource": "arn:aws:apigateway:*::/account"
+        },
+        {
+            "Sid": "SecurityHubAccess",
+            "Effect": "Allow",
+            "Action": [
+                "securityhub:GetEnabledStandards",
+                "securityhub:BatchDisableStandards",
+                "securityhub:BatchEnableStandards"
             ],
             "Resource": "*"
         }
