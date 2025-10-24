@@ -25,8 +25,8 @@ resource "aws_route53_record" "domain_r53" {
   }
 }
 
-resource "aws_api_gateway_base_path_mapping" "domain-mapping" {
-  api_id      = aws_api_gateway_rest_api.api-gateway.id
+resource "aws_api_gateway_base_path_mapping" "domain_mapping" {
+  api_id      = aws_api_gateway_rest_api.api_gateway.id
   domain_name = aws_api_gateway_domain_name.domain_name.domain_name
 }
 

@@ -4,7 +4,7 @@ resource "aws_api_gateway_deployment" "deployment" {
     aws_api_gateway_integration.status,
   ]
 
-  rest_api_id = aws_api_gateway_rest_api.api-gateway.id
+  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
 
   triggers = {
     # NOTE: The configuration below will satisfy ordering considerations,
@@ -30,7 +30,7 @@ resource "aws_api_gateway_deployment" "deployment" {
 }
 
 resource "aws_api_gateway_method_settings" "all" {
-  rest_api_id = aws_api_gateway_rest_api.api-gateway.id
+  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   stage_name  = aws_api_gateway_stage.default.stage_name
   method_path = "*/*"
 
