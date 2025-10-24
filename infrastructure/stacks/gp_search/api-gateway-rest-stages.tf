@@ -2,6 +2,7 @@ resource "aws_api_gateway_stage" "default" {
   # checkov:skip=CKV2_AWS_29: DOSIS-2197 - Deploy and attach WAF
   # checkov:skip=CKV2_AWS_51: False positive, the API is secured by mTLS via DNS domain certificate
   # checkov:skip=CKV2_AWS_4: False positive, we are configuring custom logging
+  # checkov:skip=CKV_AWS_120: Caching breaks the tests
   deployment_id = aws_api_gateway_deployment.deployment.id
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   stage_name    = "default"
