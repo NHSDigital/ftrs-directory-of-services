@@ -128,6 +128,29 @@
             ]
         },
         {
+            "Sid": "IAMCreateInstanceProfileWildcard",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateInstanceProfile"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "IAMInstanceProfileForProject",
+            "Effect": "Allow",
+            "Action": [
+                "iam:GetInstanceProfile",
+                "iam:DeleteInstanceProfile",
+                "iam:TagInstanceProfile",
+                "iam:UntagInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:instance-profile/${project}-*"
+            ]
+        },
+        {
             "Sid": "WAFFullAccess",
             "Effect": "Allow",
             "Action": [
@@ -150,7 +173,8 @@
                         "scheduler.amazonaws.com",
                         "pipes.amazonaws.com",
                         "osis-pipelines.amazonaws.com",
-                        "rds.amazonaws.com"
+                        "rds.amazonaws.com",
+                        "ec2.amazonaws.com"
                     ]
                 }
             }

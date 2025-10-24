@@ -7,6 +7,7 @@ WORKSPACE_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-pa
 MAIN_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket
 JMETER_PLUGINS_MANAGER_VERSION := 1.11
 CMDRUNNER_VERSION := 2.3
+AWS_REGION ?= eu-west-2
 
 install: config
 
@@ -76,3 +77,62 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
 		make _install-dependency name="$${plugin}"; \
 	done
+
+jmeter-ec2-id:
+	@ID="$(JMETER_INSTANCE_ID)"; \
+	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
+	echo "JMeter EC2 instance id: $$ID"
+
+jmeter-private-ip:
+	@ID="$(JMETER_INSTANCE_ID)"; \
+	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
+	IP=$$(aws ec2 describe-instances --region $(AWS_REGION) --instance-ids "$$ID" \
+		--query 'Reservations[0].Instances[0].PrivateIpAddress' --output text 2>/dev/null | tr -d '[:space:]'); \
+	echo "JMeter EC2 private IP: $$IP"
+
+jmeter-start-instance: ## [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] Start the JMeter EC2 instance and wait until running
+	@ID="$(JMETER_INSTANCE_ID)"; \
+	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
+	aws ec2 start-instances --region $(AWS_REGION) --instance-ids "$$ID" >/dev/null; \
+	aws ec2 wait instance-running --region $(AWS_REGION) --instance-ids "$$ID"; \
+	echo "JMeter instance started: $$ID"
+
+jmeter-stop-instance: ## [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] Stop the JMeter EC2 instance and wait until stopped
+	@ID="$(JMETER_INSTANCE_ID)"; \
+	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
+	aws ec2 stop-instances --region $(AWS_REGION) --instance-ids "$$ID" >/dev/null; \
+	aws ec2 wait instance-stopped --region $(AWS_REGION) --instance-ids "$$ID"; \
+	echo "JMeter instance stopped: $$ID"
+
+jmeter-version-remote: ## [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] Print JMeter version on the EC2 using SSM
+	@ID="$(JMETER_INSTANCE_ID)"; \
+	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
+	aws ssm start-session --region $(AWS_REGION) --target "$$ID" --document-name AWS-StartInteractiveCommand --parameters 'command=["jmeter -v"]'
+
+jmeter-ssm-shell: ## [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] Open an interactive SSM shell to the JMeter EC2 instance
+	@ID="$(JMETER_INSTANCE_ID)"; \
+	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
+	aws ssm start-session --region $(AWS_REGION) --target "$$ID"
+
+jmeter-copy-plan-ssm-inline: ## [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] [PLAN=jmeter_test_plan.jmx] [DEST=jmeter_test_plan.jmx]
+	@ID="$(JMETER_INSTANCE_ID)"; \
+	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
+	PLAN="${PLAN}"; if [ -z "$$PLAN" ]; then PLAN=jmeter_test_plan.jmx; fi; \
+	DEST="${DEST}"; if [ -z "$$DEST" ]; then DEST=$$(basename "$$PLAN"); fi; \
+	if [ ! -f "$$PLAN" ]; then ALT="tests/performance/$$(basename "$$PLAN")"; if [ -f "$$ALT" ]; then PLAN="$$ALT"; else echo "Plan file '$$PLAN' not found"; exit 1; fi; fi; \
+	B64=$$(base64 < "$$PLAN" | tr -d '\n'); \
+	echo "Uploading '$$PLAN' to EC2:/home/ssm-user/$$DEST via SSM inline"; \
+	PARAMS_FILE=$$(mktemp); \
+	printf '%s\n' '{' '  "commands": [' '    "bash -lc \"printf %s '\''__B64__'\'' | base64 -d > /home/ssm-user/__DEST__ && ls -l /home/ssm-user/__DEST__\""' '  ]' '}' > "$$PARAMS_FILE"; \
+	B64_ESC=$$(printf '%s' "$$B64" | sed -e 's/[&|]/\\\&/g'); \
+	DEST_ESC=$$(printf '%s' "$$DEST" | sed -e 's/[&|]/\\\&/g'); \
+	sed -i.bak -e "s|__B64__|$$B64_ESC|g" -e "s|__DEST__|$$DEST_ESC|g" "$$PARAMS_FILE"; rm -f "$$PARAMS_FILE.bak"; \
+	CMD_ID=$$(aws ssm send-command --region $(AWS_REGION) --instance-ids "$$ID" \
+		--document-name AWS-RunShellScript \
+		--parameters file://$$PARAMS_FILE \
+		--query 'Command.CommandId' --output text); \
+	rm -f "$$PARAMS_FILE"; \
+	aws ssm wait command-executed --region $(AWS_REGION) --instance-id "$$ID" --command-id "$$CMD_ID"; \
+	echo "Plan uploaded to /home/ssm-user/$${DEST}"
+
+.PHONY: jmeter-start-instance jmeter-stop-instance jmeter-version-remote jmeter-ssm-shell jmeter-copy-plan-ssm-inline jmeter-ec2-id jmeter-private-ip
