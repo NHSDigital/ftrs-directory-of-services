@@ -2,9 +2,7 @@ import json
 import os
 from functools import cache
 
-import boto3
 import requests
-from botocore.exceptions import ClientError
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import (
@@ -12,9 +10,21 @@ from ftrs_common.utils.correlation_id import (
     fetch_or_set_correlation_id,
     get_correlation_id,
 )
+from ftrs_common.utils.jwt_auth import JWTAuthenticator
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
+
+
+def get_jwt_authenticator() -> JWTAuthenticator:
+    environment = os.environ.get("ENVIRONMENT", "local")
+    resource_prefix = get_resource_prefix()
+
+    return JWTAuthenticator(
+        environment=environment,
+        region=os.environ["AWS_REGION"],
+        secret_name=f"/{resource_prefix}/apim-jwt-credentials",
+    )
 
 
 @cache
@@ -27,34 +37,6 @@ def get_base_apim_api_url() -> str:
     return os.environ.get("APIM_URL")
 
 
-def _get_api_key() -> str:
-    env = os.environ.get("ENVIRONMENT")
-
-    if env == "local":
-        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
-        return os.environ["LOCAL_API_KEY"]
-    try:
-        resource_prefix = get_resource_prefix()
-        secret_name = f"/{resource_prefix}/apim-api-key"
-        client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
-        response = client.get_secret_value(SecretId=secret_name)
-        secret = response["SecretString"]
-        try:
-            secret_dict = json.loads(secret)
-            return secret_dict.get("api_key", secret)
-        except json.JSONDecodeError:
-            ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_007)
-            raise
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "ResourceNotFoundException":
-            ods_utils_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_006,
-                secret_name=secret_name,
-                error_message=str(e),
-            )
-        raise
-
-
 def get_resource_prefix() -> str:
     project = os.environ.get("PROJECT_NAME")
     environment = os.environ.get("ENVIRONMENT")
@@ -62,22 +44,23 @@ def get_resource_prefix() -> str:
 
 
 def build_headers(options: dict) -> dict:
-    """
-    Builds headers for the outgoing HTTP request.
-    Expects options dict with keys: json_data, json_string, fhir, url, method, api_key_required
-    """
     headers = {}
     json_data = options.get("json_data")
     json_string = options.get("json_string")
     fhir = options.get("fhir")
-    api_key_required = options.get("api_key_required", False)
+    jwt_required = options.get("jwt_required", False)
     correlation_id = fetch_or_set_correlation_id(get_correlation_id())
     headers[CORRELATION_ID_HEADER] = correlation_id
+
     # Prepare JSON body if present
     if json_data is not None:
         headers["Content-Type"] = "application/json"
-    if api_key_required:
-        headers["apikey"] = _get_api_key()
+
+    if jwt_required:
+        jwt_auth = get_jwt_authenticator()
+        auth_headers = jwt_auth.get_auth_headers()
+        headers.update(auth_headers)
+
     # Set FHIR headers if needed
     if fhir:
         headers["Accept"] = "application/fhir+json"
@@ -106,7 +89,7 @@ def make_request(
     method: str = "GET",
     params: dict = None,
     fhir: bool = False,
-    api_key_required: bool = True,
+    jwt_required: bool = False,
     **kwargs: dict,
 ) -> requests.Response:
     json_data = kwargs.get("json")
@@ -119,7 +102,7 @@ def make_request(
             "fhir": fhir,
             "url": url,
             "method": method,
-            "api_key_required": api_key_required,
+            "jwt_required": jwt_required,
         }
     )
     ods_utils_logger.append_keys(correlation_id=headers.get("X-Correlation-ID"))

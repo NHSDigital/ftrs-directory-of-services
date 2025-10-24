@@ -36,7 +36,7 @@ module "processor_lambda" {
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
-    data.aws_iam_policy_document.secretsmanager_api_key_access_policy.json
+    data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json
   ]
 
   layers = concat(
@@ -80,7 +80,7 @@ module "consumer_lambda" {
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
-    data.aws_iam_policy_document.secretsmanager_api_key_access_policy.json
+    data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json
   ]
 
   layers = concat(

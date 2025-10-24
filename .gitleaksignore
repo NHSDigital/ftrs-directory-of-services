@@ -2,3 +2,9 @@
 
 cd9c0efec38c5d63053dd865e5d4e207c0760d91:docs/guides/Perform_static_analysis.md:generic-api-key:37
 bbff5814c684b5d2b05619db96d302f6f6d038fc:application/packages/python/ftrs_data_layer/legacy_model.py:apikey:200
+
+# Ignore false positives from JWT README examples
+8a00509d84963cce8b775e4e0ffbdf7a13f3fab6:scripts/jwt/README.md:apikey:21
+bb74e7b5fb7d799f70ba7e4fdc770e3f59c2f2a4:scripts/jwt/README.md:private-key:18
+bb74e7b5fb7d799f70ba7e4fdc770e3f59c2f2a4:scripts/jwt/README.md:privatekeys:18
+bb74e7b5fb7d799f70ba7e4fdc770e3f59c2f2a4:scripts/jwt/README.md:privatekeys:55

@@ -78,7 +78,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
         response = make_request(
             organisation_get_uuid_uri,
             method="GET",
-            api_key_required=True,
+            jwt_required=True,
             fhir=True,
         ).json()
         if isinstance(response, dict) and response.get("resourceType") == "Bundle":
