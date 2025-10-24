@@ -90,7 +90,7 @@ jobs:
 
   manual-approval:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} infrastructure deployment"
-    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/task/DOSIS-22453-Add-api-gateway-account')  && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
+    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
       - plan-infrastructure
@@ -105,7 +105,7 @@ jobs:
     concurrency:
       group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
       cancel-in-progress: false
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/task/DOSIS-22453-Add-api-gateway-account')
+    if: github.ref == 'refs/heads/main'
     needs:
       - metadata
       - manual-approval
