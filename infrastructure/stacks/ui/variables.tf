@@ -4,12 +4,12 @@ variable "application_tag" {
 }
 
 variable "commit_hash" {
-  description = "The commit hash of the read-only viewer application"
+  description = "The commit hash of the UI"
   type        = string
 }
 
-variable "read_only_viewer_bucket_name" {
-  description = "The name of the read-only viewer bucket"
+variable "ui_bucket_name" {
+  description = "The name of the UI bucket"
   type        = string
 }
 
@@ -34,30 +34,30 @@ variable "force_destroy" {
   default     = true
 }
 
-variable "read_only_viewer_cloudfront_price_class" {
+variable "ui_cloudfront_price_class" {
   description = "The price class for the CloudFront distribution"
   type        = string
   default     = "PriceClass_100"
 }
 
-variable "frontend_lambda_connection_timeout" {
+variable "ui_lambda_connection_timeout" {
   description = "The connection timeout for the frontend lambda"
   type        = number
   default     = 30
 }
 
-variable "frontend_lambda_memory_size" {
+variable "ui_lambda_memory_size" {
   description = "The memory size for the frontend lambda"
   type        = number
   default     = 256
 }
 
-variable "frontend_lambda_name" {
+variable "ui_lambda_name" {
   description = "The name of the frontend lambda"
   type        = string
 }
 
-variable "frontend_lambda_runtime" {
+variable "ui_lambda_runtime" {
   description = "The runtime for the frontend lambda"
   type        = string
   default     = "nodejs20.x"
@@ -136,4 +136,36 @@ variable "emergency_contacts" {
 variable "create_monitoring_subscription" {
   description = "The resource for monitoring subscription will be created."
   type        = bool
+}
+
+variable "http_version" {
+  description = "The HTTP version for CloudFront distribution"
+  type        = string
+  default     = "http2and3"
+
+}
+
+variable "origin_protocol_policy" {
+  description = "The origin protocol policy for CloudFront distribution"
+  type        = string
+  default     = "https-only"
+
+}
+
+variable "origin_ssl_protocols" {
+  description = "The origin SSL protocols for CloudFront distribution"
+  type        = list(string)
+  default     = ["TLSv1.2"]
+}
+
+variable "ssl_support_method" {
+  description = "The SSL support method for CloudFront distribution"
+  type        = string
+  default     = "sni-only"
+}
+
+variable "minimum_protocol_version" {
+  description = "The minimum protocol version for CloudFront distribution"
+  type        = string
+  default     = "TLSv1.2_2021"
 }

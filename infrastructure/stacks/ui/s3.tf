@@ -1,6 +1,6 @@
-module "read_only_viewer_bucket" {
+module "ui_bucket" {
   source        = "../../modules/s3"
-  bucket_name   = "${local.resource_prefix}-${var.read_only_viewer_bucket_name}"
+  bucket_name   = "${local.resource_prefix}-${var.ui_bucket_name}"
   versioning    = var.s3_versioning
   force_destroy = var.force_destroy
   lifecycle_rule_inputs = [
@@ -19,12 +19,12 @@ module "read_only_viewer_bucket" {
   ]
 }
 
-resource "aws_s3_bucket_policy" "read_only_viewer_bucket_policy" {
-  bucket = module.read_only_viewer_bucket.s3_bucket_id
-  policy = data.aws_iam_policy_document.read_only_viewer_bucket_policy.json
+resource "aws_s3_bucket_policy" "ui_bucket_policy" {
+  bucket = module.ui_bucket.s3_bucket_id
+  policy = data.aws_iam_policy_document.ui_bucket_policy.json
 }
 
-data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
+data "aws_iam_policy_document" "ui_bucket_policy" {
   statement {
     principals {
       type        = "Service"
@@ -33,14 +33,14 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
 
     actions = ["s3:GetObject"]
     resources = [
-      "${module.read_only_viewer_bucket.s3_bucket_arn}/*",
+      "${module.ui_bucket.s3_bucket_arn}/*",
     ]
 
     condition {
       test     = "StringEquals"
       variable = "aws:SourceArn"
       values = [
-        module.read_only_viewer_cloudfront.cloudfront_distribution_arn,
+        module.ui_cloudfront.cloudfront_distribution_arn,
       ]
     }
   }
@@ -59,7 +59,7 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     ]
 
     resources = [
-      "${module.read_only_viewer_bucket.s3_bucket_arn}/*",
+      "${module.ui_bucket.s3_bucket_arn}/*",
     ]
   }
 }
@@ -88,7 +88,7 @@ data "aws_iam_policy_document" "access_logging_bucket_policy" {
       test     = "StringEquals"
       variable = "aws:SourceArn"
       values = [
-        module.read_only_viewer_cloudfront.cloudfront_distribution_arn,
+        module.ui_cloudfront.cloudfront_distribution_arn,
       ]
     }
   }
@@ -147,3 +147,4 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs_lifecycle" {
     filter {}
   }
 }
+

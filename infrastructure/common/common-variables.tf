@@ -117,6 +117,12 @@ variable "https_port" {
   default     = 443
 }
 
+variable "http_port" {
+  description = "The port for HTTP traffic"
+  type        = number
+  default     = 80
+}
+
 variable "rds_port" {
   description = "The port RDS will listen on"
   type        = string
