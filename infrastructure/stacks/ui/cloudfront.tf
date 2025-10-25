@@ -72,6 +72,15 @@ module "ui_cloudfront" {
       viewer_protocol_policy = "redirect-to-https"
     },
     {
+      path_pattern           = "/images/*"
+      target_origin_id       = "s3_bucket"
+      allowed_methods        = ["GET", "HEAD"]
+      cached_methods         = ["GET", "HEAD"]
+      compress               = true
+      query_string           = true
+      viewer_protocol_policy = "redirect-to-https"
+    },
+    {
       path_pattern           = "favicon.ico"
       target_origin_id       = "s3_bucket"
       allowed_methods        = ["GET", "HEAD"]
