@@ -4,6 +4,8 @@ resource "aws_api_gateway_deployment" "deployment" {
     aws_api_gateway_integration.status,
   ]
 
+
+
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
 
   triggers = {
@@ -15,12 +17,12 @@ resource "aws_api_gateway_deployment" "deployment" {
     #       resources will show a difference after the initial implementation.
     #       It will stabilize to only change when resources change afterwards.
     redeployment = sha1(jsonencode([
-      aws_api_gateway_resource.organization.id,
-      aws_api_gateway_resource.status.id,
-      aws_api_gateway_method.organization.id,
-      aws_api_gateway_method.status.id,
-      aws_api_gateway_integration.organization.id,
-      aws_api_gateway_integration.status.id,
+      aws_api_gateway_resource.organization,
+      aws_api_gateway_resource.status,
+      aws_api_gateway_method.organization,
+      aws_api_gateway_method.status,
+      aws_api_gateway_integration.organization,
+      aws_api_gateway_integration.status,
     ]))
   }
 
