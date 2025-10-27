@@ -22,7 +22,7 @@ processor_lambda_memory_size = 1024
 queue_populator_lambda_name        = "queue-populator-lambda"
 queue_populator_lambda_timeout     = 300
 queue_populator_lambda_memory_size = 2048
-queue_populator_lambda_handler     = "pipeline.queue_populator.lambda_handler"
+queue_populator_lambda_handler     = "queue_populator.lambda_handler.lambda_handler"
 
 dms_event_queue_name                               = "dms-events"
 dms_event_queue_enabled                            = true

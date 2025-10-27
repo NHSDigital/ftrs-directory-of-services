@@ -10,8 +10,9 @@ from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 from sqlmodel import Session, create_engine, select
 
-from pipeline.application import DMSEvent
-from pipeline.utils.config import DatabaseConfig, QueuePopulatorConfig
+from common.config import DatabaseConfig
+from common.events import DMSEvent
+from queue_populator.config import QueuePopulatorConfig
 
 SQS_BATCH_SIZE_LIMIT = 10
 LOGGER = Logger.get(service="data-migration-queue-populator")
