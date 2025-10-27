@@ -5,7 +5,12 @@ from ftrs_data_layer.domain import (
 from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.domain.triage_code import TriageCodeCombination
 
-from pipeline.transformer.triage_code import TriageCodeTransformer
+from reference_data_load.mapper.triage_code_mapper import (
+    DispositionMapper,
+    SGSDCombinationMapper,
+    SymptomDiscriminatorMapper,
+    SymptomGroupMapper,
+)
 
 
 def test_builds_triage_code_from_symptom_group_with_z_code() -> None:
@@ -14,7 +19,7 @@ def test_builds_triage_code_from_symptom_group_with_z_code() -> None:
     )
 
     # Execute
-    result = TriageCodeTransformer.build_triage_code_from_symptom_group(symptom_group)
+    result = SymptomGroupMapper().map(symptom_group)
 
     # Assert
 
@@ -32,7 +37,7 @@ def test_builds_triage_code_from_symptom_group_without_z_code() -> None:
         id="456", name="Another Symptom Group", zcodeexists=False
     )
 
-    result = TriageCodeTransformer.build_triage_code_from_symptom_group(symptom_group)
+    result = SymptomGroupMapper().map(symptom_group)
 
     # Assert
     assert result.id == "SG456"
@@ -49,7 +54,7 @@ def test_builds_triage_code_from_disposition_with_time() -> None:
         id="789", name="Test Disposition", dispositiontime=60, dxcode="DX789"
     )
 
-    result = TriageCodeTransformer.build_triage_code_from_disposition(disposition)
+    result = DispositionMapper().map(disposition)
 
     # Assert
     assert result.id == "DX789"
@@ -66,7 +71,7 @@ def test_builds_triage_code_from_disposition_without_time() -> None:
         id="101", name="No Time Disposition", dispositiontime=None, dxcode="DX101"
     )
 
-    result = TriageCodeTransformer.build_triage_code_from_disposition(disposition)
+    result = DispositionMapper().map(disposition)
 
     # Assert
     assert result.id == "DX101"
@@ -85,9 +90,7 @@ def test_builds_triage_code_from_symptom_discriminator_with_description() -> Non
         id="202", description="Test Description", synonyms=[synonym1, synonym2]
     )
 
-    result = TriageCodeTransformer.build_triage_code_from_symptom_discriminator(
-        symptom_discriminator
-    )
+    result = SymptomDiscriminatorMapper().map(symptom_discriminator)
 
     # Assert
     assert result.id == "SD202"
@@ -105,9 +108,7 @@ def test_builds_triage_code_from_symptom_discriminator_without_description() -> 
     )
 
     # Execute
-    result = TriageCodeTransformer.build_triage_code_from_symptom_discriminator(
-        symptom_discriminator
-    )
+    result = SymptomDiscriminatorMapper().map(symptom_discriminator)
 
     # Assert
     assert result.id == "SD303"
@@ -124,17 +125,8 @@ def test_builds_triage_code_combinations() -> None:
     sd = legacy_model.SymptomDiscriminator(
         id="2", description="Symptom Discriminator description", synonyms=[]
     )
-    sg_sd = [
-        legacy_model.SymptomGroupSymptomDiscriminator(
-            id=123,
-            symptomgroupid=sg.id,
-            symptomdiscriminatorid=sd.id,
-            symptomgroup=sg,
-            symptomdiscriminator=sd,
-        )
-    ]
 
-    result = TriageCodeTransformer.build_triage_code_combinations(1, sg_sd)
+    result = SGSDCombinationMapper().map(sg, [sd])
     assert result.field == "combinations"
     assert result.id == "SG1"
     assert result.codeType == ClinicalCodeType.SG_SD_PAIR
@@ -145,7 +137,8 @@ def test_builds_triage_code_combinations() -> None:
 
 def test_builds_triage_code_combinations_empty_list() -> None:
     # Setup
-    result = TriageCodeTransformer.build_triage_code_combinations(1, [])
+    sg = legacy_model.SymptomGroup(id="1", name="SG1", zcodeexists=True)
+    result = SGSDCombinationMapper().map(sg, [])
 
     # Assert
     assert result.id == "SG1"
@@ -158,11 +151,7 @@ def test_builds_triage_code_from_symptom_discriminator_with_varied_sources() -> 
     symptom_discriminator_pathways = legacy_model.SymptomDiscriminator(
         id=100, description="Test Description", synonyms=[]
     )
-    result_pathways = (
-        TriageCodeTransformer.build_triage_code_from_symptom_discriminator(
-            symptom_discriminator_pathways
-        )
-    )
+    result_pathways = SymptomDiscriminatorMapper().map(symptom_discriminator_pathways)
 
     # Assert for PATHWAYS source
     assert result_pathways.source == ClinicalCodeSource.PATHWAYS
@@ -171,10 +160,8 @@ def test_builds_triage_code_from_symptom_discriminator_with_varied_sources() -> 
     symptom_discriminator_service_finder = legacy_model.SymptomDiscriminator(
         id=11000, description="Test Description", synonyms=[]
     )
-    result_service_finder = (
-        TriageCodeTransformer.build_triage_code_from_symptom_discriminator(
-            symptom_discriminator_service_finder
-        )
+    result_service_finder = SymptomDiscriminatorMapper().map(
+        symptom_discriminator_service_finder
     )
 
     # Assert for SERVICE_FINDER source
