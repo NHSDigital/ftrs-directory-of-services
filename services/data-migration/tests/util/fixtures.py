@@ -26,7 +26,7 @@ from ftrs_data_layer.domain.legacy import (
 
 from common.cache import DoSMetadataCache
 from common.config import DatabaseConfig
-from pipeline.utils.config import DataMigrationConfig
+from service_migration.config import DataMigrationConfig
 
 
 @pytest.fixture
