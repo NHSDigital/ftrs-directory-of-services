@@ -9,3 +9,7 @@ class DMSEvent(BaseModel):
     service_id: int
     table_name: str
     method: str
+
+
+class ReferenceDataLoadEvent(BaseModel):
+    type: Literal["triagecode"]
