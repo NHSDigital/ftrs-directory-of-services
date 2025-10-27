@@ -2,6 +2,7 @@ from time import perf_counter
 from typing import Iterable
 
 from ftrs_common.logger import Logger
+from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
@@ -14,7 +15,6 @@ from pipeline.transformer import (
     ServiceTransformOutput,
 )
 from pipeline.utils.config import DataMigrationConfig
-from pipeline.utils.dbutil import get_repository
 from pipeline.validation.types import ValidationIssue
 
 
@@ -212,12 +212,23 @@ class DataMigrationProcessor:
         """
         Save the transformed result to DynamoDB.
         """
-        org_repo = get_repository(
-            self.config, "organisation", Organisation, self.logger
+        org_repo = get_service_repository(
+            model_cls=Organisation,
+            logger=self.logger,
+            entity_name="organisation",
+            endpoint_url=self.config.dynamodb_endpoint,
         )
-        location_repo = get_repository(self.config, "location", Location, self.logger)
-        service_repo = get_repository(
-            self.config, "healthcare-service", HealthcareService, self.logger
+        location_repo = get_service_repository(
+            model_cls=Location,
+            logger=self.logger,
+            entity_name="location",
+            endpoint_url=self.config.dynamodb_endpoint,
+        )
+        service_repo = get_service_repository(
+            model_cls=HealthcareService,
+            logger=self.logger,
+            entity_name="healthcare-service",
+            endpoint_url=self.config.dynamodb_endpoint,
         )
 
         for org in result.organisation:

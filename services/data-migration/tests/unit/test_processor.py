@@ -30,7 +30,6 @@ from pipeline.processor import (
     DataMigrationProcessor,
     ServiceTransformOutput,
 )
-from pipeline.utils import dbutil
 from pipeline.utils.config import DataMigrationConfig
 from pipeline.validation.types import ValidationIssue, ValidationResult
 
@@ -663,11 +662,11 @@ def test_save(
     mock_location_repo = mocker.MagicMock()
     mock_service_repo = mocker.MagicMock()
 
-    dbutil.REPOSITORY_CACHE = {
-        "ftrs-dos-test-database-organisation-test_workspace": mock_org_repo,
-        "ftrs-dos-test-database-healthcare-service-test_workspace": mock_service_repo,
-        "ftrs-dos-test-database-location-test_workspace": mock_location_repo,
-    }
+    mocker.patch(
+        "pipeline.processor.get_service_repository",
+        side_effect=[mock_org_repo, mock_location_repo, mock_service_repo],
+    )
+
     validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
     result = transformer.transform(mock_legacy_service, validation_issues)
