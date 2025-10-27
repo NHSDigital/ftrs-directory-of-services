@@ -2,7 +2,7 @@
 Feature: Lambda function
 
   Background: Check lambda function exists
-    Given that the lambda function "dos-search-lambda" exists for stack "dos-search"
+    Given that the lambda function "dos-search-ods-code-lambda" exists for stack "dos-search"
 
 
   Scenario: The lambda returns a response that contains the ods code
