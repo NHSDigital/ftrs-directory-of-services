@@ -41,7 +41,7 @@ pytest-mock = "^3.14.0"
 pytest-cov = "^6.1.1"
 
 [tool.poetry.scripts]
-dos-search-function = "functions.dos_search_function:lambda_handler"
+dos-search-function = "functions.dos_search_ods_code_function:lambda_handler"
 dos-search-health-check = "health_check.health_check_function:lambda_handler"
 
 [tool.poetry.requires-plugins]

@@ -1,4 +1,4 @@
-@is-api @ftrs-pipeline @dos-search-api
+@is-api @ftrs-pipeline @dos-search-ods-code-api
 Feature: API DoS Service Search Backend
 
   Background: Set stack and seed repo

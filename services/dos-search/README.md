@@ -91,18 +91,18 @@ The service uses:
 ### Code Structure
 
 ```plain
-├── functions/                 # Lambda function code
-│   ├── ftrs_service/          # FTRS service implementation
-│   │   ├── fhir_mapper/       # Mapping between data models and FHIR
-│   │   ├── repository/        # Data access layer
-│   │   ├── config.py          # Configuration handling
-│   │   └── ftrs_service.py    # Main service logic
-│   └── dos_search_function.py # Lambda handler entry point
-├── tests/                     # Test suite
-│   ├── unit/                  # Unit tests
-│   ├── conftest.py            # Test configuration and fixtures
-│   └── manual_test.py         # Script for local testing
-└── ...                        # Configuration files
+├── functions/                          # Lambda function code
+│   ├── ftrs_service/                   # FTRS service implementation
+│   │   ├── fhir_mapper/                # Mapping between data models and FHIR
+│   │   ├── repository/                 # Data access layer
+│   │   ├── config.py                   # Configuration handling
+│   │   └── ftrs_service.py             # Main service logic
+│   └── dos_search_ods_code_function.py # Lambda handler entry point
+├── tests/                              # Test suite
+│   ├── unit/                           # Unit tests
+│   ├── conftest.py                     # Test configuration and fixtures
+│   └── manual_test.py                  # Script for local testing
+└── ...                                 # Configuration files
 ```
 
 ### Testing
@@ -117,7 +117,7 @@ poetry run pytest tests/unit
 poetry run pytest --cov=functions tests/unit
 
 # Run specific test file
-poetry run pytest tests/unit/functions/test_dos_search_function.py
+poetry run pytest tests/unit/functions/test_dos_search_ods_code_function.py
 ```
 
 Run the lambda function locally for manual testing:
