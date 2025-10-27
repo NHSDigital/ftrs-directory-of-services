@@ -137,3 +137,15 @@ variable "create_monitoring_subscription" {
   description = "The resource for monitoring subscription will be created."
   type        = bool
 }
+
+variable "ssl_support_method" {
+  description = "The SSL support method for CloudFront distribution"
+  type        = string
+  default     = "sni-only"
+}
+
+variable "minimum_protocol_version" {
+  description = "The minimum protocol version for CloudFront distribution"
+  type        = string
+  default     = "TLSv1.2_2021"
+}
