@@ -67,9 +67,9 @@ data "aws_route53_zone" "main" {
   name = local.env_domain_name
 }
 
-# data "aws_acm_certificate" "domain_cert" {
-#   provider    = aws.us-east-1
-#   domain      = "*.${local.env_domain_name}"
-#   statuses    = ["ISSUED"]
-#   most_recent = true
-# }
+data "aws_acm_certificate" "domain_cert" {
+  provider    = aws.us-east-1
+  domain      = "*.${local.env_domain_name}"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}

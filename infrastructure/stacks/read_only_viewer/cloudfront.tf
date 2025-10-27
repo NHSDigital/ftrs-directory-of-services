@@ -84,13 +84,13 @@ module "read_only_viewer_cloudfront" {
 
   viewer_certificate = {
     cloudfront_default_certificate = true
-    # cloudfront_default_certificate = false
-    # acm_certificate_arn            = data.aws_acm_certificate.domain_cert.arn
-    # ssl_support_method             = var.ssl_support_method
-    # minimum_protocol_version       = var.minimum_protocol_version
+    cloudfront_default_certificate = false
+    acm_certificate_arn            = data.aws_acm_certificate.domain_cert.arn
+    ssl_support_method             = var.ssl_support_method
+    minimum_protocol_version       = var.minimum_protocol_version
   }
 
-  # aliases = ["${var.stack_name}${local.workspace_suffix}.${local.env_domain_name}"]
+  aliases = ["${var.stack_name}${local.workspace_suffix}.${local.env_domain_name}"]
 
   web_acl_id = data.aws_wafv2_web_acl.waf_web_acl.arn
 
