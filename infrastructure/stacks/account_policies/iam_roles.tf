@@ -47,26 +47,7 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
-resource "aws_iam_role_policy" "api_gateway_cloudwatch_policy" {
-  name = "${var.project}-api-gateway-cloudwatch"
-  role = aws_iam_role.cloudwatch_api_gateway_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "logs:DescribeLogGroups",
-          "logs:DescribeLogStreams",
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Resource = [
-          "arn:aws:logs:${var.aws_region}:${local.account_id}:log-group:/aws/api-gateway/*"
-        ]
-      }
-    ]
-  })
+resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch_policy_attachment" {
+  role       = aws_iam_role.cloudwatch_api_gateway_role.id
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
