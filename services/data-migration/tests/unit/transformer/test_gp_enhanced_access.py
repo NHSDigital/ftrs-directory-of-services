@@ -3,8 +3,8 @@ from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_data_layer.domain.legacy import Service
 
+from common.cache import DoSMetadataCache
 from pipeline.transformer.gp_enhanced_access import GPEnhancedAccessTransformer
-from pipeline.utils.cache import DoSMetadataCache
 
 
 @pytest.mark.parametrize(

@@ -24,13 +24,13 @@ from ftrs_data_layer.domain.legacy.service import (
 from pytest_mock import MockerFixture
 from sqlalchemy import Engine
 
+from common.cache import DoSMetadataCache
 from pipeline.processor import (
     DataMigrationMetrics,
     DataMigrationProcessor,
     ServiceTransformOutput,
 )
 from pipeline.utils import dbutil
-from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 from pipeline.validation.types import ValidationIssue, ValidationResult
 

@@ -7,12 +7,12 @@ from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 from sqlmodel import Session, create_engine, select
 
+from common.cache import DoSMetadataCache
 from pipeline.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
     ServiceTransformOutput,
 )
-from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 from pipeline.utils.dbutil import get_repository
 from pipeline.validation.types import ValidationIssue
