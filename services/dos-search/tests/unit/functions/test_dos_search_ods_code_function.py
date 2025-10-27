@@ -5,7 +5,7 @@ from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
-from functions.dos_search_function import lambda_handler
+from functions.dos_search_ods_code_function import lambda_handler
 
 
 @pytest.fixture
