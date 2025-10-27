@@ -1,5 +1,5 @@
 [project]
-name = "gp-search"
+name = "dos-search"
 version = "0.1.0"
 description = ""
 authors = [
@@ -41,8 +41,8 @@ pytest-mock = "^3.14.0"
 pytest-cov = "^6.1.1"
 
 [tool.poetry.scripts]
-dos-gp-search-function = "functions.gp_search_function:lambda_handler"
-dos-gp-search-health-check = "health_check.health_check_function:lambda_handler"
+dos-search-function = "functions.dos_search_ods_code_function:lambda_handler"
+dos-search-health-check = "health_check.health_check_function:lambda_handler"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
