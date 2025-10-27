@@ -1,7 +1,7 @@
 from pydantic import SecretStr
 from pytest_mock import MockerFixture
 
-from pipeline.utils.config import DatabaseConfig
+from common.config import DatabaseConfig
 
 POSTGRES_DEFAULT_PORT = 5432
 
@@ -52,7 +52,7 @@ def test_db_config_from_secretsmanager(mocker: MockerFixture) -> None:
     Test that the DatabaseConfig class can fetch credentials from AWS Secrets Manager.
     """
     mock_get_secret = mocker.patch(
-        "pipeline.utils.config.get_secret",
+        "common.config.get_secret",
         return_value={
             "host": "host",
             "port": 5432,
