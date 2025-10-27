@@ -9,9 +9,9 @@ from pytest_mock import MockerFixture
 from typer import Typer
 from typer.testing import CliRunner
 
+from cli.main import patch_local_save_method, typer_app
 from common.config import DatabaseConfig
 from common.events import DMSEvent
-from pipeline.cli import patch_local_save_method, typer_app
 from queue_populator.config import QueuePopulatorConfig
 from service_migration.config import (
     DataMigrationConfig,
@@ -37,7 +37,7 @@ def test_local_handler_full_sync(mocker: MockerFixture) -> None:
     """
     Test the local_handler function for full sync.
     """
-    mock_app = mocker.patch("pipeline.cli.DataMigrationApplication")
+    mock_app = mocker.patch("cli.main.DataMigrationApplication")
     mock_app.return_value.handle_full_sync_event = mocker.Mock()
 
     result = runner.invoke(
@@ -75,7 +75,7 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
     """
     Test the local_handler function for single sync.
     """
-    mock_app = mocker.patch("pipeline.cli.DataMigrationApplication")
+    mock_app = mocker.patch("cli.main.DataMigrationApplication")
     mock_app.return_value.handle_dms_event = mocker.Mock()
 
     result = runner.invoke(
@@ -118,10 +118,10 @@ def test_local_handler_output_dir(mocker: MockerFixture) -> None:
     """
     Test the local_handler function with output directory for dry run.
     """
-    mock_app = mocker.patch("pipeline.cli.DataMigrationApplication")
+    mock_app = mocker.patch("cli.main.DataMigrationApplication")
     mock_app.return_value.handle_full_sync_event = mocker.Mock()
 
-    mock_open = mocker.patch("pipeline.cli.open", mocker.mock_open())
+    mock_open = mocker.patch("cli.main.open", mocker.mock_open())
 
     result = runner.invoke(
         typer_app,
@@ -240,7 +240,7 @@ def test_populate_queue_handler(
     """
     Test the populate_queue_handler function.
     """
-    mock_populate = mocker.patch("pipeline.cli.populate_sqs_queue")
+    mock_populate = mocker.patch("cli.main.populate_sqs_queue")
 
     result = runner.invoke(
         typer_app,
@@ -285,7 +285,7 @@ def test_populate_queue_handler_no_ids(
     """
     Test the populate_queue_handler function without type ids or status ids.
     """
-    mock_populate = mocker.patch("pipeline.cli.populate_sqs_queue")
+    mock_populate = mocker.patch("cli.main.populate_sqs_queue")
 
     result = runner.invoke(
         typer_app,
@@ -320,7 +320,7 @@ def test_export_to_s3_handler(mocker: MockerFixture) -> None:
     """
     Test that the export_to_s3_handler calls run_s3_export
     """
-    mock_s3_export = mocker.patch("pipeline.cli.run_s3_export")
+    mock_s3_export = mocker.patch("cli.main.run_s3_export")
 
     result = runner.invoke(
         typer_app,
@@ -335,7 +335,7 @@ def test_restore_from_s3_handler(mocker: MockerFixture) -> None:
     """
     Test that the restore_from_s3_handler calls run_s3_restore
     """
-    mock_s3_restore = mocker.patch("pipeline.cli.run_s3_restore")
+    mock_s3_restore = mocker.patch("cli.main.run_s3_restore")
 
     result = runner.invoke(
         typer_app,
