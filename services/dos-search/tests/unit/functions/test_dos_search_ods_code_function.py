@@ -31,7 +31,7 @@ def mock_ftrs_service():
 
 @pytest.fixture
 def mock_logger():
-    with patch("functions.dos_search_function.logger") as mock:
+    with patch("functions.dos_search_ods_code_function.logger") as mock:
         yield mock
 
 
