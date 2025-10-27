@@ -12,7 +12,7 @@ from sqlalchemy import Engine
 from sqlalchemy.engine.mock import create_mock_engine
 from sqlmodel import Field
 
-from pipeline.utils.cache import DoSMetadataCache, SQLModelKVCache
+from common.cache import DoSMetadataCache, SQLModelKVCache
 
 
 class MockModel(LegacyDoSModel, table=True):

@@ -33,8 +33,8 @@ from ftrs_data_layer.domain.legacy import (
     ServiceSpecifiedOpeningTime,
 )
 
+from common.cache import DoSMetadataCache
 from pipeline.transformer import ServiceTransformer
-from pipeline.utils.cache import DoSMetadataCache
 
 
 class BasicServiceTransformer(ServiceTransformer):
