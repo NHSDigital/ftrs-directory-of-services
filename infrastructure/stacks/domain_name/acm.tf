@@ -24,7 +24,7 @@ resource "aws_route53_record" "cert_validation" {
   zone_id = aws_route53_zone.environment_zone[0].zone_id
   name    = each.value.name
   type    = each.value.type
-  ttl     = 60
+  ttl     = var.cert_validation_record_ttl
   records = [each.value.record]
 }
 
@@ -67,7 +67,7 @@ resource "aws_route53_record" "cert_validation_cloudfront" {
   zone_id = aws_route53_zone.environment_zone[0].zone_id
   name    = each.value.name
   type    = each.value.type
-  ttl     = 60
+  ttl     = var.cert_validation_record_ttl
   records = [each.value.record]
 }
 

@@ -56,11 +56,11 @@ module "ui_cloudfront" {
     {
       path_pattern           = "/_build/*"
       target_origin_id       = "s3_bucket"
-      viewer_protocol_policy = "redirect-to-https"
       allowed_methods        = ["GET", "HEAD"]
       cached_methods         = ["GET", "HEAD"]
       compress               = true
       query_string           = true
+      viewer_protocol_policy = "redirect-to-https"
     },
     {
       path_pattern           = "/assets/*"
