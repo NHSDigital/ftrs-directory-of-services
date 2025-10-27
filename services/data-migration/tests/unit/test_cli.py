@@ -9,14 +9,14 @@ from pytest_mock import MockerFixture
 from typer import Typer
 from typer.testing import CliRunner
 
-from pipeline.application import DMSEvent
+from common.config import DatabaseConfig
+from common.events import DMSEvent
 from pipeline.cli import patch_local_save_method, typer_app
-from pipeline.processor import ServiceTransformOutput
-from pipeline.utils.config import (
-    DatabaseConfig,
+from queue_populator.config import QueuePopulatorConfig
+from service_migration.config import (
     DataMigrationConfig,
 )
-from queue_populator.config import QueuePopulatorConfig
+from service_migration.processor import ServiceTransformOutput
 
 runner = CliRunner()
 

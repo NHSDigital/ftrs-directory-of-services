@@ -7,16 +7,16 @@ from typing import Annotated, Generator, List
 import rich
 from typer import Option, Typer
 
-from pipeline.application import DataMigrationApplication, DMSEvent
-from pipeline.processor import ServiceTransformOutput
-from pipeline.utils.config import (
-    DatabaseConfig,
-    DataMigrationConfig,
-)
+from common.config import DatabaseConfig
 from queue_populator.config import QueuePopulatorConfig
 from queue_populator.lambda_handler import populate_sqs_queue
 from seeding.export_to_s3 import run_s3_export
 from seeding.restore import run_s3_restore
+from service_migration.application import DataMigrationApplication, DMSEvent
+from service_migration.config import (
+    DataMigrationConfig,
+)
+from service_migration.processor import ServiceTransformOutput
 
 CONSOLE = rich.get_console()
 
