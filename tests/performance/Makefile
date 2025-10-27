@@ -123,7 +123,7 @@ jmeter-copy-ssm-inline: ## [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] [FILE=jmeter
 	B64=$$(base64 < "$$FILE" | tr -d '\n'); \
 	echo "Uploading '$$FILE' to EC2:/home/ssm-user/$$DEST via SSM inline"; \
 	PARAMS_FILE=$$(mktemp); \
-	printf '%s\n' '{' '  "commands": [' '    "bash -lc \"printf %s '\''__B64__'\'' | base64 -d > /home/ssm-user/__DEST__ && ls -l /home/ssm-user/__DEST__\""]' '  ]' '}' > "$$PARAMS_FILE"; \
+	printf '%s\n' '{' '  "commands": [' '    "bash -lc \"printf %s '\''__B64__'\'' | base64 -d > /home/ssm-user/__DEST__ && chown ssm-user:ssm-user /home/ssm-user/__DEST__ && ls -l /home/ssm-user/__DEST__\""' '  ]' '}' > "$$PARAMS_FILE"; \
 	B64_ESC=$$(printf '%s' "$$B64" | sed -e 's/[&|]/\\\&/g'); \
 	DEST_ESC=$$(printf '%s' "$$DEST" | sed -e 's/[&|]/\\\&/g'); \
 	sed -i.bak -e "s|__B64__|$$B64_ESC|g" -e "s|__DEST__|$$DEST_ESC|g" "$$PARAMS_FILE"; rm -f "$$PARAMS_FILE.bak"; \
@@ -157,7 +157,7 @@ jmeter-copy-dir-ssm-inline: ## [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] [DIR=par
 		echo "Uploading '$$FILE' to EC2:$$DEST_PATH via SSM inline"; \
 		PARAMS_FILE=$$(mktemp); \
 		printf '%s\n' '{' '  "commands": [' \
-			"    \"bash -lc \\\"set -euo pipefail; DEST_DIR=__DEST_DIR__; DEST_PATH=__DEST_PATH__; if [ -n \\\"$$DEST_DIR\\\" ] && [ \\\"$$DEST_DIR\\\" != \\\".\\\" ]; then mkdir -p /home/ssm-user/\\\"$$DEST_DIR\\\"; fi; printf %s __B64__ | base64 -d > \\\"$$DEST_PATH\\\"; ls -l \\\"$$DEST_PATH\\\"\\\"\"" \
+			"    \"bash -lc \\\"set -euo pipefail; DEST_DIR=__DEST_DIR__; DEST_PATH=__DEST_PATH__; if [ -n \\\"$$DEST_DIR\\\" ] && [ \\\"$$DEST_DIR\\\" != \\\".\\\" ]; then install -d -m 0755 -o ssm-user -g ssm-user /home/ssm-user/\\\"$$DEST_DIR\\\"; fi; printf %s __B64__ | base64 -d > \\\"$$DEST_PATH\\\" && chown ssm-user:ssm-user \\\"$$DEST_PATH\\\"; ls -l \\\"$$DEST_PATH\\\"\\\"\"" \
 			'  ]' '}' > "$$PARAMS_FILE"; \
 		B64_ESC=$$(printf '%s' "$$B64" | sed -e 's/[&|]/\\\&/g'); \
 		DEST_DIR_ESC=$$(printf '%s' "$$DEST_DIR" | sed -e 's/[&|]/\\\&/g'); \
@@ -191,7 +191,8 @@ jmeter-fetch-file-inline: ## [REMOTE_FILE=result.jtl] [LOCAL_DIR=tests/performan
 	case "$$REM" in /*) RPATH="$$REM" ;; *) RPATH="/home/ssm-user/$$REM" ;; esac; \
 	LFILE="${LOCAL_FILE}"; \
 	if [ -n "$$LFILE" ]; then OUTFILE="$$LFILE"; mkdir -p "$$(dirname "$$OUTFILE")"; else \
-		LDIR="${LOCAL_DIR}"; if [ -z "$$LDIR" ]; then LDIR=tests/performance/artifacts; fi; mkdir -p "$$LDIR"; OUTFILE="$$LDIR/$$(basename "$$RPATH")"; \
+		ROOT_DIR=$$(git rev-parse --show-toplevel 2>/dev/null || pwd); \
+		LDIR="${LOCAL_DIR}"; if [ -z "$$LDIR" ]; then LDIR="$$ROOT_DIR/tests/performance/artifacts"; fi; mkdir -p "$$LDIR"; OUTFILE="$$LDIR/$$(basename "$$RPATH")"; \
 	fi; \
 	TMPDIR=$$(mktemp -d); B64FILE="$$TMPDIR/file.inline.b64"; \
 	echo "Fetching '$$RPATH' via SSM"; \
