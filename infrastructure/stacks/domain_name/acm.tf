@@ -39,7 +39,7 @@ resource "aws_acm_certificate_validation" "custom_domain_api_cert_validation" {
   }
 }
 
-resource "aws_acm_certificate" "custom_domain_api_cert_cloudfront" {
+resource "aws_acm_certificate" "custom_domain_cert_cloudfront" {
   provider          = aws.us-east-1
   count             = var.environment == "mgmt" ? 0 : 1
   domain_name       = "*.${local.root_domain_name}"
@@ -54,29 +54,12 @@ resource "aws_acm_certificate" "custom_domain_api_cert_cloudfront" {
   }
 }
 
-resource "aws_route53_record" "cert_validation_cloudfront" {
-  provider = aws.us-east-1
-  for_each = var.environment == "mgmt" ? {} : {
-    for dvo in aws_acm_certificate.custom_domain_api_cert_cloudfront[0].domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      type   = dvo.resource_record_type
-      record = dvo.resource_record_value
-    }
-  }
-
-  zone_id = aws_route53_zone.environment_zone[0].zone_id
-  name    = each.value.name
-  type    = each.value.type
-  ttl     = var.cert_validation_record_ttl
-  records = [each.value.record]
-}
-
-resource "aws_acm_certificate_validation" "custom_domain_api_cert_validation_cloudfront" {
+resource "aws_acm_certificate_validation" "custom_domain_cert_validation_cloudfront" {
   provider = aws.us-east-1
   count    = var.environment == "mgmt" ? 0 : 1
 
-  certificate_arn         = aws_acm_certificate.custom_domain_api_cert_cloudfront[0].arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation_cloudfront : record.fqdn]
+  certificate_arn         = aws_acm_certificate.custom_domain_cert_cloudfront[0].arn
+  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 
   timeouts {
     create = "5m"
