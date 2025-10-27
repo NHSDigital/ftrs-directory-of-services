@@ -17,7 +17,6 @@ resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_organi
 
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "organisation_api_allow_443" {
-
   security_group_id = aws_security_group.organisation_api_lambda_security_group.id
   description       = "Organisation api egress rule to allow 443"
   cidr_ipv4         = "0.0.0.0/0"

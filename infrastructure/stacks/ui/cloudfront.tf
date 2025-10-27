@@ -1,10 +1,10 @@
 #trivy:ignore:AVD-AWS-0010
-module "read_only_viewer_cloudfront" {
+module "ui_cloudfront" {
   # Module version: v5.0.1
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git?ref=fc1010c0b53490d9b3911d2397726da80168f4fb"
 
-  comment         = "CloudFront distribution for read-only viewer"
-  price_class     = var.read_only_viewer_cloudfront_price_class
+  comment         = "CloudFront distribution for UI"
+  price_class     = var.ui_cloudfront_price_class
   is_ipv6_enabled = true
 
   create_origin_access_control = true
@@ -17,7 +17,7 @@ module "read_only_viewer_cloudfront" {
     }
   }
 
-  http_version                         = "http2and3"
+  http_version                         = var.http_version
   realtime_metrics_subscription_status = var.realtime_metrics_subscription_status
   create_monitoring_subscription       = var.create_monitoring_subscription
 
@@ -28,17 +28,17 @@ module "read_only_viewer_cloudfront" {
 
   origin = {
     s3_bucket = {
-      domain_name           = module.read_only_viewer_bucket.s3_bucket_bucket_regional_domain_name
+      domain_name           = module.ui_bucket.s3_bucket_bucket_regional_domain_name
       origin_access_control = "${local.resource_prefix}-s3-oac${local.workspace_suffix}"
     }
 
     lambda_function = {
-      domain_name = replace(replace(aws_lambda_function_url.frontend_lambda_url.function_url, "https://", ""), "/", "")
+      domain_name = replace(replace(aws_lambda_function_url.ui_lambda_url.function_url, "https://", ""), "/", "")
       custom_origin_config = {
         http_port              = var.http_port
         https_port             = var.https_port
-        origin_protocol_policy = "https-only"
-        origin_ssl_protocols   = ["TLSv1.2"]
+        origin_protocol_policy = var.origin_protocol_policy
+        origin_ssl_protocols   = var.origin_ssl_protocols
       }
     }
   }
@@ -56,14 +56,23 @@ module "read_only_viewer_cloudfront" {
     {
       path_pattern           = "/_build/*"
       target_origin_id       = "s3_bucket"
-      viewer_protocol_policy = "redirect-to-https"
       allowed_methods        = ["GET", "HEAD"]
       cached_methods         = ["GET", "HEAD"]
       compress               = true
       query_string           = true
+      viewer_protocol_policy = "redirect-to-https"
     },
     {
       path_pattern           = "/assets/*"
+      target_origin_id       = "s3_bucket"
+      allowed_methods        = ["GET", "HEAD"]
+      cached_methods         = ["GET", "HEAD"]
+      compress               = true
+      query_string           = true
+      viewer_protocol_policy = "redirect-to-https"
+    },
+    {
+      path_pattern           = "/images/*"
       target_origin_id       = "s3_bucket"
       allowed_methods        = ["GET", "HEAD"]
       cached_methods         = ["GET", "HEAD"]

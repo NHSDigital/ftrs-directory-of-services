@@ -12,7 +12,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_errors" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DistributionId = module.read_only_viewer_cloudfront.cloudfront_distribution_id
+    DistributionId = module.ui_cloudfront.cloudfront_distribution_id
     Region         = "Global"
   }
 
@@ -47,7 +47,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_latency" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DistributionId = module.read_only_viewer_cloudfront.cloudfront_distribution_id
+    DistributionId = module.ui_cloudfront.cloudfront_distribution_id
     Region         = "Global"
   }
 
@@ -82,7 +82,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_4xx_errors" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    DistributionId = module.read_only_viewer_cloudfront.cloudfront_distribution_id
+    DistributionId = module.ui_cloudfront.cloudfront_distribution_id
     Region         = "Global"
   }
 
