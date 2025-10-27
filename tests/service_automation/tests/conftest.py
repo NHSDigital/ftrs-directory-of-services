@@ -302,7 +302,7 @@ def service_url_factory(apigee_environment: str):
 
 
 @pytest.fixture(scope="module")
-def dos_ingestion_service_url(service_url_factory, api_name="dos-ingestion"):
+def dos_ingest_service_url(service_url_factory, api_name="dos-ingest"):
     return service_url_factory(api_name)
 
 
