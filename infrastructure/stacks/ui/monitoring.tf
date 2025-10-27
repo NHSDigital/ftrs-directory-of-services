@@ -89,7 +89,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_4xx_errors" {
   provider = aws.us-east-1
 }
 
-// Health check that monitors the CloudFront 5xx error rate alarm status
+// Health check that monitors the CloudFront 4xx error rate alarm status
 resource "aws_route53_health_check" "cloudfront_4xx_errors" {
   type                    = "CLOUDWATCH_METRIC"
   cloudwatch_alarm_name   = aws_cloudwatch_metric_alarm.cloudfront_4xx_errors.alarm_name
