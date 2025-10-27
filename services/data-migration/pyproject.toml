@@ -68,3 +68,8 @@ minversion = "6.0"
 addopts = "-v --cov=pipeline --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.poetry]
+packages = [
+    { include = "seeding", from = "src" }
+]
