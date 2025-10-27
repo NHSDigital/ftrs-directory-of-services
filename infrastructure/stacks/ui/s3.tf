@@ -35,6 +35,14 @@ data "aws_iam_policy_document" "ui_bucket_policy" {
     resources = [
       "${module.ui_bucket.s3_bucket_arn}/*",
     ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceArn"
+      values = [
+        module.ui_cloudfront.cloudfront_distribution_arn,
+      ]
+    }
   }
 
   statement {

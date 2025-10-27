@@ -35,6 +35,14 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     resources = [
       "${module.read_only_viewer_bucket.s3_bucket_arn}/*",
     ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceArn"
+      values = [
+        module.read_only_viewer_cloudfront.cloudfront_distribution_arn,
+      ]
+    }
   }
 
   statement {
