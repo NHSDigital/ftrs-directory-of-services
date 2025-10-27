@@ -74,5 +74,6 @@ packages = [
     { include = "common", from = "src" },
     { include = "seeding", from = "src" },
     { include = "dms_provisioner", from = "src" },
-    { include = "record_change_trigger", from = "src" }
+    { include = "record_change_trigger", from = "src" },
+    { include = "reference_data_load", from = "src" },
 ]
