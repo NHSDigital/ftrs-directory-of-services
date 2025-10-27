@@ -142,14 +142,12 @@ variable "http_version" {
   description = "The HTTP version for CloudFront distribution"
   type        = string
   default     = "http2and3"
-
 }
 
 variable "origin_protocol_policy" {
   description = "The origin protocol policy for CloudFront distribution"
   type        = string
   default     = "https-only"
-
 }
 
 variable "origin_ssl_protocols" {
