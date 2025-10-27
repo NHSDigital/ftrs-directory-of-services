@@ -46,7 +46,7 @@ sqs_ssm_path_for_ids             = "/ftrs-dos/migration/sqs-ids/"
 migration_copy_db_lambda_trigger = "pipeline.migration_copy_db_trigger_lambda_handler.lambda_handler"
 
 dms_db_lambda_name               = "dms-db-setup"
-dms_db_lambda_trigger            = "pipeline.dms_db_lambda_handler.lambda_handler"
+dms_db_lambda_trigger            = "dms_provisioner.lambda_handler.lambda_handler"
 dms_db_lambda_connection_timeout = 300
 dms_db_lambda_memory_size        = 1024
 
