@@ -9,12 +9,12 @@ from typer import Option, Typer
 
 from pipeline.application import DataMigrationApplication, DMSEvent
 from pipeline.processor import ServiceTransformOutput
-from pipeline.queue_populator import populate_sqs_queue
 from pipeline.utils.config import (
     DatabaseConfig,
     DataMigrationConfig,
-    QueuePopulatorConfig,
 )
+from queue_populator.config import QueuePopulatorConfig
+from queue_populator.lambda_handler import populate_sqs_queue
 from seeding.export_to_s3 import run_s3_export
 from seeding.restore import run_s3_restore
 
