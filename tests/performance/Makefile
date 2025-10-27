@@ -206,7 +206,8 @@ jmeter-fetch-file-inline: ## [REMOTE_FILE=result.jtl] [LOCAL_DIR=tests/performan
 		| awk '/__B64_START__/{flag=1;next}/__B64_END__/{flag=0}flag' > "$$B64FILE"; \
 	if grep -q "__NO_RESULT__" "$$B64FILE"; then echo "Remote file not found: $$RPATH"; rm -rf "$$TMPDIR"; exit 1; fi; \
 	if base64 --decode < "$$B64FILE" > "$$OUTFILE" 2>/dev/null; then :; \
-	elif base64 -D < "$$B64FILE" > "$$OUTFILE"; then :; \
+	elif base64 -d < "$$B64FILE" > "$$OUTFILE" 2>/dev/null; then :; \
+	elif base64 -D < "$$B64FILE" > "$$OUTFILE" 2>/dev/null; then :; \
 	else echo "Failed to decode base64 for '$$RPATH'"; rm -rf "$$TMPDIR"; exit 1; fi; \
 	ls -lh "$$OUTFILE" || ls -l "$$OUTFILE"; \
 	rm -rf "$$TMPDIR"; \
@@ -218,7 +219,7 @@ jmeter-fetch-dir-inline: ## [REMOTE_DIR=artifacts] [LOCAL_DIR=tests/performance/
 	if [ -z "$$ID" ]; then echo "JMETER_INSTANCE_ID is required"; exit 1; fi; \
 	REMOTE_DIR="${REMOTE_DIR}"; if [ -z "$$REMOTE_DIR" ]; then REMOTE_DIR=artifacts; fi; \
 	case "$$REMOTE_DIR" in /*) RDIR="$$REMOTE_DIR" ;; *) RDIR="/home/ssm-user/$$REMOTE_DIR" ;; esac; \
-	LDIR="${LOCAL_DIR}"; if [ -z "$$LDIR" ]; then LDIR=tests/performance/artifacts; fi; mkdir -p "$$LDIR"; \
+	LDIR="${LOCAL_DIR}"; if [ -z "$$LDIR" ]; then ROOT_DIR=$$(git rev-parse --show-toplevel 2>/dev/null || pwd); LDIR="$$ROOT_DIR/tests/performance/artifacts"; fi; mkdir -p "$$LDIR"; \
 	WORKDIR=$$(mktemp -d); [ -n "$$WORKDIR" ] || { echo "mktemp failed"; exit 1; }; \
 	PARAMS="$$WORKDIR/params.list.json"; OUT="$$WORKDIR/files.list"; B64TMP="$$WORKDIR/file.b64"; \
 	echo "Listing files in remote directory: $$RDIR"; \
@@ -252,8 +253,10 @@ jmeter-fetch-dir-inline: ## [REMOTE_DIR=artifacts] [LOCAL_DIR=tests/performance/
 		aws ssm wait command-executed --region $(AWS_REGION) --instance-id "$$ID" --command-id "$$CMD_ID"; \
 		aws ssm get-command-invocation --region $(AWS_REGION) --instance-id "$$ID" --command-id "$$CMD_ID" --query 'StandardOutputContent' --output text > "$$B64TMP" || true; \
 		if grep -q "__NO_RESULT__" "$$B64TMP"; then echo "Remote file not found: $$RPATH"; rm -rf "$$WORKDIR"; exit 1; fi; \
-		mkdir -p "$$(dirname "$$OUTFILE")"; \
-		if base64 --decode < "$$B64TMP" > "$$OUTFILE" 2>/dev/null; then :; elif base64 -D < "$$B64TMP" > "$$OUTFILE"; then :; else echo "Failed to decode base64 for '$$RPATH'"; rm -rf "$$WORKDIR"; exit 1; fi; \
+		if base64 --decode < "$$B64TMP" > "$$OUTFILE" 2>/dev/null; then :; \
+		elif base64 -d < "$$B64TMP" > "$$OUTFILE" 2>/dev/null; then :; \
+		elif base64 -D < "$$B64TMP" > "$$OUTFILE" 2>/dev/null; then :; \
+		else echo "Failed to decode base64 for '$$RPATH'"; rm -rf "$$WORKDIR"; exit 1; fi; \
 		ls -lh "$$OUTFILE" || ls -l "$$OUTFILE"; \
 		FETCHED=$$((FETCHED+1)); \
 		i=$$((i+1)); \
