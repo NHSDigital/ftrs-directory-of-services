@@ -72,5 +72,7 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.poetry]
 packages = [
     { include = "common", from = "src" },
-    { include = "seeding", from = "src" }
+    { include = "seeding", from = "src" },
+    { include = "dms_provisioner", from = "src" },
+    { include = "record_change_trigger", from = "src" }
 ]
