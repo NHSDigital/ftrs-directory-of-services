@@ -15,8 +15,8 @@ from pipeline.processor import ServiceTransformOutput
 from pipeline.utils.config import (
     DatabaseConfig,
     DataMigrationConfig,
-    QueuePopulatorConfig,
 )
+from queue_populator.config import QueuePopulatorConfig
 
 runner = CliRunner()
 

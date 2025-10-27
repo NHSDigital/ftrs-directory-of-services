@@ -6,7 +6,7 @@ from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 from sqlalchemy.engine import create_mock_engine
 
-from pipeline.queue_populator import (
+from queue_populator.lambda_handler import (
     DatabaseConfig,
     QueuePopulatorConfig,
     get_dms_event_batches,
@@ -41,7 +41,7 @@ def mock_sql_executor(
     engine.begin = mocker.MagicMock()
     engine.close = mocker.MagicMock()
     engine.in_transaction = mocker.MagicMock(return_value=False)
-    mocker.patch("pipeline.queue_populator.create_engine", return_value=engine)
+    mocker.patch("queue_populator.lambda_handler.create_engine", return_value=engine)
     return executor
 
 
@@ -119,7 +119,9 @@ def test_get_dms_event_batches(
     mocker: MockerFixture, mock_config: QueuePopulatorConfig
 ) -> None:
     record_ids = list(range(1, 20))
-    mocker.patch("pipeline.queue_populator.get_record_ids", return_value=record_ids)
+    mocker.patch(
+        "queue_populator.lambda_handler.get_record_ids", return_value=record_ids
+    )
 
     expected_batch_count = 2
 
@@ -165,8 +167,8 @@ def test_send_message_batch(mocker: MockerFixture, mock_logger: MockLogger) -> N
         }
     )
 
-    mocker.patch("pipeline.queue_populator.SQS_CLIENT", mock_sqs_client)
-    mocker.patch("pipeline.queue_populator.LOGGER", mock_logger)
+    mocker.patch("queue_populator.lambda_handler.SQS_CLIENT", mock_sqs_client)
+    mocker.patch("queue_populator.lambda_handler.LOGGER", mock_logger)
 
     batch = {
         "QueueUrl": "http://localhost:4566/000000000000/test-queue",
@@ -217,8 +219,8 @@ def test_send_message_batch_with_failed_messages(
         }
     )
 
-    mocker.patch("pipeline.queue_populator.SQS_CLIENT", mock_sqs_client)
-    mocker.patch("pipeline.queue_populator.LOGGER", mock_logger)
+    mocker.patch("queue_populator.lambda_handler.SQS_CLIENT", mock_sqs_client)
+    mocker.patch("queue_populator.lambda_handler.LOGGER", mock_logger)
 
     batch = {
         "QueueUrl": "http://localhost:4566/000000000000/test-queue",
@@ -272,8 +274,8 @@ def test_send_message_batch_mixed_results(
         }
     )
 
-    mocker.patch("pipeline.queue_populator.SQS_CLIENT", mock_sqs_client)
-    mocker.patch("pipeline.queue_populator.LOGGER", mock_logger)
+    mocker.patch("queue_populator.lambda_handler.SQS_CLIENT", mock_sqs_client)
+    mocker.patch("queue_populator.lambda_handler.LOGGER", mock_logger)
 
     batch = {
         "QueueUrl": "http://localhost:4566/000000000000/test-queue",
@@ -331,13 +333,17 @@ def test_populate_sqs_queue(
     mocker: MockerFixture, mock_config: QueuePopulatorConfig, mock_logger: MockLogger
 ) -> None:
     record_ids = list(range(1, 1000))
-    mocker.patch("pipeline.queue_populator.get_record_ids", return_value=record_ids)
-    mocker.patch("pipeline.queue_populator.LOGGER", mock_logger)
+    mocker.patch(
+        "queue_populator.lambda_handler.get_record_ids", return_value=record_ids
+    )
+    mocker.patch("queue_populator.lambda_handler.LOGGER", mock_logger)
 
     expected_batch_count = 100  # 1000 records / 10 per batch
 
     mock_send_message_batch = mocker.MagicMock()
-    mocker.patch("pipeline.queue_populator.send_message_batch", mock_send_message_batch)
+    mocker.patch(
+        "queue_populator.lambda_handler.send_message_batch", mock_send_message_batch
+    )
 
     populate_sqs_queue(mock_config)
 
@@ -365,7 +371,7 @@ def test_lambda_handler(
     mock_config: QueuePopulatorConfig,
     mock_lambda_context: LambdaContext,
 ) -> None:
-    mock_populate = mocker.patch("pipeline.queue_populator.populate_sqs_queue")
+    mock_populate = mocker.patch("queue_populator.lambda_handler.populate_sqs_queue")
     mocker.patch.object(
         DatabaseConfig, "from_secretsmanager", return_value=mock_config.db_config
     )

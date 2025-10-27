@@ -1,21 +1,13 @@
-from typing import Literal
 from uuid import uuid4
 
 from aws_lambda_powertools.utilities.data_classes import SQSEvent
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import DataMigrationLogBase
-from pydantic import BaseModel
 
+from common.events import DMSEvent
 from pipeline.processor import DataMigrationProcessor
 from pipeline.triagecode_processor import TriageCodeProcessor
 from pipeline.utils.config import DataMigrationConfig
-
-
-class DMSEvent(BaseModel):
-    type: Literal["dms_event"] = "dms_event"
-    record_id: int
-    table_name: str
-    method: str
 
 
 class DataMigrationApplication:
