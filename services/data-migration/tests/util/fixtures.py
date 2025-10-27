@@ -24,8 +24,9 @@ from ftrs_data_layer.domain.legacy import (
     SymptomGroup,
 )
 
-from pipeline.utils.cache import DoSMetadataCache
-from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
+from common.cache import DoSMetadataCache
+from common.config import DatabaseConfig
+from pipeline.utils.config import DataMigrationConfig
 
 
 @pytest.fixture
@@ -406,7 +407,7 @@ def mock_metadata_cache(mock_config: DataMigrationConfig) -> DoSMetadataCache:
         ),
     }
 
-    with patch("pipeline.utils.cache.DoSMetadataCache") as mock_cache:
+    with patch("common.cache.DoSMetadataCache") as mock_cache:
         mock_cache.return_value = cache
         yield cache
 

@@ -3,7 +3,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_mock import MockerFixture
 
-from pipeline.utils.secret_utils import get_dms_workspaces, get_secret
+from common.secret_utils import get_secret
+
+# TODO: Move these tests once db_provisioner is implemented
+from pipeline.utils.secret_utils import get_dms_workspaces
 
 
 def test_get_secret_success(mocker: MockerFixture) -> None:
@@ -50,7 +53,7 @@ def test_get_secret_missing_env_vars(mocker: MockerFixture, env_vars: dict) -> N
 
 
 @patch("pipeline.utils.secret_utils.os.environ.get")
-@patch("pipeline.utils.secret_utils.provider.get_multiple")
+@patch("pipeline.utils.secret_utils.get_parameters")
 def test_returns_list_of_workspaces_when_ssm_path_exists(
     mock_get_multiple: MagicMock, mock_environ_get: MagicMock
 ) -> None:
@@ -83,7 +86,7 @@ def test_raises_value_error_when_ssm_path_missing(mock_environ_get: MagicMock) -
 
 
 @patch("pipeline.utils.secret_utils.os.environ.get")
-@patch("pipeline.utils.secret_utils.provider.get_multiple")
+@patch("pipeline.utils.secret_utils.get_parameters")
 def test_returns_empty_list_when_no_parameters_found(
     mock_get_multiple: MagicMock, mock_environ_get: MagicMock
 ) -> None:

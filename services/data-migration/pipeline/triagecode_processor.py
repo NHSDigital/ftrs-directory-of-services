@@ -6,9 +6,9 @@ from ftrs_data_layer.domain.triage_code import TriageCode
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from sqlmodel import create_engine
 
+from common.cache import DoSMetadataCache
 from pipeline.processor import DataMigrationMetrics
 from pipeline.transformer.triage_code import TriageCodeTransformer
-from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.config import DataMigrationConfig
 from pipeline.utils.dbutil import (
     get_all_symptom_groups,
