@@ -38,7 +38,7 @@ awswrangler = "^3.11.0"
 pytest-asyncio = "^1.1.0"
 
 [tool.poetry.scripts]
-dos-etl = "pipeline.cli:typer_app"
+dos-etl = "cli.main:typer_app"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
@@ -65,7 +65,7 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v --cov=pipeline --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = "-v --cov=src --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "function"
 
@@ -76,4 +76,7 @@ packages = [
     { include = "dms_provisioner", from = "src" },
     { include = "record_change_trigger", from = "src" },
     { include = "reference_data_load", from = "src" },
+    { include = "service_migration", from = "src" },
+    { include = "queue_populator", from = "src" },
+    { include = "cli", from = "src" },
 ]
