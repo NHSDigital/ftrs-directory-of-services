@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-from pipeline.service.dms_service import create_dms_user, create_rds_trigger_replica_db
+from dms_provisioner.dms_service import create_dms_user, create_rds_trigger_replica_db
 
 
 @pytest.fixture

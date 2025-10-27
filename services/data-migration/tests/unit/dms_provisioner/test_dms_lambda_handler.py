@@ -5,7 +5,7 @@ import pytest
 from botocore.exceptions import ClientError
 from sqlalchemy.exc import SQLAlchemyError
 
-from pipeline.dms_db_lambda_handler import lambda_handler
+from dms_provisioner.lambda_handler import lambda_handler
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def mock_session() -> MagicMock:
 @pytest.fixture
 def mock_dms_config() -> MagicMock:
     """Mock DMS database configuration."""
-    with patch("pipeline.dms_db_lambda_handler.DmsDatabaseConfig") as mock_class:
+    with patch("dms_provisioner.lambda_handler.DmsDatabaseConfig") as mock_class:
         mock_config = MagicMock()
         mock_config.get_target_rds_details.return_value = MagicMock()
         mock_config.get_dms_user_details.return_value = ("dms_user", "password123")
@@ -36,7 +36,7 @@ def mock_dms_config() -> MagicMock:
 def mock_engine() -> MagicMock:
     """Mock SQLAlchemy engine."""
     with patch(
-        "pipeline.dms_db_lambda_handler.get_sqlalchemy_engine_from_config"
+        "dms_provisioner.lambda_handler.get_sqlalchemy_engine_from_config"
     ) as mock_get_engine:
         mock_engine_obj = MagicMock()
         mock_get_engine.return_value = mock_engine_obj
@@ -46,14 +46,14 @@ def mock_engine() -> MagicMock:
 @pytest.fixture
 def mock_create_dms_user() -> MagicMock:
     """Mock create_dms_user function."""
-    with patch("pipeline.dms_db_lambda_handler.create_dms_user") as mock:
+    with patch("dms_provisioner.lambda_handler.create_dms_user") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_create_rds_trigger() -> MagicMock:
     """Mock create_rds_trigger_replica_db function."""
-    with patch("pipeline.dms_db_lambda_handler.create_rds_trigger_replica_db") as mock:
+    with patch("dms_provisioner.lambda_handler.create_rds_trigger_replica_db") as mock:
         yield mock
 
 
@@ -66,7 +66,7 @@ def setup_all_mocks(
     mock_create_rds_trigger: MagicMock,
 ) -> dict[str, MagicMock]:
     """Set up all mocks together and return them in a dictionary."""
-    return {
+    yield {
         "session": mock_session,
         "dms_config": mock_dms_config,
         "engine": mock_engine,
@@ -77,7 +77,7 @@ def setup_all_mocks(
 
 def test_lambda_handler_successfully_creates_user_and_trigger(
     setup_all_mocks: dict,
-) -> NoReturn:
+) -> None:
     """Test that the lambda handler successfully creates a DMS user and trigger."""
     event = {}
     context = {}
@@ -111,7 +111,7 @@ def test_lambda_handler_successfully_creates_user_and_trigger(
 
 def test_lambda_handler_handles_client_error_when_fetching_secrets(
     setup_all_mocks: dict,
-) -> NoReturn:
+) -> None:
     """Test that the lambda handler handles client errors when fetching secrets."""
     mock_dms_config = setup_all_mocks["dms_config"]
     mock_create_dms_user = setup_all_mocks["create_dms_user"]
@@ -119,7 +119,7 @@ def test_lambda_handler_handles_client_error_when_fetching_secrets(
 
     event = {}
     context = {}
-    mock_dms_config.get_target_rds_details.side_effect = ClientError(
+    mock_dms_config.get_target_rds_config.side_effect = ClientError(
         {"Error": {"Code": "ResourceNotFoundException", "Message": "Secret not found"}},
         "GetSecretValue",
     )
@@ -132,7 +132,7 @@ def test_lambda_handler_handles_client_error_when_fetching_secrets(
 
 def test_lambda_handler_handles_exception_during_user_creation(
     setup_all_mocks: dict,
-) -> NoReturn:
+) -> None:
     """Test that the lambda handler handles exceptions during user creation."""
     mock_engine = setup_all_mocks["engine"]
     mock_create_dms_user = setup_all_mocks["create_dms_user"]
@@ -151,7 +151,7 @@ def test_lambda_handler_handles_exception_during_user_creation(
 
 def test_lambda_handler_handles_exception_during_trigger_creation(
     setup_all_mocks: dict,
-) -> NoReturn:
+) -> None:
     """Test that the lambda handler handles exceptions during trigger creation."""
     mock_engine = setup_all_mocks["engine"]
     mock_create_dms_user = setup_all_mocks["create_dms_user"]
@@ -171,7 +171,7 @@ def test_lambda_handler_handles_exception_during_trigger_creation(
 
 def test_lambda_handler_disposes_engine_even_if_exception_occurs(
     setup_all_mocks: dict,
-) -> NoReturn:
+) -> None:
     """Test that the engine is disposed even if an exception occurs."""
     mock_engine = setup_all_mocks["engine"]
     mock_create_rds_trigger = setup_all_mocks["create_rds_trigger"]
