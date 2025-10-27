@@ -5,7 +5,7 @@ from pytest_mock import MockerFixture
 
 from common.secret_utils import get_secret
 
-# TODO: Move these tests once db_provisioner is implemented
+# TODO: Move these tests once dms_provisioner is implemented
 from pipeline.utils.secret_utils import get_dms_workspaces
 
 

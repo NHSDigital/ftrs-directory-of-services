@@ -2,9 +2,9 @@ import boto3
 from botocore.exceptions import ClientError
 from ftrs_common.logger import Logger
 
-from pipeline.service.dms_service import create_dms_user, create_rds_trigger_replica_db
-from pipeline.utils.config import DmsDatabaseConfig
-from pipeline.utils.dbutil import get_sqlalchemy_engine_from_config
+from common.sql_utils import get_sqlalchemy_engine_from_config
+from dms_provisioner.config import DmsDatabaseConfig
+from dms_provisioner.dms_service import create_dms_user, create_rds_trigger_replica_db
 
 LOGGER = Logger.get(service="DMS-Lambda-handler")
 
@@ -16,7 +16,7 @@ def lambda_handler(event: dict, context: dict) -> None:
 
         # Use the optimized DatabaseConfig object
         dms_config = DmsDatabaseConfig()
-        target_db_config = dms_config.get_target_rds_details()
+        target_db_config = dms_config.get_target_rds_config()
         rds_username, rds_password = dms_config.get_dms_user_details()
 
         # Connect to the RDS instance using the optimized engine creation
