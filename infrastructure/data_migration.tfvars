@@ -15,7 +15,7 @@ rds_instance_class   = "db.serverless"
 lambda_runtime               = "python3.12"
 data_collection_date         = "05-03-25"
 processor_lambda_name        = "processor-lambda"
-processor_lambda_handler     = "pipeline.lambda_handler.lambda_handler"
+processor_lambda_handler     = "service_migration.lambda_handler.lambda_handler"
 processor_lambda_timeout     = 30
 processor_lambda_memory_size = 1024
 
