@@ -4,7 +4,8 @@ from unittest.mock import MagicMock, patch
 import boto3
 import pytest
 
-from pipeline.migration_copy_db_trigger_lambda_handler import (
+from record_change_trigger.lambda_handler import (
+    get_dms_workspaces,
     get_message_from_event,
     lambda_handler,
 )
@@ -21,9 +22,7 @@ def mock_boto3() -> MagicMock:
 
 @pytest.fixture
 def mock_sqs_client() -> MagicMock:
-    with patch(
-        "pipeline.migration_copy_db_trigger_lambda_handler.SQS_CLIENT"
-    ) as mock_client:
+    with patch("record_change_trigger.lambda_handler.SQS_CLIENT") as mock_client:
         mock_client.send_message.return_value = {"MessageId": "test-message-id"}
         yield mock_client
 
@@ -31,7 +30,7 @@ def mock_sqs_client() -> MagicMock:
 @pytest.fixture
 def mock_workspaces() -> MagicMock:
     with patch(
-        "pipeline.migration_copy_db_trigger_lambda_handler.get_dms_workspaces"
+        "record_change_trigger.lambda_handler.get_dms_workspaces"
     ) as mock_get_workspaces:
         mock_get_workspaces.return_value = ["queue-url-1", "queue-url-2"]
         yield mock_get_workspaces
@@ -119,3 +118,53 @@ def test_lambda_handler_handles_complex_event_structure(
     mock_sqs_client.send_message.assert_called_with(
         QueueUrl="queue-url-2", MessageBody=expected_message
     )
+
+
+@patch("record_change_trigger.lambda_handler.os.environ.get")
+@patch("record_change_trigger.lambda_handler.get_parameters")
+def test_returns_list_of_workspaces_when_ssm_path_exists(
+    mock_get_multiple: MagicMock, mock_environ_get: MagicMock
+) -> None:
+    # Arrange
+    mock_environ_get.return_value = "/path/to/ssm"
+    mock_get_multiple.return_value = {"param1": "workspace1", "param2": "workspace2"}
+
+    # Act
+    result = get_dms_workspaces()
+
+    # Assert
+    assert result == ["workspace1", "workspace2"]
+    mock_environ_get.assert_called_once_with("SQS_SSM_PATH")
+    mock_get_multiple.assert_called_once_with(
+        "/path/to/ssm", recursive=True, decrypt=True, max_age=300
+    )
+
+
+@patch("record_change_trigger.lambda_handler.os.environ.get")
+def test_raises_value_error_when_ssm_path_missing(mock_environ_get: MagicMock) -> None:
+    # Arrange
+    mock_environ_get.return_value = None
+
+    # Act & Assert
+    with pytest.raises(
+        ValueError, match="Missing required environment variable: SQS_SSM_PATH"
+    ):
+        get_dms_workspaces()
+    mock_environ_get.assert_called_once_with("SQS_SSM_PATH")
+
+
+@patch("record_change_trigger.lambda_handler.os.environ.get")
+@patch("record_change_trigger.lambda_handler.get_parameters")
+def test_returns_empty_list_when_no_parameters_found(
+    mock_get_multiple: MagicMock, mock_environ_get: MagicMock
+) -> None:
+    # Arrange
+    mock_environ_get.return_value = "/path/to/ssm"
+    mock_get_multiple.return_value = {}
+
+    # Act
+    result = get_dms_workspaces()
+
+    # Assert
+    assert result == []
+    mock_get_multiple.assert_called_once()
