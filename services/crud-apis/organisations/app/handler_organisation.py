@@ -1,3 +1,4 @@
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -16,6 +17,7 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.fhir.operation_outcome_status_mapper import STATUS_CODE_MAP
 from ftrs_common.logger import Logger
+from ftrs_common.utils.request_id import fetch_or_set_request_id
 from mangum import Mangum
 
 from organisations.app.router import organisation
@@ -30,7 +32,15 @@ app.add_middleware(RequestIdMiddleware)
 
 app.include_router(organisation.router)
 
-handler = Mangum(app, lifespan="off")
+
+def handler(event: dict, context: LambdaContext) -> dict:
+    fetch_or_set_request_id(
+        context_id=getattr(context, "aws_request_id", None) if context else None,
+        header_id=event.get("headers", {}).get("X-Request-ID"),
+    )
+
+    mangum_handler = Mangum(app, lifespan="off")
+    return mangum_handler(event, context)
 
 
 @app.exception_handler(RequestValidationError)
