@@ -123,6 +123,7 @@
                 "arn:aws:iam::*:role/${repo_name}-*",
                 "arn:aws:iam::*:role/${project}-*",
                 "arn:aws:iam::*:policy/${project}-*",
+                "arn:aws:iam::*:instance-profile/${project}-*",
                 "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
                 "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
             ]
@@ -150,7 +151,8 @@
                         "scheduler.amazonaws.com",
                         "pipes.amazonaws.com",
                         "osis-pipelines.amazonaws.com",
-                        "rds.amazonaws.com"
+                        "rds.amazonaws.com",
+                        "ec2.amazonaws.com"
                     ]
                 }
             }
