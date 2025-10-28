@@ -16,7 +16,7 @@ module "api_gateway" {
   create_domain_name    = true
   create_domain_records = true
   hosted_zone_name      = local.env_domain_name
-  domain_name           = "servicesearch${local.workspace_suffix}.${local.env_domain_name}"
+  domain_name           = "dos-search${local.workspace_suffix}.${local.env_domain_name}"
 
   # We do not need to create a certificate because we are using a shared one, specified in the domain_name_certificate_arn
   domain_certificate_arn = data.aws_acm_certificate.domain_cert.arn
