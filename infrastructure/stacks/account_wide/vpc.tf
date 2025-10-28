@@ -70,6 +70,15 @@ locals {
         to_port         = 65535
         protocol        = "tcp"
         ipv6_cidr_block = "::/0"
+      },
+      # Allow inbound UDP ephemeral range from VPC resolver only (DNS responses)
+      {
+        rule_number = 902
+        rule_action = "allow"
+        from_port   = 1024
+        to_port     = 65535
+        protocol    = "udp"
+        cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
       }
     ]
 
@@ -89,6 +98,15 @@ locals {
         to_port         = 65535
         protocol        = "tcp"
         ipv6_cidr_block = "::/0"
+      },
+      # Allow outbound UDP 53 to VPC resolver only (DNS queries)
+      {
+        rule_number = 902
+        rule_action = "allow"
+        from_port   = 53
+        to_port     = 53
+        protocol    = "udp"
+        cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
       }
     ]
   }
