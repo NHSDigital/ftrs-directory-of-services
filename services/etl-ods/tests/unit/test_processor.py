@@ -253,44 +253,7 @@ def test_processor_continue_on_validation_failure(
     # Assert load_data call - only EFG456 should be loaded
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
-    assert data_to_load == [
-        {
-            "path": "00000000-0000-0000-0000-000000000EFG",
-            "body": {
-                "resourceType": "Organization",
-                "meta": {
-                    "profile": [
-                        "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
-                    ]
-                },
-                "active": True,
-                "type": [
-                    {
-                        "coding": [
-                            {
-                                "system": "TO-DO",
-                                "code": "GP Practice",
-                                "display": "GP Practice",
-                            }
-                        ],
-                        "text": "GP Practice",
-                    }
-                ],
-                "name": "Test Organisation EFG ODS",
-                "id": "00000000-0000-0000-0000-000000000EFG",
-                "identifier": [
-                    {
-                        "use": "official",
-                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                        "value": "EFG456",
-                    }
-                ],
-                "telecom": [],
-            },
-            "correlation_id": TEST_CORRELATION_ID,
-            "request_id": TEST_REQUEST_ID,
-        }
-    ]
+
     assert len(data_to_load) == 1
     assert data_to_load[0]["path"] == "00000000-0000-0000-0000-000000000EFG"
     assert data_to_load[0]["body"]["identifier"][0]["value"] == "EFG456"

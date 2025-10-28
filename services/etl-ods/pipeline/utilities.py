@@ -107,7 +107,6 @@ def build_headers(options: dict) -> dict:
     json_string = options.get("json_string")
     url = options.get("url", "")
     correlation_id = fetch_or_set_correlation_id(get_correlation_id())
-    headers[CORRELATION_ID_HEADER] = correlation_id
     request_id = generate_request_id()
     headers[REQUEST_ID_HEADER] = request_id
 
@@ -180,12 +179,6 @@ def make_request(
             )
         if response_request_id:
             ods_utils_logger.append_keys(response_request_id=response_request_id)
-
-        if fhir:
-            handle_fhir_response(response.json(), method)
-            return response
-        else:
-            return response
 
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(
