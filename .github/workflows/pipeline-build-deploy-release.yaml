@@ -59,7 +59,7 @@ jobs:
       # - run: npm run build
       #
       - run: |
-          export NEXT_TAG_VERSION=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'The next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
+          export NEXT_TAG_VERSION=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
           echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
           echo "new_tag_version=${NEXT_TAG_VERSION}"
         env:
