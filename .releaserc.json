@@ -1,6 +1,6 @@
 {
   "release": {
-    "branches": ["task/FDOS-347_Build_release_artefacts"],
+    "branches": ["main"],
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
