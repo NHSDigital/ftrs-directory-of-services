@@ -60,16 +60,6 @@ variable "api_gateway_xray_tracing" {
   default     = true
 }
 
-variable "api_gateway_cache_cluster_enabled" {
-  description = "Flag to enable or disable caching at the API Gateway"
-  default     = true
-}
-
-variable "api_gateway_cache_cluster_size" {
-  description = "If caching at the API Gateway is enabled, the size of the cache"
-  default     = 0.5
-}
-
 variable "api_gateway_logging_level" {
   description = "The level of logging"
   default     = "INFO"
