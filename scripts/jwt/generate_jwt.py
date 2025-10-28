@@ -21,11 +21,18 @@ def get_config(env_name=None, region_name="eu-west-2"):
             response = client.get_secret_value(SecretId=secret_name)
             secret_dict = json.loads(response["SecretString"])
             config.update(secret_dict)
-            print(f"Loaded configuration from AWS Secrets Manager: {secret_name}")
+            print(f"\nLoaded configuration from AWS Secrets Manager: {secret_name}")
         except Exception as e:
-            print(
-                f"Could not load secret from AWS Secrets Manager ({secret_name}): {e}"
-            )
+            if "ExpiredToken" in str(e) or "ExpiredTokenException" in str(e):
+                print(
+                    "\nYour AWS credentials have expired. Please refresh or reconfigure them.\n"
+                )
+                sys.exit(1)
+            else:
+                print(
+                    f"Could not load secret from AWS Secrets Manager ({secret_name}): {e}"
+                )
+                sys.exit(1)
 
     config.setdefault("api_key", os.getenv("API_KEY"))
     config.setdefault("private_key", os.getenv("PRIVATE_KEY"))
@@ -90,12 +97,11 @@ def main():
         config["api_key"], config["private_key"], config["kid"], config["token_url"]
     )
 
-    print("\nGenerated JWT successfully.\n")
+    print("Generated JWT successfully.")
 
     bearer_token = exchange_for_bearer(jwt_token, config["token_url"])
 
-    print("Bearer Token:\n")
-    print(bearer_token)
+    print(f"Bearer Token: {bearer_token}\n")
 
 
 if __name__ == "__main__":

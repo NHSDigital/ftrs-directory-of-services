@@ -129,7 +129,7 @@ paths:
   '/Organization':
     get:
       security:
-        - app-level0: []
+        - app-level3: []
       summary: Search for organisations by ODS code to return organization details
       description: |
         ## Overview
@@ -367,7 +367,7 @@ paths:
   '/Organization/{id}':
     put:
       security:
-        - app-level0: []
+        - app-level3: []
       summary: Update/overwrite an organization resource
       description: Update or overwrite an existing organization resource by ID.
       parameters:
@@ -670,8 +670,8 @@ components:
                 type: string
                 example: Invalid resource.
   securitySchemes:
-    app-level0:
-      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level0
+    app-level3:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3
 x-nhsd-apim:
   target:
     $ref: x-nhsd-apim/target.yaml
