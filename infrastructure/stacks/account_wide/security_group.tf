@@ -13,7 +13,7 @@ resource "aws_vpc_security_group_ingress_rule" "vpce_allow_all_ingress" {
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
+# tfsec:ignore:aws-vpc-no-public-egress-sgr -- Temporary allowance for VPCE egress to managed service; see FDOS-511
 resource "aws_vpc_security_group_egress_rule" "vpce_allow_all_egress" {
   description       = "Allow all outbound traffic to RDS"
   security_group_id = aws_security_group.vpce_rds_security_group.id
@@ -36,6 +36,7 @@ resource "aws_security_group" "performance_ec2_sg" {
 
 # Replace broad egress with explicit rules matching gp_search posture
 # HTTPS egress for downloads and test traffic
+# tfsec:ignore:aws-vpc-no-public-egress-sgr -- Performance EC2 requires HTTPS egress for tooling/tests; see FDOS-511
 resource "aws_vpc_security_group_egress_rule" "performance_egress_https" {
   security_group_id = aws_security_group.performance_ec2_sg.id
   description       = "Allow HTTPS egress"

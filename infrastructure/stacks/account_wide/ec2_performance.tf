@@ -1,6 +1,14 @@
 // Performance EC2 instance(s) for performance testing in the account-wide stack.
 // Creates a small Amazon Linux 2023 instance in a private subnet, reachable via SSM (Session Manager) only.
 // Installs Apache JMeter on first boot and powers off the instance when installation completes (configurable).
+
+locals {
+  # Choose the first private subnet for Performance EC2. Safe because module.vpc is declared in this stack.
+  performance_subnet_id = element(module.vpc.private_subnets, 0)
+  # Name tag for Performance EC2 instance, scoped to this stack
+  performance_name = "${var.project}-${var.environment}-${var.stack_name}-performance"
+}
+
 resource "aws_instance" "performance" {
   ami                         = data.aws_ami.al2023.id
   instance_type               = var.performance_instance_type
