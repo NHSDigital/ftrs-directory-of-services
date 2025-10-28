@@ -107,7 +107,7 @@ jobs:
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
 
       - name: "Upload Terraform Plan Artifact"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: ${{ inputs.action == 'plan' }}
         with:
           name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
