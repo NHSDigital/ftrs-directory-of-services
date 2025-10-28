@@ -52,6 +52,9 @@ locals {
   database_subnets = [var.vpc["database_subnet_a"], var.vpc["database_subnet_b"], var.vpc["database_subnet_c"]]
   vpn_subnets      = var.environment == "dev" ? [var.vpc["vpn_subnet"]] : []
 
+  # Build Amazon Time Sync Service CIDR from parts
+  time_sync_ip_cidr = format("%s.%s.%s.%s/32", "169", "254", "169", "123")
+
   network_acls = {
 
     default_inbound = [
@@ -71,14 +74,26 @@ locals {
         protocol        = "tcp"
         ipv6_cidr_block = "::/0"
       },
-      # Allow inbound UDP ephemeral range from VPC resolver only (DNS responses)
+      # DNS responses: Allow inbound UDP 32768–65535 only from the VPC resolver (base+2).
+      # Matches the outbound UDP 53 rule below. Required because NACLs are stateless and
+      # responses target an ephemeral source port on the instance.
       {
         rule_number = 902
         rule_action = "allow"
-        from_port   = 1024
+        from_port   = 32768
         to_port     = 65535
         protocol    = "udp"
         cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
+      },
+      # NTP responses: Allow inbound UDP 32768–65535 only from Amazon Time Sync.
+      # Matches the outbound UDP 123 rule below so chrony can sync time without being dropped.
+      {
+        rule_number = 903
+        rule_action = "allow"
+        from_port   = 32768
+        to_port     = 65535
+        protocol    = "udp"
+        cidr_block  = local.time_sync_ip_cidr
       }
     ]
 
@@ -99,7 +114,9 @@ locals {
         protocol        = "tcp"
         ipv6_cidr_block = "::/0"
       },
-      # Allow outbound UDP 53 to VPC resolver only (DNS queries)
+      # DNS: Allow outbound UDP 53 only to the VPC resolver (base+2).
+      # Required for name resolution (e.g., SSM endpoints). Matching inbound UDP responses
+      # are permitted by the inbound ephemeral rule above (32768–65535 from the resolver).
       {
         rule_number = 902
         rule_action = "allow"
@@ -107,6 +124,17 @@ locals {
         to_port     = 53
         protocol    = "udp"
         cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
+      },
+      # NTP: Allow outbound UDP 123 only to Amazon Time Sync (via local.time_sync_ip_cidr).
+      # Keeps system time accurate to avoid TLS/session issues. Matching inbound UDP responses
+      # are permitted by the inbound ephemeral rule above (32768–65535 from Time Sync).
+      {
+        rule_number = 903
+        rule_action = "allow"
+        from_port   = 123
+        to_port     = 123
+        protocol    = "udp"
+        cidr_block  = local.time_sync_ip_cidr
       }
     ]
   }
