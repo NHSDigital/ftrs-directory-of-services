@@ -62,8 +62,8 @@ jobs:
         run: |
           npm ci
           export next_tag_version=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
-          echo "new_tag_version=${next_tag_version}" >> $GITHUB_OUTPUT
-          echo "new_tag_version=${next_tag_version}"
+          echo "next_tag_version=${next_tag_version}" >> $GITHUB_OUTPUT
+          echo "next_tag_version=${next_tag_version}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
