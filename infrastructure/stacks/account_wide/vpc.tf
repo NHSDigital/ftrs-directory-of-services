@@ -52,8 +52,9 @@ locals {
   database_subnets = [var.vpc["database_subnet_a"], var.vpc["database_subnet_b"], var.vpc["database_subnet_c"]]
   vpn_subnets      = var.environment == "dev" ? [var.vpc["vpn_subnet"]] : []
 
-  # Build Amazon Time Sync Service CIDR from parts
-  time_sync_ip_cidr = format("%s.%s.%s.%s/32", "169", "254", "169", "123")
+  # Amazon Time Sync (link-local NTP). Use literal to improve readability.
+  # Intentionally allowlisted in scripts/config/gitleaks.toml to avoid false positives.
+  time_sync_ip_cidr = "169.254.169.123/32"
 
   network_acls = {
 
