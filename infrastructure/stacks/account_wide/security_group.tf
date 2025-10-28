@@ -29,7 +29,41 @@ resource "aws_security_group" "performance_ec2_sg" {
   description = "Security group for Performance EC2 instance (SSM-managed)"
   vpc_id      = module.vpc.vpc_id
 
+  # Remove the default broad egress and manage explicit rules below
+  egress = []
+
   tags = {
     Name = "${local.resource_prefix}-performance-sg"
   }
+}
+
+# HTTPS egress for software installation, AWS APIs, and performance tests
+# trivy:ignore:aws-vpc-no-public-egress-sgr : FDOS-511 Required HTTPS egress to the internet for installs and AWS APIs; SG egress is least-privilege and NACLs restrict UDP
+resource "aws_vpc_security_group_egress_rule" "performance_egress_https" {
+  security_group_id = aws_security_group.performance_ec2_sg.id
+  description       = "Allow HTTPS egress (tcp/443) to the internet for installs, AWS APIs, and tests"
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+}
+
+# DNS egress (UDP 53) to VPC resolver only (base+2 of VPC CIDR)
+resource "aws_vpc_security_group_egress_rule" "performance_egress_dns_udp" {
+  security_group_id = aws_security_group.performance_ec2_sg.id
+  description       = "Allow DNS egress (udp/53) to VPC resolver only"
+  cidr_ipv4         = format("%s/32", cidrhost(var.vpc["cidr"], 2))
+  ip_protocol       = "udp"
+  from_port         = 53
+  to_port           = 53
+}
+
+# NTP egress (UDP 123) to Amazon Time Sync Service for accurate timekeeping
+resource "aws_vpc_security_group_egress_rule" "performance_egress_ntp_udp" {
+  security_group_id = aws_security_group.performance_ec2_sg.id
+  description       = "Allow NTP egress (udp/123) to Amazon Time Sync (169.254.169.123/32)"
+  cidr_ipv4         = local.time_sync_ip_cidr
+  ip_protocol       = "udp"
+  from_port         = 123
+  to_port           = 123
 }
