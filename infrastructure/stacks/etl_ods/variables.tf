@@ -95,6 +95,12 @@ variable "apim_url" {
   default     = "https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4"
 }
 
+variable "ods_url" {
+  description = "The URL of the ODS Terminology API"
+  type        = string
+  default     = "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+}
+
 variable "processor_lambda_logs_retention" {
   description = "The number of days to retain logs for the processor lambda"
   type        = number

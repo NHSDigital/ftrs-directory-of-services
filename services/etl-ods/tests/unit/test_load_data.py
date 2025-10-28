@@ -130,3 +130,26 @@ def test_load_data_get_queue_url_exception(caplog: pytest.LogCaptureFixture) -> 
         assert expected_log_template in caplog.text
         assert "QueueDoesNotExist" in caplog.text
         assert "Queue not found" in caplog.text
+
+
+def test_load_data_without_correlation_id(caplog: pytest.LogCaptureFixture) -> None:
+    """Test load_data when correlation_id is None"""
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
+    ):
+        with patch("boto3.client") as mock_boto_client:
+            with patch("pipeline.load_data.get_correlation_id", return_value=None):
+                mock_sqs = MagicMock()
+                mock_boto_client.return_value = mock_sqs
+                mock_sqs.get_queue_url.return_value = {
+                    "QueueUrl": "https://sqs.region.amazonaws.com/test-queue"
+                }
+                mock_sqs.send_message_batch.return_value = {
+                    "Successful": [{"Id": "1"}],
+                    "Failed": [],
+                }
+                test_data = ["message1"]
+                load_data(test_data)
+                # Should still work without correlation_id
+                mock_sqs.send_message_batch.assert_called_once()

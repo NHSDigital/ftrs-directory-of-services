@@ -31,3 +31,9 @@ variable "isShieldAutomaticResponseEnabled" {
   description = "Whether to enable Automatic Application Layer DDoS mitigation"
   type        = bool
 }
+
+variable "cert_validation_record_ttl" {
+  description = "The TTL of the DNS validation records for ACM certificates"
+  type        = number
+  default     = 60
+}

@@ -91,12 +91,10 @@ def process_message_and_send_request(record: dict) -> None:
         api_url = api_url + "/Organization/" + path
 
         try:
-            response = make_request(
-                api_url, method="PUT", json=body, fhir=True, api_key_required=True
-            )
+            response_data = make_request(api_url, method="PUT", json=body)
             ods_consumer_logger.log(
                 OdsETLPipelineLogBase.ETL_CONSUMER_007,
-                status_code=response.status_code,
+                status_code=response_data.get("status_code", "unknown"),
             )
         except requests.exceptions.HTTPError as http_error:
             if http_error.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
