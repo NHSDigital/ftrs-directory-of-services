@@ -80,18 +80,14 @@ def count_resources(lambda_response, resource_type):
 
 def create_lambda_params(odscode):
     return {
-        "version": "2.0",
-        "rawPath": "/Organization",
+        "path": "/Organization",
+        "httpMethod": "GET",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{odscode}",
             "_revinclude": "Endpoint:organization",
         },
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
-            "stage": "$default",
-            "http": {
-                "method": "GET",
-            },
         },
         "body": None,
     }
