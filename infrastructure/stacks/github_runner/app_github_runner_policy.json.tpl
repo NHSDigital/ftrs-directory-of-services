@@ -201,6 +201,16 @@
                 "shield:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "IAMReadInstanceProfiles",
+            "Effect": "Allow",
+            "Action": [
+                "iam:GetInstanceProfile",
+                "iam:ListInstanceProfiles",
+                "iam:ListInstanceProfilesForRole"
+            ],
+            "Resource": "arn:aws:iam::*:instance-profile/*"
         }
     ]
 }
