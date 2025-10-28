@@ -1,0 +1,81 @@
+name: Build and deploy release candidate
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  # TODO for testing before merge to main
+  push:
+    branches:
+      - "task/FDOS-347_Build_release_artefacts"
+  # TODO uncomment for main branch
+  # workflow_dispatch:
+    # inputs:
+    #   environment:
+    #     description: "Intended environment for deploying the release candidate"
+    #     required: true
+    #     type: choice
+    #     options:
+    #       - int
+    #       - ref
+    #       - prod
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+    # TODO do we need this for code that is already in main branch?
+  # quality-checks:
+  #   name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
+  #   needs:
+  #     - metadata
+  #   uses: ./.github/workflows/quality-checks.yaml
+  #   with:
+  #     environment: ${{ needs.metadata.outputs.environment }}
+  #     workspace: ${{ needs.metadata.outputs.workspace }}
+  #     stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance', 'ui']"
+  #     type: app
+  #   secrets: inherit
+
+  release:
+    name: "Dry run to get the next release version"
+    # needs:
+    #   - quality-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+
+      - name: "Set up Node.js"
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - run: npm ci
+      - run: npm run build
+      - run: |
+          export NEXT_TAG_VERSION=$(npx semantic-release --dry-run | grep 'The next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/')
+          echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
+
+      # - name: "Set up Node.js"
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: "16"
+      # - run: npm ci
+      # - run: npm run build
+      # - run: npx semantic-release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+      # - name:
+      #   id: tag_version
+      #   run: |
+      #     export NEXT_TAG_VERSION=$(npx semantic-release --dry-run | grep 'The next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/')
+      #     echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
+
+
