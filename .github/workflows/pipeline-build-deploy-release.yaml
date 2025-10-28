@@ -47,6 +47,8 @@ jobs:
     # needs:
     #   - quality-checks
     runs-on: ubuntu-latest
+    outputs:
+      next_tag_version: ${{ steps.semantic_release.outputs.next_tag_version }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
@@ -55,31 +57,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npm ci
-      # - run: npm run build
-      #
-      - run: |
-          export NEXT_TAG_VERSION=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
-          echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
-          echo "new_tag_version=${NEXT_TAG_VERSION}"
+      - name: "Run semantic release"
+        id: semantic_release
+        run: |
+          npm ci
+          export next_tag_version=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
+          echo "new_tag_version=${next_tag_version}" >> $GITHUB_OUTPUT
+          echo "new_tag_version=${next_tag_version}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: "Set up Node.js"
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: "16"
-      # - run: npm ci
-      # - run: npm run build
-      # - run: npx semantic-release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-      # - name:
-      #   id: tag_version
-      #   run: |
-      #     export NEXT_TAG_VERSION=$(npx semantic-release --dry-run | grep 'The next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/')
-      #     echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
-
-
+  echo-release-version:
+    name: "Echo the calculated release version"
+    needs:
+      - release
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Echo new version"
+        run: |
+          echo "The calculated next release version is: ${{ needs.release.outputs.next_tag_version }}"
