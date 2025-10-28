@@ -61,6 +61,8 @@ jobs:
           export NEXT_TAG_VERSION=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run )
           echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
           echo "new_tag_version=${NEXT_TAG_VERSION}"
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # - name: "Set up Node.js"
       #   uses: actions/setup-node@v3
