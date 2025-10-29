@@ -29,23 +29,22 @@ jobs:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
 
-    # TODO do we need this for code that is already in main branch?
-  # quality-checks:
-  #   name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
-  #   needs:
-  #     - metadata
-  #   uses: ./.github/workflows/quality-checks.yaml
-  #   with:
-  #     environment: ${{ needs.metadata.outputs.environment }}
-  #     workspace: ${{ needs.metadata.outputs.workspace }}
-  #     stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance', 'ui']"
-  #     type: app
-  #   secrets: inherit
+  quality-checks:
+    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
+    needs:
+      - metadata
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance', 'ui']"
+      type: app
+    secrets: inherit
 
   tag-release:
     name: "Dry run to get the next release version"
-    # needs:
-    #   - quality-checks
+    needs:
+      - quality-checks
     runs-on: ubuntu-latest
     outputs:
       next_tag_version: ${{ steps.semantic_release.outputs.next_tag_version }}
@@ -57,11 +56,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: "Run semantic release"
+
+      # - name: "Derive semantic release version"
+      #   id: dry_run_semantic_release
+      #   run: |
+      #     npm ci
+      #     export next_tag_version=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
+      #     echo "next_tag_version=${next_tag_version}" >> $GITHUB_OUTPUT
+      #     echo "next_tag_version=${next_tag_version}"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Perform semantic release"
         id: semantic_release
         run: |
           npm ci
-          export next_tag_version=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
+          export next_tag_version=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
           echo "next_tag_version=${next_tag_version}" >> $GITHUB_OUTPUT
           echo "next_tag_version=${next_tag_version}"
         env:
@@ -70,6 +80,7 @@ jobs:
   echo-release-version:
     name: "Echo the calculated release version"
     needs:
+      - metadata
       - tag-release
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +93,7 @@ jobs:
     needs:
       - metadata
       - tag-release
-      # - quality-checks
+      - quality-checks
     strategy:
       matrix:
         include:
@@ -105,8 +116,7 @@ jobs:
       name: ${{ matrix.name }}
       build_type: ${{ matrix.build_type }}
       python_version: ${{ needs.metadata.outputs.python_version }}
-      # TODO should this be tag version too
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      commit_hash: ${{ needs.tag-release.outputs.next_tag_version }}
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
