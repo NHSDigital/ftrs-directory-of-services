@@ -12,7 +12,7 @@ def clean_decimal(value: Decimal) -> Decimal:
     * ensure that ranges like 364.25 and 365.25 are correctly identified as consecutive
     """
     if value == 0:
-        return Decimal("0")
+        return Decimal(0)
 
     rounded_value = value.quantize(Decimal("0.01"), rounding="ROUND_HALF_UP")
 

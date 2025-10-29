@@ -18,3 +18,5 @@ unit-test: coverage
 
 coverage:
 	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml tests
+
+pre-commit: lint

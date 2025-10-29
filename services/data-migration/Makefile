@@ -13,6 +13,8 @@ DMS_DB_LAMBDA_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-dms-db-setup
 FULL_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-etl-full-replication-task
 CDC_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-etl-cdc-replication-task
 WAIT_SECONDS ?= 30
+RELEASE_BUILD ?= false
+RELEASE_DIR ?= releases
 
 .PHONY: install lint test build
 
@@ -65,8 +67,13 @@ build-dependency-layer: clean
 	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
 
 publish:
-	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
+		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+	else \
+		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
+	fi
 
 export-to-s3: install
 	poetry run dos-etl export-to-s3 --env $(ENVIRONMENT)

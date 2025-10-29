@@ -42,7 +42,7 @@ jobs:
   #     type: app
   #   secrets: inherit
 
-  release:
+  tag-release:
     name: "Dry run to get the next release version"
     # needs:
     #   - quality-checks
@@ -70,9 +70,47 @@ jobs:
   echo-release-version:
     name: "Echo the calculated release version"
     needs:
-      - release
+      - tag-release
     runs-on: ubuntu-latest
     steps:
       - name: "Echo new version"
         run: |
-          echo "The calculated next release version is: ${{ needs.release.outputs.next_tag_version }}"
+          echo "The calculated next release version is: ${{ needs.tag-release.outputs.next_tag_version }}"
+
+  build-release-artifacts:
+    name: "Build ${{ matrix.name }}"
+    needs:
+      - metadata
+      - tag-release
+      # - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "python"
+            build_type: "package"
+          - name: "crud-apis"
+            build_type: "service"
+          - name: "data-migration"
+            build_type: "service"
+          - name: "read-only-viewer"
+            build_type: "service"
+          - name: "etl-ods"
+            build_type: "service"
+          - name: "gp-search"
+            build_type: "service"
+          - name: "dos-ui"
+            build_type: "service"
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: ${{ matrix.build_type }}
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      # TODO should this be tag version too
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ needs.tag-release.outputs.next_tag_version }}
+      release_build: true
+      type: app
+    secrets: inherit
