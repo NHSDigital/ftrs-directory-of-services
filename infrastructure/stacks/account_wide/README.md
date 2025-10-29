@@ -20,11 +20,12 @@ A single Amazon Linux 2023 EC2 instance in a private `subnet` for performance te
 
 - EC2 instance in the first private `subnet` of the account-wide VPC
 - Dedicated security group with minimal egress
-  - TCP 443 to 0.0.0.0/0 (HTTPS)
+  - TCP 443 to 0.0.0.0/0 (HTTPS; required for downloads and APIs; private subnets egress via NAT)
   - UDP 53 to the VPC Route 53 Resolver only (CIDR: `${cidrhost(var.vpc["cidr"], 2)}/32`) (DNS)
-- Dedicated NACLs with minimal DNS allowances (because NACLs are stateless)
-  - Outbound UDP 53 to the VPC resolver (`${cidrhost(var.vpc["cidr"], 2)}/32`)
-  - Inbound UDP 1024–65535 from the VPC resolver (`${cidrhost(var.vpc["cidr"], 2)}/32`)
+  - UDP 123 to public NTP (CIDR: `0.0.0.0/0`) to allow time sync when link-local IPs cannot be referenced in code
+- Dedicated NACLs with minimal DNS and NTP allowances (because NACLs are stateless)
+  - DNS: Outbound UDP 53 to the VPC resolver (`${cidrhost(var.vpc["cidr"], 2)}/32`), and inbound UDP 32768–65535 from the resolver
+  - NTP: Outbound UDP 123 to public NTP (`0.0.0.0/0`), and inbound UDP 32768–65535 from the internet (broader; see note below)
 - IAM role and instance profile attached to the instance
   - Managed policy: `AmazonSSMManagedInstanceCore`
 - On first boot, user data installs:
@@ -69,6 +70,11 @@ Set these in your environment tfvars, for example `infrastructure/environments/d
 - `performance_instance_id`
 - `performance_private_ip`
 - `performance_security_group_id`
+
+### Notes on NTP configuration
+
+- Best practice is to restrict NTP to the AWS-provided link-local time sync endpoint, but where referencing a literal IP in code is prohibited, this configuration uses `0.0.0.0/0` for UDP 123 egress and the corresponding inbound ephemeral range in NACLs
+- Consider tightening to the AWS time sync endpoint in a follow-up if policy allows referencing link-local IPs in infra code
 
 ### Troubleshooting
 

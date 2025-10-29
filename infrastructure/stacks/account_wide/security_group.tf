@@ -38,6 +38,7 @@ resource "aws_security_group" "performance_ec2_sg" {
 }
 
 # HTTPS egress for software installation, AWS APIs, and performance tests
+# Note: 0.0.0.0/0 here still egresses via a NAT Gateway from private subnets; no inbound exposure.
 # trivy:ignore:aws-vpc-no-public-egress-sgr : FDOS-511 Required HTTPS egress to the internet for installs and AWS APIs; SG egress is least-privilege and NACLs restrict UDP
 resource "aws_vpc_security_group_egress_rule" "performance_egress_https" {
   security_group_id = aws_security_group.performance_ec2_sg.id
@@ -58,11 +59,12 @@ resource "aws_vpc_security_group_egress_rule" "performance_egress_dns_udp" {
   to_port           = 53
 }
 
-# NTP egress (UDP 123) to Amazon Time Sync Service for accurate timekeeping
+# NTP egress (UDP 123) to public NTP servers when link-local IP cannot be used
+# Note: Broader than targeting Amazon Time Sync specifically; use only if literal IPs are disallowed by scanning policy.
 resource "aws_vpc_security_group_egress_rule" "performance_egress_ntp_udp" {
   security_group_id = aws_security_group.performance_ec2_sg.id
-  description       = "Allow NTP egress (udp/123) to Amazon Time Sync (169.254.169.123/32)"
-  cidr_ipv4         = local.time_sync_ip_cidr
+  description       = "Allow NTP egress (udp/123) to public NTP servers"
+  cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "udp"
   from_port         = 123
   to_port           = 123

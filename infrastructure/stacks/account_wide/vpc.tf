@@ -52,10 +52,6 @@ locals {
   database_subnets = [var.vpc["database_subnet_a"], var.vpc["database_subnet_b"], var.vpc["database_subnet_c"]]
   vpn_subnets      = var.environment == "dev" ? [var.vpc["vpn_subnet"]] : []
 
-  # Amazon Time Sync (link-local NTP). Use literal to improve readability.
-  # Intentionally allowlisted in scripts/config/gitleaks.toml to avoid false positives.
-  time_sync_ip_cidr = "169.254.169.123/32"
-
   network_acls = {
 
     default_inbound = [
@@ -86,15 +82,16 @@ locals {
         protocol    = "udp"
         cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
       },
-      # NTP responses: Allow inbound UDP 32768–65535 only from Amazon Time Sync.
-      # Matches the outbound UDP 123 rule below so chrony can sync time without being dropped.
+      # NTP responses: Allow inbound UDP 32768–65535 from the internet to support public NTP servers.
+      # Note: Broader than using the Amazon Time Sync IP; preferred only if a literal IP cannot be used.
+      # trivy:ignore:aws-vpc-no-public-ingress-acl : NTP inbound ephemeral (UDP 32768–65535) required for time sync responses
       {
         rule_number = 903
         rule_action = "allow"
         from_port   = 32768
         to_port     = 65535
         protocol    = "udp"
-        cidr_block  = local.time_sync_ip_cidr
+        cidr_block  = "0.0.0.0/0"
       }
     ]
 
@@ -126,16 +123,16 @@ locals {
         protocol    = "udp"
         cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
       },
-      # NTP: Allow outbound UDP 123 only to Amazon Time Sync (via local.time_sync_ip_cidr).
-      # Keeps system time accurate to avoid TLS/session issues. Matching inbound UDP responses
-      # are permitted by the inbound ephemeral rule above (32768–65535 from Time Sync).
+      # NTP: Allow outbound UDP 123 to the internet to support public NTP servers (e.g., time.aws.com, pool.ntp.org).
+      # Note: Broader than using the Amazon Time Sync IP; preferred only if a literal IP cannot be used.
+      # trivy:ignore:aws-vpc-no-public-egress-acl : NTP egress (UDP 123) required to reach public NTP servers when link-local IP is disallowed
       {
         rule_number = 903
         rule_action = "allow"
         from_port   = 123
         to_port     = 123
         protocol    = "udp"
-        cidr_block  = local.time_sync_ip_cidr
+        cidr_block  = "0.0.0.0/0"
       }
     ]
   }
