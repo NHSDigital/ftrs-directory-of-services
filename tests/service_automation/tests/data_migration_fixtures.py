@@ -398,3 +398,7 @@ def _cleanup_dynamodb_tables(client) -> None:
 def gp_search_context():
     """Context for storing test data during BDD scenarios."""
     return {}
+
+@pytest.fixture(scope="session")
+def project_root_folder_path() -> str:
+    return str(Path(os.path.abspath(__file__)).parent.parent)

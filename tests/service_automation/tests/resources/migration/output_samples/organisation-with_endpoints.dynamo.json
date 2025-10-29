@@ -1,0 +1,260 @@
+
+{
+    "active": {
+        "BOOL": true
+    },
+    "identifier_ODS_ODSCode": {
+        "S": "P81036"
+    },
+    "telecom": {
+        "NULL": true
+    },
+    "endpoints": {
+        "L": [
+            {
+                "M": {
+                    "identifier_oldDoS_id": {
+                        "N": "366198"
+                    },
+                    "address": {
+                        "S": "dummy-endpoint-email@nhs.net"
+                    },
+                    "createdDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "description": {
+                        "S": "Copy"
+                    },
+                    "isCompressionEnabled": {
+                        "BOOL": false
+                    },
+                    "connectionType": {
+                        "S": "email"
+                    },
+                    "payloadType": {
+                        "S": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
+                    },
+                    "managedByOrganisation": {
+                        "S": "8752ab74-e8b3-569a-92ed-a0dcdc44d22e"
+                    },
+                    "createdBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "service": {
+                        "NULL": true
+                    },
+                    "name": {
+                        "NULL": true
+                    },
+                    "modifiedBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "modifiedDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "id": {
+                        "S": "1c322b99-b5f9-5780-afa7-2c43c6b46256"
+                    },
+                    "payloadMimeType": {
+                        "S": "application/pdf"
+                    },
+                    "status": {
+                        "S": "active"
+                    },
+                    "order": {
+                        "N": "2"
+                    }
+                }
+            },
+            {
+                "M": {
+                    "identifier_oldDoS_id": {
+                        "N": "203479"
+                    },
+                    "address": {
+                        "S": "https://dummy-itk-endpoint.nhs.uk"
+                    },
+                    "createdDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "description": {
+                        "S": "Primary"
+                    },
+                    "isCompressionEnabled": {
+                        "BOOL": false
+                    },
+                    "connectionType": {
+                        "S": "itk"
+                    },
+                    "payloadType": {
+                        "S": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
+                    },
+                    "managedByOrganisation": {
+                        "S": "8752ab74-e8b3-569a-92ed-a0dcdc44d22e"
+                    },
+                    "createdBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "service": {
+                        "NULL": true
+                    },
+                    "name": {
+                        "NULL": true
+                    },
+                    "modifiedBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "modifiedDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "id": {
+                        "S": "1cac4fb9-55d9-58ad-aa07-ef2a1da15433"
+                    },
+                    "payloadMimeType": {
+                        "S": "application/hl7-cda+xml"
+                    },
+                    "status": {
+                        "S": "active"
+                    },
+                    "order": {
+                        "N": "1"
+                    }
+                }
+            },
+            {
+                "M": {
+                    "identifier_oldDoS_id": {
+                        "N": "311751"
+                    },
+                    "address": {
+                        "S": "dummy-endpoint-email@nhs.net"
+                    },
+                    "createdDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "description": {
+                        "S": "Primary"
+                    },
+                    "isCompressionEnabled": {
+                        "BOOL": false
+                    },
+                    "connectionType": {
+                        "S": "email"
+                    },
+                    "payloadType": {
+                        "S": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
+                    },
+                    "managedByOrganisation": {
+                        "S": "8752ab74-e8b3-569a-92ed-a0dcdc44d22e"
+                    },
+                    "createdBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "service": {
+                        "NULL": true
+                    },
+                    "name": {
+                        "NULL": true
+                    },
+                    "modifiedBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "modifiedDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "id": {
+                        "S": "07e79ade-a657-5fa7-94b9-cf9815edfbf5"
+                    },
+                    "payloadMimeType": {
+                        "S": "application/pdf"
+                    },
+                    "status": {
+                        "S": "active"
+                    },
+                    "order": {
+                        "N": "2"
+                    }
+                }
+            },
+            {
+                "M": {
+                    "identifier_oldDoS_id": {
+                        "N": "366197"
+                    },
+                    "address": {
+                        "S": "https://dummy-itk-endpoint.nhs.uk"
+                    },
+                    "createdDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "description": {
+                        "S": "Copy"
+                    },
+                    "isCompressionEnabled": {
+                        "BOOL": false
+                    },
+                    "connectionType": {
+                        "S": "itk"
+                    },
+                    "payloadType": {
+                        "S": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
+                    },
+                    "managedByOrganisation": {
+                        "S": "8752ab74-e8b3-569a-92ed-a0dcdc44d22e"
+                    },
+                    "createdBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "service": {
+                        "NULL": true
+                    },
+                    "name": {
+                        "NULL": true
+                    },
+                    "modifiedBy": {
+                        "S": "DATA_MIGRATION"
+                    },
+                    "modifiedDateTime": {
+                        "S": "2025-10-07T08:38:32.840760Z"
+                    },
+                    "id": {
+                        "S": "cbcddf9d-eda7-591c-b806-6cd96dde1736"
+                    },
+                    "payloadMimeType": {
+                        "S": "application/hl7-cda+xml"
+                    },
+                    "status": {
+                        "S": "active"
+                    },
+                    "order": {
+                        "N": "1"
+                    }
+                }
+            }
+        ]
+    },
+    "id": {
+        "S": "8752ab74-e8b3-569a-92ed-a0dcdc44d22e"
+    },
+    "createdBy": {
+        "S": "DATA_MIGRATION"
+    },
+    "name": {
+        "S": "Peel House Medical Practice"
+    },
+    "modifiedDateTime": {
+        "S": "2025-10-07T08:38:32.840760Z"
+    },
+    "createdDateTime": {
+        "S": "2025-10-07T08:38:32.840760Z"
+    },
+    "modifiedBy": {
+        "S": "DATA_MIGRATION"
+    },
+    "type": {
+        "S": "GP Practice"
+    },
+    "field": {
+        "S": "document"
+    }
+}
