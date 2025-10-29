@@ -41,9 +41,9 @@ build: clean ensure-build-dir
 
 publish:
 	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
-		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION)
+		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION);\
 	else \
-		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/ --region $(AWS_REGION)
+		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/ --region $(AWS_REGION);\
 	fi
 
 
