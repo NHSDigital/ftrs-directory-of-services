@@ -43,6 +43,11 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+      release_build:
+        description: "Flag to indicate if this is a release build"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-project:
@@ -131,6 +136,7 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
+          RELEASE_BUILD: ${{ inputs.release_build }}
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v5

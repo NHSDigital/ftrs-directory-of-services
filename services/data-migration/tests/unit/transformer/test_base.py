@@ -851,7 +851,7 @@ def test_build_age_eligibility_criteria_single_range(
     service = Service(id=1)
     service.age_range = [
         ServiceAgeRange(
-            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+            id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
         )
     ]
 
@@ -860,7 +860,7 @@ def test_build_age_eligibility_criteria_single_range(
     # Should return a list with one item
     assert result == [
         {
-            "rangeFrom": Decimal("0"),
+            "rangeFrom": Decimal(0),
             "rangeTo": Decimal("364.25"),
             "type": "days",
         }
@@ -880,7 +880,7 @@ def test_build_age_eligibility_criteria_consecutive_ranges(
     service = Service(id=1)
     service.age_range = [
         ServiceAgeRange(
-            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+            id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
         ),
         ServiceAgeRange(
             id=2, serviceid=1, daysfrom=Decimal("365.25"), daysto=Decimal("1825.25")
@@ -892,7 +892,7 @@ def test_build_age_eligibility_criteria_consecutive_ranges(
     # Should consolidate into a single range
     assert result == [
         {
-            "rangeFrom": Decimal("0"),
+            "rangeFrom": Decimal(0),
             "rangeTo": Decimal("1825.25"),
             "type": "days",
         }
@@ -912,7 +912,7 @@ def test_build_age_eligibility_criteria_overlapping_ranges(
     service = Service(id=1)
     service.age_range = [
         ServiceAgeRange(
-            id=1, serviceid=1, daysfrom=Decimal("5844"), daysto=Decimal("47481.5")
+            id=1, serviceid=1, daysfrom=Decimal(5844), daysto=Decimal("47481.5")
         ),
         ServiceAgeRange(
             id=2, serviceid=1, daysfrom=Decimal("23741.25"), daysto=Decimal("47481.5")
@@ -924,7 +924,7 @@ def test_build_age_eligibility_criteria_overlapping_ranges(
     # Should merge into a single range
     assert result == [
         {
-            "rangeFrom": Decimal("5844"),
+            "rangeFrom": Decimal(5844),
             "rangeTo": Decimal("47481.5"),
             "type": "days",
         }
@@ -944,10 +944,10 @@ def test_build_age_eligibility_criteria_non_consecutive_ranges(
     service = Service(id=1)
     service.age_range = [
         ServiceAgeRange(
-            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+            id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
         ),
         ServiceAgeRange(
-            id=2, serviceid=1, daysfrom=Decimal("1826.25"), daysto=Decimal("5843")
+            id=2, serviceid=1, daysfrom=Decimal("1826.25"), daysto=Decimal(5843)
         ),
     ]
 
@@ -956,13 +956,13 @@ def test_build_age_eligibility_criteria_non_consecutive_ranges(
     # Should keep as separate ranges
     assert result == [
         {
-            "rangeFrom": Decimal("0"),
+            "rangeFrom": Decimal(0),
             "rangeTo": Decimal("364.25"),
             "type": "days",
         },
         {
             "rangeFrom": Decimal("1826.25"),
-            "rangeTo": Decimal("5843"),
+            "rangeTo": Decimal(5843),
             "type": "days",
         },
     ]
@@ -981,7 +981,7 @@ def test_build_age_eligibility_criteria_mixed_ranges(
     service = Service(id=1)
     service.age_range = [
         ServiceAgeRange(
-            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+            id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
         ),
         ServiceAgeRange(
             id=2, serviceid=1, daysfrom=Decimal("365.25"), daysto=Decimal("1825.25")
@@ -996,7 +996,7 @@ def test_build_age_eligibility_criteria_mixed_ranges(
     # Should consolidate the first two ranges but keep the third separate
     assert result == [
         {
-            "rangeFrom": Decimal("0"),
+            "rangeFrom": Decimal(0),
             "rangeTo": Decimal("1825.25"),
             "type": "days",
         },
@@ -1021,16 +1021,16 @@ def test_build_age_eligibility_criteria_complex_case(
     service = Service(id=1)
     service.age_range = [
         ServiceAgeRange(
-            id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+            id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
         ),
         ServiceAgeRange(
             id=2, serviceid=1, daysfrom=Decimal("365.25"), daysto=Decimal("1825.25")
         ),
         ServiceAgeRange(
-            id=3, serviceid=1, daysfrom=Decimal("1826.25"), daysto=Decimal("5843")
+            id=3, serviceid=1, daysfrom=Decimal("1826.25"), daysto=Decimal(5843)
         ),
         ServiceAgeRange(
-            id=4, serviceid=1, daysfrom=Decimal("5844"), daysto=Decimal("47481.5")
+            id=4, serviceid=1, daysfrom=Decimal(5844), daysto=Decimal("47481.5")
         ),
         ServiceAgeRange(
             id=5, serviceid=1, daysfrom=Decimal("23741.25"), daysto=Decimal("47481.5")
@@ -1042,7 +1042,7 @@ def test_build_age_eligibility_criteria_complex_case(
     # Should consolidate all ranges into a single range
     assert result == [
         {
-            "rangeFrom": Decimal("0"),
+            "rangeFrom": Decimal(0),
             "rangeTo": Decimal("47481.5"),
             "type": "days",
         }
@@ -1056,7 +1056,7 @@ def test_build_age_eligibility_criteria_complex_case(
         (
             [
                 ServiceAgeRange(
-                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+                    id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
                 ),
                 ServiceAgeRange(
                     id=2,
@@ -1067,7 +1067,7 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "rangeFrom": Decimal("0"),
+                    "rangeFrom": Decimal(0),
                     "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 }
@@ -1086,13 +1086,13 @@ def test_build_age_eligibility_criteria_complex_case(
                     id=2,
                     serviceid=1,
                     daysfrom=Decimal("1826.25"),
-                    daysto=Decimal("5843"),
+                    daysto=Decimal(5843),
                 ),
             ],
             [
                 {
                     "rangeFrom": Decimal("365.25"),
-                    "rangeTo": Decimal("5843"),
+                    "rangeTo": Decimal(5843),
                     "type": "days",
                 }
             ],
@@ -1104,12 +1104,12 @@ def test_build_age_eligibility_criteria_complex_case(
                     id=1,
                     serviceid=1,
                     daysfrom=Decimal("1826.25"),
-                    daysto=Decimal("5843"),
+                    daysto=Decimal(5843),
                 ),
                 ServiceAgeRange(
                     id=2,
                     serviceid=1,
-                    daysfrom=Decimal("5844"),
+                    daysfrom=Decimal(5844),
                     daysto=Decimal("47481.5"),
                 ),
             ],
@@ -1125,18 +1125,18 @@ def test_build_age_eligibility_criteria_complex_case(
         (
             [
                 ServiceAgeRange(
-                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364")
+                    id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal(364)
                 ),
                 ServiceAgeRange(
                     id=2,
                     serviceid=1,
-                    daysfrom=Decimal("365"),
+                    daysfrom=Decimal(365),
                     daysto=Decimal("1825.25"),
                 ),
             ],
             [
                 {
-                    "rangeFrom": Decimal("0"),
+                    "rangeFrom": Decimal(0),
                     "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 }
@@ -1146,7 +1146,7 @@ def test_build_age_eligibility_criteria_complex_case(
         (
             [
                 ServiceAgeRange(
-                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+                    id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
                 ),
                 ServiceAgeRange(
                     id=2,
@@ -1158,18 +1158,18 @@ def test_build_age_eligibility_criteria_complex_case(
                     id=3,
                     serviceid=1,
                     daysfrom=Decimal("1826.25"),
-                    daysto=Decimal("5843"),
+                    daysto=Decimal(5843),
                 ),
                 ServiceAgeRange(
                     id=4,
                     serviceid=1,
-                    daysfrom=Decimal("5844"),
+                    daysfrom=Decimal(5844),
                     daysto=Decimal("47481.5"),
                 ),
             ],
             [
                 {
-                    "rangeFrom": Decimal("0"),
+                    "rangeFrom": Decimal(0),
                     "rangeTo": Decimal("47481.5"),
                     "type": "days",
                 }
@@ -1179,7 +1179,7 @@ def test_build_age_eligibility_criteria_complex_case(
         (
             [
                 ServiceAgeRange(
-                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.3")
+                    id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.3")
                 ),
                 ServiceAgeRange(
                     id=2,
@@ -1190,7 +1190,7 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "rangeFrom": Decimal("0"),
+                    "rangeFrom": Decimal(0),
                     "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 }
@@ -1200,23 +1200,23 @@ def test_build_age_eligibility_criteria_complex_case(
         (
             [
                 ServiceAgeRange(
-                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("363")
+                    id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal(363)
                 ),
                 ServiceAgeRange(
                     id=2,
                     serviceid=1,
-                    daysfrom=Decimal("366"),
+                    daysfrom=Decimal(366),
                     daysto=Decimal("1825.25"),
                 ),
             ],
             [
                 {
-                    "rangeFrom": Decimal("0"),
-                    "rangeTo": Decimal("363"),
+                    "rangeFrom": Decimal(0),
+                    "rangeTo": Decimal(363),
                     "type": "days",
                 },
                 {
-                    "rangeFrom": Decimal("366"),
+                    "rangeFrom": Decimal(366),
                     "rangeTo": Decimal("1825.25"),
                     "type": "days",
                 },
@@ -1229,10 +1229,10 @@ def test_build_age_eligibility_criteria_complex_case(
                     id=2,
                     serviceid=1,
                     daysfrom=Decimal("1826.25"),
-                    daysto=Decimal("5843"),
+                    daysto=Decimal(5843),
                 ),
                 ServiceAgeRange(
-                    id=1, serviceid=1, daysfrom=Decimal("0"), daysto=Decimal("364.25")
+                    id=1, serviceid=1, daysfrom=Decimal(0), daysto=Decimal("364.25")
                 ),
                 ServiceAgeRange(
                     id=3,
@@ -1243,8 +1243,8 @@ def test_build_age_eligibility_criteria_complex_case(
             ],
             [
                 {
-                    "rangeFrom": Decimal("0"),
-                    "rangeTo": Decimal("5843"),
+                    "rangeFrom": Decimal(0),
+                    "rangeTo": Decimal(5843),
                     "type": "days",
                 }
             ],
