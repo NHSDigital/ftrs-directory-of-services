@@ -346,9 +346,7 @@ def test_build_headers_fhir_and_json(mocker: MockerFixture) -> None:
 def test_make_request_logs_http_error(
     requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """
-    Test make_request logs HTTPError.
-    """
+    """Test make_request logs HTTPError."""
     requests_mock.get(
         "https://api.example.com/resource",
         status_code=404,
@@ -382,7 +380,6 @@ def test_make_request_logs_request_exception(
             "Request to GET https://api.example.com/resource failed: fail."
             in caplog.text
         )
-
 
 
 def test_make_request_json_decode_error(
@@ -481,6 +478,7 @@ def test_make_request_with_response_correlation_id(
         response_correlation_id="response-correlation-123"
     )
 
+
 def test_make_request_with_jwt_auth(
     requests_mock: RequestsMock, mocker: MockerFixture
 ) -> None:
@@ -507,7 +505,9 @@ def test_make_request_with_jwt_auth(
     assert mock_call.last_request.headers["Authorization"] == "Bearer test-jwt-token"
 
 
-def test_make_request_without_jwt_auth(requests_mock: RequestsMock, mocker: MockerFixture) -> None:
+def test_make_request_without_jwt_auth(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
     """
     Test the make_request function without JWT authentication.
     """
@@ -524,6 +524,7 @@ def test_make_request_without_jwt_auth(requests_mock: RequestsMock, mocker: Mock
 
     assert result == {"key": "value", "status_code": HTTPStatus.OK}
     assert "Authorization" not in mock_call.last_request.headers
+
 
 @patch.dict(
     os.environ,
@@ -558,6 +559,7 @@ def test_get_jwt_authenticator_returns_configured_instance(
 
     # Verify the instance is returned
     assert result == mock_instance
+
 
 @patch.dict(
     os.environ,
@@ -642,6 +644,7 @@ def test__get_api_key_for_url_client_error_non_resource_not_found(
         with pytest.raises(ClientError):
             _get_api_key_for_url("https://test-apim-api.example.com/Organization")
         assert "Error with secret:" not in caplog.text
+
 
 @patch.dict(
     os.environ,
@@ -735,6 +738,7 @@ def test_build_headers_fhir_with_jwt(mocker: MockerFixture) -> None:
     assert headers["Authorization"] == "Bearer fhir-token"
     assert headers["Content-Type"] == "application/fhir+json"
     assert headers["Accept"] == "application/fhir+json"
+
 
 @patch.dict(
     os.environ,
