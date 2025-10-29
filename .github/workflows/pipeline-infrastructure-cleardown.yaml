@@ -45,7 +45,7 @@ jobs:
     with:
       environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
-      stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
+      stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance', 'ui']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30

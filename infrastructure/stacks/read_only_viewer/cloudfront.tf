@@ -1,12 +1,11 @@
 #trivy:ignore:AVD-AWS-0010
 module "read_only_viewer_cloudfront" {
-  # Module version: v4.1.0
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git?ref=d66669f42ec922cb4b1acea8e4a17e5f6c6c9a15"
+  # Module version: v5.0.1
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git?ref=fc1010c0b53490d9b3911d2397726da80168f4fb"
 
   comment         = "CloudFront distribution for read-only viewer"
   price_class     = var.read_only_viewer_cloudfront_price_class
   is_ipv6_enabled = true
-
 
   create_origin_access_control = true
   origin_access_control = {
@@ -36,7 +35,7 @@ module "read_only_viewer_cloudfront" {
     lambda_function = {
       domain_name = replace(replace(aws_lambda_function_url.frontend_lambda_url.function_url, "https://", ""), "/", "")
       custom_origin_config = {
-        http_port              = 80
+        http_port              = var.http_port
         https_port             = var.https_port
         origin_protocol_policy = "https-only"
         origin_ssl_protocols   = ["TLSv1.2"]
@@ -85,12 +84,23 @@ module "read_only_viewer_cloudfront" {
 
   viewer_certificate = {
     cloudfront_default_certificate = true
+    cloudfront_default_certificate = false
+    acm_certificate_arn            = data.aws_acm_certificate.domain_cert.arn
+    ssl_support_method             = var.ssl_support_method
+    minimum_protocol_version       = var.minimum_protocol_version
   }
 
+  aliases = ["${var.stack_name}${local.workspace_suffix}.${local.env_domain_name}"]
+
   web_acl_id = data.aws_wafv2_web_acl.waf_web_acl.arn
+
   logging_config = {
     include_cookies = false
     bucket          = module.access_logging_bucket.s3_bucket_bucket_domain_name
     prefix          = var.access_logs_prefix
+  }
+
+  tags = {
+    Name = "${local.resource_prefix}${local.workspace_suffix}"
   }
 }

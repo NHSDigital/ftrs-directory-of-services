@@ -1,3 +1,8 @@
+variable "application_tag" {
+  description = "The version or tag of the etl_ode_code application"
+  type        = string
+}
+
 variable "commit_hash" {
   description = "The commit hash of the read-only viewer application"
   type        = string
@@ -11,11 +16,6 @@ variable "read_only_viewer_bucket_name" {
 variable "s3_versioning" {
   description = "Whether to enable versioning on the S3 bucket"
   type        = bool
-}
-
-variable "read_only_viewer_cloud_front_name" {
-  description = "The CloudFront distribution name for read-only viewer"
-  type        = string
 }
 
 variable "waf_name" {
@@ -136,4 +136,16 @@ variable "emergency_contacts" {
 variable "create_monitoring_subscription" {
   description = "The resource for monitoring subscription will be created."
   type        = bool
+}
+
+variable "ssl_support_method" {
+  description = "The SSL support method for CloudFront distribution"
+  type        = string
+  default     = "sni-only"
+}
+
+variable "minimum_protocol_version" {
+  description = "The minimum protocol version for CloudFront distribution"
+  type        = string
+  default     = "TLSv1.2_2021"
 }

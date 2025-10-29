@@ -7,7 +7,7 @@ module "frontend_lambda" {
   handler       = "index.handler"
 
   s3_bucket_name = local.artefacts_bucket
-  s3_key         = "${terraform.workspace}/${var.commit_hash}/read-only-viewer-server-latest.zip"
+  s3_key         = "${terraform.workspace}/${var.commit_hash}/read-only-viewer-server-${var.application_tag}.zip"
 
   ignore_source_code_hash = false
   timeout                 = var.frontend_lambda_connection_timeout
@@ -18,13 +18,16 @@ module "frontend_lambda" {
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.execute_api_policy.json
   ]
-  security_group_ids = []
-  subnet_ids         = []
+
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [aws_security_group.frontend_lambda_security_group.id]
   layers             = []
+
   environment_variables = {
     "ENVIRONMENT" = var.environment
     "WORKSPACE"   = terraform.workspace == "default" ? "" : terraform.workspace
   }
+
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
@@ -32,7 +35,7 @@ module "frontend_lambda" {
 }
 
 resource "aws_lambda_function_url" "frontend_lambda_url" {
-  # checkov:skip=CKV_AWS_258: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-543
+  # checkov:skip=CKV_AWS_258: Justification: This Lambda function URL is only accessible via CloudFront, which enforces authentication and access controls.
   function_name      = module.frontend_lambda.lambda_function_name
   authorization_type = "NONE"
 }

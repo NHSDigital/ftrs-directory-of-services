@@ -112,7 +112,7 @@ data "aws_iam_policy_document" "access_logging_bucket_policy" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "access_logging_bucket_ownership_controls" {
-  # checkov:skip=CKV2_AWS_65: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-543
+  # checkov:skip=CKV2_AWS_65: Justification: BucketOwnerPreferred is required for CloudFront access logging.
   bucket = module.access_logging_bucket.s3_bucket_id
 
   rule {
@@ -121,7 +121,6 @@ resource "aws_s3_bucket_ownership_controls" "access_logging_bucket_ownership_con
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "access_logs_lifecycle" {
-  # checkov:skip=CKV_AWS_300: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-543
   bucket = module.access_logging_bucket.s3_bucket_id
 
   rule {
@@ -135,6 +134,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs_lifecycle" {
     expiration {
       days = 30
     }
+  }
 
+  rule {
+    id     = "log"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    filter {}
   }
 }

@@ -9,11 +9,9 @@ def test_transform_to_payload_logs_and_returns_organization(
 ) -> None:
     ods_fhir = {"resourceType": "Organization", "id": "ODS123", "name": "Test Org"}
     ods_code = "ODS123"
-    fake_organization = {
-        "resourceType": "Organization",
-        "id": "ODS123",
-        "name": "Test Org",
-    }
+
+    fake_organization = mocker.MagicMock()
+    fake_organization.identifier = [mocker.MagicMock(value=ods_code)]
 
     mock_mapper = mocker.patch(
         "pipeline.transform.OrganizationMapper.from_ods_fhir_to_fhir",
@@ -21,7 +19,7 @@ def test_transform_to_payload_logs_and_returns_organization(
     )
     mock_logger = mocker.patch("pipeline.transform.ods_processor_logger.log")
 
-    result = transform_to_payload(ods_fhir, ods_code)
+    result = transform_to_payload(ods_fhir)
 
     mock_mapper.assert_called_once_with(ods_fhir)
     mock_logger.assert_called_once_with(
