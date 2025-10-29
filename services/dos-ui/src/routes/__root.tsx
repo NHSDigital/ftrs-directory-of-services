@@ -9,6 +9,8 @@ import { Container, Footer, Header } from "nhsuk-react-components";
 import type { PropsWithChildren } from "react";
 import Banner from "@/components/Banner";
 import appStylesUrl from "../styles/App.scss?url";
+import { initialiseSession } from "@/core/session";
+
 
 export const Route = createRootRoute({
   head: () => ({
@@ -50,6 +52,10 @@ export const Route = createRootRoute({
       </p>
     </>
   ),
+  loader: async () => {
+    const session = await initialiseSession();
+    return { session };
+  }
 });
 
 const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
@@ -64,7 +70,9 @@ const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
         </Header.Container>
       </Header>
       <Banner label="DoS UI">This is a basic placeholder landing page.</Banner>
-      <Container className="ftrs-page-container">{children}</Container>
+      <Container className="ftrs-page-container">
+        {children}
+      </Container>
       <Footer>
         <Footer.List>
           <Footer.ListItem href="/">Home</Footer.ListItem>
