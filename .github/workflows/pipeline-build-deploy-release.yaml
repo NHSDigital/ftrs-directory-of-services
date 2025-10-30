@@ -41,13 +41,16 @@ jobs:
   #     type: app
   #   secrets: inherit
 
+  # # ${{ steps.semantic-release.outputs.next_tag_version }}
+
   tag-release:
     name: "Dry run to get the next release version"
     # needs:
       # - quality-checks
     runs-on: ubuntu-latest
     outputs:
-      next_tag_version: ${{ steps.semantic_release.outputs.next_tag_version }}
+      next_tag_version: ${{ steps.semantic-release.outputs.new_release_version }}
+
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
@@ -77,11 +80,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: echo-release-version
-        # if: steps.semantic-release.outputs.new_release_published == 'true'
-        run: |
-          echo ${{ steps.semantic-release.outputs.new_release_version }}
-          echo "next_tag_version=${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
+      # - name: output-release-version
+      #   # if: steps.semantic-release.outputs.new_release_published == 'true'
+      #   run: |
+      #     echo ${{ steps.semantic-release.outputs.new_release_version }}
+      #     echo "next_tag_version=${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
 
   # TODO restore when fixed
   echo-release-version:
