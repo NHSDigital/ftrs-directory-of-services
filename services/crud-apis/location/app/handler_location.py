@@ -1,7 +1,8 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fastapi import FastAPI
 from ftrs_common.api_middleware.correlation_id_middleware import CorrelationIdMiddleware
-from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
+
+# from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
 from ftrs_common.logger import Logger
 from ftrs_common.utils.request_id import fetch_or_set_request_id
 from mangum import Mangum
@@ -12,7 +13,7 @@ location_service_logger = Logger.get(service="crud_location_logger")
 
 app = FastAPI(title="Location API", root_path="/location")
 app.add_middleware(CorrelationIdMiddleware)
-app.add_middleware(RequestIdMiddleware)
+# app.add_middleware(RequestIdMiddleware)
 app.include_router(location.router)
 
 
