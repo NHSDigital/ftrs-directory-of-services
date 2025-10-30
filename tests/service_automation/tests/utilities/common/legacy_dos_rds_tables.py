@@ -19,3 +19,27 @@ LEGACY_DOS_TABLES = [
     "symptomgroups",
     "symptomgroupsymptomdiscriminators",
 ]
+
+# Map table name to entity class
+TABLE_TO_ENTITY = {
+    "services": "Service",
+    "service_age_ranges": "ServiceAgeRange",
+    "service_endpoints": "ServiceEndpoint",
+    "servicestatuses": "ServiceStatus",
+    "servicetypes": "ServiceType",
+    "agegroups": "AgeGroup",
+    "dispositions": "Disposition",
+    "dispositionservicetypes": "DispositionServiceType",
+    "dispositiongroups": "DispositionGroup",
+    "dispositiongroupdispositions": "DispositionGroupDisposition",
+    "dispositiongroupservicetypes": "DispositionGroupServiceType",
+    "genders": "Gender",
+    "locations": "Location",
+    "openingtimedays": "OpeningTimeDay",
+    "organisationtypes": "OrganisationType",
+    "referralroles": "ReferralRole",
+    "symptomdiscriminators": "SymptomDiscriminator",
+    "symptomdiscriminatorsynonyms": "SymptomDiscriminatorSynonym",
+    "symptomgroups": "SymptomGroup",
+    "symptomgroupsymptomdiscriminators": "SymptomGroupSymptomDiscriminator",
+}
