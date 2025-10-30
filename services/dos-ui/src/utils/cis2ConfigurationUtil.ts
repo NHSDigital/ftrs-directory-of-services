@@ -1,6 +1,7 @@
 import * as client from 'openid-client';
 import {getAuthConfig, getOIDCConfig} from "@/utils/cisConfiguration.ts";
 import {ACR_VALUE} from "@/types/CIS2ClientConfig.ts";
+import {logger} from "@/utils/logger";
 
 
 export const getAuthorisationUrl = async (): Promise<string> => {
@@ -25,12 +26,15 @@ export const getAuthorisationUrl = async (): Promise<string> => {
       max_age: '300'
     };
     const authorizationUrl = client.buildAuthorizationUrl(oidcConfig, parameters);
+    logger.info('Authorization URL generated', { redirectUri: config.redirectUri });
     return authorizationUrl.href
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      logger.error('Failed to generate authorization URL', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
     }
     throw error;
   }
