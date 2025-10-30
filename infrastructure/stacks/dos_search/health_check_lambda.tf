@@ -5,7 +5,7 @@ module "health_check_lambda" {
   handler                = "health_check/health_check_function.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
+  s3_key                 = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
@@ -19,7 +19,7 @@ module "health_check_lambda" {
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
+  security_group_ids = [aws_security_group.dos_search_lambda_security_group.id]
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment
@@ -49,7 +49,7 @@ data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
       "dynamodb:DescribeTable",
     ]
     resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${var.gp_search_organisation_table_name}*"
+      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.project}-${var.environment}-database-${var.organisation_table_name}*"
     ]
   }
 }

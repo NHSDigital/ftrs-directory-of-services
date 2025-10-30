@@ -36,7 +36,7 @@ on:
       workflow_timeout:
         description: "Timeout duration in minutes"
         required: false
-        default: 5
+        default: 10
         type: number
       type:
         description: "The type of permissions (e.g., account, app)"

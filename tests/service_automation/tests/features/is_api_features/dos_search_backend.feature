@@ -1,15 +1,15 @@
-@is-api @ftrs-pipeline @gp-search-api
+@is-api @ftrs-pipeline @dos-search-ods-code-api
 Feature: API DoS Service Search Backend
 
   Background: Set stack and seed repo
-    Given that the stack is "gp-search"
-    And the dns for "servicesearch" is resolvable
+    Given that the stack is "dos-search"
+    And the dns for "dos-search" is resolvable
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
   Scenario: I search for GP Endpoint by ODS Code with valid query parameters
-    When I request data from the "servicesearch" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -17,7 +17,7 @@ Feature: API DoS Service Search Backend
 
 
   Scenario Outline: I search for GP Endpoint with invalid ODS code
-    When I request data from the "servicesearch" endpoint "Organization" with query params "<params>"
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -34,7 +34,7 @@ Feature: API DoS Service Search Backend
 
 
   Scenario Outline: I search for GP Endpoint with invalid _revinclude value
-    When I request data from the "servicesearch" endpoint "Organization" with query params "<params>"
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -50,7 +50,7 @@ Feature: API DoS Service Search Backend
 
 
   Scenario Outline: I search for GP Endpoint with invalid identifier system
-    When I request data from the "servicesearch" endpoint "Organization" with query params "<params>"
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -66,7 +66,7 @@ Feature: API DoS Service Search Backend
 
 
   Scenario Outline: I search for GP Endpoint with 1 missing parameter
-    When I request data from the "servicesearch" endpoint "Organization" with query params "<params>"
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -81,7 +81,7 @@ Feature: API DoS Service Search Backend
 
 
   Scenario: I search for GP Endpoint with 2 missing parameters
-    When I request data from the "servicesearch" endpoint "Organization" with query params ""
+    When I request data from the "dos-search" endpoint "Organization" with query params ""
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "2" issues
@@ -94,5 +94,5 @@ Feature: API DoS Service Search Backend
 
   # New health check scenario for GET /_status
   Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
-    When I request data from the "servicesearch" endpoint "_status" with query params ""
+    When I request data from the "dos-search" endpoint "_status" with query params ""
     Then I receive a status code "200" in response
