@@ -1,9 +1,17 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
-import { ClientSessionSchema, type UserSession, UserSessionSchema } from "@/core/schema";
+import {
+  DeleteCommand,
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { createServerOnlyFn } from "@tanstack/react-start";
 import { useSession } from "@tanstack/react-start/server";
-
+import {
+  ClientSessionSchema,
+  type UserSession,
+  UserSessionSchema,
+} from "@/core/schema";
 
 export class SessionManager {
   private readonly SESSION_TIMEOUT = 1000 * 60 * 60; // 1 hour
@@ -11,14 +19,13 @@ export class SessionManager {
   private baseClient: DynamoDBClient;
   private client: DynamoDBDocumentClient;
 
-
   constructor() {
     this.tableName = SessionManager.getSessionTableName();
     this.baseClient = new DynamoDBClient({
-      endpoint: process.env.DYNAMODB_ENDPOINT
+      endpoint: process.env.DYNAMODB_ENDPOINT,
     });
     this.client = DynamoDBDocumentClient.from(this.baseClient, {
-      marshallOptions: { removeUndefinedValues: true }
+      marshallOptions: { removeUndefinedValues: true },
     });
   }
 
@@ -32,14 +39,14 @@ export class SessionManager {
       user: undefined,
       tokens: {
         cis2: undefined,
-        apim: undefined
-      }
+        apim: undefined,
+      },
     });
 
     const putCommand = new PutCommand({
       TableName: this.tableName,
       Item: session,
-      ReturnConsumedCapacity: "INDEXES"
+      ReturnConsumedCapacity: "INDEXES",
     });
 
     await this.client.send(putCommand);
@@ -51,7 +58,7 @@ export class SessionManager {
       TableName: this.tableName,
       Key: { sessionID },
       ConsistentRead: true,
-      ReturnConsumedCapacity: "INDEXES"
+      ReturnConsumedCapacity: "INDEXES",
     });
 
     const response = await this.client.send(getCommand);
@@ -71,7 +78,7 @@ export class SessionManager {
     const putCommand = new PutCommand({
       TableName: this.tableName,
       Item: session,
-      ReturnConsumedCapacity: "INDEXES"
+      ReturnConsumedCapacity: "INDEXES",
     });
 
     await this.client.send(putCommand);
@@ -82,7 +89,7 @@ export class SessionManager {
     const deleteCommand = new DeleteCommand({
       TableName: this.tableName,
       Key: { sessionID },
-      ReturnConsumedCapacity: "INDEXES"
+      ReturnConsumedCapacity: "INDEXES",
     });
     await this.client.send(deleteCommand);
   }
@@ -100,12 +107,12 @@ export class SessionManager {
   }
 }
 
-export const initialiseSession = createServerOnlyFn(async () => {
+export const setupSession = createServerOnlyFn(async () => {
   const manager = new SessionManager();
   const session = await useSession({
     name: "dos-ui-session",
     password: "change-me-before-we-deploy-to-prod-or-get-fired",
-    maxAge: 1000 * 60 * 60 // 1 hour
+    maxAge: 1000 * 60 * 60, // 1 hour
   });
 
   if (!session.data || !session.data.sessionID) {

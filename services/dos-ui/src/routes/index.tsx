@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
     return {
       authorizeUrl: await getAuthorisationUrl(),
     };
-  }
+  },
 });
 
 function HomePage() {

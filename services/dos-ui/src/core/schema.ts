@@ -7,21 +7,27 @@ export const UserInfoSchema = z.object({
   givenName: z.string(),
   familyName: z.string(),
   displayName: z.string(),
-  rbacRoles: z.array(z.object({
-    personOrgID: z.string(),
-    personRoleID: z.string(),
-    orgCode: z.string(),
-    roleName: z.string(),
-  })),
-  orgMemberships: z.array(z.object({
-    personOrgID: z.string(),
-    orgName: z.string(),
-    orgCode: z.string()
-  })),
-  userOrgs: z.array(z.object({
-    orgCode: z.string(),
-    orgName: z.string()
-  })),
+  rbacRoles: z.array(
+    z.object({
+      personOrgID: z.string(),
+      personRoleID: z.string(),
+      orgCode: z.string(),
+      roleName: z.string(),
+    }),
+  ),
+  orgMemberships: z.array(
+    z.object({
+      personOrgID: z.string(),
+      orgName: z.string(),
+      orgCode: z.string(),
+    }),
+  ),
+  userOrgs: z.array(
+    z.object({
+      orgCode: z.string(),
+      orgName: z.string(),
+    }),
+  ),
 });
 
 export type UserInfo = z.infer<typeof UserInfoSchema>;
@@ -41,7 +47,7 @@ export const APIMTokenSchema = z.object({
   refresh_token: z.string().optional(),
   token_type: z.string(),
   expires_in: z.number(),
-})
+});
 
 export type APIMToken = z.infer<typeof APIMTokenSchema>;
 
@@ -53,12 +59,11 @@ export const UserSessionSchema = z.object({
   user: UserInfoSchema.optional(),
   tokens: z.object({
     cis2: CIS2TokenSchema.optional(),
-    apim: APIMTokenSchema.optional()
-  })
+    apim: APIMTokenSchema.optional(),
+  }),
 });
 
 export type UserSession = z.infer<typeof UserSessionSchema>;
-
 
 export const ClientSessionSchema = z.object({
   sessionID: z.uuid(),
