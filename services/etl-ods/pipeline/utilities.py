@@ -107,8 +107,6 @@ def build_headers(options: dict) -> dict:
     json_string = options.get("json_string")
     url = options.get("url", "")
     correlation_id = fetch_or_set_correlation_id(get_correlation_id())
-    request_id = generate_request_id()
-    headers[REQUEST_ID_HEADER] = request_id
 
     headers = {
         CORRELATION_ID_HEADER: correlation_id,
