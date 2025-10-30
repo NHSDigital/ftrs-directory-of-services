@@ -524,7 +524,7 @@ x-nhsd-apim:
   target:
     type: external
     healthcheck: /_status
-    url: https://servicesearch.dev.ftrs.cloud.nhs.uk
+    url: https://dos-search.dev.ftrs.cloud.nhs.uk
     security:
       type: mtls
       # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
