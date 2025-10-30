@@ -47,7 +47,7 @@ export AWS_SECRET_ACCESS_KEY="your-secret-key"
 export AWS_REGION="eu-west-2"
 ```
 
-Fetch secrets from AWS Secrets Manager and generate token for environment
+Fetch secrets from AWS Secrets Manager and generate token for environment.
 
 ```bash
 make jwt-token env=dev
