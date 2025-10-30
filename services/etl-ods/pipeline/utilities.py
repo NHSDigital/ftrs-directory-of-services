@@ -60,23 +60,22 @@ def get_base_ods_terminology_api_url() -> str:
 
 
 def _get_api_key_for_url(url: str) -> str:
-    env = os.environ.get("ENVIRONMENT")
     is_ods_terminology_request = "organisation-data-terminology-api" in url
+
+    if not is_ods_terminology_request:
+        return ""
+
+    env = os.environ.get("ENVIRONMENT")
 
     if env == "local":
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
-        if is_ods_terminology_request:
-            return os.environ.get(
-                "LOCAL_ODS_TERMINOLOGY_API_KEY", os.environ.get("LOCAL_API_KEY", "")
-            )
-        return os.environ.get("LOCAL_API_KEY", "")
+        return os.environ.get(
+            "LOCAL_ODS_TERMINOLOGY_API_KEY", ""
+        )
 
     try:
         resource_prefix = get_resource_prefix()
-        if is_ods_terminology_request:
-            secret_name = f"/{resource_prefix}/ods-terminology-api-key"
-        else:
-            secret_name = f"/{resource_prefix}/apim-api-key"
+        secret_name = f"/{resource_prefix}/ods-terminology-api-key"
 
         client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
         response = client.get_secret_value(SecretId=secret_name)
@@ -123,8 +122,11 @@ def build_headers(options: dict) -> dict:
     headers = {
         CORRELATION_ID_HEADER: correlation_id,
         "Accept": "application/fhir+json",
-        "apikey": _get_api_key_for_url(url),
     }
+
+    api_key = _get_api_key_for_url(url)
+    if api_key:
+        headers["apikey"] = api_key
 
     if jwt_required:
         jwt_auth = get_jwt_authenticator()
