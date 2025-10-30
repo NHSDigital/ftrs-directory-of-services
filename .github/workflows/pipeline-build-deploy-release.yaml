@@ -70,6 +70,13 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Fetch actor's public GPG keys
+        env:
+          ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Actor: $ACTOR"
+
 # TODO try third party action
       - name: Run Semantic Release
         id: semantic-release
