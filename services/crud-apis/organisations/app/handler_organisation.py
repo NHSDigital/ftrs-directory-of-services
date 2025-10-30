@@ -7,8 +7,7 @@ from ftrs_common.api_middleware.fhir_type_middleware import (
     FHIRAcceptHeaderMiddleware,
     FHIRContentTypeMiddleware,
 )
-
-# from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
+from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
 from ftrs_common.api_middleware.response_logging_middleware import (
     ResponseLoggingMiddleware,
 )
@@ -29,7 +28,7 @@ app.add_middleware(FHIRContentTypeMiddleware)
 app.add_middleware(FHIRAcceptHeaderMiddleware)
 app.add_middleware(ResponseLoggingMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
-# app.add_middleware(RequestIdMiddleware)
+app.add_middleware(RequestIdMiddleware)
 
 app.include_router(organisation.router)
 
