@@ -9,9 +9,36 @@ from functions import error_util
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.organization_query_params import OrganizationQueryParams
 
-logger = Logger()
+powertools_logger = Logger()
 tracer = Tracer()
 app = APIGatewayHttpResolver()
+
+
+class FtrsLogger(Logger):
+    def info(self, message: str, extra: dict) -> None:
+        context = app.context.get("current_context", {})
+        print("Clearly searchable output:", context)
+        extra_fields = {
+            "ftrs_nhsd_correlation_id": 0,
+            "ftrs_nhsd_request_id": app.current_event.request_context.request_id,
+            "ftrs_message_id": 0,
+            "ftrs_message_category": "LOGGING",
+            # One time fields?
+            "ftrs_end_user_role": 0,
+            "ftrs_client_id": 0,
+            "ftrs_application_name": 0,
+            "ftrs_request_parms": 0,
+            "ftrs_response_time": 0,
+            "ftrs_environment": 0,
+            "ftrs_api_version": 0,
+            "ftrs_response": 0,
+            "ftrs_lambda_version": context.function_version,
+            "ftrs_response_size": 0,
+        } | extra
+        powertools_logger.info(message, extra=extra_fields)
+
+
+logger = FtrsLogger()
 
 
 @app.get("/Organization")
@@ -19,8 +46,9 @@ app = APIGatewayHttpResolver()
 def get_organization() -> Response:
     try:
         query_params = app.current_event.query_string_parameters or {}
+        # print("Clearly searchable output:", app.append_context)
         validated_params = OrganizationQueryParams.model_validate(query_params)
-
+        # print("Validated Params:", validated_params)
         ods_code = validated_params.ods_code
         logger.append_keys(ods_code=ods_code)
 
@@ -51,11 +79,13 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     )
 
 
-@logger.inject_lambda_context(
+@powertools_logger.inject_lambda_context(
     correlation_id_path=correlation_paths.API_GATEWAY_HTTP,
     log_event=True,
     clear_state=True,
 )
 @tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
+    # print("Clearly searchable output:", vars(context))
+    app.append_context(current_context=context)
     return app.resolve(event, context)
