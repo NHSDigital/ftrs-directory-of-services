@@ -40,6 +40,7 @@ def get_base_apim_api_url() -> str:
 
     return os.environ.get("APIM_URL")
 
+
 @cache
 def get_base_ods_terminology_api_url() -> str:
     env = os.environ.get("ENVIRONMENT", "local")
@@ -97,6 +98,7 @@ def _get_api_key_for_url(url: str) -> str:
                 error_message=str(e),
             )
         raise
+
 
 def get_resource_prefix() -> str:
     project = os.environ.get("PROJECT_NAME")
