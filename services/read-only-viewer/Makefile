@@ -7,6 +7,8 @@ DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),$(if $(filter default,$(WORKSPACE)),,-
 DEPLOYMENT_BUCKET ?= ftrs-dos-${ENVIRONMENT}-${SERVICE}-frontend-bucket${DEPLOYMENT_WORKSPACE}
 READ_ONLY_VIEWER_DOMAIN_NAME = ${DEPLOYMENT_BUCKET}.s3.${AWS_REGION}.amazonaws.com
 CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(READ_ONLY_VIEWER_DOMAIN_NAME)')].Id" --output text)
+RELEASE_BUILD ?= false
+RELEASE_DIR ?= releases
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -38,7 +40,12 @@ build: clean ensure-build-dir
 	cd .output/server && zip -r -q ../../$(BUILD_DIR)/$(SERVICE)-server-$(APPLICATION_TAG).zip *
 
 publish:
-	aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION)
+	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
+		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION);\
+	else \
+		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/ --region $(AWS_REGION);\
+	fi
+
 
 deploy:
 	aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
@@ -48,3 +55,5 @@ deploy:
 invalidate-cloudfront-cache:
 	@echo "CLOUDFRONT_DISTRIBUTION_ID: $(CLOUDFRONT_DISTRIBUTION_ID)"
 	aws cloudfront create-invalidation --distribution-id $(shell aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(READ_ONLY_VIEWER_DOMAIN_NAME)')].Id" --output text) --paths "/*"
+
+pre-commit:

@@ -1,0 +1,117 @@
+name: Build and deploy release candidate
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  # TODO for testing before merge to main
+  push:
+    branches:
+      - "task/FDOS-347_Build_release_artefacts"
+  # TODO uncomment for main branch
+  # workflow_dispatch:
+    # inputs:
+    #   environment:
+    #     description: "Intended environment for deploying the release candidate"
+    #     required: true
+    #     type: choice
+    #     options:
+    #       - int
+    #       - ref
+    #       - prod
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+  quality-checks:
+    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
+    needs:
+      - metadata
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance', 'ui']"
+      type: app
+    secrets: inherit
+
+  tag-release:
+    name: "Generate the next release tag"
+    needs:
+      - quality-checks
+    runs-on: ubuntu-latest
+    outputs:
+      next_tag_version: ${{ steps.semantic-release.outputs.new_release_version }}
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+
+
+      - name: Fetch actor's public GPG keys
+        env:
+          ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Actor: $ACTOR"
+
+      - name: Run Semantic Release
+        id: semantic-release
+        uses: cycjimmy/semantic-release-action@v5
+        with:
+          branch: "task/FDOS-347_Build_release_artefacts"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  echo-release-version:
+    name: "Echo the calculated release version"
+    needs:
+      - metadata
+      - tag-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Echo new version"
+        run: |
+          echo "The calculated next release version is: ${{ needs.tag-release.outputs.next_tag_version }}"
+
+  build-release-artifacts:
+    name: "Build ${{ matrix.name }}"
+    needs:
+      - metadata
+      - tag-release
+      - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "python"
+            build_type: "package"
+          - name: "crud-apis"
+            build_type: "service"
+          - name: "data-migration"
+            build_type: "service"
+          - name: "read-only-viewer"
+            build_type: "service"
+          - name: "etl-ods"
+            build_type: "service"
+          - name: "gp-search"
+            build_type: "service"
+          - name: "dos-ui"
+            build_type: "service"
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: ${{ matrix.build_type }}
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.tag-release.outputs.next_tag_version }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ needs.tag-release.outputs.next_tag_version }}
+      release_build: true
+      type: app
+    secrets: inherit

@@ -8,18 +8,18 @@ from pipeline.utils.number_formatter import clean_decimal
 class TestCleanDecimal:
     def test_zero(self) -> None:
         """Test that zero is properly handled."""
-        result = clean_decimal(Decimal("0"))
-        assert result == Decimal("0")
+        result = clean_decimal(Decimal(0))
+        assert result == Decimal(0)
 
     def test_zero_scientific(self) -> None:
         """Test that zero in scientific notation is properly handled."""
         result = clean_decimal(Decimal("0E-10"))
-        assert result == Decimal("0")
+        assert result == Decimal(0)
 
     def test_integer(self) -> None:
         """Test that integer values are properly handled."""
-        result = clean_decimal(Decimal("42"))
-        assert result == Decimal("42")
+        result = clean_decimal(Decimal(42))
+        assert result == Decimal(42)
 
     def test_decimal_no_trailing_zeros(self) -> None:
         """Test decimal value with no trailing zeros."""
@@ -39,12 +39,12 @@ class TestCleanDecimal:
     def test_scientific_notation(self) -> None:
         """Test scientific notation is normalized."""
         result = clean_decimal(Decimal("4.2E+1"))
-        assert result == Decimal("42")
+        assert result == Decimal(42)
 
     def test_very_small_value(self) -> None:
         """Test very small value gets properly formatted."""
         result = clean_decimal(Decimal("0.000001"))
-        assert result == Decimal("0")  # Rounded to 0 with 2 decimal places
+        assert result == Decimal(0)  # Rounded to 0 with 2 decimal places
 
     def test_value_at_rounding_threshold(self) -> None:
         """Test value at rounding threshold."""
@@ -74,16 +74,16 @@ class TestCleanDecimal:
     @pytest.mark.parametrize(
         "input_value,expected_result",
         [
-            (Decimal("0"), Decimal("0")),
-            (Decimal("1"), Decimal("1")),
-            (Decimal("1.0"), Decimal("1")),
-            (Decimal("1.00"), Decimal("1")),
+            (Decimal(0), Decimal(0)),
+            (Decimal(1), Decimal(1)),
+            (Decimal("1.0"), Decimal(1)),
+            (Decimal("1.00"), Decimal(1)),
             (Decimal("1.234"), Decimal("1.23")),
             (Decimal("1.235"), Decimal("1.24")),  # Test rounding up
             (Decimal("0.005"), Decimal("0.01")),  # Test small value rounding
             (Decimal("-1.235"), Decimal("-1.24")),  # Test negative rounding
-            (Decimal("1E+2"), Decimal("100")),  # Test scientific notation
-            (Decimal("0.00001"), Decimal("0")),  # Test very small value
+            (Decimal("1E+2"), Decimal(100)),
+            (Decimal("0.00001"), Decimal(0)),  # Test very small value
             (Decimal("47481.5000000000"), Decimal("47481.5")),  # Test trailing zeros
         ],
     )

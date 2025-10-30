@@ -129,12 +129,15 @@ def patch_local_save_method(
     healthcare_file = open(healthcare_path, "w")
 
     def _mock_save(result: ServiceTransformOutput) -> None:
-        for org in result.organisation:
-            organisation_file.write(org.model_dump_json() + "\n")
-        for loc in result.location:
-            location_file.write(loc.model_dump_json() + "\n")
-        for hc in result.healthcare_service:
-            healthcare_file.write(hc.model_dump_json() + "\n")
+        organisation_file.writelines(
+            org.model_dump_json() + "\n" for org in result.organisation
+        )
+        location_file.writelines(
+            loc.model_dump_json() + "\n" for loc in result.location
+        )
+        healthcare_file.writelines(
+            hc.model_dump_json() + "\n" for hc in result.healthcare_service
+        )
 
     app.processor._save = _mock_save
     yield
