@@ -2,6 +2,7 @@ from ftrs_common.utils.request_id import (
     REQUEST_ID_HEADER,
     add_request_id_header,
     fetch_or_set_request_id,
+    get_request_id,
 )
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -23,6 +24,8 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         request_id = request.headers.get(REQUEST_ID_HEADER)
 
+        if request_id is None:
+            request_id = get_request_id()
         if not request_id:
             aws_event = request.scope.get("aws.event")
             if aws_event:
