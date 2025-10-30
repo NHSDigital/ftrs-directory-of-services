@@ -25,7 +25,7 @@ resource "aws_vpc_security_group_egress_rule" "vpce_allow_all_egress" {
 
 # Security group for Performance EC2 instance
 resource "aws_security_group" "performance_ec2_sg" {
-  name        = "${local.resource_prefix}-performance-sg"
+  name        = "${local.account_prefix}-performance-sg"
   description = "Security group for Performance EC2 instance (SSM-managed)"
   vpc_id      = module.vpc.vpc_id
 

@@ -104,7 +104,7 @@
                 "arn:aws:iam::*:policy/${repo_name}-*",
                 "arn:aws:iam::*:policy/ro_*",
                 "arn:aws:iam::*:policy/rw_*",
-                "arn:aws:iam::*:instance-profile/ftrs-dos-*",
+                "arn:aws:iam::*:instance-profile/${repo_name}-*",
                 "arn:aws:iam::*:role/dms-vpc-role",
                 "arn:aws:iam::*:role/ftrs-dos-*",
                 "arn:aws:iam::*:policy/ftrs-dos-*",

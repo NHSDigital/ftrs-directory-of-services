@@ -1,13 +1,13 @@
 # Account-Wide Infrastructure
 
-Infrastructure that is deployed once per AWS account.
+Infrastructure that is deployed once per environment inside an account.
 
 > Note: Deploy this stack using the `default` workspace.
 
 This stack provisions:
 
 1. IAM role for GitHub Actions (via OIDC)
-2. Account-wide VPC, including public, private, and database subnets
+2. Environment wide VPC, including public, private, and database subnets
 3. A performance EC2 host for Apache `JMeter`–based testing
 
 ---
@@ -18,7 +18,7 @@ A single Amazon Linux 2023 EC2 instance in a private `subnet` for performance te
 
 ### What this stack creates
 
-- EC2 instance in the first private `subnet` of the account-wide VPC
+- EC2 instance in the first private `subnet` of the environment wide VPC
 - Dedicated security group with minimal egress
   - TCP 443 to 0.0.0.0/0 (HTTPS; required for downloads and APIs; private subnets egress via NAT)
   - UDP 53 to the VPC Route 53 Resolver only (CIDR: `${cidrhost(var.vpc["cidr"], 2)}/32`) (DNS)

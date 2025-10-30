@@ -6,7 +6,7 @@ locals {
   # Choose the first private subnet for Performance EC2. Safe because module.vpc is declared in this stack.
   performance_subnet_id = element(module.vpc.private_subnets, 0)
   # Name tag for Performance EC2 instance, scoped to this stack
-  performance_name = "${var.project}-${var.environment}-${var.stack_name}-performance"
+  performance_name = "${local.account_prefix}-performance"
 }
 
 resource "aws_instance" "performance" {
@@ -52,7 +52,7 @@ resource "aws_instance" "performance" {
 
 # IAM role and instance profile for Performance EC2 (moved from account_policies)
 resource "aws_iam_role" "ec2_performance_role" {
-  name = "${var.project}-${var.environment}-ec2-performance"
+  name = "${local.account_prefix}-ec2-performance"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -69,7 +69,7 @@ resource "aws_iam_role_policy_attachment" "ec2_performance_ssm_core" {
 }
 
 resource "aws_iam_instance_profile" "ec2_performance_instance_profile" {
-  name = "${var.project}-${var.environment}-instance-profile-performance"
+  name = "${local.account_prefix}-instance-profile-performance"
   role = aws_iam_role.ec2_performance_role.name
 }
 
