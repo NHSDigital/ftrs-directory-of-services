@@ -2,6 +2,7 @@ import * as client from 'openid-client';
 import {CIS2ClientConfig} from "@/types/CIS2ClientConfig.ts";
 import {getawsParameter, getawsSecret} from "@/utils/aws-util.ts";
 import {importPKCS8} from "jose";
+import {logger} from "@/utils/logger";
 
 
 export const validateConfig = (config: { clientId: string; issuerUrl: string; redirectUri: string; scope: string }): void => {
@@ -16,6 +17,7 @@ export const getAuthConfig = async (): Promise<CIS2ClientConfig> => {
   const cis2ConfigJson = await getawsParameter(`/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-client-config${workspaceSuffix}`);
   const config: CIS2ClientConfig = JSON.parse(cis2ConfigJson);
   validateConfig(config);
+  logger.info('CIS2 Client Config loaded successfully', { clientId: config.clientId });
   return config;
 };
 const getCIS2PrivateKey = async (): Promise<CryptoKey> => {
@@ -30,6 +32,8 @@ export const getOIDCConfig = async (): Promise<client.Configuration> => {
 
   try {
     const issuerUrl =  new URL(config.issuerUrl);
+    logger.debug('Parsed issuer URL', { issuerUrl: issuerUrl.href });
+
     const discoveryURL = new URL('.well-known/openid-configuration', issuerUrl);
 
     const oidcClientConfig = await client.discovery(
@@ -39,20 +43,30 @@ export const getOIDCConfig = async (): Promise<client.Configuration> => {
       client.PrivateKeyJwt(await getCIS2PrivateKey())
     );
 
+    logger.info('OIDC discovery successful');
+    try {
+      const metadata = oidcClientConfig.serverMetadata();
+      logger.debug('Discovered endpoints', {
+        authorization_endpoint: metadata.authorization_endpoint,
+        token_endpoint: metadata.token_endpoint,
+        issuer: metadata.issuer,
+        userinfo_endpoint: metadata.userinfo_endpoint,
+      });
+    } catch (metadataError) {
+      logger.warn('Could not log endpoint details', { error: metadataError });
+    }
+
     return oidcClientConfig;
   } catch (error) {
-    console.error('CIS2 discovery failed:', error);
+    logger.error('CIS2 discovery failed', { error });
 
     if (error instanceof Error) {
-      console.error('Error properties:', Object.getOwnPropertyNames(error));
-      console.error('Error stack:', error.stack);
-      if ('code' in error) {
-        console.error('Error code:', error.code);
-      }
-
-      if ('cause' in error) {
-        console.error('Error cause:', error.cause);
-      }
+      logger.error('Error details', {
+        properties: Object.getOwnPropertyNames(error),
+        stack: error.stack,
+        code: 'code' in error ? error.code : undefined,
+        cause: 'cause' in error ? error.cause : undefined,
+      });
     }
     throw error;
   }
