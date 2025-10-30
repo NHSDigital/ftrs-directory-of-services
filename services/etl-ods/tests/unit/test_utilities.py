@@ -615,7 +615,9 @@ def test__get_api_key_for_url_client_error_logs(
     )
     with caplog.at_level("WARNING"):
         with pytest.raises(ClientError):
-            _get_api_key_for_url("https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization")
+            _get_api_key_for_url(
+                "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+            )
         assert "Error with secret: /ftrs-dos/dev/ods-terminology-api-key" in caplog.text
 
 
@@ -642,7 +644,9 @@ def test__get_api_key_for_url_client_error_non_resource_not_found(
     )
     with caplog.at_level("WARNING"):
         with pytest.raises(ClientError):
-            _get_api_key_for_url("https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization")
+            _get_api_key_for_url(
+                "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+            )
         assert "Error with secret:" not in caplog.text
 
 
@@ -759,11 +763,16 @@ def test__get_api_key_for_url_json_decode_error_logs(
     }
     with caplog.at_level("WARNING"):
         with pytest.raises(json.JSONDecodeError):
-            _get_api_key_for_url("https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization")
+            _get_api_key_for_url(
+                "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+            )
         assert "Error decoding json with issue:" in caplog.text
 
 
-@patch.dict(os.environ, {"ENVIRONMENT": "local", "LOCAL_ODS_TERMINOLOGY_API_KEY": "local-ods-key"})
+@patch.dict(
+    os.environ,
+    {"ENVIRONMENT": "local", "LOCAL_ODS_TERMINOLOGY_API_KEY": "local-ods-key"},
+)
 def test__get_api_key_for_url_local_environment() -> None:
     """
     Test _get_api_key_for_url returns local ODS Terminology API key in local environment.
@@ -776,10 +785,7 @@ def test__get_api_key_for_url_local_environment() -> None:
 
 @patch.dict(
     os.environ,
-    {
-        "ENVIRONMENT": "local",
-        "LOCAL_API_KEY": "fallback-key"
-    },
+    {"ENVIRONMENT": "local", "LOCAL_API_KEY": "fallback-key"},
 )
 def test__get_api_key_for_url_local_ods_fallback_to_local_api_key() -> None:
     """
@@ -795,7 +801,9 @@ def test__get_api_key_for_url_non_ods_terminology_returns_empty() -> None:
     """
     Test _get_api_key_for_url returns empty string for non-ODS Terminology API URLs.
     """
-    api_key = _get_api_key_for_url("https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization")
+    api_key = _get_api_key_for_url(
+        "https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization"
+    )
     assert api_key == ""
 
     api_key = _get_api_key_for_url("https://example.com/api")
@@ -807,5 +815,7 @@ def test__get_api_key_for_url_non_ods_terminology_ignores_local_key() -> None:
     """
     Test _get_api_key_for_url ignores local API key for non-ODS Terminology URLs.
     """
-    api_key = _get_api_key_for_url("https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization")
+    api_key = _get_api_key_for_url(
+        "https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization"
+    )
     assert api_key == ""
