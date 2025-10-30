@@ -1,5 +1,5 @@
 {
-  "name": "twr-release",
+  "name": "release",
   "private": true,
   "release": {
     "branches": [

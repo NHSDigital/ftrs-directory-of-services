@@ -28,25 +28,22 @@ jobs:
   metadata:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
-# TODO restore when fixed
-  # quality-checks:
-  #   name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
-  #   needs:
-  #     - metadata
-  #   uses: ./.github/workflows/quality-checks.yaml
-  #   with:
-  #     environment: ${{ needs.metadata.outputs.environment }}
-  #     workspace: ${{ needs.metadata.outputs.workspace }}
-  #     stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance', 'ui']"
-  #     type: app
-  #   secrets: inherit
-
-  # # ${{ steps.semantic-release.outputs.next_tag_version }}
+  quality-checks:
+    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
+    needs:
+      - metadata
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance', 'ui']"
+      type: app
+    secrets: inherit
 
   tag-release:
     name: "Generate the next release tag"
-    # needs:
-      # - quality-checks
+    needs:
+      - quality-checks
     runs-on: ubuntu-latest
     outputs:
       next_tag_version: ${{ steps.semantic-release.outputs.new_release_version }}
@@ -54,21 +51,7 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
-# TODO restore if not using third party action
-      # - name: "Set up Node.js"
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: "20"
 
-      # - name: "Derive semantic release version"
-      #   id: dry_run_semantic_release
-      #   run: |
-      #     npm ci
-      #     export next_tag_version=$(npx semantic-release --branches task/FDOS-347_Build_release_artefacts --dry-run | grep 'next release version is' | sed -E 's/.* ([[:digit:].]+)$/\1/' )
-      #     echo "next_tag_version=${next_tag_version}" >> $GITHUB_OUTPUT
-      #     echo "next_tag_version=${next_tag_version}"
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fetch actor's public GPG keys
         env:
@@ -77,17 +60,14 @@ jobs:
         run: |
           echo "Actor: $ACTOR"
 
-# TODO try third party action
       - name: Run Semantic Release
         id: semantic-release
         uses: cycjimmy/semantic-release-action@v5
         with:
           branch: "task/FDOS-347_Build_release_artefacts"
-          # dry_run: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # TODO restore when fixed
   echo-release-version:
     name: "Echo the calculated release version"
     needs:
@@ -99,40 +79,39 @@ jobs:
         run: |
           echo "The calculated next release version is: ${{ needs.tag-release.outputs.next_tag_version }}"
 
-  # TODO restore when fixed
-  # build-release-artifacts:
-  #   name: "Build ${{ matrix.name }}"
-  #   needs:
-  #     - metadata
-  #     - tag-release
-  #     # - quality-checks
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         - name: "python"
-  #           build_type: "package"
-  #         - name: "crud-apis"
-  #           build_type: "service"
-  #         - name: "data-migration"
-  #           build_type: "service"
-  #         - name: "read-only-viewer"
-  #           build_type: "service"
-  #         - name: "etl-ods"
-  #           build_type: "service"
-  #         - name: "gp-search"
-  #           build_type: "service"
-  #         - name: "dos-ui"
-  #           build_type: "service"
-  #   uses: ./.github/workflows/build-project.yaml
-  #   with:
-  #     name: ${{ matrix.name }}
-  #     build_type: ${{ matrix.build_type }}
-  #     python_version: ${{ needs.metadata.outputs.python_version }}
-  #     commit_hash: ${{ needs.tag-release.outputs.next_tag_version }}
-  #     environment: ${{ needs.metadata.outputs.mgmt_environment }}
-  #     repo_name: ${{ needs.metadata.outputs.reponame }}
-  #     workspace: ${{ needs.metadata.outputs.workspace }}
-  #     application_tag: ${{ needs.tag-release.outputs.next_tag_version }}
-  #     release_build: true
-  #     type: app
-  #   secrets: inherit
+  build-release-artifacts:
+    name: "Build ${{ matrix.name }}"
+    needs:
+      - metadata
+      - tag-release
+      - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "python"
+            build_type: "package"
+          - name: "crud-apis"
+            build_type: "service"
+          - name: "data-migration"
+            build_type: "service"
+          - name: "read-only-viewer"
+            build_type: "service"
+          - name: "etl-ods"
+            build_type: "service"
+          - name: "gp-search"
+            build_type: "service"
+          - name: "dos-ui"
+            build_type: "service"
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: ${{ matrix.build_type }}
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.tag-release.outputs.next_tag_version }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ needs.tag-release.outputs.next_tag_version }}
+      release_build: true
+      type: app
+    secrets: inherit
