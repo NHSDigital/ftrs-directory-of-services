@@ -370,6 +370,18 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="Fetching organisation uuid for ods code {ods_code} failed, resource type {type} returned.",
     )
+    ETL_PROCESSOR_031 = LogReference(
+        level=INFO,
+        message="Processing organisation {ods_code} as its is identified as {org_type}. {reason}",
+    )
+    ETL_PROCESSOR_032 = LogReference(
+        level=INFO,
+        message="Not processing organisation {ods_code} as it is not a permitted type. {reason}",
+    )
+    ETL_PROCESSOR_033 = LogReference(
+        level=INFO,
+        message="Checking if organisation is permitted type",
+    )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
         message="Received event for ODS ETL consumer lambda.",
