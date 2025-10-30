@@ -130,7 +130,7 @@ class TestBundleMapper:
     ):
         # Arrange
         organization_resource = create_fhir_organization()
-        mock_get_fhir_url.return_value = "https://servicesearch.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
+        mock_get_fhir_url.return_value = "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
 
         # Act
         entry = bundle_mapper._create_entry(organization_resource)
@@ -138,7 +138,7 @@ class TestBundleMapper:
         # Assert
         assert (
             entry["fullUrl"]
-            == "https://servicesearch.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
+            == "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
         )
         assert entry["resource"] == organization_resource
         assert entry["search"]["mode"] == "match"

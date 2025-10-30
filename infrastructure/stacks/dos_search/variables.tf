@@ -1,4 +1,4 @@
-variable "gp_search_service_name" {
+variable "dos_search_service_name" {
   description = "The name of the gp search service"
 }
 variable "s3_bucket_name" {

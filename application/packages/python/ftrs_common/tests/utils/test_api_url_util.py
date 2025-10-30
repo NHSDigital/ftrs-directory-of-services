@@ -9,11 +9,11 @@ from ftrs_common.utils.api_url_util import get_api_url, get_fhir_url
     [
         (
             None,
-            "https://servicesearch.dev.ftrs.cloud.nhs.uk",
+            "https://dos-search.dev.ftrs.cloud.nhs.uk",
         ),
         (
             "dosis-123",
-            "https://servicesearch-dosis-123.dev.ftrs.cloud.nhs.uk",
+            "https://dos-search-dosis-123.dev.ftrs.cloud.nhs.uk",
         ),
     ],
 )
@@ -26,7 +26,7 @@ def test_get_api_url(
     # Arrange
     mock_settings.workspace = workspace
     mock_settings.env = "dev"
-    api_name = "servicesearch"
+    api_name = "dos-search"
 
     # Act
     result = get_api_url(api_name)
@@ -41,22 +41,22 @@ def test_get_api_url(
         (
             None,
             None,
-            "https://servicesearch.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization",
+            "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization",
         ),
         (
             "00000000-0000-0000-0000-000000000000",  # gitleaks:allow
             None,
-            "https://servicesearch.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000",  # gitleaks:allow
+            "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000",  # gitleaks:allow
         ),
         (
             None,
             "dosis-123",
-            "https://servicesearch-dosis-123.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization",
+            "https://dos-search-dosis-123.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization",
         ),
         (
             "00000000-0000-0000-0000-000000000000",  # gitleaks:allow
             "dosis-123",
-            "https://servicesearch-dosis-123.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000",  # gitleaks:allow
+            "https://dos-search-dosis-123.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000",  # gitleaks:allow
         ),
     ],
 )
@@ -70,7 +70,7 @@ def test_get_fhir_url(
     # Arrange
     mock_settings.workspace = workspace
     mock_settings.env = "dev"
-    api_name = "servicesearch"
+    api_name = "dos-search"
     resource_type = "Organization"
 
     # Act
