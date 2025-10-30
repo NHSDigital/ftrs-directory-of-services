@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-from starlette.testclient import TestClient
 
 from organisations.app.handler_organisation import (
     app,

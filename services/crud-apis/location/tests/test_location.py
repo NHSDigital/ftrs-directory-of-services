@@ -2,8 +2,7 @@ from http import HTTPStatus
 from uuid import uuid4
 
 import pytest
-from fastapi import HTTPException
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from ftrs_data_layer.domain import Location
 from pytest_mock import MockerFixture
@@ -56,7 +55,9 @@ def mock_repository(mocker: MockerFixture) -> MockerFixture:
     return repository_mock
 
 
-client = TestClient(router)
+test_app = FastAPI()
+test_app.include_router(router)
+client = TestClient(test_app)
 
 
 def test_returns_location_by_id(mock_location_service: MockerFixture) -> None:
@@ -71,9 +72,9 @@ def test_returns_404_when_location_not_found(
     mock_location_service.get_location_by_id.side_effect = HTTPException(
         status_code=HTTPStatus.NOT_FOUND, detail="Location not found"
     )
-    with pytest.raises(HTTPException) as exc_info:
-        client.get(f"/{test_location_id}")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+
+    response = client.get(f"/{test_location_id}")
+    assert response.status_code == HTTPStatus.NOT_FOUND
 
 
 def test_returns_404_when_no_locations_found(
@@ -82,9 +83,9 @@ def test_returns_404_when_no_locations_found(
     mock_location_service.get_locations.side_effect = HTTPException(
         status_code=HTTPStatus.NOT_FOUND, detail="No locations found"
     )
-    with pytest.raises(HTTPException) as exc_info:
-        client.get("/")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
+
+    response = client.get("/")
+    assert response.status_code == HTTPStatus.NOT_FOUND
 
 
 def test_returns_all_locations(mock_location_service: MockerFixture) -> None:
@@ -114,9 +115,29 @@ def test_creates_new_location_with_value_error(
 ) -> None:
     new_location = Location(**get_mock_location())
     new_location.id = "invalid-uuid"
-    with pytest.raises(RequestValidationError) as exc_info:
-        client.post("/", json=new_location.model_dump(mode="json"))
-    assert exc_info.type == RequestValidationError
+
+    result = client.post("/", json=new_location.model_dump(mode="json"))
+    assert result.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert result.json() == {
+        "detail": [
+            {
+                "ctx": {
+                    "error": "invalid character: expected an optional prefix of `urn:uuid:` "
+                    "followed by [0-9a-fA-F-], found `i` at 1",
+                },
+                "input": "invalid-uuid",
+                "loc": [
+                    "body",
+                    "id",
+                ],
+                "msg": "Input should be a valid UUID, invalid character: expected an "
+                "optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found "
+                "`i` at 1",
+                "type": "uuid_parsing",
+            },
+        ],
+    }
+
     mock_location_service.create_location.assert_not_called()  # Ensure no creation attempt was made
 
 
@@ -135,20 +156,20 @@ def test_get_all_locations_500_error(mock_location_service: MockerFixture) -> No
     mock_location_service.get_locations.side_effect = HTTPException(
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Internal Server Error"
     )
-    with pytest.raises(HTTPException) as exc_info:
-        client.get("/")
-    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert exc_info.value.detail == "Internal Server Error"
+
+    response = client.get("/")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.json()["detail"] == "Internal Server Error"
 
 
 def test_get_location_by_id_500_error(mock_location_service: MockerFixture) -> None:
     mock_location_service.get_location_by_id.side_effect = HTTPException(
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="Internal Server Error"
     )
-    with pytest.raises(HTTPException) as exc_info:
-        client.get(f"/{test_location_id}")
-    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert exc_info.value.detail == "Internal Server Error"
+
+    response = client.get(f"/{test_location_id}")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.json()["detail"] == "Internal Server Error"
 
 
 def test_delete_location_success(mock_repository: MockerFixture) -> None:
@@ -159,12 +180,12 @@ def test_delete_location_success(mock_repository: MockerFixture) -> None:
     mock_repository.delete.assert_called_once_with(test_location_id)
 
 
-def test_delete_healthcare_service_not_found(mock_repository: MockerFixture) -> None:
+def test_delete_location_not_found(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = None
-    with pytest.raises(HTTPException) as exc_info:
-        client.delete(f"/{test_location_id}")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Location not found"
+
+    response = client.delete(f"/{test_location_id}")
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "Location not found"
 
 
 def test_update_location_success(mock_repository: MockerFixture) -> None:
@@ -226,10 +247,9 @@ def test_update_location_not_found(mock_repository: MockerFixture) -> None:
         "partOf": None,
     }
 
-    with pytest.raises(HTTPException) as exc_info:
-        client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json=update_payload)
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Location not found"
+    response = client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json=update_payload)
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "Location not found"
 
 
 def test_update_location_invalid_request_body() -> None:
@@ -237,7 +257,34 @@ def test_update_location_invalid_request_body() -> None:
         "name": "Test Update Location",
     }
 
-    with pytest.raises(RequestValidationError) as exc_info:
-        client.put(f"/{test_location_id}", json=invalid_payload)
-    assert exc_info.type == RequestValidationError
-    assert "Field required" in exc_info.value.errors()[0]["msg"]
+    response = client.put(f"/{test_location_id}", json=invalid_payload)
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert response.json() == {
+        "detail": [
+            {
+                "input": {"name": "Test Update Location"},
+                "loc": ["body", "active"],
+                "msg": "Field required",
+                "type": "missing",
+            },
+            {
+                "input": {"name": "Test Update Location"},
+                "loc": ["body", "address"],
+                "msg": "Field required",
+                "type": "missing",
+            },
+            {
+                "input": {"name": "Test Update Location"},
+                "loc": ["body", "managingOrganisation"],
+                "msg": "Field required",
+                "type": "missing",
+            },
+            {
+                "input": {"name": "Test Update Location"},
+                "loc": ["body", "primaryAddress"],
+                "msg": "Field required",
+                "type": "missing",
+            },
+        ]
+    }
