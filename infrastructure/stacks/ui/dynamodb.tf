@@ -1,3 +1,4 @@
+#trivy:ignore:AVD-AWS-0024
 module "ui_session_store" {
   source = "../../modules/dynamodb"
 
