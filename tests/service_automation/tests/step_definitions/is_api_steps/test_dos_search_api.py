@@ -35,7 +35,7 @@ scenarios("./is_api_features/dos_search_backend.feature","./is_api_features/dos_
 
 @pytest.fixture(scope="module")
 def r53_name() -> str:
-    r53_name = os.getenv("R53_NAME", "servicesearch")
+    r53_name = os.getenv("R53_NAME", "dos-search")
     return r53_name
 
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))

@@ -13,17 +13,17 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-python-dependency-layer-${var.application_tag}.zip"
+  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "lambda" {
   source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.lambda_name}"
   description            = "This lambda provides search logic to returns an organisation and its endpoints"
-  handler                = "functions/gp_search_function.lambda_handler"
+  handler                = "functions/dos_search_ods_code_function.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${terraform.workspace}/${var.commit_hash}/${var.gp_search_service_name}-lambda-${var.application_tag}.zip"
+  s3_key                 = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
@@ -37,7 +37,7 @@ module "lambda" {
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.gp_search_lambda_security_group.id]
+  security_group_ids = [aws_security_group.dos_search_lambda_security_group.id]
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment

@@ -2,15 +2,16 @@ from http import HTTPStatus
 from uuid import uuid4
 
 import pytest
-from fastapi import HTTPException
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from ftrs_data_layer.domain import HealthcareService
 from pytest_mock import MockerFixture
 
 from healthcare_service.app.router.healthcare import router
 
-client = TestClient(router)
+test_app = FastAPI()
+test_app.include_router(router)
+client = TestClient(test_app)
 
 test_service_id = uuid4()
 
@@ -68,10 +69,11 @@ def test_returns_healthcare_service_by_id() -> None:
 
 def test_returns_404_when_service_not_found(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = None
-    with pytest.raises(HTTPException) as exc_info:
-        client.get(f"/{test_service_id}")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Healthcare Service not found"
+
+    response = client.get(f"/{test_service_id}")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "Healthcare Service not found"
 
 
 def test_returns_all_healthcare_services() -> None:
@@ -82,28 +84,28 @@ def test_returns_all_healthcare_services() -> None:
 
 def test_returns_404_when_no_services_found(mock_repository: MockerFixture) -> None:
     mock_repository.iter_records.return_value = []
-    with pytest.raises(HTTPException) as exc_info:
-        client.get("/")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "No healthcare services found"
+
+    response = client.get("/")
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "No healthcare services found"
 
 
 def test_returns_500_on_unexpected_error(mock_repository: MockerFixture) -> None:
     mock_repository.get.side_effect = Exception("Unexpected error")
-    with pytest.raises(HTTPException) as exc_info:
-        client.get(f"/{test_service_id}")
-    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert exc_info.value.detail == "Failed to fetch healthcare services"
+
+    response = client.get(f"/{test_service_id}")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.json()["detail"] == "Failed to fetch healthcare services"
 
 
 def test_returns_500_on_unexpected_error_in_get_all(
     mock_repository: MockerFixture,
 ) -> None:
     mock_repository.iter_records.side_effect = Exception("Unexpected error")
-    with pytest.raises(HTTPException) as exc_info:
-        client.get("/")
-    assert exc_info.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert exc_info.value.detail == "Failed to fetch healthcare services"
+
+    response = client.get("/")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert response.json()["detail"] == "Failed to fetch healthcare services"
 
 
 def test_delete_healthcare_service(mock_repository: MockerFixture) -> None:
@@ -116,10 +118,10 @@ def test_delete_healthcare_service(mock_repository: MockerFixture) -> None:
 
 def test_delete_healthcare_service_not_found(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = None
-    with pytest.raises(HTTPException) as exc_info:
-        client.delete(f"/{test_service_id}")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "No healthcare services found"
+
+    response = client.delete(f"/{test_service_id}")
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "No healthcare services found"
 
 
 def test_update_healthcare_service_success(mock_repository: MockerFixture) -> None:
@@ -199,10 +201,9 @@ def test_update_healthcare_service_not_found(mock_repository: MockerFixture) -> 
         "dispositions": [],
     }
 
-    with pytest.raises(HTTPException) as exc_info:
-        client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json=update_payload)
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Healthcare Service not found"
+    response = client.put("/e13b21b1-8859-4364-9efb-951d43cc8264", json=update_payload)
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "Healthcare Service not found"
 
 
 def test_update_healthcare_service_invalid_request_body() -> None:
@@ -210,10 +211,67 @@ def test_update_healthcare_service_invalid_request_body() -> None:
         "name": "Test Update Healthcare Service",
     }
 
-    with pytest.raises(RequestValidationError) as exc_info:
-        client.put(f"/{test_service_id}", json=invalid_payload)
-    assert exc_info.type == RequestValidationError
-    assert "Field required" in exc_info.value.errors()[0]["msg"]
+    response = client.put(f"/{test_service_id}", json=invalid_payload)
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "missing",
+                "loc": ["body", "active"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "category"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "type"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "providedBy"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "location"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "telecom"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "openingTime"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "symptomGroupSymptomDiscriminators"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "dispositions"],
+                "msg": "Field required",
+                "input": {"name": "Test Update Healthcare Service"},
+            },
+        ]
+    }
 
 
 def test_create_healthcare_service(mock_repository: MockerFixture) -> None:
@@ -250,14 +308,53 @@ def test_create_healthcare_service(mock_repository: MockerFixture) -> None:
 
 
 def test_create_healthcare_service_invalid_data() -> None:
-    with pytest.raises(RequestValidationError) as exc_info:
-        client.post(
-            "/",
-            json={
-                "name": "Invalid Healthcare Service",
-                "type": "General Practice",
-                # Missing the required field 'category'
+    response = client.post(
+        "/",
+        json={
+            "name": "Invalid Healthcare Service",
+            "type": "General Practice",
+            # Missing the required field 'category'
+        },
+    )
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "missing",
+                "loc": ["body", "active"],
+                "msg": "Field required",
+                "input": {
+                    "name": "Invalid Healthcare Service",
+                    "type": "General Practice",
+                },
             },
-        )
-    assert exc_info.type == RequestValidationError
-    assert "Field required" in exc_info.value.errors()[0]["msg"]
+            {
+                "type": "enum",
+                "loc": ["body", "type"],
+                "msg": "Input should be 'GP Consultation Service' or 'Primary Care Network Enhanced Access Service'",
+                "input": "General Practice",
+                "ctx": {
+                    "expected": "'GP Consultation Service' or 'Primary Care Network Enhanced Access Service'"
+                },
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "category"],
+                "msg": "Field required",
+                "input": {
+                    "name": "Invalid Healthcare Service",
+                    "type": "General Practice",
+                },
+            },
+            {
+                "type": "missing",
+                "loc": ["body", "createdBy"],
+                "msg": "Field required",
+                "input": {
+                    "name": "Invalid Healthcare Service",
+                    "type": "General Practice",
+                },
+            },
+        ]
+    }

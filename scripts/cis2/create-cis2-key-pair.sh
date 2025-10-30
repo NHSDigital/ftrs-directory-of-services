@@ -28,7 +28,7 @@ log_warning() {
 # Function to display usage
 usage() {
     cat << EOF
-Usage: $0 -r REPO_NAME -e ENVIRONMENT
+Usage: $0 -r PROJECT_NAME -e ENVIRONMENT
 
 Options:
     -r, --repo-name     Repository name
@@ -42,13 +42,13 @@ EOF
 }
 
 # Parse command line arguments
-REPO_NAME=""
+PROJECT_NAME=""
 ENVIRONMENT=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -r|--repo-name)
-            REPO_NAME="$2"
+            PROJECT_NAME="$2"
             shift 2
             ;;
         -e|--environment)
@@ -66,16 +66,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate required parameters
-if [[ -z "$REPO_NAME" ]] || [[ -z "$ENVIRONMENT" ]]; then
+if [[ -z "$PROJECT_NAME" ]] || [[ -z "$ENVIRONMENT" ]]; then
     log_error "Missing required parameters"
     usage
 fi
 
-log_info "Starting key pair generation for repo: $REPO_NAME, environment: $ENVIRONMENT"
+log_info "Starting key pair generation for repo: $PROJECT_NAME, environment: $ENVIRONMENT"
 
 # Define secret names
-PRIVATE_KEY_SECRET_NAME="/${REPO_NAME}/${ENVIRONMENT}/cis2-private-key"
-PUBLIC_KEY_SECRET_NAME="/${REPO_NAME}/${ENVIRONMENT}/cis2-public-key"
+PRIVATE_KEY_SECRET_NAME="/${PROJECT_NAME}/${ENVIRONMENT}/cis2-private-key"
+PUBLIC_KEY_SECRET_NAME="/${PROJECT_NAME}/${ENVIRONMENT}/cis2-public-key"
 
 # Create temporary directory for key files
 TEMP_DIR=$(mktemp -d)

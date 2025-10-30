@@ -41,7 +41,7 @@ class BundleMapper:
         bundle_type = "searchset"
         bundle_id = str(uuid4())
         url = (
-            f"{get_fhir_url('servicesearch', 'Organization')}"
+            f"{get_fhir_url('dos-search', 'Organization')}"
             f"?identifier=odsOrganisationCode|{ods_code}"
             f"&_revinclude=Endpoint:organization"
         )
@@ -66,7 +66,7 @@ class BundleMapper:
         return bundle
 
     def _create_entry(self, resource: FHIRResourceModel) -> dict[str, object]:
-        url = get_fhir_url("servicesearch", resource.get_resource_type(), resource.id)
+        url = get_fhir_url("dos-search", resource.get_resource_type(), resource.id)
         search_mode = self._get_search_mode(resource)
 
         return {

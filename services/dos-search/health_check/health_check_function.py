@@ -5,7 +5,7 @@ from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 
 app = APIGatewayRestResolver()
-logger = Logger(service="gp-search-health")
+logger = Logger(service="dos-search-health")
 
 
 @app.get("/_status")

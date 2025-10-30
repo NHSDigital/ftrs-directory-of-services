@@ -8,7 +8,7 @@ from utilities.common.resource_name import get_resource_name
 from utilities.infra.lambda_util import LambdaWrapper
 
 # Load feature file
-scenarios("./infra_features/gp-search-lambda.feature")
+scenarios("./infra_features/dos-search-ods-code-lambda.feature")
 
 @pytest.fixture(scope="module")
 def aws_lambda_client():

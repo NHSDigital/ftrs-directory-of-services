@@ -61,7 +61,7 @@ def api_request_context_mtls_factory(playwright, workspace, env):
     """Factory to create API request contexts with different api_names."""
     contexts = []
 
-    def _create_context(api_name="servicesearch", headers=None, env=env):
+    def _create_context(api_name="dos-search", headers=None, env=env):
         url = get_url(api_name)
         try:
             # Get mTLS certs
@@ -102,7 +102,7 @@ def api_request_context_mtls_factory(playwright, workspace, env):
 @pytest.fixture(scope="module")
 def api_request_context_mtls(api_request_context_mtls_factory):
     """Create a new Playwright API request context with default api_name."""
-    return api_request_context_mtls_factory("servicesearch")
+    return api_request_context_mtls_factory("dos-search")
 
 
 @pytest.fixture(scope="module")

@@ -2,8 +2,7 @@ from http import HTTPStatus
 from uuid import uuid4
 
 import pytest
-from fastapi import HTTPException
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
@@ -13,7 +12,9 @@ from starlette.responses import JSONResponse
 from organisations.app.models.organisation import OrganizationQueryParams
 from organisations.app.router.organisation import _get_organization_query_params, router
 
-client = TestClient(router)
+test_app = FastAPI()
+test_app.include_router(router)
+client = TestClient(test_app)
 
 test_org_id = uuid4()
 
@@ -96,9 +97,10 @@ def test_get_organisation_by_id_returns_404_when_org_not_found(
     mock_repository: MockerFixture,
 ) -> None:
     mock_repository.get.return_value = None
-    with pytest.raises(Exception) as exc_info:
-        client.get(f"/Organization/{test_org_id}")
-    assert "Organisation not found" in str(exc_info.value)
+
+    response = client.get(f"/Organization/{test_org_id}")
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "Organisation not found"
 
 
 def test_get_organisation_by_id_returns_500_on_unexpected_error(
@@ -339,10 +341,37 @@ def test_update_organisation_missing_required_field() -> None:
         "telecom": [{"system": "phone", "value": "0123456789"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
-    with pytest.raises(RequestValidationError) as exc_info:
-        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert "'active'" in str(exc_info.value)
-    assert "field required" in str(exc_info.value).lower()
+
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "missing",
+                "loc": ["body", "active"],
+                "msg": "Field required",
+                "input": {
+                    "resourceType": "Organization",
+                    "id": str(test_org_id),
+                    "meta": {
+                        "profile": [
+                            "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                        ]
+                    },
+                    "identifier": [
+                        {
+                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                            "value": "12345",
+                        }
+                    ],
+                    "name": "ABC",
+                    "telecom": [{"system": "phone", "value": "0123456789"}],
+                    "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+                },
+            }
+        ]
+    }
 
 
 def test_update_organisation_unexpected_exception(
@@ -385,10 +414,20 @@ def test_create_organisation_success() -> None:
 def test_create_organisation_validation_error() -> None:
     organisation_data = get_organisation()
     organisation_data["identifier_ODS_ODSCode"] = None  # Missing ODS code
-    with pytest.raises(RequestValidationError) as exc_info:
-        client.post("/Organization", json=organisation_data)
-    assert exc_info.type is RequestValidationError
-    assert "Input should be a valid string" in str(exc_info.value)
+
+    response = client.post("/Organization", json=organisation_data)
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "string_type",
+                "loc": ["body", "identifier_ODS_ODSCode"],
+                "msg": "Input should be a valid string",
+                "input": None,
+            }
+        ]
+    }
 
 
 def test_create_organisation_already_exists(
@@ -399,10 +438,10 @@ def test_create_organisation_already_exists(
         status_code=HTTPStatus.BAD_REQUEST,
         detail="Organisation with this ODS code already exists",
     )
-    with pytest.raises(HTTPException) as exc_info:
-        client.post("/Organization", json=organisation_data)
-    assert exc_info.value.status_code == HTTPStatus.BAD_REQUEST
-    assert exc_info.value.detail == "Organisation with this ODS code already exists"
+
+    response = client.post("/Organization", json=organisation_data)
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json()["detail"] == "Organisation with this ODS code already exists"
 
 
 def test_delete_organisation_success(mock_repository: MockerFixture) -> None:
@@ -413,10 +452,10 @@ def test_delete_organisation_success(mock_repository: MockerFixture) -> None:
 
 def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
     mock_repository.get.return_value = None
-    with pytest.raises(HTTPException) as exc_info:
-        client.delete(f"/Organization/{test_org_id}")
-    assert exc_info.value.status_code == HTTPStatus.NOT_FOUND
-    assert exc_info.value.detail == "Organisation not found"
+
+    response = client.delete(f"/Organization/{test_org_id}")
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()["detail"] == "Organisation not found"
 
 
 def test_type_validator_invalid_coding_and_text_missing() -> None:
@@ -434,10 +473,39 @@ def test_type_validator_invalid_coding_and_text_missing() -> None:
         "telecom": [{"system": "phone", "value": "0123456789"}],
         "type": [{"coding": [{}]}],
     }
-    with pytest.raises(RequestValidationError) as exc_info:
-        client.put(f"/Organization/{test_org_id}", json=update_payload)
-    assert exc_info.type is RequestValidationError
-    assert "must have either 'coding' or 'text' populated" in str(exc_info.value)
+
+    response = client.put(f"/Organization/{test_org_id}", json=update_payload)
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "value_error",
+                "loc": ["body"],
+                "msg": "Value error, 'type' must have either 'coding' or 'text' populated.",
+                "input": {
+                    "resourceType": "Organization",
+                    "id": str(test_org_id),
+                    "meta": {
+                        "profile": [
+                            "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                        ]
+                    },
+                    "identifier": [
+                        {
+                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                            "value": "12345",
+                        }
+                    ],
+                    "name": "Test Org",
+                    "active": True,
+                    "telecom": [{"system": "phone", "value": "0123456789"}],
+                    "type": [{"coding": [{}]}],
+                },
+                "ctx": {"error": {}},
+            }
+        ]
+    }
 
 
 def test_organization_query_params_success() -> None:
