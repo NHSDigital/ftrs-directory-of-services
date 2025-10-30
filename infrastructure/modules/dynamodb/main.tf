@@ -11,6 +11,8 @@ module "dynamodb_table" {
   attributes                     = var.attributes
   billing_mode                   = var.billing_mode
   point_in_time_recovery_enabled = var.point_in_time_recovery_enabled
+  ttl_enabled                    = var.ttl_enabled
+  ttl_attribute_name             = var.ttl_attribute_name
 
   server_side_encryption_enabled = true
 

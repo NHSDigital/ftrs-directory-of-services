@@ -13,11 +13,12 @@ module "ui_lambda" {
   timeout                 = var.ui_lambda_connection_timeout
   memory_size             = var.ui_lambda_memory_size
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
 
   policy_jsons = [
     data.aws_iam_policy_document.ssm_access_policy.json,
-    data.aws_iam_policy_document.execute_api_policy.json
+    data.aws_iam_policy_document.execute_api_policy.json,
+    data.aws_iam_policy_document.dynamodb_session_store_policy.json
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
@@ -25,8 +26,9 @@ module "ui_lambda" {
   layers             = []
 
   environment_variables = {
-    "ENVIRONMENT" = var.environment
-    "WORKSPACE"   = terraform.workspace == "default" ? "" : terraform.workspace
+    "ENVIRONMENT"         = var.environment
+    "WORKSPACE"           = terraform.workspace == "default" ? "" : terraform.workspace
+    "SESSION_STORE_TABLE" = "${local.resource_prefix}-session-store${local.workspace_suffix}"
   }
 
   account_id     = data.aws_caller_identity.current.account_id
