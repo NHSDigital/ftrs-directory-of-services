@@ -45,12 +45,13 @@ describe('getAuthorisationUrl', () => {
   });
 
   it('throws error on failure', async () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { logger } = await import('../logger');
+    const loggerErrorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
     mockGetOIDCConfig.mockRejectedValue(new Error('fail'));
 
     const { getAuthorisationUrl } = await import('../cis2ConfigurationUtil.ts');
     await expect(getAuthorisationUrl()).rejects.toThrow('fail');
-    expect(consoleErrorSpy).toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
+    expect(loggerErrorSpy).toHaveBeenCalled();
+    loggerErrorSpy.mockRestore();
   });
 });
