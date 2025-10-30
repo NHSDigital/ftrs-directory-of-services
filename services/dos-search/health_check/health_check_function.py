@@ -4,7 +4,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 
-app = APIGatewayHttpResolver()
+app = APIGatewayRestResolver()
 logger = Logger(service="dos-search-health")
 
 
