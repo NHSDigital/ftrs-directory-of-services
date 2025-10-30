@@ -2,7 +2,7 @@
 module "ui_session_store" {
   source = "../../modules/dynamodb"
 
-  table_name         = "${local.resource_prefix}-session-store${local.workspace_suffix}"
+  table_name         = "${local.resource_prefix}-session-store"
   hash_key           = "sessionID"
   billing_mode       = "PAY_PER_REQUEST"
   ttl_attribute_name = "expiresAt"
