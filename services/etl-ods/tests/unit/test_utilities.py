@@ -15,8 +15,8 @@ from pipeline.utilities import (
     build_headers,
     get_base_apim_api_url,
     get_base_ods_terminology_api_url,
-    handle_operation_outcomes,
     get_jwt_authenticator,
+    handle_operation_outcomes,
     make_request,
 )
 
