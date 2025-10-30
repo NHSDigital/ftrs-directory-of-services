@@ -74,3 +74,15 @@ variable "global_secondary_indexes" {
   }))
   default = []
 }
+
+variable "ttl_enabled" {
+  description = "Indicates whether ttl is enabled	"
+  type        = bool
+  default     = false
+}
+
+variable "ttl_attribute_name" {
+  description = "The name of the table attribute to store the TTL timestamp in"
+  type        = string
+  default     = ""
+}

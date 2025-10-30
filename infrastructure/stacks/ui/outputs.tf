@@ -27,3 +27,8 @@ output "calculated_health_check_id" {
   value       = aws_route53_health_check.calculated_health_check.id
   description = "The ID of the calculated health check monitoring CloudFront. This will be associated with Shield Advanced"
 }
+
+output "ui_session_store_table_name" {
+  value       = "${local.resource_prefix}-session-store${local.workspace_suffix}"
+  description = "The name of the DynamoDB session store table for the UI"
+}
