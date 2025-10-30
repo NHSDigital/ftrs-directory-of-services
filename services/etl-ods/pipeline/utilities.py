@@ -69,9 +69,7 @@ def _get_api_key_for_url(url: str) -> str:
 
     if env == "local":
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
-        return os.environ.get(
-            "LOCAL_ODS_TERMINOLOGY_API_KEY", ""
-        )
+        return os.environ.get("LOCAL_ODS_TERMINOLOGY_API_KEY", "")
 
     try:
         resource_prefix = get_resource_prefix()
