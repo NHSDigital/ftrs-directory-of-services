@@ -51,11 +51,11 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
-
-      - name: "Set up Node.js"
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+# TODO restore if not using third party action
+      # - name: "Set up Node.js"
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: "20"
 
       # - name: "Derive semantic release version"
       #   id: dry_run_semantic_release
@@ -69,12 +69,19 @@ jobs:
 
 # TODO try third party action
       - name: Semantic Release
+        id: semantic-release
         uses: cycjimmy/semantic-release-action@v5
         with:
           branch: "task/FDOS-347_Build_release_artefacts"
           dry_run: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: echo-release-version
+        # if: steps.semantic-release.outputs.new_release_published == 'true'
+        run: |
+          echo ${{ steps.semantic-release.outputs.new_release_version }}
+          echo "next_tag_version=${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
 
   # TODO restore when fixed
   # echo-release-version:
