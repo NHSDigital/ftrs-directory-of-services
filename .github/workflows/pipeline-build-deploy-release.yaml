@@ -84,16 +84,16 @@ jobs:
           echo "next_tag_version=${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
 
   # TODO restore when fixed
-  # echo-release-version:
-  #   name: "Echo the calculated release version"
-  #   needs:
-  #     - metadata
-  #     - tag-release
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: "Echo new version"
-  #       run: |
-  #         echo "The calculated next release version is: ${{ needs.tag-release.outputs.next_tag_version }}"
+  echo-release-version:
+    name: "Echo the calculated release version"
+    needs:
+      - metadata
+      - tag-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Echo new version"
+        run: |
+          echo "The calculated next release version is: ${{ needs.tag-release.outputs.next_tag_version }}"
 
   # TODO restore when fixed
   # build-release-artifacts:
