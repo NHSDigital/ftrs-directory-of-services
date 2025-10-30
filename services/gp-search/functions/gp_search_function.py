@@ -1,5 +1,5 @@
 from aws_lambda_powertools import Logger, Tracer
-from aws_lambda_powertools.event_handler import APIGatewayHttpResolver, Response
+from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
@@ -11,7 +11,7 @@ from functions.organization_query_params import OrganizationQueryParams
 
 powertools_logger = Logger()
 tracer = Tracer()
-app = APIGatewayHttpResolver()
+app = APIGatewayRestResolver()
 
 
 class FtrsLogger(Logger):
@@ -79,8 +79,8 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     )
 
 
-@powertools_logger.inject_lambda_context(
-    correlation_id_path=correlation_paths.API_GATEWAY_HTTP,
+@logger.inject_lambda_context(
+    correlation_id_path=correlation_paths.API_GATEWAY_REST,
     log_event=True,
     clear_state=True,
 )

@@ -38,18 +38,14 @@ def mock_logger():
 @pytest.fixture
 def event(ods_code):
     return {
-        "version": "2.0",
-        "rawPath": "/Organization",
+        "path": "/Organization",
+        "httpMethod": "GET",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{ods_code}",
             "_revinclude": "Endpoint:organization",
         },
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
-            "stage": "$default",
-            "http": {
-                "method": "GET",
-            },
         },
         "body": None,
     }
@@ -76,7 +72,7 @@ def assert_response(
     expected_body,
 ):
     assert response["statusCode"] == expected_status_code
-    assert response["headers"] == {"Content-Type": "application/fhir+json"}
+    assert response["multiValueHeaders"] == {"Content-Type": ["application/fhir+json"]}
     assert response["body"] == expected_body
 
 
@@ -199,5 +195,5 @@ class TestLambdaHandler:
         empty_event = {}
 
         # Act & Assert
-        with pytest.raises(KeyError, match="requestContext"):
+        with pytest.raises(KeyError, match="httpMethod"):
             lambda_handler(empty_event, lambda_context)
