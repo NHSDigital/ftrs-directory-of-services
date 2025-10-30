@@ -42,9 +42,8 @@ resource "aws_api_gateway_method_settings" "all" {
     logging_level      = var.api_gateway_logging_level
     data_trace_enabled = false
 
-    # This is where throttling can be defined at path (or endpoint level)
-    # DOSIS-2264
-    throttling_burst_limit = -1
-    throttling_rate_limit  = -1
+    # Throttling defined at path (or endpoint) level
+    throttling_burst_limit = var.api_gateway_throttling_burst_limit
+    throttling_rate_limit  = var.api_gateway_throttling_rate_limit
   }
 }
