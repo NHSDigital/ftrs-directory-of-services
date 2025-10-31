@@ -1,4 +1,4 @@
-resource "aws_secretsmanager_secret" "apim_jwt_credentials" {
+resource "aws_secretsmanager_secret" "dos-ingest_jwt_credentials" {
   # checkov:skip=CKV2_AWS_57: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   # checkov:skip=CKV_AWS_149: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   count       = local.is_primary_environment ? 1 : 0
