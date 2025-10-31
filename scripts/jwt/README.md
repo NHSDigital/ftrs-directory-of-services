@@ -47,11 +47,11 @@ export AWS_SECRET_ACCESS_KEY="your-secret-key"
 export AWS_REGION="eu-west-2"
 ```
 
-Fetch secrets from AWS Secrets Manager and generate token for environment for the requested api.
+Fetch secrets from AWS Secrets Manager and generate token for environment for the requested API.
 
 Available APIs:
-- dos-ingest
 
+- dos-ingest
 
 ```bash
 make jwt-token env=dev api=dos-ingest
