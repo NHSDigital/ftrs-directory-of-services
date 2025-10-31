@@ -73,3 +73,20 @@ data "aws_acm_certificate" "domain_cert" {
   statuses    = ["ISSUED"]
   most_recent = true
 }
+
+data "aws_iam_policy_document" "dynamodb_session_store_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query"
+    ]
+    resources = [
+      module.ui_session_store.dynamodb_table_arn,
+      "${module.ui_session_store.dynamodb_table_arn}/index/*"
+    ]
+  }
+}
