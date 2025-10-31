@@ -13,6 +13,8 @@
     "check": "biome check --write"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.918.0",
+    "@aws-sdk/lib-dynamodb": "^3.918.0",
     "@tanstack/react-router": "^1.132.0",
     "@tanstack/react-start": "^1.132.0",
     "nhsuk-frontend": "^9.4.1",
@@ -20,7 +22,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sass": "^1.87.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
