@@ -5,19 +5,20 @@ import subprocess
 import tempfile
 from pathlib import Path
 from typing import Generator
+
+from ftrs_common.utils.db_service import get_service_repository
 from loguru import logger
 
 from sqlalchemy import text, MetaData
 from testcontainers.postgres import PostgresContainer
 from testcontainers.localstack import LocalStackContainer
 from sqlmodel import create_engine, SQLModel, Session
-from ftrs_data_layer.domain import legacy
+from ftrs_data_layer.domain import legacy, Organisation, Location, HealthcareService
 from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
 from utilities.common.rds_data import gp_service
 from utilities.common.dynamoDB_tables import dynamodb_tables
 
-
-
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 # Session-scoped containers (keep these as session-scoped for efficiency)
 @pytest.fixture(scope="session")
@@ -398,3 +399,20 @@ def _cleanup_dynamodb_tables(client) -> None:
 def dos_search_context():
     """Context for storing test data during BDD scenarios."""
     return {}
+
+
+@pytest.fixture(scope="function")
+def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisation | Location | HealthcareService]]:
+    def prep_local_repo(table_name, model_cls, dynamodb):
+        model_repo = get_service_repository(model_cls, table_name)
+        model_repo.resource = dynamodb[
+            "resource"]  # fake credentials aligned with localstack set in the injected dynamodb client
+        model_repo.table = dynamodb["resource"].Table(table_name)
+
+        return model_repo
+
+    return {
+        "organisation": prep_local_repo("organisation", Organisation, dynamodb),
+        "location": prep_local_repo("location", Location, dynamodb),
+        "healthcare-service": prep_local_repo("healthcare-service", HealthcareService, dynamodb),
+    }
