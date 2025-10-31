@@ -61,8 +61,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             ods_code=ods_code,
         )
         response = make_request(
-            organisation_get_uuid_uri,
-            method="GET",
+            organisation_get_uuid_uri, method="GET", jwt_required=True
         )
         if isinstance(response, dict) and response.get("resourceType") == "Bundle":
             organizations = _extract_organizations_from_bundle(response)

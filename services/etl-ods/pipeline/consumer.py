@@ -84,7 +84,9 @@ def process_message_and_send_request(record: dict) -> None:
         api_url = api_url + "/Organization/" + path
 
         try:
-            response_data = make_request(api_url, method="PUT", json=body)
+            response_data = make_request(
+                api_url, method="PUT", json=body, jwt_required=True
+            )
             ods_consumer_logger.log(
                 OdsETLPipelineLogBase.ETL_CONSUMER_007,
                 status_code=response_data.get("status_code", "unknown"),
