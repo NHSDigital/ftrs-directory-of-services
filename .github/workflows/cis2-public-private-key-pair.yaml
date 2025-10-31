@@ -18,6 +18,11 @@ on:
         description: "The git tag to checkout or, if not passed in, the current branch"
         required: false
         type: string
+      project:
+        description: "The project i.e. ftrs-dos"
+        required: false
+        type: string
+        default: "ftrs-dos"
   schedule:
     - cron: "* * 1 FEB *" # Runs on Feb 1st every year
 
@@ -75,7 +80,7 @@ jobs:
       - name: Create, Update or Rotate CIS2 Public and Private Key Pair
         if: steps.should-run.outputs.should_run == 'true'
         run: |
-          ./scripts/cis2/create-cis2-key-pair.sh -r ${{ github.event.repository.name }} -e ${{ matrix.environment }}
+          ./scripts/cis2/create-cis2-key-pair.sh -r ${{ inputs.project }} -e ${{ matrix.environment }}
 
   slack-notifications:
     name: "Send Notification to Slack"

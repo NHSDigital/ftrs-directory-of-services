@@ -13,11 +13,23 @@ from ftrs_common.utils.correlation_id import (
     get_correlation_id,
 )
 from ftrs_common.utils.request_id import REQUEST_ID_HEADER
+from ftrs_common.utils.jwt_auth import JWTAuthenticator
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
 
 TIMEOUT_SECONDS = 20
+
+
+def get_jwt_authenticator() -> JWTAuthenticator:
+    environment = os.environ.get("ENVIRONMENT", "local")
+    resource_prefix = get_resource_prefix()
+
+    return JWTAuthenticator(
+        environment=environment,
+        region=os.environ["AWS_REGION"],
+        secret_name=f"/{resource_prefix}/dos-ingest-jwt-credentials",
+    )
 
 
 @cache
@@ -49,23 +61,22 @@ def get_base_ods_terminology_api_url() -> str:
 
 
 def _get_api_key_for_url(url: str) -> str:
-    env = os.environ.get("ENVIRONMENT")
     is_ods_terminology_request = "organisation-data-terminology-api" in url
+
+    if not is_ods_terminology_request:
+        return ""
+
+    env = os.environ.get("ENVIRONMENT")
 
     if env == "local":
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
-        if is_ods_terminology_request:
-            return os.environ.get(
-                "LOCAL_ODS_TERMINOLOGY_API_KEY", os.environ.get("LOCAL_API_KEY", "")
-            )
-        return os.environ.get("LOCAL_API_KEY", "")
+        return os.environ.get(
+            "LOCAL_ODS_TERMINOLOGY_API_KEY", os.environ.get("LOCAL_API_KEY", "")
+        )
 
     try:
         resource_prefix = get_resource_prefix()
-        if is_ods_terminology_request:
-            secret_name = f"/{resource_prefix}/ods-terminology-api-key"
-        else:
-            secret_name = f"/{resource_prefix}/apim-api-key"
+        secret_name = f"/{resource_prefix}/ods-terminology-api-key"
 
         client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
         response = client.get_secret_value(SecretId=secret_name)
@@ -105,14 +116,23 @@ def build_headers(options: dict) -> dict:
     headers = {}
     json_data = options.get("json_data")
     json_string = options.get("json_string")
+    jwt_required = options.get("jwt_required", False)
     url = options.get("url", "")
     correlation_id = fetch_or_set_correlation_id(get_correlation_id())
 
     headers = {
         CORRELATION_ID_HEADER: correlation_id,
         "Accept": "application/fhir+json",
-        "apikey": _get_api_key_for_url(url),
     }
+
+    api_key = _get_api_key_for_url(url)
+    if api_key:
+        headers["apikey"] = api_key
+
+    if jwt_required:
+        jwt_auth = get_jwt_authenticator()
+        auth_headers = jwt_auth.get_auth_headers()
+        headers.update(auth_headers)
 
     # Set Content-Type based on whether we have JSON data
     if json_data is not None or json_string is not None:
@@ -140,6 +160,7 @@ def make_request(
     url: str,
     method: str = "GET",
     params: dict | None = None,
+    jwt_required: bool = False,
     **kwargs: dict,
 ) -> dict:
     json_data = kwargs.get("json")
@@ -151,6 +172,7 @@ def make_request(
             "json_string": json_string,
             "url": url,
             "method": method,
+            "jwt_required": jwt_required,
         }
     )
     ods_utils_logger.append_keys(

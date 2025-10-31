@@ -1,7 +1,7 @@
 import json
 import os
 
-from gp_search_function import lambda_handler
+from dos_search_ods_code_function import lambda_handler
 
 if __name__ == "__main__":
     ods_code = os.environ.get("ODS_CODE")
