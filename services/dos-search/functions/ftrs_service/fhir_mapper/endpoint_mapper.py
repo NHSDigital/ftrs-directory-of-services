@@ -4,7 +4,11 @@ from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain import Endpoint, Organisation
 
+from functions.ftrs_logger import FtrsLogger
+
 logger = Logger()
+
+ftrs_logger = FtrsLogger(service="dos-search")
 
 
 class EndpointMapper:
@@ -118,7 +122,7 @@ class EndpointMapper:
         business_scenario_code = self.BUSINESS_SCENARIO_MAP.get(business_scenario)
 
         if not business_scenario_code:
-            logger.error(f"Unknown business scenario: {business_scenario}")
+            ftrs_logger.error(f"Unknown business scenario: {business_scenario}")
             return None
 
         return {
