@@ -26,6 +26,7 @@ install: venv
 jwt-token:
 ifndef env
 	$(error env parameter is required. Usage: make jwt-token env=local api=dos-ingest)
+endif
 ifndef api
 	$(error api parameter is required. Usage: make jwt-token env=local api=dos-ingest)
 endif
