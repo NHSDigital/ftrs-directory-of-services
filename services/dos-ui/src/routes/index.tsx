@@ -1,31 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
 import careIdentityLoginImg from "/images/care-identity-buttons/SVG/CIS2_LogInWith_Original.svg";
+import {getAuthorisationUrl} from "@/utils/cis2ConfigurationUtil.ts";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
   head: () => ({
     meta: [{ title: "FtRS DoS UI" }],
   }),
+  loader: async () => {
+    return {
+      authorizeUrl: await getAuthorisationUrl()
+    }
+  }
 });
 
 function HomePage() {
+  const { authorizeUrl } = Route.useLoaderData();
+
   return (
     <>
       <h1 className="nhsuk-heading-l">Home</h1>
-      <button
+      <h2 className="nhsuk-heading-m">Session Details</h2>
+      <a
         type="button"
         className="care-identity-button"
-        onClick={() =>
-          // TODO: Implement Care Identity login logic here
-          console.log("Care Identity button clicked")
-        }
+        href={authorizeUrl}
       >
         <img
           src={careIdentityLoginImg}
           alt="Care Identity Login"
           className="care-identity-button__image"
         />
-      </button>
+      </a>
     </>
   );
 }
