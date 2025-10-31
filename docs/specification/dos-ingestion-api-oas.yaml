@@ -167,6 +167,15 @@ paths:
         schema:
           type: string
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: X-Request-ID
+        required: false
+        description: |
+          Unique request identifier in GUID format. A unique ID is generated for every
+          incoming API request if not provided.
+        schema:
+          type: string
+          example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
       - in: query
         name: identifier
         description: >
@@ -182,11 +191,17 @@ paths:
         '200':
           description: Bundle of Organizations found and returned successfully
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -276,11 +291,17 @@ paths:
         '400':
           description: Bad request (e.g., invalid format of parameters)
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -295,11 +316,17 @@ paths:
         '404':
           description: Organization not found
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -314,11 +341,17 @@ paths:
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -344,11 +377,17 @@ paths:
         '500':
           description: Internal server error
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -393,6 +432,15 @@ paths:
         schema:
           type: string
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: X-Request-ID
+        required: false
+        description: |
+          Unique request identifier in GUID format. A unique ID is generated for every
+          incoming API request if not provided.
+        schema:
+          type: string
+          example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
       - $ref: '#/components/parameters/AcceptFHIR'
       - $ref: '#/components/parameters/ContentTypeFHIR'
       - in: path
@@ -412,11 +460,17 @@ paths:
         '200':
           description: Organization updated
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -431,11 +485,17 @@ paths:
         '404':
           description: Organization not found
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:

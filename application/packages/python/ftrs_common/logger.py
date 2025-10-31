@@ -5,6 +5,7 @@ from functools import cache
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 from ftrs_common.utils.correlation_id import get_correlation_id
+from ftrs_common.utils.request_id import get_request_id
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,8 @@ class Logger(PowertoolsLogger):
         """
         if correlation_id := get_correlation_id():
             self.append_keys(correlation_id=correlation_id)
+        if request_id := get_request_id():
+            self.append_keys(request_id=request_id)
         log_key = log_reference.name
         log_details = log_reference.value
         formatted_message = self.format_message(log_reference, **detail)
