@@ -8,10 +8,9 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
+from functions.ftrs_logger import FtrsLogger
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.organization_query_params import OrganizationQueryParams
-
-from .ftrs_logger import FtrsLogger
 
 logger = Logger()
 ftrs_logger = FtrsLogger(service="dos-search")
