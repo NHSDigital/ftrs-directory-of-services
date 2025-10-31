@@ -97,7 +97,7 @@ info:
     Our [integration environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing):
     * is for formal integration testing
     * is stateful, so can persist updates
-    * includes authorisation via API key
+    * includes authorisation via JWT token
 
     ## Onboarding
 
@@ -129,7 +129,7 @@ paths:
   '/Organization':
     get:
       security:
-        - app-level0: []
+        - app-level3: []
       summary: Search for organisations by ODS code to return organization details
       description: |
         ## Overview
@@ -148,14 +148,16 @@ paths:
       operationId: searchOrganizations
       parameters:
       - in: header
-        name: apiKey
+        name: Authorization
         required: true
         description: |
-          Use the unique api key provided to you during onboarding. This will be used to authorise API requests.
+          An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+          Required in all environments except sandbox.
         schema:
           type: string
-          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+          format: "^Bearer\\ [[:ascii:]]+$"
+          example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
       - in: header
         name: X-Correlation-ID
         required: false
@@ -367,19 +369,21 @@ paths:
   '/Organization/{id}':
     put:
       security:
-        - app-level0: []
+        - app-level3: []
       summary: Update/overwrite an organization resource
       description: Update or overwrite an existing organization resource by ID.
       parameters:
       - in: header
-        name: apiKey
+        name: Authorization
         required: true
         description: |
-            Use the unique api key provided to you during onboarding. This will be used to authorise API requests
+          An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+          Required in all environments except sandbox.
         schema:
-            type: string
-            pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
-            example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+          type: string
+          format: "^Bearer\\ [[:ascii:]]+$"
+          example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
       - in: header
         name: X-Correlation-ID
         required: false
@@ -670,12 +674,12 @@ components:
                 type: string
                 example: Invalid resource.
   securitySchemes:
-    app-level0:
-      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level0
+    app-level3:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3
 x-nhsd-apim:
   target:
     $ref: x-nhsd-apim/target.yaml
   access:
-    - title: Application-restricted with API key
+    - title: Application-restricted with Private Key JWT
       grants:
-        app-level0: []
+        app-level3: [ ]

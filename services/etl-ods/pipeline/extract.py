@@ -1,62 +1,47 @@
 import re
 from http import HTTPStatus
-from urllib.parse import urlparse
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from pipeline.utilities import get_base_apim_api_url, make_request
+from pipeline.utilities import (
+    get_base_apim_api_url,
+    get_base_ods_terminology_api_url,
+    make_request,
+)
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
 
-def fetch_sync_data(date: str) -> list:
+def fetch_outdated_organisations(date: str) -> list[dict]:
     """
-    Returns a list of ods organisation records that have been modified since a specified date.
+    Returns a list of ods organisation FHIR resources that have been modified on a specified date.
+    Uses the ODS Terminology API FHIR endpoint.
     """
-    ods_sync_uri = "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?"
-    params = {"LastChangeDate": date}
+    params = {"_lastUpdated": f"{date}"}
 
     ods_processor_logger.log(
         OdsETLPipelineLogBase.ETL_PROCESSOR_001,
-        params=params,
+        date=date,
     )
-    response = make_request(ods_sync_uri, params=params)
-    organisations = response.json().get("Organisations", [])
+
+    ods_url = get_base_ods_terminology_api_url()
+    bundle = make_request(ods_url, params=params)
+    organisations = _extract_organizations_from_bundle(bundle)
+
+    if not organisations:
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_020,
+            date=date,
+        )
+        return []
 
     ods_processor_logger.log(
         OdsETLPipelineLogBase.ETL_PROCESSOR_002,
-        total_orgs=len(organisations),
+        bundle_total=len(organisations),
     )
     return organisations
-
-
-# To be moved to common package
-def validate_ods_code(ods_code: str) -> None:
-    if not isinstance(ods_code, str) or not re.match(r"^[A-Za-z0-9]{5,12}$", ods_code):
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_012,
-            e=f"Invalid ODS code: {ods_code}",
-        )
-        err_message = f"Invalid ODS code: '{ods_code}' must match ^[A-Za-z0-9]{{5,12}}$"
-        raise ValueError(err_message)
-
-
-def fetch_ods_organisation_data(ods_code: str) -> dict | None:
-    """
-    Fetches and validates a FHIR Organization resource for the specified ODS code.
-    """
-    validate_ods_code(ods_code)
-    ods_org_data_uri = (
-        "https://directory.spineservices.nhs.uk/STU3/Organization/" + ods_code
-    )
-    ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_003,
-        ods_code=ods_code,
-    )
-    response = make_request(ods_org_data_uri, fhir=True)
-    return response.json()
 
 
 def fetch_organisation_uuid(ods_code: str) -> str | None:
@@ -76,17 +61,12 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             ods_code=ods_code,
         )
         response = make_request(
-            organisation_get_uuid_uri,
-            method="GET",
-            api_key_required=True,
-            fhir=True,
-        ).json()
+            organisation_get_uuid_uri, method="GET", jwt_required=True
+        )
         if isinstance(response, dict) and response.get("resourceType") == "Bundle":
-            entries = response.get("entry", [])
-            for entry in entries:
-                resource = entry.get("resource")
-                if resource and resource.get("resourceType") == "Organization":
-                    return resource.get("id")
+            organizations = _extract_organizations_from_bundle(response)
+            if organizations:
+                return organizations[0].get("id")
             return None
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_030,
@@ -109,13 +89,22 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
         raise
 
 
-def extract_ods_code(link: str) -> str:
-    try:
-        path = urlparse(link).path
-        return path.rstrip("/").split("/")[-1]
-    except Exception as e:
+def validate_ods_code(ods_code: str) -> None:
+    if not isinstance(ods_code, str) or not re.match(r"^[A-Za-z0-9]{5,12}$", ods_code):
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_012,
-            e=e,
+            e=f"Invalid ODS code: {ods_code}",
         )
-        raise
+        err_message = f"Invalid ODS code: '{ods_code}' must match ^[A-Za-z0-9]{{5,12}}$"
+        raise ValueError(err_message)
+
+
+def _extract_organizations_from_bundle(bundle: dict) -> list[dict]:
+    organizations = []
+    if bundle.get("resourceType") == "Bundle":
+        entries = bundle.get("entry", [])
+        for entry in entries:
+            resource = entry.get("resource")
+            if resource and resource.get("resourceType") == "Organization":
+                organizations.append(resource)
+    return organizations

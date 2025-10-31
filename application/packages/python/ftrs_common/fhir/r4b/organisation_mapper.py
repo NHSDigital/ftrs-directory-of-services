@@ -30,6 +30,18 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
+    def _extract_ods_code_from_identifiers(self, identifiers: list[dict]) -> str:
+        """Extract ODS code from identifier list."""
+        for identifier in identifiers:
+            if not isinstance(identifier, dict):
+                continue
+            system = identifier.get("system")
+            value = identifier.get("value")
+            if system == "https://fhir.nhs.uk/Id/ods-organization-code" and value:
+                return value
+        err_msg = "No ODS code identifier found in organization resource"
+        raise ValueError(err_msg)
+
     def _build_telecom(self, telecom: str | None) -> list[dict]:
         if telecom:
             return [{"system": "phone", "value": telecom, "use": "work"}]
@@ -85,6 +97,11 @@ class OrganizationMapper(FhirMapper):
     def from_ods_fhir_to_fhir(self, ods_fhir_organization: dict) -> FhirOrganisation:
         org_type_value = self._extract_role_from_extension(ods_fhir_organization)
 
+        # Extract ODS code from identifier list
+        ods_code = self._extract_ods_code_from_identifiers(
+            ods_fhir_organization.get("identifier", [])
+        )
+
         required_fields = {
             "resourceType": "Organization",
             "id": ods_fhir_organization.get("id"),
@@ -92,9 +109,7 @@ class OrganizationMapper(FhirMapper):
             "active": ods_fhir_organization.get("active"),
             "name": ods_fhir_organization.get("name"),
             "type": self._build_type(org_type_value),
-            "identifier": self._build_identifier(
-                ods_fhir_organization.get("identifier", {}).get("value")
-            ),
+            "identifier": self._build_identifier(ods_code),
             "telecom": ods_fhir_organization.get("telecom", []),
         }
         fhir_organisation = FhirValidator.validate(required_fields, FhirOrganisation)

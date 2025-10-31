@@ -172,3 +172,50 @@ variable "waf_log_group_retention_days" {
   type        = number
   default     = 365
 }
+
+# Performance EC2 configuration
+variable "performance_instance_type" {
+  description = "EC2 instance type for performance testing"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "performance_ami_name_pattern" {
+  description = "List of AMI name patterns to match for the performance EC2 (e.g., AL2023)"
+  type        = list(string)
+  default     = ["al2023-ami-*-x86_64"]
+}
+
+variable "performance_ami_architectures" {
+  description = "List of acceptable CPU architectures for the performance EC2 AMI"
+  type        = list(string)
+  default     = ["x86_64"]
+}
+
+variable "performance_volume_size" {
+  description = "Root EBS volume size (GiB) for the performance instance"
+  type        = number
+  default     = 30
+  validation {
+    condition     = var.performance_volume_size >= 30
+    error_message = "performance_volume_size must be >= 30 GiB to satisfy the AMI snapshot minimum size"
+  }
+}
+
+variable "performance_version" {
+  description = "Apache JMeter version to install"
+  type        = string
+  default     = "5.6.3"
+}
+
+variable "performance_poweroff_after_setup" {
+  description = "Whether to power off the instance after installing JMeter"
+  type        = bool
+  default     = true
+}
+
+variable "performance_jwt_dependency_version" {
+  description = "Version of java-jwt library to download"
+  type        = string
+  default     = "4.5.0"
+}

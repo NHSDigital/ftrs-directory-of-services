@@ -3,88 +3,120 @@ from http import HTTPStatus
 import pytest
 from pytest_mock import MockerFixture
 from requests import HTTPError
-from requests_mock import Mocker as RequestsMock
 
 from pipeline.extract import (
-    extract_ods_code,
-    fetch_ods_organisation_data,
+    _extract_organizations_from_bundle,
     fetch_organisation_uuid,
-    fetch_sync_data,
+    fetch_outdated_organisations,
+    validate_ods_code,
 )
 
 
-def test_fetch_sync_data(requests_mock: RequestsMock) -> None:
-    mock_call = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/ORD/2-0-0/sync?",
-        json={"Organisations": [{"OrgLink": "https:///organisations/ABC123"}]},
+def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
+    """Test successful fetching of outdated organizations."""
+    mock_bundle = {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "total": 2,
+        "status_code": 200,
+        "entry": [
+            {
+                "resource": {
+                    "resourceType": "Organization",
+                    "id": "ABC123",
+                    "identifier": [
+                        {
+                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                            "value": "ABC123",
+                        }
+                    ],
+                }
+            },
+            {
+                "resource": {
+                    "resourceType": "Organization",
+                    "id": "XYZ789",
+                    "identifier": [
+                        {
+                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                            "value": "XYZ789",
+                        }
+                    ],
+                }
+            },
+        ],
+    }
+
+    make_request_mock = mocker.patch(
+        "pipeline.extract.make_request", return_value=mock_bundle
     )
 
-    date = "2025-05-14"
-    result = fetch_sync_data(date)
+    date = "2025-10-15"
+    result = fetch_outdated_organisations(date)
 
-    assert result == [{"OrgLink": "https:///organisations/ABC123"}]
-    assert mock_call.called_once
-    assert mock_call.last_request.path == "/ord/2-0-0/sync"
-    assert mock_call.last_request.qs == {
-        "lastchangedate": [date]
-    }  # qs returns in lowercase
-
-
-def test_fetch_ods_organisation_data(requests_mock: RequestsMock) -> None:
-    mock_call = requests_mock.get(
-        "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123",
-        json={"resourceType": "Organization", "id": "ABC123"},
-    )
-
-    ods_code = "ABC123"
-    result = fetch_ods_organisation_data(ods_code)
-    assert result == {"resourceType": "Organization", "id": "ABC123"}
-
-    assert mock_call.called_once
-    assert (
-        mock_call.last_request.url
-        == "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123"
+    assert str(len(result)) == "2"
+    assert result[0]["id"] == "ABC123"
+    assert result[1]["id"] == "XYZ789"
+    make_request_mock.assert_called_once_with(
+        "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
+        params={"_lastUpdated": date},
     )
 
 
-def test_fetch_ods_organisation_data_no_organisations(
-    requests_mock: RequestsMock,
+def test_fetch_outdated_organisations_empty_results(
+    caplog: pytest.LogCaptureFixture, mocker: MockerFixture
 ) -> None:
-    requests_mock.get(
-        "https://directory.spineservices.nhs.uk/STU3/Organization/ABC123",
-        json={"Organisations": []},
+    """Test fetching organizations when no results found."""
+    mocker.patch(
+        "pipeline.extract.make_request",
+        return_value={
+            "resourceType": "Bundle",
+            "type": "searchset",
+            "total": 0,
+            "status_code": 200,
+            "link": [
+                {
+                    "relation": "self",
+                    "url": "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-15",
+                }
+            ],
+        },
     )
 
-    ods_code = "ABC123"
-    result = fetch_ods_organisation_data(ods_code)
-    assert result == {"Organisations": []}
+    date = "2025-10-15"
+    with caplog.at_level("INFO"):
+        result = fetch_outdated_organisations(date)
+
+    assert result == []
+    assert "No organisations found for the given date" in caplog.text
 
 
-def test_fetch_organisation_uuid(
-    requests_mock: RequestsMock, mocker: MockerFixture
-) -> None:
+def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
+    """Test fetching organisation UUID from APIM."""
     mocker.patch(
         "pipeline.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
-    mock_call = requests_mock.get(
-        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
-        json={
-            "resourceType": "Bundle",
-            "type": "searchset",
-            "entry": [
-                {"resource": {"resourceType": "Organization", "id": "BUNDLE_ORG_ID"}}
-            ],
-        },
+    mock_response = {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "status_code": 200,
+        "entry": [
+            {"resource": {"resourceType": "Organization", "id": "BUNDLE_ORG_ID"}}
+        ],
+    }
+    make_request_mock = mocker.patch(
+        "pipeline.extract.make_request", return_value=mock_response
     )
+
     result_bundle = fetch_organisation_uuid("XYZ999")
+
     assert result_bundle == "BUNDLE_ORG_ID"
-    assert mock_call.called_once
-    pipe_url_encoding = "%7C"
-    assert (
-        mock_call.last_request.url
-        == f"http://apim-proxy/Organization?identifier=odsOrganisationCode{pipe_url_encoding}XYZ999"
+    make_request_mock.assert_called_once_with(
+        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
+        method="GET",
+        jwt_required=True,
     )
 
 
@@ -143,56 +175,101 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
 
 
 def test_fetch_organisation_uuid_invalid_resource_returned(
-    requests_mock: RequestsMock, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
+    """Test fetch_organisation_uuid handles invalid resource type."""
     mocker.patch(
         "pipeline.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
-    requests_mock.get(
-        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
-        json={
+    mocker.patch(
+        "pipeline.extract.make_request",
+        return_value={
             "resourceType": "Not Bundle",
+            "status_code": 200,
         },
     )
+
     with caplog.at_level("WARNING"):
         with pytest.raises(ValueError) as excinfo:
             fetch_organisation_uuid("XYZ999")
-        # Check log for ETL_PROCESSOR_030
         assert (
             "Fetching organisation uuid for ods code XYZ999 failed, resource type Not Bundle returned"
             in caplog.text
         )
-        # Check error message
         assert "Organisation not found in database" in str(excinfo.value)
 
 
 def test_fetch_organisation_uuid_no_organisation_returned(
-    requests_mock: RequestsMock, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+    mocker: MockerFixture,
 ) -> None:
+    """Test fetch_organisation_uuid returns None when no Organization found in Bundle."""
     mocker.patch(
         "pipeline.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
-    requests_mock.get(
-        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
-        json={
+    mocker.patch(
+        "pipeline.extract.make_request",
+        return_value={
             "resourceType": "Bundle",
+            "status_code": 200,
             "entry": [{"resource": {"resourceType": "ABC", "id": "BUNDLE_ORG_ID"}}],
         },
     )
+
     result = fetch_organisation_uuid("XYZ999")
     assert result is None
 
 
-def test_extract_ods_code() -> None:
-    link = "https:///organisations/ABC123"
-    result = extract_ods_code(link)
-    assert result == "ABC123"
+@pytest.mark.parametrize(
+    "ods_code,should_pass",
+    [
+        ("ABC12", True),
+        ("ABC123", True),
+        ("ABC123456789", True),
+        ("12345", True),
+        ("ABC", False),  # Too short
+        ("ABC1234567890", False),  # Too long
+        ("ABC-123", False),  # Invalid characters
+        (123456, False),  # Not a string
+    ],
+)
+def test_validate_ods_code(ods_code: str, should_pass: bool) -> None:
+    """Test ODS code validation with various inputs."""
+    if should_pass:
+        validate_ods_code(ods_code)  # Should not raise
+    else:
+        with pytest.raises(ValueError) as excinfo:
+            validate_ods_code(ods_code)
+        assert "must match" in str(excinfo.value)
 
 
-def test_extract_ods_code_failure(caplog: pytest.LogCaptureFixture) -> None:
-    link = None
-    with pytest.raises(Exception):
-        extract_ods_code(link)
-    assert "e=" in caplog.text or "ODS code extraction failed" in caplog.text
+def test__extract_organizations_from_bundle_with_missing_resource() -> None:
+    """Test _extract_organizations_from_bundle handles entries without resource field."""
+    bundle = {
+        "resourceType": "Bundle",
+        "entry": [
+            {"resource": {"resourceType": "Organization", "id": "org1"}},
+            {},  # Entry without resource field
+            {"resource": None},  # Entry with None resource
+            {
+                "resource": {"resourceType": "Patient", "id": "patient1"}
+            },  # Different resource type
+            {"resource": {"resourceType": "Organization", "id": "org2"}},
+        ],
+    }
+
+    organizations = _extract_organizations_from_bundle(bundle)
+
+    assert str(len(organizations)) == "2"
+    assert organizations[0]["id"] == "org1"
+    assert organizations[1]["id"] == "org2"
+
+
+def test__extract_organizations_from_bundle_non_bundle() -> None:
+    """Test _extract_organizations_from_bundle returns empty list for non-Bundle."""
+    non_bundle = {"resourceType": "Patient", "id": "123"}
+
+    organizations = _extract_organizations_from_bundle(non_bundle)
+
+    assert organizations == []

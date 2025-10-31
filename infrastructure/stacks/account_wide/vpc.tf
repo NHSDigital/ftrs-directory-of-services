@@ -70,6 +70,28 @@ locals {
         to_port         = 65535
         protocol        = "tcp"
         ipv6_cidr_block = "::/0"
+      },
+      # DNS responses: Allow inbound UDP 32768–65535 only from the VPC resolver (base+2).
+      # Matches the outbound UDP 53 rule below. Required because NACLs are stateless and
+      # responses target an ephemeral source port on the instance.
+      {
+        rule_number = 902
+        rule_action = "allow"
+        from_port   = 32768
+        to_port     = 65535
+        protocol    = "udp"
+        cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
+      },
+      # NTP responses: Allow inbound UDP 32768–65535 from the internet to support public NTP servers.
+      # Note: Broader than using the Amazon Time Sync IP; preferred only if a literal IP cannot be used.
+      # trivy:ignore:aws-vpc-no-public-ingress-acl : NTP inbound ephemeral (UDP 32768–65535) required for time sync responses
+      {
+        rule_number = 903
+        rule_action = "allow"
+        from_port   = 32768
+        to_port     = 65535
+        protocol    = "udp"
+        cidr_block  = "0.0.0.0/0"
       }
     ]
 
@@ -89,6 +111,28 @@ locals {
         to_port         = 65535
         protocol        = "tcp"
         ipv6_cidr_block = "::/0"
+      },
+      # DNS: Allow outbound UDP 53 only to the VPC resolver (base+2).
+      # Required for name resolution (e.g., SSM endpoints). Matching inbound UDP responses
+      # are permitted by the inbound ephemeral rule above (32768–65535 from the resolver).
+      {
+        rule_number = 902
+        rule_action = "allow"
+        from_port   = 53
+        to_port     = 53
+        protocol    = "udp"
+        cidr_block  = format("%s/32", cidrhost(var.vpc["cidr"], 2))
+      },
+      # NTP: Allow outbound UDP 123 to the internet to support public NTP servers (e.g., time.aws.com, pool.ntp.org).
+      # Note: Broader than using the Amazon Time Sync IP; preferred only if a literal IP cannot be used.
+      # trivy:ignore:aws-vpc-no-public-egress-acl : NTP egress (UDP 123) required to reach public NTP servers when link-local IP is disallowed
+      {
+        rule_number = 903
+        rule_action = "allow"
+        from_port   = 123
+        to_port     = 123
+        protocol    = "udp"
+        cidr_block  = "0.0.0.0/0"
       }
     ]
   }

@@ -46,7 +46,7 @@ def send_request(
     if api_key:
         headers["apikey"] = api_key
 
-    logger.info(f"➡️ {method.upper()} {url}")
+    logger.info(f"{method.upper()} {url}")
     logger.info(f"Headers: {headers}")
     if payload:
         logger.info(f"Payload: {json.dumps(payload, indent=2)}")
@@ -60,7 +60,7 @@ def send_request(
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
 
-        logger.info(f"⬅️ Response Status: {response.status}")
+        logger.info(f"Response Status: {response.status}")
         try:
             logger.info(f"Response Body: {response.json()}")
         except Exception:

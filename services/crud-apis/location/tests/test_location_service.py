@@ -78,6 +78,7 @@ def test_get_location_by_id_raises_not_found(
     )
     test_location_id = str(uuid4())
     mock_repository.get.return_value = None
+
     with pytest.raises(HTTPException) as exc_info:
         location_service.get_location_by_id(location_id=test_location_id)
 

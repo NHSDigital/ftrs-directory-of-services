@@ -3,8 +3,15 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+from ftrs_common.api_middleware.fhir_type_middleware import (
+    FHIRAcceptHeaderMiddleware,
+    FHIRContentTypeMiddleware,
+)
+from ftrs_common.api_middleware.response_logging_middleware import (
+    ResponseLoggingMiddleware,
+)
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-from starlette.testclient import TestClient
 
 from organisations.app.handler_organisation import (
     app,
@@ -109,13 +116,6 @@ async def test_operation_outcome_exception_handler_response_content() -> None:
 
 def test_middlewares_present() -> None:
     middleware_classes = [mw.cls for mw in app.user_middleware]
-    from ftrs_common.api_middleware.fhir_type_middleware import (
-        FHIRAcceptHeaderMiddleware,
-        FHIRContentTypeMiddleware,
-    )
-    from ftrs_common.api_middleware.response_logging_middleware import (
-        ResponseLoggingMiddleware,
-    )
 
     assert FHIRContentTypeMiddleware in middleware_classes
     assert FHIRAcceptHeaderMiddleware in middleware_classes
