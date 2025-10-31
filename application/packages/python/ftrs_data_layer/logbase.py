@@ -283,11 +283,11 @@ class OdsETLPipelineLogBase(LogBase):
     """
 
     ETL_PROCESSOR_001 = LogReference(
-        level=INFO, message="Fetching data from sync endpoint with params: {params}."
+        level=INFO, message="Fetching outdated organizations for date {date}."
     )
     ETL_PROCESSOR_002 = LogReference(
         level=INFO,
-        message="Fetching data from sync endpoint returned {total_orgs} outdated organisations.",
+        message="Fetching ODS Data returned {bundle_total} outdated organisations.",
     )
     ETL_PROCESSOR_003 = LogReference(
         level=INFO, message="Fetching organisation data for code: {ods_code}."
@@ -424,7 +424,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_UTILS_005 = LogReference(
         level=INFO,
-        message="Running in local environment, using LOCAL_API_KEY environment variable.",
+        message="Running in local environment, using LOCAL api key environment variable.",
     )
     ETL_UTILS_006 = LogReference(
         level=ERROR,
@@ -432,7 +432,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_UTILS_007 = LogReference(
         level=ERROR,
-        message="Error secret is not in json format.",
+        message="Error decoding json with issue: {error_message}.",
     )
 
 

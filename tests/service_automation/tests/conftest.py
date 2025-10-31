@@ -16,6 +16,7 @@ from loguru import logger
 from pages.ui_pages.result import NewAccountPage
 from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
+from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
 from utilities.common.file_helper import create_temp_file, delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
@@ -60,7 +61,7 @@ def api_request_context_mtls_factory(playwright, workspace, env):
     """Factory to create API request contexts with different api_names."""
     contexts = []
 
-    def _create_context(api_name="servicesearch", headers=None, env=env):
+    def _create_context(api_name="dos-search", headers=None, env=env):
         url = get_url(api_name)
         try:
             # Get mTLS certs
@@ -101,7 +102,7 @@ def api_request_context_mtls_factory(playwright, workspace, env):
 @pytest.fixture(scope="module")
 def api_request_context_mtls(api_request_context_mtls_factory):
     """Create a new Playwright API request context with default api_name."""
-    return api_request_context_mtls_factory("servicesearch")
+    return api_request_context_mtls_factory("dos-search")
 
 
 @pytest.fixture(scope="module")
@@ -125,7 +126,7 @@ def api_request_context(playwright):
 
 
 @pytest.fixture
-def api_request_context_api_key_factory(playwright, api_key: str, service_url_factory):
+def api_request_context_api_key_factory(playwright, apim_api_key: str, service_url_factory):
     """Factory to create API request contexts dynamically based on API name."""
     contexts = []
 
@@ -137,7 +138,7 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
             extra_http_headers={
                 "Content-Type": "application/fhir+json",
                 "Accept": "application/fhir+json",
-                "apikey": api_key,
+                "apikey": apim_api_key,
             },
         )
         contexts.append(context)
@@ -149,6 +150,25 @@ def api_request_context_api_key_factory(playwright, api_key: str, service_url_fa
             ctx.dispose()
         except Exception as e:
             logger.error(f"Error disposing context: {e}")
+
+
+@pytest.fixture(scope="module")
+def api_request_context_ods_terminology(playwright, ods_terminology_api_key: str):
+    """
+    Create API request context for ODS Terminology API.
+    Use ODS integration env for testing
+    """
+    context = playwright.request.new_context(
+        base_url=ODS_TERMINOLOGY_INT_API_URL,
+        ignore_https_errors=True,
+        extra_http_headers={
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+            "apikey": ods_terminology_api_key,
+        },
+    )
+    yield context
+    context.dispose()
 
 
 @pytest.fixture
@@ -272,10 +292,22 @@ def get_mtls_certs(env):
 
 
 @pytest.fixture(scope="session")
-def api_key() -> str:
+def apim_api_key() -> str:
     """Return the raw API key string from Secrets Manager."""
     gsw = GetSecretWrapper()
     key_json = gsw.get_secret("/ftrs-dos/dev/apim-api-key")
+    key_dict = json.loads(key_json)
+    api_key = key_dict.get("api_key")
+    if not api_key:
+        raise ValueError("API key not found in secret")
+    return api_key
+
+
+@pytest.fixture(scope="session")
+def ods_terminology_api_key() -> str:
+    """Return the raw ODS Terminology key string from Secrets Manager."""
+    gsw = GetSecretWrapper()
+    key_json = gsw.get_secret("/ftrs-dos/dev/ods-terminology-api-key")
     key_dict = json.loads(key_json)
     api_key = key_dict.get("api_key")
     if not api_key:

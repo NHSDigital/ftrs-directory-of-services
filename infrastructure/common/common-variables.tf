@@ -101,7 +101,7 @@ variable "sso_roles" {
   default     = []
 }
 
-variable "gp_search_organisation_table_name" {
+variable "organisation_table_name" {
   description = "The dynamodb table name for gp search"
   type        = string
 }
@@ -115,6 +115,12 @@ variable "https_port" {
   description = "The port for HTTPS traffic"
   type        = number
   default     = 443
+}
+
+variable "http_port" {
+  description = "The port for HTTP traffic"
+  type        = number
+  default     = 80
 }
 
 variable "rds_port" {

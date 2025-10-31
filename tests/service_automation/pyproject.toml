@@ -56,7 +56,7 @@ markers = [
   "ftrs-pipeline: mark test to be run in the ftrs pipeline",
   "is-lambda: marks test as IS lambda related",
   "is-s3: marks test as IS S3 related",
-  "gp-search-api: marks test as gp search related",
+  "dos-search-ods-code-api: marks test as gp search related",
   "test: marks test as generic test",
   "data-repo: marks test as data repository test",
   "crud-org-api: marks test as CRUD API for endpoint Organization test",

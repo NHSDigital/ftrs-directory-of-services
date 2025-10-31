@@ -46,7 +46,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       type: app
     secrets: inherit
 
@@ -68,7 +68,9 @@ jobs:
             build_type: "service"
           - name: "etl-ods"
             build_type: "service"
-          - name: "gp-search"
+          - name: "dos-search"
+            build_type: "service"
+          - name: "dos-ui"
             build_type: "service"
     uses: ./.github/workflows/build-project.yaml
     with:
@@ -106,7 +108,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
@@ -137,7 +139,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'gp_search', 'is_performance']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
@@ -192,17 +194,22 @@ jobs:
       type: app
     secrets: inherit
 
-  deploy-read-only-viewer-service:
-    name: "Deploy read only viewer service to ${{ needs.metadata.outputs.environment }}"
+  deploy-frontend-services:
+    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
       cancel-in-progress: false
     needs:
       - metadata
       - apply-infrastructure
+    strategy:
+      matrix:
+        include:
+          - name: "dos-ui"
+          - name: "read-only-viewer"
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
-      name: "read-only-viewer"
+      name: ${{ matrix.name }}
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
@@ -266,13 +273,13 @@ jobs:
   generate-prerelease:
     name: "Generate prerelease tag"
     needs:
-      - deploy-read-only-viewer-service
+      - deploy-frontend-services
       - service-automation-tests
     if: >
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
-      needs.deploy-read-only-viewer-service.result == 'success' &&
+      needs.deploy-frontend-services.result == 'success' &&
       needs.service-automation-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
@@ -280,7 +287,7 @@ jobs:
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
-      - deploy-read-only-viewer-service
+      - deploy-frontend-services
       - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
@@ -299,7 +306,7 @@ jobs:
       - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
-      - deploy-read-only-viewer-service
+      - deploy-frontend-services
       - deploy-data-migration-service
       - service-automation-tests
       - generate-prerelease

@@ -200,6 +200,29 @@
                 "securityhub:BatchEnableStandards"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "Inspector2Access",
+            "Effect": "Allow",
+            "Action": [
+                "inspector2:Enable",
+                "inspector2:Disable",
+                "inspector2:BatchGetAccountStatus",
+                "inspector2:GetConfiguration",
+                "inspector2:UpdateConfiguration"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowInspector2ServiceLinkedRoleCreation",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:iam::*:role/aws-service-role/inspector2.amazonaws.com/AWSServiceRoleForAmazonInspector2",
+            "Condition": {
+                "StringEquals": {
+                "iam:AWSServiceName": "inspector2.amazonaws.com"
+                }
+            }
         }
     ]
 }
