@@ -181,7 +181,7 @@ class OrganisationService:
         if outdated_fields:
             self.logger.log(
                 CrudApisLogBase.ORGANISATION_006,
-                outdated_fields=outdated_fields,
+                outdated_fields=list(outdated_fields.keys()),
                 organisation_id=getattr(organisation, "id", None),
             )
             outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"

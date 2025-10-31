@@ -1,10 +1,12 @@
-# GitHub Copilot Commit Message Guidelines
+# GitHub Copilot Instructions
+
+## GitHub Copilot Commit Message Guidelines
 
 We are using **Conventional Commits** for all commit messages. Please follow these rules when generating commit messages.
 
 ---
 
-## 1. Format
+### 1. Format
 
 `<type>(<scope>): <description>`
 
@@ -12,7 +14,7 @@ We are using **Conventional Commits** for all commit messages. Please follow the
 
 ---
 
-## 2. Types
+### 2. Types
 
 - `feat:` → New feature (**MINOR** version bump)
 - `fix:` → Bug fix (**PATCH** version bump)
@@ -30,7 +32,7 @@ We are using **Conventional Commits** for all commit messages. Please follow the
 
 ---
 
-## 3. Scope
+### 3. Scope
 
 Optional — usually the module, feature, or area affected.
 
@@ -38,7 +40,7 @@ Optional — usually the module, feature, or area affected.
 
 ---
 
-## 4. Description
+### 4. Description
 
 - Short, imperative, and written in present tense (e.g., “Add login validation logic”)
 - Capitalize the first word.
@@ -49,7 +51,7 @@ Optional — usually the module, feature, or area affected.
 
 ---
 
-## Example Commit Messages Copilot Should Generate
+### Example Commit Messages Copilot Should Generate
 
 - `feat(data-migration): Add user sync logic`
 - `fix(crud-apis): Resolve token refresh issue`
@@ -59,3 +61,10 @@ Optional — usually the module, feature, or area affected.
 ---
 
 When generating commit messages, always follow these rules.
+
+## Testing Standards
+
+When generating or updating test functions, always include explicit type annotations for all function arguments.
+
+```def test_example_function(input_data: dict, expected: int) -> None:```
+This applies to all test files and all test functions, including fixtures and parameterized tests.
