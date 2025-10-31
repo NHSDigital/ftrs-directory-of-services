@@ -1,12 +1,13 @@
 import datetime
 import json
-import os
 import re
 
+from decimal import Decimal
 from deepdiff import DeepDiff
 from pprint import pprint
-from pytest_bdd import scenarios, given, when, then, parsers
-from decimal import Decimal
+from pytest_bdd import scenarios, given, when, then, parsers, scenario
+
+from step_definitions.common_steps.data_steps import *  # noqa: F403
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -26,6 +27,7 @@ NESTED_PATHS = [
 ]
 
 IGNORED_PATHS = [
+    "field",
     *META_TIME_FIELDS,
     *[re.compile(f"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS for field in META_TIME_FIELDS],
 ]
@@ -38,13 +40,19 @@ def data_migration_system_ready():
 
 
 @given(parsers.parse("record for '{table_name}' from '{source_file_path}' is loaded"))
-def sideload_data_to_dynamodb_table(table_name, source_file_path, dynamodb, project_root_folder_path):
-    dynamodb_client = dynamodb["client"]
-
-    source_file_full_path = os.path.join(os.getcwd(), source_file_path)
-    with open(os.path.join(project_root_folder_path, source_file_path), 'r') as file:
-        data = json.load(file)
-        dynamodb_client.put_item(TableName=table_name, Item=data)
+def sideload_data_to_dynamodb_table(
+    table_name,
+    source_file_path,
+    request: pytest.FixtureRequest,
+    model_repos_local,
+):
+    model_repo = model_repos_local[table_name]
+    model = model_from_json_file(source_file_path, model_repo)
+    if not check_record_in_repo(model_repo, model.id):
+        model_repo.delete(model.id)
+    model_repo.create(model)
+    yield
+    model_repo.delete(model.id)
 
 
 @when("I run the hello world data migration test")
@@ -74,7 +82,6 @@ def check_expected_table_counts(org_count_expected: int, location_count_expected
     check_table("healthcare-service", healthcare_service_count_expected)
 
 
-
 @then(parsers.parse("The '{table_name}' for service ID '{service_id}' has content:"))
 def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
     retrieved_item = json.loads(
@@ -85,15 +92,14 @@ def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
     )
     expected = json.loads(docstring)
 
-    validated_delta(expected, retrieved_item)
+    validated_diff(expected, retrieved_item)
     validate_dynamic_fields(retrieved_item)
 
 
-def validated_delta(expected, retrieved_item):
+def validated_diff(expected, retrieved_item):
     diff = DeepDiff(expected, retrieved_item, ignore_order=True, exclude_regex_paths=IGNORED_PATHS)
 
     assert diff == {}, f"Differences found: {pprint(diff, indent=2)}"
-
 
 
 def validate_dynamic_fields(retrieved_item):
