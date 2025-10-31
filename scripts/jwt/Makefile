@@ -25,10 +25,12 @@ install: venv
 
 jwt-token:
 ifndef env
-	$(error env parameter is required. Usage: make jwt-token env=local)
+	$(error env parameter is required. Usage: make jwt-token env=local api=dos-ingest)
+ifndef api
+	$(error api parameter is required. Usage: make jwt-token env=local api=dos-ingest)
 endif
 	@if [ ! -d "$(VENV)" ]; then $(MAKE) venv; fi
-	$(PYTHON) generate_jwt.py $(env)
+	$(PYTHON) generate_jwt.py $(env) $(api)
 
 clean:
 	rm -rf $(VENV)

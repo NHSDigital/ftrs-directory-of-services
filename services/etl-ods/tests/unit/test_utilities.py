@@ -554,7 +554,7 @@ def test_get_jwt_authenticator_returns_configured_instance(
     mock_jwt_authenticator_class.assert_called_once_with(
         environment="dev",
         region="eu-west-2",
-        secret_name="/ftrs-dos/dev/apim-jwt-credentials",
+        secret_name="/ftrs-dos/dev/dos-ingest-jwt-credentials",
     )
 
     # Verify the instance is returned
@@ -674,7 +674,7 @@ def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
     mock_jwt_authenticator_class.assert_called_once_with(
         environment="local",
         region="eu-west-2",
-        secret_name="/ftrs/local/apim-jwt-credentials",  # Adjust based on actual implementation
+        secret_name="/ftrs/local/dos-ingest-jwt-credentials",  # Adjust based on actual implementation
     )
 
     assert result == mock_instance

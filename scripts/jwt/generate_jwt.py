@@ -8,12 +8,12 @@ import requests
 from time import time
 
 
-def get_config(env_name=None, region_name="eu-west-2"):
+def get_config(env_name=None, api_name=None, region_name="eu-west-2"):
     config = {}
 
     secret_name = None
     if env_name:
-        secret_name = f"/ftrs-dos/{env_name}/apim-jwt-credentials"
+        secret_name = f"/ftrs-dos/{env_name}/{api_name}-jwt-credentials"
 
     if secret_name:
         try:
@@ -86,12 +86,13 @@ def exchange_for_bearer(jwt_token, token_url):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python generate_bearer_token.py <env>")
+    if len(sys.argv) < 3:
+        print("Usage: python generate_bearer_token.py <env> <api>")
         sys.exit(1)
 
     env_name = sys.argv[1]
-    config = get_config(env_name)
+    api_name = sys.argv[2]
+    config = get_config(env_name, api_name)
 
     jwt_token = generate_jwt(
         config["api_key"], config["private_key"], config["kid"], config["token_url"]

@@ -27,7 +27,7 @@ def get_jwt_authenticator() -> JWTAuthenticator:
     return JWTAuthenticator(
         environment=environment,
         region=os.environ["AWS_REGION"],
-        secret_name=f"/{resource_prefix}/apim-jwt-credentials",
+        secret_name=f"/{resource_prefix}/dos-ingest-jwt-credentials",
     )
 
 
