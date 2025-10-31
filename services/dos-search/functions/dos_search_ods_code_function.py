@@ -22,7 +22,8 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    event = app.current_event.event
+    # print("Easily searchable: ", app.current_event)
+    event = app.current_event
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
