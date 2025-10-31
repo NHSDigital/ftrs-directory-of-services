@@ -78,6 +78,7 @@ Important internals:
 - At request start: `ftrs_logger.info("Received request for odsCode", event=event, ods_code=ods_code)` — records request fields and adds `ods_code` to `detail`.
 - On validation error: `ftrs_logger.warning("Validation error occurred", event=event, validation_errors=...)` — stores validation errors under `detail`.
 - On success: the handler measures duration and response size and calls:
+
   ```py
   ftrs_logger.info(
       "Successfully processed",
@@ -86,6 +87,7 @@ Important internals:
       ftrs_response_size=response_size,
   )
   ```
+
   where `ftrs_response_time` and `ftrs_response_size` are promoted to top-level keys in `extra` by the wrapper.
 
 ## Local test harness: run_ftrs_logger_test.py
@@ -142,11 +144,14 @@ Example powertools log (single-line JSON — simplified):
 Because powertools emits JSON and merges `extra` into the same object, you can search directly on fields:
 
 - Example to filter by correlation id (CloudWatch filter syntax):
-  ```
+
+  ```json
   { $.correlation_id = "<EXAMPLE_CORRELATION_ID>" }
   ```
+
 - Example to find logs for an ods_code (present under `detail`):
-  ```
+
+  ```json
   { $.detail.ods_code = "A12345" }
   ```
 
