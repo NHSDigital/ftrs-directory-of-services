@@ -105,10 +105,10 @@ def update_organisation_generic(payload: dict, api_context, base_url: str):
 
 
 def update_organisation_apim(
-    payload: dict, api_request_context_api_key_factory, dos_ingestion_service_url: str
+    payload: dict, api_request_context_api_key_factory, dos_ingest_service_url: str
 ):
-    api_context = api_request_context_api_key_factory("dos-ingestion")
-    return update_organisation_generic(payload, api_context, dos_ingestion_service_url)
+    api_context = api_request_context_api_key_factory("dos-ingest")
+    return update_organisation_generic(payload, api_context, dos_ingest_service_url)
 
 
 def update_organisation(payload: dict, api_request_context_mtls_crud):
@@ -160,10 +160,10 @@ def get_diagnostics_list(fresponse):
     "I update the organization details for ODS Code via APIM",
     target_fixture="fresponse",
 )
-def step_update_apim(api_request_context_api_key_factory, dos_ingestion_service_url):
+def step_update_apim(api_request_context_api_key_factory, dos_ingest_service_url):
     payload = _load_default_payload()
     return update_organisation_apim(
-        payload, api_request_context_api_key_factory, dos_ingestion_service_url
+        payload, api_request_context_api_key_factory, dos_ingest_service_url
     )
 
 
@@ -215,11 +215,11 @@ def step_remove_field(field: str, api_request_context_mtls_crud):
     target_fixture="fresponse",
 )
 def step_remove_field_apim(
-    field: str, api_request_context_api_key_factory, dos_ingestion_service_url
+    field: str, api_request_context_api_key_factory, dos_ingest_service_url
 ):
     payload = remove_field(_load_default_payload(), field)
     return update_organisation_apim(
-        payload, api_request_context_api_key_factory, dos_ingestion_service_url
+        payload, api_request_context_api_key_factory, dos_ingest_service_url
     )
 
 

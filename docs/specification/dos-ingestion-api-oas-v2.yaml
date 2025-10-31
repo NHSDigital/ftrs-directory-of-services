@@ -70,7 +70,7 @@ info:
     You might find the following open source resources useful:
     | Resource | Description | Link |
     |-----|-----|-----|
-    |Directory of Services - Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
+    |Directory of Services - Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingest-api) |
     | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
 
     ## Environments and testing
@@ -79,8 +79,8 @@ info:
 
     | Environment | Base URL |
     |-------------|----------|
-    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
-    | Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4 |
+    | Integration | https://int.api.service.nhs.uk/dos-ingest/FHIR/R4 |
 
     ### Sandbox
 
@@ -121,9 +121,9 @@ info:
 
   version: 1.0.0
 servers:
-  - url: https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4
+  - url: https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4
     description: Sandbox Environment
-  - url: https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4
+  - url: https://int.api.service.nhs.uk/dos-ingest/FHIR/R4
     description: Integration Environment
 paths:
   '/Organization':
