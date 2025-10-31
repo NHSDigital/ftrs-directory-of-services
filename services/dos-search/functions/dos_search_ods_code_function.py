@@ -28,7 +28,7 @@ def get_organization() -> Response:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
-        ods_code = validated_params.ods_code
+        ods_code = validated_params.identifier
         # Structured request log
         ftrs_logger.info("Received request for odsCode", event=event, ods_code=ods_code)
 
