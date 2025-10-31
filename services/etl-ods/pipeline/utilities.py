@@ -12,8 +12,8 @@ from ftrs_common.utils.correlation_id import (
     fetch_or_set_correlation_id,
     get_correlation_id,
 )
-from ftrs_common.utils.request_id import REQUEST_ID_HEADER
 from ftrs_common.utils.jwt_auth import JWTAuthenticator
+from ftrs_common.utils.request_id import REQUEST_ID_HEADER
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
