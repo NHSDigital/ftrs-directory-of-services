@@ -4,7 +4,7 @@ Feature:Data Migration Hello World
   Scenario:Happy path migration for a GP Practice
     Given the data migration system is ready
     * record for 'organisation' from 'Organisation/organisation-with-4-endpoints.json' is loaded
-    When I run the hello world data migration test
+    @When I run the hello world data migration test
     Then the 'organisation' for service ID '36fce427-0f31-4a4e-903f-74dcf9e63cfd' has content:
       """
       {
@@ -98,4 +98,4 @@ Feature:Data Migration Hello World
         ]
       }
       """
-    Then there are 1 organisation, 0 location and 0 healthcare services created
+    Then there is 1 organisation, 0 location and 0 healthcare services created
