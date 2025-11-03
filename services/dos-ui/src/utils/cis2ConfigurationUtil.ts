@@ -1,6 +1,6 @@
 import * as client from "openid-client";
 import { ACR_VALUE } from "@/types/CIS2ClientConfig.ts";
-import { getAuthConfig, getOIDCConfig } from "@/utils/cisConfiguration.ts";
+import { getAuthConfig, getOIDCConfig } from "@/utils/cis2Configuration.ts";
 import { logger } from "@/utils/logger";
 
 export const getAuthorisationUrl = async (): Promise<string> => {
