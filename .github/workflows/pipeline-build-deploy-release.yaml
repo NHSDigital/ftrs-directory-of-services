@@ -45,6 +45,7 @@ jobs:
     needs:
       - quality-checks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       next_tag_version: ${{ steps.semantic-release.outputs.new_release_version }}
 
