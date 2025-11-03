@@ -95,7 +95,7 @@ jobs:
             build_type: "service"
           - name: "etl-ods"
             build_type: "service"
-          - name: "gp-search"
+          - name: "dos-search"
             build_type: "service"
           - name: "dos-ui"
             build_type: "service"
