@@ -9,3 +9,7 @@ health_check_lambda_name = "health-check-lambda"
 lambda_runtime     = "python3.12"
 lambda_timeout     = 900
 lambda_memory_size = 512
+
+# API Gateway throttling defaults (overridable per-environment)
+api_gateway_throttling_rate_limit  = 150
+api_gateway_throttling_burst_limit = 450
