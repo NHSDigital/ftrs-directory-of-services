@@ -802,7 +802,7 @@ def test__get_api_key_for_url_non_ods_terminology_returns_empty() -> None:
     Test _get_api_key_for_url returns empty string for non-ODS Terminology API URLs.
     """
     api_key = _get_api_key_for_url(
-        "https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization"
+        "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization"
     )
     assert api_key == ""
 
@@ -816,6 +816,6 @@ def test__get_api_key_for_url_non_ods_terminology_ignores_local_key() -> None:
     Test _get_api_key_for_url ignores local API key for non-ODS Terminology URLs.
     """
     api_key = _get_api_key_for_url(
-        "https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization"
+        "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization"
     )
     assert api_key == ""
