@@ -19,13 +19,6 @@ const config = defineConfig({
     }),
     viteReact(),
   ],
-  resolve: {
-    alias: {
-      // Polyfill Node.js built-ins for browser if needed
-      'node:crypto': 'crypto-browserify',
-      'node:console': 'console-browserify',
-    },
-  },
   ssr: {
     // Don't externalize these packages for SSR builds
     noExternal: [
