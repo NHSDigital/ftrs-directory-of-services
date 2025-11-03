@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Logger } from '@aws-lambda-powertools/logger';
+import { Logger } from "@aws-lambda-powertools/logger";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock('@aws-lambda-powertools/logger', () => {
+vi.mock("@aws-lambda-powertools/logger", () => {
   const mockLoggerInstance = {
     debug: vi.fn(),
     info: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('@aws-lambda-powertools/logger', () => {
   };
 });
 
-describe('logger utility', () => {
+describe("logger utility", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -31,76 +31,76 @@ describe('logger utility', () => {
     process.env = originalEnv;
   });
 
-  describe('logger initialization', () => {
-    it('should create logger with default values', async () => {
+  describe("logger initialization", () => {
+    it("should create logger with default values", async () => {
       delete process.env.SERVICE_NAME;
       delete process.env.LOG_LEVEL;
       delete process.env.ENVIRONMENT;
       delete process.env.PROJECT;
       delete process.env.WORKSPACE;
 
-      await import('../logger');
+      await import("../logger");
 
       expect(Logger).toHaveBeenCalledWith({
-        serviceName: 'dos-ui',
-        logLevel: 'INFO',
-        environment: 'dev',
+        serviceName: "dos-ui",
+        logLevel: "INFO",
+        environment: "dev",
         persistentLogAttributes: {
-          project: 'ftrs-directory-of-services',
-          workspace: '',
+          project: "ftrs-dos",
+          workspace: "",
         },
       });
     });
 
-    it('should create logger with environment variables', async () => {
-      process.env.SERVICE_NAME = 'test-service';
-      process.env.LOG_LEVEL = 'DEBUG';
-      process.env.ENVIRONMENT = 'prod';
-      process.env.PROJECT = 'test-project';
-      process.env.WORKSPACE = 'test-workspace';
+    it("should create logger with environment variables", async () => {
+      process.env.SERVICE_NAME = "test-service";
+      process.env.LOG_LEVEL = "DEBUG";
+      process.env.ENVIRONMENT = "prod";
+      process.env.PROJECT = "test-project";
+      process.env.WORKSPACE = "test-workspace";
 
-      await import('../logger');
+      await import("../logger");
 
       expect(Logger).toHaveBeenCalledWith({
-        serviceName: 'test-service',
-        logLevel: 'DEBUG',
-        environment: 'prod',
+        serviceName: "test-service",
+        logLevel: "DEBUG",
+        environment: "prod",
         persistentLogAttributes: {
-          project: 'test-project',
-          workspace: 'test-workspace',
+          project: "test-project",
+          workspace: "test-workspace",
         },
       });
     });
 
-    it('should handle WARN log level from environment', async () => {
-      process.env.LOG_LEVEL = 'WARN';
+    it("should handle WARN log level from environment", async () => {
+      process.env.LOG_LEVEL = "WARN";
 
-      await import('../logger');
+      await import("../logger");
 
       expect(Logger).toHaveBeenCalledWith(
         expect.objectContaining({
-          logLevel: 'WARN',
-        })
+          logLevel: "WARN",
+        }),
       );
     });
 
-    it('should handle ERROR log level from environment', async () => {
-      process.env.LOG_LEVEL = 'ERROR';
+    it("should handle ERROR log level from environment", async () => {
+      process.env.LOG_LEVEL = "ERROR";
 
-      await import('../logger');
+      await import("../logger");
 
       expect(Logger).toHaveBeenCalledWith(
         expect.objectContaining({
-          logLevel: 'ERROR',
-        })
+          logLevel: "ERROR",
+        }),
       );
     });
   });
 
-  describe('createChildLogger', () => {
-    it('should create a child logger with additional context', async () => {
-      const { logger, createChildLogger } = await import('../logger');
-      const context = { userId: '123', requestId: 'abc' };
+  describe("createChildLogger", () => {
+    it("should create a child logger with additional context", async () => {
+      const { logger, createChildLogger } = await import("../logger");
+      const context = { userId: "123", requestId: "abc" };
 
       createChildLogger(context);
 
@@ -109,8 +109,8 @@ describe('logger utility', () => {
       });
     });
 
-    it('should create child logger with empty context', async () => {
-      const { logger, createChildLogger } = await import('../logger');
+    it("should create child logger with empty context", async () => {
+      const { logger, createChildLogger } = await import("../logger");
 
       createChildLogger({});
 
@@ -119,11 +119,11 @@ describe('logger utility', () => {
       });
     });
 
-    it('should create child logger with nested context', async () => {
-      const { logger, createChildLogger } = await import('../logger');
+    it("should create child logger with nested context", async () => {
+      const { logger, createChildLogger } = await import("../logger");
       const context = {
-        user: { id: '123', name: 'John' },
-        request: { id: 'abc', method: 'GET' },
+        user: { id: "123", name: "John" },
+        request: { id: "abc", method: "GET" },
       };
 
       createChildLogger(context);
@@ -134,60 +134,59 @@ describe('logger utility', () => {
     });
   });
 
-  describe('LogLevel enum', () => {
-    it('should export LogLevel enum with correct values', async () => {
-      const { LogLevel } = await import('../logger');
+  describe("LogLevel enum", () => {
+    it("should export LogLevel enum with correct values", async () => {
+      const { LogLevel } = await import("../logger");
 
-      expect(LogLevel.DEBUG).toBe('DEBUG');
-      expect(LogLevel.INFO).toBe('INFO');
-      expect(LogLevel.WARN).toBe('WARN');
-      expect(LogLevel.ERROR).toBe('ERROR');
+      expect(LogLevel.DEBUG).toBe("DEBUG");
+      expect(LogLevel.INFO).toBe("INFO");
+      expect(LogLevel.WARN).toBe("WARN");
+      expect(LogLevel.ERROR).toBe("ERROR");
     });
   });
 
-  describe('logger methods', () => {
-    it('should have debug method', async () => {
-      const { logger } = await import('../logger');
+  describe("logger methods", () => {
+    it("should have debug method", async () => {
+      const { logger } = await import("../logger");
 
       expect(logger.debug).toBeDefined();
-      expect(typeof logger.debug).toBe('function');
+      expect(typeof logger.debug).toBe("function");
     });
 
-    it('should have info method', async () => {
-      const { logger } = await import('../logger');
+    it("should have info method", async () => {
+      const { logger } = await import("../logger");
 
       expect(logger.info).toBeDefined();
-      expect(typeof logger.info).toBe('function');
+      expect(typeof logger.info).toBe("function");
     });
 
-    it('should have warn method', async () => {
-      const { logger } = await import('../logger');
+    it("should have warn method", async () => {
+      const { logger } = await import("../logger");
 
       expect(logger.warn).toBeDefined();
-      expect(typeof logger.warn).toBe('function');
+      expect(typeof logger.warn).toBe("function");
     });
 
-    it('should have error method', async () => {
-      const { logger } = await import('../logger');
+    it("should have error method", async () => {
+      const { logger } = await import("../logger");
 
       expect(logger.error).toBeDefined();
-      expect(typeof logger.error).toBe('function');
+      expect(typeof logger.error).toBe("function");
     });
 
-    it('should have createChild method', async () => {
-      const { logger } = await import('../logger');
+    it("should have createChild method", async () => {
+      const { logger } = await import("../logger");
 
       expect(logger.createChild).toBeDefined();
-      expect(typeof logger.createChild).toBe('function');
+      expect(typeof logger.createChild).toBe("function");
     });
   });
 
-  describe('default export', () => {
-    it('should export logger as default', async () => {
-      const module = await import('../logger');
+  describe("default export", () => {
+    it("should export logger as default", async () => {
+      const module = await import("../logger");
 
       expect(module.default).toBe(module.logger);
     });
   });
 });
-
