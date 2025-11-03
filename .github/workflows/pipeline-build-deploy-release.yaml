@@ -69,7 +69,7 @@ jobs:
     steps:
       - name: "Echo new version"
         run: |
-          echo "The calculated next release version : ${{ needs.tag-release.outputs.next_tag_version }}"
+          echo "The calculated next release version is: ${{ needs.tag-release.outputs.next_tag_version }}"
 # TODO restore when ready to build release artifacts
   # build-release-artifacts:
   #   name: "Build ${{ matrix.name }}"
