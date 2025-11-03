@@ -46,7 +46,7 @@ jobs:
       - quality-checks
     runs-on: ubuntu-latest
     outputs:
-      release_tag: ${{ steps.set-full_tag.outputs.release_tag }}
+      release_tag: ${{ steps.set-full-tag.outputs.release_tag }}
 
     steps:
       - name: "Checkout code"
@@ -61,10 +61,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Build full reference to new tag for semantic version"
-        id: set-full_tag
+        id: set-full-tag
         run: |
           echo "The semantic version is: ${{ steps.semantic-release.outputs.new_release_version }}"
-          echo "export release_tag=v${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
+          echo "release_tag=v${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
 
   echo-release-version:
     name: "Echo the calculated release version"
