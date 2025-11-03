@@ -86,7 +86,7 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
     ]
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/internal-qa/dos-ingest-jwt-credentials*",
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/internal-qa/apim-api-key*"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/ods-terminology-api-key*"
     ]
   }
 }
