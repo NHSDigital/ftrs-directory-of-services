@@ -8,17 +8,22 @@
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
+      [
       "@semantic-release/changelog",
+        {
+          "changelogFile": "CHANGELOG.md"
+        }
+      ],
       [
         "@semantic-release/npm",
-        {
-          "npmPublish": false
-        }
+      {
+        "npmPublish": false
+      }
       ],
       [
         "@semantic-release/git",
         {
-          "assets": [ "changelog.md"],
+          "assets": [ "CHANGELOG.md"],
           "message": "chore(release): FTRS-000 ${nextRelease.version} three words [skip ci]\n\n${nextRelease.notes}"
         }
       ],
