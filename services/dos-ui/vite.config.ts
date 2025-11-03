@@ -19,6 +19,33 @@ const config = defineConfig({
     }),
     viteReact(),
   ],
+  resolve: {
+    alias: {
+      // Polyfill Node.js built-ins for browser if needed
+      'node:crypto': 'crypto-browserify',
+      'node:console': 'console-browserify',
+    },
+  },
+  ssr: {
+    // Don't externalize these packages for SSR builds
+    noExternal: [
+      '@aws-lambda-powertools/logger',
+      '@aws-lambda-powertools/parameters',
+    ],
+  },
+  build: {
+    rollupOptions: {
+      external: [
+        // These should only be used on the server
+        'node:crypto',
+        'node:console',
+        '@aws-lambda-powertools/logger',
+        '@aws-lambda-powertools/parameters',
+        '@aws-sdk/client-secrets-manager',
+        '@aws-sdk/client-ssm',
+      ],
+    },
+  },
 })
 
 export default config
