@@ -204,9 +204,6 @@ def test__build_type() -> None:
     assert type_list[0].coding[0].display == "GP Practice"
     assert type_list[0].coding[0].code == "GP Practice"
     assert type_list[0].text == "GP Practice"
-    # Test fallback
-    type_list_default = mapper._build_type(None)
-    assert type_list_default[0].coding[0].display == "GP Practice"
 
 
 def test_from_fhir_maps_fields_correctly() -> None:
@@ -326,7 +323,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
             }
         },
     }
-    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation, "GP Practice")
     assert isinstance(result, FhirOrganisation)
     assert result.id == "C88037"
     assert result.name == "Test Org"
@@ -334,7 +331,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     assert result.identifier[0].value == "C88037"
     assert result.telecom[0].system == "phone"
     assert result.telecom[0].value == "01234"
-    assert result.type[0].coding[0].display == "PRESCRIBING COST CENTRE"
+    assert result.type[0].coding[0].display == "GP Practice"
 
 
 def test_to_fhir_bundle_single_org() -> None:
@@ -414,6 +411,42 @@ def test__get_org_type() -> None:
     assert mapper._get_org_type(org) == "GP Practice"
 
 
+def test__get_org_type_invalid_missing_type() -> None:
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=None
+    )
+    assert mapper._get_org_type(org) is None
+
+
+def test__get_org_type_with_coding_display() -> None:
+    mapper = OrganizationMapper()
+    org_type = [
+        CodeableConcept(
+            coding=[
+                {
+                    "system": "http://example.org/fhir/CodeSystem/org-type",
+                    "code": "GP",
+                    "display": "GP Practice",
+                }
+            ]
+        )
+    ]
+    org = make_fhir_org(
+        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
+    )
+    assert mapper._get_org_type(org) == "GP Practice"
+
+
+def test__get_org_type_with_no_display() -> None:
+    mapper = OrganizationMapper()
+    org_type = [CodeableConcept(id="abc")]
+    org = make_fhir_org(
+        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
+    )
+    assert mapper._get_org_type(org) is None
+
+
 def test__get_org_telecom_with_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
@@ -441,95 +474,199 @@ def test__get_org_telecom_with_no_phone() -> None:
     assert mapper._get_org_telecom(org) is None
 
 
-def test__extract_role_from_extension_none_when_no_extension() -> None:
+def test__get_role_code_from_extension_england_structure() -> None:
+    """Test extracting role code from England structure."""
     mapper = OrganizationMapper()
-    ods_org = {}
-    assert mapper._extract_role_from_extension(ods_org) is None
+    ext = {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+        "extension": [
+            {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": "RO177",
+                            "display": "PRESCRIBING COST CENTRE",
+                        }
+                    ]
+                },
+            }
+        ],
+    }
+    result = mapper._get_role_code_from_extension(ext)
+    assert result == "RO177"
 
 
-def test__extract_role_from_extension_none_when_no_matching_role() -> None:
+def test__get_role_code_from_extension_returns_none_when_missing() -> None:
+    """Test returns None when roleCode is missing."""
+    mapper = OrganizationMapper()
+    ext = {
+        "extension": [
+            {"url": "ABC", "valueInteger": 78491},
+            {"url": "EFG", "valueBoolean": True},
+        ]
+    }
+    result = mapper._get_role_code_from_extension(ext)
+    assert result is None
+
+
+def test__get_role_code_from_extension_returns_none_empty_coding() -> None:
+    """Test returns None when coding array is empty."""
+    mapper = OrganizationMapper()
+    ext = {
+        "extension": [
+            {
+                "url": "roleCode",
+                "valueCodeableConcept": {"coding": []},
+            }
+        ]
+    }
+    result = mapper._get_role_code_from_extension(ext)
+    assert result is None
+
+
+def test__get_role_code_from_extension_returns_none_no_valuecodeableconcept() -> None:
+    """Test returns None when valueCodeableConcept is missing."""
+    mapper = OrganizationMapper()
+    ext = {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+        "extension": [
+            {
+                "url": "roleCode",
+            }
+        ],
+    }
+    result = mapper._get_role_code_from_extension(ext)
+    assert result is None
+
+
+def test_get_all_role_codes_england_structure_multiple_roles() -> None:
+    """Test extracting multiple role codes from England structure."""
     mapper = OrganizationMapper()
     ods_org = {
         "extension": [
             {
-                "url": "not-a-role-url",
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
-                    {"url": "role", "valueCoding": {"display": "GP PRACTICE"}},
-                    {"url": "primaryRole", "valueBoolean": True},
+                    {
+                        "url": "instanceID",
+                        "valueInteger": 78491,
+                    },
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                    "display": "PRESCRIBING COST CENTRE",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "instanceID",
+                        "valueInteger": 195368,
+                    },
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                    "display": "GP PRACTICE",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+        ]
+    }
+    result = mapper.get_all_role_codes(ods_org)
+    assert result == ["RO177", "RO76"]
+
+
+def test_get_all_role_codes_returns_empty_list_no_extensions() -> None:
+    """Test returns empty list when no role extensions present."""
+    mapper = OrganizationMapper()
+    ods_org = {"identifier": [{"value": "TEST123"}]}
+    result = mapper.get_all_role_codes(ods_org)
+    assert result == []
+
+
+def test_get_all_role_codes_skips_non_role_extensions() -> None:
+    """Test skips extensions that are not role extensions."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [],
+            }
+        ]
+    }
+    result = mapper.get_all_role_codes(ods_org)
+    assert result == []
+
+
+def test_get_all_role_codes_correct_url_no_role_code() -> None:
+    """Test get_all_role_codes with correct url but no role code present."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    # No roleCode present
                 ],
             }
         ]
     }
-    assert mapper._extract_role_from_extension(ods_org) is None
+    result = mapper.get_all_role_codes(ods_org)
+    assert result == []
 
 
-def test__extract_role_from_extension_none_when_no_primary_role() -> None:
+def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
+    """Test from_ods_fhir_to_fhir with explicit org type."""
     mapper = OrganizationMapper()
     ods_org = {
+        "resourceType": "Organization",
+        "id": "TEST123",
+        "active": True,
+        "name": "Test GP Practice",
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ODS123",
+            }
+        ],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
                 "extension": [
-                    {"url": "role", "valueCoding": {"display": "GP PRACTICE"}},
-                    # missing primaryRole
+                    {"url": "role", "valueCoding": {"code": "177"}},
+                    {"url": "primaryRole", "valueBoolean": True},
                 ],
-            }
-        ]
-    }
-    assert mapper._extract_role_from_extension(ods_org) is None
-
-
-def test__extract_role_from_extension_success() -> None:
-    mapper = OrganizationMapper()
-    ods_org = {
-        "extension": [
+            },
             {
                 "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
                 "extension": [
-                    {"url": "role", "valueCoding": {"display": "GP PRACTICE"}},
-                    {"url": "primaryRole", "valueBoolean": True},
+                    {"url": "role", "valueCoding": {"code": "76"}},
+                    {"url": "primaryRole", "valueBoolean": False},
                 ],
-            }
-        ]
+            },
+        ],
     }
-    assert mapper._extract_role_from_extension(ods_org) == "GP PRACTICE"
-
-
-def test__is_org_role_extension_true_and_false() -> None:
-    mapper = OrganizationMapper()
-    ext_true = {
-        "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1"
-    }
-    ext_false = {"url": "not-a-role-url"}
-    assert mapper._is_org_role_extension(ext_true) is True
-    assert mapper._is_org_role_extension(ext_false) is False
-
-
-def test__is_primary_role_true_and_false() -> None:
-    mapper = OrganizationMapper()
-    ext_true = {"extension": [{"url": "primaryRole", "valueBoolean": True}]}
-    ext_false = {"extension": [{"url": "primaryRole", "valueBoolean": False}]}
-    ext_none = {
-        "extension": [{"url": "role", "valueCoding": {"display": "GP PRACTICE"}}]
-    }
-    assert mapper._is_primary_role(ext_true) is True
-    assert mapper._is_primary_role(ext_false) is False
-    assert mapper._is_primary_role(ext_none) is False
-
-
-def test__get_role_display_from_extension_various() -> None:
-    mapper = OrganizationMapper()
-    ext_none = {"extension": []}
-    assert mapper._get_role_display_from_extension(ext_none) is None
-    ext_no_role = {
-        "extension": [{"url": "notrole", "valueCoding": {"display": "GP PRACTICE"}}]
-    }
-    assert mapper._get_role_display_from_extension(ext_no_role) is None
-    ext_no_value_coding = {"extension": [{"url": "role"}]}
-    assert mapper._get_role_display_from_extension(ext_no_value_coding) is None
-    ext_no_display = {"extension": [{"url": "role", "valueCoding": {}}]}
-    assert mapper._get_role_display_from_extension(ext_no_display) is None
-    ext_with_display = {
-        "extension": [{"url": "role", "valueCoding": {"display": "Test Role"}}]
-    }
-    assert mapper._get_role_display_from_extension(ext_with_display) == "Test Role"
+    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    assert result is not None
+    assert result.identifier[0].value == "ODS123"
+    assert result.type[0].text == "GP Practice"
