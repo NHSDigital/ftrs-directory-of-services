@@ -8,14 +8,6 @@
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
-      "@semantic-release/changelog",
-      [
-        "@semantic-release/git",
-        {
-          "assets": [ ],
-          "message": "chore(release): FTRS-000 ${nextRelease.version} three words [skip ci]\n\n${nextRelease.notes}"
-        }
-      ],
       "@semantic-release/github"
     ]
   },
