@@ -11,7 +11,7 @@ const mockGetOIDCConfig = vi.fn(async () => ({
   authorization_endpoint: "http://issuer/auth",
 }));
 
-vi.mock("../cisConfiguration.ts", () => ({
+vi.mock("../cis2Configuration.ts", () => ({
   getAuthConfig: mockGetAuthConfig,
   getOIDCConfig: mockGetOIDCConfig,
 }));

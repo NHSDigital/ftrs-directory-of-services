@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getAuthConfig, validateConfig } from "../cisConfiguration.ts";
+import { getAuthConfig, validateConfig } from "../cis2Configuration.ts";
 
 vi.mock("../aws-util.ts", () => ({
   getawsParameter: vi.fn(async () =>
