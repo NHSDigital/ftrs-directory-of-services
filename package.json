@@ -18,7 +18,7 @@
       [
         "@semantic-release/git",
         {
-          "assets": [ ],
+          "assets": [ "changelog.md"],
           "message": "chore(release): FTRS-000 ${nextRelease.version} three words [skip ci]\n\n${nextRelease.notes}"
         }
       ],
