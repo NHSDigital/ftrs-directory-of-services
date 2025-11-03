@@ -57,6 +57,8 @@ jobs:
         uses: cycjimmy/semantic-release-action@v5
         with:
           branch: "task/FDOS-347_Build_release_artefacts"
+          # TODO drop dry run when bad gateway issues fixed
+          dry_run: "true"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -99,7 +101,8 @@ jobs:
       name: ${{ matrix.name }}
       build_type: ${{ matrix.build_type }}
       python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.tag-release.outputs.next_tag_version }}
+      # TODO change to next_tag_version when tag_release fixed
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
