@@ -24,6 +24,7 @@ TIMEOUT_SECONDS = 20
 def get_jwt_authenticator() -> JWTAuthenticator:
     environment = os.environ.get("ENVIRONMENT", "local")
     resource_prefix = get_resource_prefix()
+    resource_prefix = "qa"
 
     return JWTAuthenticator(
         environment=environment,
@@ -76,6 +77,7 @@ def _get_api_key_for_url(url: str) -> str:
 
     try:
         resource_prefix = get_resource_prefix()
+        resource_prefix = "qa"
         secret_name = f"/{resource_prefix}/ods-terminology-api-key"
 
         client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
