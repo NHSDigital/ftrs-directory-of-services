@@ -59,7 +59,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.commit_hash || '' }}
+          ref: ${{ inputs.application_tag && inputs.application_tag != 'latest' || '' }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.0
