@@ -15,17 +15,18 @@ describe("getCIS2PublicKey", () => {
 
     expect(result).toBe(mockKey);
     expect(getawsSecret).toHaveBeenCalledWith(
-      `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-public-key`
+      `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-public-key`,
     );
   });
 
   it("throws an error when the CIS2 public key is not found", async () => {
-    vi.mocked(getawsSecret).mockResolvedValueOnce(null);
+    vi.mocked(getawsSecret).mockResolvedValueOnce(undefined);
 
-    await expect(getCIS2PublicKey()).rejects.toThrow("CIS2 public Key not found");
+    await expect(getCIS2PublicKey()).rejects.toThrow(
+      "CIS2 public Key not found",
+    );
     expect(getawsSecret).toHaveBeenCalledWith(
-      `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-public-key`
+      `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-public-key`,
     );
   });
-
 });

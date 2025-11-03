@@ -1,4 +1,4 @@
-import {getawsSecret} from "@/utils/aws-util.ts";
+import { getawsSecret } from "@/utils/aws-util.ts";
 
 export const getCIS2PublicKey = async (): Promise<string> => {
   const cis2publicKeyPem = await getawsSecret(
