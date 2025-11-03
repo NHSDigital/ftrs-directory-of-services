@@ -8,7 +8,7 @@ export async function getawsSecret(
 ): Promise<string | undefined> {
   try {
     logger.debug("Fetching secret from Secrets Manager", { secretName });
-    const secret = await getSecret(secretName);
+    const secret = await getSecret(secretName,{maxAge:60});
     logger.info("Secret retrieved successfully", { secretName });
     if (secret instanceof Uint8Array) {
       return new TextDecoder().decode(secret);
