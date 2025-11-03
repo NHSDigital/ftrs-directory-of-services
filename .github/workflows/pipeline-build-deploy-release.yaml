@@ -57,8 +57,6 @@ jobs:
         uses: cycjimmy/semantic-release-action@v5
         with:
           branch: "task/FDOS-347_Build_release_artefacts"
-          # TODO drop dry run when bad gateway issues fixed
-          dry_run: "true"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,7 +70,6 @@ jobs:
       - name: "Echo new version"
         run: |
           echo "The calculated next release version is: ${{ needs.tag-release.outputs.next_tag_version }}"
-          echo $GITHUB_TOKEN
 # TODO restore when ready to build release artifacts
   # build-release-artifacts:
   #   name: "Build ${{ matrix.name }}"
