@@ -75,7 +75,7 @@ jobs:
     steps:
       - name: "Echo new tag"
         run: |
-          echo "The calculated next release tag: ${{ needs.tag-release.outputs.release_tag }}"
+          echo "The next release tag: ${{ needs.tag-release.outputs.release_tag }}"
   build-release-artifacts:
     name: "Build ${{ matrix.name }}"
     needs:
