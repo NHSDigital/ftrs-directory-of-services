@@ -57,7 +57,6 @@ jobs:
         uses: cycjimmy/semantic-release-action@v5
         with:
           branch: "task/FDOS-347_Build_release_artefacts"
-          dry_run: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
