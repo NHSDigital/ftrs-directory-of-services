@@ -76,39 +76,39 @@ jobs:
       - name: "Echo new tag"
         run: |
           echo "The next release tag: ${{ needs.tag-release.outputs.release_tag }}"
-  # build-release-artifacts:
-  #   name: "Build ${{ matrix.name }}"
-  #   needs:
-  #     - metadata
-  #     - tag-release
-  #     - quality-checks
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         - name: "python"
-  #           build_type: "package"
-  #         - name: "crud-apis"
-  #           build_type: "service"
-  #         - name: "data-migration"
-  #           build_type: "service"
-  #         - name: "read-only-viewer"
-  #           build_type: "service"
-  #         - name: "etl-ods"
-  #           build_type: "service"
-  #         - name: "dos-search"
-  #           build_type: "service"
-  #         - name: "dos-ui"
-  #           build_type: "service"
-  #   uses: ./.github/workflows/build-project.yaml
-  #   with:
-  #     name: ${{ matrix.name }}
-  #     build_type: ${{ matrix.build_type }}
-  #     python_version: ${{ needs.metadata.outputs.python_version }}
-  #     commit_hash: ${{ needs.tag-release.outputs.release_tag }}
-  #     environment: ${{ needs.metadata.outputs.mgmt_environment }}
-  #     repo_name: ${{ needs.metadata.outputs.reponame }}
-  #     workspace: ${{ needs.metadata.outputs.workspace }}
-  #     application_tag: ${{ needs.tag-release.outputs.release_tag }}
-  #     release_build: true
-  #     type: app
-  #   secrets: inherit
+  build-release-artifacts:
+    name: "Build ${{ matrix.name }}"
+    needs:
+      - metadata
+      - tag-release
+      - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "python"
+            build_type: "package"
+          - name: "crud-apis"
+            build_type: "service"
+          - name: "data-migration"
+            build_type: "service"
+          - name: "read-only-viewer"
+            build_type: "service"
+          - name: "etl-ods"
+            build_type: "service"
+          - name: "dos-search"
+            build_type: "service"
+          - name: "dos-ui"
+            build_type: "service"
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: ${{ matrix.build_type }}
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.tag-release.outputs.release_tag }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ needs.tag-release.outputs.release_tag }}
+      release_build: true
+      type: app
+    secrets: inherit
