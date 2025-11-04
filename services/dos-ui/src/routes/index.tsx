@@ -25,7 +25,7 @@ function HomePage() {
       <h2 className="nhsuk-heading-m">Session Details</h2>
       <ul className="nhsuk-list nhsuk-list--bullet">
         <li>Session ID: {session.sessionID}</li>
-        <li>Expires At: {new Date(session.expiresAt).toString()}</li>
+        <li>Expires At: {new Date(session.expiresAt).toISOString()}</li>
         <li>State: {session.state}</li>
       </ul>
       <a type="button" className="care-identity-button" href={authorizeUrl}>
