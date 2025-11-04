@@ -29,7 +29,7 @@ NESTED_PATHS = [
 IGNORED_PATHS = [
     "field",
     *META_TIME_FIELDS,
-    *[re.compile(f"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS for field in META_TIME_FIELDS],
+    *[re.compile(r"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS for field in META_TIME_FIELDS],
 ]
 
 scenarios("../features/data_migration_features/data_migration.feature")
@@ -55,14 +55,14 @@ def sideload_data_to_dynamodb_table(
     model_repo.delete(model.id)
 
 
-@when("I run the hello world data migration test")
-def run_hello_world_test():
+@when("data migration is executed")
+def data_migration_is_executed():
     pass
 
 
 @then(
     parsers.parse(
-        "there are {org_count_expected:d} organisation, {location_count_expected:d} location and {healthcare_service_count_expected:d} healthcare services created"
+        "there is {org_count_expected:d} organisation, {location_count_expected:d} location and {healthcare_service_count_expected:d} healthcare services created"
     )
 )
 def check_expected_table_counts(org_count_expected: int, location_count_expected: int, healthcare_service_count_expected: int, dynamodb):

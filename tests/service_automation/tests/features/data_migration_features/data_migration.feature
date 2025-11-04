@@ -4,7 +4,7 @@ Feature:Data Migration Hello World
   Scenario:Happy path migration for a GP Practice
     Given the data migration system is ready
     * record for 'organisation' from 'Organisation/organisation-with-4-endpoints.json' is loaded
-    @When I run the hello world data migration test
+    When data migration is executed
     Then the 'organisation' for service ID '36fce427-0f31-4a4e-903f-74dcf9e63cfd' has content:
       """
       {
