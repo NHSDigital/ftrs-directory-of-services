@@ -116,6 +116,7 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
     make_request_mock.assert_called_once_with(
         "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
         method="GET",
+        jwt_required=True,
     )
 
 

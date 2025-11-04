@@ -15,6 +15,7 @@ from pipeline.utilities import (
     build_headers,
     get_base_apim_api_url,
     get_base_ods_terminology_api_url,
+    get_jwt_authenticator,
     handle_operation_outcomes,
     make_request,
 )
@@ -345,9 +346,7 @@ def test_build_headers_fhir_and_json(mocker: MockerFixture) -> None:
 def test_make_request_logs_http_error(
     requests_mock: RequestsMock, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """
-    Test make_request logs HTTPError.
-    """
+    """Test make_request logs HTTPError."""
     requests_mock.get(
         "https://api.example.com/resource",
         status_code=404,
@@ -480,6 +479,53 @@ def test_make_request_with_response_correlation_id(
     )
 
 
+def test_make_request_with_jwt_auth(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
+    """
+    Test the make_request function with JWT authentication.
+    """
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
+
+    # Mock the JWT authenticator
+    mock_jwt_auth = MagicMock()
+    mock_jwt_auth.get_auth_headers.return_value = {
+        "Authorization": "Bearer test-jwt-token"
+    }
+    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+
+    url = "https://api.example.com/resource"
+    result = make_request(url, jwt_required=True)
+
+    assert result == {"key": "value", "status_code": HTTPStatus.OK}
+    assert mock_call.last_request.headers["Authorization"] == "Bearer test-jwt-token"
+
+
+def test_make_request_without_jwt_auth(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
+    """
+    Test the make_request function without JWT authentication.
+    """
+    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+
+    mock_call = requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+    )
+
+    url = "https://api.example.com/resource"
+    result = make_request(url, jwt_required=False)
+
+    assert result == {"key": "value", "status_code": HTTPStatus.OK}
+    assert "Authorization" not in mock_call.last_request.headers
+
+
 @patch.dict(
     os.environ,
     {
@@ -488,25 +534,31 @@ def test_make_request_with_response_correlation_id(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
-def test__get_api_key_for_url_returns_apim_key(
-    mock_boto_client: MagicMock,
+def test_get_jwt_authenticator_returns_configured_instance(
+    mocker: MockerFixture,
 ) -> None:
     """
-    Test _get_api_key_for_url returns APIM API key for non-ODS Terminology URLs.
+    Test that get_jwt_authenticator returns a properly configured JWTAuthenticator instance.
     """
-    mock_secretsmanager = MagicMock()
-    mock_boto_client.return_value = mock_secretsmanager
-    mock_secretsmanager.get_secret_value.return_value = {
-        "SecretString": '{"api_key": "apim-secret-key"}'
-    }
+    # Stop the global mock and create a new one for this test
+    mocker.stopall()
 
-    api_key = _get_api_key_for_url("https://test-apim-api.example.com/Organization")
-    expected_secret_name = "/ftrs-dos/dev/apim-api-key"
-    mock_secretsmanager.get_secret_value.assert_called_once_with(
-        SecretId=expected_secret_name
+    mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    mock_instance = mocker.MagicMock()
+    mock_jwt_authenticator_class.return_value = mock_instance
+
+    # Call the function under test
+    result = get_jwt_authenticator()
+
+    # Verify the constructor was called with correct parameters
+    mock_jwt_authenticator_class.assert_called_once_with(
+        environment="dev",
+        region="eu-west-2",
+        secret_name="/ftrs-dos/dev/dos-ingest-jwt-credentials",
     )
-    assert api_key == "apim-secret-key"
+
+    # Verify the instance is returned
+    assert result == mock_instance
 
 
 @patch.dict(
@@ -522,7 +574,7 @@ def test__get_api_key_for_url_ods_terminology_key(
     mock_boto_client: MagicMock,
 ) -> None:
     """
-    Test _get_api_key_for_url returns ODS Terminology API key for api.service.nhs.uk URLs.
+    Test _get_api_key_for_url returns ODS Terminology API key for terminology URLs.
     """
     mock_secretsmanager = MagicMock()
     mock_boto_client.return_value = mock_secretsmanager
@@ -563,8 +615,10 @@ def test__get_api_key_for_url_client_error_logs(
     )
     with caplog.at_level("WARNING"):
         with pytest.raises(ClientError):
-            _get_api_key_for_url("https://test-apim-api.example.com/Organization")
-        assert "Error with secret: /ftrs-dos/dev/apim-api-key" in caplog.text
+            _get_api_key_for_url(
+                "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+            )
+        assert "Error with secret: /ftrs-dos/dev/ods-terminology-api-key" in caplog.text
 
 
 @patch.dict(
@@ -590,8 +644,104 @@ def test__get_api_key_for_url_client_error_non_resource_not_found(
     )
     with caplog.at_level("WARNING"):
         with pytest.raises(ClientError):
-            _get_api_key_for_url("https://test-apim-api.example.com/Organization")
+            _get_api_key_for_url(
+                "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+            )
         assert "Error with secret:" not in caplog.text
+
+
+@patch.dict(
+    os.environ,
+    {
+        "ENVIRONMENT": "local",
+        "AWS_REGION": "eu-west-2",
+        "PROJECT_NAME": "ftrs",  # Add this if needed
+    },
+)
+def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
+    """
+    Test that get_jwt_authenticator works with local environment.
+    """
+    mocker.stopall()
+
+    mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    mock_instance = mocker.MagicMock()
+    mock_jwt_authenticator_class.return_value = mock_instance
+
+    result = get_jwt_authenticator()
+
+    # Check the actual call - it might be using a constructed secret path even for local
+    mock_jwt_authenticator_class.assert_called_once_with(
+        environment="local",
+        region="eu-west-2",
+        secret_name="/ftrs/local/dos-ingest-jwt-credentials",  # Adjust based on actual implementation
+    )
+
+    assert result == mock_instance
+
+
+def test_build_headers_with_jwt_required(mocker: MockerFixture) -> None:
+    """
+    Test build_headers function includes JWT authentication headers when required.
+    """
+    mock_jwt_auth = MagicMock()
+    mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer test-token"}
+    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+
+    options = {
+        "json_data": {"foo": "bar"},
+        "jwt_required": True,
+        "url": "https://example.com",
+    }
+
+    headers = build_headers(options)
+
+    assert headers["Authorization"] == "Bearer test-token"
+    assert headers["Content-Type"] == "application/fhir+json"
+    assert headers["Accept"] == "application/fhir+json"
+    assert headers["apikey"] == "test-api-key"
+
+
+def test_build_headers_without_jwt_required(mocker: MockerFixture) -> None:
+    """
+    Test build_headers function does not include JWT headers when not required.
+    """
+    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    options = {
+        "json_data": {"foo": "bar"},
+        "jwt_required": False,
+        "url": "https://example.com",
+    }
+
+    headers = build_headers(options)
+
+    assert "Authorization" not in headers
+    assert headers["Content-Type"] == "application/fhir+json"
+    assert headers["Accept"] == "application/fhir+json"
+    assert headers["apikey"] == "test-api-key"
+
+
+def test_build_headers_fhir_with_jwt(mocker: MockerFixture) -> None:
+    """
+    Test build_headers function with both FHIR and JWT requirements.
+    """
+    mock_jwt_auth = MagicMock()
+    mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer fhir-token"}
+    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+
+    options = {
+        "json_data": {"resourceType": "Patient"},
+        "json_string": '{"resourceType": "Patient"}',
+        "fhir": True,
+        "jwt_required": True,
+    }
+
+    headers = build_headers(options)
+
+    assert headers["Authorization"] == "Bearer fhir-token"
+    assert headers["Content-Type"] == "application/fhir+json"
+    assert headers["Accept"] == "application/fhir+json"
 
 
 @patch.dict(
@@ -613,64 +763,59 @@ def test__get_api_key_for_url_json_decode_error_logs(
     }
     with caplog.at_level("WARNING"):
         with pytest.raises(json.JSONDecodeError):
-            _get_api_key_for_url("https://test-apim-api.example.com/Organization")
+            _get_api_key_for_url(
+                "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+            )
         assert "Error decoding json with issue:" in caplog.text
 
 
 @patch.dict(
     os.environ,
-    {
-        "ENVIRONMENT": "local",
-        "LOCAL_API_KEY": "local-apim-key",
-        "LOCAL_ODS_TERMINOLOGY_API_KEY": "local-ods-key",
-    },
+    {"ENVIRONMENT": "local", "LOCAL_ODS_TERMINOLOGY_API_KEY": "local-ods-key"},
 )
-def test__get_api_key_for_url_local_environment(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
+def test__get_api_key_for_url_local_environment() -> None:
     """
-    Test _get_api_key_for_url uses local environment variables in local environment.
+    Test _get_api_key_for_url returns local ODS Terminology API key in local environment.
     """
-    with caplog.at_level("INFO"):
-        apim_key = _get_api_key_for_url(
-            "https://test-apim-api.example.com/Organization"
-        )
-        assert apim_key == "local-apim-key"
-        assert (
-            "Running in local environment, using LOCAL api key environment variable."
-            in caplog.text
-        )
-
-        ods_key = _get_api_key_for_url(
-            "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
-        )
-        assert ods_key == "local-ods-key"
-
-        assert (
-            "Running in local environment, using LOCAL api key environment variable."
-            in caplog.text
-        )
+    api_key = _get_api_key_for_url(
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    assert api_key == "local-ods-key"
 
 
 @patch.dict(
     os.environ,
-    {
-        "ENVIRONMENT": "local",
-        "LOCAL_API_KEY": "fallback-key",
-    },
+    {"ENVIRONMENT": "local", "LOCAL_API_KEY": "fallback-key"},
 )
-def test__get_api_key_for_url_local_ods_fallback_to_local_api_key(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
+def test__get_api_key_for_url_local_ods_fallback_to_local_api_key() -> None:
     """
     Test _get_api_key_for_url falls back to LOCAL_API_KEY when LOCAL_ODS_TERMINOLOGY_API_KEY is not set.
     """
-    with caplog.at_level("INFO"):
-        ods_key = _get_api_key_for_url(
-            "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
-        )
-        assert ods_key == "fallback-key"
-        assert (
-            "Running in local environment, using LOCAL api key environment variable."
-            in caplog.text
-        )
+    api_key = _get_api_key_for_url(
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    assert api_key == "fallback-key"
+
+
+def test__get_api_key_for_url_non_ods_terminology_returns_empty() -> None:
+    """
+    Test _get_api_key_for_url returns empty string for non-ODS Terminology API URLs.
+    """
+    api_key = _get_api_key_for_url(
+        "https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization"
+    )
+    assert api_key == ""
+
+    api_key = _get_api_key_for_url("https://example.com/api")
+    assert api_key == ""
+
+
+@patch.dict(os.environ, {"ENVIRONMENT": "local", "LOCAL_API_KEY": "local-key"})
+def test__get_api_key_for_url_non_ods_terminology_ignores_local_key() -> None:
+    """
+    Test _get_api_key_for_url ignores local API key for non-ODS Terminology URLs.
+    """
+    api_key = _get_api_key_for_url(
+        "https://api.service.nhs.uk/dos-ingestion/FHIR/R4/Organization"
+    )
+    assert api_key == ""

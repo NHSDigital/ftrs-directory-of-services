@@ -89,7 +89,14 @@
                 "iam:TagPolicy",
                 "iam:UntagPolicy",
                 "iam:TagOpenIDConnectProvider",
-                "iam:UpdateOpenIDConnectProviderThumbprint"
+                "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:CreateInstanceProfile",
+                "iam:DeleteInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:TagInstanceProfile",
+                "iam:UntagInstanceProfile"
             ],
             "Resource": [
                 "arn:aws:iam::aws:policy/PowerUserAccess",
@@ -97,6 +104,7 @@
                 "arn:aws:iam::*:policy/${repo_name}-*",
                 "arn:aws:iam::*:policy/ro_*",
                 "arn:aws:iam::*:policy/rw_*",
+                "arn:aws:iam::*:instance-profile/${repo_name}-*",
                 "arn:aws:iam::*:role/dms-vpc-role",
                 "arn:aws:iam::*:role/ftrs-dos-*",
                 "arn:aws:iam::*:policy/ftrs-dos-*",
@@ -110,12 +118,14 @@
                 "iam:PassRole"
             ],
             "Resource": [
-                "arn:aws:iam::*:role/ftrs-dos-*"
+                "arn:aws:iam::*:role/ftrs-dos-*",
+                "arn:aws:iam::*:role/${repo_name}-*"
             ],
             "Condition": {
                 "StringEquals": {
                     "iam:PassedToService": [
-                        "apigateway.amazonaws.com"
+                        "apigateway.amazonaws.com",
+                        "ec2.amazonaws.com"
                     ]
                 }
             }
