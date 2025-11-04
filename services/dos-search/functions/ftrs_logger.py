@@ -55,6 +55,43 @@ class FtrsLogger:
                 return v
         return None
 
+    # --- powertools context -----------------------------------------------
+    def _append_powertools_context(self, extra: Dict[str, Any]) -> None:
+        """Append keys to powertools logger context where possible.
+        Best-effort: if powertools Logger implements append_keys we call it; otherwise ignore.
+        """
+        try:
+            corr = extra.get("ftrs_nhsd_correlation_id")
+            if corr and corr != self._placeholder():
+                append = getattr(self._logger, "append_keys", None)
+                if callable(append):
+                    try:
+                        append(correlation_id=corr)
+                        self._last_appended_correlation = corr
+                    except Exception:
+                        self._last_appended_correlation = corr
+                else:
+                    # still remember the value locally
+                    self._last_appended_correlation = corr
+        except Exception:
+            # swallow; best-effort only
+            pass
+
+    # --- debug preview ---------------------------------------------------
+    def _debug_preview(self, message: str, extra: Dict[str, Any]) -> None:
+        if not self.debug:
+            return
+        try:
+            # use standard logger for debug preview to respect handlers
+            log = logging.getLogger(self._service + "-preview")
+            if not log.handlers:
+                ch = logging.StreamHandler()
+                ch.setFormatter(logging.Formatter("%(message)s"))
+                log.addHandler(ch)
+            log.info(json.dumps({"message": message, **extra}, indent=2))
+        except Exception:
+            print(message, extra)
+
     # --- public helpers --------------------------------------------------
     def get_powertools_metadata(
         self, context: Optional[object] = None
@@ -115,7 +152,8 @@ class FtrsLogger:
         log_data: Optional[Dict[str, Any]] = None,
         **detail: object,
     ) -> None:
-        extra = log_data
+        # Handles deliberately passed None values
+        log_data = log_data if log_data else {}
         # convert detail (kwargs) to dict for manipulation
         detail_map = dict(detail) if detail else {}
 
@@ -127,31 +165,32 @@ class FtrsLogger:
             "ftrs_response",
         }
         if detail_map:
-            extra = dict(log_data)
             for k in list(detail_map.keys()):
                 if k in override_keys:
-                    extra[k] = detail_map.pop(k)
+                    log_data[k] = detail_map.pop(k)
+                elif k is None:
+                    log_data.pop(k)
             if detail_map:
-                extra["detail"] = detail_map
+                log_data["detail"] = detail_map
 
         # append powertools context where possible
-        self._append_powertools_context(extra)
+        self._append_powertools_context(log_data)
 
         # debug preview
-        self._debug_preview(message, extra)
+        self._debug_preview(message, log_data)
 
         # call powertools
         try:
             if level == "info":
-                self._logger.info(message, extra=extra)
+                self._logger.info(message, extra=log_data)
             elif level == "warning":
-                self._logger.warning(message, extra=extra)
+                self._logger.warning(message, extra=log_data)
             elif level == "error":
-                self._logger.error(message, extra=extra)
+                self._logger.error(message, extra=log_data)
             elif level == "exception":
-                self._logger.exception(message, extra=extra)
+                self._logger.exception(message, extra=log_data)
             else:
-                self._logger.info(message, extra=extra)
+                self._logger.info(message, extra=log_data)
         except TypeError:
             base_logger = logging.getLogger(self._service)
             (base_logger.info(message),)
