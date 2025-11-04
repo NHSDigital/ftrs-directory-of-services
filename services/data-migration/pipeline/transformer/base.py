@@ -401,7 +401,7 @@ class ServiceTransformer(ABC):
             self.logger.log(DataMigrationLogBase.DM_ETL_017, service_id=service.id)
             return None
 
-        TOLERANCE = Decimal("1")
+        TOLERANCE = Decimal(1)
 
         sorted_ranges = sorted(service.age_range, key=lambda x: x.daysfrom)
 
