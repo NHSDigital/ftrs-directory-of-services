@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
@@ -124,6 +124,7 @@ class TestLambdaHandler:
         ods_code,
         event,
         bundle,
+        log_data,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
@@ -135,9 +136,16 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_logger.assert_has_calls(
             [
-                call.append_keys(ods_code=ods_code),
-                call.info("Successfully processed"),
-                call.info("Creating response", extra={"status_code": 200}),
+                call.info(
+                    "Received request for odsCode", log_data=log_data, ods_code=ods_code
+                ),
+                call.info(
+                    "Successfully processed",
+                    log_data=log_data,
+                    ftrs_response_time=ANY,
+                    ftrs_response_size=ANY,
+                ),
+                call.info("Creating response", log_data=None, status_code=200),
             ]
         )
 
@@ -146,7 +154,7 @@ class TestLambdaHandler:
         )
 
     def test_lambda_handler_with_validation_error(
-        self, lambda_context, mock_error_util, mock_logger, event
+        self, lambda_context, mock_error_util, mock_logger, event, log_data
     ):
         # Arrange
         validation_error = ValidationError.from_exception_data("ValidationError", [])
@@ -167,9 +175,10 @@ class TestLambdaHandler:
             [
                 call.warning(
                     "Validation error occurred",
-                    extra={"validation_errors": validation_error.errors()},
+                    log_data=log_data,
+                    validation_errors=validation_error.errors(),
                 ),
-                call.info("Creating response", extra={"status_code": 400}),
+                call.info("Creating response", log_data=None, status_code=400),
             ]
         )
 
@@ -206,7 +215,7 @@ class TestLambdaHandler:
                     "Received request for odsCode", log_data=log_data, ods_code=ods_code
                 ),
                 call.exception("Internal server error occurred", log_data=log_data),
-                call.info("Creating response", event=None, status_code=500),
+                call.info("Creating response", log_data=None, status_code=500),
             ]
         )
 
