@@ -264,4 +264,61 @@ jmeter-fetch-dir-inline: ## [REMOTE_DIR=artifacts] [LOCAL_DIR=tests/performance/
 	rm -rf "$$WORKDIR"; \
 	echo "Downloaded $$FETCHED files from '$$RDIR' to '$$LDIR' (listed $$COUNT)"
 
-.PHONY: jmeter-start-instance jmeter-stop-instance jmeter-version-remote jmeter-ssm-shell jmeter-copy-ssm-inline jmeter-ec2-id jmeter-private-ip jmeter-copy-dir-ssm-inline jmeter-fetch-file-inline jmeter-fetch-dir-inline
+# --- S3 object utilities and Secrets Manager fetch ---
+
+# Upload a single file to S3
+s3-upload-file: ## [BUCKET=name] [SRC=local/file] [DEST_KEY=path/in/bucket] [S3_SSE=aws:kms] [S3_KMS_KEY_ID=arn or key-id]
+	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
+	if [ -z "$(SRC)" ]; then echo "SRC is required"; exit 1; fi; \
+	KEY="$(DEST_KEY)"; if [ -z "$$KEY" ]; then KEY=$$(basename "$(SRC)"); fi; \
+	AWS_FLAGS=""; \
+	if [ -n "$(S3_SSE)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse $(S3_SSE)"; fi; \
+	if [ -n "$(S3_KMS_KEY_ID)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse-kms-key-id $(S3_KMS_KEY_ID)"; fi; \
+	echo "Uploading '$(SRC)' to s3://$(BUCKET)/$$KEY"; \
+	aws s3 cp "$(SRC)" "s3://$(BUCKET)/$$KEY" --region $(AWS_REGION) $$AWS_FLAGS
+
+# Upload a folder (recursive) to S3
+s3-upload-folder: ## [BUCKET=name] [SRC_DIR=local/dir] [DEST_PREFIX=prefix/] [S3_SSE=aws:kms] [S3_KMS_KEY_ID=arn or key-id]
+	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
+	DIR="$(SRC_DIR)"; if [ -z "$$DIR" ]; then echo "SRC_DIR is required"; exit 1; fi; \
+	PREFIX="$(DEST_PREFIX)"; \
+	AWS_FLAGS=""; \
+	if [ -n "$(S3_SSE)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse $(S3_SSE)"; fi; \
+	if [ -n "$(S3_KMS_KEY_ID)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse-kms-key-id $(S3_KMS_KEY_ID)"; fi; \
+	echo "Uploading folder '$$DIR' to s3://$(BUCKET)/$$PREFIX"; \
+	aws s3 cp "$$DIR" "s3://$(BUCKET)/$$PREFIX" --recursive --region $(AWS_REGION) $$AWS_FLAGS
+
+# Download a single file from S3
+s3-download-file: ## [BUCKET=name] [KEY=path/in/bucket] [DEST=local/path]
+	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
+	if [ -z "$(KEY)" ]; then echo "KEY is required"; exit 1; fi; \
+	DEST="$(DEST)"; if [ -z "$$DEST" ]; then DEST=$$(basename "$(KEY)"); fi; \
+	echo "Downloading s3://$(BUCKET)/$(KEY) to '$$DEST'"; \
+	mkdir -p "$$(dirname "$$DEST")" 2>/dev/null || true; \
+	aws s3 cp "s3://$(BUCKET)/$(KEY)" "$$DEST" --region $(AWS_REGION)
+
+# Download a folder (recursive) from S3
+s3-download-folder: ## [BUCKET=name] [PREFIX=path/prefix/] [DEST_DIR=local/dir]
+	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
+	PFX="$(PREFIX)"; if [ -z "$$PFX" ]; then PFX=""; fi; \
+	LDIR="$(DEST_DIR)"; if [ -z "$$LDIR" ]; then LDIR=.; fi; \
+	echo "Downloading s3://$(BUCKET)/$$PFX to '$$LDIR'"; \
+	mkdir -p "$$LDIR"; \
+	aws s3 cp "s3://$(BUCKET)/$$PFX" "$$LDIR" --recursive --region $(AWS_REGION)
+
+# Get a secret value from Secrets Manager
+secrets-get: ## [SECRET_ID=arn or name] [MODE=raw|json|kv] [OUT=] Fetch the entire secret value (ignores KEY); choose MODE for formatting
+	@BIN="$(CURDIR)/bin/secrets_get.sh"; \
+	if [ -z "$(SECRET_ID)" ]; then echo "SECRET_ID is required"; exit 1; fi; \
+	if [ ! -x "$$BIN" ]; then echo "Helper script not executable: $$BIN"; exit 1; fi; \
+	SECRET_ID=$(SECRET_ID) KEY= MODE=$(MODE) OUT=$(OUT) AWS_REGION=$(AWS_REGION) "$$BIN"
+
+# Convenience: fetch exactly one value (requires KEY). Same semantics as secrets-get KEY=...
+secrets-get-value: ## [SECRET_ID=arn or name] [KEY=top-level or dotted json key] [OUT=] Fetch a single field from the secret (errors if missing)
+	@BIN="$(CURDIR)/bin/secrets_get.sh"; \
+	if [ -z "$(SECRET_ID)" ]; then echo "SECRET_ID is required"; exit 1; fi; \
+	if [ -z "$(KEY)" ]; then echo "KEY is required"; exit 1; fi; \
+	if [ ! -x "$$BIN" ]; then echo "Helper script not executable: $$BIN"; exit 1; fi; \
+	SECRET_ID=$(SECRET_ID) KEY=$(KEY) OUT=$(OUT) AWS_REGION=$(AWS_REGION) "$$BIN"
+
+.PHONY: s3-upload-file s3-upload-folder s3-download-file s3-download-folder secrets-get secrets-get-value

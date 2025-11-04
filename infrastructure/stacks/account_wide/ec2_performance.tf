@@ -73,6 +73,85 @@ resource "aws_iam_instance_profile" "ec2_performance_instance_profile" {
   role = aws_iam_role.ec2_performance_role.name
 }
 
+# Always-allow S3 access for performance EC2 across all buckets and objects
+# Includes bucket-level and object-level permissions plus multipart support
+data "aws_iam_policy_document" "ec2_performance_s3" {
+  statement {
+    sid = "AllowS3ListAndLocateBucket"
+    actions = [
+      "s3:ListBucket",
+      "s3:GetBucketLocation",
+      "s3:ListBucketMultipartUploads",
+      "s3:ListAllMyBuckets"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+
+  statement {
+    sid = "AllowS3ObjectCrudAndMultipart"
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:CreateMultipartUpload",
+      "s3:UploadPart",
+      "s3:ListMultipartUploadParts",
+      "s3:CompleteMultipartUpload",
+      "s3:AbortMultipartUpload"
+    ]
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ec2_performance_s3" {
+  name   = "${local.account_prefix}-ec2-performance-s3"
+  role   = aws_iam_role.ec2_performance_role.id
+  policy = data.aws_iam_policy_document.ec2_performance_s3.json
+}
+
+# Always-allow Secrets Manager read access across all secrets
+data "aws_iam_policy_document" "ec2_performance_secrets" {
+  statement {
+    sid = "AllowGetSecretValues"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ec2_performance_secrets" {
+  name   = "${local.account_prefix}-ec2-performance-secrets"
+  role   = aws_iam_role.ec2_performance_role.id
+  policy = data.aws_iam_policy_document.ec2_performance_secrets.json
+}
+
+# Always-allow KMS decrypt across all keys (key policy must still allow access)
+data "aws_iam_policy_document" "ec2_performance_kms" {
+  statement {
+    sid = "AllowKmsUseForS3AndSecrets"
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "ec2_performance_kms" {
+  name   = "${local.account_prefix}-ec2-performance-kms"
+  role   = aws_iam_role.ec2_performance_role.id
+  policy = data.aws_iam_policy_document.ec2_performance_kms.json
+}
+
 output "performance_instance_id" {
   description = "ID of the Performance EC2 instance"
   value       = aws_instance.performance.id

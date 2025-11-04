@@ -32,21 +32,47 @@ elif command -v yum >/dev/null 2>&1; then
   fi
 fi
 
+# Install AWS CLI v2 (prefer package manager, fallback to official zip)
+if ! command -v aws >/dev/null 2>&1; then
+  if command -v dnf >/dev/null 2>&1; then
+    dnf -y install awscli || true
+  elif command -v yum >/dev/null 2>&1; then
+    yum -y install awscli || true
+  fi
+fi
+if ! command -v aws >/dev/null 2>&1; then
+  TMPDIR=$(mktemp -d)
+  pushd "$TMPDIR" >/dev/null
+  curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  unzip -q awscliv2.zip
+  ./aws/install --update
+  popd >/dev/null
+  rm -rf "$TMPDIR"
+fi
+
 # Set JAVA_HOME system-wide if java is present
 if command -v java >/dev/null 2>&1; then
   JB=$(readlink -f "$(command -v java)" 2>/dev/null || command -v java)
   JH=$(dirname "$(dirname "$JB")")
   cat >/etc/profile.d/java_home.sh <<ENVJAVA
 export JAVA_HOME="$JH"
-export PATH="$JAVA_HOME/bin:\$PATH"
+export PATH="\$JAVA_HOME/bin:\$PATH"
 ENVJAVA
   chmod 0644 /etc/profile.d/java_home.sh
 fi
+
+# Configure default AWS region for all users
+cat >/etc/profile.d/aws_default_region.sh <<ENVAWS
+export AWS_REGION="$REGION"
+export AWS_DEFAULT_REGION="$REGION"
+ENVAWS
+chmod 0644 /etc/profile.d/aws_default_region.sh
 
 # Quick sanity checks
 java -version || true
 ssh -V || true
 command -v ssh-agent || true
+aws --version || true
 
 JM_BASE="/opt/jmeter"
 JM_TGZ="apache-jmeter-$${JVER}.tgz"

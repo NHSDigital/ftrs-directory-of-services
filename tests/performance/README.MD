@@ -323,3 +323,151 @@ make jmeter-fetch-dir-inline \
 Notes
 - Non-recursive: only regular files directly under `REMOTE_DIR` are fetched
 - Prints `Total files: N` and `[i/N]` progress for each file
+
+---
+
+## S3 and Secrets helpers (Make targets)
+
+These generic targets replace the need for bucket-specific helpers and work with any S3 bucket or secret.
+
+- Default region is `eu-west-2`. Override per command with `AWS_REGION=...`.
+- For uploads, optional encryption flags are supported (SSE-S3 or SSE-KMS).
+
+### Upload a single file to S3
+
+```sh
+make -C tests/performance s3-upload-file \
+  BUCKET=my-bucket \
+  SRC=tests/performance/plan.jmx \
+  DEST_KEY=jmeter/plan.jmx
+```
+
+Upload with S3-managed encryption (SSE-S3):
+```sh
+make -C tests/performance s3-upload-file \
+  BUCKET=my-bucket \
+  SRC=tests/performance/plan.jmx \
+  DEST_KEY=jmeter/plan.jmx \
+  S3_SSE=AES256
+```
+
+Upload with KMS (SSE-KMS):
+```sh
+make -C tests/performance s3-upload-file \
+  BUCKET=my-bucket \
+  SRC=tests/performance/plan.jmx \
+  DEST_KEY=jmeter/plan.jmx \
+  S3_SSE=aws:kms \
+  S3_KMS_KEY_ID=<kms-key-id-or-alias>
+```
+
+### Upload a folder to S3
+
+```sh
+make -C tests/performance s3-upload-folder \
+  BUCKET=my-bucket \
+  SRC_DIR=tests/performance/parameter_files \
+  DEST_PREFIX=parameter_files/
+```
+
+With encryption (examples):
+```sh
+# SSE-S3
+make -C tests/performance s3-upload-folder BUCKET=my-bucket SRC_DIR=tests/performance/parameter_files DEST_PREFIX=parameter_files/ S3_SSE=AES256
+
+# SSE-KMS
+make -C tests/performance s3-upload-folder \
+  BUCKET=my-bucket \
+  SRC_DIR=tests/performance/parameter_files \
+  DEST_PREFIX=parameter_files/ \
+  S3_SSE=aws:kms \
+  S3_KMS_KEY_ID=<kms-key-id-or-alias>
+```
+
+### Download from S3
+
+Single file:
+```sh
+make -C tests/performance s3-download-file \
+  BUCKET=my-bucket \
+  KEY=jmeter/plan.jmx \
+  DEST=downloads/plan.jmx
+```
+
+Folder (recursive):
+```sh
+make -C tests/performance s3-download-folder \
+  BUCKET=my-bucket \
+  PREFIX=reports/ \
+  DEST_DIR=downloads/reports
+```
+
+### Fetch a single field from a Secrets Manager secret (secrets-get-value)
+
+Use this target when you only need one value from a secret.
+
+- KEY supports top-level keys (e.g., `dbname`) and dotted paths for nested JSON (e.g., `database.replica.host`).
+- Works with JSON secrets; for simple `key=value` secrets, use the exact left-hand key (dotted paths don’t apply).
+
+Examples:
+```sh
+# Print a top-level key from the secret
+make -C tests/performance secrets-get-value \
+  SECRET_ID=/my/service/secret \
+  KEY=dname
+
+# Print a nested value using a dotted path
+make -C tests/performance secrets-get-value \
+  SECRET_ID=/my/service/secret \
+  KEY=database.replica.host
+
+# Save a single value to a file
+make -C tests/performance secrets-get-value \
+  SECRET_ID=/my/service/secret \
+  KEY=dbname \
+  OUT=downloads/dbname.txt
+```
+
+### Fetch the entire secret from Secrets Manager (secrets-get)
+
+Use this when you want the whole secret payload. MODE controls formatting.
+
+Examples:
+```sh
+# Raw SecretString (no jq required)
+make -C tests/performance secrets-get \
+  SECRET_ID=/my/service/secret \
+  MODE=raw
+
+# Pretty JSON (requires jq)
+make -C tests/performance secrets-get \
+  SECRET_ID=/my/service/secret \
+  MODE=json
+
+# key=value lines (requires jq; JSON secrets only)
+make -C tests/performance secrets-get \
+  SECRET_ID=/my/service/secret \
+  MODE=kv
+
+# Save pretty JSON to a file
+make -C tests/performance secrets-get \
+  SECRET_ID=/my/service/secret \
+  MODE=json \
+  OUT=downloads/secret.json
+```
+
+Notes:
+- MODE defaults to `raw` if omitted.
+- `MODE=json` and `MODE=kv` require `jq` to be installed.
+
+
+KMS and secrets:
+- You do not pass a key for `secrets-get`. If the secret is KMS-encrypted, AWS uses the key attached to the secret.
+- The EC2 performance role includes `kms:Decrypt`, `kms:Encrypt`, and `kms:GenerateDataKey` on all keys; key policies may still restrict usage.
+
+Notes:
+- If your secret is JSON and you use MODE=json/kv with `secrets-get`, `jq` must be installed (macOS: `brew install jq`).
+- Arrays in dotted paths are not supported by the helper (e.g., `items.0.name`); fetch the whole secret and use `jq` for such cases.
+- If you’re unsure of the key name(s), first print the whole secret:
+  - Pretty JSON: `make -C tests/performance secrets-get SECRET_ID=/my/service/secret MODE=json`
+  - Key=value lines: `make -C tests/performance secrets-get SECRET_ID=/my/service/secret MODE=kv`
