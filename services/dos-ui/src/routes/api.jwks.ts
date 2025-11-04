@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/jwks")({
       GET: async () => {
         try {
           const cis2PublicKey = await getCIS2PublicKey();
-          return new Response(JSON.stringify({ key: cis2PublicKey }));
+          return new Response(cis2PublicKey, { "headers": { "Content-Type": "application/json" }});
         } catch (error) {
           return new Response(
             JSON.stringify({ message: "Error retrieving JWKS" }),
