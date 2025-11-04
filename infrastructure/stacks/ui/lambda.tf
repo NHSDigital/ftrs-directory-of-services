@@ -31,6 +31,7 @@ module "ui_lambda" {
     "PROJECT"             = var.project
     "WORKSPACE"           = terraform.workspace == "default" ? "" : terraform.workspace
     "SESSION_STORE_TABLE" = "${local.resource_prefix}-session-store${local.workspace_suffix}"
+    "SESSION_SECRET"      = data.random_password.session_secret.result
   }
 
   account_id     = data.aws_caller_identity.current.account_id
@@ -43,4 +44,13 @@ resource "aws_lambda_function_url" "ui_lambda_url" {
   # checkov:skip=CKV_AWS_258: Justification: This Lambda function URL is only accessible via CloudFront, which enforces authentication and access controls.
   function_name      = module.ui_lambda.lambda_function_name
   authorization_type = "NONE"
+}
+
+data "random_password" "session_secret" {
+  length              = 32
+  override_characters = "!@#$%^&*()-_=+[]{}|;:,.<>?/"
+  special             = true
+  upper               = true
+  lower               = true
+  number              = true
 }
