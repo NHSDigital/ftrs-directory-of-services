@@ -29,16 +29,8 @@ class FtrsLogger:
         self.debug = debug
         # remember last appended correlation id so we can expose it later
         self._last_appended_correlation: Optional[str] = None
-        # placeholder behaviour
-        self._placeholder_raw = os.environ.get("FTRS_LOG_PLACEHOLDER", "TBC")
 
     # --- helper utilities -------------------------------------------------
-    def _placeholder(self) -> Optional[str]:
-        """Return configured placeholder or None if configured as NULL."""
-        if self._placeholder_raw and self._placeholder_raw.upper() == "NULL":
-            return None
-        return self._placeholder_raw
-
     @staticmethod
     def _normalize_headers(headers: Dict[str, Any]) -> Dict[str, Any]:
         """Return a case-insensitive mapping for header lookup (lowercased keys)."""
@@ -100,7 +92,7 @@ class FtrsLogger:
 
         Useful for tests or responses; not authoritative (CloudWatch is).
         """
-        placeholder = self._placeholder()
+        placeholder = "FTRS_LOG_PLACEHOLDER"
         meta: Dict[str, Any] = {}
 
         now = datetime.now(timezone.utc)
@@ -121,7 +113,7 @@ class FtrsLogger:
         meta["location"] = location
 
         meta["function_name"] = (
-            os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or self._service
+            os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or placeholder
         )
         meta["function_memory_size"] = (
             os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE") or placeholder
