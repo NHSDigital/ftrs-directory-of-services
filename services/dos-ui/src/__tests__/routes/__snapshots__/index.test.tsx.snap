@@ -1,0 +1,43 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`should render the index route with session data > Index Route with Session Data 1`] = `
+<div>
+  <h1
+    class="nhsuk-heading-l"
+  >
+    Home
+  </h1>
+  <h2
+    class="nhsuk-heading-m"
+  >
+    Session Details
+  </h2>
+  <ul
+    class="nhsuk-list nhsuk-list--bullet"
+  >
+    <li>
+      Session ID: 
+      test-session-id
+    </li>
+    <li>
+      Expires At: 
+      Tue Nov 04 2025 12:05:30 GMT+0000 (Greenwich Mean Time)
+    </li>
+    <li>
+      State: 
+      test-state
+    </li>
+  </ul>
+  <a
+    class="care-identity-button"
+    href="replace-me"
+    type="button"
+  >
+    <img
+      alt="Care Identity Login"
+      class="care-identity-button__image"
+      src="/images/care-identity-buttons/SVG/CIS2_LogInWith_Original.svg"
+    />
+  </a>
+</div>
+`;

@@ -54,7 +54,7 @@ export type APIMToken = z.infer<typeof APIMTokenSchema>;
 export const UserSessionSchema = z.object({
   sessionID: z.uuid(),
   state: z.string(),
-  expires: z.number(),
+  expiresAt: z.number(),
   userID: z.string().optional(),
   user: UserInfoSchema.optional(),
   tokens: z.object({
@@ -67,7 +67,8 @@ export type UserSession = z.infer<typeof UserSessionSchema>;
 
 export const ClientSessionSchema = z.object({
   sessionID: z.uuid(),
-  expires: z.number(),
+  expiresAt: z.number(),
+  state: z.string(),
   userID: z.string().optional(),
   user: UserInfoSchema.optional(),
 });

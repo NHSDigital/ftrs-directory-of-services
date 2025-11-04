@@ -13,6 +13,23 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: [],
+    coverage: {
+      enabled: true,
+      provider: 'v8',
+      thresholds: {
+        branches: 95,
+        functions: 95,
+        lines: 95,
+        statements: 95,
+      },
+      include: [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ],
+      exclude: [
+        "src/routeTree.gen.ts",
+        "src/router.tsx",
+      ]
+    }
   },
 })
-

@@ -2,60 +2,36 @@ import {
   createRootRoute,
   HeadContent,
   Outlet,
+  type RouteComponent,
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Container, Footer, Header } from "nhsuk-react-components";
 import type { PropsWithChildren } from "react";
 import Banner from "@/components/Banner";
-import { initialiseSession } from "@/core/session";
+import { ClientSessionContext } from "@/core/context";
+import { setupSession } from "@/core/session";
 import appStylesUrl from "../styles/App.scss?url";
 
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { title: "FtRS DoS UI" },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1.0",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appStylesUrl,
-        type: "text/css",
-      },
-    ],
-  }),
-  component: () => (
+const RootComponent: RouteComponent = () => {
+  const { session } = Route.useLoaderData();
+  return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        <RootDocument>
-          <Outlet />
-        </RootDocument>
+        <ClientSessionContext.Provider value={session}>
+          <RootDocument>
+            <Outlet />
+          </RootDocument>
+        </ClientSessionContext.Provider>
         <TanStackRouterDevtools />
         <Scripts />
       </body>
     </html>
-  ),
-  notFoundComponent: () => (
-    <>
-      <h1 className="nhsuk-heading-l">Page not found</h1>
-      <p>This page does not exist.</p>
-      <p>
-        <a href="/">Return to the homepage</a>
-      </p>
-    </>
-  ),
-  loader: async () => {
-    const session = await initialiseSession();
-    return { session };
-  },
-});
+  );
+};
 
 const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -81,3 +57,36 @@ const RootDocument: React.FC<PropsWithChildren> = ({ children }) => {
     </>
   );
 };
+
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { title: "FtRS DoS UI" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1.0",
+      },
+    ],
+    links: [
+      {
+        rel: "stylesheet",
+        href: appStylesUrl,
+        type: "text/css",
+      },
+    ],
+  }),
+  component: RootComponent,
+  notFoundComponent: () => (
+    <>
+      <h1 className="nhsuk-heading-l">Page not found</h1>
+      <p>This page does not exist.</p>
+      <p>
+        <a href="/">Return to the homepage</a>
+      </p>
+    </>
+  ),
+  loader: async () => {
+    const session = await setupSession();
+    return { session };
+  },
+});

@@ -34,7 +34,7 @@ export class SessionManager {
     const session = UserSessionSchema.parse({
       sessionID,
       state: crypto.randomUUID(),
-      expires: Date.now() + this.SESSION_TIMEOUT,
+      expiresAt: Date.now() + this.SESSION_TIMEOUT,
       userID: undefined,
       user: undefined,
       tokens: {
@@ -67,7 +67,7 @@ export class SessionManager {
     }
 
     const session = UserSessionSchema.parse(response.Item);
-    if (session.expires <= Date.now()) {
+    if (session.expiresAt <= Date.now()) {
       return null;
     }
 
@@ -102,7 +102,7 @@ export class SessionManager {
       throw new Error("ENVIRONMENT environment variable must be set");
     }
 
-    const tableName = `ftrs-dos-ui-${env}-session-store`;
+    const tableName = `ftrs-dos-${env}-ui-session-store`;
     return workspace ? `${tableName}-${workspace}` : tableName;
   }
 }
@@ -111,7 +111,7 @@ export const setupSession = createServerOnlyFn(async () => {
   const manager = new SessionManager();
   const session = await useSession({
     name: "dos-ui-session",
-    password: "change-me-before-we-deploy-to-prod-or-get-fired",
+    password: process.env.SESSION_SECRET!,
     maxAge: 1000 * 60 * 60, // 1 hour
   });
 
