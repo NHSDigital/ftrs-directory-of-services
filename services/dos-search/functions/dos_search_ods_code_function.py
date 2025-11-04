@@ -28,7 +28,7 @@ def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     All mandatory fields are present; missing values use the configured placeholder.
     Optional one-time fields are prefixed with 'Opt_'.
     """
-    placeholder = ftrs_logger._placeholder()
+    placeholder = "FTRS_LOG_PLACEHOLDER"
 
     headers = (
         {} if not event or not isinstance(event, dict) else (event.get("headers") or {})
@@ -130,7 +130,7 @@ def get_organization() -> Response:
     log_data = extract(app.current_event)
     try:
         query_params = app.current_event.query_string_parameters or {}
-        print("I'm failing")
+        print("easily searchable: ", log_data)
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
         ods_code = validated_params.ods_code
