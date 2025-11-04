@@ -352,13 +352,15 @@ make -C tests/performance s3-upload-file \
 ```
 
 Upload with KMS (SSE-KMS):
+Note: Currently only AWS-managed KMS is supported (no customer-managed key configured). Omit `S3_KMS_KEY_ID` to use S3's AWS-managed key (alias/aws/s3) by default.
 ```sh
 make -C tests/performance s3-upload-file \
   BUCKET=my-bucket \
   SRC=tests/performance/plan.jmx \
   DEST_KEY=jmeter/plan.jmx \
-  S3_SSE=aws:kms \
-  S3_KMS_KEY_ID=<kms-key-id-or-alias>
+  S3_SSE=aws:kms
+# Optional: specify a CMK when available; otherwise omit to use AWS-managed key
+# S3_KMS_KEY_ID=<kms-key-id-or-alias>
 ```
 
 ### Upload a folder to S3
@@ -463,7 +465,7 @@ Notes:
 
 KMS and secrets:
 - You do not pass a key for `secrets-get`. If the secret is KMS-encrypted, AWS uses the key attached to the secret.
-- The EC2 performance role includes `kms:Decrypt`, `kms:Encrypt`, and `kms:GenerateDataKey` on all keys; key policies may still restrict usage.
+- The EC2 performance role permits `kms:Decrypt`, `kms:Encrypt`, and `kms:GenerateDataKey` via S3 and Secrets Manager; key policies may still restrict usage. Currently, no CMKs are configured, so AWS-managed keys are used.
 
 Notes:
 - If your secret is JSON and you use MODE=json/kv with `secrets-get`, `jq` must be installed (macOS: `brew install jq`).

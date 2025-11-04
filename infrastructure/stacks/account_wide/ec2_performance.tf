@@ -7,6 +7,8 @@ locals {
   performance_subnet_id = element(module.vpc.private_subnets, 0)
   # Name tag for Performance EC2 instance, scoped to this stack
   performance_name = "${local.account_prefix}-performance"
+  # S3 scope prefix for policies using project-env (e.g., ftrs-dos-dev), independent of repo-based account_prefix
+  s3_policy_prefix = "${var.project}-${var.environment}"
 }
 
 resource "aws_instance" "performance" {
@@ -75,22 +77,34 @@ resource "aws_iam_instance_profile" "ec2_performance_instance_profile" {
 
 # Always-allow S3 access for performance EC2 across all buckets and objects
 # Includes bucket-level and object-level permissions plus multipart support
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "ec2_performance_s3" {
+  # Non-resource-scoped action must use "*"
   statement {
-    sid = "AllowS3ListAndLocateBucket"
+    sid       = "AllowS3ListAllMyBuckets"
+    actions   = ["s3:ListAllMyBuckets"]
+    resources = ["*"]
+  }
+
+  # Bucket-level actions limited to buckets starting with either the repo-env (local.account_prefix) or project-env (local.s3_policy_prefix) prefix
+  statement {
+    sid = "AllowS3BucketMetadataWithPrefix"
     actions = [
       "s3:ListBucket",
       "s3:GetBucketLocation",
-      "s3:ListBucketMultipartUploads",
-      "s3:ListAllMyBuckets"
+      "s3:ListBucketMultipartUploads"
     ]
     resources = [
-      "*"
+      # Allow buckets named with repo-env (account_prefix) and project-env (s3_policy_prefix)
+      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.account_prefix}-*"),
+      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.s3_policy_prefix}-*")
     ]
   }
 
+  # Object-level actions limited to objects in buckets starting with either the repo-env (local.account_prefix) or project-env (local.s3_policy_prefix) prefix
   statement {
-    sid = "AllowS3ObjectCrudAndMultipart"
+    sid = "AllowS3ObjectCrudAndMultipartWithPrefix"
     actions = [
       "s3:GetObject",
       "s3:GetObjectVersion",
@@ -103,7 +117,9 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:AbortMultipartUpload"
     ]
     resources = [
-      "*"
+      # Allow objects in buckets named with repo-env (account_prefix) and project-env (s3_policy_prefix)
+      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.account_prefix}-*/*"),
+      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.s3_policy_prefix}-*/*")
     ]
   }
 }
@@ -114,7 +130,7 @@ resource "aws_iam_role_policy" "ec2_performance_s3" {
   policy = data.aws_iam_policy_document.ec2_performance_s3.json
 }
 
-# Always-allow Secrets Manager read access across all secrets
+# Secrets Manager read access limited to secrets under repo-env and project-env path prefixes
 data "aws_iam_policy_document" "ec2_performance_secrets" {
   statement {
     sid = "AllowGetSecretValues"
@@ -122,7 +138,12 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret"
     ]
-    resources = ["*"]
+    resources = [
+      # Repo-based prefix: /<repo_name>/<env>/*
+      format("arn:%s:secretsmanager:%s:%s:secret:%s", data.aws_partition.current.partition, var.aws_region, local.account_id, "/${var.repo_name}/${var.environment}/*"),
+      # Project-based prefix: /<project>/<env>/*
+      format("arn:%s:secretsmanager:%s:%s:secret:%s", data.aws_partition.current.partition, var.aws_region, local.account_id, "/${var.project}/${var.environment}/*")
+    ]
   }
 }
 
@@ -132,7 +153,7 @@ resource "aws_iam_role_policy" "ec2_performance_secrets" {
   policy = data.aws_iam_policy_document.ec2_performance_secrets.json
 }
 
-# Always-allow KMS decrypt across all keys (key policy must still allow access)
+# KMS access restricted to customer-managed keys in this account via S3 and Secrets Manager only
 data "aws_iam_policy_document" "ec2_performance_kms" {
   statement {
     sid = "AllowKmsUseForS3AndSecrets"
@@ -142,7 +163,20 @@ data "aws_iam_policy_document" "ec2_performance_kms" {
       "kms:GenerateDataKey",
       "kms:DescribeKey"
     ]
-    resources = ["*"]
+    resources = [
+      # All KMS keys in this account/region (explicit key ARNs, not aliases), kept safe by ViaService condition below
+      format("arn:%s:kms:%s:%s:key/%s", data.aws_partition.current.partition, var.aws_region, local.account_id, "*")
+    ]
+
+    # Allow usage only when invoked via these AWS services (prevents direct KMS API use)
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values = [
+        format("%s", "s3.${var.aws_region}.amazonaws.com"),
+        format("%s", "secretsmanager.${var.aws_region}.amazonaws.com")
+      ]
+    }
   }
 }
 
