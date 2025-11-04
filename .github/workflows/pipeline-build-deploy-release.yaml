@@ -2,10 +2,7 @@ name: Build and deploy release candidate
 
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
-  # TODO for testing before merge to main
-
   workflow_dispatch:
-
 
 permissions:
   contents: write
@@ -17,6 +14,7 @@ jobs:
   metadata:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
+
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
@@ -36,12 +34,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.set-full-tag.outputs.release_tag }}
-
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
 
-      - name: Run Semantic Release
+      - name: "Run Semantic Release"
         id: semantic-release
         uses: cycjimmy/semantic-release-action@v5
         env:
@@ -53,16 +50,6 @@ jobs:
           echo "The semantic version is: ${{ steps.semantic-release.outputs.new_release_version }}"
           echo "release_tag=v${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
 
-  echo-release-version:
-    name: "Echo the calculated release version"
-    needs:
-      - metadata
-      - tag-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Echo new tag"
-        run: |
-          echo "The next release tag: ${{ needs.tag-release.outputs.release_tag }}"
   build-release-artifacts:
     name: "Build ${{ matrix.name }}"
     needs:
