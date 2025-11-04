@@ -101,6 +101,18 @@
               "athena:BatchGetNamedQuery"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "DMSReadOnlyAccess",
+            "Action": [
+                "dms:Describe*",
+                "dms:List*",
+                "dms:TestConnection",
+                "dms:DescribeReplicationTasks",
+                "dms:DescribeEndpoints"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
         }
     ]
 }
