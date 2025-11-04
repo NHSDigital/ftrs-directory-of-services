@@ -32,10 +32,6 @@ const config = defineConfig({
         // These should only be used on the server
         'node:crypto',
         'node:console',
-        '@aws-lambda-powertools/logger',
-        '@aws-lambda-powertools/parameters',
-        '@aws-sdk/client-secrets-manager',
-        '@aws-sdk/client-ssm',
       ],
     },
   },
