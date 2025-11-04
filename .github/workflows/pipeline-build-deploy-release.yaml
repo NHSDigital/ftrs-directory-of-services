@@ -3,20 +3,9 @@ name: Build and deploy release candidate
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
   # TODO for testing before merge to main
-  push:
-    branches:
-      - "task/FDOS-347_Build_release_artefacts"
-  # TODO uncomment for main branch
-  # workflow_dispatch:
-    # inputs:
-    #   environment:
-    #     description: "Intended environment for deploying the release candidate"
-    #     required: true
-    #     type: choice
-    #     options:
-    #       - int
-    #       - ref
-    #       - prod
+
+  workflow_dispatch:
+
 
 permissions:
   contents: write
@@ -55,8 +44,6 @@ jobs:
       - name: Run Semantic Release
         id: semantic-release
         uses: cycjimmy/semantic-release-action@v5
-        with:
-          branch: "task/FDOS-347_Build_release_artefacts"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
