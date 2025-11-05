@@ -17,6 +17,7 @@ module "ui_lambda" {
 
   policy_jsons = [
     data.aws_iam_policy_document.ssm_access_policy.json,
+    data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.execute_api_policy.json,
     data.aws_iam_policy_document.dynamodb_session_store_policy.json,
     data.aws_iam_policy_document.secretsmanager_cis2_credentials_access_policy.json
@@ -31,7 +32,6 @@ module "ui_lambda" {
     "PROJECT"             = var.project
     "WORKSPACE"           = terraform.workspace == "default" ? "" : terraform.workspace
     "SESSION_STORE_TABLE" = "${local.resource_prefix}-session-store${local.workspace_suffix}"
-    "SESSION_SECRET"      = random_password.session_secret.result
   }
 
   account_id     = data.aws_caller_identity.current.account_id
@@ -46,11 +46,3 @@ resource "aws_lambda_function_url" "ui_lambda_url" {
   authorization_type = "NONE"
 }
 
-resource "random_password" "session_secret" {
-  length = 32
-
-  special = true
-  upper   = true
-  lower   = true
-  numeric = true
-}

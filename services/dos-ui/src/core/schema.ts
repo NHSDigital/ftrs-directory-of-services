@@ -3,9 +3,6 @@ import { z } from "zod/v4";
 export const UserInfoSchema = z.object({
   uid: z.string(),
   selectedRoleID: z.string(),
-  name: z.string(),
-  givenName: z.string(),
-  familyName: z.string(),
   displayName: z.string(),
   rbacRoles: z.array(
     z.object({

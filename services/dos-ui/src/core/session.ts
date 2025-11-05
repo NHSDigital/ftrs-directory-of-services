@@ -1,3 +1,4 @@
+import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DeleteCommand,
@@ -12,9 +13,13 @@ import {
   type UserSession,
   UserSessionSchema,
 } from "@/core/schema";
+import {
+  SESSION_COOKIE_MAX_AGE,
+  SESSION_COOKIE_NAME,
+  SESSION_TIMEOUT_MS,
+} from "./constants";
 
 export class SessionManager {
-  private readonly SESSION_TIMEOUT = 1000 * 60 * 60; // 1 hour
   private tableName: string;
   private baseClient: DynamoDBClient;
   private client: DynamoDBDocumentClient;
@@ -34,7 +39,7 @@ export class SessionManager {
     const session = UserSessionSchema.parse({
       sessionID,
       state: crypto.randomUUID(),
-      expiresAt: Date.now() + this.SESSION_TIMEOUT,
+      expiresAt: Date.now() + SESSION_TIMEOUT_MS,
       userID: undefined,
       user: undefined,
       tokens: {
@@ -105,14 +110,35 @@ export class SessionManager {
     const tableName = `ftrs-dos-${env}-ui-session-store`;
     return workspace ? `${tableName}-${workspace}` : tableName;
   }
+
+  static async getSessionSecret(): Promise<string> {
+    const env = process.env.ENVIRONMENT;
+    const workspace = process.env.WORKSPACE;
+
+    if (!env) {
+      throw new Error("ENVIRONMENT environment variable must be set");
+    }
+
+    const envPrefix = workspace ? `${env}-${workspace}` : env;
+    const secretName = `/ftrs-dos/${envPrefix}/ui-session-secret`;
+
+    const secretValue = await getSecret(secretName);
+    if (!secretValue) {
+      throw new Error(
+        `Session secret not found in Secrets Manager: ${secretName}`,
+      );
+    }
+
+    return secretValue.toString();
+  }
 }
 
 export const setupSession = createServerOnlyFn(async () => {
   const manager = new SessionManager();
   const session = await useSession({
-    name: "dos-ui-session",
-    password: process.env.SESSION_SECRET!,
-    maxAge: 1000 * 60 * 60, // 1 hour
+    name: SESSION_COOKIE_NAME,
+    password: await SessionManager.getSessionSecret(),
+    maxAge: SESSION_COOKIE_MAX_AGE,
   });
 
   if (!session.data || !session.data.sessionID) {
@@ -121,7 +147,7 @@ export const setupSession = createServerOnlyFn(async () => {
     return ClientSessionSchema.parse(newSession);
   }
 
-  const sessionID = session.data.sessionID as string;
+  const sessionID = session.data.sessionID;
   const existingSession = await manager.getSession(sessionID);
 
   if (!existingSession) {

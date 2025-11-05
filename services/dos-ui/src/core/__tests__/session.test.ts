@@ -1,3 +1,4 @@
+import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { useSession } from "@tanstack/react-start/server";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { UserSessionSchema } from "../schema";
@@ -15,15 +16,22 @@ vi.mock("@tanstack/react-start/server", () => {
   };
 });
 
+vi.mock("@aws-lambda-powertools/parameters/secrets", () => {
+  return {
+    getSecret: vi.fn(),
+  };
+});
+
 describe("SessionManager", () => {
   let sessionManager: SessionManager;
   let mockSendCommand: Mock;
+  const mockSessionSecret =
+    "test-session-secret-that-is-long-enough-for-testing";
 
   beforeEach(() => {
     process.env.ENVIRONMENT = "local";
     process.env.WORKSPACE = "";
-    process.env.SESSION_SECRET =
-      "test-session-secret-that-is-long-enough-for-testing";
+    (getSecret as Mock).mockResolvedValue(mockSessionSecret);
     mockSendCommand = vi.fn();
 
     sessionManager = new SessionManager();
@@ -180,11 +188,55 @@ describe("SessionManager", () => {
     });
     expect(deleteCommandInput.ReturnConsumedCapacity).toBe("INDEXES");
   });
+
+  it("getSessionSecret returns the correct secret name", async () => {
+    process.env.ENVIRONMENT = "test";
+    delete process.env.WORKSPACE;
+
+    const result = await SessionManager.getSessionSecret();
+    expect(result).toBe(mockSessionSecret);
+
+    expect(getSecret).toHaveBeenCalledTimes(1);
+    expect(getSecret).toHaveBeenCalledWith("/ftrs-dos/test/ui-session-secret");
+  });
+
+  it("getSessionSecret returns the correct secret name with workspace", async () => {
+    process.env.ENVIRONMENT = "test";
+    process.env.WORKSPACE = "workspace";
+
+    const result = await SessionManager.getSessionSecret();
+    expect(result).toBe(mockSessionSecret);
+
+    expect(getSecret).toHaveBeenCalledTimes(1);
+    expect(getSecret).toHaveBeenCalledWith(
+      "/ftrs-dos/test-workspace/ui-session-secret",
+    );
+  });
+
+  it("getSessionSecret throws error if ENVIRONMENT is not set", async () => {
+    delete process.env.ENVIRONMENT;
+    await expect(() => SessionManager.getSessionSecret()).rejects.toThrowError(
+      "ENVIRONMENT environment variable must be set",
+    );
+  });
+
+  it("getSessionSecret throws error if secret not found", async () => {
+    (getSecret as Mock).mockResolvedValueOnce(null);
+
+    await expect(() => SessionManager.getSessionSecret()).rejects.toThrowError(
+      "Session secret not found in Secrets Manager: /ftrs-dos/local/ui-session-secret",
+    );
+  });
 });
 
 describe("setupSession", () => {
+  const mockSessionSecret =
+    "test-session-secret-that-is-long-enough-for-testing";
+
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.ENVIRONMENT = "local";
+    (getSecret as Mock).mockResolvedValue(mockSessionSecret);
   });
 
   it("should create a new session using SessionManager", async () => {
@@ -219,7 +271,7 @@ describe("setupSession", () => {
 
     expect(useSessionMock).toHaveBeenCalledWith({
       name: "dos-ui-session",
-      password: process.env.SESSION_SECRET!,
+      password: mockSessionSecret,
       maxAge: 1000 * 60 * 60, // 1 hour
     });
 
@@ -276,7 +328,7 @@ describe("setupSession", () => {
 
     expect(useSessionMock).toHaveBeenCalledWith({
       name: "dos-ui-session",
-      password: process.env.SESSION_SECRET!,
+      password: mockSessionSecret,
       maxAge: 1000 * 60 * 60, // 1 hour
     });
 
@@ -330,7 +382,7 @@ describe("setupSession", () => {
 
     expect(useSessionMock).toHaveBeenCalledWith({
       name: "dos-ui-session",
-      password: process.env.SESSION_SECRET!,
+      password: mockSessionSecret,
       maxAge: 1000 * 60 * 60, // 1 hour
     });
 

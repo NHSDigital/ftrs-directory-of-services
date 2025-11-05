@@ -12,9 +12,6 @@ describe("UserInfoSchema", () => {
   const validData: UserInfo = {
     uid: "12345",
     selectedRoleID: "role-1",
-    name: "John Doe",
-    givenName: "John",
-    familyName: "Doe",
     displayName: "Johnny",
     rbacRoles: [
       {
@@ -71,19 +68,19 @@ describe("UserInfoSchema", () => {
       ...validData,
     };
     // @ts-expect-error Testing missing field
-    delete invalidData.name;
+    delete invalidData.rbacRoles;
 
     expect(() =>
       UserInfoSchema.parse(invalidData),
     ).toThrowErrorMatchingInlineSnapshot(`
       [ZodError: [
         {
-          "expected": "string",
+          "expected": "array",
           "code": "invalid_type",
           "path": [
-            "name"
+            "rbacRoles"
           ],
-          "message": "Invalid input: expected string, received undefined"
+          "message": "Invalid input: expected array, received undefined"
         }
       ]]
     `);
@@ -112,9 +109,6 @@ describe("UserSessionSchema", () => {
       user: {
         uid: "12345",
         selectedRoleID: "role-1",
-        name: "John Doe",
-        givenName: "John",
-        familyName: "Doe",
         displayName: "Johnny",
         rbacRoles: [],
         orgMemberships: [],
@@ -196,9 +190,6 @@ describe("ClientSessionSchema", () => {
       user: {
         uid: "12345",
         selectedRoleID: "role-1",
-        name: "John Doe",
-        givenName: "John",
-        familyName: "Doe",
         displayName: "Johnny",
         rbacRoles: [],
         orgMemberships: [],
