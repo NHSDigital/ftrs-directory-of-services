@@ -2,6 +2,8 @@ resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
     aws_api_gateway_integration.organization,
     aws_api_gateway_integration.status,
+    # Ensure all gateway responses exist before deployment
+    aws_api_gateway_gateway_response.this,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
@@ -21,6 +23,10 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_method.status,
       aws_api_gateway_integration.organization,
       aws_api_gateway_integration.status,
+      # Include gateway responses to trigger redeploy on template change.
+      local.gateway_responses_projection,
+      # Also include response header mapping so content-type/header edits redeploy
+      local.fhir_content_type_header,
     ]))
   }
 
