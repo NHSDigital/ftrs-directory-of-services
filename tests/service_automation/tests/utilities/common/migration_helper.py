@@ -1,11 +1,13 @@
 """Helper utilities for running data migration in tests."""
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
-from urllib.parse import urlparse, unquote
+from typing import Any, Dict, Optional
+from urllib.parse import unquote, urlparse
+
+from loguru import logger
 
 from pipeline.application import DataMigrationApplication, DMSEvent
-from pipeline.utils.config import DataMigrationConfig, DatabaseConfig
 from pipeline.processor import DataMigrationMetrics
+from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
 
 
 @dataclass
@@ -35,7 +37,7 @@ class MigrationHelper:
             db_uri: PostgreSQL connection URI for test database
             dynamodb_endpoint: DynamoDB endpoint URL
             environment: Environment name (default: "local")
-            workspace: Optional workspace name
+            workspace: Optional workspace name (defaults to "test")
         """
         self.db_uri = db_uri
         self.dynamodb_endpoint = dynamodb_endpoint
@@ -51,25 +53,20 @@ class MigrationHelper:
         """
         parsed = urlparse(self.db_uri)
 
-        host = parsed.hostname or "localhost"
-        port = str(parsed.port) if parsed.port else "5432"
-        dbname = parsed.path.lstrip("/") if parsed.path else "postgres"
-        username = unquote(parsed.username) if parsed.username else "test"
-        password = unquote(parsed.password) if parsed.password else "test"
-
         return {
-            "host": host,
-            "port": port,
-            "dbname": dbname,
-            "username": username,
-            "password": password,
+            "host": parsed.hostname or "localhost",
+            "port": str(parsed.port) if parsed.port else "5432",
+            "dbname": parsed.path.lstrip("/") if parsed.path else "postgres",
+            "username": unquote(parsed.username) if parsed.username else "test",
+            "password": unquote(parsed.password) if parsed.password else "test",
         }
 
     def create_migration_config(self) -> DataMigrationConfig:
         """
         Create a DataMigrationConfig for testing.
 
-        Constructs config using test database connection instead of environment variables.
+        Uses model_construct to bypass Pydantic's environment variable loading,
+        allowing explicit configuration values for testing.
 
         Returns:
             DataMigrationConfig instance configured for testing
@@ -84,8 +81,6 @@ class MigrationHelper:
             password=db_params["password"],
         )
 
-        # CRITICAL: Use model_construct to bypass Pydantic validation and env var loading
-        # This creates the config object directly without reading from environment
         config = DataMigrationConfig.model_construct(
             db_config=db_config,
             env=self.environment,
@@ -93,11 +88,14 @@ class MigrationHelper:
             dynamodb_endpoint=self.dynamodb_endpoint,
         )
 
-        # Verify the endpoint was set correctly using actual attribute names
-        print("🔍 Config verification:")
-        print(f"  - dynamodb_endpoint: {config.dynamodb_endpoint}")
-        print(f"  - env: {config.env}")
-        print(f"  - workspace: {config.workspace}")
+        logger.debug(
+            "Migration config created",
+            extra={
+                "dynamodb_endpoint": config.dynamodb_endpoint,
+                "environment": config.env,
+                "workspace": config.workspace,
+            },
+        )
 
         return config
 
@@ -113,13 +111,6 @@ class MigrationHelper:
         """
         try:
             config = self.create_migration_config()
-
-            # Debug logging using actual attribute names
-            print("🔍 Running migration with config:")
-            print(f"  - DynamoDB endpoint: {config.dynamodb_endpoint}")
-            print(f"  - Environment: {config.env}")
-            print(f"  - Workspace: {config.workspace}")
-
             app = DataMigrationApplication(config=config)
 
             event = DMSEvent(
@@ -133,15 +124,10 @@ class MigrationHelper:
 
             metrics = app.processor.metrics if hasattr(app, "processor") else None
 
-            return MigrationRunResult(
-                success=True, application=app, metrics=metrics
-            )
+            return MigrationRunResult(success=True, application=app, metrics=metrics)
 
         except Exception as e:
-            print(f"❌ Migration failed: {e}")
-            import traceback
-
-            traceback.print_exc()
+            logger.error("Single service migration failed", exc_info=True)
             return MigrationRunResult(success=False, error=str(e), metrics=None)
 
     def run_full_service_migration(self) -> MigrationRunResult:
@@ -159,16 +145,13 @@ class MigrationHelper:
 
             metrics = app.processor.metrics if hasattr(app, "processor") else None
 
-            return MigrationRunResult(
-                success=True, application=app, metrics=metrics
-            )
+            return MigrationRunResult(success=True, application=app, metrics=metrics)
 
         except Exception as e:
+            logger.error("Full service migration failed", exc_info=True)
             return MigrationRunResult(success=False, error=str(e), metrics=None)
 
-    def run_sqs_event_migration(
-        self, sqs_event: Dict[str, Any]
-    ) -> MigrationRunResult:
+    def run_sqs_event_migration(self, sqs_event: Dict[str, Any]) -> MigrationRunResult:
         """
         Run migration with an SQS event.
 
@@ -186,9 +169,8 @@ class MigrationHelper:
 
             metrics = app.processor.metrics if hasattr(app, "processor") else None
 
-            return MigrationRunResult(
-                success=True, application=app, metrics=metrics
-            )
+            return MigrationRunResult(success=True, application=app, metrics=metrics)
 
         except Exception as e:
+            logger.error("SQS event migration failed", exc_info=True)
             return MigrationRunResult(success=False, error=str(e), metrics=None)
