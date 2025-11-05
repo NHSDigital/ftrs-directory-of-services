@@ -68,7 +68,7 @@ on:
 
 jobs:
   action-infrastructure:
-    name: "${{ inputs.action }} infrastructure deployment to ${{ matrix.environment }} for stack ${{ matrix.name }}"
+    name: "${{ inputs.action }} infrastructure deployment to ${{ matrix.environment }} for stack ${{ matrix.stacks }}"
     concurrency:
       group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
       cancel-in-progress: false

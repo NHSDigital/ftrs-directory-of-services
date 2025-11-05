@@ -56,6 +56,11 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+      stacks:
+        description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
+        required: false
+        default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+        type: string
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -68,7 +73,8 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       workspace: ${{ inputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      # stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      stacks: ${{ inputs.stacks }}
       application_tag: ${{ inputs.tag  }}
       commit_hash: ${{ inputs.commit_hash }}
       tag: ${{ inputs.tag }}
