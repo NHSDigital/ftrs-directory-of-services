@@ -1,4 +1,4 @@
-name: Deploy account wide infrastructure workflow
+name: Deploy application infrastructure workflow
 
 permissions:
       id-token: write

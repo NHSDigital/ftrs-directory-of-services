@@ -67,25 +67,25 @@ jobs:
     uses: ./.github/workflows/metadata.yaml
     needs:
       - validate-release-tag
-
-  plan-account-wide-infra:
-    name: "Plan deployment of ${{ matrix.name }} infrastructure to ${{ matrix.environment }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
-    concurrency:
-      group: "${{ inputs.environment || 'dev' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
-      cancel-in-progress: false
-    needs:
-      # TODO replace need for metadata with hardcoded ref to mgmt ?
-      - metadata
-      - derive-workspace-from-tag
-    uses: ./.github/workflows/deploy-account-wide-infrastructure.yaml
-    with:
-      environment: ${{ inputs.environment || 'dev' }}
-      # workspace: "default"
-      tag: ${{ inputs.release_tag || 'v1.0.0' }}
-      # stacks: ${{ matrix.stacks }}
-      action: plan
-      type: account
-    secrets: inherit
+# TODO restore when clear that application plan works
+  # plan-account-wide-infra:
+  #   name: "Plan account wide infrastructure deployment to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
+  #   concurrency:
+  #     group: "${{ inputs.environment || 'dev' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+  #     cancel-in-progress: false
+  #   needs:
+  #     # TODO replace need for metadata with hardcoded ref to mgmt ?
+  #     - metadata
+  #     - derive-workspace-from-tag
+  #   uses: ./.github/workflows/deploy-account-wide-infrastructure.yaml
+  #   with:
+  #     environment: ${{ inputs.environment || 'dev' }}
+  #     # workspace: "default"
+  #     tag: ${{ inputs.release_tag || 'v1.0.0' }}
+  #     # stacks: ${{ matrix.stacks }}
+  #     action: plan
+  #     type: account
+  #   secrets: inherit
       #
     # strategy:
     #   fail-fast: false
@@ -144,7 +144,7 @@ jobs:
 
 
   plan-application-infra:
-    name: "Plan deployment of application infrastructure to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
+    name: "Plan application infrastructure deployment to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
     concurrency:
       group: "${{ inputs.environment || 'dev' }}-${{ inputs.release_tag || 'v1.0.0'}}"
       cancel-in-progress: false
@@ -152,6 +152,8 @@ jobs:
       # TODO check need for metadata
       # - metadata
       - derive-workspace-from-tag
+      # TODO replace plan with apply when testing complete
+      # - plan-account-wide-infra
       # - apply-account-wide-infra
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:

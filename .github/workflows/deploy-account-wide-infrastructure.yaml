@@ -88,6 +88,9 @@ jobs:
           - name: "mgmt"
             environment: ${{ inputs.mgmt_environment }}
             stacks: "['terraform_management','github_runner','account_security','artefact_management','account_policies','domain_name','logging']"
+    outputs:
+      plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
+
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v5
