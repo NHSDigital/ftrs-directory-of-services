@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Generator
 
 from ftrs_common.utils.db_service import get_service_repository
+from typing import Any, Dict, Generator
 from loguru import logger
 
 from sqlalchemy import text, MetaData
@@ -14,9 +15,10 @@ from testcontainers.postgres import PostgresContainer
 from testcontainers.localstack import LocalStackContainer
 from sqlmodel import create_engine, SQLModel, Session
 from ftrs_data_layer.domain import legacy, Organisation, Location, HealthcareService
+from utilities.common.migration_helper import MigrationHelper
 from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
 from utilities.common.rds_data import gp_service
-from utilities.common.dynamoDB_tables import dynamodb_tables
+from utilities.common.dynamoDB_tables import dynamodb_tables, get_dynamodb_tables
 
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
@@ -319,16 +321,26 @@ def fixture_dos_db_with_migration(
         # Dispose of the engine to close all connections
         engine.dispose()
 
-
 @pytest.fixture(name="dynamodb", scope="function")
 def fixture_dynamodb(
     localstack_container: LocalStackContainer,
-) -> Generator[dict, None, None]:
+) -> Generator[Dict[str, Any], None, None]:
     """
     DynamoDB fixture for BDD tests.
+
     Provides both client and resource with pre-created tables for each test.
+    Creates tables using environment-based naming from .env configuration.
+
+    Pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
+
+    Args:
+        localstack_container: LocalStack container fixture
+
+    Yields:
+        Dictionary with client, resource, and endpoint_url
     """
     endpoint_url = localstack_container.get_url()
+    logger.info(f"🔧 Initializing DynamoDB fixture at {endpoint_url}")
 
     client = boto3.client(
         "dynamodb",
@@ -347,14 +359,16 @@ def fixture_dynamodb(
     )
 
     try:
-        # Create tables
+        # Create tables using the helper function
         _create_dynamodb_tables(client)
 
+        logger.info("✅ DynamoDB fixture ready")
         yield {"client": client, "resource": resource, "endpoint_url": endpoint_url}
 
     finally:
         # Cleanup: Delete all tables
         _cleanup_dynamodb_tables(client)
+
 
 
 def _seed_gp_organisations(session: Session) -> None:
@@ -365,34 +379,67 @@ def _seed_gp_organisations(session: Session) -> None:
     session.commit()
 
 
-def _create_dynamodb_tables(client) -> None:
-    """Create DynamoDB tables for testing."""
-    for table_config in dynamodb_tables:
+def _create_dynamodb_tables(client: Any) -> None:
+    """
+    Create DynamoDB tables for testing using environment-based configuration.
+
+    Tables are created with names matching: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
+
+    Args:
+        client: Boto3 DynamoDB client
+    """
+    logger.info("=" * 80)
+    logger.info("Starting DynamoDB table creation...")
+
+    table_configs = get_dynamodb_tables()
+    logger.info(f"Creating {len(table_configs)} DynamoDB tables with environment-based names")
+
+    # Log the table names that will be created for debugging
+    for config in table_configs:
+        logger.info(f"  Table to create: {config['TableName']}")
+
+    for table_config in table_configs:
+        table_name = table_config["TableName"]
         try:
+            logger.info(f"Creating table: {table_name}")
             client.create_table(**table_config)
             waiter = client.get_waiter("table_exists")
-            waiter.wait(TableName=table_config["TableName"])
+            waiter.wait(TableName=table_name)
+            logger.info(f"✓ Created DynamoDB table: {table_name}")
         except client.exceptions.ResourceInUseException:
-            pass  # Table already exists
+            logger.warning(f"Table {table_name} already exists")
+        except Exception as e:
+            logger.error(f"❌ Failed to create table {table_name}: {e}")
+            raise
+
+    logger.info("DynamoDB table creation complete")
+    logger.info("=" * 80)
 
 
-def _cleanup_dynamodb_tables(client) -> None:
-    """Clean up DynamoDB tables after testing."""
+def _cleanup_dynamodb_tables(client: Any) -> None:
+    """
+    Clean up DynamoDB tables after testing.
+
+    Args:
+        client: Boto3 DynamoDB client
+    """
+    logger.info("Starting DynamoDB cleanup...")
     try:
         # List and delete all tables
         response = client.list_tables()
-        for table_name in response.get("TableNames", []):
+        table_names = response.get("TableNames", [])
+        logger.info(f"Found {len(table_names)} tables to delete")
+
+        for table_name in table_names:
             try:
                 client.delete_table(TableName=table_name)
                 waiter = client.get_waiter("table_not_exists")
                 waiter.wait(TableName=table_name)
+                logger.info(f"✓ Deleted DynamoDB table: {table_name}")
             except Exception as e:
-                # Log error but continue with other tables
                 logger.error(f"Warning: Failed to delete table {table_name}: {e}")
     except Exception as e:
-        # Log error but don't fail the test
-        print(f"Warning: Failed to cleanup DynamoDB tables: {e}")
-
+        logger.error(f"Warning: Failed to cleanup DynamoDB tables: {e}")
 
 # Step definition helpers
 @pytest.fixture(scope="function")  # Also change this to function scope
@@ -415,4 +462,76 @@ def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisati
         "organisation": prep_local_repo("organisation", Organisation, dynamodb),
         "location": prep_local_repo("location", Location, dynamodb),
         "healthcare-service": prep_local_repo("healthcare-service", HealthcareService, dynamodb),
+    }
+
+
+@pytest.fixture(scope="function")
+def migration_helper(
+    postgres_container: PostgresContainer,
+    dos_db_with_migration: Session,
+    dynamodb: Dict[str, Any],
+) -> MigrationHelper:
+    """
+    Create a MigrationHelper configured from environment variables.
+
+    Uses .env values for environment and workspace configuration.
+    Ensures DynamoDB tables are created before migration runs.
+
+    Args:
+        postgres_container: PostgreSQL container fixture
+        dos_db_with_migration: DoS database session fixture (ensures migrations are run)
+        dynamodb: DynamoDB test fixture (ensures tables exist)
+
+    Returns:
+        Configured MigrationHelper instance
+    """
+    logger.info("🔧 Initializing migration_helper fixture")
+
+    # Use the container's connection URL which already includes credentials
+    db_uri = postgres_container.get_connection_url()
+
+    logger.info(
+        f"DB URI: {db_uri.split('@')[1] if '@' in db_uri else db_uri}"
+    )
+
+    # Get DynamoDB endpoint from fixture
+    dynamodb_endpoint = dynamodb.get("endpoint_url", "http://localhost:4566")
+
+    # Read environment and workspace from .env
+    environment = os.getenv("ENVIRONMENT", "dev")
+    workspace = os.getenv("WORKSPACE", "test")
+
+    logger.info(
+        f"Migration config: environment={environment}, workspace={workspace}, "
+        f"dynamodb_endpoint={dynamodb_endpoint}"
+    )
+
+    helper = MigrationHelper(
+        db_uri=db_uri,
+        dynamodb_endpoint=dynamodb_endpoint,
+        environment=environment,
+        workspace=workspace,
+    )
+
+    logger.info("✅ MigrationHelper initialized")
+    return helper
+
+
+@pytest.fixture(scope="function")
+def migration_context(dos_db_with_migration) -> Dict[str, Any]:
+    """
+    Context to store migration test data across steps.
+
+    Args:
+        dos_db_with_migration: DoS database session fixture
+
+    Returns:
+        Dictionary context for storing test state
+    """
+    return {
+        "service_id": None,
+        "result": None,
+        "service_data": {},
+        "results": {},
+        "db_session": dos_db_with_migration,
     }
