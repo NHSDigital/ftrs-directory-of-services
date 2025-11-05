@@ -33,7 +33,7 @@ packages = [
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.9.6"
+ruff = "^0.14.2"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.5"

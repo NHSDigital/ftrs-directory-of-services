@@ -118,7 +118,8 @@
                 "iam:PassRole"
             ],
             "Resource": [
-                "arn:aws:iam::*:role/ftrs-dos-*"
+                "arn:aws:iam::*:role/ftrs-dos-*",
+                "arn:aws:iam::*:role/${repo_name}-*"
             ],
             "Condition": {
                 "StringEquals": {

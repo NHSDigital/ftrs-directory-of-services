@@ -197,7 +197,7 @@ jobs:
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-${{ matrix.name }}"
       cancel-in-progress: false
     needs:
       - metadata
