@@ -13,7 +13,7 @@ module "ui_lambda" {
   timeout                 = var.ui_lambda_connection_timeout
   memory_size             = var.ui_lambda_memory_size
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "4"
 
   policy_jsons = [
     data.aws_iam_policy_document.ssm_access_policy.json,
@@ -28,6 +28,7 @@ module "ui_lambda" {
 
   environment_variables = {
     "ENVIRONMENT"         = var.environment
+    "PROJECT"             = var.project
     "WORKSPACE"           = terraform.workspace == "default" ? "" : terraform.workspace
     "SESSION_STORE_TABLE" = "${local.resource_prefix}-session-store${local.workspace_suffix}"
   }
