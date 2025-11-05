@@ -93,5 +93,5 @@ jobs:
       tag: ${{ inputs.tag }}
       stacks: ${{ matrix.stacks }}
       action: ${{ inputs.action }}
-      type: ${{ inputs.account_type }}
+      type: ${{ inputs.type }}
     secrets: inherit
