@@ -29,3 +29,12 @@ resource "aws_secretsmanager_secret" "cis2_public_key" {
   name        = "/${var.project}/${var.environment}/cis2-public-key"
   description = "Public key for CIS2 in ${var.environment} environment in JWKS format"
 }
+
+
+resource "aws_secretsmanager_secret" "api_jmeter_pks_key" {
+  # checkov:skip=CKV2_AWS_57:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  # checkov:skip=CKV_AWS_149:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  count       = local.is_primary_environment ? 1 : 0
+  name        = "/${var.repo_name}/${var.environment}/api-jmeter-pks-key"
+  description = "Private key for jmeter mTLS authentication"
+}
