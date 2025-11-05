@@ -2,8 +2,10 @@ import * as client from "openid-client";
 import { ACR_VALUE } from "@/types/CIS2ClientConfig.ts";
 import { getAuthConfig, getOIDCConfig } from "@/utils/cis2Configuration.ts";
 import { logger } from "@/utils/logger";
+import {createServerOnlyFn} from "@tanstack/react-start";
 
-export const getAuthorisationUrl = async (): Promise<string> => {
+
+export const getAuthorisationUrl = createServerOnlyFn(async () =>{
   try {
     const oidcConfig = await getOIDCConfig();
     const config = await getAuthConfig();
@@ -41,4 +43,4 @@ export const getAuthorisationUrl = async (): Promise<string> => {
     }
     throw error;
   }
-};
+});

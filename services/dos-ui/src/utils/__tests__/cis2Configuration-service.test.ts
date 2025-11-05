@@ -41,7 +41,7 @@ describe("getAuthorisationUrl", () => {
   });
 
   it("returns the correct authorization URL", async () => {
-    const { getAuthorisationUrl } = await import("../cis2ConfigurationUtil.ts");
+    const { getAuthorisationUrl } = await import("../cis2Configuration-service.ts");
     const url = await getAuthorisationUrl();
     expect(url).toContain("http://issuer/auth?state=state");
   });
@@ -53,7 +53,7 @@ describe("getAuthorisationUrl", () => {
       .mockImplementation(() => {});
     mockGetOIDCConfig.mockRejectedValue(new Error("fail"));
 
-    const { getAuthorisationUrl } = await import("../cis2ConfigurationUtil.ts");
+    const { getAuthorisationUrl } = await import("../cis2Configuration-service.ts");
     await expect(getAuthorisationUrl()).rejects.toThrow("fail");
     expect(loggerErrorSpy).toHaveBeenCalled();
     loggerErrorSpy.mockRestore();

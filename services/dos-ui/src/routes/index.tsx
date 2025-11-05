@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getAuthorisationUrl } from "@/utils/cis2ConfigurationUtil.ts";
+import { getAuthorisationUrl } from "@/utils/cis2Configuration-service.ts";
 import careIdentityLoginImg from "/images/care-identity-buttons/SVG/CIS2_LogInWith_Original.svg";
 
 export const Route = createFileRoute("/")({
