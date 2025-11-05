@@ -65,7 +65,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project}/${var.environment}${local.workspace_suffix}/",
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project}/${var.environment}${local.workspace_suffix}/*",
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project}/${var.environment}/cis2-*"
     ]
   }
