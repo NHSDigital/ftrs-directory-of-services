@@ -3,14 +3,15 @@ import os
 from typing import Any, Dict
 
 import pytest
+from loguru import logger
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import text
 from sqlmodel import Session
-from loguru import logger
 
+from utilities.common.db_helper import delete_service_if_exists, verify_service_exists
+from utilities.common.gherkin_helper import parse_gherkin_table
 from utilities.common.migration_helper import MigrationHelper
 
-# Load scenarios
 scenarios("../../tests/features/data_migration_features/run_data_migration.feature")
 
 
@@ -29,17 +30,19 @@ def test_environment_configured(
         AssertionError: If environment is not properly configured
         pytest.fail: If DynamoDB is not accessible
     """
-    logger.info("=== Testing Environment Configuration ===")
-    logger.info(f"DynamoDB endpoint: {dynamodb.get('endpoint_url')}")
-    logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'not set')}")
-    logger.info(f"Workspace: {os.getenv('WORKSPACE', 'not set')}")
+    logger.info(
+        "Testing environment configuration",
+        extra={
+            "dynamodb_endpoint": dynamodb.get("endpoint_url"),
+            "environment": os.getenv("ENVIRONMENT", "not set"),
+            "workspace": os.getenv("WORKSPACE", "not set"),
+        },
+    )
 
     try:
         response = dynamodb["client"].list_tables()
         table_names = response.get("TableNames", [])
-        logger.info(f"Found {len(table_names)} DynamoDB tables:")
-        for table_name in table_names:
-            logger.info(f"  - {table_name}")
+        logger.info(f"Found {len(table_names)} DynamoDB tables")
         assert "TableNames" in response, "DynamoDB should be accessible"
     except Exception as e:
         pytest.fail(f"Failed to access DynamoDB: {e}")
@@ -50,7 +53,7 @@ def test_environment_configured(
         migration_helper.dynamodb_endpoint is not None
     ), "DynamoDB endpoint should be set"
 
-    logger.info("✅ Environment configuration verified")
+    logger.info("Environment configuration verified")
 
 
 @given("the DoS database has test data")
@@ -69,7 +72,7 @@ def dos_database_has_test_data(dos_db_with_migration: Session) -> None:
     )
     count = result.fetchone()[0]
     assert count >= 0, "Should be able to query services table"
-    logger.info(f"✅ DoS database ready with {count} services")
+    logger.info(f"DoS database ready with {count} services")
 
 
 @given("DynamoDB tables are ready")
@@ -82,18 +85,14 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
 
     Raises:
         AssertionError: If required tables don't exist
+        pytest.fail: If tables are missing
     """
-    logger.info("=== Verifying DynamoDB Tables ===")
-
     client = dynamodb["client"]
     response = client.list_tables()
     table_names = response.get("TableNames", [])
 
-    logger.info(f"Found {len(table_names)} tables in DynamoDB:")
-    for table_name in table_names:
-        logger.info(f"  ✓ {table_name}")
+    logger.debug(f"Found {len(table_names)} tables in DynamoDB")
 
-    # Expected table name pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
     project_name = os.getenv("PROJECT_NAME", "ftrs-dos")
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
@@ -104,17 +103,7 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
         for resource in expected_resources
     ]
 
-    logger.info(f"Expected tables based on environment ({environment}/{workspace}):")
-    for expected in expected_tables:
-        logger.info(f"  - {expected}")
-
-    missing_tables = []
-    for expected in expected_tables:
-        if expected not in table_names:
-            missing_tables.append(expected)
-            logger.error(f"  ❌ Missing: {expected}")
-        else:
-            logger.info(f"  ✓ Found: {expected}")
+    missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
         pytest.fail(
@@ -123,7 +112,8 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
             f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
         )
 
-    logger.info("✅ All required DynamoDB tables are ready")
+    logger.info("All required DynamoDB tables are ready")
+
 
 @given(
     parsers.parse(
@@ -141,9 +131,6 @@ def create_service_with_attributes(
     """
     Create a service in DoS database with attributes from Gherkin table.
 
-    Parses the Gherkin datatable (list of lists), converts types appropriately,
-    and inserts the service into the test database.
-
     Args:
         dos_db_with_migration: Database session with migrated schema
         migration_context: Test context for storing state across steps
@@ -158,41 +145,21 @@ def create_service_with_attributes(
         AssertionError: If required fields are missing
         pytest.fail: If database operation fails
     """
-    # Parse datatable (list of lists) into dictionary with type conversion
-    # First row is header: ['key', 'value']
-    attributes = {}
-    for row in datatable[1:]:  # Skip header row
-        key = row[0]
-        value = row[1]
+    attributes = parse_gherkin_table(datatable)
 
-        # Type conversion
-        if value.lower() in ("true", "false"):
-            attributes[key] = value.lower() == "true"
-        elif value.isdigit():
-            attributes[key] = int(value)
-        else:
-            attributes[key] = value
-
-    # Validate only basic required fields
     required_fields = ["id", "typeid", "statusid"]
     missing = [f for f in required_fields if f not in attributes]
     if missing:
         pytest.fail(f"Missing required fields: {', '.join(missing)}")
 
-    # Store in context
+    service_id = attributes["id"]
     migration_context["service_data"] = attributes
     migration_context["service_name"] = entity_name
-    migration_context["service_id"] = attributes["id"]
+    migration_context["service_id"] = service_id
 
-    # Insert into database with proper error handling
     try:
-        service_id = attributes["id"]
+        delete_service_if_exists(dos_db_with_migration, service_id)
 
-        # Delete if exists (ensure clean state for test isolation)
-        delete_stmt = text("DELETE FROM pathwaysdos.services WHERE id = :id")
-        dos_db_with_migration.exec(delete_stmt.bindparams(id=service_id))
-
-        # Insert new service with parameterized query
         columns = list(attributes.keys())
         placeholders = [f":{col}" for col in columns]
 
@@ -204,23 +171,17 @@ def create_service_with_attributes(
         )
 
         dos_db_with_migration.exec(insert_sql.bindparams(**attributes))
-
-        # Commit immediately to ensure data is visible to other sessions
         dos_db_with_migration.commit()
 
-        # Verify insertion with a fresh query
-        verify_stmt = text(
-            "SELECT id, typeid, odscode, statusid FROM pathwaysdos.services "
-            "WHERE id = :id"
-        )
-        result = dos_db_with_migration.exec(
-            verify_stmt.bindparams(id=service_id)
-        ).fetchone()
+        result = verify_service_exists(dos_db_with_migration, service_id)
 
         if not result:
             pytest.fail(f"Failed to verify inserted service with ID {service_id}")
 
-        print(f"✓ Successfully created service {service_id} with type {result[1]}")
+        logger.info(
+            "Created test service",
+            extra={"service_id": service_id, "type_id": result[1]},
+        )
 
     except Exception as e:
         dos_db_with_migration.rollback()
@@ -233,16 +194,16 @@ def create_service_with_attributes(
 def run_single_service_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
-    dynamodb: Dict[str, Any],  # Add this
     service_id: int,
 ) -> None:
-    # Debug: List tables before migration
-    client = dynamodb["client"]
-    tables = client.list_tables()
-    print("📋 Available DynamoDB tables:")
-    for table in tables.get("TableNames", []):
-        print(f"  - {table}")
+    """
+    Execute migration for a single service.
 
+    Args:
+        migration_helper: Helper for running migrations
+        migration_context: Test context dictionary
+        service_id: Service ID to migrate
+    """
     result = migration_helper.run_single_service_migration(service_id)
     migration_context["result"] = result
     migration_context["service_id"] = service_id
@@ -254,14 +215,13 @@ def run_full_service_migration(
     migration_context: Dict[str, Any],
 ) -> None:
     """
-    Run full service migration.
+    Execute full service migration.
 
     Args:
         migration_helper: Helper for running migrations
         migration_context: Test context dictionary
     """
     result = migration_helper.run_full_service_migration()
-
     migration_context["result"] = result
 
 
@@ -272,6 +232,9 @@ def verify_migration_success(migration_context: Dict[str, Any]) -> None:
 
     Args:
         migration_context: Test context dictionary
+
+    Raises:
+        AssertionError: If migration failed
     """
     result = migration_context["result"]
 
@@ -304,9 +267,6 @@ def verify_migration_metrics_inline(
     """
     Verify migration metrics match expected values.
 
-    Compares actual migration metrics against expected values with
-    detailed error messages for debugging.
-
     Args:
         migration_context: Test context dictionary
         total: Expected total_records count
@@ -329,7 +289,6 @@ def verify_migration_metrics_inline(
     service_id = migration_context.get("service_id")
     service_data = migration_context.get("service_data", {})
 
-    # Assert with detailed error messages including service context
     assert metrics.total_records == total, (
         f"Total records mismatch for service {service_id}: "
         f"expected {total}, got {metrics.total_records}"
