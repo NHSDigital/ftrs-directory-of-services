@@ -17,7 +17,7 @@ on:
         type: string
       workspace:
         description: "The name of the workspace to deploy the infrastructure into"
-        required: true
+        required: false
         default: "default"
         type: string
       project:
