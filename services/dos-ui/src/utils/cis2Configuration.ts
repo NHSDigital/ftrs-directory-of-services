@@ -18,11 +18,8 @@ export const validateConfig = (config: {
 };
 
 export const getAuthConfig = async (): Promise<CIS2ClientConfig> => {
-  const workspaceSuffix = process.env.WORKSPACE
-    ? `-${process.env.WORKSPACE}`
-    : "";
   const cis2ConfigJson = await getawsParameter(
-    `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-client-config${workspaceSuffix}`,
+    `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-client-config`,
   );
   const config: CIS2ClientConfig = JSON.parse(cis2ConfigJson);
   validateConfig(config);
