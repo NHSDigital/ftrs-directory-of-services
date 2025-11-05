@@ -1,4 +1,4 @@
-name: Build and deploy release candidate
+name: Build release tag and artifacts
 
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:

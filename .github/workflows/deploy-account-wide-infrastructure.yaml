@@ -1,0 +1,96 @@
+name: Deploy account wide infrastructure workflow
+
+permissions:
+      id-token: write
+      contents: read
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The name of the environment to deploy the infrastructure into"
+        required: true
+        type: string
+      mgmt_environment:
+        description: "The name of the managementenvironment to deploy the infrastructure into"
+        required: true
+        default: "mgmt"
+        type: string
+      workspace:
+        description: "The name of the workspace to deploy the infrastructure into"
+        required: true
+        default: "default"
+        type: string
+      project:
+        description: "The project - eg dos or cm."
+        required: false
+        default: "dos"
+        type: string
+      account_type:
+        description: "The type of account based on the environment"
+        required: false
+        default: "env"
+        type: string
+      # stacks:
+      #   description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
+      #   required: false
+      #   default: ""
+      #   type: string
+      action:
+        description: "The type of action to perform with the stack."
+        required: false
+        default: "plan"
+        type: string
+      tag:
+        description: "The git tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
+      application_tag:
+        description: "The application tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 5
+        type: number
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+    outputs:
+      plan_result:
+        description: "The Terraform plan output"
+        value: ${{ jobs.action-infrastructure.outputs.plan_result }}
+
+jobs:
+  action-infrastructure:
+    name: "${{ inputs.action }} infrastructure deployment to ${{ matrix.environment }} for stack ${{ matrix.name }}"
+    concurrency:
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "account"
+            environment: ${{ inputs.account_type }}
+            stacks: "['github_runner','account_policies','account_security']"
+          - name: "env"
+            environment: ${{ inputs.environment }}
+            stacks: "['terraform_management','account_wide','domain_name','logging']"
+          - name: "mgmt"
+            environment: ${{ inputs.mgmt_environment }}
+            stacks: "['terraform_management','github_runner','account_security','artefact_management','account_policies','domain_name','logging']"
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ matrix.environment }}
+      workspace: ${{ inputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: ${{ matrix.stacks }}
+      action: ${{ inputs.action }}
+      type: ${{ inputs.account_type }}
+    secrets: inherit
