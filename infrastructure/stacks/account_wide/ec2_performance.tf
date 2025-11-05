@@ -7,8 +7,6 @@ locals {
   performance_subnet_id = element(module.vpc.private_subnets, 0)
   # Name tag for Performance EC2 instance, scoped to this stack
   performance_name = "${local.account_prefix}-performance"
-  # S3 scope prefix for policies using project-env (e.g., ftrs-dos-dev), independent of repo-based account_prefix
-  s3_policy_prefix = "${var.project}-${var.environment}"
 }
 
 resource "aws_instance" "performance" {
@@ -77,8 +75,6 @@ resource "aws_iam_instance_profile" "ec2_performance_instance_profile" {
 
 # Always-allow S3 access for performance EC2 across all buckets and objects
 # Includes bucket-level and object-level permissions plus multipart support
-data "aws_partition" "current" {}
-
 data "aws_iam_policy_document" "ec2_performance_s3" {
   # Non-resource-scoped action must use "*"
   statement {
@@ -96,9 +92,9 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:ListBucketMultipartUploads"
     ]
     resources = [
-      # Allow buckets named with repo-env (account_prefix) and project-env (s3_policy_prefix)
-      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.account_prefix}-*"),
-      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.s3_policy_prefix}-*")
+      # Allow buckets named with repo-env (account_prefix + -is-performance) and project-env (s3_policy_prefix) prefixes
+      format("arn:%s:s3:::%s", "aws", "${local.s3_account_prefix}-*"),
+      format("arn:%s:s3:::%s", "aws", "${local.s3_project_prefix}-*")
     ]
   }
 
@@ -117,9 +113,9 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:AbortMultipartUpload"
     ]
     resources = [
-      # Allow objects in buckets named with repo-env (account_prefix) and project-env (s3_policy_prefix)
-      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.account_prefix}-*/*"),
-      format("arn:%s:s3:::%s", data.aws_partition.current.partition, "${local.s3_policy_prefix}-*/*")
+      # Allow objects in buckets named with repo-env (account_prefix + -is-performance) and project-env (s3_policy_prefix) prefixes
+      format("arn:%s:s3:::%s", "aws", "${local.s3_account_prefix}-*/*"),
+      format("arn:%s:s3:::%s", "aws", "${local.s3_project_prefix}-*/*")
     ]
   }
 }
@@ -139,10 +135,10 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
       "secretsmanager:DescribeSecret"
     ]
     resources = [
-      # Repo-based prefix: /<repo_name>/<env>/*
-      format("arn:%s:secretsmanager:%s:%s:secret:%s", data.aws_partition.current.partition, var.aws_region, local.account_id, "/${var.repo_name}/${var.environment}/*"),
-      # Project-based prefix: /<project>/<env>/*
-      format("arn:%s:secretsmanager:%s:%s:secret:%s", data.aws_partition.current.partition, var.aws_region, local.account_id, "/${var.project}/${var.environment}/*")
+      # Repo-based prefix with -is-performance suffix
+      format("arn:%s:secretsmanager:%s:%s:secret:%s", "aws", var.aws_region, local.account_id, local.secrets_repo_prefix),
+      # Project-based prefix with -is-performance suffix
+      format("arn:%s:secretsmanager:%s:%s:secret:%s", "aws", var.aws_region, local.account_id, local.secrets_project_prefix)
     ]
   }
 }
@@ -153,7 +149,8 @@ resource "aws_iam_role_policy" "ec2_performance_secrets" {
   policy = data.aws_iam_policy_document.ec2_performance_secrets.json
 }
 
-# KMS access restricted to customer-managed keys in this account via S3 and Secrets Manager only
+# KMS access limited to AWS-managed keys for S3 and Secrets Manager only (alias/aws/s3, alias/aws/secretsmanager)
+# Enforced via kms:ViaService + kms:ResourceAliases conditions
 data "aws_iam_policy_document" "ec2_performance_kms" {
   statement {
     sid = "AllowKmsUseForS3AndSecrets"
@@ -163,10 +160,8 @@ data "aws_iam_policy_document" "ec2_performance_kms" {
       "kms:GenerateDataKey",
       "kms:DescribeKey"
     ]
-    resources = [
-      # All KMS keys in this account/region (explicit key ARNs, not aliases), kept safe by ViaService condition below
-      format("arn:%s:kms:%s:%s:key/%s", data.aws_partition.current.partition, var.aws_region, local.account_id, "*")
-    ]
+    # Use all resources, then constrain to AWS-managed aliases via condition below
+    resources = ["*"]
 
     # Allow usage only when invoked via these AWS services (prevents direct KMS API use)
     condition {
@@ -177,6 +172,16 @@ data "aws_iam_policy_document" "ec2_performance_kms" {
         format("%s", "secretsmanager.${var.aws_region}.amazonaws.com")
       ]
     }
+
+    # Restrict to AWS-managed KMS keys behind these aliases
+    condition {
+      test     = "ForAnyValue:StringEquals"
+      variable = "kms:ResourceAliases"
+      values = [
+        "alias/aws/s3",
+        "alias/aws/secretsmanager"
+      ]
+    }
   }
 }
 
@@ -184,19 +189,4 @@ resource "aws_iam_role_policy" "ec2_performance_kms" {
   name   = "${local.account_prefix}-ec2-performance-kms"
   role   = aws_iam_role.ec2_performance_role.id
   policy = data.aws_iam_policy_document.ec2_performance_kms.json
-}
-
-output "performance_instance_id" {
-  description = "ID of the Performance EC2 instance"
-  value       = aws_instance.performance.id
-}
-
-output "performance_private_ip" {
-  description = "Private IP of the Performance EC2 instance"
-  value       = aws_instance.performance.private_ip
-}
-
-output "performance_security_group_id" {
-  description = "Security group ID for the Performance instance"
-  value       = aws_security_group.performance_ec2_sg.id
 }

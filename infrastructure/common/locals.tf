@@ -33,4 +33,15 @@ locals {
   env_sso_roles = [
     for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
   ]
+
+  # IS performance naming and prefixes
+  is_performance_suffix = "is-performance"
+
+  # S3 allowed prefixes
+  s3_account_prefix = "${local.account_prefix}-${local.is_performance_suffix}"
+  s3_project_prefix = "${var.project}-${var.environment}-${local.is_performance_suffix}"
+
+  # Secrets Manager allowed prefixes
+  secrets_repo_prefix    = "/${var.repo_name}/${var.environment}/${local.is_performance_suffix}/*"
+  secrets_project_prefix = "/${var.project}/${var.environment}/${local.is_performance_suffix}/*"
 }
