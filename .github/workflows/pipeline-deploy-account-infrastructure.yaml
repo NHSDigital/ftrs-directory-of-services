@@ -23,9 +23,6 @@ on:
     workflows: ["Pipeline Deploy Policies Infrastructure"]
     types:
       - completed
-    branches:
-      - "main"
-      - "task/**"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
