@@ -24,7 +24,7 @@ resource "aws_iam_role_policy_attachment" "dms_vpc_role_policy_attachment" {
 # This ensures the role exists before we try to use Shield Advanced features
 resource "aws_iam_service_linked_role" "shield" {
   aws_service_name = "shield.amazonaws.com"
-  description      = "Service-linked role for AWS Shield Advanced for our project"
+  description      = "Service-linked role for AWS Shield Advanced"
 }
 
 # Role and policy for allowing the REST variant of the API Gateway to write logs to specifically named log groups
