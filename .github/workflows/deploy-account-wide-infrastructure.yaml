@@ -11,8 +11,8 @@ on:
         required: true
         type: string
       mgmt_environment:
-        description: "The name of the managementenvironment to deploy the infrastructure into"
-        required: true
+        description: "The name of the management environment to deploy the infrastructure into"
+        required: false
         default: "mgmt"
         type: string
       workspace:
