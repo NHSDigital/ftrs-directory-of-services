@@ -33,7 +33,7 @@ lint:
 	npm run build:types -- --noEmit
 
 unit-test:
-	# npm run test
+	npm run test
 
 build: clean ensure-build-dir
 	npm run build
