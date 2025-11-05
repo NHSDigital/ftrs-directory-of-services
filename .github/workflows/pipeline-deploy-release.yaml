@@ -67,25 +67,24 @@ jobs:
     uses: ./.github/workflows/metadata.yaml
     needs:
       - validate-release-tag
-# TODO restore when clear that application plan works
-  # plan-account-wide-infra:
-  #   name: "Plan account wide infrastructure deployment to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
-  #   concurrency:
-  #     group: "${{ inputs.environment || 'dev' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
-  #     cancel-in-progress: false
-  #   needs:
-  #     # TODO replace need for metadata with hardcoded ref to mgmt ?
-  #     - metadata
-  #     - derive-workspace-from-tag
-  #   uses: ./.github/workflows/deploy-account-wide-infrastructure.yaml
-  #   with:
-  #     environment: ${{ inputs.environment || 'dev' }}
-  #     # workspace: "default"
-  #     tag: ${{ inputs.release_tag || 'v1.0.0' }}
-  #     # stacks: ${{ matrix.stacks }}
-  #     action: plan
-  #     type: account
-  #   secrets: inherit
+  plan-account-wide-infra:
+    name: "Plan account wide infrastructure deployment to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
+    concurrency:
+      group: "${{ inputs.environment || 'dev' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+      cancel-in-progress: false
+    needs:
+      # TODO replace need for metadata with hardcoded ref to mgmt ?
+      - metadata
+      - derive-workspace-from-tag
+    uses: ./.github/workflows/deploy-account-wide-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment || 'dev' }}
+      # workspace: "default"
+      tag: ${{ inputs.release_tag || 'v1.0.0' }}
+      # stacks: ${{ matrix.stacks }}
+      action: plan
+      type: account
+    secrets: inherit
       #
     # strategy:
     #   fail-fast: false
@@ -109,6 +108,7 @@ jobs:
     #   action: plan
     #   type: account
     # secrets: inherit
+
 # TODO restore when ready for manual approval
   # manual-approval-account-wide-infra:
   #   name: "Manual approval for deployment of account wide infra to  ${{ needs.metadata.outputs.environment }}"
@@ -153,7 +153,7 @@ jobs:
       # - metadata
       - derive-workspace-from-tag
       # TODO replace plan with apply when testing complete
-      # - plan-account-wide-infra
+      - plan-account-wide-infra
       # - apply-account-wide-infra
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:

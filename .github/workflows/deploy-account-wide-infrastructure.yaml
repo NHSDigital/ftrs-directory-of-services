@@ -69,9 +69,6 @@ on:
 jobs:
   action-infrastructure:
     name: "${{ inputs.action }} infrastructure deployment to ${{ matrix.environment }} for stack ${{ matrix.name }}"
-    runs-on: ubuntu-latest
-    environment: ${{ matrix.environment }}
-    timeout-minutes: ${{ inputs.workflow_timeout }}
     concurrency:
       group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
       cancel-in-progress: false
@@ -88,28 +85,13 @@ jobs:
           - name: "mgmt"
             environment: ${{ inputs.mgmt_environment }}
             stacks: "['terraform_management','github_runner','account_security','artefact_management','account_policies','domain_name','logging']"
-    outputs:
-      plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
 
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.tag }}
-
-      - name: "Configure AWS credentials"
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          type: ${{ inputs.type }}
-      - name: "Deploy infrastructure"
-        id: deploy_stack
-        uses: ./.github/workflows/deploy-infrastructure.yaml
-        with:
-          environment: ${{ matrix.environment }}
-          workspace: ${{ inputs.workspace }}
-          tag: ${{ inputs.tag }}
-          stacks: ${{ matrix.stacks }}
-          action: ${{ inputs.action }}
-          type: ${{ inputs.account_type }}
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ matrix.environment }}
+      workspace: ${{ inputs.workspace }}
+      tag: ${{ inputs.tag }}
+      stacks: ${{ matrix.stacks }}
+      action: ${{ inputs.action }}
+      type: ${{ inputs.account_type }}
+    secrets: inherit
