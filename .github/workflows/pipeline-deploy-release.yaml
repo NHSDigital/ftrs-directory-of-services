@@ -79,6 +79,7 @@ jobs:
     uses: ./.github/workflows/deploy-account-wide-infrastructure.yaml
     with:
       environment: ${{ inputs.environment || 'dev' }}
+      account_type: ${{ needs.metadata.outputs.account_type }}
       # workspace: "default"
       tag: ${{ inputs.release_tag || 'v1.0.0' }}
       # stacks: ${{ matrix.stacks }}
