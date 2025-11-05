@@ -18,7 +18,7 @@ class TestErrorUtil:
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         assert result.issue[0].severity == "fatal"
-        assert result.issue[0].code == "structure"
+        assert result.issue[0].code == "exception"
         assert result.issue[0].diagnostics == "Internal server error"
         assert result.issue[0].details is None
 
@@ -151,3 +151,47 @@ class TestErrorUtil:
             == "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
         )
         assert result.issue[1].details.model_dump() == INVALID_SEARCH_DATA_CODING
+
+    def test_create_validation_error_unknown_error_type(self):
+        # Use a valid Pydantic error type to exercise fallback (not 'value_error' or 'missing')
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                dict(
+                    type="string_type",
+                    loc=("identifier",),
+                    msg="Input should be a valid string",
+                    input=None,
+                )
+            ],
+        )
+        result = create_validation_error_operation_outcome(err)
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert result.issue[0].severity == "fatal"
+        assert result.issue[0].code == "structure"
+        assert result.issue[0].diagnostics == "Internal server error"
+
+    def test_create_validation_error_unmapped_value_error(self):
+        # Simulate a value_error with an unmapped custom error class
+        class UnknownCustomError(ValueError):
+            pass
+
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                {
+                    "type": "value_error",
+                    "loc": ("identifier",),
+                    "msg": "value error",
+                    "input": None,
+                    "ctx": {"error": UnknownCustomError("boom")},
+                }
+            ],
+        )
+        result = create_validation_error_operation_outcome(err)
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert result.issue[0].severity == "fatal"
+        assert result.issue[0].code == "structure"
+        assert result.issue[0].diagnostics == "Internal server error"

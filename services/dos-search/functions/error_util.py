@@ -32,7 +32,7 @@ def create_resource_internal_server_error() -> OperationOutcome:
     return OperationOutcome.model_validate(
         {
             "issue": [
-                _create_issue("structure", "fatal", diagnostics="Internal server error")
+                _create_issue("exception", "fatal", diagnostics="Internal server error")
             ]
         }
     )

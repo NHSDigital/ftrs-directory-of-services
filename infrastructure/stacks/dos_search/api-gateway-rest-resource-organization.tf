@@ -14,6 +14,12 @@ resource "aws_api_gateway_method" "organization" {
   authorization = "NONE"
 
   request_validator_id = aws_api_gateway_request_validator.validator.id
+
+  # Require querystring parameters at the gateway to yield 400 on missing params
+  request_parameters = {
+    "method.request.querystring._revinclude" = true
+    "method.request.querystring.identifier"  = true
+  }
 }
 
 resource "aws_api_gateway_integration" "organization" {

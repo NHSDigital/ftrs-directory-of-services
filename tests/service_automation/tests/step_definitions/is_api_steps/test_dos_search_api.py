@@ -7,6 +7,7 @@ from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from step_definitions.common_steps.api_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
+from playwright.sync_api import APIRequestContext
 
 INVALID_SEARCH_DATA_CODING = {
     "coding": [
@@ -63,6 +64,23 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
 
 
 @when(
+    parsers.re(r'I request data with invalid mTLS from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
+    target_fixture="fresponse",
+)
+def send_get_with_invalid_mtls(api_request_context: APIRequestContext, api_name: str, params: str, resource_name: str):
+    """Send request without client certificate to trigger 403 from mTLS-enabled domain."""
+    url = get_url(api_name) + "/" + resource_name
+    if params is None or not params.strip():
+        param_dict = {}
+    else:
+        param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
+
+    response = api_request_context.get(url, params=param_dict)
+    logger.info(f"invalid mTLS response status: {response.status}")
+    return response
+
+
+@when(
     parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with "(?P<param_type>.*?)" query params and "(?P<token_type>.*?)" access token'),
     target_fixture="fresponse",
 )
@@ -111,4 +129,3 @@ def api_check_operation_outcome_any_issue_details_invalid_auth_coding(fresponse)
         key="details",
         value=INVALID_AUTH_CODING
     )
-
