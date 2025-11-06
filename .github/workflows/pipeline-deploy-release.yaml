@@ -6,7 +6,7 @@ on:
   # TODO remove push when not testing
   push:
     branches:
-      - task/FTRS-348_Deploy_release_workflow1
+      - task/FTRS-348_Deploy_release_workflow
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
@@ -20,8 +20,6 @@ on:
         description: "Environment to host release deployment"
         required: true
         type: choice
-        # TODO remove dev option and default when not testing
-        default: "dev"
         options:
           - dev
           - int
