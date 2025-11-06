@@ -12,6 +12,7 @@ from ftrs_common.utils.request_id import fetch_or_set_request_id, get_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from pipeline.load_data import load_data
+from pipeline.validation import get_permitted_org_type
 
 from .extract import (
     fetch_organisation_uuid,
@@ -70,10 +71,11 @@ def _process_organisation(organisation: dict) -> str | None:
         correlation_id = get_correlation_id()
         request_id = get_request_id()
 
-        # Transform first so API calls to check for UUID are minimized if data is invalid
-        fhir_organisation = transform_to_payload(organisation)
+        permitted_org_type = get_permitted_org_type(organisation)
+        if not permitted_org_type:
+            return None
 
-        # Extract ODS code from the transformed organisation for logging and UUID lookup
+        fhir_organisation = transform_to_payload(organisation, permitted_org_type)
         ods_code = fhir_organisation.identifier[0].value
 
         org_uuid = fetch_organisation_uuid(ods_code)

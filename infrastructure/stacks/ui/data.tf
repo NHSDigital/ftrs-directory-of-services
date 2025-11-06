@@ -30,6 +30,19 @@ data "aws_ssm_parameter" "dos_aws_account_id_mgmt" {
   name = "/dos/${var.environment}/aws_account_id_mgmt"
 }
 
+data "aws_iam_policy_document" "secretsmanager_cis2_credentials_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-private-key*",
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*"
+    ]
+  }
+}
+
 data "aws_iam_policy_document" "ssm_access_policy" {
   statement {
     effect = "Allow"
@@ -39,7 +52,8 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "ssm:GetParametersByPath"
     ]
     resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint"
+      "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint",
+      "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.project}/${var.environment}/cis2-client-config"
     ]
   }
 }
@@ -72,4 +86,21 @@ data "aws_acm_certificate" "domain_cert" {
   domain      = "*.${local.env_domain_name}"
   statuses    = ["ISSUED"]
   most_recent = true
+}
+
+data "aws_iam_policy_document" "dynamodb_session_store_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query"
+    ]
+    resources = [
+      module.ui_session_store.dynamodb_table_arn,
+      "${module.ui_session_store.dynamodb_table_arn}/index/*"
+    ]
+  }
 }

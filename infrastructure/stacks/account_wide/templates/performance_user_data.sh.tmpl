@@ -1,0 +1,146 @@
+#!/bin/bash
+set -euo pipefail
+
+# Log user-data to file as in gp_search
+exec > >(tee -a /var/log/user-data.log) 2>&1
+
+REGION="${aws_region}"
+JVER="${performance_version}"
+POWEROFF="${performance_poweroff_after_setup}"
+JWT_VER="${performance_jwt_dependency_version}"
+
+# Update base packages (non-fatal if repos are temporarily unavailable)
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y update || true
+elif command -v yum >/dev/null 2>&1; then
+  yum -y update || true
+fi
+
+# Install Java 17 and base tools with fallback (dnf then yum)
+BASE_PKGS="unzip jq curl wget tar openssh-clients"
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y install $BASE_PKGS || true
+  dnf -y install java-17-amazon-corretto-headless || true
+  if ! command -v java >/dev/null 2>&1; then
+    dnf -y install java-17-openjdk-headless || true
+  fi
+elif command -v yum >/dev/null 2>&1; then
+  yum -y install $BASE_PKGS || true
+  yum -y install java-17-amazon-corretto-headless || true
+  if ! command -v java >/dev/null 2>&1; then
+    yum -y install java-17-openjdk-headless || true
+  fi
+fi
+
+# Set JAVA_HOME system-wide if java is present
+if command -v java >/dev/null 2>&1; then
+  JB=$(readlink -f "$(command -v java)" 2>/dev/null || command -v java)
+  JH=$(dirname "$(dirname "$JB")")
+  cat >/etc/profile.d/java_home.sh <<ENVJAVA
+export JAVA_HOME="$JH"
+export PATH="$JAVA_HOME/bin:\$PATH"
+ENVJAVA
+  chmod 0644 /etc/profile.d/java_home.sh
+fi
+
+# Quick sanity checks
+java -version || true
+ssh -V || true
+command -v ssh-agent || true
+
+JM_BASE="/opt/jmeter"
+JM_TGZ="apache-jmeter-$${JVER}.tgz"
+# Use archive.apache.org similar to gp_search for stable version URLs
+JM_URL="https://archive.apache.org/dist/jmeter/binaries/$${JM_TGZ}"
+
+mkdir -p "$${JM_BASE}"
+cd /tmp
+
+# Download and extract JMeter
+curl -fSL "$${JM_URL}" -o "$${JM_TGZ}"
+tar -xzf "$${JM_TGZ}"
+rm -f "$${JM_TGZ}"
+
+# Move to /opt and set up a stable symlink
+mv "apache-jmeter-$${JVER}" "$${JM_BASE}/current"
+ln -sfn "$${JM_BASE}/current" "$${JM_BASE}/apache-jmeter"
+chmod -R a+rX "$${JM_BASE}"
+
+# Export JMETER_HOME and PATH for all users (align with gp_search)
+cat >/etc/profile.d/jmeter.sh <<'ENVJ'
+export JMETER_HOME=/opt/jmeter/apache-jmeter
+export PATH="$JMETER_HOME/bin:$PATH"
+ENVJ
+chmod 0644 /etc/profile.d/jmeter.sh
+
+JM_HOME="$${JM_BASE}/current"
+
+# Ensure SSM Agent is installed and running with fallback to S3 RPM
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y install amazon-ssm-agent || true
+elif command -v yum >/dev/null 2>&1; then
+  yum -y install amazon-ssm-agent || true
+fi
+if ! rpm -q amazon-ssm-agent >/dev/null 2>&1; then
+  rpm -Uvh --force "https://s3.$${REGION}.amazonaws.com/amazon-ssm-$${REGION}/latest/linux_amd64/amazon-ssm-agent.rpm" || true
+fi
+systemctl enable amazon-ssm-agent || true
+systemctl restart amazon-ssm-agent || systemctl start amazon-ssm-agent || true
+
+# Always install JMeter Plugin Manager, cmdrunner, and a sensible default plugin set
+PLUGINS_MANAGER_VERSION=1.11
+CMDRUNNER_VERSION=2.3
+DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional"
+
+mkdir -p "$${JM_HOME}/lib/ext" "$${JM_HOME}/lib"
+curl -fL -o "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/$${PLUGINS_MANAGER_VERSION}/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar"
+curl -fL -o "$${JM_HOME}/lib/cmdrunner-$${CMDRUNNER_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/kg/apc/cmdrunner/$${CMDRUNNER_VERSION}/cmdrunner-$${CMDRUNNER_VERSION}.jar"
+
+# Setup PluginManagerCMD and install default plugins
+java -cp "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
+  org.jmeterplugins.repository.PluginManagerCMDInstaller || true
+bash "$${JM_HOME}/bin/PluginsManagerCMD.sh" install "$${DEFAULT_PLUGINS}" || true
+
+# Always install JWT dependency (used by IS_Proxy_Test_Plan)
+mkdir -p "$${JM_HOME}/lib"
+curl -fL -o "$${JM_HOME}/lib/java-jwt-$${JWT_VER}.jar" \
+  "https://repo1.maven.org/maven2/com/auth0/java-jwt/$${JWT_VER}/java-jwt-$${JWT_VER}.jar" || true
+
+# Provide convenience symlinks like gp_search
+ln -sf /opt/jmeter/apache-jmeter/bin/jmeter /usr/local/bin/jmeter
+ln -sf /opt/jmeter/apache-jmeter/bin/jmeter-server /usr/local/bin/jmeter-server
+
+# Always install a convenience wrapper for non-interactive runs
+cat >/usr/local/bin/jmeter-run <<'WRAP'
+#!/usr/bin/env bash
+set -euo pipefail
+# Ensure JAVA_HOME if not set
+if [[ -z "$${JAVA_HOME:-}" ]]; then
+  if command -v java >/dev/null 2>&1; then
+    JB=$(readlink -f "$(command -v java)" 2>/dev/null || command -v java)
+    export JAVA_HOME="$(dirname "$(dirname "$JB")")"
+    export PATH="$JAVA_HOME/bin:$PATH"
+  fi
+fi
+# Ensure JMETER_HOME if not set
+if [[ -z "$${JMETER_HOME:-}" ]]; then
+  export JMETER_HOME="/opt/jmeter/current"
+  export PATH="$JMETER_HOME/bin:$PATH"
+fi
+if ! command -v jmeter >/dev/null 2>&1; then
+  echo "jmeter not found in PATH" >&2
+  exit 1
+fi
+exec jmeter "$@"
+WRAP
+chmod +x /usr/local/bin/jmeter-run
+
+# Print JMeter version
+jmeter -v || true
+
+# Optionally power off after setup to avoid idle costs
+if [[ "$${POWEROFF}" == "true" ]]; then
+  shutdown -h +1 "Powering off after JMeter installation"
+fi

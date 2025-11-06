@@ -51,19 +51,39 @@ def _helper_create_organization_resource(ods_code: str) -> dict:
         ],
         "extension": [
             {
-                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
                     {
-                        "url": "role",
-                        "valueCoding": {
-                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
-                            "code": "197",
-                            "display": "GP Service",
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                    "display": "PRESCRIBING COST CENTRE",
+                                }
+                            ]
                         },
-                    },
-                    {"url": "primaryRole", "valueBoolean": True},
+                    }
                 ],
-            }
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                    "display": "GP PRACTICE",
+                                }
+                            ]
+                        },
+                    }
+                ],
+            },
         ],
     }
 
@@ -167,11 +187,11 @@ def test_processor_processing_organisations_successful(
                         "coding": [
                             {
                                 "system": "TO-DO",
-                                "code": "GP Service",
-                                "display": "GP Service",
+                                "code": "GP Practice",
+                                "display": "GP Practice",
                             }
                         ],
-                        "text": "GP Service",
+                        "text": "GP Practice",
                     }
                 ],
                 "name": "Test Organisation ABC123 ODS",
@@ -240,7 +260,7 @@ def test_processor_continue_on_validation_failure(
     assert requests_mock.request_history[1] == apim_api_abc123_mock.last_request
 
     # Failure for ABC123 should be logged
-    assert "422 Client Error" in caplog.text or "ETL_PROCESSOR_027" in caplog.text
+    assert "422 Client Error" in caplog.text
 
     # Assert APIM API Call for EFG456 UUID (succeeds)
     assert apim_efg456_mock.called_once
@@ -294,7 +314,43 @@ def test_processor_no_organisations_logs_and_returns(
 def test_process_organisation_exception_logs_and_returns_none(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
-    organisation_resource = _helper_create_organization_resource("ANYCODE")
+    organisation_resource = {
+        "resourceType": "Organization",
+        "id": "ANYCODE",
+        "name": "Test GP Practice ANYCODE",
+        "active": True,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ANYCODE",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO177"}]},
+                    }
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO76"}]},
+                    }
+                ],
+            },
+        ],
+    }
+
+    mocker.patch(
+        "pipeline.processor.fetch_organisation_uuid", return_value="test-uuid-123"
+    )
+
     mocker.patch(
         "pipeline.processor.transform_to_payload",
         side_effect=Exception("transform failed"),
@@ -427,7 +483,38 @@ def test_process_organisation_uuid_not_found(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test _process_organisation when UUID lookup returns None (empty Bundle)."""
-    org_abc123 = _helper_create_organization_resource("ABC123")
+    org_abc123 = {
+        "resourceType": "Organization",
+        "id": "ABC123",
+        "name": "Test GP Practice ABC123",
+        "active": True,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO177"}]},
+                    }
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO76"}]},
+                    }
+                ],
+            },
+        ],
+    }
 
     # Mock fetch_organisation_uuid to return None (empty Bundle case)
     mocker.patch("pipeline.processor.fetch_organisation_uuid", return_value=None)
@@ -437,3 +524,47 @@ def test_process_organisation_uuid_not_found(
     assert result is None
     assert "Organisation UUID not found in internal system" in caplog.text
     assert "ABC123" in caplog.text
+
+
+def test_process_organisation_not_permitted_skips_transformation(
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_not_permitted = {
+        "resourceType": "Organization",
+        "id": "NOTGP",
+        "name": "Not a GP Practice",
+        "active": True,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "NOTGP",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "code": "RO99",
+                                    "display": "Other Service",
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    mock_fetch_uuid = mocker.patch("pipeline.processor.fetch_organisation_uuid")
+
+    result = processor.__globals__["_process_organisation"](org_not_permitted)
+
+    assert result is None
+    mock_fetch_uuid.assert_not_called()
+    assert "not a permitted type" in caplog.text.lower()

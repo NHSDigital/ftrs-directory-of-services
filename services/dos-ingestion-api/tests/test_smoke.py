@@ -28,7 +28,9 @@ class TestStatusEndpoints:
         """
         Send an unauthenticated request to endpoint to check secured
         """
-        url = f"{service_url}{ENDPOINTS['organization']}/0000-0000-0000-0000-00000000000a"
+        url = (
+            f"{service_url}{ENDPOINTS['organization']}/0000-0000-0000-0000-00000000000a"
+        )
         resp = requests.put(url)
         assert resp.status_code == HTTPStatus.UNAUTHORIZED
 
