@@ -29,9 +29,6 @@ resource "aws_security_group" "performance_ec2_sg" {
   description = "Security group for Performance EC2 instance (SSM-managed)"
   vpc_id      = module.vpc.vpc_id
 
-  # Remove the default broad egress and manage explicit rules below
-  egress = []
-
   tags = {
     Name = "${local.resource_prefix}-performance-sg"
   }

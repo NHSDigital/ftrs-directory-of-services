@@ -91,3 +91,13 @@ variable "health_check_lambda_cloudwatch_logs_retention_days" {
   type        = number
   default     = 7
 }
+
+variable "api_gateway_throttling_rate_limit" {
+  description = "Throttling rate limit for the API Gateway (requests per second)"
+  type        = number
+}
+
+variable "api_gateway_throttling_burst_limit" {
+  description = "Throttling burst limit for the API Gateway"
+  type        = number
+}
