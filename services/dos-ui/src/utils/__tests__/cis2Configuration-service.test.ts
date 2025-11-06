@@ -3,15 +3,16 @@ import { getLogger } from "../logger.ts";
 
 vi.mock("../logger.ts", () => {
   const originalModule = vi.importActual("../logger.ts");
+  const mockLoggerInstance = {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    createChild: vi.fn(),
+  }
   return {
     ...originalModule,
-    getLogger: vi.fn(() => ({
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-      createChild: vi.fn(),
-    })),
+    getLogger: vi.fn(() => (mockLoggerInstance)),
   };
 });
 
@@ -76,7 +77,7 @@ describe("getAuthorisationUrl", () => {
     await expect(
       getAuthorisationUrl({ data: { state: "state" } }),
     ).rejects.toThrow("fail");
-    console.log(logger.error);
-    // expect(logger.error).toHaveBeenCalled();
+
+    expect(logger.error).toHaveBeenCalled();
   });
 });

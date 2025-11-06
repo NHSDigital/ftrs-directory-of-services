@@ -44,11 +44,13 @@ module "ui_cloudfront" {
   }
 
   default_cache_behavior = {
-    target_origin_id         = "lambda_function"
-    allowed_methods          = ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
-    cached_methods           = ["GET", "HEAD"]
-    compress                 = true
-    query_string             = true
+    target_origin_id     = "lambda_function"
+    allowed_methods      = ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
+    cached_methods       = ["GET", "HEAD"]
+    compress             = true
+    query_string         = true
+    use_forwarded_values = false
+
     viewer_protocol_policy   = "redirect-to-https"
     origin_request_policy_id = aws_cloudfront_origin_request_policy.all_viewer_headers.id
     cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
