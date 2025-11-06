@@ -73,6 +73,7 @@
                 "iam:List*",
                 "iam:Get*",
                 "iam:CreateRole",
+                "iam:UpdateRole",
                 "iam:DeleteRole",
                 "iam:CreateServiceLinkedRole",
                 "iam:DeleteServiceLinkedRole",
