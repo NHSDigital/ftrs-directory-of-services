@@ -13,6 +13,7 @@ from ftrs_common.utils.correlation_id import (
     get_correlation_id,
 )
 from ftrs_common.utils.jwt_auth import JWTAuthenticator
+from ftrs_common.utils.request_id import REQUEST_ID_HEADER
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_utils_logger = Logger.get(service="ods_utils")
@@ -174,7 +175,10 @@ def make_request(
             "jwt_required": jwt_required,
         }
     )
-    ods_utils_logger.append_keys(correlation_id=headers.get("X-Correlation-ID"))
+    ods_utils_logger.append_keys(
+        correlation_id=headers.get(CORRELATION_ID_HEADER),
+        request_id=headers.get(REQUEST_ID_HEADER),
+    )
 
     try:
         response = requests.request(
@@ -186,6 +190,16 @@ def make_request(
             **kwargs,
         )
         response.raise_for_status()
+
+        response_correlation_id = response.headers.get(CORRELATION_ID_HEADER)
+        response_request_id = response.headers.get(REQUEST_ID_HEADER)
+        if response_correlation_id:
+            ods_utils_logger.append_keys(
+                response_correlation_id=response_correlation_id
+            )
+        if response_request_id:
+            ods_utils_logger.append_keys(response_request_id=response_request_id)
+
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(
             OdsETLPipelineLogBase.ETL_UTILS_003,

@@ -6,6 +6,7 @@ from typing import Generator, NamedTuple
 import pytest
 import requests
 from ftrs_common.utils.correlation_id import set_correlation_id
+from ftrs_common.utils.request_id import set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
@@ -18,13 +19,16 @@ from pipeline.processor import (
 )
 
 TEST_CORRELATION_ID = "test-correlation"
+TEST_REQUEST_ID = "test-request"
 
 
 @pytest.fixture(autouse=True)
-def fixed_correlation_id() -> Generator[None, None, None]:
+def fixed_ids() -> Generator[None, None, None]:
     set_correlation_id(TEST_CORRELATION_ID)
+    set_request_id(TEST_REQUEST_ID)
     yield
     set_correlation_id(None)
+    set_request_id(None)
 
 
 class MockResponses(NamedTuple):
@@ -201,6 +205,7 @@ def test_processor_processing_organisations_successful(
                 "telecom": [],
             },
             "correlation_id": TEST_CORRELATION_ID,
+            "request_id": TEST_REQUEST_ID,
         }
     ]
 
@@ -268,6 +273,7 @@ def test_processor_continue_on_validation_failure(
     # Assert load_data call - only EFG456 should be loaded
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
+
     assert len(data_to_load) == 1
     assert data_to_load[0]["path"] == "00000000-0000-0000-0000-000000000EFG"
     assert data_to_load[0]["body"]["identifier"][0]["value"] == "EFG456"
