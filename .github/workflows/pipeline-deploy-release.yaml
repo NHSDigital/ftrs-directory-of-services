@@ -21,7 +21,7 @@ on:
         required: true
         type: choice
         options:
-          - dev
+          - test
           - int
           - preprod
           - prod
@@ -68,16 +68,16 @@ jobs:
 
 # TODO restore when ready for account wide infra deployment
   # plan-account-wide-infra:
-  #   name: "Plan account wide infrastructure deployment to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
+  #   name: "Plan account wide infrastructure deployment to ${{ inputs.environment || 'test' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
   #   concurrency:
-  #     group: "${{ inputs.environment || 'dev' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+  #     group: "${{ inputs.environment || 'test' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
   #     cancel-in-progress: false
   #   needs:
   #     - metadata
   #     - derive-workspace-from-tag
   #   uses: ./.github/workflows/deploy-account-wide-infrastructure.yaml
   #   with:
-  #     environment: ${{ inputs.environment || 'dev' }}
+  #     environment: ${{ inputs.environment || 'test' }}
   #     account_type: ${{ needs.metadata.outputs.account_type }}
   #     tag: ${{ inputs.release_tag || 'v1.0.0' }}
   #     action: plan
@@ -92,15 +92,15 @@ jobs:
   #     - metadata
   #     - plan-account-wide-infra
   #   runs-on: ubuntu-latest
-  #   environment: "${{ inputs.environment || 'dev' }}-protected"
+  #   environment: "${{ inputs.environment || 'test' }}-protected"
   #   steps:
   #     - name: Approval required
-  #       run: echo "Deployment of account wide infra for release ${{ inputs.release_tag || 'v1.0.0' }} to ${{ inputs.environment || 'dev' }} paused for manual approval. Please approve in the Actions tab."
+  #       run: echo "Deployment of account wide infra for release ${{ inputs.release_tag || 'v1.0.0' }} to ${{ inputs.environment || 'test' }} paused for manual approval. Please approve in the Actions tab."
 # TODO restore when ready for apply
   # apply-account-wide-infra:
   #   name: "Apply deployment of ${{ matrix.name }} infrastructure to ${{ matrix.environment }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
   #   concurrency:
-  #     group: "${{ inputs.environment || 'dev' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+  #     group: "${{ inputs.environment || 'test' }}-default-${{ matrix.name }}-${{matrix.stacks}}"
   #     cancel-in-progress: false
   #   needs:
   #     # TODO replace need for metadata with hardcoded ref to mgmt ?
@@ -108,7 +108,7 @@ jobs:
   #     - manual-approval-account-wide-infra
   #   uses: ./.github/workflows/deploy-account-wide-infrastructure.yaml
   #   with:
-  #     environment: ${{ inputs.environment || 'dev' }}
+  #     environment: ${{ inputs.environment || 'test' }}
   #     workspace: "default"
   #     tag: ${{ inputs.release_tag || 'v1.0.0' }}
   #     # stacks: ${{ matrix.stacks }}
@@ -119,9 +119,9 @@ jobs:
 
 
   plan-application-infra:
-    name: "Plan application infrastructure deployment to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
+    name: "Plan application infrastructure deployment to ${{ inputs.environment || 'test' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
     concurrency:
-      group: "${{ inputs.environment || 'dev' }}-${{ inputs.release_tag || 'v1.0.0'}}"
+      group: "${{ inputs.environment || 'test' }}-${{ inputs.release_tag || 'v1.0.0'}}"
       cancel-in-progress: false
     needs:
       # TODO check need for metadata
@@ -132,7 +132,7 @@ jobs:
       # - apply-account-wide-infra
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      environment: ${{ inputs.environment || 'dev' }}
+      environment: ${{ inputs.environment || 'test' }}
       workspace: ${{ needs.derive-workspace-from-tag.outputs.release_workspace }}
       application_tag: ${{ inputs.release_tag || 'v1.0.0' }}
       tag: ${{ inputs.release_tag || 'v1.0.0' }}
@@ -141,27 +141,27 @@ jobs:
     secrets: inherit
 
   manual-approval-application-infra:
-    name: "Manual approval for deployment of application release ${{ inputs.release_tag || 'v1.0.0' }} to ${{ inputs.environment || 'dev' }}"
+    name: "Manual approval for deployment of application release ${{ inputs.release_tag || 'v1.0.0' }} to ${{ inputs.environment || 'test' }}"
     if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
     needs:
       - plan-application-infra
     runs-on: ubuntu-latest
-    environment: "${{ inputs.environment || 'dev' }}-protected"
+    environment: "${{ inputs.environment || 'test' }}-protected"
     steps:
       - name: Approval required
-        run: echo "Deployment of application infra for release ${{ inputs.release_tag || 'v1.0.0' }} to ${{ inputs.environment || 'dev' }} paused for manual approval. Please approve in the Actions tab."
+        run: echo "Deployment of application infra for release ${{ inputs.release_tag || 'v1.0.0' }} to ${{ inputs.environment || 'test' }} paused for manual approval. Please approve in the Actions tab."
 
   apply-application-infra:
-    name: "Apply application infrastructure deployment to ${{ inputs.environment || 'dev' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
+    name: "Apply application infrastructure deployment to ${{ inputs.environment || 'test' }} for release ${{ inputs.release_tag || 'v1.0.0' }}"
     concurrency:
-      group: "${{ inputs.environment || 'dev' }}-${{ inputs.release_tag || 'v1.0.0' }}"
+      group: "${{ inputs.environment || 'test' }}-${{ inputs.release_tag || 'v1.0.0' }}"
       cancel-in-progress: false
     needs:
       - manual-approval-application-infra
       - derive-workspace-from-tag
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
-      environment: ${{ inputs.environment || 'dev' }}
+      environment: ${{ inputs.environment || 'test' }}
       workspace: ${{ needs.derive-workspace-from-tag.outputs.release_workspace }}
       application_tag: ${{ inputs.release_tag || 'v1.0.0' }}
       action: apply
@@ -190,7 +190,7 @@ jobs:
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ inputs.environment || 'dev' }}
+      environment: ${{ inputs.environment || 'test' }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.derive-workspace-from-tag.outputs.release_workspace }}
       application_tag: ${{ inputs.release_tag || 'v1.0.0' }}
