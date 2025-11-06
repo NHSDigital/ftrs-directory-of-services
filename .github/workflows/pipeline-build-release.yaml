@@ -4,6 +4,10 @@ name: Build release tag and artifacts
 on:
   workflow_dispatch:
 
+  push:
+    branches:
+      - task/FTRS-348_Deploy_release_workflow
+
 permissions:
   contents: write
   issues: write
