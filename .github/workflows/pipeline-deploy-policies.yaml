@@ -78,7 +78,7 @@ jobs:
 
   manual-approval-permissions:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} permissions infrastructure deployment"
-    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
+    if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/task/FTRS-55799_Github_account_split_issue') && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
       - plan-permissions-infrastructure
@@ -93,7 +93,7 @@ jobs:
     concurrency:
       group: "${{ matrix.environment }}-default-${{ matrix.name }}-permissions-${{matrix.stacks}}"
       cancel-in-progress: false
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/task/FTRS-55799_Github_account_split_issue'
     needs:
       - metadata
       - manual-approval-permissions
