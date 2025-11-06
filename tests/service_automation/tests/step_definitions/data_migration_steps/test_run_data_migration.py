@@ -10,6 +10,7 @@ from sqlmodel import Session
 
 from utilities.common.db_helper import delete_service_if_exists, verify_service_exists
 from utilities.common.gherkin_helper import parse_gherkin_table
+from utilities.common.log_helper import LogVerificationConfig, verify_log_reference
 from utilities.common.migration_helper import MigrationHelper
 
 scenarios("../../tests/features/data_migration_features/run_data_migration.feature")
@@ -195,18 +196,27 @@ def run_single_service_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
     service_id: int,
+    capfd: pytest.CaptureFixture[str],
 ) -> None:
     """
-    Execute migration for a single service.
+    Execute migration for a single service and capture output.
 
     Args:
         migration_helper: Helper for running migrations
         migration_context: Test context dictionary
         service_id: Service ID to migrate
+        capfd: Pytest fixture for capturing stdout/stderr
     """
     result = migration_helper.run_single_service_migration(service_id)
+
+    captured = capfd.readouterr()
+
     migration_context["result"] = result
     migration_context["service_id"] = service_id
+    migration_context["captured_output"] = {
+        "stdout": captured.out,
+        "stderr": captured.err,
+    }
 
 
 @when("a full service migration is run")
@@ -325,4 +335,214 @@ def verify_migration_metrics_inline(
 
     assert metrics.errors == errors, (
         f"Errors mismatch: expected {errors}, got {metrics.errors}"
+    )
+
+
+@then(
+    parsers.parse(
+        "the '{transformer_name}' was selected for service ID '{service_id:d}'"
+    )
+)
+def verify_transformer_selected(
+    migration_context: Dict[str, Any],
+    transformer_name: str,
+    service_id: int,
+) -> None:
+    """
+    Verify the correct transformer was selected for the service.
+
+    Validates DM_ETL_003 log reference from DataMigrationLogBase.
+
+    Args:
+        migration_context: Test context dictionary with captured output
+        transformer_name: Expected transformer name (e.g., 'GPPracticeTransformer')
+        service_id: Service ID that was migrated
+
+    Raises:
+        AssertionError: If transformer selection log not found or wrong transformer
+    """
+    config = LogVerificationConfig(
+        log_reference="DM_ETL_003",
+        message_template=f'"message":"Transformer {transformer_name} selected for record"',
+    )
+
+    matching_log = verify_log_reference(migration_context, service_id, config)
+
+    actual_service_id = migration_context.get("service_id", service_id)
+
+    logger.info(
+        f"Verified transformer selection for service {actual_service_id}",
+        extra={
+            "log_reference": "DM_ETL_003",
+            "transformer": transformer_name,
+            "service_id": actual_service_id,
+            "log_line": matching_log,
+        },
+    )
+
+
+@then(
+    parsers.parse(
+        "service ID '{service_id:d}' was not migrated due to reason '{expected_reason}'"
+    )
+)
+def verify_service_not_migrated(
+    migration_context: Dict[str, Any],
+    service_id: int,
+    expected_reason: str,
+) -> None:
+    """
+    Verify that a service was not migrated with the expected reason.
+
+    Validates DM_ETL_004 log reference from DataMigrationLogBase.
+
+    Args:
+        migration_context: Test context dictionary with captured output
+        service_id: Service ID that was not migrated
+        expected_reason: Expected reason for not migrating
+
+    Raises:
+        AssertionError: If migration failure log not found or wrong reason
+    """
+    config = LogVerificationConfig(
+        log_reference="DM_ETL_004",
+        message_template=f'"message":"Record was not migrated due to reason: {expected_reason}"',
+    )
+
+    matching_log = verify_log_reference(migration_context, service_id, config)
+
+    actual_service_id = migration_context.get("service_id", service_id)
+
+    logger.info(
+        f"Verified service {actual_service_id} was not migrated",
+        extra={
+            "log_reference": "DM_ETL_004",
+            "service_id": actual_service_id,
+            "reason": expected_reason,
+            "log_line": matching_log,
+        },
+    )
+
+
+@then(
+    parsers.parse(
+        "service ID '{service_id:d}' was skipped due to reason '{expected_reason}'"
+    )
+)
+def verify_service_skipped(
+    migration_context: Dict[str, Any],
+    service_id: int,
+    expected_reason: str,
+) -> None:
+    """
+    Verify that a service was skipped with the expected reason.
+
+    Validates DM_ETL_005 log reference from DataMigrationLogBase.
+
+    Args:
+        migration_context: Test context dictionary with captured output
+        service_id: Service ID that was skipped
+        expected_reason: Expected reason for skipping
+
+    Raises:
+        AssertionError: If service skip log not found or wrong reason
+    """
+    config = LogVerificationConfig(
+        log_reference="DM_ETL_005",
+        message_template=f'"message":"Record skipped due to condition: {expected_reason}"',
+    )
+
+    matching_log = verify_log_reference(migration_context, service_id, config)
+
+    actual_service_id = migration_context.get("service_id", service_id)
+
+    logger.info(
+        f"Verified service {actual_service_id} was skipped",
+        extra={
+            "log_reference": "DM_ETL_005",
+            "service_id": actual_service_id,
+            "reason": expected_reason,
+            "log_line": matching_log,
+        },
+    )
+
+
+@then(
+    parsers.parse(
+        "service ID '{service_id:d}' was transformed into "
+        "{org_count:d} organisation, "
+        "{location_count:d} location and "
+        "{service_count:d} healthcare service"
+    )
+)
+def verify_transformation_output(
+    migration_context: Dict[str, Any],
+    service_id: int,
+    org_count: int,
+    location_count: int,
+    service_count: int,
+) -> None:
+    """
+    Verify that a service was transformed into the expected number of resources.
+
+    Validates DM_ETL_007 log reference from DataMigrationLogBase.
+
+    Args:
+        migration_context: Test context dictionary with captured output
+        service_id: Service ID that was transformed
+        org_count: Expected number of organisations created
+        location_count: Expected number of locations created
+        service_count: Expected number of healthcare services created
+
+    Raises:
+        AssertionError: If transformation log not found or counts don't match
+    """
+
+    def validate_counts(log_line: str) -> None:
+        """Validate entity counts in log line."""
+        org_count_pattern = f'"organisation_count":{org_count}'
+        location_count_pattern = f'"location_count":{location_count}'
+        service_count_pattern = f'"healthcare_service_count":{service_count}'
+
+        if org_count_pattern not in log_line:
+            pytest.fail(
+                f"Organisation count mismatch in DM_ETL_007 log.\n"
+                f"Expected: {org_count} organisations\n"
+                f"Log: {log_line}"
+            )
+
+        if location_count_pattern not in log_line:
+            pytest.fail(
+                f"Location count mismatch in DM_ETL_007 log.\n"
+                f"Expected: {location_count} locations\n"
+                f"Log: {log_line}"
+            )
+
+        if service_count_pattern not in log_line:
+            pytest.fail(
+                f"Healthcare service count mismatch in DM_ETL_007 log.\n"
+                f"Expected: {service_count} healthcare services\n"
+                f"Log: {log_line}"
+            )
+
+    config = LogVerificationConfig(
+        log_reference="DM_ETL_007",
+        message_template='"message":"Record successfully migrated"',
+        validation_fn=validate_counts,
+    )
+
+    matching_log = verify_log_reference(migration_context, service_id, config)
+
+    actual_service_id = migration_context.get("service_id", service_id)
+
+    logger.info(
+        f"Verified transformation output for service {actual_service_id}",
+        extra={
+            "log_reference": "DM_ETL_007",
+            "service_id": actual_service_id,
+            "organisation_count": org_count,
+            "location_count": location_count,
+            "healthcare_service_count": service_count,
+            "log_line": matching_log,
+        },
     )
