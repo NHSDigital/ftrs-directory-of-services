@@ -2,20 +2,12 @@ resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
     aws_api_gateway_integration.organization,
     aws_api_gateway_integration.status,
-    # Ensure all gateway responses exist before deployment
     aws_api_gateway_gateway_response.this,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
 
   triggers = {
-    # NOTE: The configuration below will satisfy ordering considerations,
-    #       but not pick up all future REST API changes. More advanced patterns
-    #       are possible, such as using the filesha1() function against the
-    #       Terraform configuration file(s) or removing the .id references to
-    #       calculate a hash against whole resources. Be aware that using whole
-    #       resources will show a difference after the initial implementation.
-    #       It will stabilize to only change when resources change afterwards.
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.organization,
       aws_api_gateway_resource.status,
@@ -23,10 +15,13 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_method.status,
       aws_api_gateway_integration.organization,
       aws_api_gateway_integration.status,
-      # Include gateway responses to trigger redeploy on template change.
-      local.gateway_responses_projection,
-      # Also include response header mapping so content-type/header edits redeploy
-      local.fhir_content_type_header,
+      [for k in sort(keys(var.gateway_responses)) : {
+        key           = k
+        response_type = var.gateway_responses[k].response_type
+        status_code   = var.gateway_responses[k].status_code
+        template      = var.gateway_responses[k].template
+      }],
+      var.fhir_content_type_header,
     ]))
   }
 

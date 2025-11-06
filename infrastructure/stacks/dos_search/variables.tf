@@ -104,3 +104,255 @@ variable "api_gateway_throttling_burst_limit" {
   description = "Throttling burst limit for the API Gateway"
   type        = number
 }
+
+# FHIR error response header mapping (Content-Type)
+variable "fhir_content_type_header" {
+  description = "API Gateway response header mappings for FHIR responses"
+  type        = map(string)
+  default = {
+    "gatewayresponse.header.Content-Type" = "'application/fhir+json'"
+  }
+}
+
+# Gateway response definitions for API Gateway
+variable "gateway_responses" {
+  description = "Map of API Gateway gateway_responses with response_type, status_code, and FHIR template"
+  type = map(object({
+    response_type = string
+    status_code   = string
+    template      = string
+  }))
+  default = {
+    resource_not_found = {
+      response_type = "RESOURCE_NOT_FOUND"
+      status_code   = "404"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "not-found",
+      "diagnostics": "No such endpoint",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "NOT_FOUND",
+            "display": "Not Found"
+          }
+        ]
+      }
+    }
+  ]
+}
+EOT
+    }
+    missing_authentication_token = {
+      response_type = "MISSING_AUTHENTICATION_TOKEN"
+      status_code   = "404"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "not-found",
+      "diagnostics": "No such endpoint",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "NOT_FOUND",
+            "display": "Not Found"
+          }
+        ]
+      }
+    }
+  ]
+}
+EOT
+    }
+    access_denied = {
+      response_type = "ACCESS_DENIED"
+      status_code   = "403"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "security",
+      "diagnostics": "Invalid or missing client authentication",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode",
+            "version": "1",
+            "code": "UNAUTHORIZED",
+            "display": "Unauthorized"
+          }
+        ]
+      }
+    }
+  ]
+}
+EOT
+    }
+    bad_request_parameters = {
+      response_type = "BAD_REQUEST_PARAMETERS"
+      status_code   = "400"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "invalid",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data"
+          }
+        ]
+      },
+      "diagnostics": "Bad request"
+    }
+  ]
+}
+EOT
+    }
+    bad_request_body = {
+      response_type = "BAD_REQUEST_BODY"
+      status_code   = "400"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "invalid",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data"
+          }
+        ]
+      },
+      "diagnostics": "Bad request"
+    }
+  ]
+}
+EOT
+    }
+    default_4xx = {
+      response_type = "DEFAULT_4XX"
+      status_code   = "400"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "invalid",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data"
+          }
+        ]
+      },
+      "diagnostics": "Bad request"
+    }
+  ]
+}
+EOT
+    }
+    throttled = {
+      response_type = "THROTTLED"
+      status_code   = "429"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "throttled",
+      "details": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/issue-type",
+            "code": "throttled",
+            "display": "Throttled"
+          }
+        ]
+      },
+      "diagnostics": "Too many requests"
+    }
+  ]
+}
+EOT
+    }
+    integration_timeout = {
+      response_type = "INTEGRATION_TIMEOUT"
+      status_code   = "504"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "timeout",
+      "details": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/issue-type",
+            "code": "timeout",
+            "display": "Timeout"
+          }
+        ]
+      },
+      "diagnostics": "Gateway timeout"
+    }
+  ]
+}
+EOT
+    }
+    default_5xx = {
+      response_type = "DEFAULT_5XX"
+      status_code   = "500"
+      template      = <<EOT
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "exception",
+      "details": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/issue-type",
+            "code": "exception",
+            "display": "Exception"
+          }
+        ]
+      },
+      "diagnostics": "Internal server error"
+    }
+  ]
+}
+EOT
+    }
+  }
+}
