@@ -25,7 +25,7 @@ export async function getawsSecret(
 export async function getawsParameter(
   parameterName: string,
   sdkOptions?: Partial<SDKOptionsTypeFromPowertools>,
-): Promise<string | undefined> {
+): Promise<string> {
   const logger = getLogger();
   try {
     logger.debug("Fetching parameter from Parameter Store", { parameterName });
@@ -37,7 +37,7 @@ export async function getawsParameter(
       },
     });
     logger.info("Parameter retrieved successfully", { parameterName });
-    return parameter;
+    return parameter!;
   } catch (error) {
     logger.error("Failed to retrieve parameter", { parameterName, error });
     throw error;
