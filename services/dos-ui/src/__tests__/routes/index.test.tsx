@@ -1,9 +1,3 @@
-// import { before, beforeEach, describe } from "node:test";
-// import { createRouter, RouterProvider } from "@tanstack/react-router";
-// import { render } from "@testing-library/react";
-// import { act } from "react";
-// import { expect, it } from "vitest";
-
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { act, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
