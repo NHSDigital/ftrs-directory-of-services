@@ -50,9 +50,9 @@ publish:
 
 deploy:
 	if [ "$(RELEASE_DEPLOYMENT)" = "false" ] ; then \
-		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
+		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .\
 	else \
-		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
+		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .\
 	fi
 	unzip $(SERVICE)-assets-$(APPLICATION_TAG).zip -d ${TEMP_DIRECTORY}
 	aws s3 sync --delete $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/
