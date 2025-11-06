@@ -6,12 +6,15 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { Container, Footer, Header } from "nhsuk-react-components";
-import type { PropsWithChildren } from "react";
+import { Container, Footer, Header, InsetText, SummaryList } from "nhsuk-react-components";
+import { useEffect, useState, type PropsWithChildren } from "react";
 import Banner from "@/components/Banner";
 import { ClientSessionContext } from "@/core/context";
-import { setupSession } from "@/core/session";
+import { setupSessionFn } from "@/core/session";
 import appStylesUrl from "../styles/App.scss?url";
+import { AppError } from "@/core/errors";
+import NotFoundComponent from "@/components/NotFoundComponent";
+import ErrorComponent from "@/components/ErrorComponent";
 
 const RootComponent: RouteComponent = () => {
   const { session } = Route.useLoaderData();
@@ -76,17 +79,10 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
-  notFoundComponent: () => (
-    <>
-      <h1 className="nhsuk-heading-l">Page not found</h1>
-      <p>This page does not exist.</p>
-      <p>
-        <a href="/">Return to the homepage</a>
-      </p>
-    </>
-  ),
+  notFoundComponent: NotFoundComponent,
+  errorComponent: ErrorComponent,
   loader: async () => {
-    const session = await setupSession();
+    const session = await setupSessionFn();
     return { session };
   },
 });

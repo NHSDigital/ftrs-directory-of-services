@@ -6,7 +6,7 @@ import {
   GetCommand,
   PutCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { createServerOnlyFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { useSession } from "@tanstack/react-start/server";
 import {
   ClientSessionSchema,
@@ -119,6 +119,10 @@ export class SessionManager {
       throw new Error("ENVIRONMENT environment variable must be set");
     }
 
+    if (env === "local" && process.env.LOCAL_SESSION_SECRET) {
+      return process.env.LOCAL_SESSION_SECRET;
+    }
+
     const envPrefix = workspace ? `${env}-${workspace}` : env;
     const secretName = `/ftrs-dos/${envPrefix}/ui-session-secret`;
 
@@ -133,7 +137,7 @@ export class SessionManager {
   }
 }
 
-export const setupSession = createServerOnlyFn(async () => {
+export const buildSession = async () => {
   const manager = new SessionManager();
   const session = await useSession({
     name: SESSION_COOKIE_NAME,
@@ -157,4 +161,6 @@ export const setupSession = createServerOnlyFn(async () => {
   }
 
   return ClientSessionSchema.parse(existingSession);
-});
+};
+
+export const setupSessionFn = createServerFn({ method: "GET" }).handler(buildSession);

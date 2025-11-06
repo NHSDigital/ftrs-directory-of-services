@@ -2,7 +2,7 @@ import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { useSession } from "@tanstack/react-start/server";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { UserSessionSchema } from "../schema";
-import { SessionManager, setupSession } from "../session";
+import { SessionManager, buildSession } from "../session";
 
 vi.mock("@tanstack/react-start/server", () => {
   return {
@@ -229,7 +229,7 @@ describe("SessionManager", () => {
   });
 });
 
-describe("setupSession", () => {
+describe("buildSession", () => {
   const mockSessionSecret =
     "test-session-secret-that-is-long-enough-for-testing";
 
@@ -256,7 +256,7 @@ describe("setupSession", () => {
         },
       });
 
-    const session = await setupSession();
+    const session = await buildSession();
 
     expect(createSessionSpy).toHaveBeenCalledTimes(1);
     expect(session).toEqual({
@@ -313,7 +313,7 @@ describe("setupSession", () => {
         },
       });
 
-    const session = await setupSession();
+    const session = await buildSession();
 
     expect(createSessionSpy).not.toHaveBeenCalled();
     expect(getSessionSpy).toHaveBeenCalledTimes(1);
@@ -367,7 +367,7 @@ describe("setupSession", () => {
       .spyOn(SessionManager.prototype, "getSession")
       .mockResolvedValue(null);
 
-    const session = await setupSession();
+    const session = await buildSession();
 
     expect(getSessionSpy).toHaveBeenCalledTimes(1);
     expect(createSessionSpy).toHaveBeenCalledTimes(1);

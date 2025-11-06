@@ -3,14 +3,14 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import { act } from "react";
 import { expect, it, vi } from "vitest";
-import { setupSession } from "@/core/session";
+import { setupSessionFn } from "@/core/session";
 import { Route as RootRoute } from "@/routes/__root";
 
 vi.mock("@/core/session", async (importActual) => {
   const actual = await importActual<typeof import("@/core/session")>();
   return {
     ...actual,
-    setupSession: vi.fn().mockResolvedValue({
+    setupSessionFn: vi.fn().mockResolvedValue({
       sessionID: "test-session-id",
       state: "test-state",
       expires: Date.now() + 3600000,
@@ -38,7 +38,7 @@ describe("Root Route", () => {
   it("should render the root route", async () => {
     const { app } = await setUp();
     expect(app.container).toBeDefined();
-    expect(setupSession).toHaveBeenCalled();
+    expect(setupSessionFn).toHaveBeenCalled();
 
     expect(app.container).toMatchSnapshot("Root Route");
   });
