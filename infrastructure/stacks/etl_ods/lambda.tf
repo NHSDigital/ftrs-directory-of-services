@@ -23,7 +23,7 @@ module "processor_lambda" {
   handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir} /${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.processor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
@@ -68,7 +68,7 @@ module "consumer_lambda" {
   handler                 = var.consumer_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir} /${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size

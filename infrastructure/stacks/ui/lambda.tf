@@ -7,7 +7,7 @@ module "ui_lambda" {
   handler       = "index.handler"
 
   s3_bucket_name = local.artefacts_bucket
-  s3_key         = "${var.artefact_root_dir}/${var.artefact_sub_dir} /dos-ui-server-${var.application_tag}.zip"
+  s3_key         = "${var.artefact_root_dir}/${var.artefact_sub_dir}/dos-ui-server-${var.application_tag}.zip"
 
   ignore_source_code_hash = false
   timeout                 = var.ui_lambda_connection_timeout

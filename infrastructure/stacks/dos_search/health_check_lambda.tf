@@ -5,7 +5,7 @@ module "health_check_lambda" {
   handler                = "health_check/health_check_function.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${var.artefact_root_dir}/${var.artefact_sub_dir} /${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                 = "${var.artefact_root_dir}/${var.artefact_sub_dir}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"

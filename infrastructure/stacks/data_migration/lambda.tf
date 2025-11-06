@@ -23,7 +23,7 @@ module "processor_lambda" {
   handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir} /${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.processor_lambda_timeout
   memory_size             = var.processor_lambda_memory_size
@@ -91,7 +91,7 @@ module "queue_populator_lambda" {
   handler                 = var.queue_populator_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir} /${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${var.artefact_root_dir}/${var.artefact_sub_dir}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.queue_populator_lambda_timeout
   memory_size             = var.queue_populator_lambda_memory_size
@@ -137,7 +137,7 @@ module "rds_event_listener_lambda" {
   timeout            = var.rds_event_listener_lambda_connection_timeout
   memory_size        = var.rds_event_listener_lambda_memory_size
   s3_bucket_name     = local.artefacts_bucket
-  s3_key             = "${var.artefact_root_dir}/${var.artefact_sub_dir} /${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key             = "${var.artefact_root_dir}/${var.artefact_sub_dir}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
@@ -174,7 +174,7 @@ module "dms_db_lambda" {
   timeout            = var.dms_db_lambda_connection_timeout
   memory_size        = var.dms_db_lambda_memory_size
   s3_bucket_name     = local.artefacts_bucket
-  s3_key             = "${var.artefact_root_dir}/${var.artefact_sub_dir} /${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key             = "${var.artefact_root_dir}/${var.artefact_sub_dir}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
 
