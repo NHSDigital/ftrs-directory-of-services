@@ -1,0 +1,39 @@
+name: APIM Proxygen Authentication (Development)
+
+on:
+  workflow_call:
+    outputs:
+      access_token:
+        description: 'Short-lived access token for Proxygen API'
+        value: ${{ jobs.get-access-token.outputs.token }}
+
+jobs:
+  get-access-token:
+    name: Retrieve APIM Access Token
+    runs-on: ubuntu-latest
+    outputs:
+      token: ${{ steps.get-token.outputs.access_token }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get APIM Access Token
+        id: get-token
+        uses: ./.github/actions/apim-authenticate
+        with:
+          private_key: ${{ secrets.PRIVATE_KEY }}
+          kid: ${{ secrets.KID }}
+          api_id: ${{ secrets.API_ID }}
+
+      - name: Test Token - List Proxy Instances
+        env:
+          ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
+        run: |
+          echo "Testing access token by listing proxy instances in internal-dev environment..."
+
+          #todo: write script to list proxy instances using the access token
+
+      - name: Cleanup
+        if: always()
+        run: echo "✓ Cleanup completed"

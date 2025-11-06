@@ -1,0 +1,61 @@
+name: 'APIM Authenticate'
+description: 'Authenticate with APIM and retrieve access token for Proxygen API'
+author: 'Your Organization'
+
+inputs:
+  private_key:
+    description: 'Private PEM key for JWT signing'
+    required: true
+  kid:
+    description: 'Key ID for JWT signing'
+    required: true
+  api_id:
+    description: 'API/Client ID for authentication'
+    required: true
+
+outputs:
+  access_token:
+    description: 'Short-lived access token for Proxygen API'
+    value: ${{ steps.authenticate.outputs.access_token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyjwt cryptography requests
+
+    - name: Run Authentication Script
+      id: authenticate
+      shell: bash
+      env:
+        PRIVATE_KEY: ${{ inputs.private_key }}
+        KID: ${{ inputs.kid }}
+        API_ID: ${{ inputs.api_id }}
+      run: |
+        chmod +x ${{ github.action_path }}/../../scripts/get_apim_token.sh
+        ACCESS_TOKEN=$(${{ github.action_path }}/../../scripts/get_apim_token.sh)
+
+        if [ -z "$ACCESS_TOKEN" ]; then
+          echo "Failed to retrieve access token"
+          exit 1
+        fi
+
+        # Mask the token in logs
+        echo "::add-mask::$ACCESS_TOKEN"
+
+        # Set as output
+        echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+
+        echo "✓ Access token retrieved successfully"
+
+branding:
+  icon: 'lock'
+  color: 'blue'
