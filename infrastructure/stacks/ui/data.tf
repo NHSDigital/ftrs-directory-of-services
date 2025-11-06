@@ -59,9 +59,6 @@ data "aws_iam_policy_document" "ssm_access_policy" {
   }
 }
 
-data "aws_iam_policy_document" "secrets_access_policy" {
-
-}
 
 # TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
 data "aws_iam_policy_document" "execute_api_policy" {
