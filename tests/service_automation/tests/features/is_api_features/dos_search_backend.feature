@@ -44,7 +44,6 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                                      |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude=                      |
       | identifier=odsOrganisationCode\|M00081046&_revinclude=Invalid:value         |
       | identifier=odsOrganisationCode\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
@@ -78,6 +77,7 @@ Feature: API DoS Service Search Backend
       | params                                    | missing_param |
       | identifier=odsOrganisationCode\|M00081046 | _revinclude   |
       | _revinclude=Endpoint:organization         | identifier    |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude= | _revinclude |
 
 
   Scenario: I search for GP Endpoint with 2 missing parameters
