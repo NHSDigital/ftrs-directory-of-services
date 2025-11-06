@@ -42,6 +42,11 @@ on:
           description: "The type of permissions (e.g., account, app)"
           required: true
           type: string
+      release_deployment:
+          description: "Flag to indicate if this is a release deployment"
+          required: false
+          default: "false"
+          type: string
 
 jobs:
   deploy-project:
@@ -85,6 +90,7 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
+          RELEASE_DEPLOYMENT: ${{ inputs.release_deployment }}
 
       - name: "Invalidate CloudFront Cache"
         run: make invalidate-cloudfront-cache

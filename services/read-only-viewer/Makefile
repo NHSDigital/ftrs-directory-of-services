@@ -9,6 +9,7 @@ READ_ONLY_VIEWER_DOMAIN_NAME = ${DEPLOYMENT_BUCKET}.s3.${AWS_REGION}.amazonaws.c
 CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(READ_ONLY_VIEWER_DOMAIN_NAME)')].Id" --output text)
 RELEASE_BUILD ?= false
 RELEASE_DIR ?= releases
+RELEASE_DEPLOYMENT ?= false
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -48,7 +49,11 @@ publish:
 
 
 deploy:
-	aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
+	if [ "$(RELEASE_DEPLOYMENT)" = "false" ] ; then \
+		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
+	else \
+		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
+	fi
 	unzip $(SERVICE)-assets-$(APPLICATION_TAG).zip -d ${TEMP_DIRECTORY}
 	aws s3 sync --delete $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/
 
