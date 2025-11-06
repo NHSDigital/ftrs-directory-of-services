@@ -2,7 +2,7 @@ import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { useSession } from "@tanstack/react-start/server";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { UserSessionSchema } from "../schema";
-import { SessionManager, buildSession } from "../session";
+import { buildSession, SessionManager } from "../session";
 
 vi.mock("@tanstack/react-start/server", () => {
   return {
@@ -29,7 +29,7 @@ describe("SessionManager", () => {
     "test-session-secret-that-is-long-enough-for-testing";
 
   beforeEach(() => {
-    process.env.ENVIRONMENT = "local";
+    process.env.ENVIRONMENT = "test";
     process.env.WORKSPACE = "";
     (getSecret as Mock).mockResolvedValue(mockSessionSecret);
     mockSendCommand = vi.fn();
@@ -43,14 +43,14 @@ describe("SessionManager", () => {
 
   it("should generate correct session table name without workspace", () => {
     const tableName = SessionManager.getSessionTableName();
-    expect(tableName).toBe("ftrs-dos-local-ui-session-store");
+    expect(tableName).toBe("ftrs-dos-test-ui-session-store");
   });
 
   it("should generate correct session table name with workspace", () => {
     process.env.WORKSPACE = "dev";
 
     const tableName = SessionManager.getSessionTableName();
-    expect(tableName).toBe("ftrs-dos-local-ui-session-store-dev");
+    expect(tableName).toBe("ftrs-dos-test-ui-session-store-dev");
   });
 
   it("should throw error if ENVIRONMENT is not set", () => {
@@ -85,7 +85,7 @@ describe("SessionManager", () => {
     expect(mockSendCommand).toHaveBeenCalledTimes(1);
 
     const putCommandInput = mockSendCommand.mock.calls[0][0].input;
-    expect(putCommandInput.TableName).toBe("ftrs-dos-local-ui-session-store");
+    expect(putCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
     expect(putCommandInput.Item).toEqual(session);
     expect(putCommandInput.ReturnConsumedCapacity).toBe("INDEXES");
   });
@@ -114,7 +114,7 @@ describe("SessionManager", () => {
     expect(mockSendCommand).toHaveBeenCalledTimes(1);
 
     const getCommandInput = mockSendCommand.mock.calls[0][0].input;
-    expect(getCommandInput.TableName).toBe("ftrs-dos-local-ui-session-store");
+    expect(getCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
     expect(getCommandInput.Key).toEqual({
       sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
     });
@@ -169,7 +169,7 @@ describe("SessionManager", () => {
     expect(mockSendCommand).toHaveBeenCalledTimes(1);
 
     const putCommandInput = mockSendCommand.mock.calls[0][0].input;
-    expect(putCommandInput.TableName).toBe("ftrs-dos-local-ui-session-store");
+    expect(putCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
     expect(putCommandInput.Item).toEqual(mockSession);
     expect(putCommandInput.ReturnConsumedCapacity).toBe("INDEXES");
   });
@@ -180,9 +180,7 @@ describe("SessionManager", () => {
     await sessionManager.deleteSession("fac6596b-d957-4862-a4e1-2728e558410b");
     expect(mockSendCommand).toHaveBeenCalledTimes(1);
     const deleteCommandInput = mockSendCommand.mock.calls[0][0].input;
-    expect(deleteCommandInput.TableName).toBe(
-      "ftrs-dos-local-ui-session-store",
-    );
+    expect(deleteCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
     expect(deleteCommandInput.Key).toEqual({
       sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
     });
@@ -224,8 +222,18 @@ describe("SessionManager", () => {
     (getSecret as Mock).mockResolvedValueOnce(null);
 
     await expect(() => SessionManager.getSessionSecret()).rejects.toThrowError(
-      "Session secret not found in Secrets Manager: /ftrs-dos/local/ui-session-secret",
+      "Session secret not found in Secrets Manager: /ftrs-dos/test/ui-session-secret",
     );
+  });
+
+  it("getSessionSecret returns LOCAL_SESSION_SECRET in local environment", async () => {
+    process.env.ENVIRONMENT = "local";
+    process.env.LOCAL_SESSION_SECRET = "local-test-secret";
+
+    const result = await SessionManager.getSessionSecret();
+    expect(result).toBe("local-test-secret");
+
+    expect(getSecret).not.toHaveBeenCalled();
   });
 });
 
@@ -235,7 +243,7 @@ describe("buildSession", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.ENVIRONMENT = "local";
+    process.env.ENVIRONMENT = "test";
     (getSecret as Mock).mockResolvedValue(mockSessionSecret);
   });
 

@@ -1,11 +1,20 @@
-import { AppError } from "@/core/errors";
-import { Button, Container, ErrorSummary, Footer, Header, InsetText, SummaryList } from "nhsuk-react-components";
-import { HeadContent, Scripts, type ErrorComponentProps } from "@tanstack/react-router";
-import Banner from "./Banner";
+import { type ErrorComponentProps, HeadContent } from "@tanstack/react-router";
+import {
+  Button,
+  Container,
+  ErrorSummary,
+  Footer,
+  Header,
+  SummaryList,
+} from "nhsuk-react-components";
+import type { AppError } from "@/core/errors";
 
 const ErrorComponent: React.FC<ErrorComponentProps> = ({ error }) => {
+  const sessionID = (error as AppError).sessionID;
+  const requestID = (error as AppError).requestID;
+
   return (
-    <html>
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -13,7 +22,9 @@ const ErrorComponent: React.FC<ErrorComponentProps> = ({ error }) => {
         <Header transactional>
           <Header.Container>
             <Header.Logo href="/" />
-            <Header.ServiceName href="/">Directory of Services</Header.ServiceName>
+            <Header.ServiceName href="/">
+              Directory of Services
+            </Header.ServiceName>
           </Header.Container>
         </Header>
         <Container className="ftrs-page-container">
@@ -22,16 +33,27 @@ const ErrorComponent: React.FC<ErrorComponentProps> = ({ error }) => {
           <ErrorSummary>
             <ErrorSummary.Title>Error Details</ErrorSummary.Title>
             <ErrorSummary.Body>
-              <p>The following information may be useful when reporting this error:</p>
+              <p>
+                The following information may be useful when reporting this
+                error:
+              </p>
               <SummaryList>
                 <SummaryList.Row>
                   <SummaryList.Key>Error Message</SummaryList.Key>
                   <SummaryList.Value>{error.message}</SummaryList.Value>
                 </SummaryList.Row>
-                <SummaryList.Row>
-                  <SummaryList.Key>Session ID</SummaryList.Key>
-                  <SummaryList.Value>{(error as AppError).sessionID ?? "Unknown"}</SummaryList.Value>
-                </SummaryList.Row>
+                {sessionID && (
+                  <SummaryList.Row>
+                    <SummaryList.Key>Session ID</SummaryList.Key>
+                    <SummaryList.Value>{sessionID}</SummaryList.Value>
+                  </SummaryList.Row>
+                )}
+                {requestID && (
+                  <SummaryList.Row>
+                    <SummaryList.Key>Request ID</SummaryList.Key>
+                    <SummaryList.Value>{requestID}</SummaryList.Value>
+                  </SummaryList.Row>
+                )}
               </SummaryList>
             </ErrorSummary.Body>
           </ErrorSummary>

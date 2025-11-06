@@ -6,7 +6,7 @@ import {
   GetCommand,
   PutCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { useSession } from "@tanstack/react-start/server";
 import {
   ClientSessionSchema,
@@ -127,6 +127,7 @@ export class SessionManager {
     const secretName = `/ftrs-dos/${envPrefix}/ui-session-secret`;
 
     const secretValue = await getSecret(secretName);
+
     if (!secretValue) {
       throw new Error(
         `Session secret not found in Secrets Manager: ${secretName}`,
@@ -163,4 +164,6 @@ export const buildSession = async () => {
   return ClientSessionSchema.parse(existingSession);
 };
 
-export const setupSessionFn = createServerFn({ method: "GET" }).handler(buildSession);
+export const setupSessionFn = createServerFn({ method: "GET" }).handler(
+  buildSession,
+);

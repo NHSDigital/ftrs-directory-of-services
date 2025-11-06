@@ -9,7 +9,11 @@ export class AppError extends Error {
     this.requestID = requestID;
   }
 
-  public static from(error: Error, sessionID?: string, requestID?: string): AppError {
+  public static from(
+    error: Error,
+    sessionID?: string,
+    requestID?: string,
+  ): AppError {
     return new AppError(error.message, sessionID, requestID);
   }
 }
