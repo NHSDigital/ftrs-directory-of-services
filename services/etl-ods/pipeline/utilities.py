@@ -24,7 +24,6 @@ TIMEOUT_SECONDS = 20
 def get_jwt_authenticator() -> JWTAuthenticator:
     environment = os.environ.get("ENVIRONMENT", "local")
     resource_prefix = get_resource_prefix()
-    resource_prefix = "ftrs-dos/internal-qa"
 
     return JWTAuthenticator(
         environment=environment,
