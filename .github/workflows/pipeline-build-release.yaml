@@ -45,6 +45,8 @@ jobs:
       - name: "Run Semantic Release"
         id: semantic-release
         uses: cycjimmy/semantic-release-action@v5
+        with:
+          branch: task/FTRS-348_Deploy_release_workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
