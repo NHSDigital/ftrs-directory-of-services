@@ -4,10 +4,6 @@ name: Build release tag and artifacts
 on:
   workflow_dispatch:
 
-  push:
-    branches:
-      - task/FTRS-348_Deploy_release_workflow
-
 permissions:
   contents: write
   issues: write
@@ -45,8 +41,6 @@ jobs:
       - name: "Run Semantic Release"
         id: semantic-release
         uses: cycjimmy/semantic-release-action@v5
-        with:
-          branch: task/FTRS-348_Deploy_release_workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
