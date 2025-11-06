@@ -40,13 +40,13 @@ describe("ErrorComponent", () => {
 
   it("should display session and request IDs when provided", async () => {
     // @ts-expect-error Mock implementation
-    setupSessionFn.mockImplementationOnce(() => {
-      throw new AppError(
+    setupSessionFn.mockRejectedValue(
+      new AppError(
         "Test error for session and request IDs",
         "session-123",
         "request-456",
-      );
-    });
+      ),
+    );
 
     const { app } = await setUp();
 

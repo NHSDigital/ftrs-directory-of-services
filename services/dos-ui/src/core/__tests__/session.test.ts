@@ -4,6 +4,14 @@ import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { UserSessionSchema } from "../schema";
 import { buildSession, SessionManager } from "../session";
 
+vi.mock("openid-client", async () => {
+  const actual = await vi.importActual("openid-client");
+  return {
+    ...actual,
+    randomState: vi.fn().mockReturnValue("random-state"),
+  };
+});
+
 vi.mock("@tanstack/react-start/server", () => {
   return {
     useSession: vi.fn().mockReturnValue(
@@ -70,7 +78,7 @@ describe("SessionManager", () => {
 
     expect(session).toEqual({
       sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
-      state: "fac6596b-d957-4862-a4e1-2728e558410b",
+      state: "random-state",
       expiresAt: expect.any(Number),
       userID: undefined,
       user: undefined,
@@ -195,7 +203,9 @@ describe("SessionManager", () => {
     expect(result).toBe(mockSessionSecret);
 
     expect(getSecret).toHaveBeenCalledTimes(1);
-    expect(getSecret).toHaveBeenCalledWith("/ftrs-dos/test/ui-session-secret");
+    expect(getSecret).toHaveBeenCalledWith("/ftrs-dos/test/ui-session-secret", {
+      maxAge: 60,
+    });
   });
 
   it("getSessionSecret returns the correct secret name with workspace", async () => {
@@ -208,6 +218,7 @@ describe("SessionManager", () => {
     expect(getSecret).toHaveBeenCalledTimes(1);
     expect(getSecret).toHaveBeenCalledWith(
       "/ftrs-dos/test-workspace/ui-session-secret",
+      { maxAge: 60 },
     );
   });
 
@@ -220,6 +231,8 @@ describe("SessionManager", () => {
 
   it("getSessionSecret throws error if secret not found", async () => {
     (getSecret as Mock).mockResolvedValueOnce(null);
+    process.env.ENVIRONMENT = "test";
+    delete process.env.WORKSPACE;
 
     await expect(() => SessionManager.getSessionSecret()).rejects.toThrowError(
       "Session secret not found in Secrets Manager: /ftrs-dos/test/ui-session-secret",

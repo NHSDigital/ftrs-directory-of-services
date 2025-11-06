@@ -1,11 +1,13 @@
 import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { getParameter } from "@aws-lambda-powertools/parameters/ssm";
 import type { SDKOptionsTypeFromPowertools } from "@/types/SDKOptionsTypeFromPowertools";
-import { logger } from "@/utils/logger";
+import { getLogger } from "@/utils/logger";
 
 export async function getawsSecret(
   secretName: string,
 ): Promise<string | undefined> {
+  const logger = getLogger();
+
   try {
     logger.debug("Fetching secret from Secrets Manager", { secretName });
     const secret = await getSecret(secretName, { maxAge: 60 });
@@ -23,7 +25,8 @@ export async function getawsSecret(
 export async function getawsParameter(
   parameterName: string,
   sdkOptions?: Partial<SDKOptionsTypeFromPowertools>,
-): Promise<any> {
+): Promise<string | undefined> {
+  const logger = getLogger();
   try {
     logger.debug("Fetching parameter from Parameter Store", { parameterName });
     const parameter = await getParameter(parameterName, {

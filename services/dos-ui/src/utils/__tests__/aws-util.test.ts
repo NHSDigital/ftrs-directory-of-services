@@ -3,7 +3,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // Mock the modules before importing
 vi.mock("@aws-lambda-powertools/parameters/secrets");
 vi.mock("@aws-lambda-powertools/parameters/ssm");
-vi.mock("../logger");
+vi.mock("../logger", () => {
+  const originalModule = vi.importActual("../logger");
+  return {
+    ...originalModule,
+    getLogger: vi.fn(() => ({
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      createChild: vi.fn(),
+    })),
+  };
+});
 
 import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { getParameter } from "@aws-lambda-powertools/parameters/ssm";

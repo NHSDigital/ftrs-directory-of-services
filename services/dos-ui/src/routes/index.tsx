@@ -1,17 +1,27 @@
-import { getAuthorisationUrl } from "@/utils/cis2Configuration-service.ts";
 import { createFileRoute } from "@tanstack/react-router";
 import { useClientSession } from "@/core/context";
-import careIdentityLoginImg from "/images/care-identity-buttons/SVG/CIS2_LogInWith_Original.svg"; import { useClientSession } from "@/core/context";
+import { setupSessionFn } from "@/core/session";
+import { getAuthorisationUrlFn } from "@/utils/cis2Configuration-service";
+import careIdentityLoginImg from "/images/care-identity-buttons/SVG/CIS2_LogInWith_Original.svg";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
   head: () => ({
     meta: [{ title: "FtRS DoS UI" }],
   }),
-  loader: async () => {
+  beforeLoad: async ({ context }) => {
+    if (!context.session) {
+      context.session = await setupSessionFn();
+    }
     return {
-      authorizeUrl: await getAuthorisationUrl(),
+      ...context,
+      authorizeUrl: await getAuthorisationUrlFn({
+        data: { state: context.session.state },
+      }),
     };
+  },
+  loader: async ({ context }) => {
+    return { authorizeUrl: context.authorizeUrl };
   },
 });
 

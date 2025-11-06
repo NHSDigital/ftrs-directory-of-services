@@ -80,8 +80,11 @@ export const Route = createRootRoute({
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
-  loader: async () => {
+  beforeLoad: async () => {
     const session = await setupSessionFn();
     return { session };
+  },
+  loader: async ({ context }) => {
+    return { session: context.session };
   },
 });
