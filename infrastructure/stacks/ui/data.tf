@@ -30,7 +30,7 @@ data "aws_ssm_parameter" "dos_aws_account_id_mgmt" {
   name = "/dos/${var.environment}/aws_account_id_mgmt"
 }
 
-data "aws_iam_policy_document" "secretsmanager_cis2_credentials_access_policy" {
+data "aws_iam_policy_document" "secrets_access_policy" {
   statement {
     effect = "Allow"
     actions = [
@@ -38,7 +38,8 @@ data "aws_iam_policy_document" "secretsmanager_cis2_credentials_access_policy" {
     ]
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-private-key*",
-      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*",
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}${local.workspace_suffix}/*",
     ]
   }
 }
@@ -59,16 +60,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
 }
 
 data "aws_iam_policy_document" "secrets_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue"
-    ]
-    resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project}/${var.environment}${local.workspace_suffix}/*",
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project}/${var.environment}/cis2-*"
-    ]
-  }
+
 }
 
 # TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.

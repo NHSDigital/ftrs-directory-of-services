@@ -13,14 +13,13 @@ module "ui_lambda" {
   timeout                 = var.ui_lambda_connection_timeout
   memory_size             = var.ui_lambda_memory_size
 
-  number_of_policy_jsons = "4"
+  number_of_policy_jsons = "5"
 
   policy_jsons = [
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.execute_api_policy.json,
     data.aws_iam_policy_document.dynamodb_session_store_policy.json,
-    data.aws_iam_policy_document.secretsmanager_cis2_credentials_access_policy.json
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
