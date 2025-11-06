@@ -112,3 +112,13 @@ variable "consumer_lambda_logs_retention" {
   type        = number
   default     = 14
 }
+
+variable "artefact_root_dir" {
+  description = "The root directory where application artefacts are stored. Equal to workspace or 'releases' "
+  type        = string
+}
+
+variable "artefact_sub_dir" {
+  description = "The sub directory within the artefact root directory where artefact is stored. Commit hash or release tag"
+  type        = string
+}

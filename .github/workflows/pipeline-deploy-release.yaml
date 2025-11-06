@@ -147,7 +147,7 @@ jobs:
     secrets: inherit
   # TODO restore when ready for manual approval
   manual-approval-application-infra:
-    name: "Manual approval for ${{ inputs.environment || 'dev' }} deployment of release ${{ inputs.release_tag || 'v1.0.0' }}"
+    name: "Manual approval for deployment of application release ${{ inputs.release_tag || 'v1.0.0' }} to ${{ inputs.environment || 'dev' }}"
     if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
     needs:
       - plan-application-infra
@@ -177,4 +177,32 @@ jobs:
       action: apply
       type: app
       workflow_timeout: 30
+    secrets: inherit
+
+    # below here deploy front end and data migration services ?
+  deploy-frontend-services:
+    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.derive-workspace-from-tag.outputs.release_workspace }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - apply-application-infra
+      - derive-workspace-from-tag
+    strategy:
+      matrix:
+        include:
+          - name: "dos-ui"
+          - name: "read-only-viewer"
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ inputs.environment || 'dev' }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.derive-workspace-from-tag.outputs.release_workspace }}
+      application_tag: ${{ inputs.release_tag || 'v1.0.0' }}
+      type: "app"
     secrets: inherit

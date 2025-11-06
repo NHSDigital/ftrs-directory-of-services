@@ -26,6 +26,16 @@ export PROJECT="${PROJECT:-"dos"}"
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
 export TF_VAR_application_tag="${APPLICATION_TAG:-""}"
 export TF_VAR_commit_hash="${COMMIT_HASH:-""}"
+
+if [ -n "$TF_VAR_application_tag" ] && [ "$TF_VAR_application_tag" != "latest" ] ; then
+  export TF_VAR_artefact_root_dir="releases"
+  export TF_VAR_artefact_sub_dir="$TF_VAR_application_tag"
+  else
+  export TF_VAR_artefact_root_dir="${WORKSPACE}"
+  export TF_VAR_artefact_sub_dir="${COMMIT_HASH}"
+fi
+echo "Using artefact root dir: $TF_VAR_artefact_root_dir and sub dir: $TF_VAR_artefact_sub_dir"
+
 TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
 export TF_VAR_stack_name
 export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
