@@ -171,6 +171,8 @@ class FtrsLogger:
         # debug preview
         self._debug_preview(message, log_data)
 
+        print("Easily searchable", log_data)
+
         # call powertools
         try:
             if level == "info":
