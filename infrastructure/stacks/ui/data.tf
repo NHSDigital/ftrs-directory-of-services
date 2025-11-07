@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-private-key*",
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*",
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}${local.workspace_suffix}/*",
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}${local.workspace_suffix}/*",
     ]
   }
 }
@@ -58,7 +58,6 @@ data "aws_iam_policy_document" "ssm_access_policy" {
     ]
   }
 }
-
 
 # TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
 data "aws_iam_policy_document" "execute_api_policy" {
@@ -105,4 +104,12 @@ data "aws_iam_policy_document" "dynamodb_session_store_policy" {
       "${module.ui_session_store.dynamodb_table_arn}/index/*"
     ]
   }
+}
+
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  name = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_origin_request_policy" "all_viewer_headers" {
+  name = "Managed-AllViewerExceptHostHeader"
 }
