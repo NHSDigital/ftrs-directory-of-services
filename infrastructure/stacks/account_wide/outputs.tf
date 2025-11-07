@@ -15,3 +15,27 @@ output "performance_security_group_id" {
   value       = aws_security_group.performance_ec2_sg.id
 }
 
+output "performance_parameter_files_bucket_name" {
+  description = "Resolved S3 bucket name for Performance parameter files"
+  value       = local.performance_parameter_files_bucket_name
+}
+
+output "performance_artifacts_bucket_name" {
+  description = "Resolved S3 bucket name for Performance artifacts"
+  value       = local.performance_artifacts_bucket_name
+}
+
+output "performance_secret_api_jmeter_pks_key_arn" {
+  description = "ARN of the API JMeter PKS key secret used by Performance EC2"
+  value       = local.performance_secret_api_jmeter_pks_key_arn
+}
+
+output "performance_secret_api_ca_cert_arn" {
+  description = "ARN of the API CA certificate secret used by Performance EC2"
+  value       = local.performance_secret_api_ca_cert_arn
+}
+
+output "performance_secret_api_ca_pk_arn" {
+  description = "ARN of the API CA private key secret used by Performance EC2"
+  value       = local.performance_secret_api_ca_pk_arn
+}

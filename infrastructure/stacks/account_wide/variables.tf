@@ -220,3 +220,34 @@ variable "performance_jwt_dependency_version" {
   default     = "4.5.0"
 }
 
+# Performance S3 bucket names
+variable "performance_parameter_files_bucket_name" {
+  description = "S3 bucket name for performance parameter files"
+  type        = string
+  default     = "is-performance-parameter-files-bucket"
+}
+
+variable "performance_artifacts_bucket_name" {
+  description = "S3 bucket name for performance artifacts"
+  type        = string
+  default     = "is-performance-artifacts-bucket"
+}
+
+# Performance Secrets
+variable "performance_secret_api_jmeter_pks_key_name" {
+  description = "Secret name for API JMeter PKS key"
+  type        = string
+  default     = "api-jmeter-pks-key"
+}
+
+variable "performance_secret_api_ca_cert_name" {
+  description = "Secret name for API CA certificate"
+  type        = string
+  default     = "api-ca-cert"
+}
+
+variable "performance_secret_api_ca_pk_name" {
+  description = "Secret name for API CA private key"
+  type        = string
+  default     = "api-ca-pk"
+}

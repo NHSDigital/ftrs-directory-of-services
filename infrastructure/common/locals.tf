@@ -4,6 +4,7 @@ locals {
   artefacts_bucket  = "${var.repo_name}-mgmt-${var.artefacts_bucket_name}"
   resource_prefix   = "${var.project}-${var.environment}-${var.stack_name}"
   account_prefix    = "${var.repo_name}-${var.environment}"
+  repo_env_path     = "${var.repo_name}/${var.environment}"
   root_domain_name  = "${var.environment}.${var.root_domain_name}"
   s3_logging_bucket = "${local.account_prefix}-${var.s3_logging_bucket_name}"
 
@@ -33,15 +34,4 @@ locals {
   env_sso_roles = [
     for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
   ]
-
-  # IS performance naming and prefixes
-  is_performance_suffix = "is-performance"
-
-  # S3 allowed prefixes
-  s3_account_prefix = "${local.account_prefix}-${local.is_performance_suffix}"
-  s3_project_prefix = "${var.project}-${var.environment}-${local.is_performance_suffix}"
-
-  # Secrets Manager allowed prefixes
-  secrets_repo_prefix    = "/${var.repo_name}/${var.environment}/${local.is_performance_suffix}/*"
-  secrets_project_prefix = "/${var.project}/${var.environment}/${local.is_performance_suffix}/*"
 }

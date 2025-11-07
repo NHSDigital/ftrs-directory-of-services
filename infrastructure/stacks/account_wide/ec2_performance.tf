@@ -7,6 +7,29 @@ locals {
   performance_subnet_id = element(module.vpc.private_subnets, 0)
   # Name tag for Performance EC2 instance, scoped to this stack
   performance_name = "${local.account_prefix}-performance"
+
+  # ARN prefix locals to avoid gitleaks arns3 false positives
+  s3_arn_prefix = "arn:aws:s3"
+
+  # Performance S3 bucket names (account prefix + provided suffix variables)
+  performance_parameter_files_bucket_name = "${local.account_prefix}-${var.performance_parameter_files_bucket_name}"
+  performance_artifacts_bucket_name       = "${local.account_prefix}-${var.performance_artifacts_bucket_name}"
+
+  # S3 bucket and object ARNs for IAM policy (composed using prefix to avoid inline arn literal)
+  performance_parameter_files_bucket_arn  = "${local.s3_arn_prefix}:::${local.performance_parameter_files_bucket_name}"
+  performance_artifacts_bucket_arn        = "${local.s3_arn_prefix}:::${local.performance_artifacts_bucket_name}"
+  performance_parameter_files_objects_arn = "${local.s3_arn_prefix}:::${local.performance_parameter_files_bucket_name}/*"
+  performance_artifacts_objects_arn       = "${local.s3_arn_prefix}:::${local.performance_artifacts_bucket_name}/*"
+
+  # Performance Secrets: prefix, paths, and full ARNs for IAM policy
+  performance_secret_prefix                  = "/${local.repo_env_path}/"
+  performance_secret_api_jmeter_pks_key_path = "${local.performance_secret_prefix}${var.performance_secret_api_jmeter_pks_key_name}*"
+  performance_secret_api_ca_cert_path        = "${local.performance_secret_prefix}${var.performance_secret_api_ca_cert_name}*"
+  performance_secret_api_ca_pk_path          = "${local.performance_secret_prefix}${var.performance_secret_api_ca_pk_name}*"
+
+  performance_secret_api_jmeter_pks_key_arn = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.performance_secret_api_jmeter_pks_key_path}"
+  performance_secret_api_ca_cert_arn        = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.performance_secret_api_ca_cert_path}"
+  performance_secret_api_ca_pk_arn          = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.performance_secret_api_ca_pk_path}"
 }
 
 resource "aws_instance" "performance" {
@@ -73,34 +96,27 @@ resource "aws_iam_instance_profile" "ec2_performance_instance_profile" {
   role = aws_iam_role.ec2_performance_role.name
 }
 
-# Always-allow S3 access for performance EC2 across all buckets and objects
-# Includes bucket-level and object-level permissions plus multipart support
+# S3 access required for Performance EC2 (explicit performance buckets only)
+# Includes bucket-level metadata and object-level CRUD plus multipart support
 data "aws_iam_policy_document" "ec2_performance_s3" {
-  # Non-resource-scoped action must use "*"
+  # Bucket-level metadata actions on explicit Performance buckets
   statement {
-    sid       = "AllowS3ListAllMyBuckets"
-    actions   = ["s3:ListAllMyBuckets"]
-    resources = ["*"]
-  }
-
-  # Bucket-level actions limited to buckets starting with either the repo-env (local.account_prefix) or project-env (local.s3_policy_prefix) prefix
-  statement {
-    sid = "AllowS3BucketMetadataWithPrefix"
+    sid = "AllowS3BucketMetadataForPerformance"
     actions = [
       "s3:ListBucket",
       "s3:GetBucketLocation",
       "s3:ListBucketMultipartUploads"
     ]
     resources = [
-      # Allow buckets named with repo-env (account_prefix + -is-performance) and project-env (s3_policy_prefix) prefixes
-      format("arn:%s:s3:::%s", "aws", "${local.s3_account_prefix}-*"),
-      format("arn:%s:s3:::%s", "aws", "${local.s3_project_prefix}-*")
+      # Explicit Performance testing buckets (parameter files + artifacts)
+      local.performance_parameter_files_bucket_arn,
+      local.performance_artifacts_bucket_arn
     ]
   }
 
-  # Object-level actions limited to objects in buckets starting with either the repo-env (local.account_prefix) or project-env (local.s3_policy_prefix) prefix
+  # Object-level CRUD and multipart actions on explicit Performance buckets
   statement {
-    sid = "AllowS3ObjectCrudAndMultipartWithPrefix"
+    sid = "AllowS3ObjectAccessForPerformance"
     actions = [
       "s3:GetObject",
       "s3:GetObjectVersion",
@@ -113,9 +129,9 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:AbortMultipartUpload"
     ]
     resources = [
-      # Allow objects in buckets named with repo-env (account_prefix + -is-performance) and project-env (s3_policy_prefix) prefixes
-      format("arn:%s:s3:::%s", "aws", "${local.s3_account_prefix}-*/*"),
-      format("arn:%s:s3:::%s", "aws", "${local.s3_project_prefix}-*/*")
+      # Objects within the Performance parameter files and artifacts buckets only
+      local.performance_parameter_files_objects_arn,
+      local.performance_artifacts_objects_arn
     ]
   }
 }
@@ -126,19 +142,19 @@ resource "aws_iam_role_policy" "ec2_performance_s3" {
   policy = data.aws_iam_policy_document.ec2_performance_s3.json
 }
 
-# Secrets Manager read access limited to secrets under repo-env and project-env path prefixes
+# Secrets Manager read access restricted to three explicit secrets used by performance tests
 data "aws_iam_policy_document" "ec2_performance_secrets" {
   statement {
-    sid = "AllowGetSecretValues"
+    sid = "AllowGetExplicitPerformanceSecrets"
     actions = [
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret"
     ]
     resources = [
-      # Repo-based prefix with -is-performance suffix
-      format("arn:%s:secretsmanager:%s:%s:secret:%s", "aws", var.aws_region, local.account_id, local.secrets_repo_prefix),
-      # Project-based prefix with -is-performance suffix
-      format("arn:%s:secretsmanager:%s:%s:secret:%s", "aws", var.aws_region, local.account_id, local.secrets_project_prefix)
+      # Explicit secrets required by Performance EC2
+      local.performance_secret_api_jmeter_pks_key_arn,
+      local.performance_secret_api_ca_cert_arn,
+      local.performance_secret_api_ca_pk_arn
     ]
   }
 }
@@ -168,8 +184,8 @@ data "aws_iam_policy_document" "ec2_performance_kms" {
       test     = "StringEquals"
       variable = "kms:ViaService"
       values = [
-        format("%s", "s3.${var.aws_region}.amazonaws.com"),
-        format("%s", "secretsmanager.${var.aws_region}.amazonaws.com")
+        "s3.${var.aws_region}.amazonaws.com",
+        "secretsmanager.${var.aws_region}.amazonaws.com"
       ]
     }
 
