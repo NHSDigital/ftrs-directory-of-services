@@ -130,7 +130,13 @@ def get_organization() -> Response:
     log_data = extract(app.current_event)
     try:
         query_params = app.current_event.query_string_parameters or {}
-        print("easily searchable: ", log_data)
+        print(
+            "easily searchable: ",
+            "current event: ",
+            app.current_event,
+            "log data: ",
+            log_data,
+        )
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
         ods_code = validated_params.ods_code
