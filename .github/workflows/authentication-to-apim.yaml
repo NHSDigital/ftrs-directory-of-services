@@ -1,5 +1,8 @@
-name: APIM Proxygen Authentication (Development)
+name: APIM Proxygen Authentication
 
+permissions:
+  id-token: write
+  contents: read
 on:
   workflow_call:
     outputs:
