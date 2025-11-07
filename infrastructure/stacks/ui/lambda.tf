@@ -13,7 +13,7 @@ module "ui_lambda" {
   timeout                 = var.ui_lambda_connection_timeout
   memory_size             = var.ui_lambda_memory_size
 
-  number_of_policy_jsons = "5"
+  number_of_policy_jsons = "4"
 
   policy_jsons = [
     data.aws_iam_policy_document.ssm_access_policy.json,

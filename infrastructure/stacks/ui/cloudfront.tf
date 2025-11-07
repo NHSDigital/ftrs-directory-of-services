@@ -52,7 +52,7 @@ module "ui_cloudfront" {
     use_forwarded_values = false
 
     viewer_protocol_policy   = "redirect-to-https"
-    origin_request_policy_id = aws_cloudfront_origin_request_policy.all_viewer_headers.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_headers.id
     cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
   }
 
@@ -122,18 +122,6 @@ data "aws_cloudfront_cache_policy" "caching_disabled" {
   name = "Managed-CachingDisabled"
 }
 
-resource "aws_cloudfront_origin_request_policy" "all_viewer_headers" {
-  name = "${local.resource_prefix}-all-viewer-headers"
-
-  headers_config {
-    header_behavior = "allViewer"
-  }
-
-  cookies_config {
-    cookie_behavior = "all"
-  }
-
-  query_strings_config {
-    query_string_behavior = "all"
-  }
+data "aws_cloudfront_origin_request_policy" "all_viewer_headers" {
+  name = "Managed-AllViewerExceptHost"
 }
