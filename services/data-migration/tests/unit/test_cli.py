@@ -173,8 +173,13 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     loc_path = output_dir / "location.jsonl"
     hc_path = output_dir / "healthcare-service.jsonl"
 
+    test_org = Organisation.model_construct(
+        id=uuid4(),
+        identifier_ODS_ODSCode="TEST123",  # Provide a valid ODS code
+    )
+
     mock_output = ServiceTransformOutput(
-        organisation=[Organisation.model_construct(id=uuid4())],
+        organisation=[test_org],
         location=[Location.model_construct(id=uuid4())],
         healthcare_service=[HealthcareService.model_construct(id=uuid4())],
     )
@@ -197,7 +202,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
 
     assert org_content == {
         "id": str(mock_output.organisation[0].id),
-        "identifier_ODS_ODSCode": None,
+        "identifier_ODS_ODSCode": "TEST123",
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
         "modifiedBy": "SYSTEM",
