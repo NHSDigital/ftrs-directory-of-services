@@ -12,8 +12,8 @@ if [ -z "$PRIVATE_KEY" ] || [ -z "$KID" ] || [ -z "$API_ID" ]; then
 fi
 
 # Configuration
-AUTH_ENDPOINT="https://api.enterprise.apigee.com/oauth/token"
-REALM_URL="https://api.enterprise.apigee.com/oauth/token"
+AUTH_ENDPOINT="https://api.service.nhs.uk/oauth2/token"
+REALM_URL="https://api.service.nhs.uk/oauth2/token"
 
 # Create Python script for JWT generation
 cat > /tmp/create_jwt.py << 'PYTHON_SCRIPT'
