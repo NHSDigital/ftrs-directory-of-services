@@ -59,6 +59,11 @@ locals {
       status_code   = "403"
       template      = file("${local.fhir_outcome_dir}/access_denied.json")
     }
+    invalid_api_key = {
+      response_type = "INVALID_API_KEY"
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/invalid_api_key.json")
+    }
     bad_request_parameters = {
       response_type = "BAD_REQUEST_PARAMETERS"
       status_code   = "400"
