@@ -36,6 +36,63 @@ variable "application_tag" {
 
 locals {
   fhir_outcome_dir = "${path.module}/fhir_operation_outcomes"
+
+  # Default FHIR OperationOutcome templates for API Gateway responses (loaded from files)
+  gateway_responses_default = {
+    resource_not_found = {
+      response_type = "RESOURCE_NOT_FOUND"
+      status_code   = "404"
+      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
+    }
+    missing_authentication_token = {
+      response_type = "MISSING_AUTHENTICATION_TOKEN"
+      status_code   = "404"
+      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
+    }
+    access_denied = {
+      response_type = "ACCESS_DENIED"
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+    }
+    unauthorized = {
+      response_type = "UNAUTHORIZED"
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+    }
+    bad_request_parameters = {
+      response_type = "BAD_REQUEST_PARAMETERS"
+      status_code   = "400"
+      template      = file("${local.fhir_outcome_dir}/bad_request_parameters.json")
+    }
+    bad_request_body = {
+      response_type = "BAD_REQUEST_BODY"
+      status_code   = "400"
+      template      = file("${local.fhir_outcome_dir}/bad_request_body.json")
+    }
+    default_4xx = {
+      response_type = "DEFAULT_4XX"
+      status_code   = "400"
+      template      = file("${local.fhir_outcome_dir}/default_4xx.json")
+    }
+    throttled = {
+      response_type = "THROTTLED"
+      status_code   = "429"
+      template      = file("${local.fhir_outcome_dir}/throttled.json")
+    }
+    integration_timeout = {
+      response_type = "INTEGRATION_TIMEOUT"
+      status_code   = "504"
+      template      = file("${local.fhir_outcome_dir}/integration_timeout.json")
+    }
+    default_5xx = {
+      response_type = "DEFAULT_5XX"
+      status_code   = "500"
+      template      = file("${local.fhir_outcome_dir}/default_5xx.json")
+    }
+  }
+
+  # Final gateway responses map: allow override via variable, else use defaults above
+  gateway_responses = coalesce(var.gateway_responses, local.gateway_responses_default)
 }
 
 #####################################################
@@ -126,56 +183,6 @@ variable "gateway_responses" {
     status_code   = string
     template      = string
   }))
-  default = {
-    resource_not_found = {
-      response_type = "RESOURCE_NOT_FOUND"
-      status_code   = "404"
-      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
-    }
-    missing_authentication_token = {
-      response_type = "MISSING_AUTHENTICATION_TOKEN"
-      status_code   = "404"
-      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
-    }
-    access_denied = {
-      response_type = "ACCESS_DENIED"
-      status_code   = "403"
-      template      = file("${local.fhir_outcome_dir}/access_denied.json")
-    }
-    unauthorized = {
-      response_type = "UNAUTHORIZED"
-      status_code   = "403"
-      template      = file("${local.fhir_outcome_dir}/access_denied.json")
-    }
-    bad_request_parameters = {
-      response_type = "BAD_REQUEST_PARAMETERS"
-      status_code   = "400"
-      template      = file("${local.fhir_outcome_dir}/bad_request_parameters.json")
-    }
-    bad_request_body = {
-      response_type = "BAD_REQUEST_BODY"
-      status_code   = "400"
-      template      = file("${local.fhir_outcome_dir}/bad_request_body.json")
-    }
-    default_4xx = {
-      response_type = "DEFAULT_4XX"
-      status_code   = "400"
-      template      = file("${local.fhir_outcome_dir}/default_4xx.json")
-    }
-    throttled = {
-      response_type = "THROTTLED"
-      status_code   = "429"
-      template      = file("${local.fhir_outcome_dir}/throttled.json")
-    }
-    integration_timeout = {
-      response_type = "INTEGRATION_TIMEOUT"
-      status_code   = "504"
-      template      = file("${local.fhir_outcome_dir}/integration_timeout.json")
-    }
-    default_5xx = {
-      response_type = "DEFAULT_5XX"
-      status_code   = "500"
-      template      = file("${local.fhir_outcome_dir}/default_5xx.json")
-    }
-  }
+  # Use null default so we can compute from locals (file() not allowed in var defaults)
+  default = null
 }
