@@ -22,7 +22,7 @@ resource "aws_api_gateway_request_validator" "validator" {
 
 # Single, scalable definition for all configured gateway responses
 resource "aws_api_gateway_gateway_response" "this" {
-  for_each      = var.gateway_responses
+  for_each      = local.gateway_responses
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   response_type = each.value.response_type
   status_code   = each.value.status_code
