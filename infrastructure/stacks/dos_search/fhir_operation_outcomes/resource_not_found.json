@@ -1,0 +1,21 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "not-found",
+      "diagnostics": "No such endpoint",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "NOT_FOUND",
+            "display": "Not Found"
+          }
+        ]
+      }
+    }
+  ]
+}
+
