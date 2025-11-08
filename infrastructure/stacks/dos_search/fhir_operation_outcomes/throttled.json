@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "throttled",
+      "details": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/issue-type",
+            "code": "throttled",
+            "display": "Throttled"
+          }
+        ]
+      },
+      "diagnostics": "Too many requests"
+    }
+  ]
+}
+

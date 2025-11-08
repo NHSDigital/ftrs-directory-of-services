@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "exception",
+      "details": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/issue-type",
+            "code": "exception",
+            "display": "Exception"
+          }
+        ]
+      },
+      "diagnostics": "Internal server error"
+    }
+  ]
+}
+

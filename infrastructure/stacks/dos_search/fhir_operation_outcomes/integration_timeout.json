@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "timeout",
+      "details": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/issue-type",
+            "code": "timeout",
+            "display": "Timeout"
+          }
+        ]
+      },
+      "diagnostics": "Gateway timeout"
+    }
+  ]
+}
+
