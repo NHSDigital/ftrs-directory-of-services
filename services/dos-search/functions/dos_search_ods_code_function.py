@@ -1,5 +1,3 @@
-from typing import Optional
-
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.logging import correlation_paths
@@ -16,29 +14,11 @@ tracer = Tracer()
 app = APIGatewayRestResolver()
 
 
-class ForcedInternalError(Exception):
-    """Explicit exception used to deliberately exercise 5xx paths in lower environments."""
-
-    _DEFAULT_MESSAGE = "Forced internal error for testing"
-
-    def __init__(self, message: Optional[str] = None) -> None:
-        super().__init__(message or self._DEFAULT_MESSAGE)
-
-
-def _raise_forced_internal_error() -> None:
-    """Helper to raise a controlled internal error (satisfies TRY301 to abstract raise)."""
-    raise ForcedInternalError()
-
-
 @app.get("/Organization")
 @tracer.capture_method
 def get_organization() -> Response:
     try:
         query_params = app.current_event.query_string_parameters or {}
-
-        # Provide a way to force a 500 to exercise gateway 5xx behaviour in lower envs
-        if str(query_params.get("force_error", "")).lower() in ("1", "true", "yes"):  # noqa: SIM103
-            _raise_forced_internal_error()
 
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
