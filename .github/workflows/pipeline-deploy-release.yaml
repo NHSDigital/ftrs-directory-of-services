@@ -155,7 +155,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - manual-approval-application-infra
-    uses: ./.github/workflows/deploy-infrastructure.yaml
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ inputs.environment || 'test' }}
       workspace: default
