@@ -80,11 +80,3 @@ addopts = [
 filterwarnings = [
     "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
 ]
-
-[tool.coverage.run]
-branch = true
-source = ["functions", "health_check"]
-
-[tool.coverage.report]
-show_missing = true
-precision = 1
