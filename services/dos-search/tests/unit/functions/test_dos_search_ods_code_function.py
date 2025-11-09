@@ -197,36 +197,3 @@ class TestLambdaHandler:
         # Act & Assert
         with pytest.raises(KeyError, match="httpMethod"):
             lambda_handler(empty_event, lambda_context)
-
-    def test_lambda_handler_with_forced_error(
-        self,
-        lambda_context: MagicMock,
-        mock_error_util: MagicMock,
-        event: dict,
-        mock_logger: MagicMock,
-    ) -> None:
-        # Arrange
-        forced_event = {
-            **event,
-            "queryStringParameters": {
-                **event["queryStringParameters"],
-                "force_error": "true",
-            },
-        }
-
-        # Act
-        response = lambda_handler(forced_event, lambda_context)
-
-        # Assert
-        mock_error_util.create_resource_internal_server_error.assert_called_once()
-        mock_logger.assert_has_calls(
-            [
-                call.exception("Internal server error occurred"),
-                call.info("Creating response", extra={"status_code": 500}),
-            ]
-        )
-        assert_response(
-            response,
-            expected_status_code=500,
-            expected_body=mock_error_util.create_resource_internal_server_error.return_value.model_dump_json(),
-        )

@@ -9,8 +9,8 @@
           {
             "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
             "version": "1.0.0",
-            "code": "VALIDATION_ERROR",
-            "display": "Validation error"
+            "code": "INVALID_SEARCH_DATA",
+            "display": "Invalid search data"
           }
         ]
       },
@@ -18,4 +18,3 @@
     }
   ]
 }
-
