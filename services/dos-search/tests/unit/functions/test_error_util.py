@@ -168,9 +168,10 @@ class TestErrorUtil:
         result = create_validation_error_operation_outcome(err)
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
-        assert result.issue[0].severity == "fatal"
-        assert result.issue[0].code == "structure"
-        assert result.issue[0].diagnostics == "Internal server error"
+        # Updated fallback expectations: client error, not internal fatal
+        assert result.issue[0].severity == "error"
+        assert result.issue[0].code == "invalid"
+        assert result.issue[0].diagnostics == "Input should be a valid string"
 
     def test_create_validation_error_unmapped_value_error(self):
         # Simulate a value_error with an unmapped custom error class
@@ -192,6 +193,7 @@ class TestErrorUtil:
         result = create_validation_error_operation_outcome(err)
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
-        assert result.issue[0].severity == "fatal"
-        assert result.issue[0].code == "structure"
-        assert result.issue[0].diagnostics == "Internal server error"
+        # Updated fallback expectations: client error, not internal fatal
+        assert result.issue[0].severity == "error"
+        assert result.issue[0].code == "invalid"
+        assert result.issue[0].diagnostics == "boom"

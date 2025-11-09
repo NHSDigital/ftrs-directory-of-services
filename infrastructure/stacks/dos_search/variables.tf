@@ -64,16 +64,6 @@ locals {
       status_code   = "403"
       template      = file("${local.fhir_outcome_dir}/invalid_api_key.json")
     }
-    bad_request_parameters = {
-      response_type = "BAD_REQUEST_PARAMETERS"
-      status_code   = "400"
-      template      = file("${local.fhir_outcome_dir}/bad_request_parameters.json")
-    }
-    bad_request_body = {
-      response_type = "BAD_REQUEST_BODY"
-      status_code   = "400"
-      template      = file("${local.fhir_outcome_dir}/bad_request_body.json")
-    }
     default_4xx = {
       response_type = "DEFAULT_4XX"
       status_code   = "400"

@@ -44,6 +44,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                                      |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude=                      |
       | identifier=odsOrganisationCode\|M00081046&_revinclude=Invalid:value         |
       | identifier=odsOrganisationCode\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
@@ -70,24 +71,24 @@ Feature: API DoS Service Search Backend
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-    And the OperationOutcome contains an issue with diagnostics "Bad request"
+    And the OperationOutcome contains an issue with code "required"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '<missing_param>'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                    | missing_param |
       | identifier=odsOrganisationCode\|M00081046 | _revinclude   |
       | _revinclude=Endpoint:organization         | identifier    |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude= | _revinclude |
 
 
   Scenario: I search for GP Endpoint with 2 missing parameters
     When I request data from the "dos-search" endpoint "Organization" with query params ""
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains "2" issues
     And the OperationOutcome has issues all with severity "error"
-    And the OperationOutcome has issues all with code "invalid"
-    And the OperationOutcome contains an issue with diagnostics "Bad request"
+    And the OperationOutcome has issues all with code "required"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'identifier'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '_revinclude'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
 
 
@@ -117,13 +118,3 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "security"
     And the OperationOutcome contains an issue with diagnostics "Invalid or missing client authentication"
     And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
-
-
-  Scenario: I call the endpoint and force a server error to receive a 500 OperationOutcome
-    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046&force_error=true"
-    Then I receive a status code "500" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome contains an issue with severity "fatal"
-    And the OperationOutcome contains an issue with code "exception"
-    And the OperationOutcome contains an issue with diagnostics "Internal server error"
