@@ -5,9 +5,9 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
-from . import error_util
-from .ftrs_service.ftrs_service import FtrsService
-from .organization_query_params import OrganizationQueryParams
+from functions import error_util
+from functions.ftrs_service.ftrs_service import FtrsService
+from functions.organization_query_params import OrganizationQueryParams
 
 logger = Logger()
 tracer = Tracer()
@@ -19,7 +19,6 @@ app = APIGatewayRestResolver()
 def get_organization() -> Response:
     try:
         query_params = app.current_event.query_string_parameters or {}
-
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
         ods_code = validated_params.ods_code

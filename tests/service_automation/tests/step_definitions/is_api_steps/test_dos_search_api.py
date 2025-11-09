@@ -147,3 +147,4 @@ def api_check_operation_outcome_any_issue_details_invalid_auth_coding(fresponse)
         key="details",
         value=INVALID_AUTH_CODING
     )
+
