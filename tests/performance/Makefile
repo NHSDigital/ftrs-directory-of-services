@@ -45,20 +45,12 @@ performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
 	jmeter -g ${TEST_DATA}.jtl -f -e -o reports
 
-download-workspace-performance-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files]
-	echo "downloading performance test files from  ${WORKSPACE_FILES_BUCKET} to ${TEST_DIR}"
-	aws s3 cp s3://${WORKSPACE_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
-
-download-main-performance-files: ##[AWS_REGION=aws region] [MAIN_FILES_BUCKET=main bucket for performance files]  [LOCAL_DIR=local folder]
+download-performance-files: ##[AWS_REGION=aws region] [MAIN_FILES_BUCKET=main bucket for performance files]  [LOCAL_DIR=local folder]
 	echo "downloading performance test files from  ${MAIN_FILES_BUCKET}"
 	aws s3 cp s3://${MAIN_FILES_BUCKET} --region $(AWS_REGION) ${LOCAL_DIR}/ --recursive
 
-copy-performance-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files] [WORKSPACE_FILES_BUCKET=workspace bucket for performance files]
-	echo "copying performance test files from  ${MAIN_FILES_BUCKET} to ${WORKSPACE_FILES_BUCKET}"
-	aws s3 cp s3://${MAIN_FILES_BUCKET} --region $(AWS_REGION) s3://${WORKSPACE_FILES_BUCKET} --region $(AWS_REGION) --recursive
-
-upload-performance-file: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files]
-## [FILE=file or /file if the file should live in a subdirectory] [FILE_PATH=./local/path/to/file/]
+upload-performance-file: ##[AWS_REGION=aws region] [WORKSPACE=workspace name +/] [MAIN_FILES_BUCKET=main bucket for performance files]
+## [FILE=file] [FILE_PATH=./local/path/to/file/]
 	echo "Uploading performance test file ${FILE_PATH}${FILE} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
 	aws s3 cp --region $(AWS_REGION) ${FILE_PATH}${FILE} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${FILE}
 

@@ -40,12 +40,8 @@ test.dev.domain.uk,int.api.service.nhs.uk,tr24234yyr2342,mykid
 
 ### Test setup
 
-The files required to populate the test parameters will need to be copied down from the appropriate S3 bucket via the command, either from Main or the workspaced bucket
+The files required to populate the test parameters will need to be copied down from the appropriate S3 bucket via the command
 ```sh
-make download-workspace-performance-files WORKSPACE=ftrs-xxx
-
-OR
-
 make download-performance-files
 ```
 Generate a pfx file by converting the crt and pem files.
