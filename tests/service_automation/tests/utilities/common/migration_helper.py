@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 from urllib.parse import unquote, urlparse
 
+from aws_lambda_powertools.utilities.data_classes import SQSEvent
 from loguru import logger
 
 from pipeline.application import DataMigrationApplication, DMSEvent
@@ -162,15 +163,75 @@ class MigrationHelper:
             MigrationRunResult with success status, error, and metrics
         """
         try:
+            logger.info("=" * 80)
+            logger.info("MigrationHelper: Starting SQS event migration")
+            logger.info("=" * 80)
+
+            # Log event structure
+            record_count = len(sqs_event.get("Records", []))
+            event_summary = {
+                "has_records": "Records" in sqs_event,
+                "record_count": record_count,
+                "is_empty": len(sqs_event) == 0,
+            }
+            logger.info(f"Event summary: {event_summary}")
+
             config = self.create_migration_config()
+            logger.info(
+                f"Config created - Environment: {config.env}, Workspace: {config.workspace}"
+            )
+
             app = DataMigrationApplication(config=config)
+            logger.info("DataMigrationApplication instantiated")
 
-            app.handle_sqs_event(sqs_event)
+            # Wrap the dict in SQSEvent object (AWS Lambda Powertools format)
+            logger.info("Wrapping event in SQSEvent object...")
+            sqs_event_obj = SQSEvent(sqs_event)
+            logger.info(f"SQSEvent created with {record_count} record(s) expected")
 
-            metrics = app.processor.metrics if hasattr(app, "processor") else None
+            # Call the SQS event handler with the wrapped event
+            logger.info("Calling handle_sqs_event()...")
+            app.handle_sqs_event(sqs_event_obj)
+            logger.info("handle_sqs_event() completed")
+
+            # Get metrics from processor
+            metrics = None
+
+            if hasattr(app, "processor") and app.processor:
+                metrics = app.processor.metrics
+                logger.info("Metrics retrieved from app.processor")
+            else:
+                logger.warning("app.processor not found or is None")
+
+            # Log metrics details
+            if metrics:
+                logger.info("METRICS CAPTURED:")
+                logger.info(f"  Total: {metrics.total_records}")
+                logger.info(f"  Supported: {metrics.supported_records}")
+                logger.info(f"  Unsupported: {metrics.unsupported_records}")
+                logger.info(f"  Transformed: {metrics.transformed_records}")
+                logger.info(f"  Migrated: {metrics.migrated_records}")
+                logger.info(f"  Skipped: {metrics.skipped_records}")
+                logger.info(f"  Errors: {metrics.errors}")
+            else:
+                logger.error("METRICS ARE NONE!")
+
+            logger.info("=" * 80)
+            logger.info("SQS event migration completed")
+            logger.info("=" * 80)
 
             return MigrationRunResult(success=True, application=app, metrics=metrics)
 
         except Exception as e:
-            logger.error("SQS event migration failed", exc_info=True)
+            logger.error("=" * 80)
+            logger.error("SQS event migration failed")
+            logger.error("=" * 80)
+            logger.error(f"Error type: {type(e).__name__}")
+            logger.error(f"Error message: {str(e)}", exc_info=True)
+
+            # Include full traceback
+            import traceback
+
+            logger.error(f"Full traceback:\n{traceback.format_exc()}")
+
             return MigrationRunResult(success=False, error=str(e), metrics=None)
