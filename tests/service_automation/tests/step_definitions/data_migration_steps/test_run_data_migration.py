@@ -1,4 +1,5 @@
 """BDD step definitions for running single service migration."""
+import json
 import os
 from typing import Any, Dict
 
@@ -592,5 +593,228 @@ def verify_transformation_output(
             "location_count": location_count,
             "healthcare_service_count": service_count,
             "log_line": matching_log,
+        },
+    )
+
+
+@when(
+    "the data migration process is run with the event:",
+    target_fixture="sqs_event_processed",
+)
+def run_sqs_event_migration(
+    migration_helper: MigrationHelper,
+    migration_context: Dict[str, Any],
+    docstring: str,
+    capfd: pytest.CaptureFixture[str],
+) -> Dict[str, Any]:
+    """
+    Execute migration with SQS event and capture output.
+
+    Args:
+        migration_helper: Helper for running migrations
+        migration_context: Test context dictionary
+        docstring: JSON event string from Gherkin docstring
+        capfd: Pytest fixture for capturing stdout/stderr
+
+    Returns:
+        Dictionary containing event processing result
+
+    Raises:
+        pytest.fail: If event JSON is invalid
+    """
+    try:
+        event = json.loads(docstring)
+    except json.JSONDecodeError as e:
+        pytest.fail(f"Invalid JSON in event docstring: {e}")
+
+    # Extract service IDs from DMSEvent format in body
+    service_ids = []
+    if event.get("Records"):
+        for record in event["Records"]:
+            body = record.get("body", "{}")
+            try:
+                body_json = json.loads(body)
+                if "record_id" in body_json:
+                    service_ids.append(body_json["record_id"])
+            except json.JSONDecodeError:
+                logger.warning(f"Could not parse record body: {body}")
+
+    logger.debug(
+        "Processing SQS event",
+        extra={
+            "record_count": len(event.get("Records", [])),
+            "is_empty": len(event) == 0,
+            "service_ids": service_ids,
+        },
+    )
+
+    # Run the migration with the event
+    result = migration_helper.run_sqs_event_migration(event)
+
+    captured = capfd.readouterr()
+
+    # Store in context
+    migration_context["result"] = result
+    migration_context["sqs_event"] = event
+    migration_context["sqs_service_ids"] = service_ids
+    migration_context["sqs_service_id"] = service_ids[0] if service_ids else None
+    migration_context["captured_output"] = {
+        "stdout": captured.out,
+        "stderr": captured.err,
+    }
+
+    # Log the full result for debugging
+    logger.info("=" * 80)
+    logger.info("SQS EVENT MIGRATION RESULT")
+    logger.info("=" * 80)
+    logger.info(f"Success: {result.success}")
+    logger.info(f"Error: {result.error}")
+    logger.info(f"Metrics exists: {result.metrics is not None}")
+
+    if result.metrics:
+        logger.info("METRICS:")
+        logger.info(f"  Total: {result.metrics.total_records}")
+        logger.info(f"  Supported: {result.metrics.supported_records}")
+        logger.info(f"  Unsupported: {result.metrics.unsupported_records}")
+        logger.info(f"  Transformed: {result.metrics.transformed_records}")
+        logger.info(f"  Migrated: {result.metrics.migrated_records}")
+        logger.info(f"  Skipped: {result.metrics.skipped_records}")
+        logger.info(f"  Errors: {result.metrics.errors}")
+
+    if result.error:
+        logger.error("ERROR DETAILS:")
+        logger.error(result.error)
+        logger.error("STDOUT:")
+        logger.error(captured.out[:1000] if captured.out else "None")
+        logger.error("STDERR:")
+        logger.error(captured.err[:1000] if captured.err else "None")
+
+    logger.info("=" * 80)
+
+    logger.info(
+        "SQS event migration completed",
+        extra={
+            "success": result.success,
+            "migrated_records": result.metrics.migrated_records if result.metrics else 0,
+            "is_empty_event": len(event) == 0,
+            "service_ids": service_ids,
+        },
+    )
+
+    return {"event": event, "result": result}
+
+
+@then(
+    parsers.parse(
+        "the SQS event metrics should be "
+        "{total:d} total, "
+        "{supported:d} supported, "
+        "{unsupported:d} unsupported, "
+        "{transformed:d} transformed, "
+        "{migrated:d} migrated, "
+        "{skipped:d} skipped and "
+        "{errors:d} errors"
+    )
+)
+def verify_sqs_event_metrics(
+    migration_context: Dict[str, Any],
+    total: int,
+    supported: int,
+    unsupported: int,
+    transformed: int,
+    migrated: int,
+    skipped: int,
+    errors: int,
+) -> None:
+    """
+    Verify SQS event migration metrics match expected values.
+
+    Args:
+        migration_context: Test context dictionary
+        total: Expected total_records count
+        supported: Expected supported_records count
+        unsupported: Expected unsupported_records count
+        transformed: Expected transformed_records count
+        migrated: Expected migrated_records count
+        skipped: Expected skipped_records count
+        errors: Expected errors count
+
+    Raises:
+        AssertionError: If any metric doesn't match expected value
+    """
+    result = migration_context.get("result")
+    logger.info("Verifying SQS results", extra={"result": result})
+
+    sqs_event = migration_context.get("sqs_event", {})
+    service_id = migration_context.get("sqs_service_id")
+
+    assert result is not None, "Migration result should exist"
+    assert result.metrics is not None, "Migration metrics should exist"
+
+    metrics = result.metrics
+    is_empty_event = len(sqs_event) == 0
+    record_count = len(sqs_event.get("Records", []))
+
+    if is_empty_event:
+        event_info = "empty event"
+    elif service_id:
+        event_info = f"SQS event for service {service_id}"
+    else:
+        event_info = f"SQS event with {record_count} record(s)"
+
+    assert metrics.total_records == total, (
+        f"Total records mismatch for {event_info}:\n"
+        f"  Expected: {total}\n"
+        f"  Got: {metrics.total_records}"
+    )
+
+    assert metrics.supported_records == supported, (
+        f"Supported records mismatch for {event_info}:\n"
+        f"  Expected: {supported}\n"
+        f"  Got: {metrics.supported_records}"
+    )
+
+    assert metrics.unsupported_records == unsupported, (
+        f"Unsupported records mismatch for {event_info}:\n"
+        f"  Expected: {unsupported}\n"
+        f"  Got: {metrics.unsupported_records}"
+    )
+
+    assert metrics.transformed_records == transformed, (
+        f"Transformed records mismatch for {event_info}:\n"
+        f"  Expected: {transformed}\n"
+        f"  Got: {metrics.transformed_records}"
+    )
+
+    assert metrics.migrated_records == migrated, (
+        f"Migrated records mismatch for {event_info}:\n"
+        f"  Expected: {migrated}\n"
+        f"  Got: {metrics.migrated_records}"
+    )
+
+    assert metrics.skipped_records == skipped, (
+        f"Skipped records mismatch for {event_info}:\n"
+        f"  Expected: {skipped}\n"
+        f"  Got: {metrics.skipped_records}"
+    )
+
+    assert metrics.errors == errors, (
+        f"Errors mismatch for {event_info}:\n"
+        f"  Expected: {errors}\n"
+        f"  Got: {metrics.errors}"
+    )
+
+    logger.info(
+        f"Verified SQS event metrics for {event_info}",
+        extra={
+            "total": total,
+            "supported": supported,
+            "unsupported": unsupported,
+            "transformed": transformed,
+            "migrated": migrated,
+            "skipped": skipped,
+            "errors": errors,
+            "is_empty_event": is_empty_event,
+            "service_id": service_id,
         },
     )
