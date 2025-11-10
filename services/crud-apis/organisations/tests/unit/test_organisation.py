@@ -716,5 +716,5 @@ def test_update_organisation_identifier_empty_list() -> None:
     assert identifier_errors[0]["type"] == "value_error"
     assert (
         identifier_errors[0]["msg"]
-        == "Value error, At least one identifier must be provided"
+        == "Value error, at least one identifier must be provided"
     )

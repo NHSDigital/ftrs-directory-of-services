@@ -15,7 +15,7 @@ IDENTIFIER_SEPARATOR = "|"
 ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
 
 ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
-ERROR_IDENTIFIER_EMPTY = "At least one identifier must be provided"
+ERROR_IDENTIFIER_EMPTY = "at least one identifier must be provided"
 ERROR_IDENTIFIER_NO_ODS_SYSTEM = "at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
 ERROR_IDENTIFIER_EMPTY_VALUE = "ODS identifier must have a non-empty value"
 ERROR_IDENTIFIER_INVALID_FORMAT = (
