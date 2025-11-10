@@ -4,7 +4,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
+  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 resource "aws_lambda_layer_version" "common_packages_layer" {
@@ -13,7 +13,7 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer-${var.application_tag}.zip"
 }
 
 module "processor_lambda" {
@@ -23,7 +23,7 @@ module "processor_lambda" {
   handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.processor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
@@ -68,7 +68,7 @@ module "consumer_lambda" {
   handler                 = var.consumer_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size

@@ -4,7 +4,7 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
   description         = "Common packages for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer-${var.application_tag}.zip"
 }
 
 resource "aws_lambda_layer_version" "python_dependency_layer" {
@@ -13,7 +13,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
+  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
 }
 
 module "lambda" {
@@ -23,7 +23,7 @@ module "lambda" {
   handler                = "functions/dos_search_ods_code_function.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${terraform.workspace}/${var.commit_hash}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"

@@ -23,10 +23,14 @@ inputs:
     required: false
   commit_hash:
     description: "The commit hash, set by the CI/CD pipeline workflow"
-    required: true
+    required: false
   mgmt_account_id:
     description: "The management account ID for the action"
     required: true
+  release_tag:
+    description: "The release tag identifying the timeline in the repository to deploy from"
+    required: false
+    type: string
 outputs:
   plan_result:
     description: "The Terraform plan output"
@@ -55,5 +59,6 @@ runs:
         export WORKSPACE=${{ inputs.workspace }}
         export PROJECT=${{ inputs.project }}
         export APPLICATION_TAG=${{ inputs.application_tag }}
+        export RELEASE_TAG=${{ inputs.release_tag }}
         export COMMIT_HASH=${{ inputs.commit_hash }}
         /bin/bash ./scripts/workflow/action-infra-stack.sh

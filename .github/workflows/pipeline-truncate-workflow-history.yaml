@@ -1,13 +1,13 @@
-name: Truncate Workflow History
+name: Truncate Workflow History Pipeline
 
 permissions:
-      actions: write
-      id-token: write
-      contents: read
+  actions: write
+  id-token: write
+  contents: read
 on:
   # Run daily, at 01:00.
   schedule:
-    - cron: '0 1 * * *'
+    - cron: "0 1 * * *"
 
 jobs:
   delete_past_runs:

@@ -1,0 +1,282 @@
+name: Build Release Candidate Pipeline
+
+# Workflow description
+# Intended to run when manually triggered to build a release candidate.
+# The workspace is set to the release tag, and the environment defaults to test.
+# This workflow will:
+# - Build the release candidate
+# - Provision a temporary AWS workspace in the test environment
+# - Run automated tests
+# - Perform cleardown of infrastructure
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+    with:
+      environment: "test"
+
+  tag-release:
+    name: "Generate the next release tag"
+    needs:
+      - metadata
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.set-full-tag.outputs.release_tag }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+
+      - name: "Run Semantic Release"
+        id: semantic-release
+        uses: cycjimmy/semantic-release-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Set full release tag"
+        id: set-full-tag
+        run: |
+          echo "The last semantic release version was: ${{ steps.semantic-release.outputs.last_release_version }}"
+          echo "The new semantic release version is: ${{ steps.semantic-release.outputs.new_release_version }}"
+
+          if [[ "${{ steps.semantic-release.outputs.new_release_version }}" == "${{ steps.semantic-release.outputs.last_release_version }}" ]]; then
+            echo "No new changes since the last release. Skipping release candidate build."
+            exit 78  # special code to skip job in GitHub Actions
+          fi
+
+          echo "release_tag=v${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
+
+  quality-checks:
+    name: "Quality checks for release ${{ needs.tag-release.outputs.release_tag }}"
+    needs:
+      - metadata
+      - tag-release
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      type: app
+    secrets: inherit
+
+  build-release-artefacts:
+    name: "Build ${{ matrix.name }} for release ${{ needs.tag-release.outputs.release_tag }}"
+    needs:
+      - metadata
+      - tag-release
+      - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "python"
+            build_type: "package"
+          - name: "crud-apis"
+            build_type: "service"
+          - name: "data-migration"
+            build_type: "service"
+          - name: "read-only-viewer"
+            build_type: "service"
+          - name: "etl-ods"
+            build_type: "service"
+          - name: "dos-search"
+            build_type: "service"
+          - name: "dos-ui"
+            build_type: "service"
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: ${{ matrix.build_type }}
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: "rc"
+      application_tag: ${{ needs.tag-release.outputs.release_tag }}
+      release_build: true
+      type: app
+    secrets: inherit
+
+  plan-infrastructure:
+    name: "Plan infrastructure deployment for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.tag-release.outputs.release_tag }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - tag-release
+      - build-release-artefacts
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      application_tag: ${{ needs.tag-release.outputs.release_tag }}
+      release_tag: ${{ needs.tag-release.outputs.release_tag }}
+      action: plan
+      type: app
+    secrets: inherit
+
+  manual-approval:
+    name: "Manual approval for ${{ needs.metadata.outputs.environment }} environment deployment"
+    needs:
+      - metadata
+      - plan-infrastructure
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
+
+  apply-infrastructure:
+    name: "Apply infrastructure deployment for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.tag-release.outputs.release_tag }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - tag-release
+      - manual-approval
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      application_tag: ${{ needs.tag-release.outputs.release_tag }}
+      release_tag: ${{ needs.tag-release.outputs.release_tag }}
+      action: apply
+      type: app
+      workflow_timeout: 30
+    secrets: inherit
+
+  restore-dynamodb-from-s3:
+    name: "Restore S3 data to DynamoDB tables for release candidate in the ${{ needs.metadata.outputs.environment }} environment"
+    if: ${{ needs.metadata.outputs.environment && needs.metadata.outputs.environment != 'prod' }}
+    needs:
+      - metadata
+      - tag-release
+      - apply-infrastructure
+    uses: ./.github/workflows/manage-dynamodb-data.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      action: import
+      type: app
+    secrets: inherit
+
+  deploy-frontend-services:
+    name: "Deploy ${{ matrix.name }} for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.tag-release.outputs.release_tag }}-${{ matrix.name }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - tag-release
+      - apply-infrastructure
+    strategy:
+      matrix:
+        include:
+          - name: "dos-ui"
+          - name: "read-only-viewer"
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: "rc"
+      application_tag: ${{ needs.tag-release.outputs.release_tag }}
+      release_build: true
+      type: "app"
+    secrets: inherit
+
+  deploy-data-migration-service:
+    name: "Deploy data migration service for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-data-migration-${{ needs.tag-release.outputs.release_tag }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - tag-release
+      - apply-infrastructure
+    uses: ./.github/workflows/deploy-data-migration-project.yaml
+    with:
+      name: "data-migration"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: "rc"
+      application_tag: ${{ needs.tag-release.outputs.release_tag }}
+      type: "app"
+    secrets: inherit
+
+  service-automation-tests:
+    name: "Run service automation tests for release candidate in the ${{ needs.metadata.outputs.environment }} environment"
+    needs:
+      - metadata
+      - tag-release
+      - deploy-data-migration-service
+      - deploy-frontend-services
+    uses: ./.github/workflows/service-automation-test.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      tag: ${{ needs.tag-release.outputs.release_tag }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      test_tag: "ftrs-pipeline"
+      test_type: "api"
+      type: app
+    secrets: inherit
+
+  trigger-cleardown-pipeline:
+    name: "Trigger Cleardown Application Infrastructure Pipeline"
+    needs:
+      - metadata
+      - tag-release
+      - service-automation-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger downstream cleardown pipeline
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          repository: ${{ github.repository }}
+          event-type: release-build-cleardown
+          client-payload: '{"environment": "${{ needs.metadata.outputs.environment }}", "workspace": "rc", "application_tag": "${{ needs.tag-release.outputs.release_tag }}"}'
+
+  check-pipeline-status:
+    name: "Check pipeline status"
+    needs:
+      - trigger-cleardown-pipeline
+    if: always()
+    uses: ./.github/workflows/pipeline-status-check.yaml
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - metadata
+      - quality-checks
+      - build-release-artefacts
+      - plan-infrastructure
+      - manual-approval
+      - apply-infrastructure
+      - restore-dynamodb-from-s3
+      - deploy-frontend-services
+      - deploy-data-migration-service
+      - service-automation-tests
+      - trigger-cleardown-pipeline
+      - check-pipeline-status
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit

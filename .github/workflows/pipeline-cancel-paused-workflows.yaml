@@ -1,13 +1,13 @@
-name: Cleardown paused workflow runs
+name: Cleardown Paused Workflow Runs Pipeline
 
 permissions:
-      actions: write
-      id-token: write
-      contents: read
+  actions: write
+  id-token: write
+  contents: read
 on:
   # Run daily, at 19:00.
   schedule:
-    - cron: '0 19 * * *'
+    - cron: "0 19 * * *"
 
 jobs:
   cancel_paused_runs:

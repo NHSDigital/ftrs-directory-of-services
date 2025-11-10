@@ -2,44 +2,44 @@ name: "Deploy service action"
 description: "Deploys a service into a Lambda."
 
 inputs:
-    service:
-        description: "The name of the service to deploy"
-        required: true
-    directory:
-        description: "The name of the directory to build in"
-        required: true
-    workspace:
-        description: "The name of the workspace to deploy the service into."
-        required: true
-    artefact_sub_dir:
-        description: "If deploying a custom artefact, specify its S3 subdirectory here."
-        required: false
-    commit_hash:
-        description: "The short version of the git commit hash"
-        required: true
-    artefact_bucket_name:
-        description: "Name of bucket holding the artefacts for the domain"
-        required: true
-    environment:
-        description: "The environment being updated"
-        required: true
-    tag:
-      description: "The version of the service to deploy"
-      required: false
+  service:
+    description: "The name of the service to deploy"
+    required: true
+  directory:
+    description: "The name of the directory to build in"
+    required: true
+  workspace:
+    description: "The name of the workspace to deploy the service into."
+    required: true
+  artefact_sub_dir:
+    description: "If deploying a custom artefact, specify its S3 subdirectory here."
+    required: false
+  commit_hash:
+    description: "The short version of the git commit hash"
+    required: false
+  artefact_bucket_name:
+    description: "Name of bucket holding the artefacts for the domain"
+    required: true
+  environment:
+    description: "The environment being updated"
+    required: true
+  tag:
+    description: "The version of the service to deploy"
+    required: false
 
 runs:
   using: "composite"
 
   steps:
-      - name: Deploy Service
-        shell: bash
-        run: |
-          export SERVICE=${{ inputs.service }}
-          export APPLICATION_ROOT_DIR=${{ inputs.directory }}
-          export TAG=${{ inputs.tag }}
-          export WORKSPACE=${{ inputs.workspace }}
-          export ARTEFACT_SUB_DIR=${{ inputs.artefact_sub_dir }}
-          export COMMIT_HASH=${{ inputs.commit_hash }}
-          export ARTEFACT_BUCKET_NAME=${{ inputs.artefact_bucket_name }}
-          export ENVIRONMENT=${{ inputs.environment }}
-          /bin/bash ./uec-dos-management/scripts/workflow/deploy-service.sh
+    - name: Deploy Service
+      shell: bash
+      run: |
+        export SERVICE=${{ inputs.service }}
+        export APPLICATION_ROOT_DIR=${{ inputs.directory }}
+        export TAG=${{ inputs.tag }}
+        export WORKSPACE=${{ inputs.workspace }}
+        export ARTEFACT_SUB_DIR=${{ inputs.artefact_sub_dir }}
+        export COMMIT_HASH=${{ inputs.commit_hash }}
+        export ARTEFACT_BUCKET_NAME=${{ inputs.artefact_bucket_name }}
+        export ENVIRONMENT=${{ inputs.environment }}
+        /bin/bash ./uec-dos-management/scripts/workflow/deploy-service.sh
