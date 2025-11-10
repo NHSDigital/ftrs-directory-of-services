@@ -507,7 +507,7 @@ def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
         Dictionary context for storing test state
     """
     return {
-        "service_id": None,
+        "service_id": None, # None indicates full sync migration
         "result": None,
         "service_data": {},
         "results": {},
