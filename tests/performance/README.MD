@@ -22,7 +22,7 @@ See those in the main README.MD
 
 ### Install jmeter (local developer machine)
 
-```shell
+```sh
 cd tests/performance
 make install
 ```
@@ -31,7 +31,7 @@ make install
 
 ### GUI setup
 To be able to run a test plan from the GUI you will need to create a csv file called plan_params.csv that contains 4 data items. These 4 items are required to be able to run any of the test plans
-```
+```sh
 internal R53 endpoint address, APIM Env address , APIM API Key, kid name
 
 example:
@@ -41,24 +41,22 @@ test.dev.domain.uk,int.api.service.nhs.uk,tr24234yyr2342,mykid
 ### Test setup
 
 The files required to populate the test parameters will need to be copied down from the appropriate S3 bucket via the command, either from Main or the workspaced bucket
-```
-make download-workspace-performance-parameter-files
+```sh
+make download-workspace-performance-files WORKSPACE=ftrs-xxx
 
 OR
 
-make download-performance-parameter-files
+make download-performance-files
 ```
 Generate a pfx file by converting the crt and pem files.
 You will be prompted to set a password for this file
-
-```
+```sh
 openssl pkcs12 -export -in <cert name>>.crt -inkey <key name>>.pem -out <pfx name>.pfx
-
 ```
 
 ###
 To load the GUI
-```
+```sh
 jmeter
 ```
 
@@ -73,8 +71,7 @@ KID = my-kid
 Store the pem file that corresponds to the APIKEY and KID in /parameter_files
 
 ### From command line and sending a mtls pfx file
-
-```
+```sh
 jmeter -n -t IS_Test_Plan.jmx -f -l result.jtl -e -o "report"  -J serviceendpoint=<endpoint> -D javax.net.ssl.keyStore="<full paths to pfx file>" -D javax.net.ssl.keyStorePassword='<password for pfx file>'
 ```
 
@@ -82,25 +79,19 @@ jmeter -n -t IS_Test_Plan.jmx -f -l result.jtl -e -o "report"  -J serviceendpoin
 
 The *Generate JWT Token - JSR223 PreProcessor* generates a JWT token based on the provided KID and API Key.
 This is then passed to *Get Bearer Token* request a bearer token to be sent in the request header
-
-
-```
+```sh
 jmeter -n -t IS_Proxy_Test_Plan.jmx -f -l result.jtl -e -o "report" -J apim_env=<apim_env>  -J apikey=<apikey> -J kid=<kid>
 ```
 
 To generate a dashboard report in the folder reports based on the result.jtl file generated when the test plan ran
-```
+```sh
 jmeter -g result.jtl -f -e -o reports
 ```
 
 
-### Fetch a single field from a Secrets Manager secret (secrets-get-value)
-
+### Fetch a single field from a Secrets Manager secret
 Use this target when you only need one value from a secret.
-
-Examples:
 ```sh
-# Save a single value to a file
 make secrets-get-value SECRET_ID=/my/service/secret OUT=downloads/dbname.txt
 ```
 
@@ -109,19 +100,19 @@ make secrets-get-value SECRET_ID=/my/service/secret OUT=downloads/dbname.txt
 The infrastructure provisions an EC2 instance (private subnet) with JMeter pre-installed. Access is via SSM. Default state is Stopped; start it when needed and stop it when done.
 
 Start/Stop the EC2 instance
-```shell
+```sh
 make jmeter-start-instance JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 make jmeter-stop-instance JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
 Check instance details
-```shell
+```sh
 make jmeter-ec2-id JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 make jmeter-private-ip JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
 Verify JMeter version on EC2 via SSM
-```shell
+```sh
 make jmeter-version-remote JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
@@ -131,21 +122,16 @@ Parameters
 - `FILE` (optional, default: `jmeter_test_plan.jmx`): local file to upload; if not found, falls back to `tests/performance/<basename>`
 - `DEST` (optional, default: basename of `FILE`): remote filename written under `/home/ssm-user`; directories are not created by this target
 
-Use the SSM inline base64 method to place the plan on the instance.
-
-```shell
-# Copies local jmeter_test_plan.jmx to the EC2 instance home directory
+```sh
 make jmeter-copy-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx FILE=jmeter_test_plan.jmx DEST=jmeter_test_plan.jmx
 
 ```
 
 Copy a file from a subdirectory (for example from parameter_files)
-
-- FILE is resolved relative to the tests/performance directory when using -C tests/performance
 - You can pass a relative path like parameter_files/<file> or an absolute path
 - Use DEST to control the remote filename; by default it uses the basename of FILE
 
-```shell
+```sh
 make jmeter-copy-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx FILE=parameter_files/odscodes.csv DEST=odscodes.csv
 ```
 
@@ -173,23 +159,15 @@ make jmeter-copy-dir-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DIR=param
 
 Copy an artifacts directory into /home/ssm-user/artifacts:
 ```sh
-
-# If 'artifacts' is directly under tests/performance
-make jmeter-copy-dir-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DIR=artifacts DEST_DIR=artifacts
-
-# If your path is nested at tests/performance/tests/performance/artifacts
 make jmeter-copy-dir-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DIR=tests/performance/artifacts DEST_DIR=artifacts
 ```
 
 Notes:
-- Files with identical names will overwrite in the target directory
 - Very large files may exceed SSM inline limits; if you hit failures, split files or use an alternate transfer method (e.g., S3)
 
 ### Open an SSM session
 Open session to run jmeter tests manually
-
-```shell
-# Open an interactive Session Manager shell to the instance
+```sh
 make jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
@@ -200,14 +178,6 @@ Parameters
 - `REMOTE_FILE` (optional, default: `result.jtl`): remote file path or name under `/home/ssm-user`
 - `LOCAL_DIR` (optional, default: `tests/performance/artifacts`): local directory to save into
 - `LOCAL_FILE` (optional): explicit output path; if set, overrides `LOCAL_DIR`
-
-Examples (run from repo root)
-
-Download a relative remote file (resolved under `/home/ssm-user/`) into the default artifacts folder:
-
-```sh
-make jmeter-fetch-file-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_FILE=test111.txt
-```
 
 Download into a specific local folder (creates folder if needed):
 
@@ -241,16 +211,9 @@ Parameters
 - `REMOTE_DIR` (optional, default: `artifacts`): directory name or absolute path on the instance
 - `LOCAL_DIR` (optional, default: `tests/performance/artifacts`): local directory to download into (created if missing)
 
-Examples (run from repo root)
-
 Download the `/home/ssm-user/artifacts` folder into a local folder:
 ```sh
-make jmeter-fetch-dir-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_DIR=artifacts LOCAL_DIR=downloads/testfolder
-```
-
-Using an absolute remote path and default local destination:
-```sh
-make jmeter-fetch-dir-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_DIR=/home/ssm-user/artifacts
+make jmeter-fetch-dir-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_DIR=/home/ssm-user/artifacts LOCAL_DIR=downloads/testfolder
 ```
 
 Notes
