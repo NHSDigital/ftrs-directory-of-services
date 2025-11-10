@@ -15,6 +15,9 @@ from utilities.common.migration_helper import MigrationHelper
 
 scenarios("../../tests/features/data_migration_features/run_data_migration.feature")
 
+# NOTE: tests successfully run when there is only one scenario in the feature file
+# BUT: tests do not all run successfully when all in one feature file, only the first one does
+# TODO: looks like test logger set up issue, logger is not persisted so does not capture following scenario logs?
 
 @given("the test environment is configured")
 def test_environment_configured(
@@ -223,16 +226,33 @@ def run_single_service_migration(
 def run_full_service_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
+    capfd: pytest.CaptureFixture[str],
 ) -> None:
     """
-    Execute full service migration.
+    Execute full service migration and capture output.
 
     Args:
         migration_helper: Helper for running migrations
         migration_context: Test context dictionary
+        capfd: Pytest fixture for capturing stdout/stderr
     """
     result = migration_helper.run_full_service_migration()
+
+    captured = capfd.readouterr()
+
     migration_context["result"] = result
+    migration_context["captured_output"] = {
+        "stdout": captured.out,
+        "stderr": captured.err,
+    }
+
+    logger.info(
+        "Full service migration completed",
+        extra={
+            "success": result.success,
+            "total_records": result.metrics.total_records if result.metrics else 0,
+        },
+    )
 
 
 @then("the migration process should complete successfully")
@@ -299,42 +319,70 @@ def verify_migration_metrics_inline(
     service_id = migration_context.get("service_id")
     service_data = migration_context.get("service_data", {})
 
+    # Determine if this is a full sync or single service migration
+    is_full_sync = service_id is None
+    migration_type = "full sync" if is_full_sync else f"service {service_id}"
+
     assert metrics.total_records == total, (
-        f"Total records mismatch for service {service_id}: "
+        f"Total records mismatch for {migration_type}: "
         f"expected {total}, got {metrics.total_records}"
     )
 
-    assert metrics.supported_records == supported, (
-        f"Supported records mismatch for service {service_id}:\n"
-        f"  Expected: {supported}\n"
-        f"  Got: {metrics.supported_records}\n"
-        f"  Type ID: {service_data.get('typeid')}\n"
-        f"  ODS Code: {service_data.get('odscode')}\n"
-        f"  Status: {service_data.get('statusid')}"
-    )
+    # For full sync, provide simpler error messages without service-specific details
+    if is_full_sync:
+        assert metrics.supported_records == supported, (
+            f"Supported records mismatch for {migration_type}:\n"
+            f"  Expected: {supported}\n"
+            f"  Got: {metrics.supported_records}\n"
+            f"  (All existing services in database)"
+        )
+    else:
+        assert metrics.supported_records == supported, (
+            f"Supported records mismatch for {migration_type}:\n"
+            f"  Expected: {supported}\n"
+            f"  Got: {metrics.supported_records}\n"
+            f"  Type ID: {service_data.get('typeid')}\n"
+            f"  ODS Code: {service_data.get('odscode')}\n"
+            f"  Status: {service_data.get('statusid')}"
+        )
 
     assert metrics.unsupported_records == unsupported, (
-        f"Unsupported records mismatch: expected {unsupported}, "
-        f"got {metrics.unsupported_records}"
+        f"Unsupported records mismatch for {migration_type}: "
+        f"expected {unsupported}, got {metrics.unsupported_records}"
     )
 
     assert metrics.transformed_records == transformed, (
-        f"Transformed records mismatch: expected {transformed}, "
-        f"got {metrics.transformed_records}"
+        f"Transformed records mismatch for {migration_type}: "
+        f"expected {transformed}, got {metrics.transformed_records}"
     )
 
     assert metrics.migrated_records == migrated, (
-        f"Migrated records mismatch: expected {migrated}, "
-        f"got {metrics.migrated_records}"
+        f"Migrated records mismatch for {migration_type}: "
+        f"expected {migrated}, got {metrics.migrated_records}"
     )
 
     assert metrics.skipped_records == skipped, (
-        f"Skipped records mismatch: expected {skipped}, "
-        f"got {metrics.skipped_records}"
+        f"Skipped records mismatch for {migration_type}: "
+        f"expected {skipped}, got {metrics.skipped_records}"
     )
 
     assert metrics.errors == errors, (
-        f"Errors mismatch: expected {errors}, got {metrics.errors}"
+        f"Errors mismatch for {migration_type}: "
+        f"expected {errors}, got {metrics.errors}"
+    )
+
+    logger.info(
+        f"Verified metrics for {migration_type}",
+        extra={
+            "total": total,
+            "supported": supported,
+            "unsupported": unsupported,
+            "transformed": transformed,
+            "migrated": migrated,
+            "skipped": skipped,
+            "errors": errors,
+            "is_full_sync": is_full_sync,
+        },
     )
 
 
