@@ -3,8 +3,8 @@ ENVIRONMENT ?= dev
 SERVICE ?= is-performance
 PYTHON_VERSION ?= 3.12
 TEST_DIR := parameter_files
-WORKSPACE_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket-${WORKSPACE}
-MAIN_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket
+WORKSPACE_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-files-bucket-${WORKSPACE}
+MAIN_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-files-bucket
 JMETER_PLUGINS_MANAGER_VERSION := 1.11
 CMDRUNNER_VERSION := 2.3
 AWS_REGION ?= eu-west-2
@@ -45,27 +45,31 @@ performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
 	jmeter -g ${TEST_DATA}.jtl -f -e -o reports
 
-download-workspace-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
-	echo "PROJECT_NAME: ${PROJECT_NAME}"
-	echo "ENVIRONMENT: ${ENVIRONMENT}"
-	echo "SERVICE: ${SERVICE}"
-	echo "WORKSPACE_PARAMETER_FILES_BUCKET: ${WORKSPACE_PARAMETER_FILES_BUCKET}"
-	aws s3 cp s3://${WORKSPACE_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
+download-workspace-performance-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files]
+	echo "downloading performance test files from  ${WORKSPACE_FILES_BUCKET} to ${TEST_DIR}"
+	aws s3 cp s3://${WORKSPACE_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
 
-download-main-performance-parameter-files: ##[AWS_REGION=aws region]
-	echo "PROJECT_NAME: ${PROJECT_NAME}"
-	echo "ENVIRONMENT: ${ENVIRONMENT}"
-	echo "SERVICE: ${SERVICE}"
-	echo "MAIN_PARAMETER_FILES_BUCKET: ${MAIN_PARAMETER_FILES_BUCKET}"
-	aws s3 cp s3://${MAIN_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
+download-main-performance-files: ##[AWS_REGION=aws region] [MAIN_FILES_BUCKET=main bucket for performance files]  [LOCAL_DIR=local folder]
+	echo "downloading performance test files from  ${MAIN_FILES_BUCKET}"
+	aws s3 cp s3://${MAIN_FILES_BUCKET} --region $(AWS_REGION) ${LOCAL_DIR}/ --recursive
 
-copy-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
-	echo "PROJECT_NAME: ${PROJECT_NAME}"
-	echo "ENVIRONMENT: ${ENVIRONMENT}"
-	echo "SERVICE: ${SERVICE}"
-	echo "WORKSPACE_PARAMETER_FILES_BUCKET: ${WORKSPACE_PARAMETER_FILES_BUCKET}"
-	echo "MAIN_PARAMETER_FILES_BUCKET: ${MAIN_PARAMETER_FILES_BUCKET}"
-	aws s3 cp s3://${MAIN_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) s3://${WORKSPACE_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) --recursive
+copy-performance-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files] [WORKSPACE_FILES_BUCKET=workspace bucket for performance files]
+	echo "copying performance test files from  ${MAIN_FILES_BUCKET} to ${WORKSPACE_FILES_BUCKET}"
+	aws s3 cp s3://${MAIN_FILES_BUCKET} --region $(AWS_REGION) s3://${WORKSPACE_FILES_BUCKET} --region $(AWS_REGION) --recursive
+
+upload-performance-file: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files]
+## [FILE=file or /file if the file should live in a subdirectory] [FILE_PATH=./local/path/to/file/]
+	echo "Uploading performance test file ${FILE_PATH}${FILE} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
+	aws s3 cp --region $(AWS_REGION) ${FILE_PATH}${FILE} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${FILE}
+
+upload-performance-folder: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files] [LOCAL_DIR=local folder]
+	echo "Uploading performance test files from ${LOCAL_DIR} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
+	aws s3 cp --region $(AWS_REGION) ${LOCAL_DIR} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${LOCAL_DIR} --recursive
+
+# Get a secret value from Secrets Manager
+secrets-get: ## [SECRET_ID=arn or name] [OUT=name of file to store secret]
+	aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString' --output text > $(OUT)
+
 
 _install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
@@ -77,6 +81,11 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
 		make _install-dependency name="$${plugin}"; \
 	done
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+# EC2 Make Targets
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 jmeter-ec2-id:
 	@ID="$(JMETER_INSTANCE_ID)"; \
@@ -263,62 +272,5 @@ jmeter-fetch-dir-inline: ## [REMOTE_DIR=artifacts] [LOCAL_DIR=tests/performance/
 	done; \
 	rm -rf "$$WORKDIR"; \
 	echo "Downloaded $$FETCHED files from '$$RDIR' to '$$LDIR' (listed $$COUNT)"
-
-# --- S3 object utilities and Secrets Manager fetch ---
-
-# Upload a single file to S3
-s3-upload-file: ## [BUCKET=name] [SRC=local/file] [DEST_KEY=path/in/bucket] [S3_SSE=aws:kms] [S3_KMS_KEY_ID=arn or key-id]
-	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
-	if [ -z "$(SRC)" ]; then echo "SRC is required"; exit 1; fi; \
-	KEY="$(DEST_KEY)"; if [ -z "$$KEY" ]; then KEY=$$(basename "$(SRC)"); fi; \
-	AWS_FLAGS=""; \
-	if [ -n "$(S3_SSE)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse $(S3_SSE)"; fi; \
-	if [ -n "$(S3_KMS_KEY_ID)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse-kms-key-id $(S3_KMS_KEY_ID)"; fi; \
-	echo "Uploading '$(SRC)' to s3://$(BUCKET)/$$KEY"; \
-	aws s3 cp "$(SRC)" "s3://$(BUCKET)/$$KEY" --region $(AWS_REGION) $$AWS_FLAGS
-
-# Upload a folder (recursive) to S3
-s3-upload-folder: ## [BUCKET=name] [SRC_DIR=local/dir] [DEST_PREFIX=prefix/] [S3_SSE=aws:kms] [S3_KMS_KEY_ID=arn or key-id]
-	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
-	DIR="$(SRC_DIR)"; if [ -z "$$DIR" ]; then echo "SRC_DIR is required"; exit 1; fi; \
-	PREFIX="$(DEST_PREFIX)"; \
-	AWS_FLAGS=""; \
-	if [ -n "$(S3_SSE)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse $(S3_SSE)"; fi; \
-	if [ -n "$(S3_KMS_KEY_ID)" ]; then AWS_FLAGS="$$AWS_FLAGS --sse-kms-key-id $(S3_KMS_KEY_ID)"; fi; \
-	echo "Uploading folder '$$DIR' to s3://$(BUCKET)/$$PREFIX"; \
-	aws s3 cp "$$DIR" "s3://$(BUCKET)/$$PREFIX" --recursive --region $(AWS_REGION) $$AWS_FLAGS
-
-# Download a single file from S3
-s3-download-file: ## [BUCKET=name] [KEY=path/in/bucket] [DEST=local/path]
-	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
-	if [ -z "$(KEY)" ]; then echo "KEY is required"; exit 1; fi; \
-	DEST="$(DEST)"; if [ -z "$$DEST" ]; then DEST=$$(basename "$(KEY)"); fi; \
-	echo "Downloading s3://$(BUCKET)/$(KEY) to '$$DEST'"; \
-	mkdir -p "$$(dirname "$$DEST")" 2>/dev/null || true; \
-	aws s3 cp "s3://$(BUCKET)/$(KEY)" "$$DEST" --region $(AWS_REGION)
-
-# Download a folder (recursive) from S3
-s3-download-folder: ## [BUCKET=name] [PREFIX=path/prefix/] [DEST_DIR=local/dir]
-	@if [ -z "$(BUCKET)" ]; then echo "BUCKET is required"; exit 1; fi; \
-	PFX="$(PREFIX)"; if [ -z "$$PFX" ]; then PFX=""; fi; \
-	LDIR="$(DEST_DIR)"; if [ -z "$$LDIR" ]; then LDIR=.; fi; \
-	echo "Downloading s3://$(BUCKET)/$$PFX to '$$LDIR'"; \
-	mkdir -p "$$LDIR"; \
-	aws s3 cp "s3://$(BUCKET)/$$PFX" "$$LDIR" --recursive --region $(AWS_REGION)
-
-# Get a secret value from Secrets Manager
-secrets-get: ## [SECRET_ID=arn or name] [MODE=raw|json|kv] [OUT=] Fetch the entire secret value (ignores KEY); choose MODE for formatting
-	@BIN="$(CURDIR)/bin/secrets_get.sh"; \
-	if [ -z "$(SECRET_ID)" ]; then echo "SECRET_ID is required"; exit 1; fi; \
-	if [ ! -x "$$BIN" ]; then echo "Helper script not executable: $$BIN"; exit 1; fi; \
-	SECRET_ID=$(SECRET_ID) KEY= MODE=$(MODE) OUT=$(OUT) AWS_REGION=$(AWS_REGION) "$$BIN"
-
-# Convenience: fetch exactly one value (requires KEY). Same semantics as secrets-get KEY=...
-secrets-get-value: ## [SECRET_ID=arn or name] [KEY=top-level or dotted json key] [OUT=] Fetch a single field from the secret (errors if missing)
-	@BIN="$(CURDIR)/bin/secrets_get.sh"; \
-	if [ -z "$(SECRET_ID)" ]; then echo "SECRET_ID is required"; exit 1; fi; \
-	if [ -z "$(KEY)" ]; then echo "KEY is required"; exit 1; fi; \
-	if [ ! -x "$$BIN" ]; then echo "Helper script not executable: $$BIN"; exit 1; fi; \
-	SECRET_ID=$(SECRET_ID) KEY=$(KEY) OUT=$(OUT) AWS_REGION=$(AWS_REGION) "$$BIN"
 
 .PHONY: s3-upload-file s3-upload-folder s3-download-file s3-download-folder secrets-get secrets-get-value

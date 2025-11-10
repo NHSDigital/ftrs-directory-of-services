@@ -93,25 +93,36 @@ To generate a dashboard report in the folder reports based on the result.jtl fil
 jmeter -g result.jtl -f -e -o reports
 ```
 
+
+### Fetch a single field from a Secrets Manager secret (secrets-get-value)
+
+Use this target when you only need one value from a secret.
+
+Examples:
+```sh
+# Save a single value to a file
+make secrets-get-value SECRET_ID=/my/service/secret OUT=downloads/dbname.txt
+```
+
 ## Running JMeter on EC2 (recommended for performance tests)
 
 The infrastructure provisions an EC2 instance (private subnet) with JMeter pre-installed. Access is via SSM. Default state is Stopped; start it when needed and stop it when done.
 
 Start/Stop the EC2 instance
 ```shell
-make -C tests/performance jmeter-start-instance JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
-make -C tests/performance jmeter-stop-instance JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+make jmeter-start-instance JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+make jmeter-stop-instance JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
 Check instance details
 ```shell
-make -C tests/performance jmeter-ec2-id JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
-make -C tests/performance jmeter-private-ip JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+make jmeter-ec2-id JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+make jmeter-private-ip JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
 Verify JMeter version on EC2 via SSM
 ```shell
-make -C tests/performance  jmeter-version-remote JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+make jmeter-version-remote JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
 ### Copy file to EC2 using SSM
@@ -124,7 +135,7 @@ Use the SSM inline base64 method to place the plan on the instance.
 
 ```shell
 # Copies local jmeter_test_plan.jmx to the EC2 instance home directory
-make -C tests/performance jmeter-copy-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx FILE=jmeter_test_plan.jmx DEST=jmeter_test_plan.jmx
+make jmeter-copy-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx FILE=jmeter_test_plan.jmx DEST=jmeter_test_plan.jmx
 
 ```
 
@@ -134,20 +145,8 @@ Copy a file from a subdirectory (for example from parameter_files)
 - You can pass a relative path like parameter_files/<file> or an absolute path
 - Use DEST to control the remote filename; by default it uses the basename of FILE
 
-From repository root
 ```shell
-make -C tests/performance jmeter-copy-ssm-inline \
-  JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx \
-  FILE=parameter_files/odscodes.csv \
-  DEST=odscodes.csv
-```
-
-Or, if you are already in tests/performance
-```shell
-make jmeter-copy-ssm-inline \
-  JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx \
-  FILE=parameter_files/odscodes.csv \
-  DEST=odscodes.csv
+make jmeter-copy-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx FILE=parameter_files/odscodes.csv DEST=odscodes.csv
 ```
 
 Notes:
@@ -164,33 +163,22 @@ Use this to send an entire directory (e.g., parameter_files) to the instance in 
 
 From repository root
 ```sh
-make -C tests/performance jmeter-copy-dir-ssm-inline \
-  JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx \
-  DIR=parameter_files \
-  DEST_DIR=parameter_files
+make jmeter-copy-dir-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DIR=parameter_files DEST_DIR=parameter_files
 ```
 
 Place files directly in /home/ssm-user (no subfolder):
 ```sh
-make -C tests/performance jmeter-copy-dir-ssm-inline \
-  JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx \
-  DIR=parameter_files \
-  DEST_DIR=.
+make jmeter-copy-dir-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DIR=parameter_files DEST_DIR=.
 ```
 
 Copy an artifacts directory into /home/ssm-user/artifacts:
 ```sh
+
 # If 'artifacts' is directly under tests/performance
-make -C tests/performance jmeter-copy-dir-ssm-inline \
-  JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx \
-  DIR=artifacts \
-  DEST_DIR=artifacts
+make jmeter-copy-dir-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DIR=artifacts DEST_DIR=artifacts
 
 # If your path is nested at tests/performance/tests/performance/artifacts
-make -C tests/performance jmeter-copy-dir-ssm-inline \
-  JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx \
-  DIR=tests/performance/artifacts \
-  DEST_DIR=artifacts
+make jmeter-copy-dir-ssm-inline JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx DIR=tests/performance/artifacts DEST_DIR=artifacts
 ```
 
 Notes:
@@ -202,39 +190,7 @@ Open session to run jmeter tests manually
 
 ```shell
 # Open an interactive Session Manager shell to the instance
-make -C tests/performance jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
-```
-
-### Jmeter Run example:
-Must run from /home/ssm-user (whilst in SSM shell) to avoid permission errors
-```shell
-cd /home/ssm-user
-jmeter -n -t jmeter_test_plan.jmx \
-  -J serviceendpoint=internal-dev.api.service.nhs.uk \
-  -J bearer_token="<paste-your-token>" \
-  -f -l result.jtl -e -o report
-
-Notes:
-- This uses AWS Systems Manager to send the plan content inline (base64) and reconstruct it on the instance
-- Suitable for small/medium files; very large JMX plans may exceed SSM command size limits. If that happens, consider a temporary HTTPS download approach (e.g., presigned URL) or splitting the plan
-
-
-## jmeter_test_plan.jmx (user-supplied bearer token)
-
-This plan calls the FHIR Organization search with:
-- Authorization: Bearer <user-supplied token>
-- Query params: _revinclude=Endpoint:organization and identifier=odsOrganisationCode|<ODS from CSV>
-- Host is parameterized via -J serviceendpoint or the first column in parameter_files/plan_params.csv
-
-Inputs:
-- parameter_files/odscodes.csv with header `ods_code`
-- A Bearer token supplied either as a JMeter property (-J bearer_token=...) or via env var BEARER_TOKEN
-
-
-```
-Notes:
-- One request per CSV row; with 72 rows, 72 requests total (1 thread). Increase threads for concurrency.
-- HTTP target path is `/dos-search/FHIR/R4/Organization` and params are URL-encoded by JMeter.
+make jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
 ### Fetch a single remote file from the EC2 instance over AWS SSM into a local file or directory
@@ -250,36 +206,26 @@ Examples (run from repo root)
 Download a relative remote file (resolved under `/home/ssm-user/`) into the default artifacts folder:
 
 ```sh
-make -C tests/performance jmeter-fetch-file-inline \
-  JMETER_INSTANCE_ID=i-06068f694f82a2103 \
-  REMOTE_FILE=test111.txt
+make jmeter-fetch-file-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_FILE=test111.txt
 ```
 
 Download into a specific local folder (creates folder if needed):
 
 ```sh
-make -C tests/performance jmeter-fetch-file-inline \
-  JMETER_INSTANCE_ID=i-06068f694f82a2103 \
-  REMOTE_FILE=test111.txt \
-  LOCAL_DIR=downloads/testfolder
+make jmeter-fetch-file-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_FILE=test111.txt LOCAL_DIR=downloads/testfolder
 ```
 
 ### Download single files from a remote directory on the EC2
 Download to an exact local path (parent folder created if needed):
 
 ```sh
-make -C tests/performance jmeter-fetch-file-inline \
-  JMETER_INSTANCE_ID=i-06068f694f82a2103 \
-  REMOTE_FILE=test111.txt \
-  LOCAL_FILE=downloads/testfolder/mycopy.txt
+make jmeter-fetch-file-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_FILE=test111.txt LOCAL_FILE=downloads/testfolder/mycopy.txt
 ```
 
 Fetch an absolute remote path on the instance:
 
 ```sh
-make -C tests/performance jmeter-fetch-file-inline \
-  JMETER_INSTANCE_ID=i-06068f694f82a2103 \
-  REMOTE_FILE=/home/ssm-user/test111.txt
+make jmeter-fetch-file-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_FILE=/home/ssm-user/test111.txt
 ```
 
 Notes
@@ -299,177 +245,14 @@ Examples (run from repo root)
 
 Download the `/home/ssm-user/artifacts` folder into a local folder:
 ```sh
-make -C tests/performance jmeter-fetch-dir-inline \
-  JMETER_INSTANCE_ID=i-06068f694f82a2103 \
-  REMOTE_DIR=artifacts \
-  LOCAL_DIR=downloads/testfolder
+make jmeter-fetch-dir-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_DIR=artifacts LOCAL_DIR=downloads/testfolder
 ```
 
 Using an absolute remote path and default local destination:
 ```sh
-make -C tests/performance jmeter-fetch-dir-inline \
-  JMETER_INSTANCE_ID=i-06068f694f82a2103 \
-  REMOTE_DIR=/home/ssm-user/artifacts
-```
-
-From within `tests/performance`:
-```sh
-make jmeter-fetch-dir-inline \
-  JMETER_INSTANCE_ID=i-06068f694f82a2103 \
-  REMOTE_DIR=artifacts \
-  LOCAL_DIR=downloads/testfolder
+make jmeter-fetch-dir-inline JMETER_INSTANCE_ID=i-06068f694f82a2103 REMOTE_DIR=/home/ssm-user/artifacts
 ```
 
 Notes
 - Non-recursive: only regular files directly under `REMOTE_DIR` are fetched
 - Prints `Total files: N` and `[i/N]` progress for each file
-
----
-
-## S3 and Secrets helpers (Make targets)
-
-These generic targets replace the need for bucket-specific helpers and work with any S3 bucket or secret.
-
-- Default region is `eu-west-2`. Override per command with `AWS_REGION=...`.
-- For uploads, optional encryption flags are supported (SSE-S3 or SSE-KMS).
-
-### Upload a single file to S3
-
-```sh
-make -C tests/performance s3-upload-file \
-  BUCKET=my-bucket \
-  SRC=tests/performance/plan.jmx \
-  DEST_KEY=jmeter/plan.jmx
-```
-
-Upload with S3-managed encryption (SSE-S3):
-```sh
-make -C tests/performance s3-upload-file \
-  BUCKET=my-bucket \
-  SRC=tests/performance/plan.jmx \
-  DEST_KEY=jmeter/plan.jmx \
-  S3_SSE=AES256
-```
-
-Upload with KMS (SSE-KMS):
-Note: Currently only AWS-managed KMS is supported (no customer-managed key configured). Omit `S3_KMS_KEY_ID` to use S3's AWS-managed key (alias/aws/s3) by default.
-```sh
-make -C tests/performance s3-upload-file \
-  BUCKET=my-bucket \
-  SRC=tests/performance/plan.jmx \
-  DEST_KEY=jmeter/plan.jmx \
-  S3_SSE=aws:kms
-# Optional: specify a CMK when available; otherwise omit to use AWS-managed key
-# S3_KMS_KEY_ID=<kms-key-id-or-alias>
-```
-
-### Upload a folder to S3
-
-```sh
-make -C tests/performance s3-upload-folder \
-  BUCKET=my-bucket \
-  SRC_DIR=tests/performance/parameter_files \
-  DEST_PREFIX=parameter_files/
-```
-
-With encryption (examples):
-```sh
-# SSE-S3
-make -C tests/performance s3-upload-folder BUCKET=my-bucket SRC_DIR=tests/performance/parameter_files DEST_PREFIX=parameter_files/ S3_SSE=AES256
-
-# SSE-KMS
-make -C tests/performance s3-upload-folder \
-  BUCKET=my-bucket \
-  SRC_DIR=tests/performance/parameter_files \
-  DEST_PREFIX=parameter_files/ \
-  S3_SSE=aws:kms \
-  S3_KMS_KEY_ID=<kms-key-id-or-alias>
-```
-
-### Download from S3
-
-Single file:
-```sh
-make -C tests/performance s3-download-file \
-  BUCKET=my-bucket \
-  KEY=jmeter/plan.jmx \
-  DEST=downloads/plan.jmx
-```
-
-Folder (recursive):
-```sh
-make -C tests/performance s3-download-folder \
-  BUCKET=my-bucket \
-  PREFIX=reports/ \
-  DEST_DIR=downloads/reports
-```
-
-### Fetch a single field from a Secrets Manager secret (secrets-get-value)
-
-Use this target when you only need one value from a secret.
-
-- KEY supports top-level keys (e.g., `dbname`) and dotted paths for nested JSON (e.g., `database.replica.host`).
-- Works with JSON secrets; for simple `key=value` secrets, use the exact left-hand key (dotted paths don’t apply).
-
-Examples:
-```sh
-# Print a top-level key from the secret
-make -C tests/performance secrets-get-value \
-  SECRET_ID=/my/service/secret \
-  KEY=dname
-
-# Print a nested value using a dotted path
-make -C tests/performance secrets-get-value \
-  SECRET_ID=/my/service/secret \
-  KEY=database.replica.host
-
-# Save a single value to a file
-make -C tests/performance secrets-get-value \
-  SECRET_ID=/my/service/secret \
-  KEY=dbname \
-  OUT=downloads/dbname.txt
-```
-
-### Fetch the entire secret from Secrets Manager (secrets-get)
-
-Use this when you want the whole secret payload. MODE controls formatting.
-
-Examples:
-```sh
-# Raw SecretString (no jq required)
-make -C tests/performance secrets-get \
-  SECRET_ID=/my/service/secret \
-  MODE=raw
-
-# Pretty JSON (requires jq)
-make -C tests/performance secrets-get \
-  SECRET_ID=/my/service/secret \
-  MODE=json
-
-# key=value lines (requires jq; JSON secrets only)
-make -C tests/performance secrets-get \
-  SECRET_ID=/my/service/secret \
-  MODE=kv
-
-# Save pretty JSON to a file
-make -C tests/performance secrets-get \
-  SECRET_ID=/my/service/secret \
-  MODE=json \
-  OUT=downloads/secret.json
-```
-
-Notes:
-- MODE defaults to `raw` if omitted.
-- `MODE=json` and `MODE=kv` require `jq` to be installed.
-
-
-KMS and secrets:
-- You do not pass a key for `secrets-get`. If the secret is KMS-encrypted, AWS uses the key attached to the secret.
-- The EC2 performance role permits `kms:Decrypt`, `kms:Encrypt`, and `kms:GenerateDataKey` via S3 and Secrets Manager; key policies may still restrict usage. Currently, no CMKs are configured, so AWS-managed keys are used.
-
-Notes:
-- If your secret is JSON and you use MODE=json/kv with `secrets-get`, `jq` must be installed (macOS: `brew install jq`).
-- Arrays in dotted paths are not supported by the helper (e.g., `items.0.name`); fetch the whole secret and use `jq` for such cases.
-- If you’re unsure of the key name(s), first print the whole secret:
-  - Pretty JSON: `make -C tests/performance secrets-get SECRET_ID=/my/service/secret MODE=json`
-  - Key=value lines: `make -C tests/performance secrets-get SECRET_ID=/my/service/secret MODE=kv`
