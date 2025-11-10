@@ -547,3 +547,178 @@ def test_organization_query_params_missing_separator() -> None:
 def test_organization_query_params_lowercase_ods_code() -> None:
     query = OrganizationQueryParams(identifier="odsOrganisationCode|abcde")
     assert query.ods_code == "ABCDE"
+
+
+def test_update_organisation_empty_identifier_object() -> None:
+    """Test that empty identifier object is rejected."""
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [{}],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "telecom": [],
+    }
+
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    body = response.json()
+    print(body)
+    assert "detail" in body
+    identifier_errors = [
+        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
+    ]
+    assert len(identifier_errors) > 0
+    assert identifier_errors[0]["type"] == "value_error"
+    assert (
+        identifier_errors[0]["msg"]
+        == "Value error, at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
+    )
+
+
+def test_update_organisation_identifier_missing_value() -> None:
+    """Test that identifier without value is rejected."""
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code"
+                # Missing "value" field
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "telecom": [],
+    }
+
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    body = response.json()
+    print(body)
+    assert "detail" in body
+    identifier_errors = [
+        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
+    ]
+    assert len(identifier_errors) > 0
+    assert identifier_errors[0]["type"] == "value_error"
+    assert (
+        identifier_errors[0]["msg"]
+        == "Value error, ODS identifier must have a non-empty value"
+    )
+
+
+def test_update_organisation_identifier_empty_value() -> None:
+    """Test that identifier with empty value is rejected."""
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "",  # Empty value
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "telecom": [],
+    }
+
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    body = response.json()
+    print(body)
+    assert "detail" in body
+    identifier_errors = [
+        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
+    ]
+    assert len(identifier_errors) > 0
+    assert identifier_errors[0]["type"] == "value_error"
+    assert (
+        identifier_errors[0]["msg"]
+        == "Value error, ODS identifier must have a non-empty value"
+    )
+
+
+def test_update_organisation_identifier_invalid_ods_format() -> None:
+    """Test that identifier with invalid ODS code format is rejected."""
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC",  # Too short - should be 5-12 characters
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "telecom": [],
+    }
+
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    body = response.json()
+    print(body)
+    assert "detail" in body
+    identifier_errors = [
+        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
+    ]
+    assert len(identifier_errors) > 0
+    assert identifier_errors[0]["type"] == "value_error"
+    assert (
+        identifier_errors[0]["msg"]
+        == "Value error, invalid ODS code format: 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
+    )
+
+
+def test_update_organisation_identifier_empty_list() -> None:
+    """Test that empty identifier list is rejected."""
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [],  # Empty identifier list
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "telecom": [],
+    }
+
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    body = response.json()
+    print(body)
+    assert "detail" in body
+    identifier_errors = [
+        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
+    ]
+    assert len(identifier_errors) > 0
+    assert identifier_errors[0]["type"] == "value_error"
+    assert (
+        identifier_errors[0]["msg"]
+        == "Value error, At least one identifier must be provided"
+    )
