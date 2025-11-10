@@ -1,4 +1,4 @@
-name: Pipeline Deploy Account Level Infrastructure Pipeline
+name: Deploy Policies Infrastructure Pipeline
 
 permissions:
   id-token: write
@@ -10,19 +10,8 @@ on:
       - "main"
       - "task/**"
     paths:
-      - "infrastructure/stacks/account_wide/**"
-      - "infrastructure/stacks/terraform_management/**"
-      - "infrastructure/stacks/artefact_management/**"
-      - "infrastructure/stacks/domain_name/**"
-      - "infrastructure/stacks/logging/**"
-      - "infrastructure/modules/dynamodb/**"
-      - "infrastructure/modules/s3/**"
-      - "infrastructure/stacks/account_security/**"
-      - "infrastructure/modules/shield/**"
-  workflow_run:
-    workflows: ["Pipeline Deploy Policies Infrastructure"]
-    types:
-      - completed
+      - "infrastructure/stacks/github_runner/**"
+      - "infrastructure/stacks/account_policies/**"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
@@ -42,14 +31,9 @@ on:
           - int
           - prod
 
-concurrency:
-  group: account-infrastructure-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   metadata:
     name: "Get Metadata"
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/metadata.yaml
 
   quality-checks:
@@ -60,14 +44,14 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','artefact_management','domain_name','logging','account_security']"
+      stacks: "['github_runner','account_policies']"
       type: account
     secrets: inherit
 
-  plan-infrastructure:
-    name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+  plan-permissions-infrastructure:
+    name: "Plan ${{ matrix.name }} permissions infrastructure deployment for ${{ matrix.environment }}"
     concurrency:
-      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-permissions-${{matrix.stacks}}"
       cancel-in-progress: false
     needs:
       - metadata
@@ -78,13 +62,10 @@ jobs:
         include:
           - name: "account"
             environment: ${{ needs.metadata.outputs.account_type }}
-            stacks: "['account_security']"
-          - name: "env"
-            environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','logging']"
+            stacks: "['github_runner','account_policies']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name','logging']"
+            stacks: "['github_runner','account_policies']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -95,40 +76,37 @@ jobs:
       type: account
     secrets: inherit
 
-  manual-approval:
-    name: "Manual approval for ${{ needs.metadata.outputs.environment }} infrastructure deployment"
-    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
+  manual-approval-permissions:
+    name: "Manual approval for ${{ needs.metadata.outputs.environment }} permissions infrastructure deployment"
+    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
-      - plan-infrastructure
+      - plan-permissions-infrastructure
     runs-on: ubuntu-latest
     environment: "${{ needs.metadata.outputs.environment }}-protected"
     steps:
       - name: Approval required
-        run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+        run: echo "${{ needs.metadata.outputs.environment }} permissions deployment paused for manual approval. Please approve in the Actions tab."
 
-  apply-infrastructure:
-    name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+  apply-permissions-infrastructure:
+    name: "Apply ${{ matrix.name }} permissions infrastructure deployment for ${{ matrix.environment }}"
     concurrency:
-      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-permissions-${{matrix.stacks}}"
       cancel-in-progress: false
     if: github.ref == 'refs/heads/main'
     needs:
       - metadata
-      - manual-approval
+      - manual-approval-permissions
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: "account"
             environment: ${{ needs.metadata.outputs.account_type }}
-            stacks: "['account_security']"
-          - name: "env"
-            environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','logging']"
+            stacks: "['github_runner','account_policies']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name','logging']"
+            stacks: "['github_runner','account_policies']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -144,9 +122,9 @@ jobs:
     needs:
       - metadata
       - quality-checks
-      - plan-infrastructure
-      - manual-approval
-      - apply-infrastructure
+      - plan-permissions-infrastructure
+      - manual-approval-permissions
+      - apply-permissions-infrastructure
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:

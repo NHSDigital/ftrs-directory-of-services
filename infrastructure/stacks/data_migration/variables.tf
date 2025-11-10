@@ -3,11 +3,6 @@ variable "application_tag" {
   type        = string
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the data migration application"
-  type        = string
-}
-
 variable "migration_pipeline_store_bucket_name" {
   description = "The name of the S3 bucket to use for the data migration pipeline"
 }

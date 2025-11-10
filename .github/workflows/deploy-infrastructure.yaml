@@ -1,8 +1,8 @@
 name: Deploy Infrastructure Workflow
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 on:
   workflow_call:
     inputs:
@@ -42,6 +42,10 @@ on:
         description: "The application tag identifying the timeline in the repository to deploy from"
         required: false
         type: string
+      release_tag:
+        description: "The release tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
       workflow_timeout:
         description: "Timeout duration in minutes"
         required: false
@@ -70,7 +74,6 @@ jobs:
       fail-fast: false
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
-
     outputs:
       plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
     steps:
@@ -103,6 +106,7 @@ jobs:
           action: ${{ inputs.action }}
           project: ${{ inputs.project }}
           application_tag: ${{ inputs.application_tag }}
+          release_tag: ${{ inputs.release_tag }}
           commit_hash: ${{ inputs.commit_hash }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
 

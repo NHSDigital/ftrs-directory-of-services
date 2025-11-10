@@ -3,11 +3,6 @@ variable "application_tag" {
   type        = string
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the etl ods application"
-  type        = string
-}
-
 variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }

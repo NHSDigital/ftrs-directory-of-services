@@ -21,7 +21,7 @@ on:
         type: string
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: true
+        required: false
         type: string
       environment:
         description: "The deployment environment"
