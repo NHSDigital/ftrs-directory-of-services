@@ -175,7 +175,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
 
     test_org = Organisation.model_construct(
         id=uuid4(),
-        identifier_ODS_ODSCode="TEST123",  # Provide a valid ODS code
+        identifier_ODS_ODSCode="TEST123",
     )
 
     mock_output = ServiceTransformOutput(

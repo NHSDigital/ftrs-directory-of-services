@@ -605,7 +605,6 @@ def test_update_organisation_identifier_missing_value() -> None:
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     body = response.json()
-    print(body)
     assert "detail" in body
     identifier_errors = [
         error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
@@ -642,7 +641,6 @@ def test_update_organisation_identifier_empty_value() -> None:
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     body = response.json()
-    print(body)
     assert "detail" in body
     identifier_errors = [
         error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
@@ -679,7 +677,6 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     body = response.json()
-    print(body)
     assert "detail" in body
     identifier_errors = [
         error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
@@ -711,7 +708,6 @@ def test_update_organisation_identifier_empty_list() -> None:
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     body = response.json()
-    print(body)
     assert "detail" in body
     identifier_errors = [
         error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
