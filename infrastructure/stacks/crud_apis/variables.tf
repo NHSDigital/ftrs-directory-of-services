@@ -3,11 +3,6 @@ variable "application_tag" {
   type        = string
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the crud api application"
-  type        = string
-}
-
 variable "organisation_api_lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }

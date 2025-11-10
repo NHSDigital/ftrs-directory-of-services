@@ -127,3 +127,14 @@ variable "rds_port" {
   description = "The port RDS will listen on"
   type        = string
 }
+
+variable "release_tag" {
+  description = "Semantic version tag (vMAJOR.MINOR.PATCH) for release builds"
+  type        = string
+  default     = ""
+}
+
+variable "commit_hash" {
+  description = "The commit hash of the crud api application"
+  type        = string
+}

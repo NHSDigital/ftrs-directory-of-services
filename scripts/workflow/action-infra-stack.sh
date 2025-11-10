@@ -7,6 +7,7 @@
 # REPOSITORY - The name of the repository to action the terraform on e.g. uec-dos-service-management
 # APPLICATION_TAG - The tag of the application artefact to deploy. This will be required for any stack that deploys a Lambda
 #                   artefact. For development it would usually be latest
+# RELEASE_TAG - The tag of the release being deployed.
 # COMMIT_HASH - The short commit hash that is used to build and store the Lambda functions. This will be required for any
 #               stack that deploys a Lambda artefact. For development it would usually be the latest commit hash of the pushed branch
 
@@ -24,6 +25,7 @@ export ENVIRONMENT="${ENVIRONMENT:-""}"
 export USE_REMOTE_STATE_STORE="${USE_REMOTE_STATE_STORE:-true}"
 export PROJECT="${PROJECT:-"dos"}"
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
+export TF_VAR_release_tag="${RELEASE_TAG:-""}"
 export TF_VAR_application_tag="${APPLICATION_TAG:-""}"
 export TF_VAR_commit_hash="${COMMIT_HASH:-""}"
 TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )

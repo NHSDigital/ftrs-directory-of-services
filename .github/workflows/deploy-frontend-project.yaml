@@ -1,8 +1,8 @@
 name: Deploy frontend project workflow
 run-name: Deploy ${{ inputs.build_type }} - ${{ inputs.name }}
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 on:
   workflow_call:
     inputs:
@@ -15,12 +15,12 @@ on:
         required: true
         type: string
       python_version:
-        description: 'The version of Python'
+        description: "The version of Python"
         required: true
         type: string
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: true
+        required: false
         type: string
       environment:
         description: "The management environment"
@@ -31,17 +31,22 @@ on:
         required: true
         type: string
       workspace:
-          description: "The name of the workspace to deploy the infrastructure into"
-          required: true
-          type: string
+        description: "The name of the workspace to deploy the infrastructure into"
+        required: true
+        type: string
       application_tag:
-          description: "The application tag identifying the timeline in the repository to deploy from"
-          required: false
-          type: string
+        description: "The application tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
       type:
-          description: "The type of permissions (e.g., account, app)"
-          required: true
-          type: string
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+      release_build:
+        description: "Flag to indicate if this is a release build"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   deploy-project:
@@ -85,6 +90,7 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
+          RELEASE_BUILD: ${{ inputs.release_build }}
 
       - name: "Invalidate CloudFront Cache"
         run: make invalidate-cloudfront-cache

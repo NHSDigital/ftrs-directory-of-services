@@ -7,7 +7,7 @@ module "ui_lambda" {
   handler       = "index.handler"
 
   s3_bucket_name = local.artefacts_bucket
-  s3_key         = "${terraform.workspace}/${var.commit_hash}/dos-ui-server-${var.application_tag}.zip"
+  s3_key         = "${local.artefact_base_path}/dos-ui-server-${var.application_tag}.zip"
 
   ignore_source_code_hash = false
   timeout                 = var.ui_lambda_connection_timeout

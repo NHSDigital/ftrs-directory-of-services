@@ -1,26 +1,25 @@
-name: "service automation tests action"
+name: "Service automation tests action"
 description: "Run service automation tests"
 
 inputs:
-    environment:
-      description: "The name of the environment to action the infrastructure"
-      required: true
-    workspace:
-      description: "The name of the workspace to action the infrastructure into."
-      required: true
-    aws_region:
-      description: "AWS region"
-      required: true
-    test_tag:
-      description: "feature tag that identifies tests to be run"
-      required: true
-    test_type:
-      description: "tag that identifies types of test and reports to be run"
-      required: true
-    commit_hash:
-      description: "The commit hash, set by the CI/CD pipeline workflow"
-      required: true
-
+  environment:
+    description: "The name of the environment to action the infrastructure"
+    required: true
+  workspace:
+    description: "The name of the workspace to action the infrastructure into."
+    required: true
+  aws_region:
+    description: "AWS region"
+    required: true
+  test_tag:
+    description: "feature tag that identifies tests to be run"
+    required: true
+  test_type:
+    description: "tag that identifies types of test and reports to be run"
+    required: true
+  commit_hash:
+    description: "The commit hash, set by the CI/CD pipeline workflow"
+    required: false
 
 runs:
   using: "composite"
