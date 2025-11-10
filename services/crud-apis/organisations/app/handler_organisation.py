@@ -1,3 +1,4 @@
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -28,7 +29,20 @@ app.add_middleware(CorrelationIdMiddleware)
 
 app.include_router(organisation.router)
 
-handler = Mangum(app, lifespan="off")
+
+def handler(event: dict, context: LambdaContext) -> dict:
+    headers = event.get("headers", {})
+    product_id = headers.get("NHSE-Product-ID") or headers.get("nhse-product-id")
+
+    crud_organisation_logger.info(
+        "Received request",
+        extra={
+            "product_id": product_id,
+        },
+    )
+
+    mangum_handler = Mangum(app, lifespan="off")
+    return mangum_handler(event, context)
 
 
 @app.exception_handler(RequestValidationError)
