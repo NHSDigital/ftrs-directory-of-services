@@ -1,4 +1,4 @@
-name: Pipeline Deploy Account Level Infrastructure
+name: Pipeline Deploy Account Level Infrastructure Pipeline
 
 permissions:
   id-token: write

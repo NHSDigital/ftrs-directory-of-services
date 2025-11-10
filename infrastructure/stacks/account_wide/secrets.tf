@@ -38,3 +38,11 @@ resource "aws_secretsmanager_secret" "api_jmeter_pks_key" {
   name        = "/${var.repo_name}/${var.environment}/api-jmeter-pks-key"
   description = "Private key for jmeter mTLS authentication"
 }
+
+resource "aws_secretsmanager_secret" "dos_search_proxygen_jwt_credentials" {
+  # checkov:skip=CKV2_AWS_57:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  # checkov:skip=CKV_AWS_149:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  count       = local.is_primary_environment ? 1 : 0
+  name        = "/${var.project}/${var.environment}/dos-search-proxygen-jwt-credentials"
+  description = "JWT credentials for DOS Search Proxygen in ${var.environment} environment"
+}
