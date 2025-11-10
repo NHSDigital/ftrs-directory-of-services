@@ -1,17 +1,12 @@
 [project]
-name = "dos-ingestion-api"
+name = "dos-ingest-api"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "NHS England"}
-]
+authors = [{ name = "NHS England" }]
 
 readme = "README.md"
 requires-python = ">=3.12,<4.0.0"
-dependencies = [
-    "pytest-nhsd-apim (>=4.0.0,<5.0.0)",
-    "authlib (>=1.6.5,<2.0.0)",
-]
+dependencies = ["pytest-nhsd-apim (>=4.0.0,<5.0.0)", "authlib (>=1.6.5,<2.0.0)"]
 
 [tool.poetry]
 package-mode = false
@@ -40,4 +35,3 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = true
-

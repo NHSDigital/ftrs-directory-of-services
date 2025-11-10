@@ -20,11 +20,11 @@ load_dotenv()
 
 SESSION = requests.session()
 
-API_NAME = get_env_var("PROXYGEN_API_NAME", default="dos-ingestion-api")
+API_NAME = get_env_var("PROXYGEN_API_NAME", default="dos-ingest-api")
 INSTANCE = get_env_var("INSTANCE", default="dev")
 APIGEE_ENVIRONMENT = get_env_var("APIGEE_ENVIRONMENT", default="internal-dev")
 NAMESPACED_API_NAME = f"{API_NAME}--{APIGEE_ENVIRONMENT}--{INSTANCE}"
-SERVICE_BASE_PATH = get_env_var("SERVICE_BASE_PATH", default="dos-ingestion/FHIR/R4")
+SERVICE_BASE_PATH = get_env_var("SERVICE_BASE_PATH", default="dos-ingest/FHIR/R4")
 
 os.environ["PROXY_NAME"] = NAMESPACED_API_NAME
 
