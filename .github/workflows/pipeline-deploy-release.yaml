@@ -1,0 +1,156 @@
+name: Deploy release to environment
+# TODO when testing complete remove conditional set of default for release_tag eg || '1.0.0'}}
+# TODO when testing complete remove conditional set of default for environment eg || 'dev'}}
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  # TODO remove push when not testing
+  push:
+    branches:
+      - task/FTRS-348_Deploy_release_workflow
+
+  workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
+    inputs:
+      release_tag:
+        description: "Specify the release tag to be used for deployment (e.g. v1.1.0)"
+        required: true
+        type: string
+      environment:
+        description: "Environment to host release deployment"
+        required: true
+        type: choice
+        options:
+          - test
+          - int
+          - preprod
+          - prod
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  validate-release-tag:
+    name: "Check format of input release tag"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Validate release tag"
+        id: validate
+        run: |
+          RELEASE_TAG="${{ inputs.release_tag || 'v1.1.0' }}"
+          if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release tag format: $RELEASE_TAG"
+            exit 1
+          else
+            echo "Release tag format is valid: $RELEASE_TAG"
+          fi
+
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+    needs:
+      - validate-release-tag
+
+# TODO restore when ready for account wide infra deployment
+  update-account-wide-policies:
+    name: "Update account wide policies in ${{ inputs.environment || 'test' }} using release ${{ inputs.release_tag || 'v1.1.0' }}"
+    needs:
+      - metadata
+    uses: ./.github/workflows/pipeline-deploy-policies.yaml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+    secrets: inherit
+
+  update-account-wide-infrastructure:
+    name: "Update account wide infrastructure in ${{ inputs.environment || 'test' }} using release ${{ inputs.release_tag || 'v1.1.0' }}"
+    needs:
+      - metadata
+      - update-account-wide-policies
+    uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+
+      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+    secrets: inherit
+
+  plan-application-infra:
+    name: "Plan application infrastructure deployment to ${{ inputs.environment || 'test' }} for release ${{ inputs.release_tag || 'v1.1.0' }}"
+    concurrency:
+      group: "${{ inputs.environment || 'test' }}-${{ inputs.release_tag || 'v1.1.0'}}"
+      cancel-in-progress: false
+    needs:
+      # TODO check need for metadata
+      # - metadata
+      # TODO replace with apply account wide infra when testing complete
+      - validate-release-tag
+      - update-account-wide-infrastructure
+      # - plan-account-wide-infra
+      # - apply-account-wide-infra
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+      workspace: default
+      application_tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      action: plan
+      type: app
+    secrets: inherit
+
+  manual-approval-application-infra:
+    name: "Manual approval for deployment of application release ${{ inputs.release_tag || 'v1.1.0' }} to ${{ inputs.environment || 'test' }}"
+    if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
+    needs:
+      - plan-application-infra
+    runs-on: ubuntu-latest
+    environment: "${{ inputs.environment || 'test' }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "Deployment of application infra for release ${{ inputs.release_tag || 'v1.1.0' }} to ${{ inputs.environment || 'test' }} paused for manual approval. Please approve in the Actions tab."
+
+  apply-application-infra:
+    name: "Apply application infrastructure deployment to ${{ inputs.environment || 'test' }} for release ${{ inputs.release_tag || 'v1.1.0' }}"
+    concurrency:
+      group: "${{ inputs.environment || 'test' }}-${{ inputs.release_tag || 'v1.1.0' }}"
+      cancel-in-progress: false
+    needs:
+      - manual-approval-application-infra
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment || 'test' }}
+      workspace: default
+      application_tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      action: apply
+      type: app
+      workflow_timeout: 30
+    secrets: inherit
+
+    # below here deploy front end and data migration services ?
+  deploy-frontend-services:
+    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-default"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - apply-application-infra
+    strategy:
+      matrix:
+        include:
+          - name: "dos-ui"
+          - name: "read-only-viewer"
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ inputs.environment || 'test' }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: default
+      application_tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      release_deployment: true
+      type: "app"
+      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+    secrets: inherit

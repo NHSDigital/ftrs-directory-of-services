@@ -31,6 +31,17 @@ on:
           - int
           - prod
 
+  workflow_call:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: false
+        type: string
+      environment:
+        description: "Deployment environment"
+        required: true
+        type: string
+
 jobs:
   metadata:
     name: "Get Metadata"
@@ -78,7 +89,8 @@ jobs:
 
   manual-approval-permissions:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} permissions infrastructure deployment"
-    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
+    # TODO restore github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true')
+    if: ${{  (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
       - plan-permissions-infrastructure

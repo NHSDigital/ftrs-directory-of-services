@@ -41,6 +41,16 @@ on:
           - sandpit
           - int
           - prod
+  workflow_call:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: false
+        type: string
+      environment:
+        description: "Deployment environment"
+        required: true
+        type: string
 
 concurrency:
   group: account-infrastructure-${{ github.ref }}

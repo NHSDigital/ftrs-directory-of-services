@@ -42,11 +42,16 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+# TODO release deployment rather than build ?
       release_build:
         description: "Flag to indicate if this is a release build"
         required: false
         type: boolean
         default: false
+      tag:
+          description: "The tag identifying the release version to checkout and deploy"
+          required: false
+          type: string
 
 jobs:
   deploy-project:
@@ -57,6 +62,9 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
