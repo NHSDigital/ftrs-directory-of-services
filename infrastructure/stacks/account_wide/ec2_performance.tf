@@ -2,32 +2,32 @@
 // Creates a small Amazon Linux 2023 instance in a private subnet, reachable via SSM (Session Manager) only.
 // Installs Apache JMeter on first boot and powers off the instance when installation completes (configurable).
 
-locals {
-  # Choose the first private subnet for Performance EC2. Safe because module.vpc is declared in this stack.
-  performance_subnet_id = element(module.vpc.private_subnets, 0)
-  # Name tag for Performance EC2 instance, scoped to this stack
-  performance_name = "${local.account_prefix}-performance"
+# locals {
+#   # Choose the first private subnet for Performance EC2. Safe because module.vpc is declared in this stack.
+#   # performance_subnet_id = element(module.vpc.private_subnets, 0)
+#   # Name tag for Performance EC2 instance, scoped to this stack
+#   # performance_name = "${local.account_prefix}-performance"
 
-  # ARN prefix locals to avoid gitleaks arns3 false positives
-  s3_arn_prefix = "arn:aws:s3"
+#   # ARN prefix locals to avoid gitleaks arns3 false positives
+#   # s3_arn_prefix = "arn:aws:s3"
 
-  # Performance S3 bucket names (account prefix + provided suffix variables)
-  performance_files_bucket_name = "${local.account_prefix}-${var.performance_files_bucket_name}"
+#   # Performance S3 bucket names (account prefix + provided suffix variables)
+#   # performance_files_bucket_name = "${local.account_prefix}-${var.performance_files_bucket_name}"
 
-  # S3 bucket and object ARNs for IAM policy (composed using prefix to avoid inline arn literal)
-  performance_files_bucket_arn  = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}"
-  performance_files_objects_arn = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}/*"
+#   # # S3 bucket and object ARNs for IAM policy (composed using prefix to avoid inline arn literal)
+#   # performance_files_bucket_arn  = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}"
+#   # performance_files_objects_arn = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}/*"
 
-  # # Performance Secrets: full ARNs for IAM policy
-  # performance_secret_api_jmeter_pks_key_arn = aws_secretsmanager_secret.api_jmeter_pks_key.performance_secret_api_jmeter_pks_key_arn
-  # performance_secret_api_ca_cert_arn        = aws_secretsmanager_secret.api_ca_cert.performance_secret_api_ca_cert_arn
-  # performance_secret_api_ca_pk_arn          = aws_secretsmanager_secret.api_ca_pk.performance_secret_api_ca_pk_arn
-}
+#   # # Performance Secrets: full ARNs for IAM policy
+#   # performance_secret_api_jmeter_pks_key_arn = aws_secretsmanager_secret.api_jmeter_pks_key.performance_secret_api_jmeter_pks_key_arn
+#   # performance_secret_api_ca_cert_arn        = aws_secretsmanager_secret.api_ca_cert.performance_secret_api_ca_cert_arn
+#   # performance_secret_api_ca_pk_arn          = aws_secretsmanager_secret.api_ca_pk.performance_secret_api_ca_pk_arn
+# }
 
 resource "aws_instance" "performance" {
   ami                         = data.aws_ami.al2023.id
   instance_type               = var.performance_instance_type
-  subnet_id                   = local.performance_subnet_id
+  subnet_id                   = element(module.vpc.private_subnets, 0)
   vpc_security_group_ids      = [aws_security_group.performance_ec2_sg.id]
   iam_instance_profile        = aws_iam_instance_profile.ec2_performance_instance_profile.name
   associate_public_ip_address = false
@@ -55,10 +55,6 @@ resource "aws_instance" "performance" {
 
   instance_initiated_shutdown_behavior = "stop"
 
-  tags = {
-    Name = local.performance_name
-    Role = "performance"
-  }
 
   depends_on = [
     aws_iam_role_policy_attachment.ec2_performance_ssm_core
@@ -101,7 +97,7 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
     ]
     resources = [
       # Explicit Performance testing buckets (parameter files)
-      local.performance_files_bucket_arn
+      performance_S3.s3_bucket_arn
     ]
   }
 
@@ -121,7 +117,7 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
     ]
     resources = [
       # Objects within the Performance parameter files bucket only
-      local.performance_files_objects_arn
+      performance_S3.s3_bucket_arn
     ]
   }
 }
@@ -153,46 +149,4 @@ resource "aws_iam_role_policy" "ec2_performance_secrets" {
   name   = "${local.account_prefix}-ec2-performance-secrets"
   role   = aws_iam_role.ec2_performance_role.id
   policy = data.aws_iam_policy_document.ec2_performance_secrets.json
-}
-
-# KMS access limited to AWS-managed keys for S3 and Secrets Manager only (alias/aws/s3, alias/aws/secretsmanager)
-# Enforced via kms:ViaService + kms:ResourceAliases conditions
-data "aws_iam_policy_document" "ec2_performance_kms" {
-  statement {
-    sid = "AllowKmsUseForS3AndSecrets"
-    actions = [
-      "kms:Decrypt",
-      "kms:Encrypt",
-      "kms:GenerateDataKey",
-      "kms:DescribeKey"
-    ]
-    # Use all resources, then constrain to AWS-managed aliases via condition below
-    resources = ["*"]
-
-    # Allow usage only when invoked via these AWS services (prevents direct KMS API use)
-    condition {
-      test     = "StringEquals"
-      variable = "kms:ViaService"
-      values = [
-        "s3.${var.aws_region}.amazonaws.com",
-        "secretsmanager.${var.aws_region}.amazonaws.com"
-      ]
-    }
-
-    # Restrict to AWS-managed KMS keys behind these aliases
-    condition {
-      test     = "ForAnyValue:StringEquals"
-      variable = "kms:ResourceAliases"
-      values = [
-        "alias/aws/s3",
-        "alias/aws/secretsmanager"
-      ]
-    }
-  }
-}
-
-resource "aws_iam_role_policy" "ec2_performance_kms" {
-  name   = "${local.account_prefix}-ec2-performance-kms"
-  role   = aws_iam_role.ec2_performance_role.id
-  policy = data.aws_iam_policy_document.ec2_performance_kms.json
 }
