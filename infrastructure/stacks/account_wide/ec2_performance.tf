@@ -2,28 +2,6 @@
 // Creates a small Amazon Linux 2023 instance in a private subnet, reachable via SSM (Session Manager) only.
 // Installs Apache JMeter on first boot and powers off the instance when installation completes (configurable).
 
-# locals {
-#   # Choose the first private subnet for Performance EC2. Safe because module.vpc is declared in this stack.
-#   # performance_subnet_id = element(module.vpc.private_subnets, 0)
-#   # Name tag for Performance EC2 instance, scoped to this stack
-#   # performance_name = "${local.account_prefix}-performance"
-
-#   # ARN prefix locals to avoid gitleaks arns3 false positives
-#   # s3_arn_prefix = "arn:aws:s3"
-
-#   # Performance S3 bucket names (account prefix + provided suffix variables)
-#   # performance_files_bucket_name = "${local.account_prefix}-${var.performance_files_bucket_name}"
-
-#   # # S3 bucket and object ARNs for IAM policy (composed using prefix to avoid inline arn literal)
-#   # performance_files_bucket_arn  = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}"
-#   # performance_files_objects_arn = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}/*"
-
-#   # # Performance Secrets: full ARNs for IAM policy
-#   # performance_secret_api_jmeter_pks_key_arn = aws_secretsmanager_secret.api_jmeter_pks_key.performance_secret_api_jmeter_pks_key_arn
-#   # performance_secret_api_ca_cert_arn        = aws_secretsmanager_secret.api_ca_cert.performance_secret_api_ca_cert_arn
-#   # performance_secret_api_ca_pk_arn          = aws_secretsmanager_secret.api_ca_pk.performance_secret_api_ca_pk_arn
-# }
-
 resource "aws_instance" "performance" {
   ami                         = data.aws_ami.al2023.id
   instance_type               = var.performance_instance_type
@@ -61,7 +39,7 @@ resource "aws_instance" "performance" {
   ]
 }
 
-# IAM role and instance profile for Performance EC2 (moved from account_policies)
+# IAM role and instance profile for Performance EC2
 resource "aws_iam_role" "ec2_performance_role" {
   name = "${local.account_prefix}-ec2-performance"
   assume_role_policy = jsonencode({
@@ -85,9 +63,7 @@ resource "aws_iam_instance_profile" "ec2_performance_instance_profile" {
 }
 
 # S3 access required for Performance EC2 (explicit performance buckets only)
-# Includes bucket-level metadata and object-level CRUD plus multipart support
 data "aws_iam_policy_document" "ec2_performance_s3" {
-  # Bucket-level metadata actions on explicit Performance buckets
   statement {
     sid = "AllowS3BucketMetadataForPerformance"
     actions = [
@@ -96,12 +72,10 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:ListBucketMultipartUploads"
     ]
     resources = [
-      # Explicit Performance testing buckets (parameter files)
       module.performance_s3.s3_bucket_arn
     ]
   }
 
-  # Object-level CRUD and multipart actions on explicit Performance buckets
   statement {
     sid = "AllowS3ObjectAccessForPerformance"
     actions = [
@@ -116,7 +90,6 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:AbortMultipartUpload"
     ]
     resources = [
-      # Objects within the Performance parameter files bucket only
       module.performance_s3.s3_bucket_arn
     ]
   }
@@ -128,7 +101,7 @@ resource "aws_iam_role_policy" "ec2_performance_s3" {
   policy = data.aws_iam_policy_document.ec2_performance_s3.json
 }
 
-# Secrets Manager read access restricted to three explicit secrets used by performance tests
+# Secrets Manager read access restricted to explicit secrets used by performance tests. To be expanded
 data "aws_iam_policy_document" "ec2_performance_secrets" {
   statement {
     sid = "AllowGetExplicitPerformanceSecrets"
@@ -137,7 +110,6 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
       "secretsmanager:DescribeSecret"
     ]
     resources = [
-      # Explicit secrets required by Performance EC2
       aws_secretsmanager_secret.api_jmeter_pks_key[0].arn,
       aws_secretsmanager_secret.api_ca_cert_secret[0].arn,
       aws_secretsmanager_secret.api_ca_pk_secret[0].arn
