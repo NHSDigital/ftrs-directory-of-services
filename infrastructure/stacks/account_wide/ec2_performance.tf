@@ -12,7 +12,7 @@ locals {
   s3_arn_prefix = "arn:aws:s3"
 
   # Performance S3 bucket names (account prefix + provided suffix variables)
-  performance_parameter_files_bucket_name = "${local.account_prefix}-${var.performance_files_bucket_name}"
+  performance_files_bucket_name = "${local.account_prefix}-${var.performance_files_bucket_name}"
 
   # S3 bucket and object ARNs for IAM policy (composed using prefix to avoid inline arn literal)
   performance_files_bucket_arn  = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}"
@@ -142,9 +142,9 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
     ]
     resources = [
       # Explicit secrets required by Performance EC2
-      aws_secretsmanager_secret.api_jmeter_pks_key.arn,
-      aws_secretsmanager_secret.api_ca_cert.arn,
-      aws_secretsmanager_secret.api_ca_pk.arn
+      aws_secretsmanager_secret.api_jmeter_pks_key[0].arn,
+      aws_secretsmanager_secret.api_ca_cert_secret[0].arn,
+      aws_secretsmanager_secret.api_ca_pk_secret[0].arn
     ]
   }
 }
