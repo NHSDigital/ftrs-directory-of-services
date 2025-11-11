@@ -18,18 +18,11 @@ export const getAuthorisationUrl = async ({
     const oidcConfig = await getOIDCConfig();
     const config = await getAuthConfig();
 
-    const nonce = client.randomNonce();
-    const codeVerifier = client.randomPKCECodeVerifier();
-    const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
-
     const parameters = {
       redirect_uri: config.redirectUri,
       scope: config.scope,
       acr_values: ACR_VALUE,
       state: data.state,
-      nonce,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
       max_age: "300",
     };
     const authorizationUrl = client.buildAuthorizationUrl(
