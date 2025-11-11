@@ -27,7 +27,8 @@ jobs:
         with:
           private_key: ${{ secrets.PRIVATE_KEY }}
           kid: ${{ secrets.KID }}
-          api_id: ${{ secrets.API_ID }}
+          api_id: ${{ secrets.CLIENT_ID }}
+          token_url: ${{ secrets.TOKEN_URL }}
 
       - name: Test Token - List Proxy Instances
         env:
