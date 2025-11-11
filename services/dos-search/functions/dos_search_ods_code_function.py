@@ -33,8 +33,7 @@ def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     headers = (
         {} if not event or not isinstance(event, dict) else (event.get("headers") or {})
     )
-    hdr_lower = headers
-    # ftrs_logger._normalize_headers(headers)
+    hdr_lower = ftrs_logger._normalize_headers(headers)
 
     def h(*names: str) -> Optional[str]:
         # try original casing keys first, then lowercased mapping
@@ -53,12 +52,10 @@ def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     # NHSD correlation id
     corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
     out["ftrs_nhsd_correlation_id"] = corr
-    out["nhsd_correlation_id"] = corr
 
     # NHSD request id
     reqid = h("NHSD-Request-ID") or placeholder
     out["ftrs_nhsd_request_id"] = reqid
-    out["nhsd_request_id"] = reqid
 
     # APIM message id
     msgid = (
@@ -66,14 +63,12 @@ def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         or placeholder
     )
     out["ftrs_message_id"] = msgid
-    out["nhsd_message_id"] = msgid
 
     # Mandatory/default ftrs fields
+    # Default category to LOGGING, can be overridden later
     out["ftrs_message_category"] = "LOGGING"
     out["ftrs_environment"] = (
-        os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or service
-        if not None
-        else placeholder
+        os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
     )
     out["ftrs_api_version"] = h("x-api-version", "api-version") or placeholder
     out["ftrs_lambda_version"] = (
@@ -82,7 +77,7 @@ def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     out["ftrs_response_time"] = placeholder
     out["ftrs_response_size"] = placeholder
 
-    # Optional one-time fields prefixed with 'Opt_'
+    # One-time fields
     end_user_role = (
         h("x-end-user-role")
         or (event.get("end_user_role") if isinstance(event, dict) else None)
@@ -93,32 +88,32 @@ def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         )
         or placeholder
     )
-    out["Opt_ftrs_end_user_role"] = end_user_role
+    out["ftrs_end_user_role"] = end_user_role
 
     client_id = (
         h("x-client-id")
         or (event.get("client_id") if isinstance(event, dict) else None)
         or placeholder
     )
-    out["Opt_ftrs_client_id"] = client_id
+    out["ftrs_client_id"] = client_id
 
     app_name = (
         h("x-application-name")
         or (event.get("application_name") if isinstance(event, dict) else None)
         or placeholder
     )
-    out["Opt_ftrs_application_name"] = app_name
+    out["ftrs_application_name"] = app_name
 
     # Request params (queryStringParameters + pathParameters)
     req_params: Dict[str, Any] = {}
     if isinstance(event, dict):
-        qs = event.get("queryStringParameters") or {}
+        query_params = event.get("queryStringParameters") or {}
         path_params = event.get("pathParameters") or {}
-        if isinstance(qs, dict):
-            req_params.update(qs)
+        if isinstance(query_params, dict):
+            req_params.update(query_params)
         if isinstance(path_params, dict):
             req_params.update(path_params)
-    out["Opt_ftrs_request_parms"] = req_params or {}
+    out["ftrs_request_parms"] = req_params or {}
 
     return out
 
