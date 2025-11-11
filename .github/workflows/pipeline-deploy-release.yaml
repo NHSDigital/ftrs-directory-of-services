@@ -150,7 +150,7 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default
       application_tag: ${{ inputs.release_tag || 'v1.1.0' }}
-      release_deployment: true
+      release_build: true
       type: "app"
       tag: ${{ inputs.release_tag || 'v1.1.0' }}
     secrets: inherit
