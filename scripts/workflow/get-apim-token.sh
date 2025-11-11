@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to generate JWT and retrieve APIM access token
-# Required environment variables: PRIVATE_KEY, KID, API_ID, TOKEN_URL
+# Required environment variables: PRIVATE_KEY, KID, CLIENT_ID, TOKEN_URL
 
 set -e
 
@@ -9,8 +9,8 @@ set -e
 AUTH_ENDPOINT= os.environ.get('TOKEN_URL')
 
 # Check required environment variables
-if [ -z "$PRIVATE_KEY" ] || [ -z "$KID" ] || [ -z "$API_ID" ] || [ -z "$TOKEN_URL" ]; then
-    echo "Error: Missing required environment variables (PRIVATE_KEY, KID, API_ID or TOKEN_URL)" >&2
+if [ -z "$PRIVATE_KEY" ] || [ -z "$KID" ] || [ -z "$CLIENT_ID" ] || [ -z "$TOKEN_URL" ]; then
+    echo "Error: Missing required environment variables (PRIVATE_KEY, KID, CLIENT_ID or TOKEN_URL)" >&2
     exit 1
 fi
 
@@ -23,7 +23,7 @@ import os
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
-def create_signed_jwt(private_key_pem, kid, api_id, token_url):
+def create_signed_jwt(private_key_pem, kid, client_id, token_url):
     """Create a signed JWT for APIM authentication"""
     try:
         # Load the private key from PEM format
@@ -36,12 +36,12 @@ def create_signed_jwt(private_key_pem, kid, api_id, token_url):
         # Set JWT claims
         current_time = int(time.time())
         payload = {
-            'iss': api_id,
-            'sub': api_id,
+            'iss': client_id,
+            'sub': client_id,
             'aud': token_url,
             'exp': current_time + 300,  # 5 minutes expiry
             'iat': current_time,
-            'jti': f"{api_id}-{current_time}"
+            'jti': f"{client_id}-{current_time}"
         }
 
         # Create signed JWT
@@ -67,14 +67,14 @@ def create_signed_jwt(private_key_pem, kid, api_id, token_url):
 if __name__ == "__main__":
     private_key = os.environ.get('PRIVATE_KEY')
     kid = os.environ.get('KID')
-    api_id = os.environ.get('API_ID')
+    client_id = os.environ.get('CLIENT_ID')
     token_url = os.environ.get('TOKEN_URL')
 
-    if not all([private_key, kid, api_id, token_url]):
+    if not all([private_key, kid, client_id, token_url]):
         print("Missing required environment variables", file=sys.stderr)
         sys.exit(1)
 
-    signed_jwt = create_signed_jwt(private_key, kid, api_id, token_url)
+    signed_jwt = create_signed_jwt(private_key, kid, client_id, token_url)
     print(signed_jwt)
 PYTHON_SCRIPT
 

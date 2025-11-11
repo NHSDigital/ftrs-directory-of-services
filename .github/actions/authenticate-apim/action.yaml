@@ -39,7 +39,7 @@ runs:
         KID: ${{ inputs.kid }}
         API_ID: ${{ inputs.api_id }}
       run: |
-        ACCESS_TOKEN=$(/bin/bash ./scripts/workflow/get-apim-token.sh)
+        ACCESS_TOKEN=/bin/bash ./scripts/workflow/get-apim-token.sh
 
         if [ -z "$ACCESS_TOKEN" ]; then
           echo "Failed to retrieve access token"
