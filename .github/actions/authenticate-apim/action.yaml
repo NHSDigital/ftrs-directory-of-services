@@ -37,7 +37,7 @@ runs:
       env:
         PRIVATE_KEY: ${{ inputs.private_key }}
         KID: ${{ inputs.kid }}
-        API_ID: ${{ inputs.api_id }}
+        CLIENT_ID: ${{ inputs.client_id }}
         TOKEN_URL: ${{ inputs.token_url }}
       run: |
         chmod +x ./scripts/workflow/get-apim-token.sh
