@@ -467,7 +467,10 @@ def migration_helper(
         Configured MigrationHelper instance
     """
     db_uri = postgres_container.get_connection_url()
-    dynamodb_endpoint = dynamodb.get("endpoint_url", "http://localhost:4566")
+
+    assert "endpoint_url" in dynamodb, "DynamoDB fixture must provide endpoint_url"
+    dynamodb_endpoint = dynamodb["endpoint_url"]
+
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
 
@@ -477,6 +480,7 @@ def migration_helper(
             "environment": environment,
             "workspace": workspace,
             "dynamodb_endpoint": dynamodb_endpoint,
+            "db_uri": db_uri,
         },
     )
 

@@ -16,9 +16,39 @@ from utilities.common.migration_helper import MigrationHelper
 
 scenarios("../../tests/features/data_migration_features/run_data_migration.feature")
 
-# NOTE: tests successfully run when there is only one scenario in the feature file
-# BUT: tests do not all run successfully when all in one feature file, only the first one does
-# TODO: looks like test logger set up issue, logger is not persisted so does not capture following scenario logs?
+
+def _extract_error_logs(captured_output: Dict[str, str]) -> list[dict]:
+    """
+    Extract error logs from captured JSON output.
+
+    Args:
+        captured_output: Dictionary with stdout and stderr
+
+    Returns:
+        List of parsed error log dictionaries
+    """
+    error_logs = []
+    combined = captured_output.get("stdout", "") + captured_output.get("stderr", "")
+
+    for line in combined.split("\n"):
+        if not line.strip():
+            continue
+
+        try:
+            log_entry = json.loads(line)
+            # Look for ERROR level or logs with reference starting with DM_ETL_999
+            if (
+                log_entry.get("level") == "ERROR"
+                or "ERROR" in log_entry.get("reference", "")
+                or log_entry.get("reference", "").startswith("DM_ETL_999")
+            ):
+                error_logs.append(log_entry)
+        except json.JSONDecodeError:
+            # Not a JSON log line, skip it
+            continue
+
+    return error_logs
+
 
 @given("the test environment is configured")
 def test_environment_configured(
@@ -320,16 +350,25 @@ def verify_migration_metrics_inline(
     service_id = migration_context.get("service_id")
     service_data = migration_context.get("service_data", {})
 
-    # Determine if this is a full sync or single service migration
     is_full_sync = service_id is None
     migration_type = "full sync" if is_full_sync else f"service {service_id}"
+
+    # If there are errors, extract and display them
+    if metrics.errors > 0:
+        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
+        error_details = "\n".join(
+            f"  - [{log.get('reference')}] {log.get('message')}" for log in error_logs
+        )
+        logger.error(
+            f"Migration errors detected for {migration_type}",
+            extra={"error_count": metrics.errors, "error_logs": error_logs},
+        )
 
     assert metrics.total_records == total, (
         f"Total records mismatch for {migration_type}: "
         f"expected {total}, got {metrics.total_records}"
     )
 
-    # For full sync, provide simpler error messages without service-specific details
     if is_full_sync:
         assert metrics.supported_records == supported, (
             f"Supported records mismatch for {migration_type}:\n"
@@ -356,6 +395,25 @@ def verify_migration_metrics_inline(
         f"Transformed records mismatch for {migration_type}: "
         f"expected {transformed}, got {metrics.transformed_records}"
     )
+
+    # Enhanced error message for migration failures
+    if metrics.migrated_records != migrated and metrics.errors > 0:
+        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
+        error_summary = "\n".join(
+            f"    [{log.get('reference')}] {log.get('message')}\n    Detail: {log.get('detail', 'N/A')}"
+            for log in error_logs[:3]  # Show first 3 errors
+        )
+
+        pytest.fail(
+            f"Migrated records mismatch for {migration_type}:\n"
+            f"  Expected: {migrated}\n"
+            f"  Got: {metrics.migrated_records}\n"
+            f"  Errors: {metrics.errors}\n"
+            f"\n"
+            f"  Error logs:\n{error_summary}\n"
+            f"\n"
+            f"  Run with -vv to see full captured output"
+        )
 
     assert metrics.migrated_records == migrated, (
         f"Migrated records mismatch for {migration_type}: "
@@ -627,7 +685,6 @@ def run_sqs_event_migration(
     except json.JSONDecodeError as e:
         pytest.fail(f"Invalid JSON in event docstring: {e}")
 
-    # Extract service IDs from DMSEvent format in body
     service_ids = []
     if event.get("Records"):
         for record in event["Records"]:
@@ -648,12 +705,10 @@ def run_sqs_event_migration(
         },
     )
 
-    # Run the migration with the event
     result = migration_helper.run_sqs_event_migration(event)
 
     captured = capfd.readouterr()
 
-    # Store in context
     migration_context["result"] = result
     migration_context["sqs_event"] = event
     migration_context["sqs_service_ids"] = service_ids
@@ -663,7 +718,6 @@ def run_sqs_event_migration(
         "stderr": captured.err,
     }
 
-    # Log the full result for debugging
     logger.info("=" * 80)
     logger.info("SQS EVENT MIGRATION RESULT")
     logger.info("=" * 80)
@@ -681,13 +735,18 @@ def run_sqs_event_migration(
         logger.info(f"  Skipped: {result.metrics.skipped_records}")
         logger.info(f"  Errors: {result.metrics.errors}")
 
+        # Extract and log errors if present
+        if result.metrics.errors > 0:
+            error_logs = _extract_error_logs(migration_context["captured_output"])
+            logger.error("ERROR LOGS:")
+            for error_log in error_logs[:5]:  # Show first 5 errors
+                logger.error(f"  [{error_log.get('reference')}] {error_log.get('message')}")
+                if error_log.get('detail'):
+                    logger.error(f"    Detail: {error_log.get('detail')}")
+
     if result.error:
         logger.error("ERROR DETAILS:")
         logger.error(result.error)
-        logger.error("STDOUT:")
-        logger.error(captured.out[:1000] if captured.out else "None")
-        logger.error("STDERR:")
-        logger.error(captured.err[:1000] if captured.err else "None")
 
     logger.info("=" * 80)
 
@@ -762,6 +821,18 @@ def verify_sqs_event_metrics(
     else:
         event_info = f"SQS event with {record_count} record(s)"
 
+    # If there are errors, extract and display them before assertions
+    if metrics.errors > 0 or metrics.migrated_records != migrated:
+        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
+        if error_logs:
+            error_summary = "\n".join(
+                f"    [{log.get('reference')}] {log.get('message')}\n    Detail: {log.get('detail', 'N/A')}"
+                for log in error_logs[:3]
+            )
+            logger.error(
+                f"Migration errors for {event_info}:\n{error_summary}"
+            )
+
     assert metrics.total_records == total, (
         f"Total records mismatch for {event_info}:\n"
         f"  Expected: {total}\n"
@@ -785,6 +856,25 @@ def verify_sqs_event_metrics(
         f"  Expected: {transformed}\n"
         f"  Got: {metrics.transformed_records}"
     )
+
+    # Enhanced error message for migration failures
+    if metrics.migrated_records != migrated and metrics.errors > 0:
+        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
+        error_summary = "\n".join(
+            f"    [{log.get('reference')}] {log.get('message')}\n    Detail: {log.get('detail', 'N/A')}"
+            for log in error_logs[:3]
+        )
+
+        pytest.fail(
+            f"Migrated records mismatch for {event_info}:\n"
+            f"  Expected: {migrated}\n"
+            f"  Got: {metrics.migrated_records}\n"
+            f"  Errors: {metrics.errors}\n"
+            f"\n"
+            f"  Error logs:\n{error_summary}\n"
+            f"\n"
+            f"  Check captured stdout for full error details"
+        )
 
     assert metrics.migrated_records == migrated, (
         f"Migrated records mismatch for {event_info}:\n"
