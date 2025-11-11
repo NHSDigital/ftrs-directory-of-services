@@ -23,7 +23,7 @@ jobs:
 
       - name: Get APIM Access Token
         id: get-token
-        uses: ./.github/actions/apim-authenticate
+        uses: ./.github/actions/authenticate-apim
         with:
           private_key: ${{ secrets.PRIVATE_KEY }}
           kid: ${{ secrets.KID }}

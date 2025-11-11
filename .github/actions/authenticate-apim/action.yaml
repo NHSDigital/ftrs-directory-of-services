@@ -1,6 +1,5 @@
 name: 'APIM Authenticate'
 description: 'Authenticate with APIM and retrieve access token for Proxygen API'
-author: 'Your Organization'
 
 inputs:
   private_key:
