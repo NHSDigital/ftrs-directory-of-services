@@ -67,6 +67,8 @@ jobs:
       workspace: "rc"
       stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       type: app
+      build_datetime: ${{ needs.metadata.outputs.build_datetime }}
+      build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 
   build-release-artefacts:
