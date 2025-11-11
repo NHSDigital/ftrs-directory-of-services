@@ -20,16 +20,6 @@ on:
         required: false
         default: "dos"
         type: string
-      # account_type:
-      #   description: "The type of account based on the environment"
-      #   required: false
-      #   default: "env"
-      #   type: string
-      # # stacks:
-      #   description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
-      #   required: false
-      #   default: ""
-      #   type: string
       action:
         description: "The type of action to perform with the stack."
         required: false
