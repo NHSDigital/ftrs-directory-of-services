@@ -5,8 +5,9 @@
 
 set -e
 
-# Configuration
-AUTH_ENDPOINT= os.environ.get('TOKEN_URL')
+#configuration
+AUTH_ENDPOINT="${TOKEN_URL}"
+
 
 # Check required environment variables
 if [ -z "$PRIVATE_KEY" ] || [ -z "$KID" ] || [ -z "$CLIENT_ID" ] || [ -z "$TOKEN_URL" ]; then
