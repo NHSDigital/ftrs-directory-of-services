@@ -39,8 +39,8 @@ runs:
         KID: ${{ inputs.kid }}
         API_ID: ${{ inputs.api_id }}
       run: |
-        chmod +x ${{ github.action_path }}/../../scripts/get_apim_token.sh
-        ACCESS_TOKEN=$(${{ github.action_path }}/../../scripts/get_apim_token.sh)
+        chmod +x }/../../scripts/get_apim_token.sh
+        ACCESS_TOKEN=$(/../../scripts/get_apim_token.sh)
 
         if [ -z "$ACCESS_TOKEN" ]; then
           echo "Failed to retrieve access token"
