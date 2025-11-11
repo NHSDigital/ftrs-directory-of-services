@@ -7,6 +7,8 @@ WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
 PYTHON_VERSION ?= 3.12
 PLATFORM ?= manylinux2014_x86_64
 PACKAGES_LAYER_NAME := ftrs-dos-python-packages-layer
+RELEASE_BUILD ?= false
+RELEASE_DIR ?= releases
 
 ensure-build-dir:
 	mkdir -p $(BUILD_DIR)
@@ -48,6 +50,8 @@ unit-test:
 	poetry run pytest
 
 publish:
-	aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION)
-
-pre-commit: lint
+	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
+		aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
+	else \
+		aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
+	fi

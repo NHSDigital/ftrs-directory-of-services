@@ -70,7 +70,7 @@ info:
     You might find the following open source resources useful:
     | Resource | Description | Link |
     |-----|-----|-----|
-    |Directory of Services - Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingestion-api) |
+    |Directory of Services - Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingest-api) |
     | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
 
     ## Environments and testing
@@ -79,8 +79,8 @@ info:
 
     | Environment | Base URL |
     |-------------|----------|
-    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
-    | Integration | https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4 |
+    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4 |
+    | Integration | https://int.api.service.nhs.uk/dos-ingest/FHIR/R4 |
 
     ### Sandbox
 
@@ -97,7 +97,7 @@ info:
     Our [integration environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing):
     * is for formal integration testing
     * is stateful, so can persist updates
-    * includes authorisation via API key
+    * includes authorisation via JWT token
 
     ## Onboarding
 
@@ -121,15 +121,15 @@ info:
 
   version: 1.0.0
 servers:
-  - url: https://sandbox.api.service.nhs.uk/dos-ingestion/FHIR/R4
+  - url: https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4
     description: Sandbox Environment
-  - url: https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4
+  - url: https://int.api.service.nhs.uk/dos-ingest/FHIR/R4
     description: Integration Environment
 paths:
   '/Organization':
     get:
       security:
-        - app-level0: []
+        - app-level3: []
       summary: Search for organisations by ODS code to return organization details
       description: |
         ## Overview
@@ -148,14 +148,16 @@ paths:
       operationId: searchOrganizations
       parameters:
       - in: header
-        name: apiKey
+        name: Authorization
         required: true
         description: |
-          Use the unique api key provided to you during onboarding. This will be used to authorise API requests.
+          An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+          Required in all environments except sandbox.
         schema:
           type: string
-          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+          format: "^Bearer\\ [[:ascii:]]+$"
+          example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
       - in: header
         name: X-Correlation-ID
         required: false
@@ -165,6 +167,15 @@ paths:
         schema:
           type: string
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: X-Request-ID
+        required: false
+        description: |
+          Unique request identifier in GUID format. A unique ID is generated for every
+          incoming API request if not provided.
+        schema:
+          type: string
+          example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
       - in: query
         name: identifier
         description: >
@@ -180,11 +191,17 @@ paths:
         '200':
           description: Bundle of Organizations found and returned successfully
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -274,11 +291,17 @@ paths:
         '400':
           description: Bad request (e.g., invalid format of parameters)
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -293,11 +316,17 @@ paths:
         '404':
           description: Organization not found
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -312,11 +341,17 @@ paths:
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -342,11 +377,17 @@ paths:
         '500':
           description: Internal server error
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
                 back.
           content:
             application/fhir+json:
@@ -357,137 +398,31 @@ paths:
                 issue:
                   - severity: fatal
                     code: exception
-                    diagnostics: An unexpected error occurred
-    post:
-      security:
-        - app-level0: []
-      summary: Create a new organisation
-      description: |
-        ## Overview
-        Create a new Organization resource in the Directory of Services.
-
-        ## Request Requirements
-        - The Organization resource must contain all required fields including ODS code, name, active, and type.
-        - The ODS code must be unique and follow the required format (5-12 alphanumeric characters).
-
-      operationId: createOrganization
-      parameters:
-      - in: header
-        name: apiKey
-        required: true
-        description: |
-          Use the unique api key provided to you during onboarding. This will be used to authorise API requests.
-        schema:
-          type: string
-          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
-      - in: header
-        name: X-Correlation-ID
-        required: false
-        description: |
-          Use an optional ID to track transactions across multiple systems.
-          Mirrored back in a response header.
-        schema:
-          type: string
-          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-      - $ref: '#/components/parameters/AcceptFHIR'
-      - $ref: '#/components/parameters/ContentTypeFHIR'
-      requestBody:
-        required: true
-        content:
-          application/fhir+json:
-            schema:
-              $ref: '#/components/schemas/Organization'
-      responses:
-        '201':
-          description: Organization created successfully
-          headers:
-            X-Correlation-Id:
-              schema:
-                type: string
-                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-              description: The X-Correlation-ID from the request header, if supplied, mirrored back.
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: information
-                    code: informational
-                    diagnostics: Organisation created successfully
-
-        '400':
-          description: Bad request (e.g., malformed request body)
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: invalid
-                    diagnostics: Invalid request format
-        '409':
-          description: Conflict - Organization with this ODS code already exists
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: duplicate
-                    diagnostics: Organisation with this ODS code already exists
-        '422':
-          description: Unprocessable Entity (validation errors)
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: invalid
-                    diagnostics: Name cannot be empty.
-        '500':
-          description: Internal server error
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: exception
-                    diagnostics: An unexpected error occurred
                     details:
                       coding:
                         - system: "http://terminology.hl7.org/CodeSystem/operation-outcome"
                           code: "exception"
                           display: "Exception"
-                          diagnostics: "please try again later."
+                      text: "An unexpected error occurred: please try again later."
+                    diagnostics: "please try again later."
   '/Organization/{id}':
     put:
       security:
-        - app-level0: []
+        - app-level3: []
       summary: Update/overwrite an organization resource
       description: Update or overwrite an existing organization resource by ID.
       parameters:
       - in: header
-        name: apiKey
+        name: Authorization
         required: true
         description: |
-            Use the unique api key provided to you during onboarding. This will be used to authorise API requests
+          An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+          Required in all environments except sandbox.
         schema:
-            type: string
-            pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
-            example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+          type: string
+          format: "^Bearer\\ [[:ascii:]]+$"
+          example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
       - in: header
         name: X-Correlation-ID
         required: false
@@ -497,6 +432,15 @@ paths:
         schema:
           type: string
           example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: X-Request-ID
+        required: false
+        description: |
+          Unique request identifier in GUID format. A unique ID is generated for every
+          incoming API request if not provided.
+        schema:
+          type: string
+          example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
       - $ref: '#/components/parameters/AcceptFHIR'
       - $ref: '#/components/parameters/ContentTypeFHIR'
       - in: path
@@ -516,16 +460,22 @@ paths:
         '200':
           description: Organization updated
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
                 back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OperationOutcome'
               example:
                 resourceType: OperationOutcome
                 issue:
@@ -535,86 +485,18 @@ paths:
         '404':
           description: Organization not found
           headers:
-            X-Correlation-Id:
+            X-Correlation-ID:
               schema:
                 type: string
                 example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
               description: The X-Correlation-ID from the request header, if supplied, mirrored
                 back.
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-  '/OrganizationAffiliation':
-    post:
-      security:
-        - app-level0: []
-      summary: Create a new organization affiliation
-      description: |
-        ## Overview
-        Create a new OrganizationAffiliation resource that defines a relationship between two organizations in the Directory of Services.
-
-      operationId: createOrganizationAffiliation
-      parameters:
-      - in: header
-        name: apiKey
-        required: true
-        description: |
-          Use the unique api key provided to you during onboarding. This will be used to authorise API requests.
-        schema:
-          type: string
-          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
-      - in: header
-        name: X-Correlation-ID
-        required: false
-        description: |
-          Use an optional ID to track transactions across multiple systems.
-          Mirrored back in a response header.
-        schema:
-          type: string
-          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-      - $ref: '#/components/parameters/AcceptFHIR'
-      - $ref: '#/components/parameters/ContentTypeFHIR'
-      requestBody:
-        required: true
-        content:
-          application/fhir+json:
-            schema:
-              $ref: '#/components/schemas/OrganizationAffiliation'
-      responses:
-        '201':
-          description: OrganizationAffiliation created successfully
-          headers:
-            X-Correlation-Id:
+            X-Request-ID:
               schema:
                 type: string
-                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-              description: The X-Correlation-ID from the request header, if supplied, mirrored back.
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: information
-                    code: informational
-                    diagnostics: OrganizationAffiliation created successfully
-        '400':
-          description: Bad request (e.g., malformed request body)
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: invalid
-                    diagnostics: Invalid request format
-        '404':
-          description: Referenced organization not found
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
           content:
             application/fhir+json:
               schema:
@@ -625,159 +507,6 @@ paths:
                   - severity: error
                     code: not-found
                     diagnostics: Organisation not found.
-        '409':
-          description: Conflict - Organization affiliation already exists
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: duplicate
-                    diagnostics: Organization affiliation already exists between these organizations
-        '422':
-          description: Unprocessable Entity (validation errors)
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: invalid
-                    diagnostics: Code value must be one of the allowed types
-        '500':
-          description: Internal server error
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: exception
-                    diagnostics: An unexpected error occurred
-  '/OrganizationAffiliation/{id}':
-    put:
-      security:
-        - app-level0: []
-      summary: Update an organization affiliation
-      description: |
-        ## Overview
-        Update an existing OrganizationAffiliation resource by ID. This endpoint allows you to modify
-        the relationship details between two organizations in the Directory of Services.
-
-        ## Request Requirements
-        - Both referenced organizations must exist in the system
-        - The relationship code must be one of the allowed values
-        - The period dates, if provided, must be in valid ISO format
-      operationId: updateOrganizationAffiliation
-      parameters:
-      - in: header
-        name: apiKey
-        required: true
-        description: |
-          Use the unique api key provided to you during onboarding. This will be used to authorise API requests.
-        schema:
-          type: string
-          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-          example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
-      - in: header
-        name: X-Correlation-ID
-        required: false
-        description: |
-          Use an optional ID to track transactions across multiple systems.
-          Mirrored back in a response header.
-        schema:
-          type: string
-          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-      - $ref: '#/components/parameters/AcceptFHIR'
-      - $ref: '#/components/parameters/ContentTypeFHIR'
-      - in: path
-        name: id
-        description: The unique identifier of the OrganizationAffiliation resource to update.
-        required: true
-        schema:
-          type: string
-          format: uuid
-          example: 00000000-0000-0000-0000-00000000000c
-      requestBody:
-        required: true
-        content:
-          application/fhir+json:
-            schema:
-              $ref: '#/components/schemas/OrganizationAffiliation'
-      responses:
-        '200':
-          description: OrganizationAffiliation updated successfully
-          headers:
-            X-Correlation-Id:
-              schema:
-                type: string
-                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
-              description: The X-Correlation-ID from the request header, if supplied, mirrored back.
-          content:
-            application/fhir+json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "OrganizationAffiliation updated successfully"
-                  organizationAffiliation:
-                    $ref: '#/components/schemas/OrganizationAffiliation'
-        '400':
-          description: Bad request (e.g., malformed request body)
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: invalid
-                    diagnostics: Invalid request format
-        '404':
-          description: OrganizationAffiliation or referenced organization not found
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: not-found
-                    diagnostics: OrganizationAffiliation not found or a referenced organization does not exist
-        '422':
-          description: Unprocessable Entity (validation errors)
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: invalid
-                    diagnostics: Code value must be one of the allowed types
-        '500':
-          description: Internal server error
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: exception
-                    diagnostics: An unexpected error occurred
 components:
   parameters:
     AcceptFHIR:
@@ -799,83 +528,6 @@ components:
         enum: [application/fhir+json]
         example: application/fhir+json
   schemas:
-    OrganizationAffiliation:
-      type: object
-      required:
-        - resourceType
-        - organization
-        - participatingOrganization
-        - code
-      properties:
-        resourceType:
-          type: string
-          example: OrganizationAffiliation
-        id:
-          type: string
-          example: 00000000-0000-0000-0000-00000000000c
-        meta:
-          type: object
-          properties:
-            profile:
-              type: array
-              items:
-                type: string
-              example:
-                - https://fhir.nhs.uk/StructureDefinition/UKCore-OrganizationAffiliation
-        organization:
-          type: object
-          properties:
-            reference:
-              type: string
-              example: "Organization/00000000-0000-0000-0000-11111111111"
-        participatingOrganization:
-          type: object
-          properties:
-            reference:
-              type: string
-              example: "Organization/00000000-0000-0000-0000-22222222222"
-        code:
-          type: array
-          items:
-            type: object
-            properties:
-              coding:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    system:
-                      type: string
-                      example: "https://fhir.nhs.uk/CodeSystem/organization-role"
-                    code:
-                      type: string
-                      enum:
-                        - provider
-                        - agency
-                        - research
-                        - payer
-                        - diagnostics
-                        - supplier
-                        - HIE/HIO
-                        - member
-                      example: "provider"
-                    display:
-                      type: string
-                      example: "provider"
-        active:
-          type: boolean
-          example: true
-        period:
-          type: object
-          properties:
-            start:
-              type: string
-              format: date-time
-              example: "2023-01-01T00:00:00Z"
-            end:
-              type: string
-              format: date-time
-              example: "2024-01-01T00:00:00Z"
     Organization:
       type: object
       required:
@@ -1082,12 +734,12 @@ components:
                 type: string
                 example: Invalid resource.
   securitySchemes:
-    app-level0:
-      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level0
+    app-level3:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3
 x-nhsd-apim:
   target:
     $ref: x-nhsd-apim/target.yaml
   access:
-    - title: Application-restricted with API key
+    - title: Application-restricted with Private Key JWT
       grants:
-        app-level0: []
+        app-level3: [ ]

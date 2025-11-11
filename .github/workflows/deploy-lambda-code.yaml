@@ -1,8 +1,8 @@
 name: Deploy Application workflow
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 on:
   workflow_call:
     inputs:
@@ -44,7 +44,7 @@ on:
         type: number
       commit_hash:
         description: "Git commit hash - to locate artefacts"
-        required: true
+        required: false
         type: string
       artefact_bucket_name:
         description: "Name of s3 repo holding domain artefacts"
@@ -56,7 +56,7 @@ jobs:
     name: "Derive Service Names"
     runs-on: ubuntu-latest
     outputs:
-        services: ${{ steps.derive-service-names.outputs.services }}
+      services: ${{ steps.derive-service-names.outputs.services }}
     steps:
       - name: "Checkout code"
         uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
@@ -80,7 +80,7 @@ jobs:
     name: Derive Commit Hash For Lambda Code
     runs-on: ubuntu-latest
     outputs:
-        commit_hash: ${{ steps.derive-commit-hash-lambda.outputs.commit_hash }}
+      commit_hash: ${{ steps.derive-commit-hash-lambda.outputs.commit_hash }}
     steps:
       - name: "Checkout code"
         uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
@@ -98,11 +98,7 @@ jobs:
     environment: ${{ inputs.environment }}
 
     timeout-minutes: ${{ inputs.workflow_timeout }}
-    needs:
-      [
-        derive-service-names,
-        derive-commit-hash
-      ]
+    needs: [derive-service-names, derive-commit-hash]
     strategy:
       matrix:
         service: ${{ fromJSON(needs.derive-service-names.outputs.services) }}

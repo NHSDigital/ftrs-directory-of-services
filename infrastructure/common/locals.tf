@@ -7,6 +7,8 @@ locals {
   root_domain_name  = "${var.environment}.${var.root_domain_name}"
   s3_logging_bucket = "${local.account_prefix}-${var.s3_logging_bucket_name}"
 
+  artefact_base_path = var.release_tag != "" ? "releases/${var.release_tag}" : "${terraform.workspace}/${var.commit_hash}"
+
   # Deploy certain resources (e.g., databases, backup SSM) only in default Terraform workspace.
   is_primary_environment = terraform.workspace == "default"
   rds_environments       = var.environment == "dev" || var.environment == "test" || var.environment == "int"

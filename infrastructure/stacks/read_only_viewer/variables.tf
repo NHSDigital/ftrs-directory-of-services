@@ -3,11 +3,6 @@ variable "application_tag" {
   type        = string
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the read-only viewer application"
-  type        = string
-}
-
 variable "read_only_viewer_bucket_name" {
   description = "The name of the read-only viewer bucket"
   type        = string

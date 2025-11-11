@@ -7,7 +7,7 @@ module "frontend_lambda" {
   handler       = "index.handler"
 
   s3_bucket_name = local.artefacts_bucket
-  s3_key         = "${terraform.workspace}/${var.commit_hash}/read-only-viewer-server-${var.application_tag}.zip"
+  s3_key         = "${local.artefact_base_path}/read-only-viewer-server-${var.application_tag}.zip"
 
   ignore_source_code_hash = false
   timeout                 = var.frontend_lambda_connection_timeout

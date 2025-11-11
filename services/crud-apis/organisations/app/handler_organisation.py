@@ -7,6 +7,7 @@ from ftrs_common.api_middleware.fhir_type_middleware import (
     FHIRAcceptHeaderMiddleware,
     FHIRContentTypeMiddleware,
 )
+from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
 from ftrs_common.api_middleware.response_logging_middleware import (
     ResponseLoggingMiddleware,
 )
@@ -17,6 +18,7 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.operation_outcome_status_mapper import STATUS_CODE_MAP
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import CrudApisLogBase
+from ftrs_common.utils.request_id import fetch_or_set_request_id
 from mangum import Mangum
 
 from organisations.app.router import organisation
@@ -27,6 +29,7 @@ app.add_middleware(FHIRContentTypeMiddleware)
 app.add_middleware(FHIRAcceptHeaderMiddleware)
 app.add_middleware(ResponseLoggingMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
+app.add_middleware(RequestIdMiddleware)
 
 app.include_router(organisation.router)
 
@@ -37,6 +40,9 @@ def handler(event: dict, context: LambdaContext) -> dict:
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_TEMP,
         product_id=product_id,
+    fetch_or_set_request_id(
+        context_id=getattr(context, "aws_request_id", None) if context else None,
+        header_id=event.get("headers", {}).get("X-Request-ID"),
     )
 
     mangum_handler = Mangum(app, lifespan="off")

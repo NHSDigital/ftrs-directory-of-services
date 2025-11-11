@@ -3,11 +3,6 @@ variable "application_tag" {
   type        = string
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the UI"
-  type        = string
-}
-
 variable "ui_bucket_name" {
   description = "The name of the UI bucket"
   type        = string

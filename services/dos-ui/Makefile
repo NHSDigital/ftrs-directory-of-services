@@ -33,7 +33,7 @@ lint:
 	npm run build:types -- --noEmit
 
 unit-test:
-	# npm run test
+	npm run test
 
 build: clean ensure-build-dir
 	npm run build
@@ -47,9 +47,12 @@ publish:
 		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/ --region $(AWS_REGION);\
 	fi
 
-
 deploy:
-	aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .
+	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
+		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .;\
+	else \
+		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .;\
+	fi
 	unzip $(SERVICE)-assets-$(APPLICATION_TAG).zip -d ${TEMP_DIRECTORY}
 	aws s3 sync --delete $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/
 

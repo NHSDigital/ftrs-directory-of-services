@@ -1,0 +1,132 @@
+name: Deploy Policies Infrastructure Pipeline
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - "main"
+      - "task/**"
+    paths:
+      - "infrastructure/stacks/github_runner/**"
+      - "infrastructure/stacks/account_policies/**"
+  workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: false
+        type: string
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - sandpit
+          - int
+          - prod
+
+jobs:
+  metadata:
+    name: "Get Metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+  quality-checks:
+    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
+    needs:
+      - metadata
+    uses: ./.github/workflows/quality-checks.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "default"
+      stacks: "['github_runner','account_policies']"
+      type: account
+    secrets: inherit
+
+  plan-permissions-infrastructure:
+    name: "Plan ${{ matrix.name }} permissions infrastructure deployment for ${{ matrix.environment }}"
+    concurrency:
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-permissions-${{matrix.stacks}}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - quality-checks
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "account"
+            environment: ${{ needs.metadata.outputs.account_type }}
+            stacks: "['github_runner','account_policies']"
+          - name: "mgmt"
+            environment: ${{ needs.metadata.outputs.mgmt_environment }}
+            stacks: "['github_runner','account_policies']"
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ matrix.environment }}
+      workspace: "default"
+      tag: ${{ inputs.tag }}
+      stacks: ${{ matrix.stacks }}
+      action: plan
+      type: account
+    secrets: inherit
+
+  manual-approval-permissions:
+    name: "Manual approval for ${{ needs.metadata.outputs.environment }} permissions infrastructure deployment"
+    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
+    needs:
+      - metadata
+      - plan-permissions-infrastructure
+    runs-on: ubuntu-latest
+    environment: "${{ needs.metadata.outputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        run: echo "${{ needs.metadata.outputs.environment }} permissions deployment paused for manual approval. Please approve in the Actions tab."
+
+  apply-permissions-infrastructure:
+    name: "Apply ${{ matrix.name }} permissions infrastructure deployment for ${{ matrix.environment }}"
+    concurrency:
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-permissions-${{matrix.stacks}}"
+      cancel-in-progress: false
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - metadata
+      - manual-approval-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "account"
+            environment: ${{ needs.metadata.outputs.account_type }}
+            stacks: "['github_runner','account_policies']"
+          - name: "mgmt"
+            environment: ${{ needs.metadata.outputs.mgmt_environment }}
+            stacks: "['github_runner','account_policies']"
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ matrix.environment }}
+      workspace: "default"
+      tag: ${{ inputs.tag }}
+      stacks: ${{ matrix.stacks }}
+      action: apply
+      type: account
+    secrets: inherit
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - metadata
+      - quality-checks
+      - plan-permissions-infrastructure
+      - manual-approval-permissions
+      - apply-permissions-infrastructure
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit

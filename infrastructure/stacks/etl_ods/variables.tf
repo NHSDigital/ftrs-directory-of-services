@@ -3,11 +3,6 @@ variable "application_tag" {
   type        = string
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the etl ods application"
-  type        = string
-}
-
 variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
@@ -92,7 +87,7 @@ variable "max_receive_count" {
 variable "apim_url" {
   description = "The URL of the API Management instance"
   type        = string
-  default     = "https://int.api.service.nhs.uk/dos-ingestion/FHIR/R4"
+  default     = "https://int.api.service.nhs.uk/dos-ingest/FHIR/R4"
 }
 
 variable "ods_url" {
