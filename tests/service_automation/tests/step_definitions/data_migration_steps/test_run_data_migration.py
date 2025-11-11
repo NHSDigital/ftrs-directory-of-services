@@ -16,39 +16,9 @@ from utilities.common.migration_helper import MigrationHelper
 
 scenarios("../../tests/features/data_migration_features/run_data_migration.feature")
 
-
-def _extract_error_logs(captured_output: Dict[str, str]) -> list[dict]:
-    """
-    Extract error logs from captured JSON output.
-
-    Args:
-        captured_output: Dictionary with stdout and stderr
-
-    Returns:
-        List of parsed error log dictionaries
-    """
-    error_logs = []
-    combined = captured_output.get("stdout", "") + captured_output.get("stderr", "")
-
-    for line in combined.split("\n"):
-        if not line.strip():
-            continue
-
-        try:
-            log_entry = json.loads(line)
-            # Look for ERROR level or logs with reference starting with DM_ETL_999
-            if (
-                log_entry.get("level") == "ERROR"
-                or "ERROR" in log_entry.get("reference", "")
-                or log_entry.get("reference", "").startswith("DM_ETL_999")
-            ):
-                error_logs.append(log_entry)
-        except json.JSONDecodeError:
-            # Not a JSON log line, skip it
-            continue
-
-    return error_logs
-
+# NOTE: tests successfully run when there is only one scenario in the feature file
+# BUT: tests do not all run successfully when all in one feature file, only the first one does
+# TODO: looks like test logger set up issue, logger is not persisted so does not capture following scenario logs?
 
 @given("the test environment is configured")
 def test_environment_configured(
@@ -65,15 +35,6 @@ def test_environment_configured(
         AssertionError: If environment is not properly configured
         pytest.fail: If DynamoDB is not accessible
     """
-    logger.info(
-        "Testing environment configuration",
-        extra={
-            "dynamodb_endpoint": dynamodb.get("endpoint_url"),
-            "environment": os.getenv("ENVIRONMENT", "not set"),
-            "workspace": os.getenv("WORKSPACE", "not set"),
-        },
-    )
-
     try:
         response = dynamodb["client"].list_tables()
         table_names = response.get("TableNames", [])
@@ -353,17 +314,6 @@ def verify_migration_metrics_inline(
     is_full_sync = service_id is None
     migration_type = "full sync" if is_full_sync else f"service {service_id}"
 
-    # If there are errors, extract and display them
-    if metrics.errors > 0:
-        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
-        error_details = "\n".join(
-            f"  - [{log.get('reference')}] {log.get('message')}" for log in error_logs
-        )
-        logger.error(
-            f"Migration errors detected for {migration_type}",
-            extra={"error_count": metrics.errors, "error_logs": error_logs},
-        )
-
     assert metrics.total_records == total, (
         f"Total records mismatch for {migration_type}: "
         f"expected {total}, got {metrics.total_records}"
@@ -395,25 +345,6 @@ def verify_migration_metrics_inline(
         f"Transformed records mismatch for {migration_type}: "
         f"expected {transformed}, got {metrics.transformed_records}"
     )
-
-    # Enhanced error message for migration failures
-    if metrics.migrated_records != migrated and metrics.errors > 0:
-        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
-        error_summary = "\n".join(
-            f"    [{log.get('reference')}] {log.get('message')}\n    Detail: {log.get('detail', 'N/A')}"
-            for log in error_logs[:3]  # Show first 3 errors
-        )
-
-        pytest.fail(
-            f"Migrated records mismatch for {migration_type}:\n"
-            f"  Expected: {migrated}\n"
-            f"  Got: {metrics.migrated_records}\n"
-            f"  Errors: {metrics.errors}\n"
-            f"\n"
-            f"  Error logs:\n{error_summary}\n"
-            f"\n"
-            f"  Run with -vv to see full captured output"
-        )
 
     assert metrics.migrated_records == migrated, (
         f"Migrated records mismatch for {migration_type}: "
@@ -473,19 +404,7 @@ def verify_transformer_selected(
         message_template=f'"message":"Transformer {transformer_name} selected for record"',
     )
 
-    matching_log = verify_log_reference(migration_context, service_id, config)
-
-    actual_service_id = migration_context.get("service_id", service_id)
-
-    logger.info(
-        f"Verified transformer selection for service {actual_service_id}",
-        extra={
-            "log_reference": "DM_ETL_003",
-            "transformer": transformer_name,
-            "service_id": actual_service_id,
-            "log_line": matching_log,
-        },
-    )
+    verify_log_reference(migration_context, service_id, config)
 
 
 @then(
@@ -516,19 +435,7 @@ def verify_service_not_migrated(
         message_template=f'"message":"Record was not migrated due to reason: {expected_reason}"',
     )
 
-    matching_log = verify_log_reference(migration_context, service_id, config)
-
-    actual_service_id = migration_context.get("service_id", service_id)
-
-    logger.info(
-        f"Verified service {actual_service_id} was not migrated",
-        extra={
-            "log_reference": "DM_ETL_004",
-            "service_id": actual_service_id,
-            "reason": expected_reason,
-            "log_line": matching_log,
-        },
-    )
+    verify_log_reference(migration_context, service_id, config)
 
 
 @then(
@@ -559,19 +466,7 @@ def verify_service_skipped(
         message_template=f'"message":"Record skipped due to condition: {expected_reason}"',
     )
 
-    matching_log = verify_log_reference(migration_context, service_id, config)
-
-    actual_service_id = migration_context.get("service_id", service_id)
-
-    logger.info(
-        f"Verified service {actual_service_id} was skipped",
-        extra={
-            "log_reference": "DM_ETL_005",
-            "service_id": actual_service_id,
-            "reason": expected_reason,
-            "log_line": matching_log,
-        },
-    )
+    verify_log_reference(migration_context, service_id, config)
 
 
 @then(
@@ -638,21 +533,7 @@ def verify_transformation_output(
         validation_fn=validate_counts,
     )
 
-    matching_log = verify_log_reference(migration_context, service_id, config)
-
-    actual_service_id = migration_context.get("service_id", service_id)
-
-    logger.info(
-        f"Verified transformation output for service {actual_service_id}",
-        extra={
-            "log_reference": "DM_ETL_007",
-            "service_id": actual_service_id,
-            "organisation_count": org_count,
-            "location_count": location_count,
-            "healthcare_service_count": service_count,
-            "log_line": matching_log,
-        },
-    )
+    verify_log_reference(migration_context, service_id, config)
 
 
 @when(
@@ -717,38 +598,6 @@ def run_sqs_event_migration(
         "stdout": captured.out,
         "stderr": captured.err,
     }
-
-    logger.info("=" * 80)
-    logger.info("SQS EVENT MIGRATION RESULT")
-    logger.info("=" * 80)
-    logger.info(f"Success: {result.success}")
-    logger.info(f"Error: {result.error}")
-    logger.info(f"Metrics exists: {result.metrics is not None}")
-
-    if result.metrics:
-        logger.info("METRICS:")
-        logger.info(f"  Total: {result.metrics.total_records}")
-        logger.info(f"  Supported: {result.metrics.supported_records}")
-        logger.info(f"  Unsupported: {result.metrics.unsupported_records}")
-        logger.info(f"  Transformed: {result.metrics.transformed_records}")
-        logger.info(f"  Migrated: {result.metrics.migrated_records}")
-        logger.info(f"  Skipped: {result.metrics.skipped_records}")
-        logger.info(f"  Errors: {result.metrics.errors}")
-
-        # Extract and log errors if present
-        if result.metrics.errors > 0:
-            error_logs = _extract_error_logs(migration_context["captured_output"])
-            logger.error("ERROR LOGS:")
-            for error_log in error_logs[:5]:  # Show first 5 errors
-                logger.error(f"  [{error_log.get('reference')}] {error_log.get('message')}")
-                if error_log.get('detail'):
-                    logger.error(f"    Detail: {error_log.get('detail')}")
-
-    if result.error:
-        logger.error("ERROR DETAILS:")
-        logger.error(result.error)
-
-    logger.info("=" * 80)
 
     logger.info(
         "SQS event migration completed",
@@ -821,18 +670,6 @@ def verify_sqs_event_metrics(
     else:
         event_info = f"SQS event with {record_count} record(s)"
 
-    # If there are errors, extract and display them before assertions
-    if metrics.errors > 0 or metrics.migrated_records != migrated:
-        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
-        if error_logs:
-            error_summary = "\n".join(
-                f"    [{log.get('reference')}] {log.get('message')}\n    Detail: {log.get('detail', 'N/A')}"
-                for log in error_logs[:3]
-            )
-            logger.error(
-                f"Migration errors for {event_info}:\n{error_summary}"
-            )
-
     assert metrics.total_records == total, (
         f"Total records mismatch for {event_info}:\n"
         f"  Expected: {total}\n"
@@ -856,25 +693,6 @@ def verify_sqs_event_metrics(
         f"  Expected: {transformed}\n"
         f"  Got: {metrics.transformed_records}"
     )
-
-    # Enhanced error message for migration failures
-    if metrics.migrated_records != migrated and metrics.errors > 0:
-        error_logs = _extract_error_logs(migration_context.get("captured_output", {}))
-        error_summary = "\n".join(
-            f"    [{log.get('reference')}] {log.get('message')}\n    Detail: {log.get('detail', 'N/A')}"
-            for log in error_logs[:3]
-        )
-
-        pytest.fail(
-            f"Migrated records mismatch for {event_info}:\n"
-            f"  Expected: {migrated}\n"
-            f"  Got: {metrics.migrated_records}\n"
-            f"  Errors: {metrics.errors}\n"
-            f"\n"
-            f"  Error logs:\n{error_summary}\n"
-            f"\n"
-            f"  Check captured stdout for full error details"
-        )
 
     assert metrics.migrated_records == migrated, (
         f"Migrated records mismatch for {event_info}:\n"

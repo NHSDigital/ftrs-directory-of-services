@@ -474,16 +474,6 @@ def migration_helper(
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
 
-    logger.debug(
-        "Migration helper configuration",
-        extra={
-            "environment": environment,
-            "workspace": workspace,
-            "dynamodb_endpoint": dynamodb_endpoint,
-            "db_uri": db_uri,
-        },
-    )
-
     return MigrationHelper(
         db_uri=db_uri,
         dynamodb_endpoint=dynamodb_endpoint,
