@@ -46,7 +46,7 @@ echo "Now running $TEST_TAG automated tests under $APPLICATION_TEST_DIR for work
 
 cd "$APPLICATION_TEST_DIR" || exit
 
-make test MARKERS="${TEST_TAG}" TEST_TYPE="${TEST_TYPE}" COMMIT_HASH="${TAG:-COMMIT_HASH}"
+make test MARKERS="${TEST_TAG}" TEST_TYPE="${TEST_TYPE}" COMMIT_HASH="${TAG:-$COMMIT_HASH}"
 
 TEST_RESULTS=$?
 
