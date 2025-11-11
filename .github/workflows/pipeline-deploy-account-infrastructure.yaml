@@ -72,6 +72,8 @@ jobs:
       workspace: "default"
       stacks: "['terraform_management','account_wide','artefact_management','domain_name','logging','account_security']"
       type: account
+      build_datetime: ${{ needs.metadata.outputs.build_datetime }}
+      build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 
   plan-infrastructure:
