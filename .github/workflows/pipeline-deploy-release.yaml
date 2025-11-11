@@ -1,7 +1,6 @@
-name: Deploy release to environment
+name: Deploy Release Pipeline
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
-
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
@@ -10,7 +9,7 @@ on:
         required: true
         type: string
       environment:
-        description: "Environment to host release deployment"
+        description: "Specify the environment to deploy the release to"
         required: true
         type: choice
         options:
@@ -45,7 +44,7 @@ jobs:
     needs:
       - validate-release-tag
 
-  update-account-wide-policies:
+  deploy-account-wide-policies:
     name: "Update account wide policies in ${{ inputs.environment }} using release ${{ inputs.release_tag }}"
     needs:
       - metadata
@@ -55,11 +54,11 @@ jobs:
       tag: ${{ inputs.release_tag }}
     secrets: inherit
 
-  update-account-wide-infrastructure:
-    name: "Update account wide infrastructure in ${{ inputs.environment }} using release ${{ inputs.release_tag }}"
+  deploy-account-wide-infrastructure:
+    name: "Deploy account wide infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
       - metadata
-      - update-account-wide-policies
+      - deploy-account-wide-policies
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -74,15 +73,14 @@ jobs:
       cancel-in-progress: false
     needs:
       - validate-release-tag
-      - update-account-wide-infrastructure
+      - deploy-account-wide-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
       workspace: default
       application_tag: ${{ inputs.release_tag }}
-      tag: ${{ inputs.release_tag }}
+      release_tag: ${{ inputs.release_tag }}
       action: plan
-      type: app
     secrets: inherit
 
   manual-approval-application-infra:
@@ -108,14 +106,13 @@ jobs:
       environment: ${{ inputs.environment }}
       workspace: default
       application_tag: ${{ inputs.release_tag }}
-      tag: ${{ inputs.release_tag }}
+      release_tag: ${{ inputs.release_tag }}
       action: apply
-      type: app
       workflow_timeout: 30
     secrets: inherit
 
   deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
+    name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-default"
       cancel-in-progress: false
@@ -132,7 +129,6 @@ jobs:
       name: ${{ matrix.name }}
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ inputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default

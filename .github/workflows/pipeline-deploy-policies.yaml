@@ -57,7 +57,6 @@ jobs:
       workspace: "default"
       stacks: "['github_runner','account_policies']"
       type: account
-      build_datetime: ${{ needs.metadata.outputs.build_datetime }}
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 

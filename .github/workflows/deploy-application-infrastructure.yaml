@@ -25,7 +25,7 @@ on:
         required: false
         default: "plan"
         type: string
-      tag:
+      release_tag:
         description: "The git tag identifying the timeline in the repository to deploy from"
         required: false
         type: string
@@ -63,11 +63,10 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       workspace: ${{ inputs.workspace }}
-      # stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       stacks: ${{ inputs.stacks }}
-      application_tag: ${{ inputs.tag  }}
+      application_tag: ${{ inputs.release_tag  }}
       commit_hash: ${{ inputs.commit_hash }}
-      tag: ${{ inputs.tag }}
+      release_tag: ${{ inputs.release_tag }}
       action: ${{ inputs.action }}
       type: app
     secrets: inherit
