@@ -1,6 +1,4 @@
 name: Deploy release to environment
-# TODO when testing complete remove conditional set of default for release_tag eg || '1.0.0'}}
-# TODO when testing complete remove conditional set of default for environment eg || 'dev'}}
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
 
@@ -116,7 +114,6 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
-    # below here deploy front end and data migration services ?
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
     concurrency:

@@ -91,8 +91,7 @@ jobs:
 
   manual-approval-permissions:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} permissions infrastructure deployment"
-    # TODO restore github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true')
-    if: ${{  (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
+    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
       - plan-permissions-infrastructure
