@@ -30,7 +30,6 @@ on:
           - sandpit
           - int
           - prod
-
   workflow_call:
     inputs:
       tag:

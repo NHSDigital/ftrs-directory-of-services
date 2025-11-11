@@ -137,3 +137,35 @@ jobs:
       type: "app"
       tag: ${{ inputs.release_tag }}
     secrets: inherit
+
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    needs:
+      - validate-release-tag
+      - metadata
+      - deploy-account-wide-policies
+      - deploy-account-wide-infrastructure
+      - plan-application-infra
+      - manual-approval-application-infra
+      - apply-application-infra
+      - deploy-frontend-services
+    if: always()
+    uses: ./.github/workflows/pipeline-status-check.yaml
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - validate-release-tag
+      - metadata
+      - deploy-account-wide-policies
+      - deploy-account-wide-infrastructure
+      - plan-application-infra
+      - manual-approval-application-infra
+      - apply-application-infra
+      - deploy-frontend-services
+      - check-pipeline-status
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
