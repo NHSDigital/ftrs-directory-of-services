@@ -138,6 +138,52 @@ jobs:
       tag: ${{ inputs.release_tag }}
     secrets: inherit
 
+  restore-dynamodb-from-s3:
+    name: "Restore data from S3 to DynamoDB tables in ${{ needs.metadata.outputs.workspace }}"
+    if: needs.metadata.outputs.workspace != 'default' && needs.metadata.outputs.environment != 'prod'
+    needs:
+      - metadata
+      - manual-approval-application-infra
+      - apply-application-infra
+      - deploy-frontend-services
+    uses: ./.github/workflows/manage-dynamodb-data.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      action: import
+      type: app
+      tag: ${{ inputs.release_tag }}
+    secrets: inherit
+
+  service-automation-tests:
+    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - manual-approval-application-infra
+      - apply-application-infra
+      - deploy-frontend-services
+      - restore-dynamodb-from-s3
+    if: |
+      always() &&
+      !cancelled() &&
+      (
+        needs.restore-dynamodb-from-s3.result == 'success' ||
+        (
+          needs.restore-dynamodb-from-s3.result == 'skipped' &&
+          (needs.export-dynamodb-to-s3.result == 'success' || needs.manual-approval-application-infra.result == 'skipped')
+        )
+      )
+    uses: ./.github/workflows/service-automation-test.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      # commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      tag: ${{ inputs.release_tag }}
+      test_tag: "ftrs-pipeline"
+      test_type: "api"
+      type: app
+    secrets: inherit
+
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:

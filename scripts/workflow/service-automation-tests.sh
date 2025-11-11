@@ -31,8 +31,8 @@ if [ -z "$TEST_TYPE" ] ; then
   EXPORTS_SET=1
 fi
 
-if [ -z "$COMMIT_HASH" ] ; then
-  echo Set COMMIT_HASH
+if [ -z "$COMMIT_HASH" ] && [ -z "$TAG" ]; then
+  echo Set COMMIT_HASH or TAG
   EXPORTS_SET=1
 fi
 
@@ -46,7 +46,7 @@ echo "Now running $TEST_TAG automated tests under $APPLICATION_TEST_DIR for work
 
 cd "$APPLICATION_TEST_DIR" || exit
 
-make test MARKERS="${TEST_TAG}" TEST_TYPE="${TEST_TYPE}" COMMIT_HASH="${COMMIT_HASH}"
+make test MARKERS="${TEST_TAG}" TEST_TYPE="${TEST_TYPE}" COMMIT_HASH="${TAG:-COMMIT_HASH}"
 
 TEST_RESULTS=$?
 
