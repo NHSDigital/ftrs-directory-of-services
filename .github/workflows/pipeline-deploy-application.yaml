@@ -46,7 +46,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'ui']"
       type: app
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
@@ -109,7 +109,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'ui']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: plan
@@ -140,7 +140,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'ui']"
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       action: apply
