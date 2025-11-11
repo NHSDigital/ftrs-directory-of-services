@@ -221,16 +221,10 @@ variable "performance_jwt_dependency_version" {
 }
 
 # Performance S3 bucket names
-variable "performance_parameter_files_bucket_name" {
-  description = "S3 bucket name for performance parameter files"
+variable "performance_files_bucket_name" {
+  description = "S3 bucket name for performance files"
   type        = string
-  default     = "is-performance-parameter-files-bucket"
-}
-
-variable "performance_artifacts_bucket_name" {
-  description = "S3 bucket name for performance artifacts"
-  type        = string
-  default     = "is-performance-artifacts-bucket"
+  default     = "is-performance-files-bucket"
 }
 
 # Performance Secrets

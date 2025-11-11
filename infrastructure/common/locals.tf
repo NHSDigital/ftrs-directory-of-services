@@ -4,7 +4,6 @@ locals {
   artefacts_bucket  = "${var.repo_name}-mgmt-${var.artefacts_bucket_name}"
   resource_prefix   = "${var.project}-${var.environment}-${var.stack_name}"
   account_prefix    = "${var.repo_name}-${var.environment}"
-  repo_env_path     = "${var.repo_name}/${var.environment}"
   root_domain_name  = "${var.environment}.${var.root_domain_name}"
   s3_logging_bucket = "${local.account_prefix}-${var.s3_logging_bucket_name}"
 

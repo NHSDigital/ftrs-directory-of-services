@@ -12,24 +12,16 @@ locals {
   s3_arn_prefix = "arn:aws:s3"
 
   # Performance S3 bucket names (account prefix + provided suffix variables)
-  performance_parameter_files_bucket_name = "${local.account_prefix}-${var.performance_parameter_files_bucket_name}"
-  performance_artifacts_bucket_name       = "${local.account_prefix}-${var.performance_artifacts_bucket_name}"
+  performance_parameter_files_bucket_name = "${local.account_prefix}-${var.performance_files_bucket_name}"
 
   # S3 bucket and object ARNs for IAM policy (composed using prefix to avoid inline arn literal)
-  performance_parameter_files_bucket_arn  = "${local.s3_arn_prefix}:::${local.performance_parameter_files_bucket_name}"
-  performance_artifacts_bucket_arn        = "${local.s3_arn_prefix}:::${local.performance_artifacts_bucket_name}"
-  performance_parameter_files_objects_arn = "${local.s3_arn_prefix}:::${local.performance_parameter_files_bucket_name}/*"
-  performance_artifacts_objects_arn       = "${local.s3_arn_prefix}:::${local.performance_artifacts_bucket_name}/*"
+  performance_files_bucket_arn  = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}"
+  performance_files_objects_arn = "${local.s3_arn_prefix}:::${local.performance_files_bucket_name}/*"
 
-  # Performance Secrets: prefix, paths, and full ARNs for IAM policy
-  performance_secret_prefix                  = "/${local.repo_env_path}/"
-  performance_secret_api_jmeter_pks_key_path = "${local.performance_secret_prefix}${var.performance_secret_api_jmeter_pks_key_name}*"
-  performance_secret_api_ca_cert_path        = "${local.performance_secret_prefix}${var.performance_secret_api_ca_cert_name}*"
-  performance_secret_api_ca_pk_path          = "${local.performance_secret_prefix}${var.performance_secret_api_ca_pk_name}*"
-
-  performance_secret_api_jmeter_pks_key_arn = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.performance_secret_api_jmeter_pks_key_path}"
-  performance_secret_api_ca_cert_arn        = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.performance_secret_api_ca_cert_path}"
-  performance_secret_api_ca_pk_arn          = "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:${local.performance_secret_api_ca_pk_path}"
+  # # Performance Secrets: full ARNs for IAM policy
+  # performance_secret_api_jmeter_pks_key_arn = aws_secretsmanager_secret.api_jmeter_pks_key.performance_secret_api_jmeter_pks_key_arn
+  # performance_secret_api_ca_cert_arn        = aws_secretsmanager_secret.api_ca_cert.performance_secret_api_ca_cert_arn
+  # performance_secret_api_ca_pk_arn          = aws_secretsmanager_secret.api_ca_pk.performance_secret_api_ca_pk_arn
 }
 
 resource "aws_instance" "performance" {
@@ -108,9 +100,8 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:ListBucketMultipartUploads"
     ]
     resources = [
-      # Explicit Performance testing buckets (parameter files + artifacts)
-      local.performance_parameter_files_bucket_arn,
-      local.performance_artifacts_bucket_arn
+      # Explicit Performance testing buckets (parameter files)
+      local.performance_files_bucket_arn
     ]
   }
 
@@ -129,9 +120,8 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:AbortMultipartUpload"
     ]
     resources = [
-      # Objects within the Performance parameter files and artifacts buckets only
-      local.performance_parameter_files_objects_arn,
-      local.performance_artifacts_objects_arn
+      # Objects within the Performance parameter files bucket only
+      local.performance_files_objects_arn
     ]
   }
 }
@@ -152,9 +142,9 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
     ]
     resources = [
       # Explicit secrets required by Performance EC2
-      local.performance_secret_api_jmeter_pks_key_arn,
-      local.performance_secret_api_ca_cert_arn,
-      local.performance_secret_api_ca_pk_arn
+      aws_secretsmanager_secret.api_jmeter_pks_key.arn,
+      aws_secretsmanager_secret.api_ca_cert.arn,
+      aws_secretsmanager_secret.api_ca_pk.arn
     ]
   }
 }
