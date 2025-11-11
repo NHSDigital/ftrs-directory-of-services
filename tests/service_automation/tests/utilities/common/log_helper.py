@@ -17,11 +17,11 @@ class LogVerificationConfig:
 
 def verify_log_reference(
     migration_context: Dict[str, Any],
-    service_id: int,
+    service_id: Optional[int],
     config: LogVerificationConfig,
 ) -> str:
     """
-    Verify that a specific log reference exists for a service.
+    Verify that a specific log reference exists.
 
     Args:
         migration_context: Test context dictionary with captured output
@@ -41,13 +41,19 @@ def verify_log_reference(
     combined_output = stdout + stderr
     output_lines = combined_output.split("\n")
 
-    actual_service_id = migration_context.get("service_id", service_id)
-
     reference_pattern = f'"reference":"{config.log_reference}"'
     message_pattern = config.message_template
-    record_id_pattern = f'"record_id":{actual_service_id}'
 
-    required_patterns = [reference_pattern, message_pattern, record_id_pattern]
+    required_patterns = [reference_pattern, message_pattern]
+
+    if service_id is not None:
+        actual_service_id = migration_context.get("service_id", service_id)
+        record_id_pattern = f'"record_id":{actual_service_id}'
+        required_patterns.append(record_id_pattern)
+        context_info = f"service {actual_service_id}"
+    else:
+        context_info = "pipeline execution"
+
     if config.additional_patterns:
         required_patterns.extend(config.additional_patterns)
 
@@ -58,27 +64,31 @@ def verify_log_reference(
     ]
 
     if not matching_lines:
-        build_and_fail_with_error_message(
+        _fail_with_error_message(
             output_lines=output_lines,
             config=config,
-            service_id=service_id,
-            actual_service_id=actual_service_id,
+            context_info=context_info,
             required_patterns=required_patterns,
         )
 
     matching_log = matching_lines[0].strip()
 
     if config.validation_fn:
-        config.validation_fn(matching_log)
+        try:
+            config.validation_fn(matching_log)
+        except Exception as e:
+            pytest.fail(
+                f"Custom validation failed for {config.log_reference}: {e}\n"
+                f"Log line: {matching_log}"
+            )
 
     return matching_log
 
 
-def build_and_fail_with_error_message(
+def _fail_with_error_message(
     output_lines: list[str],
     config: LogVerificationConfig,
-    service_id: int,
-    actual_service_id: int,
+    context_info: str,
     required_patterns: list[str],
 ) -> None:
     """
@@ -87,9 +97,8 @@ def build_and_fail_with_error_message(
     Args:
         output_lines: All captured output lines
         config: Log verification configuration
-        service_id: Service ID from step parameter
-        actual_service_id: Actual service ID from context
-        required_patterns: List of required patterns that should match
+        context_info: Context description
+        required_patterns: List of required patterns
 
     Raises:
         pytest.fail: Always fails with detailed error message
@@ -99,9 +108,7 @@ def build_and_fail_with_error_message(
     ]
 
     error_parts = [
-        f"{config.log_reference} log not found for:",
-        f"  - Service ID: {service_id}",
-        f"  - Actual Service ID from context: {actual_service_id}",
+        f"{config.log_reference} log not found for {context_info}",
         "",
         "Expected JSON log patterns:",
     ]
@@ -116,13 +123,18 @@ def build_and_fail_with_error_message(
                 f"Found {len(all_reference_logs)} {config.log_reference} log(s):",
             ]
         )
-        error_parts.extend(f"  - {log.strip()}" for log in all_reference_logs)
+        error_parts.extend(f"  - {log.strip()}" for log in all_reference_logs[:5])
+        if len(all_reference_logs) > 5:
+            error_parts.append(f"  ... and {len(all_reference_logs) - 5} more")
     else:
         error_parts.extend(
             [
                 "",
                 f"No {config.log_reference} logs found in captured output.",
+                "",
+                "First 10 output lines:",
             ]
         )
+        error_parts.extend(f"  {line}" for line in output_lines[:10])
 
     pytest.fail("\n".join(error_parts))
