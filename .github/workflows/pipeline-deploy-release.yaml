@@ -6,7 +6,7 @@ on:
   # TODO remove push when not testing
   push:
     branches:
-      - task/FTRS-348_Deploy_release_workflow
+      - task/FTRS-348_Release_work_flow
 
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
