@@ -34,7 +34,7 @@ To be able to run a test plan from the GUI you will need to create a csv file ca
 ```sh
 internal R53 endpoint address, APIM Env address , APIM API Key, kid name
 
-example:
+#example
 test.dev.domain.uk,int.api.service.nhs.uk,tr24234yyr2342,mykid
 ```
 
@@ -84,6 +84,24 @@ To generate a dashboard report in the folder reports based on the result.jtl fil
 jmeter -g result.jtl -f -e -o reports
 ```
 
+### Uploading and downloading files from S3
+To upload a file to an S3 bucket, defaults to the environment parameter file bucket.
+```sh
+make upload-performance-file WORKSPACE=<workspace>/ FILE_PATH=<filepath> FILE=<filename>
+#example
+make upload-performance-file WORKSPACE=ftrs-886/ FILE_PATH=./temp/ FILE=folder_test.txt
+```
+To upload a folder to an S3 bucket, defaults to the environment parameter file bucket.
+```sh
+make upload-performance-folder WORKSPACE=<workspace>/ LOCAL_DIR=<local folder>
+#example
+make upload-performance-folder WORKSPACE=ftrs-886/ LOCAL_DIR=temp
+```
+```sh
+make download-main-performance-files LOCAL_DIR=<local folder>
+#example
+make download-main-performance-files LOCAL_DIR=temp
+```
 
 ### Fetch a single field from a Secrets Manager secret
 Use this target when you only need one value from a secret.
