@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import unquote, urlparse
 
 from aws_lambda_powertools.utilities.data_classes import SQSEvent
+import boto3
 from loguru import logger
 
 from pipeline.application import DataMigrationApplication, DMSEvent
@@ -46,13 +47,6 @@ class MigrationHelper:
         self.environment = environment
         self.workspace = workspace or "test"
 
-        logger.info("=" * 80)
-        logger.info("MigrationHelper initialized with:")
-        logger.info(f"  Environment: {self.environment}")
-        logger.info(f"  Workspace: {self.workspace}")
-        logger.info(f"  DynamoDB Endpoint: {self.dynamodb_endpoint}")
-        logger.info("=" * 80)
-
     def _parse_db_uri(self) -> Dict[str, str]:
         """
         Parse database URI into component parts.
@@ -69,64 +63,6 @@ class MigrationHelper:
             "username": unquote(parsed.username) if parsed.username else "test",
             "password": unquote(parsed.password) if parsed.password else "test",
         }
-
-    def _verify_dynamodb_tables(self, config: DataMigrationConfig) -> None:
-        """
-        Verify that DynamoDB tables exist and are accessible.
-
-        Args:
-            config: Migration configuration with DynamoDB endpoint
-
-        Raises:
-            AssertionError: If tables are not accessible
-        """
-        import boto3
-
-        logger.info("=" * 80)
-        logger.info("VERIFYING DYNAMODB TABLES")
-        logger.info("=" * 80)
-
-        # Create DynamoDB client with test endpoint and dummy credentials
-        dynamodb_client = boto3.client(
-            "dynamodb",
-            endpoint_url=config.dynamodb_endpoint,
-            region_name=os.getenv("AWS_REGION", "eu-west-2"),
-            aws_access_key_id="test",
-            aws_secret_access_key="test",
-        )
-
-        # List available tables
-        try:
-            response = dynamodb_client.list_tables()
-            table_names = response.get("TableNames", [])
-
-            logger.info(f"Found {len(table_names)} DynamoDB tables:")
-            for table in table_names:
-                logger.info(f"  - {table}")
-            logger.info("")
-
-            logger.info("Migration will attempt to use tables with pattern:")
-            logger.info(f"  {{PROJECT_NAME}}-{config.env}-database-{{resource}}-{config.workspace}")
-            logger.info("")
-
-            # Check expected tables
-            expected_resources = ["organisation", "location", "healthcare-service"]
-            expected_tables = [
-                f"ftrs-dos-{config.env}-database-{resource}-{config.workspace}"
-                for resource in expected_resources
-            ]
-
-            logger.info("Expected tables:")
-            for expected in expected_tables:
-                exists = expected in table_names
-                status = "✓ EXISTS" if exists else "✗ MISSING"
-                logger.info(f"  {status}: {expected}")
-
-            logger.info("=" * 80)
-
-        except Exception as e:
-            logger.error(f"Failed to verify DynamoDB tables: {e}", exc_info=True)
-            raise
 
     def _set_localstack_credentials(self) -> None:
         """
@@ -147,8 +83,6 @@ class MigrationHelper:
         if "AWS_SESSION_TOKEN" in os.environ:
             del os.environ["AWS_SESSION_TOKEN"]
 
-        logger.debug("Set dummy AWS credentials for LocalStack")
-
     def _restore_aws_credentials(self) -> None:
         """Restore original AWS credentials."""
         if self._original_aws_access_key:
@@ -163,8 +97,6 @@ class MigrationHelper:
 
         if self._original_aws_session_token:
             os.environ["AWS_SESSION_TOKEN"] = self._original_aws_session_token
-
-        logger.debug("Restored original AWS credentials")
 
     def create_migration_config(self) -> DataMigrationConfig:
         """
@@ -192,17 +124,6 @@ class MigrationHelper:
             workspace=self.workspace,
             dynamodb_endpoint=self.dynamodb_endpoint,
         )
-
-        logger.info("=" * 80)
-        logger.info("DataMigrationConfig created:")
-        logger.info(f"  Environment: {config.env}")
-        logger.info(f"  Workspace: {config.workspace}")
-        logger.info(f"  DynamoDB Endpoint: {config.dynamodb_endpoint}")
-        logger.info(f"  Database: {db_params['host']}:{db_params['port']}/{db_params['dbname']}")
-        logger.info("=" * 80)
-
-        # Verify tables are accessible
-        self._verify_dynamodb_tables(config)
 
         return config
 
@@ -237,7 +158,6 @@ class MigrationHelper:
             return MigrationRunResult(success=True, application=app, metrics=metrics)
 
         except Exception as e:
-            logger.error("Single service migration failed", exc_info=True)
             return MigrationRunResult(success=False, error=str(e), metrics=None)
 
         finally:
@@ -265,7 +185,6 @@ class MigrationHelper:
             return MigrationRunResult(success=True, application=app, metrics=metrics)
 
         except Exception as e:
-            logger.error("Full service migration failed", exc_info=True)
             return MigrationRunResult(success=False, error=str(e), metrics=None)
 
         finally:
@@ -286,34 +205,10 @@ class MigrationHelper:
             # Set LocalStack credentials
             self._set_localstack_credentials()
 
-            logger.info("=" * 80)
-            logger.info("MigrationHelper: Starting SQS event migration")
-            logger.info("=" * 80)
-
-            # Log event structure
-            record_count = len(sqs_event.get("Records", []))
-            event_summary = {
-                "has_records": "Records" in sqs_event,
-                "record_count": record_count,
-                "is_empty": len(sqs_event) == 0,
-            }
-            logger.info(f"Event summary: {event_summary}")
-            logger.info(f"SQS event type: {type(sqs_event)}")
-            logger.info(f"SQS event keys: {list(sqs_event.keys())}")
-
             config = self.create_migration_config()
-            logger.info("Config created successfully")
-
             app = DataMigrationApplication(config=config)
-            logger.info("DataMigrationApplication instantiated")
-
-            logger.info("Wrapping event in SQSEvent object...")
             sqs_event_obj = SQSEvent(sqs_event)
-            logger.info(f"SQSEvent created with {record_count} record(s)")
-
-            logger.info("Calling handle_sqs_event()...")
             app.handle_sqs_event(sqs_event_obj)
-            logger.info("handle_sqs_event() completed")
 
             metrics = None
             if hasattr(app, "processor") and app.processor:
@@ -322,35 +217,9 @@ class MigrationHelper:
             else:
                 logger.warning("app.processor not found or is None")
 
-            if metrics:
-                logger.info("METRICS CAPTURED:")
-                logger.info(f"  Total: {metrics.total_records}")
-                logger.info(f"  Supported: {metrics.supported_records}")
-                logger.info(f"  Unsupported: {metrics.unsupported_records}")
-                logger.info(f"  Transformed: {metrics.transformed_records}")
-                logger.info(f"  Migrated: {metrics.migrated_records}")
-                logger.info(f"  Skipped: {metrics.skipped_records}")
-                logger.info(f"  Errors: {metrics.errors}")
-            else:
-                logger.error("METRICS ARE NONE!")
-
-            logger.info("=" * 80)
-            logger.info("SQS event migration completed")
-            logger.info("=" * 80)
-
             return MigrationRunResult(success=True, application=app, metrics=metrics)
 
         except Exception as e:
-            logger.error("=" * 80)
-            logger.error("SQS event migration failed")
-            logger.error("=" * 80)
-            logger.error(f"Error type: {type(e).__name__}")
-            logger.error(f"Error message: {str(e)}", exc_info=True)
-
-            import traceback
-
-            logger.error(f"Full traceback:\n{traceback.format_exc()}")
-
             return MigrationRunResult(success=False, error=str(e), metrics=None)
 
         finally:
