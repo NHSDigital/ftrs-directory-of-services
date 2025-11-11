@@ -3,10 +3,6 @@ name: Deploy release to environment
 # TODO when testing complete remove conditional set of default for environment eg || 'dev'}}
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
-  # TODO remove push when not testing
-  push:
-    branches:
-      - task/FTRS-348_Release_work_flow
 
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
@@ -37,7 +33,7 @@ jobs:
       - name: "Validate release tag"
         id: validate
         run: |
-          RELEASE_TAG="${{ inputs.release_tag || 'v1.1.0' }}"
+          RELEASE_TAG="${{ inputs.release_tag }}"
           if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid release tag format: $RELEASE_TAG"
             exit 1
@@ -51,76 +47,70 @@ jobs:
     needs:
       - validate-release-tag
 
-# TODO restore when ready for account wide infra deployment
   update-account-wide-policies:
-    name: "Update account wide policies in ${{ inputs.environment || 'test' }} using release ${{ inputs.release_tag || 'v1.1.0' }}"
+    name: "Update account wide policies in ${{ inputs.environment }} using release ${{ inputs.release_tag }}"
     needs:
       - metadata
     uses: ./.github/workflows/pipeline-deploy-policies.yaml
     with:
-      environment: ${{ inputs.environment || 'test' }}
-      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      environment: ${{ inputs.environment }}
+      tag: ${{ inputs.release_tag }}
     secrets: inherit
 
   update-account-wide-infrastructure:
-    name: "Update account wide infrastructure in ${{ inputs.environment || 'test' }} using release ${{ inputs.release_tag || 'v1.1.0' }}"
+    name: "Update account wide infrastructure in ${{ inputs.environment }} using release ${{ inputs.release_tag }}"
     needs:
       - metadata
       - update-account-wide-policies
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
-      environment: ${{ inputs.environment || 'test' }}
+      environment: ${{ inputs.environment }}
 
-      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      tag: ${{ inputs.release_tag }}
     secrets: inherit
 
   plan-application-infra:
-    name: "Plan application infrastructure deployment to ${{ inputs.environment || 'test' }} for release ${{ inputs.release_tag || 'v1.1.0' }}"
+    name: "Plan application infrastructure deployment to ${{ inputs.environment }} for release ${{ inputs.release_tag }}"
     concurrency:
-      group: "${{ inputs.environment || 'test' }}-${{ inputs.release_tag || 'v1.1.0'}}"
+      group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
       cancel-in-progress: false
     needs:
-      # TODO check need for metadata
-      # - metadata
-      # TODO replace with apply account wide infra when testing complete
       - validate-release-tag
       - update-account-wide-infrastructure
-      # - plan-account-wide-infra
-      # - apply-account-wide-infra
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      environment: ${{ inputs.environment || 'test' }}
+      environment: ${{ inputs.environment }}
       workspace: default
-      application_tag: ${{ inputs.release_tag || 'v1.1.0' }}
-      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      application_tag: ${{ inputs.release_tag }}
+      tag: ${{ inputs.release_tag }}
       action: plan
       type: app
     secrets: inherit
 
   manual-approval-application-infra:
-    name: "Manual approval for deployment of application release ${{ inputs.release_tag || 'v1.1.0' }} to ${{ inputs.environment || 'test' }}"
+    name: "Manual approval for deployment of application release ${{ inputs.release_tag }} to ${{ inputs.environment }}"
     if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
     needs:
       - plan-application-infra
     runs-on: ubuntu-latest
-    environment: "${{ inputs.environment || 'test' }}-protected"
+    environment: "${{ inputs.environment }}-protected"
     steps:
       - name: Approval required
-        run: echo "Deployment of application infra for release ${{ inputs.release_tag || 'v1.1.0' }} to ${{ inputs.environment || 'test' }} paused for manual approval. Please approve in the Actions tab."
+        run: echo "Deployment of application infra for release ${{ inputs.release_tag }} to ${{ inputs.environment }} paused for manual approval. Please approve in the Actions tab."
 
   apply-application-infra:
-    name: "Apply application infrastructure deployment to ${{ inputs.environment || 'test' }} for release ${{ inputs.release_tag || 'v1.1.0' }}"
+    name: "Apply application infrastructure deployment to ${{ inputs.environment }} for release ${{ inputs.release_tag }}"
     concurrency:
-      group: "${{ inputs.environment || 'test' }}-${{ inputs.release_tag || 'v1.1.0' }}"
+      group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
       cancel-in-progress: false
     needs:
       - manual-approval-application-infra
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      environment: ${{ inputs.environment || 'test' }}
+      environment: ${{ inputs.environment }}
       workspace: default
-      application_tag: ${{ inputs.release_tag || 'v1.1.0' }}
-      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      application_tag: ${{ inputs.release_tag }}
+      tag: ${{ inputs.release_tag }}
       action: apply
       type: app
       workflow_timeout: 30
@@ -146,11 +136,11 @@ jobs:
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ inputs.environment || 'test' }}
+      environment: ${{ inputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default
-      application_tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      application_tag: ${{ inputs.release_tag }}
       release_build: true
       type: "app"
-      tag: ${{ inputs.release_tag || 'v1.1.0' }}
+      tag: ${{ inputs.release_tag }}
     secrets: inherit
