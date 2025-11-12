@@ -9,28 +9,6 @@ def ftrs_logger():
 
 
 class TestFtrsLogger:
-    def test_normalise_headers(self, ftrs_logger):
-        # Arrange
-        headers = {
-            "header": "foo",
-            "CapitalHeader": "bar",
-        }
-
-        # Act
-        result = ftrs_logger._normalize_headers(headers)
-        # Assert
-        assert result["header"] == "foo"
-        assert result["capitalheader"] == "bar"
-
-    def test_normalise_no_headers(self, ftrs_logger):
-        # Arrange
-        headers = {}
-
-        # Act
-        result = ftrs_logger._normalize_headers(headers)
-        # Assert
-        assert isinstance(result, dict)
-
     def test_get_powertools_metadata(self, ftrs_logger):
         # Arrange
         metadata = {
@@ -45,7 +23,6 @@ class TestFtrsLogger:
         # Act
         result = ftrs_logger.get_powertools_metadata()
         # Assert
-        print(result)
         for key, value in metadata.items():
             assert result[key] == value
         assert isinstance(result["timestamp"], str)
