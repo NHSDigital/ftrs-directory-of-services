@@ -67,7 +67,7 @@ jobs:
       stacks: ${{ inputs.stacks }}
       application_tag: ${{ inputs.release_tag  }}
       commit_hash: ${{ inputs.commit_hash }}
-      release_tag: ${{ inputs.release_tag }}
+      tag: ${{ inputs.release_tag }}
       action: ${{ inputs.action }}
       type: ${{ inputs.type }}
     secrets: inherit
