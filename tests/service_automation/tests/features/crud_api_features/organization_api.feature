@@ -91,10 +91,10 @@ Feature: Organization API Endpoint
 
     Examples:
       | field   | value           | field_path       | invalid_value   |
-      | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
-      | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
-      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH SURGERY |
-      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#SURGERY  |
+      | name    | BRANCH*SURGERY  | name             | Branch*Surgery  |
+      | name    | BRANCH SURGERY$ | name             | Branch Surgery$ |
+      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH Surgery |
+      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#Surgery  |
       | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
 
   Scenario Outline: Update Organization with missing "<field>" field
