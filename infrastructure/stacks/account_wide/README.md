@@ -1,5 +1,4 @@
 # Account-Wide Infrastructure
-#
 
 Infrastructure that is deployed once per environment inside an account.
 
@@ -66,11 +65,6 @@ Set these in your environment tfvars, for example `infrastructure/environments/d
   - Run `jmeter -v` or execute tests with `jmeter-run` as needed
   - Inspect `/var/log/user-data.log` for provisioning details
 
-### Outputs
-
-- `performance_instance_id`
-- `performance_private_ip`
-- `performance_security_group_id`
 
 ### Notes on NTP configuration
 
