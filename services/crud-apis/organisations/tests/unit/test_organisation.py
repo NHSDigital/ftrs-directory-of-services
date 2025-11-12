@@ -337,7 +337,7 @@ def test_update_organisation_missing_required_field() -> None:
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
         ],
-        "name": "ABC",
+        "active": True,
         "telecom": [{"system": "phone", "value": "0123456789"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
@@ -365,7 +365,7 @@ def test_update_organisation_missing_required_field() -> None:
                             "value": "12345",
                         }
                     ],
-                    "name": "ABC",
+                    "active": True,
                     "telecom": [{"system": "phone", "value": "0123456789"}],
                     "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
                 },
