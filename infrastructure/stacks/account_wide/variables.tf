@@ -226,23 +226,3 @@ variable "performance_files_bucket_name" {
   type        = string
   default     = "is-performance-files-bucket"
 }
-
-# Performance Secrets
-variable "performance_secret_api_jmeter_pks_key_name" {
-  description = "Secret name for API JMeter PKS key"
-  type        = string
-  default     = "api-jmeter-pks-key"
-}
-
-variable "performance_secret_api_ca_cert_name" {
-  description = "Secret name for API CA certificate"
-  type        = string
-  default     = "api-ca-cert"
-}
-
-variable "performance_secret_api_ca_pk_name" {
-  description = "Secret name for API CA private key"
-  type        = string
-  default     = "api-ca-pk"
-}
-
