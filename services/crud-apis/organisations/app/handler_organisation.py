@@ -36,10 +36,9 @@ app.include_router(organisation.router)
 
 def handler(event: dict, context: LambdaContext) -> dict:
     headers = event.get("headers", {})
-    product_id = headers.get("NHSE-Product-ID") or headers.get("nhse-product-id")
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_TEMP,
-        product_id=product_id,
+        product_id=headers,
     )
     fetch_or_set_request_id(
         context_id=getattr(context, "aws_request_id", None) if context else None,
