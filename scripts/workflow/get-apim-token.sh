@@ -21,10 +21,8 @@ import jwt
 import time
 import sys
 import os
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
 
-def create_signed_jwt(private_key_pem, kid, client_id, token_url):
+def create_signed_jwt(private_key, kid, client_id, token_url):
     """Create a signed JWT for APIM authentication"""
     try:
         # Set JWT claims
