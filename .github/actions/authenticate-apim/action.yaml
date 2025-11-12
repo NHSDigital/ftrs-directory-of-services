@@ -34,12 +34,12 @@ runs:
     - name: Run Authentication Script
       id: authenticate
       shell: bash
-      env:
-        PRIVATE_KEY: ${{ inputs.private_key }}
-        KID: ${{ inputs.kid }}
-        CLIENT_ID: ${{ inputs.client_id }}
-        TOKEN_URL: ${{ inputs.token_url }}
       run: |
+        export PRIVATE_KEY='${{ inputs.private_key }}'
+        export KID='${{ inputs.kid }}'
+        export CLIENT_ID='${{ inputs.client_id }}'
+        export TOKEN_URL='${{ inputs.token_url }}'
+
         chmod +x ./scripts/workflow/get-apim-token.sh
         ACCESS_TOKEN=/bin/bash ./scripts/workflow/get-apim-token.sh
 
