@@ -27,13 +27,6 @@ from cryptography.hazmat.backends import default_backend
 def create_signed_jwt(private_key_pem, kid, client_id, token_url):
     """Create a signed JWT for APIM authentication"""
     try:
-        # Load the private key from PEM format
-        private_key = serialization.load_pem_private_key(
-            private_key_pem.encode('utf-8'),
-            password=None,
-            backend=default_backend()
-        )
-
         # Set JWT claims
         current_time = int(time.time())
         payload = {
