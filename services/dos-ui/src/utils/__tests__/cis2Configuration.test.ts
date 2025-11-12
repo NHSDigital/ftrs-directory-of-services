@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { getAuthConfig, validateConfig } from "../cis2Configuration.ts";
+import { getawsSecret } from "../aws-util.ts";
+import {
+  getAuthConfig,
+  getCIS2PrivateKey,
+  validateConfig,
+} from "../cis2Configuration";
 
 vi.mock("../aws-util.ts", () => ({
   getawsParameter: vi.fn(async () =>
@@ -10,6 +15,12 @@ vi.mock("../aws-util.ts", () => ({
       scope: "openid",
     }),
   ),
+  getawsSecret: vi.fn(),
+}));
+
+vi.mock("jose", async () => ({
+  ...(await vi.importActual("jose")),
+  importPKCS8: vi.fn(async () => "mocked-crypto-key"),
 }));
 
 describe("validateConfig", () => {
@@ -21,7 +32,9 @@ describe("validateConfig", () => {
         redirectUri: "",
         scope: "",
       }),
-    ).toThrow();
+    ).toThrowError(
+      "Invalid CIS2ClientConfig: issuerUrl and clientId are required",
+    );
   });
   it("does not throw if config is valid", () => {
     expect(() =>
@@ -40,5 +53,22 @@ describe("getAuthConfig", () => {
     const config = await getAuthConfig();
     expect(config.issuerUrl).toBe("http://issuer");
     expect(config.clientId).toBe("client-id");
+  });
+});
+
+describe("getCIS2PrivateKey", () => {
+  it("throws error if private key not found", async () => {
+    vi.mocked(getawsSecret).mockResolvedValueOnce(undefined);
+    await expect(getCIS2PrivateKey()).rejects.toThrow(
+      "CIS2 Private Key not found",
+    );
+  });
+
+  it("returns imported CryptoKey", async () => {
+    vi.mocked(getawsSecret).mockResolvedValueOnce("mocked-pem-key");
+    const key = await getCIS2PrivateKey();
+    expect(key).toBe("mocked-crypto-key");
+    const { importPKCS8 } = await import("jose");
+    expect(importPKCS8).toHaveBeenCalledWith("mocked-pem-key", "RS512");
   });
 });
