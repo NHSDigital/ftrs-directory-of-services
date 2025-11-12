@@ -45,7 +45,7 @@ jobs:
       - validate-release-tag
 
   deploy-account-wide-policies:
-    name: "Update account wide policies in ${{ inputs.environment }} using release ${{ inputs.release_tag }}"
+    name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
       - metadata
     uses: ./.github/workflows/pipeline-deploy-policies.yaml
@@ -67,7 +67,7 @@ jobs:
     secrets: inherit
 
   plan-application-infra:
-    name: "Plan application infrastructure deployment to ${{ inputs.environment }} for release ${{ inputs.release_tag }}"
+    name: "Plan application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
       cancel-in-progress: false
@@ -84,7 +84,7 @@ jobs:
     secrets: inherit
 
   manual-approval-application-infra:
-    name: "Manual approval for deployment of application release ${{ inputs.release_tag }} to ${{ inputs.environment }}"
+    name: "Manual approval for deployment of application release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
     needs:
       - plan-application-infra
@@ -95,7 +95,7 @@ jobs:
         run: echo "Deployment of application infra for release ${{ inputs.release_tag }} to ${{ inputs.environment }} paused for manual approval. Please approve in the Actions tab."
 
   apply-application-infra:
-    name: "Apply application infrastructure deployment to ${{ inputs.environment }} for release ${{ inputs.release_tag }}"
+    name: "Apply application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
       cancel-in-progress: false
