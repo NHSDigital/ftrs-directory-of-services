@@ -76,8 +76,8 @@ Feature: Organization API Endpoint
 
     Examples:
       | field   | value                           |
-      | name    | MEDICAL PRACTICE - !COVID LOCAL |
-      | type    | !SURGERY                        |
+      | name    | Medical Practice - !Covid Local |
+      | type    | !Surgery                        |
       | telecom | 9876543210(                     |
 
   Scenario Outline: Reject Organization update with invalid special characters in specific fields
@@ -91,10 +91,10 @@ Feature: Organization API Endpoint
 
     Examples:
       | field   | value           | field_path       | invalid_value   |
-      | name    | BRANCH*SURGERY  | name             | Branch*Surgery  |
-      | name    | BRANCH SURGERY$ | name             | Branch Surgery$ |
-      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH Surgery |
-      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#Surgery  |
+      | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
+      | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
+      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH SURGERY |
+      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#SURGERY  |
       | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
 
   Scenario Outline: Update Organization with missing "<field>" field
