@@ -17,8 +17,11 @@ fi
 
 # Create Python script for JWT generation
 cat > /tmp/create_jwt.py << 'PYTHON_SCRIPT'
+import uuid
+from time import time
+
+import requests
 import jwt
-import time
 import sys
 import os
 
