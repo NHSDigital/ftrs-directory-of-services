@@ -30,6 +30,16 @@ on:
           - sandpit
           - int
           - prod
+  workflow_call:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: false
+        type: string
+      environment:
+        description: "Deployment environment"
+        required: true
+        type: string
 
 jobs:
   metadata:
@@ -46,6 +56,7 @@ jobs:
       workspace: "default"
       stacks: "['github_runner','account_policies']"
       type: account
+      build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 
   plan-permissions-infrastructure:

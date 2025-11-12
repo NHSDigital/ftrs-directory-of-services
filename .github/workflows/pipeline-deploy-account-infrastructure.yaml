@@ -41,6 +41,16 @@ on:
           - sandpit
           - int
           - prod
+  workflow_call:
+    inputs:
+      tag:
+        description: "Specify the tag to be used for deployment"
+        required: false
+        type: string
+      environment:
+        description: "Deployment environment"
+        required: true
+        type: string
 
 concurrency:
   group: account-infrastructure-${{ github.ref }}
@@ -62,6 +72,8 @@ jobs:
       workspace: "default"
       stacks: "['terraform_management','account_wide','artefact_management','domain_name','logging','account_security']"
       type: account
+      build_datetime: ${{ needs.metadata.outputs.build_datetime }}
+      build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 
   plan-infrastructure:
