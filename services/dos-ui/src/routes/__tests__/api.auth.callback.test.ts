@@ -498,6 +498,528 @@ describe("api.auth.callback route", () => {
         })
       );
     });
+
+    it("should handle userinfo with non-array nhsid fields", async () => {
+      const invalidUserInfo = {
+        sub: "user-789",
+        nhsid_nrbac_roles: "not-an-array",
+        nhsid_org_memberships: "not-an-array",
+        nhsid_user_orgs: "not-an-array",
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(invalidUserInfo);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            rbacRoles: [],
+            orgMemberships: [],
+            userOrgs: [],
+          }),
+        })
+      );
+    });
+
+    it("should handle userinfo with roles missing all optional fields", async () => {
+      const roleWithMissingFields = {
+        sub: "user-890",
+        nhsid_nrbac_roles: [{}],
+        nhsid_org_memberships: [{}],
+        nhsid_user_orgs: [{}],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(roleWithMissingFields);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            selectedRoleID: "",
+            rbacRoles: [
+              {
+                personOrgID: "",
+                personRoleID: "",
+                orgCode: "",
+                roleName: "",
+              },
+            ],
+            orgMemberships: [
+              {
+                personOrgID: "",
+                orgName: "",
+                orgCode: "",
+              },
+            ],
+            userOrgs: [
+              {
+                orgCode: "",
+                orgName: "",
+              },
+            ],
+          }),
+        })
+      );
+    });
+
+    it("should use empty string for displayName when all name fields are missing", async () => {
+      const userInfoNoNames = {
+        sub: "user-999",
+        nhsid_nrbac_roles: [],
+        nhsid_org_memberships: [],
+        nhsid_user_orgs: [],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(userInfoNoNames);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            displayName: "",
+          }),
+        })
+      );
+    });
+
+    it("should handle error with body and data properties", async () => {
+      const errorWithBodyAndData = {
+        message: "Error with body",
+        body: { detail: "Body error details" },
+        data: { info: "Data error info" },
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithBodyAndData);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          body: { detail: "Body error details" },
+          data: { info: "Data error info" },
+        })
+      );
+    });
+
+    it("should handle error with status and statusCode properties", async () => {
+      const errorWithStatus = {
+        message: "Status error",
+        status: 403,
+        statusCode: 403,
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithStatus);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          status: 403,
+          statusCode: 403,
+        })
+      );
+    });
+
+    it("should handle error with url and config properties", async () => {
+      const errorWithUrl = {
+        message: "URL error",
+        url: "https://auth.example.com/token",
+        config: { url: "https://auth.example.com/token" },
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithUrl);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          url: "https://auth.example.com/token",
+          requestUrl: "https://auth.example.com/token",
+        })
+      );
+    });
+
+    it("should handle non-Error object without message", async () => {
+      const nonErrorObject = {
+        someProperty: "value",
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(nonErrorObject);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          message: "Unknown error",
+        })
+      );
+    });
+
+    it("should handle error with only name but missing given_name and family_name", async () => {
+      const userInfoOnlyName = {
+        sub: "user-111",
+        name: "Only Name",
+        nhsid_nrbac_roles: [],
+        nhsid_org_memberships: [],
+        nhsid_user_orgs: [],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(userInfoOnlyName);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            displayName: "Only Name",
+          }),
+        })
+      );
+    });
+
+    it("should trim whitespace when constructing name from given_name and family_name", async () => {
+      const userInfoWithSpaces = {
+        sub: "user-222",
+        given_name: "  John  ",
+        family_name: "  Doe  ",
+        nhsid_nrbac_roles: [],
+        nhsid_org_memberships: [],
+        nhsid_user_orgs: [],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(userInfoWithSpaces);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            displayName: "John     Doe",
+          }),
+        })
+      );
+    });
+
+    it("should handle userinfo with only given_name", async () => {
+      const userInfoOnlyGivenName = {
+        sub: "user-333",
+        given_name: "Alice",
+        nhsid_nrbac_roles: [],
+        nhsid_org_memberships: [],
+        nhsid_user_orgs: [],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(userInfoOnlyGivenName);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            displayName: "Alice",
+          }),
+        })
+      );
+    });
+
+    it("should handle userinfo with only family_name", async () => {
+      const userInfoOnlyFamilyName = {
+        sub: "user-444",
+        family_name: "Smith",
+        nhsid_nrbac_roles: [],
+        nhsid_org_memberships: [],
+        nhsid_user_orgs: [],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(userInfoOnlyFamilyName);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            displayName: "Smith",
+          }),
+        })
+      );
+    });
+
+    it("should handle error without stack property", async () => {
+      const errorWithoutStack = {
+        message: "Error without stack",
+        name: "CustomError",
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithoutStack);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          message: "Unknown error",
+          stack: undefined,
+        })
+      );
+    });
+
+    it("should handle error with null response properties", async () => {
+      const errorWithNullResponse = {
+        message: "Error message",
+        response: null,
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithNullResponse);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          message: "Unknown error",
+        })
+      );
+    });
+
+    it("should handle error with undefined error properties", async () => {
+      const errorWithUndefinedProps = {
+        error: undefined,
+        error_description: undefined,
+        error_uri: undefined,
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithUndefinedProps);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          message: "Unknown error",
+        })
+      );
+    });
+
+    it("should handle error with null body and data", async () => {
+      const errorWithNullBodyData = {
+        message: "Error",
+        body: null,
+        data: null,
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithNullBodyData);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          message: "Unknown error",
+        })
+      );
+    });
+
+    it("should handle error with config but no url property", async () => {
+      const errorWithConfigNoUrl = {
+        message: "Config error",
+        config: { method: "POST" },
+      };
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithConfigNoUrl);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          message: "Unknown error",
+        })
+      );
+    });
+
+    it("should handle empty string values in role fields", async () => {
+      const roleWithEmptyStrings = {
+        sub: "user-555",
+        nhsid_nrbac_roles: [{
+          person_orgid: "",
+          person_roleid: "",
+          org_code: "",
+          role_name: "",
+        }],
+        nhsid_org_memberships: [],
+        nhsid_user_orgs: [],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(roleWithEmptyStrings);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            selectedRoleID: "",
+            rbacRoles: [{
+              personOrgID: "",
+              personRoleID: "",
+              orgCode: "",
+              roleName: "",
+            }],
+          }),
+        })
+      );
+    });
+
+    it("should handle null values in role fields", async () => {
+      const roleWithNulls = {
+        sub: "user-666",
+        nhsid_nrbac_roles: [{
+          person_orgid: null,
+          person_roleid: null,
+          org_code: null,
+          role_name: null,
+        }],
+        nhsid_org_memberships: [{
+          person_orgid: null,
+          org_name: null,
+          org_code: null,
+        }],
+        nhsid_user_orgs: [{
+          org_code: null,
+          org_name: null,
+        }],
+      };
+      (client.fetchUserInfo as Mock).mockResolvedValue(roleWithNulls);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+      await handler!({ request } as any);
+
+      expect(mockSessionManager.updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            selectedRoleID: "",
+            rbacRoles: [{
+              personOrgID: "",
+              personRoleID: "",
+              orgCode: "",
+              roleName: "",
+            }],
+            orgMemberships: [{
+              personOrgID: "",
+              orgName: "",
+              orgCode: "",
+            }],
+            userOrgs: [{
+              orgCode: "",
+              orgName: "",
+            }],
+          }),
+        })
+      );
+    });
+
+    it("should handle error properties with constructor without name", async () => {
+      const errorWithoutConstructorName = {
+        message: "Test error",
+      };
+      Object.defineProperty(errorWithoutConstructorName, 'constructor', {
+        value: {},
+        configurable: true,
+      });
+      (client.authorizationCodeGrant as Mock).mockRejectedValue(errorWithoutConstructorName);
+
+      const request = new Request(
+        "http://localhost:3000/api/auth/callback?code=test-code&state=test-state"
+      );
+
+      const handler = getHandler();
+
+      await expect(handler!({ request } as any)).rejects.toThrow();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Token exchange failed",
+        expect.objectContaining({
+          message: "Unknown error",
+        })
+      );
+    });
   });
 });
 
