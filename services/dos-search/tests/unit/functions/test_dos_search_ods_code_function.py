@@ -70,21 +70,18 @@ def bundle():
 def log_data():
     return {
         "ftrs_nhsd_correlation_id": "FTRS_LOG_PLACEHOLDER",
-        "nhsd_correlation_id": "FTRS_LOG_PLACEHOLDER",
         "ftrs_nhsd_request_id": "FTRS_LOG_PLACEHOLDER",
-        "nhsd_request_id": "FTRS_LOG_PLACEHOLDER",
         "ftrs_message_id": "FTRS_LOG_PLACEHOLDER",
-        "nhsd_message_id": "FTRS_LOG_PLACEHOLDER",
         "ftrs_message_category": "LOGGING",
-        "ftrs_environment": "dos-search",
+        "ftrs_environment": "FTRS_LOG_PLACEHOLDER",
         "ftrs_api_version": "FTRS_LOG_PLACEHOLDER",
         "ftrs_lambda_version": "FTRS_LOG_PLACEHOLDER",
         "ftrs_response_time": "FTRS_LOG_PLACEHOLDER",
         "ftrs_response_size": "FTRS_LOG_PLACEHOLDER",
-        "Opt_ftrs_end_user_role": "FTRS_LOG_PLACEHOLDER",
-        "Opt_ftrs_client_id": "FTRS_LOG_PLACEHOLDER",
-        "Opt_ftrs_application_name": "FTRS_LOG_PLACEHOLDER",
-        "Opt_ftrs_request_parms": {},
+        "ftrs_end_user_role": "FTRS_LOG_PLACEHOLDER",
+        "ftrs_client_id": "FTRS_LOG_PLACEHOLDER",
+        "ftrs_application_name": "FTRS_LOG_PLACEHOLDER",
+        "ftrs_request_parms": {},
     }
 
 
@@ -146,6 +143,7 @@ class TestLambdaHandler:
                     ftrs_response_size=ANY,
                 ),
                 call.info("Creating response", log_data=None, status_code=200),
+                call.clear_log_data(),
             ]
         )
 
@@ -179,6 +177,7 @@ class TestLambdaHandler:
                     validation_errors=validation_error.errors(),
                 ),
                 call.info("Creating response", log_data=None, status_code=400),
+                call.clear_log_data(),
             ]
         )
 
@@ -208,7 +207,6 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_error_util.create_resource_internal_server_error.assert_called_once()
 
-        (print("Test easily searchable: ", event),)
         mock_logger.assert_has_calls(
             [
                 call.info(
@@ -216,6 +214,7 @@ class TestLambdaHandler:
                 ),
                 call.exception("Internal server error occurred", log_data=log_data),
                 call.info("Creating response", log_data=None, status_code=500),
+                call.clear_log_data(),
             ]
         )
 
