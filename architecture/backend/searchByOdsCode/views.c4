@@ -1,0 +1,19 @@
+views {
+
+  view of ftrs.searchByTriageCodeAPI {
+    title "FTRS CRUD APIs"
+    description '
+      APIs for CRUD operations on the Organizations table
+      and to retrieve data for the Healthcare Service dashboard
+    '
+    include *
+    include ftrs.openSearch
+    include ftrs.db
+
+    include ftrs
+    include apim.dosSearchProxy
+    include ftrs.db.locationTable
+    exclude ftrs.gpSearchApi
+    autoLayout LeftRight 70 77
+  }
+}

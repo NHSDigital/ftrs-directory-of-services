@@ -1,0 +1,26 @@
+views {
+
+  view of ftrs.etlOds {
+    title "Container diagram for ODS ETL with API-M"
+    description '
+      A model showing the containers for FtRS ODS ETL process.
+      All externally facing APIs are accessed through API-M
+    '
+    include ftrs.openSearch
+
+    include ftrs
+    include ftrs.etlOds
+    include ftrs.etlOds.processor
+    include ftrs.etlOds.queue
+    include ftrs.etlOds.consumer
+    include odsService
+
+    include ftrs.db
+    include apim.dosIngressProxy
+
+    include ftrs.organizationAPI
+    include ftrs.db.orgTable
+
+    autoLayout LeftRight 70 77
+  }
+}

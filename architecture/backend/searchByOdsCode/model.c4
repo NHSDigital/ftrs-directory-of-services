@@ -1,0 +1,21 @@
+model {
+
+  extend ftrs {
+
+    lambda searchByTriageCodeAPI "Search by Triage Code API" {
+      description '
+        /search-by-triage-code
+        API for searching locations by triage code
+      '
+      lambda search "GET /location/triage-code/{triage_code}" {
+        description 'Retrieves services by triage code'
+      }
+
+    }
+  }
+
+  apim.dosSearchProxy -> searchByTriageCodeAPI "Proxies calls to"
+
+  search -> ftrs.openSearch "Queries data from"
+
+}
