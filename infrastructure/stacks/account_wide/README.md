@@ -65,7 +65,6 @@ Set these in your environment tfvars, for example `infrastructure/environments/d
   - Run `jmeter -v` or execute tests with `jmeter-run` as needed
   - Inspect `/var/log/user-data.log` for provisioning details
 
-
 ### Notes on NTP configuration
 
 - Best practice is to restrict NTP to the AWS-provided link-local time sync endpoint, but where referencing a literal IP in code is prohibited, this configuration uses `0.0.0.0/0` for UDP 123 egress and the corresponding inbound ephemeral range in NACLs
