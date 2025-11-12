@@ -26,28 +26,17 @@ def create_signed_jwt(private_key, kid, client_id, token_url):
     """Create a signed JWT for APIM authentication"""
     try:
         # Set JWT claims
-        current_time = int(time.time())
-        payload = {
-            'iss': client_id,
-            'sub': client_id,
-            'aud': token_url,
-            'exp': current_time + 300,  # 5 minutes expiry
-            'iat': current_time,
-            'jti': f"{client_id}-{current_time}"
-        }
 
-        # Create signed JWT
-        headers = {
-            'kid': kid,
-            'alg': 'RS256',
-            'typ': 'JWT'
+        claims = {
+            "sub": client_id,
+            "iss": client_id,
+            "jti": str(uuid.uuid4()),
+            "aud": token_url,
+            "exp": int(time()) + 300,
         }
 
         signed_jwt = jwt.encode(
-            payload,
-            private_key,
-            algorithm='RS256',
-            headers=headers
+          claims, private_key, algorithm="RS512", headers={'kid': KID}
         )
 
         return signed_jwt
