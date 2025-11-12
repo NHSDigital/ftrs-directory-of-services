@@ -534,7 +534,6 @@ components:
         - id
         - resourceType
         - meta
-        - active
         - name
         - type
         - identifier
