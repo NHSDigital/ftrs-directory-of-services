@@ -219,3 +219,10 @@ variable "performance_jwt_dependency_version" {
   type        = string
   default     = "4.5.0"
 }
+
+# Performance S3 bucket names
+variable "performance_files_bucket_name" {
+  description = "S3 bucket name for performance files"
+  type        = string
+  default     = "is-performance-files-bucket"
+}
