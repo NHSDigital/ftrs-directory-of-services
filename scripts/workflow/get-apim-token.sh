@@ -39,7 +39,7 @@ def create_signed_jwt(private_key, kid, client_id, token_url):
         }
 
         signed_jwt = jwt.encode(
-          claims, private_key, algorithm="RS512", headers={'kid': KID}
+          claims, private_key, algorithm="RS512", headers={'kid': kid}
         )
 
         return signed_jwt
