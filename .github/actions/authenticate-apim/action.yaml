@@ -8,8 +8,11 @@ inputs:
   kid:
     description: 'Key ID for JWT signing'
     required: true
-  api_id:
-    description: 'API/Client ID for authentication'
+  client_id:
+    description: 'Client ID for APIM authentication'
+    required: true
+  token_url:
+    description: 'Token URL for APIM authentication'
     required: true
 
 outputs:
@@ -35,10 +38,10 @@ runs:
       id: authenticate
       shell: bash
       run: |
-        export PRIVATE_KEY='${{ inputs.private_key }}'
-        export KID='${{ inputs.kid }}'
-        export CLIENT_ID='${{ inputs.client_id }}'
-        export TOKEN_URL='${{ inputs.token_url }}'
+        export PRIVATE_KEY="::add-mask::${{ inputs.private_key }}"
+        export KID="::add-mask::${{ inputs.kid }}"
+        export CLIENT_ID="::add-mask::${{ inputs.client_id }}"
+        export TOKEN_URL="::add-mask::${{ inputs.token_url }}"
 
         chmod +x ./scripts/workflow/get-apim-token.sh
         ACCESS_TOKEN=/bin/bash ./scripts/workflow/get-apim-token.sh
