@@ -14,7 +14,7 @@ from utilities.common.gherkin_helper import parse_gherkin_table
 from utilities.common.log_helper import LogVerificationConfig, verify_log_reference
 from utilities.common.migration_helper import MigrationHelper
 
-scenarios("../../tests/features/data_migration_features/run_data_migration.feature")
+scenarios("../../tests/features/data_migration_features/single_service_migration_success.feature")
 
 # NOTE: tests successfully run when there is only one scenario in the feature file
 # BUT: tests do not all run successfully when all in one feature file, only the first one does

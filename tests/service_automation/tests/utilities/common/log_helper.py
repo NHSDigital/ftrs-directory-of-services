@@ -35,11 +35,15 @@ def verify_log_reference(
         pytest.fail: If log not found or validation fails
     """
     captured_output = migration_context.get("captured_output", {})
-    stdout = captured_output.get("stdout", "")
-    stderr = captured_output.get("stderr", "")
+    print("captured output: ", captured_output)
+    # stdout = captured_output.get("stdout", "")
+    # stderr = captured_output.get("stderr", "")
 
-    combined_output = stdout + stderr
-    output_lines = combined_output.split("\n")
+    # combined_output = stdout + stderr
+    # output_lines = combined_output.split("\n")
+    print("captured output keys: ", captured_output.keys())
+    output_lines = captured_output.get("stdout", "")
+    print("output lines: ", output_lines)
 
     reference_pattern = f'"reference":"{config.log_reference}"'
     message_pattern = config.message_template
