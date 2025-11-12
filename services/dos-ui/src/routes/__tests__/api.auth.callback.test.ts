@@ -190,10 +190,9 @@ describe("api.auth.callback route", () => {
       );
 
       const handler = getHandler();
-      const response = await handler!({ request } as any);
-
-      expect(response.status).toBe(400);
-      expect(await response.text()).toBe("Invalid callback parameters");
+      await expect(handler!({ request } as any)).rejects.toThrow(
+        "Missing code or state parameter from callback URL"
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         "Missing code or state parameter from callback URL"
       );
@@ -205,10 +204,9 @@ describe("api.auth.callback route", () => {
       );
 
       const handler = getHandler();
-      const response = await handler!({ request } as any);
-
-      expect(response.status).toBe(400);
-      expect(await response.text()).toBe("Invalid callback parameters");
+      await expect(handler!({ request } as any)).rejects.toThrow(
+        "Missing code or state parameter from callback URL"
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
         "Missing code or state parameter from callback URL"
       );
