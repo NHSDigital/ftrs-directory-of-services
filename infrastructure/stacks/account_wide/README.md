@@ -1,4 +1,4 @@
-# Account-Wide Infrastructure.
+# Account-Wide Infrastructure
 
 Infrastructure that is deployed once per environment inside an account.
 
