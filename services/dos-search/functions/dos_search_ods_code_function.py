@@ -1,6 +1,4 @@
-import os
 import time
-from typing import Any, Dict, Optional
 
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
@@ -10,7 +8,7 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.ftrs_logger import FtrsLogger
+from functions.ftrs_logger import FtrsLogger, extract
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.organization_query_params import OrganizationQueryParams
 
@@ -22,116 +20,14 @@ tracer = Tracer()
 app = APIGatewayRestResolver()
 
 
-def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    """Extract APIM headers and common event fields into the structured 'extra' dict.
-
-    All mandatory fields are present; missing values use the configured placeholder.
-    Optional one-time fields are prefixed with 'Opt_'.
-    """
-    placeholder = "FTRS_LOG_PLACEHOLDER"
-
-    headers = (
-        {} if not event or not isinstance(event, dict) else (event.get("headers") or {})
-    )
-    hdr_lower = ftrs_logger._normalize_headers(headers)
-
-    def h(*names: str) -> Optional[str]:
-        # try original casing keys first, then lowercased mapping
-        for n in names:
-            if n in headers and headers.get(n) not in (None, ""):
-                return headers.get(n)
-        # fallback to lowercased lookup of provided names
-        for n in names:
-            val = hdr_lower.get(n.lower())
-            if val not in (None, ""):
-                return val
-        return None
-
-    out: Dict[str, Any] = {}
-
-    # NHSD correlation id
-    corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
-    out["ftrs_nhsd_correlation_id"] = corr
-
-    # NHSD request id
-    reqid = h("NHSD-Request-ID") or placeholder
-    out["ftrs_nhsd_request_id"] = reqid
-
-    # APIM message id
-    msgid = (
-        h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "ftrs-message-id")
-        or placeholder
-    )
-    out["ftrs_message_id"] = msgid
-
-    # Mandatory/default ftrs fields
-    # Default category to LOGGING, can be overridden later
-    out["ftrs_message_category"] = "LOGGING"
-    out["ftrs_environment"] = (
-        os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
-    )
-    out["ftrs_api_version"] = h("x-api-version", "api-version") or placeholder
-    out["ftrs_lambda_version"] = (
-        os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
-    )
-    out["ftrs_response_time"] = placeholder
-    out["ftrs_response_size"] = placeholder
-
-    # One-time fields
-    end_user_role = (
-        h("x-end-user-role")
-        or (event.get("end_user_role") if isinstance(event, dict) else None)
-        or (
-            event.get("requestContext", {}).get("authorizer", {}).get("end_user_role")
-            if isinstance(event, dict)
-            else None
-        )
-        or placeholder
-    )
-    out["ftrs_end_user_role"] = end_user_role
-
-    client_id = (
-        h("x-client-id")
-        or (event.get("client_id") if isinstance(event, dict) else None)
-        or placeholder
-    )
-    out["ftrs_client_id"] = client_id
-
-    app_name = (
-        h("x-application-name")
-        or (event.get("application_name") if isinstance(event, dict) else None)
-        or placeholder
-    )
-    out["ftrs_application_name"] = app_name
-
-    # Request params (queryStringParameters + pathParameters)
-    req_params: Dict[str, Any] = {}
-    if isinstance(event, dict):
-        query_params = event.get("queryStringParameters") or {}
-        path_params = event.get("pathParameters") or {}
-        if isinstance(query_params, dict):
-            req_params.update(query_params)
-        if isinstance(path_params, dict):
-            req_params.update(path_params)
-    out["ftrs_request_parms"] = req_params or {}
-
-    return out
-
-
 @app.get("/Organization")
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
     log_data = extract(app.current_event)
+    ftrs_logger.info("Testing event with any", log_data=app.current_event)
     try:
         query_params = app.current_event.query_string_parameters or {}
-        print(
-            "easily searchable: ",
-            "current event: ",
-            app.current_event,
-            "log data: ",
-            log_data,
-        )
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
         ods_code = validated_params.ods_code
@@ -180,6 +76,8 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
     ftrs_logger.info("Creating response", log_data=None, status_code=status_code)
+    # Clears cached log data at final stage to prevent accidental persisting of ID values
+    ftrs_logger.clear_log_data()
     return Response(
         status_code=status_code,
         content_type="application/fhir+json",

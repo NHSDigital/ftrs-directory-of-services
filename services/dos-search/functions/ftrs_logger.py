@@ -16,11 +16,12 @@ class FtrsLogger:
         f.info('message', event=my_event)
 
     Behavior:
-    - Builds an `extra` dict with mandatory ftrs_ and nhsd_ fields and optional Opt_ fields
+    - Takes in a log_data field alongside any other extra fields
     - Calls powertools Logger with `extra=...` so powertools merges it into its JSON output
     - Optionally prints a debug preview when debug=True
     - Placeholder for missing values is configurable via ENV `FTRS_LOG_PLACEHOLDER` (default 'TBC').
         If set to 'NULL' the wrapper will emit Python None (JSON null) for missing values.
+    TODO: Add logic to persist last logged fields for future calls if log_data is not provided
     """
 
     def __init__(self, service: str = "ftrs", debug: bool = False) -> None:
@@ -29,15 +30,12 @@ class FtrsLogger:
         self.debug = debug
         # remember last appended correlation id so we can expose it later
         self._last_appended_correlation: Optional[str] = None
+        self._last_log_data = dict()
+
+    def clear_log_data(self) -> None:
+        self._last_log_data = dict()
 
     # --- helper utilities -------------------------------------------------
-    @staticmethod
-    def _normalize_headers(headers: Dict[str, Any]) -> Dict[str, Any]:
-        """Return a case-insensitive mapping for header lookup (lowercased keys)."""
-        if not headers or not isinstance(headers, dict):
-            return {}
-        return {k.lower(): v for k, v in headers.items()}
-
     @staticmethod
     def _first_of(mapping: Dict[str, Any], keys: Iterable[str]) -> Optional[str]:
         """Return the first non-empty mapping value for keys (case-sensitive keys assumed already normalized as needed)."""
@@ -144,8 +142,13 @@ class FtrsLogger:
         log_data: Optional[Dict[str, Any]] = None,
         **detail: object,
     ) -> None:
-        # Handles deliberately passed None values
-        log_data = log_data if log_data else {}
+        # If log_data is provided, override last stored log state
+        if log_data:
+            self._last_log_data = log_data
+        # Handles deliberately passed None values, attempting to read previously logged data from the session if set
+        log_data = (
+            log_data if log_data else self._last_log_data if self._last_log_data else {}
+        )
         # convert detail (kwargs) to dict for manipulation
         detail_map = dict(detail) if detail else {}
 
@@ -170,8 +173,6 @@ class FtrsLogger:
 
         # debug preview
         self._debug_preview(message, log_data)
-
-        print("Easily searchable", log_data)
 
         # call powertools
         try:
@@ -252,4 +253,100 @@ class FtrsLogger:
         )
 
 
-# end of ftrs_logger.py
+def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Extract APIM headers and common event fields into the structured 'extra' dict.
+
+    All mandatory fields are present; missing values use the configured placeholder.
+    Optional one-time fields are prefixed with 'Opt_'.
+
+    Extracts are handled here as passing the entire event object to the handler presents issues for the pytest library mocks.
+    Extracts could be moved back to the FtrsLogger class, but would more or less require the test mocks to implement log_data=ANY in each call, which may obfuscate more information
+    """
+    placeholder = "FTRS_LOG_PLACEHOLDER"
+
+    headers = (
+        {} if not event or not isinstance(event, dict) else (event.get("headers") or {})
+    )
+    hdr_lower = {k.lower(): v for k, v in headers.items()}
+
+    def h(*names: str) -> Optional[str]:
+        # try original casing keys first, then lowercased mapping
+        for n in names:
+            if n in headers and headers.get(n) not in (None, ""):
+                return headers.get(n)
+        # fallback to lowercased lookup of provided names
+        for n in names:
+            val = hdr_lower.get(n.lower())
+            if val not in (None, ""):
+                return val
+        return None
+
+    out: Dict[str, Any] = {}
+
+    # NHSD correlation id
+    corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
+    out["ftrs_nhsd_correlation_id"] = corr
+
+    # NHSD request id
+    reqid = h("NHSD-Request-ID") or placeholder
+    out["ftrs_nhsd_request_id"] = reqid
+
+    # APIM message id
+    msgid = (
+        h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "ftrs-message-id")
+        or placeholder
+    )
+    out["ftrs_message_id"] = msgid
+
+    # Mandatory/default ftrs fields
+    # Default category to LOGGING, can be overridden later
+    out["ftrs_message_category"] = "LOGGING"
+    out["ftrs_environment"] = (
+        os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
+    )
+    out["ftrs_api_version"] = h("x-api-version", "api-version") or placeholder
+    out["ftrs_lambda_version"] = (
+        os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
+    )
+    out["ftrs_response_time"] = placeholder
+    out["ftrs_response_size"] = placeholder
+
+    # One-time fields
+    end_user_role = (
+        h("x-end-user-role")
+        or (event.get("end_user_role") if isinstance(event, dict) else None)
+        or (
+            event.get("requestContext", {}).get("authorizer", {}).get("end_user_role")
+            if isinstance(event, dict)
+            else None
+        )
+        or placeholder
+    )
+    out["ftrs_end_user_role"] = end_user_role
+
+    client_id = (
+        h("x-client-id")
+        or (event.get("client_id") if isinstance(event, dict) else None)
+        or placeholder
+    )
+    out["ftrs_client_id"] = client_id
+
+    app_name = (
+        h("x-application-name")
+        or (event.get("application_name") if isinstance(event, dict) else None)
+        or placeholder
+    )
+    out["ftrs_application_name"] = app_name
+
+    # Request params (queryStringParameters + pathParameters)
+    req_params: Dict[str, Any] = {}
+    if isinstance(event, dict):
+        query_params = event.get("queryStringParameters") or {}
+        path_params = event.get("pathParameters") or {}
+        if isinstance(query_params, dict):
+            req_params.update(query_params)
+        if isinstance(path_params, dict):
+            req_params.update(path_params)
+    out["ftrs_request_parms"] = req_params or {}
+
+    return out
