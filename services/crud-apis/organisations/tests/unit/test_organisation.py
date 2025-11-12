@@ -327,7 +327,8 @@ def test_update_organisation_operation_outcome(
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
 
 
-def test_update_organisation_missing_required_field() -> None:
+def test_update_organisation_missing_active_field_defaults_to_none() -> None:
+    """Test that missing active field is accepted and defaults to None."""
     fhir_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -337,41 +338,20 @@ def test_update_organisation_missing_required_field() -> None:
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
         ],
-        "active": True,
+        "name": "ABC",
         "telecom": [{"system": "phone", "value": "0123456789"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
 
     response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
 
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "active"],
-                "msg": "Field required",
-                "input": {
-                    "resourceType": "Organization",
-                    "id": str(test_org_id),
-                    "meta": {
-                        "profile": [
-                            "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
-                        ]
-                    },
-                    "identifier": [
-                        {
-                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                            "value": "12345",
-                        }
-                    ],
-                    "active": True,
-                    "telecom": [{"system": "phone", "value": "0123456789"}],
-                    "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
-                },
-            }
-        ]
-    }
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["issue"][0]["code"] == "success"
+    assert response.json()["issue"][0]["severity"] == "information"
+    assert (
+        response.json()["issue"][0]["diagnostics"]
+        == "Organisation updated successfully"
+    )
 
 
 def test_update_organisation_unexpected_exception(
