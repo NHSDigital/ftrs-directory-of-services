@@ -44,7 +44,8 @@ on:
         type: string
       type:
         description: "The type of permissions (e.g., account, app)"
-        required: true
+        required: false
+        default: "app"
         type: string
       stacks:
         description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
@@ -68,5 +69,5 @@ jobs:
       commit_hash: ${{ inputs.commit_hash }}
       release_tag: ${{ inputs.release_tag }}
       action: ${{ inputs.action }}
-      type: app
+      type: ${{ inputs.type }}
     secrets: inherit
