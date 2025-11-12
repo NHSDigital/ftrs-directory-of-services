@@ -112,9 +112,9 @@ jobs:
     secrets: inherit
 
   deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
+    name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ inputs.environment }} environment"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-default"
+      group: "${{ inputs.environment }}-default"
       cancel-in-progress: false
     needs:
       - metadata
@@ -139,7 +139,7 @@ jobs:
     secrets: inherit
 
   service-automation-tests:
-    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
+    name: "Run service automation tests on ${{ inputs.environment }}"
     needs:
       - metadata
       - manual-approval-application-infra
@@ -147,7 +147,7 @@ jobs:
       - deploy-frontend-services
     if: |
       always() &&
-      ${{ needs.metadata.outputs.environment != 'prod' }} &&
+      ${{ inputs.environment != 'prod' }} &&
       !cancelled() &&
       (
         needs.restore-dynamodb-from-s3.result == 'success' ||
@@ -158,7 +158,7 @@ jobs:
       )
     uses: ./.github/workflows/service-automation-test.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: ${{ inputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       tag: ${{ inputs.release_tag }}
       test_tag: "ftrs-pipeline"
@@ -197,5 +197,5 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: ${{ needs.metadata.outputs.environment }}
+      env: ${{ inputs.environment }}
     secrets: inherit
