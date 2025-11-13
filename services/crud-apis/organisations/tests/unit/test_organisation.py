@@ -31,6 +31,8 @@ def get_organisation() -> dict:
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
         "modifiedDateTime": "2023-11-01T00:00:00Z",
+        "legal_start_date": None,
+        "legal_end_date": None,
         "endpoints": [
             {
                 "id": "d5a852ef-12c7-4014-b398-661716a63027",
@@ -405,6 +407,10 @@ def test_create_organisation_success() -> None:
     organisation_data = get_organisation()
     response = client.post("/Organization", json=organisation_data)
     assert response.status_code == HTTPStatus.CREATED
+    print("--- DEBUG OUTPUT ---")
+    print(organisation_data)
+    print("--- RESPONSE ---")
+    print(response.json())
     assert response.json() == {
         "message": "Organisation created successfully",
         "organisation": organisation_data,
