@@ -2,17 +2,10 @@
 // Creates a small Amazon Linux 2023 instance in a private subnet, reachable via SSM (Session Manager) only.
 // Installs Apache JMeter on first boot and powers off the instance when installation completes (configurable).
 
-locals {
-  # Choose the first private subnet for Performance EC2. Safe because module.vpc is declared in this stack.
-  performance_subnet_id = element(module.vpc.private_subnets, 0)
-  # Name tag for Performance EC2 instance, scoped to this stack
-  performance_name = "${local.account_prefix}-performance"
-}
-
 resource "aws_instance" "performance" {
   ami                         = data.aws_ami.al2023.id
   instance_type               = var.performance_instance_type
-  subnet_id                   = local.performance_subnet_id
+  subnet_id                   = element(module.vpc.private_subnets, 0)
   vpc_security_group_ids      = [aws_security_group.performance_ec2_sg.id]
   iam_instance_profile        = aws_iam_instance_profile.ec2_performance_instance_profile.name
   associate_public_ip_address = false
@@ -40,17 +33,13 @@ resource "aws_instance" "performance" {
 
   instance_initiated_shutdown_behavior = "stop"
 
-  tags = {
-    Name = local.performance_name
-    Role = "performance"
-  }
 
   depends_on = [
     aws_iam_role_policy_attachment.ec2_performance_ssm_core
   ]
 }
 
-# IAM role and instance profile for Performance EC2 (moved from account_policies)
+# IAM role and instance profile for Performance EC2
 resource "aws_iam_role" "ec2_performance_role" {
   name = "${local.account_prefix}-ec2-performance"
   assume_role_policy = jsonencode({
@@ -73,17 +62,63 @@ resource "aws_iam_instance_profile" "ec2_performance_instance_profile" {
   role = aws_iam_role.ec2_performance_role.name
 }
 
-output "performance_instance_id" {
-  description = "ID of the Performance EC2 instance"
-  value       = aws_instance.performance.id
+# S3 access required for Performance EC2 (explicit performance buckets only)
+data "aws_iam_policy_document" "ec2_performance_s3" {
+  statement {
+    sid = "AllowS3BucketMetadataForPerformance"
+    actions = [
+      "s3:ListBucket",
+      "s3:GetBucketLocation",
+      "s3:ListBucketMultipartUploads"
+    ]
+    resources = [
+      module.performance_s3.s3_bucket_arn
+    ]
+  }
+
+  statement {
+    sid = "AllowS3ObjectAccessForPerformance"
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:CreateMultipartUpload",
+      "s3:UploadPart",
+      "s3:ListMultipartUploadParts",
+      "s3:CompleteMultipartUpload",
+      "s3:AbortMultipartUpload"
+    ]
+    resources = [
+      module.performance_s3.s3_bucket_arn
+    ]
+  }
 }
 
-output "performance_private_ip" {
-  description = "Private IP of the Performance EC2 instance"
-  value       = aws_instance.performance.private_ip
+resource "aws_iam_role_policy" "ec2_performance_s3" {
+  name   = "${local.account_prefix}-ec2-performance-s3"
+  role   = aws_iam_role.ec2_performance_role.id
+  policy = data.aws_iam_policy_document.ec2_performance_s3.json
 }
 
-output "performance_security_group_id" {
-  description = "Security group ID for the Performance instance"
-  value       = aws_security_group.performance_ec2_sg.id
+# Secrets Manager read access restricted to explicit secrets used by performance tests. To be expanded
+data "aws_iam_policy_document" "ec2_performance_secrets" {
+  statement {
+    sid = "AllowGetExplicitPerformanceSecrets"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+    resources = [
+      aws_secretsmanager_secret.api_jmeter_pks_key[0].arn,
+      aws_secretsmanager_secret.api_ca_cert_secret[0].arn,
+      aws_secretsmanager_secret.api_ca_pk_secret[0].arn
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ec2_performance_secrets" {
+  name   = "${local.account_prefix}-ec2-performance-secrets"
+  role   = aws_iam_role.ec2_performance_role.id
+  policy = data.aws_iam_policy_document.ec2_performance_secrets.json
 }

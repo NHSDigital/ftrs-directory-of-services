@@ -1,16 +1,23 @@
+import { createServerFn } from "@tanstack/react-start";
 import * as client from "openid-client";
 import { ACR_VALUE } from "@/types/CIS2ClientConfig.ts";
 import { getAuthConfig, getOIDCConfig } from "@/utils/cis2Configuration.ts";
-import { logger } from "@/utils/logger";
-import {createServerOnlyFn} from "@tanstack/react-start";
+import { getLogger } from "@/utils/logger";
 
+type GetAuthorisationUrlInput = {
+  data: {
+    state: string;
+  };
+};
+export const getAuthorisationUrl = async ({
+  data,
+}: GetAuthorisationUrlInput) => {
+  const logger = getLogger();
 
-export const getAuthorisationUrl = createServerOnlyFn(async () =>{
   try {
     const oidcConfig = await getOIDCConfig();
     const config = await getAuthConfig();
 
-    const state = client.randomState();
     const nonce = client.randomNonce();
     const codeVerifier = client.randomPKCECodeVerifier();
     const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
@@ -19,7 +26,7 @@ export const getAuthorisationUrl = createServerOnlyFn(async () =>{
       redirect_uri: config.redirectUri,
       scope: config.scope,
       acr_values: ACR_VALUE,
-      state,
+      state: data.state,
       nonce,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
@@ -43,4 +50,8 @@ export const getAuthorisationUrl = createServerOnlyFn(async () =>{
     }
     throw error;
   }
-});
+};
+
+export const getAuthorisationUrlFn = createServerFn({ method: "POST" })
+  .inputValidator((input) => input as { state: string })
+  .handler(getAuthorisationUrl);

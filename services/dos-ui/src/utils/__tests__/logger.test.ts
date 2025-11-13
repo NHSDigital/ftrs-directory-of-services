@@ -39,7 +39,8 @@ describe("logger utility", () => {
       delete process.env.PROJECT;
       delete process.env.WORKSPACE;
 
-      await import("../logger");
+      const { getLogger } = await import("../logger");
+      getLogger(); // trigger lazy instantiation
 
       expect(Logger).toHaveBeenCalledWith({
         serviceName: "dos-ui",
@@ -59,7 +60,8 @@ describe("logger utility", () => {
       process.env.PROJECT = "test-project";
       process.env.WORKSPACE = "test-workspace";
 
-      await import("../logger");
+      const { getLogger } = await import("../logger");
+      getLogger();
 
       expect(Logger).toHaveBeenCalledWith({
         serviceName: "test-service",
@@ -74,8 +76,8 @@ describe("logger utility", () => {
 
     it("should handle WARN log level from environment", async () => {
       process.env.LOG_LEVEL = "WARN";
-
-      await import("../logger");
+      const { getLogger } = await import("../logger");
+      getLogger();
 
       expect(Logger).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -86,8 +88,8 @@ describe("logger utility", () => {
 
     it("should handle ERROR log level from environment", async () => {
       process.env.LOG_LEVEL = "ERROR";
-
-      await import("../logger");
+      const { getLogger } = await import("../logger");
+      getLogger();
 
       expect(Logger).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -99,36 +101,36 @@ describe("logger utility", () => {
 
   describe("createChildLogger", () => {
     it("should create a child logger with additional context", async () => {
-      const { logger, createChildLogger } = await import("../logger");
+      const { getLogger, createChildLogger } = await import("../logger");
       const context = { userId: "123", requestId: "abc" };
-
+      const baseLogger = getLogger();
       createChildLogger(context);
 
-      expect(logger.createChild).toHaveBeenCalledWith({
+      expect(baseLogger.createChild).toHaveBeenCalledWith({
         persistentLogAttributes: context,
       });
     });
 
     it("should create child logger with empty context", async () => {
-      const { logger, createChildLogger } = await import("../logger");
-
+      const { getLogger, createChildLogger } = await import("../logger");
+      const baseLogger = getLogger();
       createChildLogger({});
 
-      expect(logger.createChild).toHaveBeenCalledWith({
+      expect(baseLogger.createChild).toHaveBeenCalledWith({
         persistentLogAttributes: {},
       });
     });
 
     it("should create child logger with nested context", async () => {
-      const { logger, createChildLogger } = await import("../logger");
+      const { getLogger, createChildLogger } = await import("../logger");
       const context = {
         user: { id: "123", name: "John" },
         request: { id: "abc", method: "GET" },
       };
-
+      const baseLogger = getLogger();
       createChildLogger(context);
 
-      expect(logger.createChild).toHaveBeenCalledWith({
+      expect(baseLogger.createChild).toHaveBeenCalledWith({
         persistentLogAttributes: context,
       });
     });
@@ -147,46 +149,54 @@ describe("logger utility", () => {
 
   describe("logger methods", () => {
     it("should have debug method", async () => {
-      const { logger } = await import("../logger");
-
-      expect(logger.debug).toBeDefined();
-      expect(typeof logger.debug).toBe("function");
+      const { getLogger } = await import("../logger");
+      const instance = getLogger();
+      expect(instance.debug).toBeDefined();
+      expect(typeof instance.debug).toBe("function");
     });
 
     it("should have info method", async () => {
-      const { logger } = await import("../logger");
-
-      expect(logger.info).toBeDefined();
-      expect(typeof logger.info).toBe("function");
+      const { getLogger } = await import("../logger");
+      const instance = getLogger();
+      expect(instance.info).toBeDefined();
+      expect(typeof instance.info).toBe("function");
     });
 
     it("should have warn method", async () => {
-      const { logger } = await import("../logger");
-
-      expect(logger.warn).toBeDefined();
-      expect(typeof logger.warn).toBe("function");
+      const { getLogger } = await import("../logger");
+      const instance = getLogger();
+      expect(instance.warn).toBeDefined();
+      expect(typeof instance.warn).toBe("function");
     });
 
     it("should have error method", async () => {
-      const { logger } = await import("../logger");
-
-      expect(logger.error).toBeDefined();
-      expect(typeof logger.error).toBe("function");
+      const { getLogger } = await import("../logger");
+      const instance = getLogger();
+      expect(instance.error).toBeDefined();
+      expect(typeof instance.error).toBe("function");
     });
 
     it("should have createChild method", async () => {
-      const { logger } = await import("../logger");
-
-      expect(logger.createChild).toBeDefined();
-      expect(typeof logger.createChild).toBe("function");
+      const { getLogger } = await import("../logger");
+      const instance = getLogger();
+      expect(instance.createChild).toBeDefined();
+      expect(typeof instance.createChild).toBe("function");
     });
   });
 
   describe("default export", () => {
     it("should export logger as default", async () => {
       const module = await import("../logger");
+      expect(module.default).toBe(module.getLogger);
+    });
+  });
 
-      expect(module.default).toBe(module.logger);
+  describe("singleton behavior", () => {
+    it("should return same instance across multiple getLogger calls", async () => {
+      const { getLogger } = await import("../logger");
+      const first = getLogger();
+      const second = getLogger();
+      expect(first).toBe(second);
     });
   });
 });

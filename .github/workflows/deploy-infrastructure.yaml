@@ -106,7 +106,7 @@ jobs:
           action: ${{ inputs.action }}
           project: ${{ inputs.project }}
           application_tag: ${{ inputs.application_tag }}
-          release_tag: ${{ inputs.release_tag }}
+          release_tag: ${{ inputs.tag }}
           commit_hash: ${{ inputs.commit_hash }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
 

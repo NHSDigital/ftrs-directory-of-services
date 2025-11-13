@@ -24,6 +24,10 @@ on:
         description: "The action to perform (e.g., export, import)"
         required: true
         type: string
+      tag:
+        description: "The git tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
 
 jobs:
   manage-dynamodb-data:
@@ -34,6 +38,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.0

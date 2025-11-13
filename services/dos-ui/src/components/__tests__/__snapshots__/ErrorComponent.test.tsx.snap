@@ -1,0 +1,347 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ErrorComponent > should display session and request IDs when provided > ErrorComponent with Session and Request IDs 1`] = `
+<div>
+  <header
+    class="nhsuk-header nhsuk-header__transactional"
+    role="banner"
+  >
+    <div
+      class="nhsuk-width-container nhsuk-header__container"
+    >
+      <div
+        class="nhsuk-header__logo nhsuk-header__transactional--logo"
+      >
+        <a
+          aria-label="NHS homepage"
+          class="nhsuk-header__link"
+          href="/"
+        >
+          <svg
+            aria-labelledby="nhsuk-logo_title"
+            class="nhsuk-logo"
+            height="40"
+            viewBox="0 0 40 16"
+            width="100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <title
+              id="nhsuk-logo_title"
+            >
+              NHS Logo
+            </title>
+            <path
+              class="nhsuk-logo__background"
+              d="M0 0h40v16H0z"
+              fill="#005eb8"
+            />
+            <path
+              class="nhsuk-logo__text"
+              d="M3.9 1.5h4.4l2.6 9h.1l1.8-9h3.3l-2.8 13H9l-2.7-9h-.1l-1.8 9H1.1M17.3 1.5h3.6l-1 4.9h4L25 1.5h3.5l-2.7 13h-3.5l1.1-5.6h-4.1l-1.2 5.6h-3.4M37.7 4.4c-.7-.3-1.6-.6-2.9-.6-1.4 0-2.5.2-2.5 1.3 0 1.8 5.1 1.2 5.1 5.1 0 3.6-3.3 4.5-6.4 4.5-1.3 0-2.9-.3-4-.7l.8-2.7c.7.4 2.1.7 3.2.7s2.8-.2 2.8-1.5c0-2.1-5.1-1.3-5.1-5 0-3.4 2.9-4.4 5.8-4.4 1.6 0 3.1.2 4 .6"
+              fill="#fff"
+            />
+          </svg>
+        </a>
+      </div>
+      <div
+        class="nhsuk-header__transactional-service-name"
+      >
+        <a
+          class="nhsuk-header__transactional-service-name--link"
+          href="/"
+        >
+          Directory of Services
+        </a>
+      </div>
+    </div>
+  </header>
+  <div
+    class="nhsuk-width-container ftrs-page-container"
+  >
+    <h1
+      class="nhsuk-heading-l"
+    >
+      An error occurred
+    </h1>
+    <p>
+      Sorry, there was a problem processing your request.
+    </p>
+    <div
+      aria-labelledby="error-summary-title"
+      class="nhsuk-error-summary"
+      role="alert"
+      tabindex="-1"
+    >
+      <h2
+        class="nhsuk-error-summary__title"
+        id="error-summary-title"
+      >
+        Error Details
+      </h2>
+      <div
+        class="nhsuk-error-summary__body"
+      >
+        <p>
+          The following information may be useful when reporting this error:
+        </p>
+        <dl
+          class="nhsuk-summary-list"
+        >
+          <div
+            class="nhsuk-summary-list__row"
+          >
+            <dt
+              class="nhsuk-summary-list__key"
+            >
+              Error Message
+            </dt>
+            <dd
+              class="nhsuk-summary-list__value"
+            >
+              Test error for session and request IDs
+            </dd>
+          </div>
+          <div
+            class="nhsuk-summary-list__row"
+          >
+            <dt
+              class="nhsuk-summary-list__key"
+            >
+              Session ID
+            </dt>
+            <dd
+              class="nhsuk-summary-list__value"
+            >
+              session-123
+            </dd>
+          </div>
+          <div
+            class="nhsuk-summary-list__row"
+          >
+            <dt
+              class="nhsuk-summary-list__key"
+            >
+              Request ID
+            </dt>
+            <dd
+              class="nhsuk-summary-list__value"
+            >
+              request-456
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    <a
+      aria-disabled="false"
+      class="nhsuk-button"
+      draggable="false"
+      href="/"
+      role="button"
+    >
+      Return to Home
+    </a>
+  </div>
+  <footer
+    role="contentinfo"
+  >
+    <div
+      class="nhsuk-footer-container"
+    >
+      <div
+        class="nhsuk-width-container"
+      >
+        <h2
+          class="nhsuk-u-visually-hidden"
+        >
+          Support links
+        </h2>
+        <div
+          class="nhsuk-footer"
+        >
+          <ul
+            class="nhsuk-footer__list"
+          >
+            <li
+              class="nhsuk-footer__list-item nhsuk-footer-default__list-item"
+            >
+              <a
+                class="nhsuk-footer__list-item-link"
+                href="/"
+              >
+                Home
+              </a>
+            </li>
+          </ul>
+          <p
+            class="nhsuk-footer__copyright"
+          >
+            © 
+            2025
+             NHS England
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+`;
+
+exports[`ErrorComponent > should render the error component > ErrorComponent 1`] = `
+<div>
+  <header
+    class="nhsuk-header nhsuk-header__transactional"
+    role="banner"
+  >
+    <div
+      class="nhsuk-width-container nhsuk-header__container"
+    >
+      <div
+        class="nhsuk-header__logo nhsuk-header__transactional--logo"
+      >
+        <a
+          aria-label="NHS homepage"
+          class="nhsuk-header__link"
+          href="/"
+        >
+          <svg
+            aria-labelledby="nhsuk-logo_title"
+            class="nhsuk-logo"
+            height="40"
+            viewBox="0 0 40 16"
+            width="100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <title
+              id="nhsuk-logo_title"
+            >
+              NHS Logo
+            </title>
+            <path
+              class="nhsuk-logo__background"
+              d="M0 0h40v16H0z"
+              fill="#005eb8"
+            />
+            <path
+              class="nhsuk-logo__text"
+              d="M3.9 1.5h4.4l2.6 9h.1l1.8-9h3.3l-2.8 13H9l-2.7-9h-.1l-1.8 9H1.1M17.3 1.5h3.6l-1 4.9h4L25 1.5h3.5l-2.7 13h-3.5l1.1-5.6h-4.1l-1.2 5.6h-3.4M37.7 4.4c-.7-.3-1.6-.6-2.9-.6-1.4 0-2.5.2-2.5 1.3 0 1.8 5.1 1.2 5.1 5.1 0 3.6-3.3 4.5-6.4 4.5-1.3 0-2.9-.3-4-.7l.8-2.7c.7.4 2.1.7 3.2.7s2.8-.2 2.8-1.5c0-2.1-5.1-1.3-5.1-5 0-3.4 2.9-4.4 5.8-4.4 1.6 0 3.1.2 4 .6"
+              fill="#fff"
+            />
+          </svg>
+        </a>
+      </div>
+      <div
+        class="nhsuk-header__transactional-service-name"
+      >
+        <a
+          class="nhsuk-header__transactional-service-name--link"
+          href="/"
+        >
+          Directory of Services
+        </a>
+      </div>
+    </div>
+  </header>
+  <div
+    class="nhsuk-width-container ftrs-page-container"
+  >
+    <h1
+      class="nhsuk-heading-l"
+    >
+      An error occurred
+    </h1>
+    <p>
+      Sorry, there was a problem processing your request.
+    </p>
+    <div
+      aria-labelledby="error-summary-title"
+      class="nhsuk-error-summary"
+      role="alert"
+      tabindex="-1"
+    >
+      <h2
+        class="nhsuk-error-summary__title"
+        id="error-summary-title"
+      >
+        Error Details
+      </h2>
+      <div
+        class="nhsuk-error-summary__body"
+      >
+        <p>
+          The following information may be useful when reporting this error:
+        </p>
+        <dl
+          class="nhsuk-summary-list"
+        >
+          <div
+            class="nhsuk-summary-list__row"
+          >
+            <dt
+              class="nhsuk-summary-list__key"
+            >
+              Error Message
+            </dt>
+            <dd
+              class="nhsuk-summary-list__value"
+            >
+              Session setup failed
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    <a
+      aria-disabled="false"
+      class="nhsuk-button"
+      draggable="false"
+      href="/"
+      role="button"
+    >
+      Return to Home
+    </a>
+  </div>
+  <footer
+    role="contentinfo"
+  >
+    <div
+      class="nhsuk-footer-container"
+    >
+      <div
+        class="nhsuk-width-container"
+      >
+        <h2
+          class="nhsuk-u-visually-hidden"
+        >
+          Support links
+        </h2>
+        <div
+          class="nhsuk-footer"
+        >
+          <ul
+            class="nhsuk-footer__list"
+          >
+            <li
+              class="nhsuk-footer__list-item nhsuk-footer-default__list-item"
+            >
+              <a
+                class="nhsuk-footer__list-item-link"
+                href="/"
+              >
+                Home
+              </a>
+            </li>
+          </ul>
+          <p
+            class="nhsuk-footer__copyright"
+          >
+            © 
+            2025
+             NHS England
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+`;
