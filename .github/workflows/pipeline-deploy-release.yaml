@@ -40,9 +40,11 @@ jobs:
 
   metadata:
     name: "Get CI/CD metadata"
-    uses: ./.github/workflows/metadata.yaml
     needs:
       - validate-release-tag
+    uses: ./.github/workflows/metadata.yaml
+    with:
+      tag: ${{ inputs.release_tag }}
 
   deploy-account-wide-policies:
     name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
@@ -62,7 +64,6 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
-
       tag: ${{ inputs.release_tag }}
     secrets: inherit
 
