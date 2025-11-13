@@ -1,27 +1,25 @@
-"""BDD step definitions for running single service migration."""
+"""Shared step definitions for data migration BDD tests."""
 import json
 import os
 from typing import Any, Dict
 
 import pytest
 from loguru import logger
-from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import text
 from sqlmodel import Session
 
+from utilities.common.log_helper import LogVerificationConfig, verify_log_reference
 from utilities.common.db_helper import delete_service_if_exists, verify_service_exists
 from utilities.common.gherkin_helper import parse_gherkin_table
-from utilities.common.log_helper import LogVerificationConfig, verify_log_reference
 from utilities.common.migration_helper import MigrationHelper
 
-scenarios("../../tests/features/data_migration_features/run_data_migration.feature")
 
-# NOTE: tests successfully run when there is only one scenario in the feature file
-# BUT: tests do not all run successfully when all in one feature file, only the first one does
-# TODO: looks like test logger set up issue, logger is not persisted so does not capture following scenario logs?
+# ============================================================
+# Background Setup Steps
+# ============================================================
 
-@given("the test environment is configured")
-def test_environment_configured(
+
+def run_test_environment_configured(
     migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
 ) -> None:
     """
@@ -52,8 +50,7 @@ def test_environment_configured(
     logger.info("Environment configuration verified")
 
 
-@given("the DoS database has test data")
-def dos_database_has_test_data(dos_db_with_migration: Session) -> None:
+def run_dos_database_has_test_data(dos_db_with_migration: Session) -> None:
     """
     Verify DoS database is accessible and has tables.
 
@@ -71,8 +68,7 @@ def dos_database_has_test_data(dos_db_with_migration: Session) -> None:
     logger.info(f"DoS database ready with {count} services")
 
 
-@given("DynamoDB tables are ready")
-def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
+def run_dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
     """
     Verify DynamoDB tables exist and are accessible.
 
@@ -111,13 +107,12 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
     logger.info("All required DynamoDB tables are ready")
 
 
-@given(
-    parsers.parse(
-        "a '{entity_type}' exists called '{entity_name}' in DoS with attributes:"
-    ),
-    target_fixture="service_created",
-)
-def create_service_with_attributes(
+# ============================================================
+# Common Steps
+# ============================================================
+
+
+def run_create_service_with_attributes(
     dos_db_with_migration: Session,
     migration_context: Dict[str, Any],
     entity_type: str,
@@ -185,39 +180,6 @@ def create_service_with_attributes(
 
     return attributes
 
-
-@when(parsers.parse("a single service migration is run for ID '{service_id:d}'"))
-def run_single_service_migration(
-    migration_helper: MigrationHelper,
-    migration_context: Dict[str, Any],
-    service_id: int,
-    capfd: pytest.CaptureFixture[str],
-) -> None:
-    """
-    Execute migration for a single service and capture output.
-
-    Args:
-        migration_helper: Helper for running migrations
-        migration_context: Test context dictionary
-        service_id: Service ID to migrate
-        capfd: Pytest fixture for capturing stdout/stderr
-    """
-    result = migration_helper.run_single_service_migration(service_id)
-
-    captured_single = capfd.readouterr()
-    with capfd.disabled():
-        print("output not captured, going directly to sys.stdout")
-        print("!!! captured_single", captured_single)
-
-    migration_context["result"] = result
-    migration_context["service_id"] = service_id
-    migration_context["captured_output"] = {
-        "stdout": captured_single,
-        "stderr": captured_single,
-    }
-
-
-@when("a full service migration is run")
 def run_full_service_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
@@ -249,37 +211,36 @@ def run_full_service_migration(
         },
     )
 
-
-@then("the migration process should complete successfully")
-def verify_migration_success(migration_context: Dict[str, Any]) -> None:
+def run_single_service_migration(
+    migration_helper: MigrationHelper,
+    migration_context: Dict[str, Any],
+    service_id: int,
+    capfd: pytest.CaptureFixture[str],
+) -> None:
     """
-    Verify the migration completed successfully.
+    Execute migration for a single service and capture output.
 
     Args:
+        migration_helper: Helper for running migrations
         migration_context: Test context dictionary
-
-    Raises:
-        AssertionError: If migration failed
+        service_id: Service ID to migrate
+        capfd: Pytest fixture for capturing stdout/stderr
     """
-    result = migration_context["result"]
+    result = migration_helper.run_single_service_migration(service_id)
 
-    assert result is not None, "Migration result should exist"
-    assert result.success, f"Migration should succeed. Error: {result.error}"
+    captured_single = capfd.readouterr()
+    with capfd.disabled():
+        print("output not captured, going directly to sys.stdout")
+        print("!!! captured_single", captured_single)
 
+    migration_context["result"] = result
+    migration_context["service_id"] = service_id
+    migration_context["captured_output"] = {
+        "stdout": captured_single,
+        "stderr": captured_single,
+    }
 
-@then(
-    parsers.parse(
-        "the metrics should be "
-        "{total:d} total, "
-        "{supported:d} supported, "
-        "{unsupported:d} unsupported, "
-        "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
-        "{skipped:d} skipped and "
-        "{errors:d} errors"
-    )
-)
-def verify_migration_metrics_inline(
+def run_verify_migration_metrics_inline(
     migration_context: Dict[str, Any],
     total: int,
     supported: int,
@@ -378,109 +339,7 @@ def verify_migration_metrics_inline(
         },
     )
 
-
-@then(
-    parsers.parse(
-        "the '{transformer_name}' was selected for service ID '{service_id:d}'"
-    )
-)
-def verify_transformer_selected(
-    migration_context: Dict[str, Any],
-    transformer_name: str,
-    service_id: int,
-) -> None:
-    """
-    Verify the correct transformer was selected for the service.
-
-    Validates DM_ETL_003 log reference from DataMigrationLogBase.
-
-    Args:
-        migration_context: Test context dictionary with captured output
-        transformer_name: Expected transformer name (e.g., 'GPPracticeTransformer')
-        service_id: Service ID that was migrated
-
-    Raises:
-        AssertionError: If transformer selection log not found or wrong transformer
-    """
-    config = LogVerificationConfig(
-        log_reference="DM_ETL_003",
-        message_template=f'"message":"Transformer {transformer_name} selected for record"',
-    )
-
-    verify_log_reference(migration_context, service_id, config)
-
-
-@then(
-    parsers.parse(
-        "service ID '{service_id:d}' was not migrated due to reason '{expected_reason}'"
-    )
-)
-def verify_service_not_migrated(
-    migration_context: Dict[str, Any],
-    service_id: int,
-    expected_reason: str,
-) -> None:
-    """
-    Verify that a service was not migrated with the expected reason.
-
-    Validates DM_ETL_004 log reference from DataMigrationLogBase.
-
-    Args:
-        migration_context: Test context dictionary with captured output
-        service_id: Service ID that was not migrated
-        expected_reason: Expected reason for not migrating
-
-    Raises:
-        AssertionError: If migration failure log not found or wrong reason
-    """
-    config = LogVerificationConfig(
-        log_reference="DM_ETL_004",
-        message_template=f'"message":"Record was not migrated due to reason: {expected_reason}"',
-    )
-
-    verify_log_reference(migration_context, service_id, config)
-
-
-@then(
-    parsers.parse(
-        "service ID '{service_id:d}' was skipped due to reason '{expected_reason}'"
-    )
-)
-def verify_service_skipped(
-    migration_context: Dict[str, Any],
-    service_id: int,
-    expected_reason: str,
-) -> None:
-    """
-    Verify that a service was skipped with the expected reason.
-
-    Validates DM_ETL_005 log reference from DataMigrationLogBase.
-
-    Args:
-        migration_context: Test context dictionary with captured output
-        service_id: Service ID that was skipped
-        expected_reason: Expected reason for skipping
-
-    Raises:
-        AssertionError: If service skip log not found or wrong reason
-    """
-    config = LogVerificationConfig(
-        log_reference="DM_ETL_005",
-        message_template=f'"message":"Record skipped due to condition: {expected_reason}"',
-    )
-
-    verify_log_reference(migration_context, service_id, config)
-
-
-@then(
-    parsers.parse(
-        "service ID '{service_id:d}' was transformed into "
-        "{org_count:d} organisation, "
-        "{location_count:d} location and "
-        "{service_count:d} healthcare service"
-    )
-)
-def verify_transformation_output(
+def run_verify_transformation_output(
     migration_context: Dict[str, Any],
     service_id: int,
     org_count: int,
@@ -538,11 +397,60 @@ def verify_transformation_output(
 
     verify_log_reference(migration_context, service_id, config)
 
+def run_verify_service_not_migrated(
+    migration_context: Dict[str, Any],
+    service_id: int,
+    expected_reason: str,
+) -> None:
+    """
+    Verify that a service was not migrated with the expected reason.
 
-@when(
-    "the data migration process is run with the event:",
-    target_fixture="sqs_event_processed",
-)
+    Validates DM_ETL_004 log reference from DataMigrationLogBase.
+
+    Args:
+        migration_context: Test context dictionary with captured output
+        service_id: Service ID that was not migrated
+        expected_reason: Expected reason for not migrating
+
+    Raises:
+        AssertionError: If migration failure log not found or wrong reason
+    """
+    config = LogVerificationConfig(
+        log_reference="DM_ETL_004",
+        message_template=f'"message":"Record was not migrated due to reason: {expected_reason}"',
+    )
+
+    verify_log_reference(migration_context, service_id, config)
+
+def run_verify_service_skipped(
+    migration_context: Dict[str, Any],
+    service_id: int,
+    expected_reason: str,
+) -> None:
+    """
+    Verify that a service was skipped with the expected reason.
+
+    Validates DM_ETL_005 log reference from DataMigrationLogBase.
+
+    Args:
+        migration_context: Test context dictionary with captured output
+        service_id: Service ID that was skipped
+        expected_reason: Expected reason for skipping
+
+    Raises:
+        AssertionError: If service skip log not found or wrong reason
+    """
+    config = LogVerificationConfig(
+        log_reference="DM_ETL_005",
+        message_template=f'"message":"Record skipped due to condition: {expected_reason}"',
+    )
+
+    verify_log_reference(migration_context, service_id, config)
+
+# ============================================================
+# Common SQS Steps
+# ============================================================
+
 def run_sqs_event_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
@@ -617,20 +525,7 @@ def run_sqs_event_migration(
 
     return {"event": event, "result": result}
 
-
-@then(
-    parsers.parse(
-        "the SQS event metrics should be "
-        "{total:d} total, "
-        "{supported:d} supported, "
-        "{unsupported:d} unsupported, "
-        "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
-        "{skipped:d} skipped and "
-        "{errors:d} errors"
-    )
-)
-def verify_sqs_event_metrics(
+def run_verify_sqs_event_metrics(
     migration_context: Dict[str, Any],
     total: int,
     supported: int,
