@@ -84,11 +84,11 @@ jobs:
       - name: Capture approval info
         id: approval
         run: |
-          echo "Fetching deployment approver...for $GITHUB_REPOSITORY"
-          DEPLOYMENT_ID=$(gh api repos/$GITHUB_REPOSITORY/deployments \
+          echo "Fetching deployment approver...for ${{ github.repository }}"
+          DEPLOYMENT_ID=$(gh api repos/${{ github.repository }}/deployments \
             --jq '.[0].id')
 
-          APPROVER=$(gh api repos/$GITHUB_REPOSITORY/deployments/$DEPLOYMENT_ID/reviews \
+          APPROVER=$(gh api repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/reviews \
             --jq '.[0].user.login')
 
           echo "Approver: $APPROVER"
