@@ -2,19 +2,19 @@
   "resourceType": "OperationOutcome",
   "issue": [
     {
-      "severity": "error",
-      "code": "security",
-      "diagnostics": "Invalid or missing client authentication",
+      "severity": "fatal",
+      "code": "forbidden",
       "details": {
         "coding": [
           {
-            "system": "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode",
-            "version": "1",
-            "code": "UNAUTHORIZED",
-            "display": "Unauthorized"
+            "system": "https://fhir.nhs.uk/Codesystem/http-error-codes",
+            "version": "0.1.0",
+            "code": "REC_FORBIDDEN",
+            "display": "403: Failed to authenticate with the Receiver."
           }
         ]
-      }
+      },
+      "diagnostics": "MTLS issue"
     }
   ]
 }
