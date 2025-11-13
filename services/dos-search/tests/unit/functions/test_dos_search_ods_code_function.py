@@ -142,7 +142,7 @@ class TestLambdaHandler:
                     ftrs_response_time=ANY,
                     ftrs_response_size=ANY,
                 ),
-                call.info("Creating response", log_data=None, status_code=200),
+                call.info("Creating response", status_code=200),
                 call.clear_log_data(),
             ]
         )
@@ -176,7 +176,7 @@ class TestLambdaHandler:
                     log_data=log_data,
                     validation_errors=validation_error.errors(),
                 ),
-                call.info("Creating response", log_data=None, status_code=400),
+                call.info("Creating response", status_code=400),
                 call.clear_log_data(),
             ]
         )
@@ -213,7 +213,7 @@ class TestLambdaHandler:
                     "Received request for odsCode", log_data=log_data, ods_code=ods_code
                 ),
                 call.exception("Internal server error occurred", log_data=log_data),
-                call.info("Creating response", log_data=None, status_code=500),
+                call.info("Creating response", status_code=500),
                 call.clear_log_data(),
             ]
         )

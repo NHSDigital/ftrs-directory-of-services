@@ -25,7 +25,6 @@ app = APIGatewayRestResolver()
 def get_organization() -> Response:
     start = time.time()
     log_data = extract(app.current_event)
-    ftrs_logger.info("Testing event with any", log_data=app.current_event)
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
@@ -75,7 +74,7 @@ def get_organization() -> Response:
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
-    ftrs_logger.info("Creating response", log_data=None, status_code=status_code)
+    ftrs_logger.info("Creating response", status_code=status_code)
     # Clears cached log data at final stage to prevent accidental persisting of ID values
     ftrs_logger.clear_log_data()
     return Response(
