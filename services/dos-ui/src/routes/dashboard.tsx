@@ -1,9 +1,8 @@
-import { createFileRoute, redirect, useLoaderData } from "@tanstack/react-router";
-import {SessionManager, setupSessionFn} from "@/core/session";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { setupSessionFn } from "@/core/session";
 import { useClientSession } from "@/core/context";
 import type { UserInfo } from "@/core/schema";
-
-
+import { Card, Container, SummaryList, Table } from "nhsuk-react-components";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -15,148 +14,147 @@ export const Route = createFileRoute("/dashboard")({
       context.session = await setupSessionFn();
     }
 
-    if (!context.session.sessionID) {
+    if (!context.session.sessionID || !context.session.user) {
       throw redirect({ to: "/" });
     }
 
-    const manager = new SessionManager();
-    const userSession = await manager.getSession(context.session.sessionID);
-
-    if (!userSession || !userSession.user) {
-      throw redirect({ to: "/" });
-    }
-
-    return {
-      user: userSession.user,
-    };
+    return {};
   },
 });
 
 function DashboardPage() {
   const session = useClientSession();
-  const { user } = useLoaderData({ from: "/dashboard" });
+
+  if (!session.user) {
+    return null;
+  }
+
+  const { user } = session;
 
   return (
-    <div className="nhsuk-width-container">
-      <main className="nhsuk-main-wrapper" >
+    <Container>
+      <main className="nhsuk-main-wrapper">
         <div className="nhsuk-grid-row">
           <div className="nhsuk-grid-column-full">
-            <h1 className="nhsuk-heading-xl">Dashboard</h1>
+            <h1>Dashboard</h1>
 
-            <div className="nhsuk-card">
-              <div className="nhsuk-card__content">
-                <h2 className="nhsuk-heading-m">User Information</h2>
-                <dl className="nhsuk-summary-list">
-                  <div className="nhsuk-summary-list__row">
-                    <dt className="nhsuk-summary-list__key">Name</dt>
-                    <dd className="nhsuk-summary-list__value">{user.displayName}</dd>
-                  </div>
-                  <div className="nhsuk-summary-list__row">
-                    <dt className="nhsuk-summary-list__key">User ID</dt>
-                    <dd className="nhsuk-summary-list__value">{user.uid}</dd>
-                  </div>
-                  <div className="nhsuk-summary-list__row">
-                    <dt className="nhsuk-summary-list__key">Selected Role ID</dt>
-                    <dd className="nhsuk-summary-list__value">{user.selectedRoleID}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
+            <Card>
+              <Card.Content>
+                <Card.Heading>User Information</Card.Heading>
+                <SummaryList>
+                  <SummaryList.Row>
+                    <SummaryList.Key>Display Name</SummaryList.Key>
+                    <SummaryList.Value>{user.displayName}</SummaryList.Value>
+                  </SummaryList.Row>
+                  <SummaryList.Row>
+                    <SummaryList.Key>User ID</SummaryList.Key>
+                    <SummaryList.Value>{user.uid}</SummaryList.Value>
+                  </SummaryList.Row>
+                  <SummaryList.Row>
+                    <SummaryList.Key>Selected Role ID</SummaryList.Key>
+                    <SummaryList.Value>{user.selectedRoleID}</SummaryList.Value>
+                  </SummaryList.Row>
+                </SummaryList>
+              </Card.Content>
+            </Card>
 
             {user.rbacRoles && user.rbacRoles.length > 0 && (
-              <div className="nhsuk-card">
-                <div className="nhsuk-card__content">
-                  <h2 className="nhsuk-heading-m">RBAC Roles</h2>
-                  <table className="nhsuk-table">
-                    <thead className="nhsuk-table__head">
-                    <tr className="nhsuk-table__row">
-                      <th className="nhsuk-table__header" scope="col">Role Name</th>
-                      <th className="nhsuk-table__header" scope="col">Organisation Code</th>
-                      <th className="nhsuk-table__header" scope="col">Person Role ID</th>
-                    </tr>
-                    </thead>
-                    <tbody className="nhsuk-table__body">
-                    {user.rbacRoles.map((role: UserInfo['rbacRoles'][number]) => (
-                      <tr key={role.personRoleID} className="nhsuk-table__row">
-                        <td className="nhsuk-table__cell">{role.roleName}</td>
-                        <td className="nhsuk-table__cell">{role.orgCode}</td>
-                        <td className="nhsuk-table__cell">{role.personRoleID}</td>
-                      </tr>
-                    ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <Card>
+                <Card.Content>
+                  <Card.Heading>RBAC Roles</Card.Heading>
+                  <Table>
+                    <Table.Head>
+                      <Table.Row>
+                        <Table.Cell>Role Name</Table.Cell>
+                        <Table.Cell>Organisation Code</Table.Cell>
+                        <Table.Cell>Person Role ID</Table.Cell>
+                      </Table.Row>
+                    </Table.Head>
+                    <Table.Body>
+                      {user.rbacRoles.map((role: UserInfo['rbacRoles'][number]) => (
+                        <Table.Row key={role.personRoleID}>
+                          <Table.Cell>{role.roleName}</Table.Cell>
+                          <Table.Cell>{role.orgCode}</Table.Cell>
+                          <Table.Cell>{role.personRoleID}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
+                </Card.Content>
+              </Card>
             )}
 
             {user.orgMemberships && user.orgMemberships.length > 0 && (
-              <div className="nhsuk-card">
-                <div className="nhsuk-card__content">
-                  <h2 className="nhsuk-heading-m">Organisation Memberships</h2>
-                  <table className="nhsuk-table">
-                    <thead className="nhsuk-table__head">
-                    <tr className="nhsuk-table__row">
-                      <th className="nhsuk-table__header" scope="col">Organisation Name</th>
-                      <th className="nhsuk-table__header" scope="col">Organisation Code</th>
-                    </tr>
-                    </thead>
-                    <tbody className="nhsuk-table__body">
-                    {user.orgMemberships.map((org: UserInfo['orgMemberships'][number]) => (
-                      <tr key={org.orgCode} className="nhsuk-table__row">
-                        <td className="nhsuk-table__cell">{org.orgName}</td>
-                        <td className="nhsuk-table__cell">{org.orgCode}</td>
-                      </tr>
-                    ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <Card>
+                <Card.Content>
+                  <Card.Heading>Organisation Memberships</Card.Heading>
+                  <Table>
+                    <Table.Head>
+                      <Table.Row>
+                        <Table.Cell>Organisation Name</Table.Cell>
+                        <Table.Cell>Organisation Code</Table.Cell>
+                      </Table.Row>
+                    </Table.Head>
+                    <Table.Body>
+                      {user.orgMemberships.map((org: UserInfo['orgMemberships'][number]) => (
+                        <Table.Row key={org.orgCode}>
+                          <Table.Cell>{org.orgName}</Table.Cell>
+                          <Table.Cell>{org.orgCode}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
+                </Card.Content>
+              </Card>
             )}
 
             {user.userOrgs && user.userOrgs.length > 0 && (
-              <div className="nhsuk-card">
-                <div className="nhsuk-card__content">
-                  <h2 className="nhsuk-heading-m">User Organisations</h2>
-                  <table className="nhsuk-table">
-                    <thead className="nhsuk-table__head">
-                    <tr className="nhsuk-table__row">
-                      <th className="nhsuk-table__header" scope="col">Organisation Name</th>
-                      <th className="nhsuk-table__header" scope="col">Organisation Code</th>
-                    </tr>
-                    </thead>
-                    <tbody className="nhsuk-table__body">
-                    {user.userOrgs.map((org: UserInfo['userOrgs'][number]) => (
-                      <tr key={org.orgCode} className="nhsuk-table__row">
-                        <td className="nhsuk-table__cell">{org.orgName}</td>
-                        <td className="nhsuk-table__cell">{org.orgCode}</td>
-                      </tr>
-                    ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <Card>
+                <Card.Content>
+                  <Card.Heading>User Organisations</Card.Heading>
+                  <Table>
+                    <Table.Head>
+                      <Table.Row>
+                        <Table.Cell>Organisation Name</Table.Cell>
+                        <Table.Cell>Organisation Code</Table.Cell>
+                      </Table.Row>
+                    </Table.Head>
+                    <Table.Body>
+                      {user.userOrgs.map((org: UserInfo['userOrgs'][number]) => (
+                        <Table.Row key={org.orgCode}>
+                          <Table.Cell>{org.orgName}</Table.Cell>
+                          <Table.Cell>{org.orgCode}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
+                </Card.Content>
+              </Card>
             )}
 
-            <div className="nhsuk-card">
-              <div className="nhsuk-card__content">
-                <h2 className="nhsuk-heading-m">Session Information</h2>
-                <dl className="nhsuk-summary-list">
-                  <div className="nhsuk-summary-list__row">
-                    <dt className="nhsuk-summary-list__key">Session ID</dt>
-                    <dd className="nhsuk-summary-list__value">{session.sessionID}</dd>
-                  </div>
-                  <div className="nhsuk-summary-list__row">
-                    <dt className="nhsuk-summary-list__key">Expires At</dt>
-                    <dd className="nhsuk-summary-list__value">
+            <Card>
+              <Card.Content>
+                <Card.Heading>Session Information</Card.Heading>
+                <SummaryList>
+                  <SummaryList.Row>
+                    <SummaryList.Key>Session ID</SummaryList.Key>
+                    <SummaryList.Value>{session.sessionID}</SummaryList.Value>
+                  </SummaryList.Row>
+                  <SummaryList.Row>
+                    <SummaryList.Key>Expires At</SummaryList.Key>
+                    <SummaryList.Value>
                       {new Date(session.expiresAt).toLocaleString()}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
+                    </SummaryList.Value>
+                  </SummaryList.Row>
+                </SummaryList>
+              </Card.Content>
+            </Card>
           </div>
         </div>
       </main>
-    </div>
+    </Container>
   );
 }
+
+export default DashboardPage;
+

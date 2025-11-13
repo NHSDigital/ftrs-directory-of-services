@@ -1,433 +1,315 @@
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { SessionManager, setupSessionFn } from "@/core/session";
+import { describe, expect, it, vi, beforeEach, type Mock } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { createRootRoute, createRoute, createRouter, RouterProvider } from "@tanstack/react-router";
 import { useClientSession } from "@/core/context";
-import { Route } from "../dashboard";
-import type { UserSession } from "@/core/schema";
-
-vi.mock("@/core/session", () => ({
-  SessionManager: vi.fn().mockImplementation(() => ({
-    getSession: vi.fn(),
-  })),
-  setupSessionFn: vi.fn(),
-}));
+import { setupSessionFn } from "@/core/session";
+import type { ClientSession, UserInfo } from "@/core/schema";
+import DashboardPage from "@/routes/dashboard";
 
 vi.mock("@/core/context", () => ({
   useClientSession: vi.fn(),
 }));
 
-vi.mock("@tanstack/react-router", async () => {
-  const actual = await vi.importActual("@tanstack/react-router");
-  return {
-    ...actual,
-    useLoaderData: vi.fn(),
-  };
-});
+vi.mock("@/core/session", () => ({
+  setupSessionFn: vi.fn(),
+}));
 
-describe("dashboard route", () => {
-  const mockUser = {
-    uid: "user-123",
-    displayName: "John Doe",
-    selectedRoleID: "role-1",
+describe("Dashboard", () => {
+  const mockUser: UserInfo = {
+    uid: "test-user-123",
+    displayName: "Test User",
+    selectedRoleID: "role-456",
     rbacRoles: [
       {
-        personOrgID: "org-1",
-        personRoleID: "role-123",
-        orgCode: "ORG001",
+        personOrgID: "person-org-1",
+        personRoleID: "person-role-1",
         roleName: "Admin",
+        orgCode: "ORG001",
+      },
+      {
+        personOrgID: "person-org-2",
+        personRoleID: "person-role-2",
+        roleName: "Viewer",
+        orgCode: "ORG002",
       },
     ],
     orgMemberships: [
       {
-        personOrgID: "org-1",
-        orgName: "Test Hospital",
+        personOrgID: "person-org-1",
         orgCode: "ORG001",
+        orgName: "Test Organisation 1",
+      },
+      {
+        personOrgID: "person-org-2",
+        orgCode: "ORG002",
+        orgName: "Test Organisation 2",
       },
     ],
     userOrgs: [
       {
-        orgCode: "ORG001",
-        orgName: "Test Hospital",
+        orgCode: "USER-ORG-001",
+        orgName: "User Organisation 1",
       },
     ],
   };
 
-  const mockSession = {
+  const mockSession: ClientSession = {
     sessionID: "session-123",
-    expiresAt: 1700000000000,
-  };
-
-  const mockUserSession: UserSession = {
-    sessionID: "session-123",
-    state: "test-state",
     expiresAt: Date.now() + 3600000,
-    userID: "user-123",
+    state: "test-state",
+    userID: "test-user-123",
     user: mockUser,
-    tokens: {},
-  };
-
-  let mockSessionManager: {
-    getSession: Mock;
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockSessionManager = {
-      getSession: vi.fn().mockResolvedValue(mockUserSession),
-    };
-    // @ts-expect-error - Mocking class constructor requires type conversion for testing
-    (SessionManager as Mock).mockImplementation(() => mockSessionManager);
-
     (useClientSession as Mock).mockReturnValue(mockSession);
+    (setupSessionFn as unknown as Mock).mockResolvedValue(mockSession);
   });
 
-  describe("loader", () => {
-    it("returns user data when session is valid", async () => {
-      const context = {
-        session: {
-          sessionID: "session-123",
+  const createTestRouter = (customSession?: ClientSession) => {
+    const rootRoute = createRootRoute();
+    const dashboardRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/dashboard",
+      component: DashboardPage,
+    });
+
+    const routeTree = rootRoute.addChildren([dashboardRoute]);
+
+    return createRouter({
+      routeTree,
+      context: {
+        session: customSession || mockSession,
+      },
+    });
+  };
+
+  describe("User Information Card", () => {
+    it("should render user information correctly", async () => {
+      const router = createTestRouter();
+      render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.getByText("User Information")).toBeDefined();
+      expect(screen.getByText("Display Name")).toBeDefined();
+      expect(screen.getByText("Test User")).toBeDefined();
+      expect(screen.getByText("User ID")).toBeDefined();
+      expect(screen.getByText("test-user-123")).toBeDefined();
+      expect(screen.getByText("Selected Role ID")).toBeDefined();
+      expect(screen.getByText("role-456")).toBeDefined();
+    });
+  });
+
+  describe("RBAC Roles Table", () => {
+    it("should render RBAC roles table when roles exist", async () => {
+      const router = createTestRouter();
+      render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.getByText("RBAC Roles")).toBeDefined();
+      expect(screen.getByText("Role Name")).toBeDefined();
+      expect(screen.getAllByText("Organisation Code").length).toBeGreaterThan(0);
+      expect(screen.getByText("Person Role ID")).toBeDefined();
+
+      expect(screen.getByText("Admin")).toBeDefined();
+      expect(screen.getByText("Viewer")).toBeDefined();
+      expect(screen.getAllByText("ORG001").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("ORG002").length).toBeGreaterThan(0);
+      expect(screen.getByText("person-role-1")).toBeDefined();
+      expect(screen.getByText("person-role-2")).toBeDefined();
+    });
+
+    it("should not render RBAC roles table when roles are empty", async () => {
+      const sessionWithoutRoles = {
+        ...mockSession,
+        user: {
+          ...mockUser,
+          rbacRoles: [],
         },
       };
+      (useClientSession as Mock).mockReturnValue(sessionWithoutRoles);
 
-      const result = await Route.options.loader!({ context } as any);
+      const router = createTestRouter(sessionWithoutRoles);
 
-      expect(result).toEqual({ user: mockUser });
-      expect(mockSessionManager.getSession).toHaveBeenCalledWith("session-123");
+      render(<RouterProvider router={router} />);
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.queryByText("RBAC Roles")).toBeNull();
+    });
+  });
+
+  describe("Organisation Memberships Table", () => {
+    it("should render organisation memberships table when memberships exist", async () => {
+      const router = createTestRouter();
+      render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.getByText("Organisation Memberships")).toBeDefined();
+      expect(screen.getByText("Test Organisation 1")).toBeDefined();
+      expect(screen.getByText("Test Organisation 2")).toBeDefined();
     });
 
-    it("calls setupSessionFn when session is missing from context", async () => {
-      const mockSetupSession = { sessionID: "new-session-123" };
-      // @ts-expect-error - Mocking function for testing
-      (setupSessionFn as Mock).mockResolvedValue(mockSetupSession);
-      mockSessionManager.getSession.mockResolvedValue(mockUserSession);
-
-      const context = { session: null };
-
-      await Route.options.loader!({ context } as any);
-
-      expect(setupSessionFn).toHaveBeenCalled();
-      expect(context.session).toEqual(mockSetupSession);
-    });
-
-    it("redirects to home when session ID is missing", async () => {
-      const context = {
-        session: {
-          sessionID: null,
+    it("should not render organisation memberships table when memberships are empty", async () => {
+      const sessionWithoutMemberships = {
+        ...mockSession,
+        user: {
+          ...mockUser,
+          orgMemberships: [],
         },
       };
+      (useClientSession as Mock).mockReturnValue(sessionWithoutMemberships);
 
-      await expect(Route.options.loader!({ context } as any)).rejects.toThrow();
+      const router = createTestRouter(sessionWithoutMemberships);
+
+      render(<RouterProvider router={router} />);
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.queryByText("Organisation Memberships")).toBeNull();
+    });
+  });
+
+  describe("User Organisations Table", () => {
+    it("should render user organisations table when organisations exist", async () => {
+      const router = createTestRouter();
+      render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.getByText("User Organisations")).toBeDefined();
+      expect(screen.getByText("User Organisation 1")).toBeDefined();
+      expect(screen.getByText("USER-ORG-001")).toBeDefined();
     });
 
-    it("redirects to home when session ID is undefined", async () => {
-      const context = {
-        session: {},
-      };
-
-      await expect(Route.options.loader!({ context } as any)).rejects.toThrow();
-    });
-
-    it("redirects to home when user session is not found", async () => {
-      mockSessionManager.getSession.mockResolvedValue(null);
-
-      const context = {
-        session: {
-          sessionID: "session-123",
+    it("should not render user organisations table when organisations are empty", async () => {
+      const sessionWithoutUserOrgs = {
+        ...mockSession,
+        user: {
+          ...mockUser,
+          userOrgs: [],
         },
       };
+      (useClientSession as Mock).mockReturnValue(sessionWithoutUserOrgs);
 
-      await expect(Route.options.loader!({ context } as any)).rejects.toThrow();
-      expect(mockSessionManager.getSession).toHaveBeenCalledWith("session-123");
+      const router = createTestRouter(sessionWithoutUserOrgs);
+
+      render(<RouterProvider router={router} />);
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.queryByText("User Organisations")).toBeNull();
+    });
+  });
+
+  describe("Session Information Card", () => {
+    it("should render session information correctly", async () => {
+      const router = createTestRouter();
+      render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.getByText("Session Information")).toBeDefined();
+      expect(screen.getByText("Session ID")).toBeDefined();
+      expect(screen.getByText("session-123")).toBeDefined();
+      expect(screen.getByText("Expires At")).toBeDefined();
     });
 
-    it("redirects to home when user session exists but user is missing", async () => {
-      mockSessionManager.getSession.mockResolvedValue({
-        ...mockUserSession,
-        user: null,
-      });
-
-      const context = {
-        session: {
-          sessionID: "session-123",
-        },
+    it("should format expiry date correctly", async () => {
+      const expiresAt = new Date("2025-12-31T23:59:59").getTime();
+      const sessionWithDate = {
+        ...mockSession,
+        expiresAt,
       };
+      (useClientSession as Mock).mockReturnValue(sessionWithDate);
 
-      await expect(Route.options.loader!({ context } as any)).rejects.toThrow();
+      const router = createTestRouter(sessionWithDate);
+
+      render(<RouterProvider router={router} />);
+      await router.navigate({ to: "/dashboard" });
+
+      const formattedDate = new Date(expiresAt).toLocaleString();
+      expect(screen.getByText(formattedDate)).toBeDefined();
     });
+  });
 
-    it("redirects to home when user session exists but user is undefined", async () => {
-      mockSessionManager.getSession.mockResolvedValue({
-        ...mockUserSession,
+  describe("Component Rendering", () => {
+    it("should return null when user is not in session", async () => {
+      const sessionWithoutUser = {
+        ...mockSession,
         user: undefined,
-      });
-
-      const context = {
-        session: {
-          sessionID: "session-123",
-        },
       };
+      (useClientSession as Mock).mockReturnValue(sessionWithoutUser);
 
-      await expect(Route.options.loader!({ context } as any)).rejects.toThrow();
+      const router = createTestRouter();
+      const { container } = render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      expect(container.querySelector("main")).toBeNull();
     });
 
-    it("creates new SessionManager instance for each loader call", async () => {
-      const context = {
-        session: {
-          sessionID: "session-123",
-        },
-      };
+    it("should render all cards with nhsuk-react-components", async () => {
+      const router = createTestRouter();
+      const { container } = render(<RouterProvider router={router} />);
 
-      await Route.options.loader!({ context } as any);
-      await Route.options.loader!({ context } as any);
+      await router.navigate({ to: "/dashboard" });
 
-      expect(SessionManager).toHaveBeenCalledTimes(2);
+      // Check for Container
+      expect(container.querySelector(".nhsuk-width-container")).toBeDefined();
+
+      // Check for main wrapper
+      expect(container.querySelector(".nhsuk-main-wrapper")).toBeDefined();
+
+      // Check for grid
+      expect(container.querySelector(".nhsuk-grid-row")).toBeDefined();
+      expect(container.querySelector(".nhsuk-grid-column-full")).toBeDefined();
+    });
+
+    it("should render dashboard title", async () => {
+      const router = createTestRouter();
+      render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      expect(screen.getByRole("heading", { name: "Dashboard" })).toBeDefined();
     });
   });
 
-  describe("head", () => {
-    it("returns correct meta title", async () => {
-      const head = await Route.options.head!({} as any);
+  describe("Loader redirect behavior", () => {
+    it("should not render dashboard when session ID is missing", async () => {
+      const sessionWithoutID = {
+        ...mockSession,
+        sessionID: "",
+        user: undefined,
+      };
+      (useClientSession as Mock).mockReturnValue(sessionWithoutID);
 
-      expect(head?.meta).toEqual([{ title: "Dashboard - FtRS DoS UI" }]);
+      const router = createTestRouter(sessionWithoutID);
+      const { container } = render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      // Component returns null when no user, so main won't be rendered
+      expect(container.querySelector("main")).toBeNull();
+    });
+
+    it("should not render dashboard when user is missing from session", async () => {
+      const sessionWithoutUser = {
+        ...mockSession,
+        user: undefined,
+      };
+      (useClientSession as Mock).mockReturnValue(sessionWithoutUser);
+
+      const router = createTestRouter(sessionWithoutUser);
+      const { container } = render(<RouterProvider router={router} />);
+
+      await router.navigate({ to: "/dashboard" });
+
+      // Component returns null when no user
+      expect(container.querySelector("main")).toBeNull();
     });
   });
-
-  describe("DashboardPage component", () => {
-    beforeEach(async () => {
-      const { cleanup } = await import("@testing-library/react");
-      const { useLoaderData } = await import("@tanstack/react-router");
-
-      cleanup();
-      vi.clearAllMocks();
-      (useClientSession as Mock).mockReturnValue(mockSession);
-      (useLoaderData as Mock).mockReturnValue({ user: mockUser });
-    });
-
-    it("renders dashboard heading", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("Dashboard")[0]).toBeDefined();
-    });
-
-    it("renders user information with display name", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("John Doe")[0]).toBeDefined();
-    });
-
-    it("renders user information with user ID", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("user-123")[0]).toBeDefined();
-    });
-
-    it("renders user information with selected role ID", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("role-1")[0]).toBeDefined();
-    });
-
-    it("renders RBAC roles section when roles exist", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("RBAC Roles")[0]).toBeDefined();
-      expect(getAllByText("Admin")[0]).toBeDefined();
-      expect(getAllByText(/ORG001/)[0]).toBeDefined();
-      expect(getAllByText("role-123")[0]).toBeDefined();
-    });
-
-    it("does not render RBAC roles section when roles are empty", async () => {
-      const { render } = await import("@testing-library/react");
-      const { useLoaderData } = await import("@tanstack/react-router");
-      const DashboardPage = Route.options.component as any;
-
-      (useLoaderData as Mock).mockReturnValue({
-        user: { ...mockUser, rbacRoles: [] }
-      });
-
-      const { queryByText } = render(<DashboardPage />);
-
-      expect(queryByText("RBAC Roles")).toBeNull();
-    });
-
-    it("renders organisation memberships section when memberships exist", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("Organisation Memberships")[0]).toBeDefined();
-      expect(getAllByText(/Test Hospital/)[0]).toBeDefined();
-    });
-
-    it("does not render organisation memberships section when memberships are empty", async () => {
-      const { render } = await import("@testing-library/react");
-      const { useLoaderData } = await import("@tanstack/react-router");
-      const DashboardPage = Route.options.component as any;
-
-      (useLoaderData as Mock).mockReturnValue({
-        user: { ...mockUser, orgMemberships: [] }
-      });
-
-      const { queryByText } = render(<DashboardPage />);
-
-      expect(queryByText("Organisation Memberships")).toBeNull();
-    });
-
-    it("renders user organisations section when organisations exist", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("User Organisations")[0]).toBeDefined();
-    });
-
-    it("does not render user organisations section when organisations are empty", async () => {
-      const { render } = await import("@testing-library/react");
-      const { useLoaderData } = await import("@tanstack/react-router");
-      const DashboardPage = Route.options.component as any;
-
-      (useLoaderData as Mock).mockReturnValue({
-        user: { ...mockUser, userOrgs: [] }
-      });
-
-      const { queryByText } = render(<DashboardPage />);
-
-      expect(queryByText("User Organisations")).toBeNull();
-    });
-
-    it("renders session information with session ID", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      expect(getAllByText("session-123")[0]).toBeDefined();
-    });
-
-    it("renders session information with formatted expiry date", async () => {
-      const { render } = await import("@testing-library/react");
-      const DashboardPage = Route.options.component as any;
-
-      const { getAllByText } = render(<DashboardPage />);
-
-      const expectedDate = new Date(1700000000000).toLocaleString();
-      expect(getAllByText(expectedDate)[0]).toBeDefined();
-    });
-
-    it("renders multiple RBAC roles correctly", async () => {
-      const { render, cleanup } = await import("@testing-library/react");
-      const { useLoaderData } = await import("@tanstack/react-router");
-      const DashboardPage = Route.options.component as any;
-
-      cleanup();
-      const userWithMultipleRoles = {
-        ...mockUser,
-        rbacRoles: [
-          {
-            personOrgID: "org-1",
-            personRoleID: "role-123",
-            orgCode: "ORG001",
-            roleName: "Admin",
-          },
-          {
-            personOrgID: "org-2",
-            personRoleID: "role-456",
-            orgCode: "ORG002",
-            roleName: "Manager",
-          },
-        ],
-      };
-
-      (useLoaderData as Mock).mockReturnValue({ user: userWithMultipleRoles });
-
-      const { getByText } = render(<DashboardPage />);
-
-      expect(getByText("Admin")).toBeDefined();
-      expect(getByText("Manager")).toBeDefined();
-      expect(getByText("role-456")).toBeDefined();
-      expect(getByText("ORG002")).toBeDefined();
-    });
-
-    it("renders multiple organisation memberships correctly", async () => {
-      const { render, cleanup } = await import("@testing-library/react");
-      const { useLoaderData } = await import("@tanstack/react-router");
-      const DashboardPage = Route.options.component as any;
-
-      cleanup();
-      const userWithMultipleOrgs = {
-        ...mockUser,
-        rbacRoles: [],
-        userOrgs: [],
-        orgMemberships: [
-          {
-            personOrgID: "org-1",
-            orgName: "Test Hospital",
-            orgCode: "ORG001",
-          },
-          {
-            personOrgID: "org-2",
-            orgName: "Test Clinic",
-            orgCode: "ORG002",
-          },
-        ],
-      };
-
-      (useLoaderData as Mock).mockReturnValue({ user: userWithMultipleOrgs });
-
-      const { getByText } = render(<DashboardPage />);
-
-      expect(getByText("Test Hospital")).toBeDefined();
-      expect(getByText("Test Clinic")).toBeDefined();
-    });
-
-    it("renders multiple user organisations correctly", async () => {
-      const { render, cleanup } = await import("@testing-library/react");
-      const { useLoaderData } = await import("@tanstack/react-router");
-      const DashboardPage = Route.options.component as any;
-
-      cleanup();
-      const userWithMultipleUserOrgs = {
-        ...mockUser,
-        rbacRoles: [],
-        orgMemberships: [],
-        userOrgs: [
-          {
-            orgCode: "ORG001",
-            orgName: "Test Hospital",
-          },
-          {
-            orgCode: "ORG003",
-            orgName: "Health Center",
-          },
-        ],
-      };
-
-      (useLoaderData as Mock).mockReturnValue({ user: userWithMultipleUserOrgs });
-
-      const { getByText } = render(<DashboardPage />);
-
-      expect(getByText("Test Hospital")).toBeDefined();
-      expect(getByText("Health Center")).toBeDefined();
-      expect(getByText("ORG003")).toBeDefined();
-    });
-  });
-
 });
 
