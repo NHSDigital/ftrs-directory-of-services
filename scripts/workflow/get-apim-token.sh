@@ -6,9 +6,10 @@
 set -e
 
 # Get the secret string
-    export SECRET_STRING=$(aws secretsmanager get-secret-value \
+    export PROXYGEN_JWT_SECRETS=$(aws secretsmanager get-secret-value \
       --secret-id /ftrs-dos/${ENV}/${API_NAME}-proxygen-jwt-credentials \
       --query SecretString \
+      --region ${AWS_REGION} \
       --output text)
 
 # Create Python script for JWT generation
@@ -16,33 +17,28 @@ cat > /tmp/create_jwt.py << 'PYTHON_SCRIPT'
 import uuid
 from time import time
 
-import requests
 import jwt
 import sys
 import os
 import json
 
-def create_signed_jwt(secret_string):
+def create_signed_jwt(proxygen_jwt_secrets):
     """Create a signed JWT for APIM authentication"""
     try:
-        secret_string_json = json.loads(secret_string)
+        
+        proxygen_jwt_creds = json.loads(proxygen_jwt_secrets)
+
         # Set JWT claims
-
-        # print("Secret String:", secret_string, file=sys.stderr)
-        # print("Client ID:", secret_string_json["client_id"], file=sys.stderr)
-        # print("private_key:", secret_string_json["private_key"], file=sys.stderr)
-
-
         claims = {
-            "sub": secret_string_json["client_id"],
-            "iss": secret_string_json["client_id"],
+            "sub": proxygen_jwt_creds["client_id"],
+            "iss": proxygen_jwt_creds["client_id"],
             "jti": str(uuid.uuid4()),
-            "aud": secret_string_json["token_url"],
+            "aud": proxygen_jwt_creds["token_url"],
             "exp": int(time()) + 300,
         }
 
         signed_jwt = jwt.encode(
-          claims, secret_string_json["private_key"], algorithm="RS512", headers={'kid': secret_string_json["kid"]}
+          claims, proxygen_jwt_creds["private_key"], algorithm="RS512", headers={'kid': proxygen_jwt_creds["kid"]}
         )
 
         return signed_jwt
@@ -52,9 +48,9 @@ def create_signed_jwt(secret_string):
         sys.exit(1)
 
 if __name__ == "__main__":
-    secret_string = os.environ.get('SECRET_STRING')
+    proxygen_jwt_secrets = os.environ.get('PROXYGEN_JWT_SECRETS')
 
-    signed_jwt = create_signed_jwt(secret_string)
+    signed_jwt = create_signed_jwt(proxygen_jwt_secrets)
     print(signed_jwt)
 PYTHON_SCRIPT
 
@@ -68,7 +64,7 @@ if [ -z "$SIGNED_JWT" ]; then
     exit 1
 fi
 
-TOKEN_URL=$(echo "$SECRET_STRING" | jq -r .token_url)
+TOKEN_URL=$(echo "$proxygen_jwt_secrets" | jq -r .token_url)
 
 # Request access token
 echo "Requesting access token from APIM..." >&2

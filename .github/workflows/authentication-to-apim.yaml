@@ -5,6 +5,16 @@ permissions:
   contents: read
 on:
   workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to authenticate against (e.g., dev, test, prod)'
+        required: true
+      aws_region:
+        description: 'AWS region for Secrets Manager'
+        required: true
+      api_name:
+        description: 'Name of the API to access via Proxygen'
+        required: true
     outputs:
       access_token:
         description: 'Short-lived access token for Proxygen API'
@@ -25,13 +35,14 @@ jobs:
         id: get-token
         uses: ./.github/actions/authenticate-apim
         with:
-          api_name: ${{ env.API_NAME }}
-          env: ${{ matrix.environment }}
+          api_name: ${{ inputs.api_name }}
+          env: ${{ inputs.environment }}
+          aws_region: ${{ inputs.aws_region }}
       - name: Test Token - List Proxy Instances
         env:
           ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
         run: |
-          echo "Testing access token by listing proxy instances in internal-dev environment..."
+          echo "Testing access token by hitting the API via APIM"
 
           curl --request GET \
           --url https://proxygen.prod.api.platform.nhs.uk/apis/dos-search \

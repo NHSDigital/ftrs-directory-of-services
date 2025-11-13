@@ -43,7 +43,11 @@ jobs:
     name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
+      # - manual-approval
     uses: ./.github/workflows/authentication-to-apim.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      aws_region: ${{ vars.AWS_REGION }}
 
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
