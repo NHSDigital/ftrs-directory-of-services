@@ -31,6 +31,56 @@ class OrganizationMapper(FhirMapper):
         """Build FHIR telecom list from phone number."""
         return [{"system": "phone", "value": telecom, "use": "work"}] if telecom else []
 
+    def _format_date_to_fhir(self, date_db: str) -> str:
+        """Convert DD-MM-YYYY format to YYYY-MM-DD for FHIR."""
+        day, month, year = date_db.split("-")
+        return f"{year}-{month}-{day}"
+
+    def _format_date_from_fhir(self, date_fhir: str) -> str:
+        """Convert YYYY-MM-DD format to DD-MM-YYYY for database."""
+        year, month, day = date_fhir.split("-")
+        return f"{day}-{month}-{year}"
+
+    def _build_legal_date_extension(
+        self, legal_start_date: str | None, legal_end_date: str | None
+    ) -> dict | None:
+        """
+        Build FHIR TypedPeriod extension for legal dates.
+
+        Args:
+            legal_start_date: Legal start date in DD-MM-YYYY format
+            legal_end_date: Legal end date in DD-MM-YYYY format
+
+        Returns:
+            TypedPeriod extension dictionary if at least one date present, else None
+        """
+        if not legal_start_date and not legal_end_date:
+            return None
+
+        period_data = {}
+        if legal_start_date:
+            period_data["start"] = self._format_date_to_fhir(legal_start_date)
+        if legal_end_date:
+            period_data["end"] = self._format_date_to_fhir(legal_end_date)
+
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal",
+                    },
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": period_data,
+                },
+            ],
+        }
+
     def _build_type(self, org_type_value: str) -> list[CodeableConcept]:
         """Build FHIR organization type CodeableConcept."""
         return [
@@ -61,10 +111,21 @@ class OrganizationMapper(FhirMapper):
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
             "telecom": self._build_telecom(organisation.telecom),
         }
+
+        # Add legal date extension if present
+        legal_date_ext = self._build_legal_date_extension(
+            getattr(organisation, "legal_start_date", None),
+            getattr(organisation, "legal_end_date", None),
+        )
+        if legal_date_ext:
+            org_dict["extension"] = [legal_date_ext]
+
         return FhirOrganisation.model_validate(org_dict)
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
         """Convert FHIR Organization resource to Organisation domain object."""
+        legal_start_date, legal_end_date = self._extract_legal_dates(fhir_resource)
+
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),
@@ -72,6 +133,8 @@ class OrganizationMapper(FhirMapper):
             active=fhir_resource.active,
             telecom=self._get_org_telecom(fhir_resource),
             type=sanitize_string_field(self._get_org_type(fhir_resource)),
+            legal_start_date=legal_start_date,
+            legal_end_date=legal_end_date,
             modifiedBy="ODS_ETL_PIPELINE",
         )
 
@@ -95,6 +158,11 @@ class OrganizationMapper(FhirMapper):
             ods_fhir_organization.get("identifier", [])
         )
 
+        # Extract legal dates from ODS FHIR extensions
+        legal_start_date, legal_end_date = self._extract_legal_dates_from_ods(
+            ods_fhir_organization
+        )
+
         required_fields = {
             "resourceType": "Organization",
             "id": ods_fhir_organization.get("id"),
@@ -105,6 +173,14 @@ class OrganizationMapper(FhirMapper):
             "identifier": self._build_identifier(ods_code),
             "telecom": ods_fhir_organization.get("telecom", []),
         }
+
+        # Add legal date extension if present
+        legal_date_ext = self._build_legal_date_extension(
+            legal_start_date, legal_end_date
+        )
+        if legal_date_ext:
+            required_fields["extension"] = [legal_date_ext]
+
         return FhirValidator.validate(required_fields, FhirOrganisation)
 
     # --- FHIR Extraction Helpers ---
@@ -178,3 +254,61 @@ class OrganizationMapper(FhirMapper):
                 role_codes.append(role_code)
 
         return role_codes
+
+    def _parse_legal_period(
+        self, sub_extensions: list[dict]
+    ) -> tuple[str | None, str | None]:
+        """
+        Parse Legal period from TypedPeriod sub-extensions.
+
+        Assumes valid TypedPeriod structure (validated by CRUD API).
+        Returns dates in DD-MM-YYYY format for database storage.
+        """
+        date_type = next(
+            (e for e in sub_extensions if e.get("url") == "dateType"), None
+        )
+        period = next((e for e in sub_extensions if e.get("url") == "period"), None)
+
+        # Check if this is a Legal period type
+        if (
+            date_type
+            and date_type.get("valueCoding", {}).get("code") == "Legal"
+            and period
+        ):
+            period_data = period.get("valuePeriod", {})
+            start = period_data.get("start")
+            end = period_data.get("end")
+            return (
+                self._format_date_from_fhir(start) if start else None,
+                self._format_date_from_fhir(end) if end else None,
+            )
+
+        return None, None
+
+    def _extract_legal_dates_from_ods(
+        self, ods_fhir_organization: dict
+    ) -> tuple[str | None, str | None]:
+        """Extract legal dates from ODS FHIR organization (TypedPeriod with Legal dateType)."""
+        for ext in ods_fhir_organization.get("extension", []):
+            if sub_ext := ext.get("extension"):
+                dates = self._parse_legal_period(sub_ext)
+                if dates[0] or dates[1]:
+                    return dates
+        return None, None
+
+    def _extract_legal_dates(
+        self, fhir_resource: FhirOrganisation
+    ) -> tuple[str | None, str | None]:
+        """Extract legal dates from validated FHIR Organization TypedPeriod extension."""
+        if not hasattr(fhir_resource, "extension") or not fhir_resource.extension:
+            return None, None
+
+        typed_period_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+
+        for ext in fhir_resource.extension:
+            ext_dict = ext.dict() if hasattr(ext, "dict") else ext
+
+            if ext_dict.get("url") == typed_period_url and ext_dict.get("extension"):
+                return self._parse_legal_period(ext_dict["extension"])
+
+        return None, None

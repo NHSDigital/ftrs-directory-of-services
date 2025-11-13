@@ -11,3 +11,5 @@ class Organisation(DBModel):
     telecom: str | None = None
     type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
+    legal_start_date: str | None = None
+    legal_end_date: str | None = None
