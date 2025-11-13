@@ -83,3 +83,9 @@ class TimeUnit(str, Enum):
     DAYS = "days"
     MONTHS = "months"
     YEARS = "years"
+
+
+class TelecomType(str, Enum):
+    PHONE = "phone"
+    EMAIL = "email"
+    WEB = "web"

@@ -12,14 +12,15 @@ from ftrs_data_layer.domain.enums import (
     HealthcareServiceType,
     TimeUnit,
 )
+from ftrs_data_layer.domain.telecom import Telecom
 from pydantic import BaseModel
 
 
-class Telecom(BaseModel):
-    phone_public: str | None
-    phone_private: str | None
-    email: str | None
-    web: str | None
+# class Telecom(BaseModel):
+#     phone_public: str | None
+#     phone_private: str | None
+#     email: str | None
+#     web: str | None
 
 
 class AgeRangeType(BaseModel):
@@ -36,7 +37,7 @@ class HealthcareService(DBModel):
     providedBy: UUID | None
     location: UUID | None
     name: str
-    telecom: Telecom | None
+    telecom: list[Telecom]
     openingTime: list[OpeningTime] | None
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[Disposition]
