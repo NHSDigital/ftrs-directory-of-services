@@ -84,7 +84,7 @@ jobs:
       - name: Capture approval info
         id: approval
         run: |
-          echo "Fetching deployment approver..."
+          echo "Fetching deployment approver...for $GITHUB_REPOSITORY"
           DEPLOYMENT_ID=$(gh api repos/$GITHUB_REPOSITORY/deployments \
             --jq '.[0].id')
 
