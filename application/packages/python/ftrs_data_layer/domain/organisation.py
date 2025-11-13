@@ -1,6 +1,7 @@
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import OrganisationType
+from ftrs_data_layer.domain.telecom import Telecom
 from pydantic import Field
 
 
@@ -8,6 +9,6 @@ class Organisation(DBModel):
     identifier_ODS_ODSCode: str | None = None
     active: bool
     name: str
-    telecom: str | None = None
+    telecom: list[Telecom]
     type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
