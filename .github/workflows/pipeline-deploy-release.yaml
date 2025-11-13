@@ -67,11 +67,8 @@ jobs:
       tag: ${{ inputs.release_tag }}
     secrets: inherit
 
-  plan-application-infra:
-    name: "Plan application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
-    concurrency:
-      group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
-      cancel-in-progress: false
+  deploy-application-infrastructure:
+    name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
       - validate-release-tag
       - deploy-account-wide-infrastructure
@@ -80,37 +77,53 @@ jobs:
       environment: ${{ inputs.environment }}
       workspace: default
       application_tag: ${{ inputs.release_tag }}
-      release_tag: ${{ inputs.release_tag }}
-      action: plan
-    secrets: inherit
-
-  manual-approval-application-infra:
-    name: "Manual approval for deployment of application release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
-    if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
-    needs:
-      - plan-application-infra
-    runs-on: ubuntu-latest
-    environment: "${{ inputs.environment }}-protected"
-    steps:
-      - name: Approval required
-        run: echo "Deployment of application infra for release ${{ inputs.release_tag }} to ${{ inputs.environment }} paused for manual approval. Please approve in the Actions tab."
-
-  apply-application-infra:
-    name: "Apply application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
-    concurrency:
-      group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
-      cancel-in-progress: false
-    needs:
-      - manual-approval-application-infra
-    uses: ./.github/workflows/deploy-application-infrastructure.yaml
-    with:
-      environment: ${{ inputs.environment }}
-      workspace: default
-      application_tag: ${{ inputs.release_tag }}
-      release_tag: ${{ inputs.release_tag }}
-      action: apply
+      tag: ${{ inputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
+  # plan-application-infra:
+  #   name: "Plan application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
+  #   concurrency:
+  #     group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
+  #     cancel-in-progress: false
+  #   needs:
+  #     - validate-release-tag
+  #     - deploy-account-wide-infrastructure
+  #   uses: ./.github/workflows/deploy-application-infrastructure.yaml
+  #   with:
+  #     environment: ${{ inputs.environment }}
+  #     workspace: default
+  #     application_tag: ${{ inputs.release_tag }}
+  #     release_tag: ${{ inputs.release_tag }}
+  #     action: plan
+  #   secrets: inherit
+
+  # manual-approval-application-infra:
+  #   name: "Manual approval for deployment of application release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
+  #   if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
+  #   needs:
+  #     - plan-application-infra
+  #   runs-on: ubuntu-latest
+  #   environment: "${{ inputs.environment }}-protected"
+  #   steps:
+  #     - name: Approval required
+  #       run: echo "Deployment of application infra for release ${{ inputs.release_tag }} to ${{ inputs.environment }} paused for manual approval. Please approve in the Actions tab."
+
+  # apply-application-infra:
+  #   name: "Apply application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
+  #   concurrency:
+  #     group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
+  #     cancel-in-progress: false
+  #   needs:
+  #     - manual-approval-application-infra
+  #   uses: ./.github/workflows/deploy-application-infrastructure.yaml
+  #   with:
+  #     environment: ${{ inputs.environment }}
+  #     workspace: default
+  #     application_tag: ${{ inputs.release_tag }}
+  #     release_tag: ${{ inputs.release_tag }}
+  #     action: apply
+  #     workflow_timeout: 30
+  #   secrets: inherit
 
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ inputs.environment }} environment"
@@ -119,7 +132,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - apply-application-infra
+      - deploy-application-infrastructure
     strategy:
       matrix:
         include:
@@ -143,8 +156,7 @@ jobs:
     name: "Run service automation tests on ${{ inputs.environment }}"
     needs:
       - metadata
-      - manual-approval-application-infra
-      - apply-application-infra
+      - deploy-application-infrastructure
       - deploy-frontend-services
     if: |
       always() &&
@@ -174,9 +186,7 @@ jobs:
       - metadata
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
-      - plan-application-infra
-      - manual-approval-application-infra
-      - apply-application-infra
+      - deploy-application-infrastructure
       - deploy-frontend-services
       - service-automation-tests
     if: always()
@@ -189,9 +199,7 @@ jobs:
       - metadata
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
-      - plan-application-infra
-      - manual-approval-application-infra
-      - apply-application-infra
+      - deploy-application-infrastructure
       - deploy-frontend-services
       - service-automation-tests
       - check-pipeline-status
