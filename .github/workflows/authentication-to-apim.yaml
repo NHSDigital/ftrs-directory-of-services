@@ -9,12 +9,15 @@ on:
       environment:
         description: 'Environment to authenticate against (e.g., dev, test, prod)'
         required: true
+        type: string
       aws_region:
         description: 'AWS region for Secrets Manager'
         required: true
+        type: string
       api_name:
         description: 'Name of the API to access via Proxygen'
         required: true
+        type: string
     outputs:
       access_token:
         description: 'Short-lived access token for Proxygen API'
