@@ -51,6 +51,10 @@ on:
       plan_result:
         description: "The Terraform plan output"
         value: ${{ jobs.plan-application-infrastructure.outputs.plan_result }}
+      deploy_status:
+        description: "The status of the deployment"
+        value: ${{ jobs.deploy_summary.outputs.deploy_status }}
+
 
 jobs:
   plan-application-infrastructure:
@@ -80,22 +84,8 @@ jobs:
     steps:
       - name: Approval required
         run: echo "${{ inputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
-        # TODO test this
-      - name: Capture approval info
-        id: approval
-        run: |
-          echo "Fetching deployment approver...for ${{ github.repository }}"
-          DEPLOYMENT_ID=$(gh api repos/${{ github.repository }}/deployments \
-            --jq '.[0].id')
-
-          APPROVER=$(gh api repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/reviews \
-            --jq '.[0].user.login')
-
-          echo "Approver: $APPROVER"
-          # echo "approver=$APPROVER" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Log approval
+        run: echo "approved=true" >> $GITHUB_OUTPUT
 
   apply-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }}"
@@ -115,3 +105,37 @@ jobs:
       action: apply
       type: ${{ inputs.type }}
     secrets: inherit
+
+  deploy_summary:
+    name: "Summarise deployment of application infrastructure to ${{ inputs.environment }} environment"
+    needs:
+      - plan-application-infrastructure
+      - manual-approval-application-infra
+      - apply-application-infrastructure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "Plan Result: ${{ needs.plan-application-infrastructure.outputs.plan_result }}"
+          echo "Approved: ${{ needs.manual-approval-application-infra.outputs.approved }}"
+
+          if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'false' ]; then
+            echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
+            echo "deploy_status=Success" >> $GITHUB_OUTPUT
+          fi
+          if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
+            if [ "${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
+              echo "Planned changes to application infrastructure APPROVED for deployment to the ${{ inputs.environment }} environment."
+              if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
+                echo "Changes APPROVED and successfully APPLIED to application infrastructure in the ${{ inputs.environment }} environment."
+                echo "deploy_status=Success" >> $GITHUB_OUTPUT
+              else
+                echo "Changes APPROVED but were NOT applied to application infrastructure in the ${{ inputs.environment }} environment."
+                echo "deploy_status=Failed" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "Planned changes to application infrastructure REJECTED for deployment to the ${{ inputs.environment }} environment."
+              echo "deploy_status=Rejected" >> $GITHUB_OUTPUT
+            fi
+            ]
+          fi
