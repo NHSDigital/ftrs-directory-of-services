@@ -32,6 +32,7 @@ class FtrsLogger:
         self._last_appended_correlation: Optional[str] = None
         self._last_log_data = dict()
 
+    # This method should be called at the final stages of Lambda operation (i.e. just before returning the response) to clear down persisting context and avoid contamination of future logs
     def clear_log_data(self) -> None:
         self._last_log_data = dict()
 
