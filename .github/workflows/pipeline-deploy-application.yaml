@@ -97,7 +97,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
-  deploy-application-infrastructure:
+  apply-infrastructure:
     name: "Deploy application infrastructure  to the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
