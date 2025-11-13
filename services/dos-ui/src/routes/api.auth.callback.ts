@@ -1,11 +1,11 @@
-import {createFileRoute} from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import * as client from 'openid-client';
-import {getLogger} from "@/utils/logger";
-import {getOIDCConfig} from "@/utils/cis2Configuration.ts";
-import {CIS2TokenSchema, UserInfoSchema} from "@/core/schema.ts";
-import {SessionManager} from "@/core/session.ts";
-import {useSession} from "@tanstack/react-start/server";
-import {SESSION_COOKIE_MAX_AGE, SESSION_COOKIE_NAME} from "@/core/constants.ts";
+import { getLogger } from "@/utils/logger";
+import { getOIDCConfig } from "@/utils/cis2Configuration.ts";
+import { CIS2TokenSchema, UserInfoSchema } from "@/core/schema.ts";
+import { SessionManager } from "@/core/session.ts";
+import { useSession } from "@tanstack/react-start/server";
+import { SESSION_COOKIE_MAX_AGE, SESSION_COOKIE_NAME } from "@/core/constants.ts";
 
 
 
@@ -44,14 +44,17 @@ export const Route = createFileRoute('/api/auth/callback')({
           });
           throw new Error("Session not found in DynamoDB or it has expired or state mismatch");
         }
+
+        const { oidcClient, authConfig } = await getOIDCConfig();
+        const currentURL = new URL(authConfig.redirectUri + `?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
+
         try {
-          const oidcConfig = await getOIDCConfig();
           const tokens = await client.authorizationCodeGrant(
-            oidcConfig,
-            url,
+            oidcClient,
+            currentURL,
             {
               expectedState: state,
-            }
+            },
           );
 
           // Parse and validate tokens
@@ -59,7 +62,7 @@ export const Route = createFileRoute('/api/auth/callback')({
           logger.info("[SERVER] Successfully exchanged authorization code for tokens");
           // Fetch user info
           const claims = tokens.claims();
-          const userinfo = await client.fetchUserInfo(oidcConfig, tokens.access_token, claims?.sub ?? '');
+          const userinfo = await client.fetchUserInfo(oidcClient, tokens.access_token, claims?.sub ?? '');
 
           logger.info("[SERVER] Userinfo received", {
             sub: userinfo.sub,

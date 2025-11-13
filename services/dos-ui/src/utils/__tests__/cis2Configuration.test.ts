@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import {getawsParameter, getawsSecret} from "../aws-util.ts";
+import { getawsParameter, getawsSecret } from "../aws-util.ts";
 import {
   getAuthConfig,
   getCIS2PrivateKey, getOIDCConfig,
   validateConfig,
 } from "../cis2Configuration";
-import {importPKCS8} from "jose";
+import { importPKCS8 } from "jose";
 import * as client from "openid-client";
 
 vi.mock("../aws-util.ts", () => ({
@@ -105,9 +105,9 @@ describe("getOIDCConfig", () => {
       } as any),
     } as any);
 
-    const config = await getOIDCConfig();
+    const { oidcClient } = await getOIDCConfig();
 
-    expect(config).toBeDefined();
+    expect(oidcClient).toBeDefined();
     expect(client.PrivateKeyJwt).toHaveBeenCalledWith("mocked-crypto-key");
     expect(client.discovery).toHaveBeenCalledWith(
       new URL(".well-known/openid-configuration", "http://issuer"),
