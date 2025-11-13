@@ -6,14 +6,15 @@ from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
-from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 
 
 def make_fhir_org(
     id: str = str(uuid.uuid4()),
     name: str = "Test Org",
     active: bool = True,
-    telecom: list | None = None,
+    telecom: list[Telecom] | None = None,
     type: list | None = None,
 ) -> FhirOrganisation:
     kwargs = {
@@ -38,7 +39,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom="01234",
+        telecom=[Telecom(type=TelecomType.PHONE, value="01234", isPublic=True)],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -65,7 +66,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
+        telecom=[],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -188,13 +189,15 @@ def test__extract_ods_code_from_identifiers_non_dict_in_list() -> None:
 
 def test__build_telecom() -> None:
     mapper = OrganizationMapper()
-    telecom = mapper._build_telecom("01234")
+    telecom = mapper._build_telecom(
+        [Telecom(type=TelecomType.PHONE, value="01234", isPublic=True)]
+    )
     assert isinstance(telecom, list)
     assert telecom[0]["system"] == "phone"
     assert telecom[0]["value"] == "01234"
     assert telecom[0]["use"] == "work"
-    telecom_none = mapper._build_telecom(None)
-    assert telecom_none == []
+    telecom_empty_list = mapper._build_telecom([])
+    assert telecom_empty_list == []
 
 
 def test__build_type() -> None:
@@ -227,7 +230,9 @@ def test_from_fhir_maps_fields_correctly() -> None:
     assert internal_organisation.identifier_ODS_ODSCode == valid_uuid
     assert internal_organisation.name == "Test Org"
     assert internal_organisation.active is True
-    assert internal_organisation.telecom == "01234"
+    assert internal_organisation.telecom == [
+        Telecom(type=TelecomType.PHONE, value="01234", isPublic=True)
+    ]
     assert internal_organisation.type == "GP Practice"
     assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
@@ -341,7 +346,7 @@ def test_to_fhir_bundle_single_org() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
+        telecom=[Telecom(type=TelecomType.PHONE, value="01234", isPublic=True)],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -378,7 +383,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
+        telecom=[Telecom(type=TelecomType.PHONE, value="01234", isPublic=True)],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -387,7 +392,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
+        telecom=[],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -452,26 +457,28 @@ def test__get_org_telecom_with_phone() -> None:
     org = make_fhir_org(
         telecom=[ContactPoint(system="phone", value="01234")],
     )
-    assert mapper._get_org_telecom(org) == "01234"
+    assert mapper._get_org_telecom(org) == [
+        Telecom(type=TelecomType.PHONE, value="01234", isPublic=True)
+    ]
 
 
-def test__get_org_telecom_none() -> None:
+def test__get_org_telecom_empty_list() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[],
     )
-    assert mapper._get_org_telecom(org) is None
+    assert mapper._get_org_telecom(org) == []
 
 
 def test__get_org_telecom_with_no_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[
-            ContactPoint(system="email", value="test@example.com"),
+            ContactPoint(system="pager", value="1337"),
             ContactPoint(system="fax", value="12345"),
         ],
     )
-    assert mapper._get_org_telecom(org) is None
+    assert mapper._get_org_telecom(org) == []
 
 
 def test__get_role_code_from_extension_england_structure() -> None:
