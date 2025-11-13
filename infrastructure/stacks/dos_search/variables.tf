@@ -59,11 +59,6 @@ locals {
       status_code   = "403"
       template      = file("${local.fhir_outcome_dir}/access_denied.json")
     }
-    invalid_api_key = {
-      response_type = "INVALID_API_KEY"
-      status_code   = "403"
-      template      = file("${local.fhir_outcome_dir}/invalid_api_key.json")
-    }
     default_4xx = {
       response_type = "DEFAULT_4XX"
       status_code   = "400"
@@ -73,11 +68,6 @@ locals {
       response_type = "THROTTLED"
       status_code   = "429"
       template      = file("${local.fhir_outcome_dir}/throttled.json")
-    }
-    integration_timeout = {
-      response_type = "INTEGRATION_TIMEOUT"
-      status_code   = "504"
-      template      = file("${local.fhir_outcome_dir}/integration_timeout.json")
     }
     default_5xx = {
       response_type = "DEFAULT_5XX"
