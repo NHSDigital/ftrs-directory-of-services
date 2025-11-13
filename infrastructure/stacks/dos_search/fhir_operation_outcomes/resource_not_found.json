@@ -3,19 +3,18 @@
   "issue": [
     {
       "severity": "error",
-      "code": "not-found",
-      "diagnostics": "No such endpoint",
+      "code": "not-supported",
       "details": {
         "coding": [
           {
             "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
             "version": "1.0.0",
-            "code": "NOT_FOUND",
-            "display": "Not Found"
+            "code": "UNSUPPORTED_SERVICE",
+            "display": "Unsupported service"
           }
         ]
-      }
+      },
+      "diagnostics": "Unsupported service: $context.resourcePath.split('/')[1]"
     }
   ]
 }
-
