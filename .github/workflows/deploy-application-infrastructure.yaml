@@ -79,7 +79,8 @@ jobs:
     environment: "${{ inputs.environment }}-protected"
     steps:
       - name: Approval required
-        run: echo "
+        run: echo "${{ inputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+
 
   apply-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }}"
