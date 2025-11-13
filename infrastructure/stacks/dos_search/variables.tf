@@ -46,8 +46,8 @@ locals {
     }
     missing_authentication_token = {
       response_type = "MISSING_AUTHENTICATION_TOKEN"
-      status_code   = "404"
-      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/access_denied.json")
     }
     access_denied = {
       response_type = "ACCESS_DENIED"
