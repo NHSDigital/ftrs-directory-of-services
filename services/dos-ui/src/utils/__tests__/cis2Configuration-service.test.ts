@@ -34,12 +34,15 @@ vi.mock("../cis2Configuration.ts", () => ({
 
 vi.mock("openid-client", () => ({
   randomState: () => "state",
-  buildAuthorizationUrl: (_oidcClient: any, parameters: any) => {
-    const url = new URL("http://issuer/auth");
-    url.searchParams.append("state", parameters.state);
-    return url;
-  }
-
+  randomNonce: () => "nonce",
+  randomPKCECodeVerifier: () => "verifier",
+  calculatePKCECodeChallenge: async () => "challenge",
+  buildAuthorizationUrl: (
+    config: { authorization_endpoint: string },
+    params: { state: string },
+  ) => ({
+    href: `${config.authorization_endpoint}?state=${params.state}`,
+  }),
 }));
 
 describe("getAuthorisationUrl", () => {

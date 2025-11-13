@@ -37,7 +37,6 @@ vi.mock("@/utils/logger", () => ({
   }),
 }));
 
-
 describe("api.auth.callback route", () => {
   // Helper to get handler without type errors
   const getHandler = () => {
@@ -138,17 +137,11 @@ describe("api.auth.callback route", () => {
       updateSession: vi.fn().mockResolvedValue(undefined),
       getSessionSecret: vi.fn().mockResolvedValue("test-secret-key-32-chars-long"),
     };
-
-    (getOIDCConfig as Mock).mockResolvedValue({
-      oidcClient: mockOIDCConfig,
-      authConfig: {
-        redirectUri: "http://localhost:3000/api/auth/callback",
-      },
-    });
-
     // @ts-expect-error - Mocking class constructor requires type conversion for testing
     (SessionManager as Mock).mockImplementation(() => mockSessionManager);
     SessionManager.getSessionSecret = mockSessionManager.getSessionSecret;
+
+    (getOIDCConfig as Mock).mockResolvedValue(mockOIDCConfig);
     (client.authorizationCodeGrant as Mock).mockResolvedValue(mockTokens);
     (client.fetchUserInfo as Mock).mockResolvedValue(mockUserInfo);
   });
