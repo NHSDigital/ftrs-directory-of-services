@@ -80,6 +80,21 @@ jobs:
     steps:
       - name: Approval required
         run: echo "${{ inputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+        # TODO test this
+      - name: Capture approval info
+        id: approval
+        run: |
+          echo "Fetching deployment approver..."
+          DEPLOYMENT_ID=$(gh api repos/${{ github.repository }}/deployments \
+            --jq '.[0].id')
+
+          APPROVER=$(gh api repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/reviews \
+            --jq '.[0].user.login')
+
+          echo "Approver: $APPROVER"
+          # echo "approver=$APPROVER" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
   apply-application-infrastructure:
