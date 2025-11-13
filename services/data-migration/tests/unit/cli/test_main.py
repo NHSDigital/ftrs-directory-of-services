@@ -177,8 +177,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     hc_path = output_dir / "healthcare-service.jsonl"
 
     test_org = Organisation.model_construct(
-        id=uuid4(),
-        identifier_ODS_ODSCode="TEST123",
+        id=uuid4(), identifier_ODS_ODSCode="TEST123", telecom=[]
     )
 
     mock_output = ServiceTransformOutput(
@@ -214,8 +213,8 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
         "endpoints": [],
         "non_primary_role_codes": [],
         "primary_role_code": None,
-        "telecom": None,
         "type": None,
+        "telecom": [],
         "legalDates": None,
     }
     assert loc_content == {

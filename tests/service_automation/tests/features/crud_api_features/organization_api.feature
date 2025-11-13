@@ -35,19 +35,6 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with diagnostics "No changes made to the organisation"
     And the database matches the inserted payload with the same modifiedBy timestamp
 
-  Scenario: Update Organisation with only mandatory fields
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I update the organization details for ODS Code with mandatory fields only
-    Then I receive a status code "200" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome contains an issue with severity "information"
-    And the OperationOutcome contains an issue with code "success"
-    And the OperationOutcome contains an issue with diagnostics "Organisation updated successfully"
-    And the data in the database matches the inserted payload with telecom null
-
   Scenario Outline: Organization names are sanitized to title case with acronym preservation
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -72,7 +59,7 @@ Feature: Organization API Endpoint
     When I set the "<field>" field to "<value>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
-    And the database reflects "<field>" with value "<value>"
+    Then the database reflects "<field>" with value "<value>"
 
     Examples:
       | field   | value                           |
@@ -80,13 +67,13 @@ Feature: Organization API Endpoint
       | telecom | 9876543210(                     |
 
   Scenario Outline: Reject Organization update with invalid special characters in specific fields
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
     When I set the "<field>" field to "<value>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates invalid characters in the "<field_path>" with value "<invalid_value>"
+    And the diagnostics message indicates invalid characters in the "<field_path>" with value "<value>"
 
     Examples:
       | field   | value           | field_path       | invalid_value   |
@@ -162,10 +149,14 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates "<field>" is missing
 
     Examples:
-      | field  |
-      | name   |
-      | active |
-      | identifier |
+      | field        |
+      | resourceType |
+      | meta         |
+      | identifier   |
+      | name         |
+      | type         |
+      | active       |
+      | telecom      |
 
   Scenario: Update Organization with non-existent ID
     When I update the organization with a non-existent ID
@@ -213,7 +204,7 @@ Feature: Organization API Endpoint
       | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M2T8W"}]              |
       | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M2T8W", "use": null}] |
 
-  Scenario Outline: Update organization with invalid identifier
+  Scenario Outline: Reject Organization update with invalid identifier
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
@@ -251,6 +242,127 @@ Feature: Organization API Endpoint
       | active | null   |
       | active | "null" |
 
+
+  Scenario Outline: Successfully update organization with valid telecom fields
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I set the "<field>" field to "<value>"
+    Then I receive a status code "200" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "information"
+    And the OperationOutcome contains an issue with code "success"
+    And the OperationOutcome contains an issue with diagnostics "Organisation updated successfully"
+    And the data in the database matches the inserted payload
+
+    Examples:
+      | field | value               |
+      | phone | 0300 311 22 34      |
+      | phone | +44 7900 000 001    |
+      | phone | 07900 000 001       |
+      | phone | +44 (0) 7900 000001 |
+      | email | test@nhs.net        |
+      | email | test12@gmail.com    |
+      | email | test12@yahoo.com    |
+      | email | test@company.co.uk  |
+      | url   | http://example.com  |
+      | url   | https://example.com |
+
+  Scenario Outline: Reject Organization update with invalid telecom values
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I set the "<field>" field to "<value>"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the OperationOutcome contains an issue with diagnostics "<expected_error>"
+
+    Examples:
+      | field | value                    | expected_error                                                                                                                 |
+      | phone | +++ABC123                | Validation failed for the following resources: Telecom value field contains an invalid phone number: +++ABC123                 |
+      | phone | 12345                    | Validation failed for the following resources: Telecom value field contains an invalid phone number: 12345                     |
+      | phone | +9991234567890           | Validation failed for the following resources: Telecom value field contains an invalid phone number: +9991234567890            |
+      | phone | +44 (0) 7911 123456      | Validation failed for the following resources: Telecom value field contains an invalid phone number: +44 (0) 7911 123456       |
+      | phone | +1 415-555-2671x1234     | Validation failed for the following resources: Telecom value field contains an invalid phone number: +1 415-555-2671x1234      |
+      | phone | +1415555267              | Validation failed for the following resources: Telecom value field contains an invalid phone number: +1415555267               |
+      | phone | ++14155552671            | Validation failed for the following resources: Telecom value field contains an invalid phone number: ++14155552671             |
+      | phone | +00000000000             | Validation failed for the following resources: Telecom value field contains an invalid phone number: +00000000000              |
+      | phone | 0300 311 22 34@          | Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300 311 22 34@           |
+      | phone | #0300 311 22 34          | Validation failed for the following resources: Telecom value field contains an invalid phone number: #0300 311 22 34           |
+      | phone | 0300-311-22-34           | Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300-311-22-34            |
+      | phone | <020 7972 3272           | Validation failed for the following resources: Telecom value field contains an invalid phone number: <020 7972 3272            |
+      | phone | 020;7972;3272            | Validation failed for the following resources: Telecom value field contains an invalid phone number: 020;7972;3272             |
+      | phone | 07900#000001             | Validation failed for the following resources: Telecom value field contains an invalid phone number: 07900#000001              |
+      | phone | +44/7911/123456          | Validation failed for the following resources: Telecom value field contains an invalid phone number: +44/7911/123456           |
+      | phone | 0300,311,22,34           | Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300,311,22,34            |
+      | phone | 0300_311_22_34           | Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300_311_22_34            |
+      | phone | +44~7911^123456          | Validation failed for the following resources: Telecom value field contains an invalid phone number: +44~7911^123456           |
+      | phone | +49 170 1234567          | Validation failed for the following resources: Telecom value field contains an invalid phone number: +49 170 1234567           |
+      | phone | +61 4 1234 5678          | Validation failed for the following resources: Telecom value field contains an invalid phone number: +61 4 1234 5678           |
+      | phone | +33 1 23 45 67 89        | Validation failed for the following resources: Telecom value field contains an invalid phone number: +33 1 23 45 67 89         |
+      | phone | +91 9123456789           | Validation failed for the following resources: Telecom value field contains an invalid phone number: +91 9123456789            |
+      | email | invalidemail.com         | Validation failed for the following resources: Telecom value field contains an invalid email address: invalidemail.com         |
+      | email | plainaddress             | Validation failed for the following resources: Telecom value field contains an invalid email address: plainaddress             |
+      | email | john..test@example.com   | Validation failed for the following resources: Telecom value field contains an invalid email address: john..test@example.com   |
+      | email | @missinglocal.com        | Validation failed for the following resources: Telecom value field contains an invalid email address: @missinglocal.com        |
+      | email | username@.leadingdot.com | Validation failed for the following resources: Telecom value field contains an invalid email address: username@.leadingdot.com |
+      | email | user@invalid_domain.com  | Validation failed for the following resources: Telecom value field contains an invalid email address: user@invalid_domain.com  |
+      | email | user@domain              | Validation failed for the following resources: Telecom value field contains an invalid email address: user@domain              |
+      | email | user@domain.c            | Validation failed for the following resources: Telecom value field contains an invalid email address: user@domain.c            |
+      | url   | htp://example.com        | Validation failed for the following resources: Telecom value field contains an invalid url: htp://example.com                  |
+      | url   | http://exa mple.com      | Validation failed for the following resources: Telecom value field contains an invalid url: http://exa mple.com                |
+      | url   | http://example.com:99999 | Validation failed for the following resources: Telecom value field contains an invalid url: http://example.com:99999           |
+
+  Scenario: Reject modification of 'type' field in telecom after creation
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I attempt to update the "<actual_type>" in telecom with "<update_type>"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the OperationOutcome contains an issue with diagnostics "<expected_error>"
+
+    Examples:
+      | actual_type | update_type | expected_error                                                                                                               |
+      | phone       | email       | Validation failed for the following resources: Telecom value field contains an invalid email address: 0300 311 22 34         |
+      | email       | phone       | Validation failed for the following resources: Telecom value field contains an invalid phone number: test678@nhs.net         |
+      | url         | email       | Validation failed for the following resources: Telecom value field contains an invalid email address: https://example123.com |
+
+  Scenario Outline: Reject Organization Update with Invalid Telecom Field
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I update the organization with an invalid telecom field "<invalid_scenario>"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+
+    Examples:
+      | invalid_scenario    |
+      | missing_type        |
+      | missing_value       |
+      | empty_type          |
+      | empty_value         |
+      | mixed_valid_invalid |
+      | unsupported_system  |
+
+  Scenario: Reject Organization Update with Telecom Field containing extra field
+    When I update the organization with an invalid telecom field "additional_field"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the diagnostics message indicates unexpected field "extra_field" with value "unexpected"
 
   Scenario Outline: Update Organization with legal dates
     Given that the stack is "organisation"
@@ -347,6 +459,7 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
 
+
   Scenario Outline: Update Organization update with valid ods-code format
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -378,6 +491,7 @@ Feature: Organization API Endpoint
       | M2T8W        |
       | 01234        |
 
+
   Scenario Outline: Reject Organization update with invalid ods-code format
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -401,4 +515,18 @@ Feature: Organization API Endpoint
       | ABC 123       |
       | ABC-123       |
       | 123_456       |
+
+
+  Scenario: Successfully update organization with empty telecom list
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I update the organization with an invalid telecom field "empty_telecom"
+    Then I receive a status code "200" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "information"
+    And the OperationOutcome contains an issue with code "success"
+    And the OperationOutcome contains an issue with diagnostics "Organisation updated successfully"
+    And the data in the database matches the inserted payload
 

@@ -11,6 +11,8 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain.enums import OrganisationTypeCode
+from ftrs_data_layer.domain import Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
@@ -112,7 +114,15 @@ class Organisation(BaseModel):
 
     name: str = Field(..., example="GP Practice Name")
     active: bool = Field(..., example=True)
-    telecom: str | None = Field(default=None, example="01234 567890")
+    telecom: list[Telecom] | None = Field(
+        default=[],
+        example=[
+            Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
+            Telecom(type=TelecomType.WEB, value="https://test.nhs.uk", isPublic=True),
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
+            Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=False),
+        ],
+    )
     type: str = Field(default="GP Practice", example="GP Practice")
 
 
@@ -130,7 +140,7 @@ class OrganisationUpdatePayload(BaseModel):
     identifier: list[Identifier] = Field(..., description="Organization identifiers")
     name: str = Field(max_length=100, example="GP Practice Name")
     active: bool = Field(..., example=True)
-    telecom: list[ContactPoint] | None = None
+    telecom: list[ContactPoint]
     extension: list[Extension] | None = None
 
     model_config = {"extra": "forbid"}
