@@ -5,15 +5,11 @@
 
 set -e
 
-#configuration
-AUTH_ENDPOINT="${TOKEN_URL}"
-
-
-# Check required environment variables
-if [ -z "$PRIVATE_KEY" ] || [ -z "$KID" ] || [ -z "$CLIENT_ID" ] || [ -z "$TOKEN_URL" ]; then
-    echo "Error: Missing required environment variables (PRIVATE_KEY, KID, CLIENT_ID or TOKEN_URL)" >&2
-    exit 1
-fi
+# Get the secret string
+    export SECRET_STRING=$(aws secretsmanager get-secret-value \
+      --secret-id /ftrs-dos/${ENV}/${API_NAME}-proxygen-jwt-credentials \
+      --query SecretString \
+      --output text)
 
 # Create Python script for JWT generation
 cat > /tmp/create_jwt.py << 'PYTHON_SCRIPT'
@@ -24,22 +20,29 @@ import requests
 import jwt
 import sys
 import os
+import json
 
-def create_signed_jwt(private_key, kid, client_id, token_url):
+def create_signed_jwt(secret_string):
     """Create a signed JWT for APIM authentication"""
     try:
+        secret_string_json = json.loads(secret_string)
         # Set JWT claims
 
+        # print("Secret String:", secret_string, file=sys.stderr)
+        # print("Client ID:", secret_string_json["client_id"], file=sys.stderr)
+        # print("private_key:", secret_string_json["private_key"], file=sys.stderr)
+
+
         claims = {
-            "sub": client_id,
-            "iss": client_id,
+            "sub": secret_string_json["client_id"],
+            "iss": secret_string_json["client_id"],
             "jti": str(uuid.uuid4()),
-            "aud": token_url,
+            "aud": secret_string_json["token_url"],
             "exp": int(time()) + 300,
         }
 
         signed_jwt = jwt.encode(
-          claims, private_key, algorithm="RS512", headers={'kid': kid}
+          claims, secret_string_json["private_key"], algorithm="RS512", headers={'kid': secret_string_json["kid"]}
         )
 
         return signed_jwt
@@ -49,16 +52,9 @@ def create_signed_jwt(private_key, kid, client_id, token_url):
         sys.exit(1)
 
 if __name__ == "__main__":
-    private_key = os.environ.get('PRIVATE_KEY')
-    kid = os.environ.get('KID')
-    client_id = os.environ.get('CLIENT_ID')
-    token_url = os.environ.get('TOKEN_URL')
+    secret_string = os.environ.get('SECRET_STRING')
 
-    if not all([private_key, kid, client_id, token_url]):
-        print("Missing required environment variables", file=sys.stderr)
-        sys.exit(1)
-
-    signed_jwt = create_signed_jwt(private_key, kid, client_id, token_url)
+    signed_jwt = create_signed_jwt(secret_string)
     print(signed_jwt)
 PYTHON_SCRIPT
 
@@ -72,9 +68,11 @@ if [ -z "$SIGNED_JWT" ]; then
     exit 1
 fi
 
+TOKEN_URL=$(echo "$SECRET_STRING" | jq -r .token_url)
+
 # Request access token
 echo "Requesting access token from APIM..." >&2
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$AUTH_ENDPOINT" \
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$TOKEN_URL" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "grant_type=client_credentials" \
     -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \
@@ -104,4 +102,4 @@ if [ -z "$ACCESS_TOKEN" ]; then
 fi
 
 echo "Successfully retrieved access token" >&2
-echo "$ACCESS_TOKEN"
+echo "::add-mask::$ACCESS_TOKEN"

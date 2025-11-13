@@ -25,18 +25,17 @@ jobs:
         id: get-token
         uses: ./.github/actions/authenticate-apim
         with:
-          private_key: ${{ secrets.PRIVATE_KEY }}
-          kid: ${{ secrets.KID }}
-          client_id: ${{ secrets.CLIENT_ID }}
-          token_url: ${{ secrets.TOKEN_URL }}
-
+          api_name: ${{ env.API_NAME }}
+          env: ${{ matrix.environment }}
       - name: Test Token - List Proxy Instances
         env:
           ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
         run: |
           echo "Testing access token by listing proxy instances in internal-dev environment..."
 
-          #todo: write script to list proxy instances using the access token
+          curl --request GET \
+          --url https://proxygen.prod.api.platform.nhs.uk/apis/dos-search \
+          --header "Authorization: Bearer ::add-mask::$ACCESS_TOKEN"
 
       - name: Cleanup
         if: always()

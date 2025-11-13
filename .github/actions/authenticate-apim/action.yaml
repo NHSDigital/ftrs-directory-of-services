@@ -2,17 +2,11 @@ name: 'APIM Authenticate'
 description: 'Authenticate with APIM and retrieve access token for Proxygen API'
 
 inputs:
-  private_key:
-    description: 'Private PEM key for JWT signing'
+  api_name:
+    description: 'Name of the API to access via Proxygen'
     required: true
-  kid:
-    description: 'Key ID for JWT signing'
-    required: true
-  client_id:
-    description: 'Client ID for APIM authentication'
-    required: true
-  token_url:
-    description: 'Token URL for APIM authentication'
+  env:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
     required: true
 
 outputs:
@@ -38,10 +32,8 @@ runs:
       id: authenticate
       shell: bash
       run: |
-        export PRIVATE_KEY="::add-mask::${{ inputs.private_key }}"
-        export KID="::add-mask::${{ inputs.kid }}"
-        export CLIENT_ID="::add-mask::${{ inputs.client_id }}"
-        export TOKEN_URL="::add-mask::${{ inputs.token_url }}"
+        export API_NAME=${{ inputs.api_name }}
+        export ENV=${{ inputs.env }}
 
         chmod +x ./scripts/workflow/get-apim-token.sh
         ACCESS_TOKEN=/bin/bash ./scripts/workflow/get-apim-token.sh
@@ -55,10 +47,6 @@ runs:
         echo "::add-mask::$ACCESS_TOKEN"
 
         # Set as output
-        echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+        echo "::add-mask::access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
 
         echo "✓ Access token retrieved successfully"
-
-branding:
-  icon: 'lock'
-  color: 'blue'
