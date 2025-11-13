@@ -9,11 +9,11 @@ from ftrs_data_layer.domain import (
     DayOfWeek,
     Disposition,
     HealthcareService,
+    HealthcareServiceTelecom,
     NotAvailable,
     SymptomDiscriminator,
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
-    Telecom,
 )
 from pydantic import ValidationError
 
@@ -34,7 +34,7 @@ def test_healthcare_service_round_trip_and_types() -> None:
         modifiedDateTime="2023-10-01T00:00:00Z",
         migrationNotes=None,
         name="Test Healthcare Service",
-        telecom=Telecom(
+        telecom=HealthcareServiceTelecom(
             phone_public="123456789",
             phone_private="987654321",
             email="example@mail.com",
@@ -157,19 +157,3 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
     # Act / Assert
     with pytest.raises(ValidationError):
         HealthcareService.model_validate(payload)
-
-
-def test_telecom() -> None:
-    telecom = Telecom(
-        phone_public="00000000000",
-        phone_private="12345678901#EXT0123",
-        email="test@nhs.net",
-        web="ww.test.co.u",
-    )
-
-    assert telecom.model_dump(mode="json") == {
-        "phone_public": "00000000000",
-        "phone_private": "12345678901#EXT0123",
-        "email": "test@nhs.net",
-        "web": "ww.test.co.u",
-    }

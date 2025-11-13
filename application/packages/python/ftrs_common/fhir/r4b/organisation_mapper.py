@@ -1,12 +1,14 @@
 from fhir.resources.R4B.bundle import Bundle, BundleEntry
 from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.utils.title_case_sanitization import sanitize_string_field
-from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
 
 TYPED_PERIOD_URL = (
@@ -36,9 +38,16 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
-    def _build_telecom(self, telecom: str | None) -> list[dict]:
-        """Build FHIR telecom list from phone number."""
-        return [{"system": "phone", "value": telecom, "use": "work"}] if telecom else []
+    def _build_telecom(self, telecom: list[Telecom]) -> list[dict]:
+        """Build FHIR telecom list from phone, email and web."""
+        fhir_telecom = []
+        for tel in telecom:
+            fhir_telecom.append(
+                ContactPoint.model_validate(
+                    {"system": tel.type.value, "value": tel.value}
+                )
+            )
+        return fhir_telecom
 
     def _build_legal_date_extension(
         self, legal_start_date: str | None, legal_end_date: str | None
@@ -212,10 +221,22 @@ class OrganizationMapper(FhirMapper):
         """Extract phone number from FHIR Organization telecom."""
         if not (hasattr(fhir_org, "telecom") and fhir_org.telecom):
             return None
+
+    def _get_org_telecom(self, fhir_org: FhirOrganisation) -> list[Telecom]:
+        """Extract telecom (phone, email, web) from FHIR Organization telecom."""
+        if not (hasattr(fhir_org, "telecom") and fhir_org.telecom):
+            return []
+
+        telecoms = []
         for telecom in fhir_org.telecom:
-            if getattr(telecom, "system", None) == "phone":
-                return telecom.value
-        return None
+            telecoms.append(
+                Telecom(
+                    type=TelecomType.from_fhir_value(telecom.system),
+                    value=telecom.value,
+                    isPublic=True,
+                )
+            )
+        return telecoms
 
     def _get_role_code_from_extension(self, ext: dict) -> str | None:
         """Extract role code from organization role extension."""

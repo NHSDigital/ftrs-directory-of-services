@@ -12,15 +12,17 @@ from ftrs_common.fhir.r4b.organisation_mapper import (
     TYPED_PERIOD_URL,
     OrganizationMapper,
 )
-from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
+from pydantic import ValidationError
 
 
 def make_fhir_org(
     id: str = str(uuid.uuid4()),
     name: str = "Test Org",
     active: bool = True,
-    telecom: list | None = None,
+    telecom: list[Telecom] | None = None,
     type: list | None = None,
 ) -> FhirOrganisation:
     kwargs = {
@@ -45,7 +47,9 @@ def test_to_fhir_maps_fields_correctly() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom="01234",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -56,8 +60,8 @@ def test_to_fhir_maps_fields_correctly() -> None:
     assert fhir_org.active is True
     assert fhir_org.identifier[0].value == "ODS1"
     assert fhir_org.telecom[0].system == "phone"
-    assert fhir_org.telecom[0].value == "01234"
-    assert fhir_org.telecom[0].use == "work"
+    assert fhir_org.telecom[0].value == "0300 311 22 33"
+    assert fhir_org.telecom[0].use is None
     assert (
         fhir_org.meta.profile[0]
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
@@ -72,7 +76,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
+        telecom=[],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -195,13 +199,19 @@ def test__extract_ods_code_from_identifiers_non_dict_in_list() -> None:
 
 def test__build_telecom() -> None:
     mapper = OrganizationMapper()
-    telecom = mapper._build_telecom("01234")
+    telecom = mapper._build_telecom(
+        [Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)]
+    )
     assert isinstance(telecom, list)
-    assert telecom[0]["system"] == "phone"
-    assert telecom[0]["value"] == "01234"
-    assert telecom[0]["use"] == "work"
-    telecom_none = mapper._build_telecom(None)
-    assert telecom_none == []
+    assert telecom[0].system == "phone"
+    assert telecom[0].value == "0300 311 22 33"
+    assert telecom[0].use is None
+
+
+def test__build_telecom_empty_list() -> None:
+    mapper = OrganizationMapper()
+    telecom_empty_list = mapper._build_telecom([])
+    assert telecom_empty_list == []
 
 
 def test__build_type() -> None:
@@ -224,17 +234,19 @@ def test_from_fhir_maps_fields_correctly() -> None:
                 system="https://fhir.nhs.uk/Id/ods-organization-code", value=valid_uuid
             )
         ],
-        name="Test Org",
+        name="Test GP Org",
         active=True,
         type=org_type,
-        telecom=[ContactPoint(system="phone", value="01234")],
+        telecom=[ContactPoint(system="phone", value="0300 311 22 33")],
     )
     internal_organisation = mapper.from_fhir(org)
     assert isinstance(internal_organisation, Organisation)
     assert internal_organisation.identifier_ODS_ODSCode == valid_uuid
-    assert internal_organisation.name == "Test Org"
+    assert internal_organisation.name == "Test GP Org"
     assert internal_organisation.active is True
-    assert internal_organisation.telecom == "01234"
+    assert internal_organisation.telecom == [
+        Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+    ]
     assert internal_organisation.type == "GP Practice"
     assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
@@ -313,7 +325,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
         "id": "C88037",
         "active": True,
         "name": "Test Org",
-        "telecom": [{"system": "phone", "value": "01234"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-ActivePeriod-1",
@@ -404,7 +416,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     assert result.active is True
     assert result.identifier[0].value == "C88037"
     assert result.telecom[0].system == "phone"
-    assert result.telecom[0].value == "01234"
+    assert result.telecom[0].value == "0300 311 22 33"
     assert result.type[0].coding[0].display == "GP Practice"
 
 
@@ -415,7 +427,7 @@ def test_to_fhir_bundle_single_org() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -434,8 +446,8 @@ def test_to_fhir_bundle_single_org() -> None:
     )
     assert resource.identifier[0].use == "official"
     assert resource.telecom[0].system == "phone"
-    assert resource.telecom[0].value == "01234"
-    assert resource.telecom[0].use == "work"
+    assert resource.telecom[0].value == "020 7972 3272"
+    assert resource.telecom[0].use is None
     assert resource.type[0].coding[0].display == "GP Practice"
     assert resource.type[0].coding[0].code == "GP Practice"
     assert resource.type[0].text == "GP Practice"
@@ -452,7 +464,9 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -461,7 +475,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
+        telecom=[],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -524,28 +538,57 @@ def test__get_org_type_with_no_display() -> None:
 def test__get_org_telecom_with_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
-        telecom=[ContactPoint(system="phone", value="01234")],
+        telecom=[ContactPoint(system="phone", value="020 7972 3272")],
     )
-    assert mapper._get_org_telecom(org) == "01234"
+    assert mapper._get_org_telecom(org) == [
+        Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)
+    ]
 
 
-def test__get_org_telecom_none() -> None:
+def test__get_org_telecom_with_no_system() -> None:
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        telecom=[ContactPoint(value="020 7972 3272")],
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+    assert "Telecom type (system) cannot be None or empty" in str(exc_info.value)
+
+
+def test__get_org_telecom_empty_list() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[],
     )
-    assert mapper._get_org_telecom(org) is None
+    assert mapper._get_org_telecom(org) == []
 
 
 def test__get_org_telecom_with_no_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[
-            ContactPoint(system="email", value="test@example.com"),
+            ContactPoint(system="pager", value="1337"),
             ContactPoint(system="fax", value="12345"),
         ],
     )
-    assert mapper._get_org_telecom(org) is None
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+
+    assert "invalid telecom type (system): pager" in str(exc_info.value)
+
+
+def test_get_org_telecom_with_invalid_phone() -> None:
+    OrganizationMapper()
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        telecom=[ContactPoint(system="phone", value="1337")],
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        mapper._get_org_telecom(org)
+
+    assert "value is not a valid phone number" in str(exc_info.value)
 
 
 def test__get_role_code_from_extension_england_structure() -> None:
@@ -1130,7 +1173,7 @@ def test_to_fhir_with_legal_dates() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom="01234",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         type="GP Practice",
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
         modifiedBy="ODS_ETL_PIPELINE",
@@ -1362,6 +1405,7 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
         active=True,
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
+        telecom=[],
     )
 
     fhir_org = mapper.to_fhir(org)
@@ -1479,6 +1523,7 @@ def test_to_fhir_partial_dates_absent_not_null(
         type="GP Practice",
         legalDates=legal_dates,
         modifiedBy="ODS_ETL_PIPELINE",
+        telecom=[],
     )
 
     fhir_org = mapper.to_fhir(org)

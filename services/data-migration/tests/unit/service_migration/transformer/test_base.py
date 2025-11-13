@@ -13,6 +13,7 @@ from ftrs_data_layer.domain import (
     Disposition,
     Endpoint,
     HealthcareService,
+    HealthcareServiceTelecom,
     Location,
     NotAvailable,
     Organisation,
@@ -20,7 +21,6 @@ from ftrs_data_layer.domain import (
     SymptomDiscriminator,
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
-    Telecom,
 )
 from ftrs_data_layer.domain.legacy import (
     OpeningTimeDay,
@@ -102,6 +102,7 @@ def test_service_transformer_build_organisation(
         modifiedBy="DATA_MIGRATION",
         modifiedDateTime="2025-07-17T12:00:00Z",
         identifier_ODS_ODSCode="A12345",
+        telecom=[],
         endpoints=[
             Endpoint(
                 id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
@@ -362,7 +363,7 @@ def test_build_healthcare_service(
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         name="Test Service",
-        telecom=Telecom(
+        telecom=HealthcareServiceTelecom(
             phone_public="01234 567890",
             phone_private="09876 543210",
             email="firstname.lastname@nhs.net",

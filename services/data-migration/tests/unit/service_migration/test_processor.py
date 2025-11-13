@@ -10,13 +10,13 @@ from ftrs_data_layer.domain import (
     Disposition,
     Endpoint,
     HealthcareService,
+    HealthcareServiceTelecom,
     Location,
     Organisation,
     PositionGCS,
     SymptomDiscriminator,
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
-    Telecom,
 )
 from ftrs_data_layer.domain.legacy.service import (
     Service,
@@ -198,7 +198,7 @@ def test_process_service(
         identifier_oldDoS_uid="test-uid",
         active=True,
         name="Public Test Service",
-        telecom=None,
+        telecom=[],
         type="GP Practice",
         endpoints=[
             Endpoint(
@@ -257,7 +257,7 @@ def test_process_service(
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         migrationNotes=[],
         name="Test Service",
-        telecom=Telecom(
+        telecom=HealthcareServiceTelecom(
             phone_public="01234567890",
             phone_private="09876543210",
             email="firstname.lastname@nhs.net",
