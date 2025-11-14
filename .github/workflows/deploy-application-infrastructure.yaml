@@ -120,7 +120,7 @@ jobs:
     steps:
       - name: Deployment Summary
         run: |
-          if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'false' ]; then
+          if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == '' ]; then
             echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
             echo "deploy_status=Success" >> $GITHUB_OUTPUT
           fi
