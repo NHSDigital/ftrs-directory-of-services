@@ -671,6 +671,9 @@ components:
             - TypedPeriod extension for legal start and end dates
           items:
             type: object
+            required:
+              - url
+              - extension
             properties:
               url:
                 type: string
@@ -678,9 +681,13 @@ components:
                 example: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod
               extension:
                 type: array
-                description: Sub-extensions containing dateType and period
+                description: Sub-extensions containing dateType and period (both required if extension is present)
+                minItems: 2
+                maxItems: 2
                 items:
                   type: object
+                  required:
+                    - url
                   properties:
                     url:
                       type: string
@@ -690,7 +697,10 @@ components:
                       description: Sub-extension identifier
                     valueCoding:
                       type: object
-                      description: Used for dateType sub-extension
+                      description: Used for dateType sub-extension (required when url is 'dateType')
+                      required:
+                        - system
+                        - code
                       properties:
                         system:
                           type: string
@@ -705,7 +715,7 @@ components:
                           example: Legal
                     valuePeriod:
                       type: object
-                      description: Used for period sub-extension containing start and/or end dates
+                      description: Used for period sub-extension containing start and/or end dates (required when url is 'period', must contain at least one date)
                       properties:
                         start:
                           type: string
