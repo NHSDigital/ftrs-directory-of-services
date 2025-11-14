@@ -1,0 +1,242 @@
+import logging
+import os
+from typing import Any, Dict, Optional
+
+from aws_lambda_powertools.logging import Logger as PowertoolsLogger
+
+
+class FtrsLogger:
+    """Service-local wrapper that adds FTRS structured fields to powertools logs.
+
+    Usage:
+        f = FtrsLogger(service='dos-search')
+        f.info('message', event=my_event)
+
+    Behavior:
+    - Takes in a log_data field alongside any other extra fields
+    - Calls powertools Logger with `extra=...` so powertools merges it into its JSON output
+    - Optionally prints a debug preview when debug=True
+    - Placeholder for missing values is configurable via ENV `FTRS_LOG_PLACEHOLDER` (default 'TBC').
+        If set to 'NULL' the wrapper will emit Python None (JSON null) for missing values.
+    TODO: Add logic to persist last logged fields for future calls if log_data is not provided
+    """
+
+    def __init__(self, service: str = "ftrs", debug: bool = False) -> None:
+        self._logger = PowertoolsLogger(service=service)
+        self._service = service
+        self.debug = debug
+        # remember last appended correlation id so we can expose it later
+        self._last_appended_correlation: Optional[str] = None
+        self._last_log_data = dict()
+
+    # This method should be called at the final stages of Lambda operation (i.e. just before returning the response) to clear down persisting context and avoid contamination of future logs
+    def clear_log_data(self) -> None:
+        self._last_log_data = dict()
+
+    # --- helper utilities -------------------------------------------------
+    @staticmethod
+    def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Extract APIM headers and common event fields into the structured 'extra' dict.
+
+        All mandatory fields are present; missing values use the configured placeholder.
+        Optional one-time fields are prefixed with 'Opt_'.
+
+        Extracts are handled here as passing the entire event object to the handler presents issues for the pytest library mocks.
+        Extracts could be moved back to the FtrsLogger class, but would more or less require the test mocks to implement log_data=ANY in each call, which may obfuscate more information
+        """
+        placeholder = "FTRS_LOG_PLACEHOLDER"
+
+        headers = event.get("headers") or {}
+        hdr_lower = {k.lower(): v for k, v in headers.items()}
+
+        def h(*names: str) -> Optional[str]:
+            # try original casing keys first, then lowercased mapping
+            for n in names:
+                val = headers.get(n)
+                if val not in (None, ""):
+                    return val
+            # fallback to lowercased lookup of provided names
+            for n in names:
+                val = hdr_lower.get(n.lower())
+                if val not in (None, ""):
+                    return val
+            return None
+
+        out: Dict[str, Any] = {
+            "logger": "ftrs_logger"  # Identifier for when logs are created using our logger
+        }
+
+        # Mandatory/default ftrs fields
+        # NHSD correlation id
+        corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
+        out["ftrs_nhsd_correlation_id"] = corr
+
+        # NHSD request id
+        reqid = h("NHSD-Request-ID") or placeholder
+        out["ftrs_nhsd_request_id"] = reqid
+
+        # APIM message id
+        msgid = (
+            h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "ftrs-message-id")
+            or placeholder
+        )
+        out["ftrs_message_id"] = msgid
+
+        # Default category to LOGGING, can be overridden later
+        out["ftrs_message_category"] = "LOGGING"
+
+        # One-time fields added to "details" to separate
+        out["details"] = {}
+        details = out["details"]  # Alias for sub object access
+
+        end_user_role = (
+            h("x-end-user-role")
+            or event.get("end_user_role")
+            or event.get("requestContext", {})
+            .get("authorizer", {})
+            .get("end_user_role")
+            or placeholder
+        )
+        details["opt_ftrs_end_user_role"] = end_user_role
+
+        client_id = h("x-client-id") or event.get("client_id") or placeholder
+        details["opt_ftrs_client_id"] = client_id
+
+        app_name = (
+            h("x-application-name") or event.get("application_name") or placeholder
+        )
+        details["opt_ftrs_application_name"] = app_name
+
+        # Request params (queryStringParameters + pathParameters)
+        req_params: Dict[str, Any] = {}
+        query_params = (
+            event.get("queryStringParameters")
+            or event.get("query_string_parameters")
+            or {}
+        )
+        path_params = event.get("pathParameters") or event.get("path_parameters") or {}
+        request_context = (
+            event.get("requestContext") or event.get("request_context") or {}
+        )
+        req_params["query_params"] = query_params
+        req_params["path_params"] = path_params
+        req_params["request_context"] = request_context
+
+        details["opt_ftrs_request_params"] = req_params or {}
+
+        details["opt_ftrs_response_time"] = placeholder
+
+        details["opt_ftrs_environment"] = (
+            os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
+        )
+
+        details["opt_ftrs_api_version"] = (
+            h("x-api-version", "api-version") or placeholder
+        )
+
+        details["opt_ftrs_lambda_version"] = (
+            os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
+        )
+
+        details["opt_ftrs_response_size"] = placeholder
+
+        return out
+
+    # --- powertools context -----------------------------------------------
+    def _append_powertools_context(self, extra: Dict[str, Any]) -> None:
+        """Append keys to powertools logger context where possible.
+        Best-effort: if powertools Logger implements append_keys we call it; otherwise ignore.
+        """
+        try:
+            corr = extra.get("ftrs_nhsd_correlation_id")
+            if corr and corr != self._placeholder():
+                append = getattr(self._logger, "append_keys", None)
+                if callable(append):
+                    try:
+                        append(correlation_id=corr)
+                        self._last_appended_correlation = corr
+                    except Exception:
+                        self._last_appended_correlation = corr
+                else:
+                    # still remember the value locally
+                    self._last_appended_correlation = corr
+        except Exception:
+            # swallow; best-effort only
+            pass
+
+    def _log_with_level(
+        self,
+        level: str,
+        message: str,
+        log_data: Optional[Dict[str, Any]] = None,
+        **detail: object,
+    ) -> Dict[str, Any]:
+        # If log_data is provided, override last stored log state
+        if log_data:
+            self._last_log_data = log_data
+        # Handles deliberately passed None values, attempting to read previously logged data from the session if set
+        log_data = (
+            log_data if log_data else self._last_log_data if self._last_log_data else {}
+        )
+        # convert detail (kwargs) to dict for manipulation
+        detail_map = dict(detail) if detail else {}
+
+        # Allow certain ftrs_* fields to be provided as top-level overrides
+        override_keys = {
+            "ftrs_message_category",
+        }
+        if detail_map:
+            for k in list(detail_map.keys()):
+                if k in override_keys:
+                    log_data[k] = detail_map.pop(k)
+            if detail_map:
+                log_data["detail"] = detail_map
+
+        # append powertools context where possible
+        self._append_powertools_context(log_data)
+
+        # call powertools
+        try:
+            if level == "info":
+                self._logger.info(message, extra=log_data)
+            elif level == "warning":
+                self._logger.warning(message, extra=log_data)
+            elif level == "error":
+                self._logger.error(message, extra=log_data)
+            elif level == "exception":
+                self._logger.exception(message, extra=log_data)
+            else:
+                self._logger.info(message, extra=log_data)
+        except TypeError:
+            base_logger = logging.getLogger(self._service)
+            (base_logger.info(message),)
+        return log_data
+
+    def info(
+        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("info", message, log_data, **detail)
+        return log_data
+
+    def warning(
+        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("warning", message, log_data, **detail)
+        return log_data
+
+    def error(
+        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("error", message, log_data, **detail)
+        return log_data
+
+    def exception(
+        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("exception", message, log_data, **detail)
+        return log_data
+
+
+# Instantiate logger here to allow import to sub-directories
+service = "dos-search"
+ftrs_logger = FtrsLogger(service=service)
