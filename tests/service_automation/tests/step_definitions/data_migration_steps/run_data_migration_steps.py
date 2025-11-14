@@ -20,7 +20,7 @@ from utilities.common.migration_helper import MigrationHelper
 # TODO: looks like test logger set up issue, logger is not persisted so does not capture following scenario logs?
 
 @given("the test environment is configured")
-def test_environment_configured(
+def environment_configured(
     migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
 ) -> None:
     """
