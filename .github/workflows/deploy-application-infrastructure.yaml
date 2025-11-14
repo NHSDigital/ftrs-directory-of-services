@@ -115,13 +115,11 @@ jobs:
       - plan-application-infrastructure
       - manual-approval-application-infra
       - apply-application-infrastructure
+    if: always() && !cancelled()
     runs-on: ubuntu-latest
     steps:
       - name: Deployment Summary
         run: |
-          echo "Plan Result: ${{ needs.plan-application-infrastructure.outputs.plan_result }}"
-          echo "Approved: ${{ needs.manual-approval-application-infra.outputs.approved }}"
-
           if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'false' ]; then
             echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
             echo "deploy_status=Success" >> $GITHUB_OUTPUT
