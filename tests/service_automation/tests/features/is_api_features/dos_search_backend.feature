@@ -96,3 +96,25 @@ Feature: API DoS Service Search Backend
   Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
     When I request data from the "dos-search" endpoint "_status" with query params ""
     Then I receive a status code "200" in response
+
+
+  # New error mapping scenarios at the gateway level
+  Scenario: I call an endpoint that does not exist and receive a 404 OperationOutcome
+    When I request data from the "dos-search" endpoint "DoesNotExist" with query params ""
+    Then I receive a status code "404" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "not-found"
+    And the OperationOutcome contains an issue with diagnostics "No such endpoint"
+
+
+  Scenario: I call the gateway with invalid mTLS keys and receive a 403 OperationOutcome
+    When I request data with invalid mTLS from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    Then I receive a status code "403" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "security"
+    And the OperationOutcome contains an issue with diagnostics "Invalid or missing client authentication"
+    And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding

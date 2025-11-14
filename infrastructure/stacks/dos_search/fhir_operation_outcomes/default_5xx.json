@@ -1,0 +1,10 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "exception",
+      "diagnostics": "A fatal error has been encountered, please contact support with the following details: your request ID, time of the request."
+    }
+  ]
+}

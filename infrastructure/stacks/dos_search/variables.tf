@@ -34,6 +34,52 @@ variable "application_tag" {
   default     = "latest"
 }
 
+locals {
+  fhir_outcome_dir = "${path.module}/fhir_operation_outcomes"
+
+  # Default FHIR OperationOutcome templates for API Gateway responses (loaded from files)
+  gateway_responses_default = {
+    resource_not_found = {
+      response_type = "RESOURCE_NOT_FOUND"
+      status_code   = "404"
+      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
+    }
+    missing_authentication_token = {
+      response_type = "MISSING_AUTHENTICATION_TOKEN"
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+    }
+    access_denied = {
+      response_type = "ACCESS_DENIED"
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+    }
+    unauthorized = {
+      response_type = "UNAUTHORIZED"
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+    }
+    default_4xx = {
+      response_type = "DEFAULT_4XX"
+      status_code   = "400"
+      template      = file("${local.fhir_outcome_dir}/default_4xx.json")
+    }
+    throttled = {
+      response_type = "THROTTLED"
+      status_code   = "429"
+      template      = file("${local.fhir_outcome_dir}/throttled.json")
+    }
+    default_5xx = {
+      response_type = "DEFAULT_5XX"
+      status_code   = "500"
+      template      = file("${local.fhir_outcome_dir}/default_5xx.json")
+    }
+  }
+
+  # Final gateway responses map: allow override via variable, else use defaults above
+  gateway_responses = coalesce(var.gateway_responses, local.gateway_responses_default)
+}
+
 #####################################################
 
 # API Gateway
@@ -103,4 +149,25 @@ variable "api_gateway_throttling_rate_limit" {
 variable "api_gateway_throttling_burst_limit" {
   description = "Throttling burst limit for the API Gateway"
   type        = number
+}
+
+# FHIR error response header mapping (Content-Type)
+variable "fhir_content_type_header" {
+  description = "API Gateway response header mappings for FHIR responses"
+  type        = map(string)
+  default = {
+    "gatewayresponse.header.Content-Type" = "'application/fhir+json'"
+  }
+}
+
+# Gateway response definitions for API Gateway
+variable "gateway_responses" {
+  description = "Map of API Gateway gateway_responses with response_type, status_code, and FHIR template"
+  type = map(object({
+    response_type = string
+    status_code   = string
+    template      = string
+  }))
+  # Use null default so we can compute from locals (file() not allowed in var defaults)
+  default = null
 }

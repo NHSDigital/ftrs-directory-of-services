@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "fatal",
+      "code": "forbidden",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.nhs.uk/Codesystem/http-error-codes",
+            "version": "0.1.0",
+            "code": "REC_FORBIDDEN",
+            "display": "403: Failed to authenticate with the Receiver."
+          }
+        ]
+      },
+      "diagnostics": "MTLS issue"
+    }
+  ]
+}

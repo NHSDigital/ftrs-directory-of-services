@@ -2,6 +2,7 @@ resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
     aws_api_gateway_integration.organization,
     aws_api_gateway_integration.status,
+    aws_api_gateway_gateway_response.this,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
@@ -21,6 +22,13 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_method.status,
       aws_api_gateway_integration.organization,
       aws_api_gateway_integration.status,
+      [for k in sort(keys(local.gateway_responses)) : {
+        key           = k
+        response_type = local.gateway_responses[k].response_type
+        status_code   = local.gateway_responses[k].status_code
+        template      = local.gateway_responses[k].template
+      }],
+      var.fhir_content_type_header,
     ]))
   }
 
