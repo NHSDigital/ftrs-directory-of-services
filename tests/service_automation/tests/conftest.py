@@ -1,8 +1,6 @@
 import ast
 import os
 from typing import Callable, cast, Dict, Any
-import sys
-from pathlib import Path
 
 import boto3
 import pytest
@@ -17,7 +15,7 @@ from pages.ui_pages.result import NewAccountPage
 from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
 from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
-from utilities.common.file_helper import create_temp_file, delete_download_files
+from utilities.common.file_helper import delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
