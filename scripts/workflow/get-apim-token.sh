@@ -96,4 +96,4 @@ if [ -z "$ACCESS_TOKEN" ]; then
 fi
 
 echo "Successfully retrieved access token" >&2
-echo $ACCESS_TOKEN
+echo "$ACCESS_TOKEN"
