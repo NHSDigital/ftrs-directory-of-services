@@ -54,6 +54,7 @@ def test_missing_required_field() -> None:
 
 def test_additional_field() -> None:
     payload = _build_base_payload()
+    payload["extra"] = "value"
     with pytest.raises(ValidationError) as e:
         OrganisationUpdatePayload(**payload)
     assert "Extra inputs are not permitted" in str(e.value)
