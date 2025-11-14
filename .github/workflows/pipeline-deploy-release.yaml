@@ -15,7 +15,7 @@ on:
         options:
           - test
           - int
-          - preprod
+          - ref
           - prod
 
 permissions:
