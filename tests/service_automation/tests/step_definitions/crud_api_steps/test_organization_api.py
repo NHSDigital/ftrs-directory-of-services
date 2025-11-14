@@ -296,7 +296,6 @@ def step_update_with_invalid_typed_period(invalid_scenario: str, api_request_con
     payload = _load_default_payload()
     typed_period_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
 
-    # Build invalid extensions based on scenario
     if invalid_scenario == "missing dateType":
         invalid_extension = {
             "url": typed_period_url,
@@ -361,7 +360,6 @@ def step_update_with_legal_dates(legal_start: str, legal_end: str, api_request_c
     start = None if legal_start == "null" else legal_start
     end = None if legal_end == "null" else legal_end
 
-    # Only add extension if at least one date is provided
     if start or end:
         payload["extension"] = [build_typed_period_extension(start, end)]
     else:
@@ -379,7 +377,6 @@ def step_update_with_invalid_date_format(date_field: str, invalid_date: str, api
     """Update organization with invalid date format to test validation."""
     payload = _load_default_payload()
 
-    # Build extension with one invalid date and one valid date
     start = invalid_date if date_field == "start" else "2020-01-15"
     end = invalid_date if date_field == "end" else "2025-12-31"
 
@@ -498,19 +495,3 @@ def step_diagnostics_extra_field(fresponse, field, value):
     assert field in loc or field == loc
     assert diagnostic.get("msg") == "Extra inputs are not permitted"
     assert diagnostic.get("input") == value
-
-
-@then(parsers.parse('the diagnostics message contains "{expected_error}"'))
-def step_diagnostics_contains(fresponse: object, expected_error: str) -> None:
-    """Check that the diagnostics message contains the expected error text."""
-    body = fresponse.json()
-    assert body.get("resourceType") == "OperationOutcome", (
-        f"Unexpected response: {body}"
-    )
-    issues = body.get("issue", [])
-    assert len(issues) > 0, "No issues found in OperationOutcome"
-
-    diagnostics = issues[0].get("diagnostics", "")
-    assert expected_error in diagnostics, (
-        f"Expected error '{expected_error}' not found in diagnostics: '{diagnostics}'"
-    )
