@@ -223,3 +223,24 @@ Feature: Organization API Endpoint
         | missing period           | TypedPeriod extension must contain dateType and period |
         | non-Legal dateType       | dateType must be Legal                                 |
         | empty period             | period must contain at least start or end date         |
+
+  Scenario Outline: Reject Organization update with invalid date format
+      Given that the stack is "organisation"
+      When I update the organization with invalid date format "<date_field>" value "<invalid_date>"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
+
+      Examples:
+        | date_field | invalid_date  |
+        | start      | 2020-13-45    |
+        | start      | 20-01-2020    |
+        | start      | 2020/01/15    |
+        | start      | 2020-1-5      |
+        | start      | 15-01-2020    |
+        | start      | invalid       |
+        | end        | 2025-13-45    |
+        | end        | 25-12-2025    |
+        | end        | 2025/12/31    |
+        | end        | 2025-12-1     |

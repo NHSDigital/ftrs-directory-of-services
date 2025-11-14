@@ -235,6 +235,31 @@ def step_given_valid_payload_with_identifier(identifier_data):
     return payload
 
 
+def build_typed_period_extension(start_date: str = None, end_date: str = None, date_type_code: str = "Legal") -> dict:
+    period = {}
+    if start_date:
+        period["start"] = start_date
+    if end_date:
+        period["end"] = end_date
+
+    return {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+        "extension": [
+            {
+                "url": "dateType",
+                "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                    "code": date_type_code,
+                    "display": date_type_code
+                }
+            },
+            {
+                "url": "period",
+                "valuePeriod": period
+            }
+        ]
+    }
+
 @when(
     "I update the organization details for ODS Code via APIM",
     target_fixture="fresponse",
@@ -383,23 +408,7 @@ def step_update_with_invalid_typed_period(invalid_scenario: str, api_request_con
             ]
         }
     elif invalid_scenario == "non-Legal dateType":
-        invalid_extension = {
-            "url": typed_period_url,
-            "extension": [
-                {
-                    "url": "dateType",
-                    "valueCoding": {
-                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                        "code": "Operational",
-                        "display": "Operational"
-                    }
-                },
-                {
-                    "url": "period",
-                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
-                }
-            ]
-        }
+        invalid_extension = build_typed_period_extension("2020-01-15", "2025-12-31", "Operational")
     elif invalid_scenario == "empty period":
         invalid_extension = {
             "url": typed_period_url,
@@ -433,40 +442,36 @@ def step_update_with_invalid_typed_period(invalid_scenario: str, api_request_con
 def step_update_with_legal_dates(legal_start: str, legal_end: str, api_request_context_mtls_crud):
     """Update organization with legal start and end dates in YYYY-MM-DD format."""
     payload = _load_default_payload()
-    typed_period_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
 
-    # Build the period object based on what dates are provided (already in YYYY-MM-DD format)
-    period = {}
-    if legal_start != "null":
-        period["start"] = legal_start
-    if legal_end != "null":
-        period["end"] = legal_end
+    # Convert "null" string to None
+    start = None if legal_start == "null" else legal_start
+    end = None if legal_end == "null" else legal_end
 
     # Only add extension if at least one date is provided
-    if period:
-        typed_period_extension = {
-            "url": typed_period_url,
-            "extension": [
-                {
-                    "url": "dateType",
-                    "valueCoding": {
-                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                        "code": "Legal",
-                        "display": "Legal"
-                    }
-                },
-                {
-                    "url": "period",
-                    "valuePeriod": period
-                }
-            ]
-        }
-        payload["extension"] = [typed_period_extension]
+    if start or end:
+        payload["extension"] = [build_typed_period_extension(start, end)]
     else:
-        # Remove extension if both dates are null
         payload.pop("extension", None)
 
     logger.info(f"Payload with legal dates:\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse('I update the organization with invalid date format "{date_field}" value "{invalid_date}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_invalid_date_format(date_field: str, invalid_date: str, api_request_context_mtls_crud):
+    """Update organization with invalid date format to test validation."""
+    payload = _load_default_payload()
+
+    # Build extension with one invalid date and one valid date
+    start = invalid_date if date_field == "start" else "2020-01-15"
+    end = invalid_date if date_field == "end" else "2025-12-31"
+
+    payload["extension"] = [build_typed_period_extension(start, end)]
+
+    logger.info(f"Payload with invalid {date_field} date '{invalid_date}':\n{json.dumps(payload, indent=2)}")
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
