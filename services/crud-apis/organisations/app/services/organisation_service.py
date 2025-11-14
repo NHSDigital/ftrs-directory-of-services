@@ -172,7 +172,15 @@ class OrganisationService:
         Compare two Organisation objects and return a dict of fields that are outdated.
         Containing which fields can be updated for now will dedpend on business validation definitions.
         """
-        allowed_fields = {"name", "type", "active", "identifier_ODS_ODSCode", "telecom"}
+        allowed_fields = {
+            "name",
+            "type",
+            "active",
+            "identifier_ODS_ODSCode",
+            "telecom",
+            "legal_start_date",
+            "legal_end_date",
+        }
         outdated_fields = {
             field: value
             for field, value in payload.model_dump().items()
