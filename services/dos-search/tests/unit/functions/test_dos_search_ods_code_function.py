@@ -78,7 +78,8 @@ def log_data():
 
 
 @pytest.fixture
-def details():
+def details(event):
+    print("test easily searchable", event.get("queryStringParameters"))
     return {
         "ftrs_environment": "FTRS_LOG_PLACEHOLDER",
         "ftrs_api_version": "FTRS_LOG_PLACEHOLDER",
@@ -88,7 +89,11 @@ def details():
         "ftrs_end_user_role": "FTRS_LOG_PLACEHOLDER",
         "ftrs_client_id": "FTRS_LOG_PLACEHOLDER",
         "ftrs_application_name": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_request_parms": {},
+        "ftrs_request_params": {
+            "query_params": event.get("queryStringParameters") or {},
+            "path_params": event.get("pathParams") or {},
+            "request_context": event.get("requestContext") or {},
+        },
     }
 
 
@@ -142,9 +147,7 @@ class TestLambdaHandler:
         mock_logger.assert_has_calls(
             [
                 call.info("Logging one-time fields", log_data=log_data, **details),
-                call.info(
-                    "Received request for odsCode", log_data=log_data, ods_code=ods_code
-                ),
+                call.info("Received request for odsCode", ods_code=ods_code),
                 call.info(
                     "Successfully processed",
                     log_data=log_data,
@@ -220,9 +223,7 @@ class TestLambdaHandler:
         mock_logger.assert_has_calls(
             [
                 call.info("Logging one-time fields", log_data=log_data, **details),
-                call.info(
-                    "Received request for odsCode", log_data=log_data, ods_code=ods_code
-                ),
+                call.info("Received request for odsCode", ods_code=ods_code),
                 call.exception("Internal server error occurred", log_data=log_data),
                 call.info("Creating response", status_code=500),
                 call.clear_log_data(),
