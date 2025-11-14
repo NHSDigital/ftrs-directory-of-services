@@ -266,7 +266,7 @@ def test_build_location(
         address=Address(
             line1="123 Main St",
             line2=None,
-            county="West Yorkshire",
+            county=None,
             town="Leeds",
             postcode="AB12 3CD",
         ),
@@ -312,7 +312,7 @@ def test_build_location_no_position(
         address=Address(
             line1="123 Main St",
             line2=None,
-            county="West Yorkshire",
+            county=None,
             town="Leeds",
             postcode="AB12 3CD",
         ),

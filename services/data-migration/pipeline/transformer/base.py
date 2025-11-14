@@ -7,6 +7,7 @@ from uuid import UUID
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
     PAYLOAD_MIMETYPE_MAPPING,
+    Address,
     AvailableTime,
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
@@ -34,7 +35,6 @@ from ftrs_data_layer.domain.enums import TimeUnit
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
 
-from pipeline.utils.address_formatter import format_address
 from pipeline.utils.cache import DoSMetadataCache
 from pipeline.utils.number_formatter import clean_decimal
 from pipeline.utils.uuid_utils import generate_uuid
@@ -190,8 +190,19 @@ class ServiceTransformer(ABC):
             else None
         )
         if service.address and service.address != "Not Available":
-            formatted_address = format_address(
-                service.address, service.town, service.postcode
+            address_lines = [
+                line for line in service.address.split("$") if line.strip()
+            ]
+
+            formatted_address = Address(
+                line1=address_lines[0],
+                line2=address_lines[1]
+                if len(address_lines) > 1
+                and address_lines[1].upper() != service.town.upper()
+                else None,
+                town=service.town,
+                county=None,
+                postcode=service.postcode,
             )
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_015,
