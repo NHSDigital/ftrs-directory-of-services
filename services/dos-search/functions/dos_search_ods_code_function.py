@@ -24,7 +24,7 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    print("easily searchable", app.current_event)
+    print("easily searchable", isinstance(app.current_event, dict))
     log_data = FtrsLogger.extract(app.current_event)
     details = log_data.pop("details")
     try:
@@ -34,9 +34,7 @@ def get_organization() -> Response:
 
         ods_code = validated_params.ods_code
         # Structured request log
-        ftrs_logger.info(
-            "Received request for odsCode", log_data=log_data, ods_code=ods_code
-        )
+        ftrs_logger.info("Received request for odsCode", ods_code=ods_code)
 
         ftrs_service = FtrsService()
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)

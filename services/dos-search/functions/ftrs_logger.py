@@ -138,14 +138,23 @@ class FtrsLogger:
 
         # Request params (queryStringParameters + pathParameters)
         req_params: Dict[str, Any] = {}
-        if isinstance(event, dict):
-            query_params = event.get("queryStringParameters") or {}
-            path_params = event.get("pathParameters") or {}
-            if isinstance(query_params, dict):
-                req_params.update(query_params)
-            if isinstance(path_params, dict):
-                req_params.update(path_params)
-        details["ftrs_request_parms"] = req_params or {}
+        print("ftrs_logger searchable: ", event.get("queryStringParameters"))
+        query_params = (
+            event.get("queryStringParameters")
+            or event.get("query_string_parameters")
+            or {}
+        )
+        path_params = event.get("pathParameters") or event.get("path_parameters") or {}
+        request_context = (
+            event.get("requestContext") or event.get("request_context") or {}
+        )
+        if isinstance(query_params, dict):
+            req_params["query_params"] = query_params
+        if isinstance(path_params, dict):
+            req_params["path_params"] = path_params
+        if isinstance(request_context, dict):
+            req_params["request_context"] = request_context
+        details["ftrs_request_params"] = req_params or {}
 
         details["ftrs_response_time"] = placeholder
 
