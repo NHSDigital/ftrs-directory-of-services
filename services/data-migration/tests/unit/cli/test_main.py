@@ -212,8 +212,8 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
         "modifiedDateTime": "2025-07-15T12:00:00Z",
         "endpoints": [],
         "telecom": None,
-        "legal_start_date": None,
-        "legal_end_date": None,
+        "legalStartDate": None,
+        "legalEndDate": None,
     }
     assert loc_content == {
         "id": str(mock_output.location[0].id),

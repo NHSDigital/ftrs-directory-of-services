@@ -198,14 +198,14 @@ Feature: Organization API Endpoint
     When I update the organization with legal dates start "<legal_start>" and end "<legal_end>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
-    And the database reflects "legal_start_date" with value "<expected_db_start>"
-    And the database reflects "legal_end_date" with value "<expected_db_end>"
+    And the database reflects "legalStartDate" with value "<expected_db_start>"
+    And the database reflects "legalEndDate" with value "<expected_db_end>"
 
     Examples:
       | legal_start | legal_end  | expected_db_start | expected_db_end |
-      | 2020-01-15  | 2025-12-31 | 15-01-2020        | 31-12-2025      |
-      | 2020-02-15  | null       | 15-02-2020        | None            |
-      | null        | 2025-12-31 | None              | 31-12-2025      |
+      | 2020-01-15  | 2025-12-31 | 2020-01-15        | 2025-12-31      |
+      | 2020-02-15  | null       | 2020-02-15        | None            |
+      | null        | 2025-12-31 | None              | 2025-12-31      |
       | null        | null       | None              | None            |
 
   Scenario Outline: Reject Organization update with invalid TypedPeriod extension
