@@ -34,6 +34,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Configure AWS Credentials
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+
       - name: Get APIM Access Token
         id: get-token
         uses: ./.github/actions/authenticate-apim
