@@ -215,7 +215,7 @@ Feature: Organization API Endpoint
       And the response body contains an "OperationOutcome" resource
       And the OperationOutcome contains an issue with severity "error"
       And the OperationOutcome contains an issue with code "invalid"
-      And the diagnostics message contains "<expected_error>"
+      And I receive the diagnostics "<expected_error>"
 
       Examples:
         | invalid_scenario         | expected_error                                         |

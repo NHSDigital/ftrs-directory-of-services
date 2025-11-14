@@ -158,7 +158,6 @@ class OrganizationMapper(FhirMapper):
             ods_fhir_organization.get("identifier", [])
         )
 
-        # Extract legal dates from ODS FHIR extensions
         legal_start_date, legal_end_date = self._extract_legal_dates_from_ods(
             ods_fhir_organization
         )
@@ -174,7 +173,6 @@ class OrganizationMapper(FhirMapper):
             "telecom": ods_fhir_organization.get("telecom", []),
         }
 
-        # Add legal date extension if present
         legal_date_ext = self._build_legal_date_extension(
             legal_start_date, legal_end_date
         )
