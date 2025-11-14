@@ -1,16 +1,22 @@
 """Helper utilities for running data migration in tests."""
 import os
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
+from unittest.mock import patch
 from urllib.parse import unquote, urlparse
 
 from aws_lambda_powertools.utilities.data_classes import SQSEvent
-import boto3
+from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 
 from pipeline.application import DataMigrationApplication, DMSEvent
 from pipeline.processor import DataMigrationMetrics
 from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
+
+# Type aliases
+DbParams = Dict[str, str]
+MigrationExecutor = Callable[[DataMigrationApplication], None]
 
 
 @dataclass
@@ -21,6 +27,7 @@ class MigrationRunResult:
     error: Optional[str] = None
     application: Optional[DataMigrationApplication] = None
     metrics: Optional[DataMigrationMetrics] = None
+    mock_logger: Optional[MockLogger] = None
 
 
 class MigrationHelper:
@@ -47,7 +54,7 @@ class MigrationHelper:
         self.environment = environment
         self.workspace = workspace or "test"
 
-    def _parse_db_uri(self) -> Dict[str, str]:
+    def _parse_db_uri(self) -> DbParams:
         """
         Parse database URI into component parts.
 
@@ -64,39 +71,53 @@ class MigrationHelper:
             "password": unquote(parsed.password) if parsed.password else "test",
         }
 
-    def _set_localstack_credentials(self) -> None:
+    @contextmanager
+    def _localstack_credentials(self):
         """
-        Set dummy AWS credentials for LocalStack.
+        Context manager for setting and restoring AWS credentials.
 
-        LocalStack doesn't validate credentials but boto3 requires them.
-        This sets dummy credentials in the environment for the duration of the test.
+        Yields:
+            None
+
+        Example:
+            with self._localstack_credentials():
+                # Use LocalStack with dummy credentials
+                pass
+            # Original credentials restored automatically
         """
-        # Store original values to restore later
-        self._original_aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID")
-        self._original_aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
-        self._original_aws_session_token = os.environ.get("AWS_SESSION_TOKEN")
+        # Store original values
+        original_access_key = os.environ.get("AWS_ACCESS_KEY_ID")
+        original_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+        original_session_token = os.environ.get("AWS_SESSION_TOKEN")
 
-        # Set dummy credentials for LocalStack
-        os.environ["AWS_ACCESS_KEY_ID"] = "test"
-        os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
-        # Remove session token if present (can cause issues)
-        if "AWS_SESSION_TOKEN" in os.environ:
-            del os.environ["AWS_SESSION_TOKEN"]
+        try:
+            # Set dummy credentials for LocalStack
+            os.environ["AWS_ACCESS_KEY_ID"] = "test"
+            os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
 
-    def _restore_aws_credentials(self) -> None:
-        """Restore original AWS credentials."""
-        if self._original_aws_access_key:
-            os.environ["AWS_ACCESS_KEY_ID"] = self._original_aws_access_key
-        elif "AWS_ACCESS_KEY_ID" in os.environ:
-            del os.environ["AWS_ACCESS_KEY_ID"]
+            # Remove session token if present
+            if "AWS_SESSION_TOKEN" in os.environ:
+                del os.environ["AWS_SESSION_TOKEN"]
 
-        if self._original_aws_secret_key:
-            os.environ["AWS_SECRET_ACCESS_KEY"] = self._original_aws_secret_key
-        elif "AWS_SECRET_ACCESS_KEY" in os.environ:
-            del os.environ["AWS_SECRET_ACCESS_KEY"]
+            logger.debug("Set dummy AWS credentials for LocalStack")
+            yield
 
-        if self._original_aws_session_token:
-            os.environ["AWS_SESSION_TOKEN"] = self._original_aws_session_token
+        finally:
+            # Restore original credentials
+            if original_access_key:
+                os.environ["AWS_ACCESS_KEY_ID"] = original_access_key
+            elif "AWS_ACCESS_KEY_ID" in os.environ:
+                del os.environ["AWS_ACCESS_KEY_ID"]
+
+            if original_secret_key:
+                os.environ["AWS_SECRET_ACCESS_KEY"] = original_secret_key
+            elif "AWS_SECRET_ACCESS_KEY" in os.environ:
+                del os.environ["AWS_SECRET_ACCESS_KEY"]
+
+            if original_session_token:
+                os.environ["AWS_SESSION_TOKEN"] = original_session_token
+
+            logger.debug("Restored original AWS credentials")
 
     def create_migration_config(self) -> DataMigrationConfig:
         """
@@ -127,6 +148,100 @@ class MigrationHelper:
 
         return config
 
+    def _get_metrics_from_app(
+        self, app: Optional[DataMigrationApplication]
+    ) -> Optional[DataMigrationMetrics]:
+        """
+        Safely retrieve metrics from application.
+
+        Args:
+            app: DataMigrationApplication instance or None
+
+        Returns:
+            DataMigrationMetrics if available, otherwise None
+        """
+        if app and hasattr(app, "processor") and app.processor:
+            return app.processor.metrics
+        return None
+
+    def _log_mock_logger_stats(self, mock_logger: MockLogger) -> None:
+        """
+        Log MockLogger capture statistics.
+
+        Args:
+            mock_logger: MockLogger instance to inspect
+        """
+        log_count = mock_logger.get_log_count()
+        logger.info(f"MockLogger captured {log_count} logs")
+
+        if log_count > 0:
+            references = list(
+                set([log.get("reference") for log in mock_logger.get_logs()])
+            )
+            logger.debug(f"Log references: {references}")
+
+    def _execute_migration(
+        self,
+        migration_fn: MigrationExecutor,
+        migration_type: str,
+    ) -> MigrationRunResult:
+        """
+        Execute a migration with common error handling and logging.
+
+        Args:
+            migration_fn: Function that executes the migration on the app
+            migration_type: Description of migration type for logging
+
+        Returns:
+            MigrationRunResult with success status, metrics, and mock_logger
+
+        Example:
+            result = self._execute_migration(
+                lambda app: app.handle_dms_event(event),
+                "single service"
+            )
+        """
+        mock_logger = MockLogger(service="data-migration")
+        app = None
+
+        try:
+            with self._localstack_credentials():
+                config = self.create_migration_config()
+
+                with patch("ftrs_common.logger.Logger.get", return_value=mock_logger):
+                    app = DataMigrationApplication(config=config)
+                    migration_fn(app)
+
+            # Get metrics
+            metrics = self._get_metrics_from_app(app)
+
+            # Log statistics
+            self._log_mock_logger_stats(mock_logger)
+
+            return MigrationRunResult(
+                success=True,
+                application=app,
+                metrics=metrics,
+                mock_logger=mock_logger,
+            )
+
+        except Exception as e:
+            logger.error(
+                f"{migration_type.capitalize()} migration failed: {type(e).__name__}: {str(e)}",
+                exc_info=True,
+            )
+
+            metrics = self._get_metrics_from_app(app)
+            if metrics:
+                logger.info(f"Retrieved metrics despite error: {metrics}")
+
+            return MigrationRunResult(
+                success=False,
+                error=str(e),
+                metrics=metrics,
+                mock_logger=mock_logger,
+            )
+
     def run_single_service_migration(self, service_id: int) -> MigrationRunResult:
         """
         Run migration for a single service.
@@ -137,32 +252,18 @@ class MigrationHelper:
         Returns:
             MigrationRunResult with success status, error, and metrics
         """
-        try:
-            # Set LocalStack credentials
-            self._set_localstack_credentials()
 
-            config = self.create_migration_config()
-            app = DataMigrationApplication(config=config)
-
+        def execute(app: DataMigrationApplication) -> None:
             event = DMSEvent(
                 type="dms_event",
                 record_id=service_id,
                 table_name="services",
                 method="insert",
             )
-
+            logger.info(f"Running single service migration for service ID: {service_id}")
             app.handle_dms_event(event)
 
-            metrics = app.processor.metrics if hasattr(app, "processor") else None
-
-            return MigrationRunResult(success=True, application=app, metrics=metrics)
-
-        except Exception as e:
-            return MigrationRunResult(success=False, error=str(e), metrics=None)
-
-        finally:
-            # Always restore credentials
-            self._restore_aws_credentials()
+        return self._execute_migration(execute, f"single service (ID: {service_id})")
 
     def run_full_service_migration(self) -> MigrationRunResult:
         """
@@ -171,25 +272,12 @@ class MigrationHelper:
         Returns:
             MigrationRunResult with success status, error, and metrics
         """
-        try:
-            # Set LocalStack credentials
-            self._set_localstack_credentials()
 
-            config = self.create_migration_config()
-            app = DataMigrationApplication(config=config)
-
+        def execute(app: DataMigrationApplication) -> None:
+            logger.info("Running full service migration")
             app.handle_full_sync_event()
 
-            metrics = app.processor.metrics if hasattr(app, "processor") else None
-
-            return MigrationRunResult(success=True, application=app, metrics=metrics)
-
-        except Exception as e:
-            return MigrationRunResult(success=False, error=str(e), metrics=None)
-
-        finally:
-            # Always restore credentials
-            self._restore_aws_credentials()
+        return self._execute_migration(execute, "full service")
 
     def run_sqs_event_migration(self, sqs_event: Dict[str, Any]) -> MigrationRunResult:
         """
@@ -201,27 +289,11 @@ class MigrationHelper:
         Returns:
             MigrationRunResult with success status, error, and metrics
         """
-        try:
-            # Set LocalStack credentials
-            self._set_localstack_credentials()
 
-            config = self.create_migration_config()
-            app = DataMigrationApplication(config=config)
+        def execute(app: DataMigrationApplication) -> None:
+            record_count = len(sqs_event.get("Records", []))
+            logger.info(f"Running SQS event migration with {record_count} record(s)")
             sqs_event_obj = SQSEvent(sqs_event)
             app.handle_sqs_event(sqs_event_obj)
 
-            metrics = None
-            if hasattr(app, "processor") and app.processor:
-                metrics = app.processor.metrics
-                logger.info("Metrics retrieved from app.processor")
-            else:
-                logger.warning("app.processor not found or is None")
-
-            return MigrationRunResult(success=True, application=app, metrics=metrics)
-
-        except Exception as e:
-            return MigrationRunResult(success=False, error=str(e), metrics=None)
-
-        finally:
-            # Always restore credentials
-            self._restore_aws_credentials()
+        return self._execute_migration(execute, "SQS event")

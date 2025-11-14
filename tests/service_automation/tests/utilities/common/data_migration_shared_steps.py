@@ -1,17 +1,206 @@
 """Shared step definitions for data migration BDD tests."""
 import json
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pytest
 from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session
 
-from utilities.common.log_helper import LogVerificationConfig, verify_log_reference
 from utilities.common.db_helper import delete_service_if_exists, verify_service_exists
 from utilities.common.gherkin_helper import parse_gherkin_table
+from utilities.common.log_helper import (
+    get_mock_logger_from_context,
+    verify_service_not_migrated_log,
+    verify_service_skipped_log,
+    verify_transformation_log,
+    verify_transformer_selected_log,
+)
 from utilities.common.migration_helper import MigrationHelper
+
+# ============================================================
+# Type Aliases
+# ============================================================
+
+ServiceAttributes = Dict[str, Any]
+MigrationContext = Dict[str, Any]
+DynamoDBFixture = Dict[str, Any]
+GherkinTable = List[List[str]]
+SQSEvent = Dict[str, Any]
+
+# ============================================================
+# Constants
+# ============================================================
+
+# DynamoDB fixture keys
+DYNAMODB_CLIENT = "client"
+DYNAMODB_RESOURCE = "resource"
+DYNAMODB_ENDPOINT = "endpoint_url"
+
+# Environment variable keys
+ENV_PROJECT_NAME = "PROJECT_NAME"
+ENV_ENVIRONMENT = "ENVIRONMENT"
+ENV_WORKSPACE = "WORKSPACE"
+
+# Default values
+DEFAULT_PROJECT_NAME = "ftrs-dos"
+DEFAULT_ENVIRONMENT = "dev"
+DEFAULT_WORKSPACE = "test"
+
+# Database constants
+PATHWAYSDOS_SCHEMA = "pathwaysdos"
+SERVICES_TABLE = f"{PATHWAYSDOS_SCHEMA}.services"
+
+# Required service fields
+REQUIRED_SERVICE_FIELDS = ["id", "typeid", "statusid"]
+
+# Expected DynamoDB resource types
+EXPECTED_DYNAMODB_RESOURCES = ["organisation", "location", "healthcare-service"]
+
+
+# ============================================================
+# Helper Functions
+# ============================================================
+
+
+def _get_expected_dynamodb_table_names() -> List[str]:
+    """
+    Get expected DynamoDB table names based on environment configuration.
+
+    Returns:
+        List of expected table names following pattern:
+        {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
+    """
+    project_name = os.getenv(ENV_PROJECT_NAME, DEFAULT_PROJECT_NAME)
+    environment = os.getenv(ENV_ENVIRONMENT, DEFAULT_ENVIRONMENT)
+    workspace = os.getenv(ENV_WORKSPACE, DEFAULT_WORKSPACE)
+
+    return [
+        f"{project_name}-{environment}-database-{resource}-{workspace}"
+        for resource in EXPECTED_DYNAMODB_RESOURCES
+    ]
+
+
+def _get_migration_type_description(migration_context: MigrationContext) -> str:
+    """
+    Get human-readable description of migration type from context.
+
+    Args:
+        migration_context: Test context dictionary
+
+    Returns:
+        Description string (e.g., "full sync", "service 300000", "SQS event for service 12345")
+    """
+    service_id = migration_context.get("service_id")
+    sqs_service_id = migration_context.get("sqs_service_id")
+    sqs_event = migration_context.get("sqs_event", {})
+
+    if sqs_event:
+        is_empty_event = len(sqs_event) == 0
+        record_count = len(sqs_event.get("Records", []))
+
+        if is_empty_event:
+            return "empty event"
+        elif sqs_service_id:
+            return f"SQS event for service {sqs_service_id}"
+        else:
+            return f"SQS event with {record_count} record(s)"
+    elif service_id is None:
+        return "full sync"
+    else:
+        return f"service {service_id}"
+
+
+def _parse_sqs_event(docstring: str) -> SQSEvent:
+    """
+    Parse SQS event JSON from Gherkin docstring.
+
+    Args:
+        docstring: JSON string from Gherkin step
+
+    Returns:
+        Parsed event dictionary
+
+    Raises:
+        pytest.fail: If JSON is invalid
+    """
+    try:
+        return json.loads(docstring)
+    except json.JSONDecodeError as e:
+        pytest.fail(f"Invalid JSON in event docstring: {e}")
+
+
+def _extract_service_ids_from_sqs_event(event: SQSEvent) -> List[int]:
+    """
+    Extract service IDs from SQS event records.
+
+    Args:
+        event: SQS event dictionary
+
+    Returns:
+        List of service IDs found in event records
+    """
+    service_ids = []
+
+    if event.get("Records"):
+        for record in event["Records"]:
+            body = record.get("body", "{}")
+            try:
+                body_json = json.loads(body)
+                if "record_id" in body_json:
+                    service_ids.append(body_json["record_id"])
+            except json.JSONDecodeError:
+                logger.warning(f"Could not parse record body: {body}")
+
+    return service_ids
+
+
+def _validate_service_attributes(attributes: ServiceAttributes) -> None:
+    """
+    Validate that service attributes contain all required fields.
+
+    Args:
+        attributes: Service attributes dictionary
+
+    Raises:
+        pytest.fail: If required fields are missing
+    """
+    missing = [f for f in REQUIRED_SERVICE_FIELDS if f not in attributes]
+    if missing:
+        pytest.fail(f"Missing required fields: {', '.join(missing)}")
+
+
+def _assert_metric_matches(
+    actual: int,
+    expected: int,
+    metric_name: str,
+    migration_type: str,
+    additional_context: str = "",
+) -> None:
+    """
+    Assert that a metric value matches expected value.
+
+    Args:
+        actual: Actual metric value
+        expected: Expected metric value
+        metric_name: Name of the metric being checked
+        migration_type: Description of migration type
+        additional_context: Optional additional context for error message
+
+    Raises:
+        AssertionError: If values don't match
+    """
+    error_parts = [
+        f"{metric_name.capitalize()} mismatch for {migration_type}:",
+        f"  Expected: {expected}",
+        f"  Got: {actual}",
+    ]
+
+    if additional_context:
+        error_parts.append(f"  {additional_context}")
+
+    assert actual == expected, "\n".join(error_parts)
 
 
 # ============================================================
@@ -20,7 +209,7 @@ from utilities.common.migration_helper import MigrationHelper
 
 
 def run_test_environment_configured(
-    migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
+    migration_helper: MigrationHelper, dynamodb: DynamoDBFixture
 ) -> None:
     """
     Verify test environment is properly configured.
@@ -34,7 +223,7 @@ def run_test_environment_configured(
         pytest.fail: If DynamoDB is not accessible
     """
     try:
-        response = dynamodb["client"].list_tables()
+        response = dynamodb[DYNAMODB_CLIENT].list_tables()
         table_names = response.get("TableNames", [])
         logger.info(f"Found {len(table_names)} DynamoDB tables")
         assert "TableNames" in response, "DynamoDB should be accessible"
@@ -60,15 +249,13 @@ def run_dos_database_has_test_data(dos_db_with_migration: Session) -> None:
     Raises:
         AssertionError: If database is not accessible or tables don't exist
     """
-    result = dos_db_with_migration.exec(
-        text("SELECT COUNT(*) FROM pathwaysdos.services")
-    )
+    result = dos_db_with_migration.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
     count = result.fetchone()[0]
     assert count >= 0, "Should be able to query services table"
     logger.info(f"DoS database ready with {count} services")
 
 
-def run_dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
+def run_dynamodb_tables_ready(dynamodb: DynamoDBFixture) -> None:
     """
     Verify DynamoDB tables exist and are accessible.
 
@@ -79,25 +266,20 @@ def run_dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
         AssertionError: If required tables don't exist
         pytest.fail: If tables are missing
     """
-    client = dynamodb["client"]
+    client = dynamodb[DYNAMODB_CLIENT]
     response = client.list_tables()
     table_names = response.get("TableNames", [])
 
     logger.debug(f"Found {len(table_names)} tables in DynamoDB")
 
-    project_name = os.getenv("PROJECT_NAME", "ftrs-dos")
-    environment = os.getenv("ENVIRONMENT", "dev")
-    workspace = os.getenv("WORKSPACE", "test")
-
-    expected_resources = ["organisation", "location", "healthcare-service"]
-    expected_tables = [
-        f"{project_name}-{environment}-database-{resource}-{workspace}"
-        for resource in expected_resources
-    ]
-
+    expected_tables = _get_expected_dynamodb_table_names()
     missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
+        project_name = os.getenv(ENV_PROJECT_NAME, DEFAULT_PROJECT_NAME)
+        environment = os.getenv(ENV_ENVIRONMENT, DEFAULT_ENVIRONMENT)
+        workspace = os.getenv(ENV_WORKSPACE, DEFAULT_WORKSPACE)
+
         pytest.fail(
             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
             f"Found tables: {', '.join(table_names)}\n"
@@ -114,11 +296,11 @@ def run_dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
 
 def run_create_service_with_attributes(
     dos_db_with_migration: Session,
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     entity_type: str,
     entity_name: str,
-    datatable: list[list[str]],
-) -> Dict[str, Any]:
+    datatable: GherkinTable,
+) -> ServiceAttributes:
     """
     Create a service in DoS database with attributes from Gherkin table.
 
@@ -137,11 +319,7 @@ def run_create_service_with_attributes(
         pytest.fail: If database operation fails
     """
     attributes = parse_gherkin_table(datatable)
-
-    required_fields = ["id", "typeid", "statusid"]
-    missing = [f for f in required_fields if f not in attributes]
-    if missing:
-        pytest.fail(f"Missing required fields: {', '.join(missing)}")
+    _validate_service_attributes(attributes)
 
     service_id = attributes["id"]
     migration_context["service_data"] = attributes
@@ -156,7 +334,7 @@ def run_create_service_with_attributes(
 
         insert_sql = text(
             f"""
-            INSERT INTO pathwaysdos.services ({', '.join(columns)})
+            INSERT INTO {SERVICES_TABLE} ({', '.join(columns)})
             VALUES ({', '.join(placeholders)})
             """
         )
@@ -180,10 +358,10 @@ def run_create_service_with_attributes(
 
     return attributes
 
+
 def run_full_service_migration(
     migration_helper: MigrationHelper,
-    migration_context: Dict[str, Any],
-    capfd: pytest.CaptureFixture[str],
+    migration_context: MigrationContext,
 ) -> None:
     """
     Execute full service migration and capture output.
@@ -191,17 +369,11 @@ def run_full_service_migration(
     Args:
         migration_helper: Helper for running migrations
         migration_context: Test context dictionary
-        capfd: Pytest fixture for capturing stdout/stderr
     """
     result = migration_helper.run_full_service_migration()
 
-    captured_full = capfd.readouterr()
-
     migration_context["result"] = result
-    migration_context["captured_output"] = {
-        "stdout": captured_full.out,
-        "stderr": captured_full.err,
-    }
+    migration_context["mock_logger"] = result.mock_logger
 
     logger.info(
         "Full service migration completed",
@@ -211,11 +383,11 @@ def run_full_service_migration(
         },
     )
 
+
 def run_single_service_migration(
     migration_helper: MigrationHelper,
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     service_id: int,
-    capfd: pytest.CaptureFixture[str],
 ) -> None:
     """
     Execute migration for a single service and capture output.
@@ -224,24 +396,16 @@ def run_single_service_migration(
         migration_helper: Helper for running migrations
         migration_context: Test context dictionary
         service_id: Service ID to migrate
-        capfd: Pytest fixture for capturing stdout/stderr
     """
     result = migration_helper.run_single_service_migration(service_id)
 
-    captured_single = capfd.readouterr()
-    with capfd.disabled():
-        print("output not captured, going directly to sys.stdout")
-        print("!!! captured_single", captured_single)
-
     migration_context["result"] = result
+    migration_context["mock_logger"] = result.mock_logger
     migration_context["service_id"] = service_id
-    migration_context["captured_output"] = {
-        "stdout": captured_single,
-        "stderr": captured_single,
-    }
+
 
 def run_verify_migration_metrics_inline(
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     total: int,
     supported: int,
     unsupported: int,
@@ -274,56 +438,44 @@ def run_verify_migration_metrics_inline(
     metrics = result.metrics
     service_id = migration_context.get("service_id")
     service_data = migration_context.get("service_data", {})
+    migration_type = _get_migration_type_description(migration_context)
 
-    is_full_sync = service_id is None
-    migration_type = "full sync" if is_full_sync else f"service {service_id}"
-
-    assert metrics.total_records == total, (
-        f"Total records mismatch for {migration_type}: "
-        f"expected {total}, got {metrics.total_records}"
-    )
-
-    if is_full_sync:
-        assert metrics.supported_records == supported, (
-            f"Supported records mismatch for {migration_type}:\n"
-            f"  Expected: {supported}\n"
-            f"  Got: {metrics.supported_records}\n"
-            f"  (All existing services in database)"
-        )
+    # Build additional context for supported records assertion
+    if service_id is None:
+        # Full sync migration
+        supported_context = "(All existing services in database)"
     else:
-        assert metrics.supported_records == supported, (
-            f"Supported records mismatch for {migration_type}:\n"
-            f"  Expected: {supported}\n"
-            f"  Got: {metrics.supported_records}\n"
-            f"  Type ID: {service_data.get('typeid')}\n"
-            f"  ODS Code: {service_data.get('odscode')}\n"
-            f"  Status: {service_data.get('statusid')}"
+        # Single service migration
+        supported_context = (
+            f"Type ID: {service_data.get('typeid')}, "
+            f"ODS Code: {service_data.get('odscode')}, "
+            f"Status: {service_data.get('statusid')}"
         )
 
-    assert metrics.unsupported_records == unsupported, (
-        f"Unsupported records mismatch for {migration_type}: "
-        f"expected {unsupported}, got {metrics.unsupported_records}"
+    # Verify all metrics
+    _assert_metric_matches(
+        metrics.total_records, total, "total records", migration_type
     )
-
-    assert metrics.transformed_records == transformed, (
-        f"Transformed records mismatch for {migration_type}: "
-        f"expected {transformed}, got {metrics.transformed_records}"
+    _assert_metric_matches(
+        metrics.supported_records,
+        supported,
+        "supported records",
+        migration_type,
+        supported_context,
     )
-
-    assert metrics.migrated_records == migrated, (
-        f"Migrated records mismatch for {migration_type}: "
-        f"expected {migrated}, got {metrics.migrated_records}"
+    _assert_metric_matches(
+        metrics.unsupported_records, unsupported, "unsupported records", migration_type
     )
-
-    assert metrics.skipped_records == skipped, (
-        f"Skipped records mismatch for {migration_type}: "
-        f"expected {skipped}, got {metrics.skipped_records}"
+    _assert_metric_matches(
+        metrics.transformed_records, transformed, "transformed records", migration_type
     )
-
-    assert metrics.errors == errors, (
-        f"Errors mismatch for {migration_type}: "
-        f"expected {errors}, got {metrics.errors}"
+    _assert_metric_matches(
+        metrics.migrated_records, migrated, "migrated records", migration_type
     )
+    _assert_metric_matches(
+        metrics.skipped_records, skipped, "skipped records", migration_type
+    )
+    _assert_metric_matches(metrics.errors, errors, "errors", migration_type)
 
     logger.info(
         f"Verified metrics for {migration_type}",
@@ -335,12 +487,13 @@ def run_verify_migration_metrics_inline(
             "migrated": migrated,
             "skipped": skipped,
             "errors": errors,
-            "is_full_sync": is_full_sync,
+            "is_full_sync": service_id is None,
         },
     )
 
+
 def run_verify_transformation_output(
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     service_id: int,
     org_count: int,
     location_count: int,
@@ -352,7 +505,7 @@ def run_verify_transformation_output(
     Validates DM_ETL_007 log reference from DataMigrationLogBase.
 
     Args:
-        migration_context: Test context dictionary with captured output
+        migration_context: Test context dictionary with mock_logger
         service_id: Service ID that was transformed
         org_count: Expected number of organisations created
         location_count: Expected number of locations created
@@ -361,44 +514,28 @@ def run_verify_transformation_output(
     Raises:
         AssertionError: If transformation log not found or counts don't match
     """
+    mock_logger = get_mock_logger_from_context(migration_context)
 
-    def validate_counts(log_line: str) -> None:
-        """Validate entity counts in log line."""
-        org_count_pattern = f'"organisation_count":{org_count}'
-        location_count_pattern = f'"location_count":{location_count}'
-        service_count_pattern = f'"healthcare_service_count":{service_count}'
-
-        if org_count_pattern not in log_line:
-            pytest.fail(
-                f"Organisation count mismatch in DM_ETL_007 log.\n"
-                f"Expected: {org_count} organisations\n"
-                f"Log: {log_line}"
-            )
-
-        if location_count_pattern not in log_line:
-            pytest.fail(
-                f"Location count mismatch in DM_ETL_007 log.\n"
-                f"Expected: {location_count} locations\n"
-                f"Log: {log_line}"
-            )
-
-        if service_count_pattern not in log_line:
-            pytest.fail(
-                f"Healthcare service count mismatch in DM_ETL_007 log.\n"
-                f"Expected: {service_count} healthcare services\n"
-                f"Log: {log_line}"
-            )
-
-    config = LogVerificationConfig(
-        log_reference="DM_ETL_007",
-        message_template='"message":"Record successfully migrated"',
-        validation_fn=validate_counts,
+    verify_transformation_log(
+        mock_logger=mock_logger,
+        service_id=service_id,
+        organisation_count=org_count,
+        location_count=location_count,
+        healthcare_service_count=service_count,
     )
 
-    verify_log_reference(migration_context, service_id, config)
+    logger.info(
+        f"Verified transformation output for service {service_id}",
+        extra={
+            "organisation_count": org_count,
+            "location_count": location_count,
+            "healthcare_service_count": service_count,
+        },
+    )
+
 
 def run_verify_service_not_migrated(
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     service_id: int,
     expected_reason: str,
 ) -> None:
@@ -408,22 +545,29 @@ def run_verify_service_not_migrated(
     Validates DM_ETL_004 log reference from DataMigrationLogBase.
 
     Args:
-        migration_context: Test context dictionary with captured output
+        migration_context: Test context dictionary with mock_logger
         service_id: Service ID that was not migrated
         expected_reason: Expected reason for not migrating
 
     Raises:
         AssertionError: If migration failure log not found or wrong reason
     """
-    config = LogVerificationConfig(
-        log_reference="DM_ETL_004",
-        message_template=f'"message":"Record was not migrated due to reason: {expected_reason}"',
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    verify_service_not_migrated_log(
+        mock_logger=mock_logger,
+        service_id=service_id,
+        expected_reason=expected_reason,
     )
 
-    verify_log_reference(migration_context, service_id, config)
+    logger.info(
+        f"Verified service {service_id} was not migrated",
+        extra={"reason": expected_reason},
+    )
+
 
 def run_verify_service_skipped(
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     service_id: int,
     expected_reason: str,
 ) -> None:
@@ -433,29 +577,66 @@ def run_verify_service_skipped(
     Validates DM_ETL_005 log reference from DataMigrationLogBase.
 
     Args:
-        migration_context: Test context dictionary with captured output
+        migration_context: Test context dictionary with mock_logger
         service_id: Service ID that was skipped
         expected_reason: Expected reason for skipping
 
     Raises:
         AssertionError: If service skip log not found or wrong reason
     """
-    config = LogVerificationConfig(
-        log_reference="DM_ETL_005",
-        message_template=f'"message":"Record skipped due to condition: {expected_reason}"',
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    verify_service_skipped_log(
+        mock_logger=mock_logger,
+        service_id=service_id,
+        expected_reason=expected_reason,
     )
 
-    verify_log_reference(migration_context, service_id, config)
+    logger.info(
+        f"Verified service {service_id} was skipped",
+        extra={"reason": expected_reason},
+    )
+
+def run_verify_transformer_selected(
+    migration_context: MigrationContext,
+    transformer_name: str,
+    service_id: int,
+) -> None:
+    """
+    Verify the correct transformer was selected for the service.
+
+    Validates DM_ETL_003 log reference from DataMigrationLogBase.
+
+    Args:
+        migration_context: Test context dictionary with mock_logger
+        transformer_name: Expected transformer name (e.g., 'GPPracticeTransformer')
+        service_id: Service ID that was migrated
+
+    Raises:
+        AssertionError: If transformer selection log not found or wrong transformer
+    """
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    verify_transformer_selected_log(
+        mock_logger=mock_logger,
+        transformer_name=transformer_name,
+        service_id=service_id,
+    )
+
+    logger.info(
+        f"Verified transformer selection for service {service_id}",
+        extra={"transformer_name": transformer_name},
+    )
 
 # ============================================================
 # Common SQS Steps
 # ============================================================
 
+
 def run_sqs_event_migration(
     migration_helper: MigrationHelper,
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     docstring: str,
-    capfd: pytest.CaptureFixture[str],
 ) -> Dict[str, Any]:
     """
     Execute migration with SQS event and capture output.
@@ -464,7 +645,6 @@ def run_sqs_event_migration(
         migration_helper: Helper for running migrations
         migration_context: Test context dictionary
         docstring: JSON event string from Gherkin docstring
-        capfd: Pytest fixture for capturing stdout/stderr
 
     Returns:
         Dictionary containing event processing result
@@ -472,21 +652,8 @@ def run_sqs_event_migration(
     Raises:
         pytest.fail: If event JSON is invalid
     """
-    try:
-        event = json.loads(docstring)
-    except json.JSONDecodeError as e:
-        pytest.fail(f"Invalid JSON in event docstring: {e}")
-
-    service_ids = []
-    if event.get("Records"):
-        for record in event["Records"]:
-            body = record.get("body", "{}")
-            try:
-                body_json = json.loads(body)
-                if "record_id" in body_json:
-                    service_ids.append(body_json["record_id"])
-            except json.JSONDecodeError:
-                logger.warning(f"Could not parse record body: {body}")
+    event = _parse_sqs_event(docstring)
+    service_ids = _extract_service_ids_from_sqs_event(event)
 
     logger.debug(
         "Processing SQS event",
@@ -499,25 +666,19 @@ def run_sqs_event_migration(
 
     result = migration_helper.run_sqs_event_migration(event)
 
-    captured_sqs = capfd.readouterr()
-    with capfd.disabled():
-        print("output not captured, going directly to sys.stdout")
-        print("!!! captured_sqs", captured_sqs)
-
     migration_context["result"] = result
+    migration_context["mock_logger"] = result.mock_logger
     migration_context["sqs_event"] = event
     migration_context["sqs_service_ids"] = service_ids
     migration_context["sqs_service_id"] = service_ids[0] if service_ids else None
-    migration_context["captured_output"] = {
-        "stdout": captured_sqs,
-        "stderr": captured_sqs,
-    }
 
     logger.info(
         "SQS event migration completed",
         extra={
             "success": result.success,
-            "migrated_records": result.metrics.migrated_records if result.metrics else 0,
+            "migrated_records": (
+                result.metrics.migrated_records if result.metrics else 0
+            ),
             "is_empty_event": len(event) == 0,
             "service_ids": service_ids,
         },
@@ -525,8 +686,9 @@ def run_sqs_event_migration(
 
     return {"event": event, "result": result}
 
+
 def run_verify_sqs_event_metrics(
-    migration_context: Dict[str, Any],
+    migration_context: MigrationContext,
     total: int,
     supported: int,
     unsupported: int,
@@ -554,67 +716,38 @@ def run_verify_sqs_event_metrics(
     result = migration_context.get("result")
     logger.info("Verifying SQS results", extra={"result": result})
 
-    sqs_event = migration_context.get("sqs_event", {})
-    service_id = migration_context.get("sqs_service_id")
-
     assert result is not None, "Migration result should exist"
     assert result.metrics is not None, "Migration metrics should exist"
 
     metrics = result.metrics
-    is_empty_event = len(sqs_event) == 0
-    record_count = len(sqs_event.get("Records", []))
+    migration_type = _get_migration_type_description(migration_context)
 
-    if is_empty_event:
-        event_info = "empty event"
-    elif service_id:
-        event_info = f"SQS event for service {service_id}"
-    else:
-        event_info = f"SQS event with {record_count} record(s)"
-
-    assert metrics.total_records == total, (
-        f"Total records mismatch for {event_info}:\n"
-        f"  Expected: {total}\n"
-        f"  Got: {metrics.total_records}"
+    # Verify all metrics using helper function
+    _assert_metric_matches(
+        metrics.total_records, total, "total records", migration_type
     )
-
-    assert metrics.supported_records == supported, (
-        f"Supported records mismatch for {event_info}:\n"
-        f"  Expected: {supported}\n"
-        f"  Got: {metrics.supported_records}"
+    _assert_metric_matches(
+        metrics.supported_records, supported, "supported records", migration_type
     )
-
-    assert metrics.unsupported_records == unsupported, (
-        f"Unsupported records mismatch for {event_info}:\n"
-        f"  Expected: {unsupported}\n"
-        f"  Got: {metrics.unsupported_records}"
+    _assert_metric_matches(
+        metrics.unsupported_records, unsupported, "unsupported records", migration_type
     )
-
-    assert metrics.transformed_records == transformed, (
-        f"Transformed records mismatch for {event_info}:\n"
-        f"  Expected: {transformed}\n"
-        f"  Got: {metrics.transformed_records}"
+    _assert_metric_matches(
+        metrics.transformed_records, transformed, "transformed records", migration_type
     )
-
-    assert metrics.migrated_records == migrated, (
-        f"Migrated records mismatch for {event_info}:\n"
-        f"  Expected: {migrated}\n"
-        f"  Got: {metrics.migrated_records}"
+    _assert_metric_matches(
+        metrics.migrated_records, migrated, "migrated records", migration_type
     )
-
-    assert metrics.skipped_records == skipped, (
-        f"Skipped records mismatch for {event_info}:\n"
-        f"  Expected: {skipped}\n"
-        f"  Got: {metrics.skipped_records}"
+    _assert_metric_matches(
+        metrics.skipped_records, skipped, "skipped records", migration_type
     )
+    _assert_metric_matches(metrics.errors, errors, "errors", migration_type)
 
-    assert metrics.errors == errors, (
-        f"Errors mismatch for {event_info}:\n"
-        f"  Expected: {errors}\n"
-        f"  Got: {metrics.errors}"
-    )
+    sqs_event = migration_context.get("sqs_event", {})
+    service_id = migration_context.get("sqs_service_id")
 
     logger.info(
-        f"Verified SQS event metrics for {event_info}",
+        f"Verified SQS event metrics for {migration_type}",
         extra={
             "total": total,
             "supported": supported,
@@ -623,7 +756,7 @@ def run_verify_sqs_event_metrics(
             "migrated": migrated,
             "skipped": skipped,
             "errors": errors,
-            "is_empty_event": is_empty_event,
+            "is_empty_event": len(sqs_event) == 0,
             "service_id": service_id,
         },
     )

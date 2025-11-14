@@ -1,4 +1,4 @@
-@data-migration @ftrs-pipeline
+@data-migration
 Feature: Run Single Service Migration
   As a test author
   I want to execute a data migration for an individual service

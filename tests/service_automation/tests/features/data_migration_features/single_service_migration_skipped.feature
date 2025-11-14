@@ -1,9 +1,8 @@
-@data-migration @ftrs-pipeline
+@data-migration
 Feature: Run Single Service Migration
   As a test author
   I want to execute a data migration for an individual service
   So that I can verify the migration process correctly identifies inactive services and skips them without errors
-
 
   Background:
     Given the test environment is configured
