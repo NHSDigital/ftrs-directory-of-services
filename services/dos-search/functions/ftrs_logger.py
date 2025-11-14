@@ -46,6 +46,123 @@ class FtrsLogger:
                 return v
         return None
 
+    @staticmethod
+    def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Extract APIM headers and common event fields into the structured 'extra' dict.
+
+        All mandatory fields are present; missing values use the configured placeholder.
+        Optional one-time fields are prefixed with 'Opt_'.
+
+        Extracts are handled here as passing the entire event object to the handler presents issues for the pytest library mocks.
+        Extracts could be moved back to the FtrsLogger class, but would more or less require the test mocks to implement log_data=ANY in each call, which may obfuscate more information
+        """
+        placeholder = "FTRS_LOG_PLACEHOLDER"
+
+        headers = (
+            {}
+            if not event or not isinstance(event, dict)
+            else (event.get("headers") or {})
+        )
+        hdr_lower = {k.lower(): v for k, v in headers.items()}
+
+        def h(*names: str) -> Optional[str]:
+            # try original casing keys first, then lowercased mapping
+            for n in names:
+                if n in headers and headers.get(n) not in (None, ""):
+                    return headers.get(n)
+            # fallback to lowercased lookup of provided names
+            for n in names:
+                val = hdr_lower.get(n.lower())
+                if val not in (None, ""):
+                    return val
+            return None
+
+        out: Dict[str, Any] = {
+            "logger": "ftrs_logger"  # Identifier for when logs are created using our logger
+        }
+
+        # Mandatory/default ftrs fields
+        # NHSD correlation id
+        corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
+        out["ftrs_nhsd_correlation_id"] = corr
+
+        # NHSD request id
+        reqid = h("NHSD-Request-ID") or placeholder
+        out["ftrs_nhsd_request_id"] = reqid
+
+        # APIM message id
+        msgid = (
+            h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "ftrs-message-id")
+            or placeholder
+        )
+        out["ftrs_message_id"] = msgid
+
+        # Default category to LOGGING, can be overridden later
+        out["ftrs_message_category"] = "LOGGING"
+
+        # One-time fields added to "details" to separate
+        ("ftrs_response_time",)
+        ("ftrs_response_size",)
+        ("ftrs_message_category",)
+        ("ftrs_response",)
+        out["details"] = {}
+        details = out["details"]  # Alias for sub object access
+
+        end_user_role = (
+            h("x-end-user-role")
+            or (event.get("end_user_role") if isinstance(event, dict) else None)
+            or (
+                event.get("requestContext", {})
+                .get("authorizer", {})
+                .get("end_user_role")
+                if isinstance(event, dict)
+                else None
+            )
+            or placeholder
+        )
+        details["ftrs_end_user_role"] = end_user_role
+
+        client_id = (
+            h("x-client-id")
+            or (event.get("client_id") if isinstance(event, dict) else None)
+            or placeholder
+        )
+        details["ftrs_client_id"] = client_id
+
+        app_name = (
+            h("x-application-name")
+            or (event.get("application_name") if isinstance(event, dict) else None)
+            or placeholder
+        )
+        details["ftrs_application_name"] = app_name
+
+        # Request params (queryStringParameters + pathParameters)
+        req_params: Dict[str, Any] = {}
+        if isinstance(event, dict):
+            query_params = event.get("queryStringParameters") or {}
+            path_params = event.get("pathParameters") or {}
+            if isinstance(query_params, dict):
+                req_params.update(query_params)
+            if isinstance(path_params, dict):
+                req_params.update(path_params)
+        details["ftrs_request_parms"] = req_params or {}
+
+        details["ftrs_response_time"] = placeholder
+
+        details["ftrs_environment"] = (
+            os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
+        )
+
+        details["ftrs_api_version"] = h("x-api-version", "api-version") or placeholder
+
+        details["ftrs_lambda_version"] = (
+            os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
+        )
+
+        details["ftrs_response_size"] = placeholder
+
+        return out
+
     # --- powertools context -----------------------------------------------
     def _append_powertools_context(self, extra: Dict[str, Any]) -> None:
         """Append keys to powertools logger context where possible.
@@ -155,10 +272,7 @@ class FtrsLogger:
 
         # Allow certain ftrs_* fields to be provided as top-level overrides
         override_keys = {
-            "ftrs_response_time",
-            "ftrs_response_size",
             "ftrs_message_category",
-            "ftrs_response",
         }
         if detail_map:
             for k in list(detail_map.keys()):
@@ -252,102 +366,3 @@ class FtrsLogger:
         self.log_payload_only(
             message=message, event=event, level=logging.INFO, **detail
         )
-
-
-def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    """Extract APIM headers and common event fields into the structured 'extra' dict.
-
-    All mandatory fields are present; missing values use the configured placeholder.
-    Optional one-time fields are prefixed with 'Opt_'.
-
-    Extracts are handled here as passing the entire event object to the handler presents issues for the pytest library mocks.
-    Extracts could be moved back to the FtrsLogger class, but would more or less require the test mocks to implement log_data=ANY in each call, which may obfuscate more information
-    """
-    placeholder = "FTRS_LOG_PLACEHOLDER"
-
-    headers = (
-        {} if not event or not isinstance(event, dict) else (event.get("headers") or {})
-    )
-    hdr_lower = {k.lower(): v for k, v in headers.items()}
-
-    def h(*names: str) -> Optional[str]:
-        # try original casing keys first, then lowercased mapping
-        for n in names:
-            if n in headers and headers.get(n) not in (None, ""):
-                return headers.get(n)
-        # fallback to lowercased lookup of provided names
-        for n in names:
-            val = hdr_lower.get(n.lower())
-            if val not in (None, ""):
-                return val
-        return None
-
-    out: Dict[str, Any] = {}
-
-    # NHSD correlation id
-    corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
-    out["ftrs_nhsd_correlation_id"] = corr
-
-    # NHSD request id
-    reqid = h("NHSD-Request-ID") or placeholder
-    out["ftrs_nhsd_request_id"] = reqid
-
-    # APIM message id
-    msgid = (
-        h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "ftrs-message-id")
-        or placeholder
-    )
-    out["ftrs_message_id"] = msgid
-
-    # Mandatory/default ftrs fields
-    # Default category to LOGGING, can be overridden later
-    out["ftrs_message_category"] = "LOGGING"
-    out["ftrs_environment"] = (
-        os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
-    )
-    out["ftrs_api_version"] = h("x-api-version", "api-version") or placeholder
-    out["ftrs_lambda_version"] = (
-        os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
-    )
-    out["ftrs_response_time"] = placeholder
-    out["ftrs_response_size"] = placeholder
-
-    # One-time fields
-    end_user_role = (
-        h("x-end-user-role")
-        or (event.get("end_user_role") if isinstance(event, dict) else None)
-        or (
-            event.get("requestContext", {}).get("authorizer", {}).get("end_user_role")
-            if isinstance(event, dict)
-            else None
-        )
-        or placeholder
-    )
-    out["ftrs_end_user_role"] = end_user_role
-
-    client_id = (
-        h("x-client-id")
-        or (event.get("client_id") if isinstance(event, dict) else None)
-        or placeholder
-    )
-    out["ftrs_client_id"] = client_id
-
-    app_name = (
-        h("x-application-name")
-        or (event.get("application_name") if isinstance(event, dict) else None)
-        or placeholder
-    )
-    out["ftrs_application_name"] = app_name
-
-    # Request params (queryStringParameters + pathParameters)
-    req_params: Dict[str, Any] = {}
-    if isinstance(event, dict):
-        query_params = event.get("queryStringParameters") or {}
-        path_params = event.get("pathParameters") or {}
-        if isinstance(query_params, dict):
-            req_params.update(query_params)
-        if isinstance(path_params, dict):
-            req_params.update(path_params)
-    out["ftrs_request_parms"] = req_params or {}
-
-    return out
