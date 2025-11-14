@@ -198,6 +198,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     assert org_content == {
         "id": str(mock_output.organisation[0].id),
         "identifier_ODS_ODSCode": None,
+        "active": None,
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
         "modifiedBy": "SYSTEM",

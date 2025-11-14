@@ -61,7 +61,7 @@ class Organisation(BaseModel):
     """Internal organization model - simplified for database storage"""
 
     name: str = Field(..., example="GP Practice Name")
-    active: bool = Field(..., example=True)
+    active: bool | None = Field(default=None, example=True)
     telecom: str | None = Field(default=None, example="01234 567890")
     type: str = Field(default="GP Practice", example="GP Practice")
 
@@ -79,7 +79,7 @@ class OrganisationUpdatePayload(BaseModel):
     )
     identifier: list[Identifier] = Field(..., description="Organization identifiers")
     name: str = Field(max_length=100, example="GP Practice Name")
-    active: bool = Field(..., example=True)
+    active: bool | None = Field(default=None, example=True)
     type: list[Type] = Field(..., description="Organization type")
     telecom: list[ContactPoint] | None = None
 
