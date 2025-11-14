@@ -25,7 +25,6 @@ import json
 def create_signed_jwt(proxygen_jwt_secrets):
     """Create a signed JWT for APIM authentication"""
     try:
-        
         proxygen_jwt_creds = json.loads(proxygen_jwt_secrets)
 
         # Set JWT claims
