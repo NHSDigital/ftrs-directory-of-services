@@ -1,14 +1,10 @@
-from aws_lambda_powertools import Logger
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain import Endpoint, Organisation
 
-from functions.ftrs_logger import FtrsLogger
-
-logger = Logger()
-
-ftrs_logger = FtrsLogger(service="dos-search")
+# Import instantiated logger from dos_search_ods_code_function to persist log context from beginning of Lambda execution
+from functions.ftrs_logger import ftrs_logger
 
 
 class EndpointMapper:

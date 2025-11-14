@@ -8,14 +8,11 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.ftrs_logger import FtrsLogger
+from functions.ftrs_logger import FtrsLogger, ftrs_logger
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.organization_query_params import OrganizationQueryParams
 
-service = "dos-search"
-
 logger = Logger()
-ftrs_logger = FtrsLogger(service=service)
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
@@ -24,7 +21,6 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    print("easily searchable", isinstance(app.current_event, dict))
     log_data = FtrsLogger.extract(app.current_event)
     details = log_data.pop("details")
     try:
