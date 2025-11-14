@@ -7,9 +7,9 @@ set -e
 
 # Get the secret string
     export PROXYGEN_JWT_SECRETS=$(aws secretsmanager get-secret-value \
-      --secret-id /ftrs-dos/${ENV}/${API_NAME}-proxygen-jwt-credentials \
+      --secret-id /ftrs-dos/$ENV/$API_NAME-proxygen-jwt-credentials \
       --query SecretString \
-      --region ${AWS_REGION} \
+      --region $AWS_REGION \
       --output text)
 
 # Create Python script for JWT generation
@@ -63,8 +63,7 @@ if [ -z "$SIGNED_JWT" ]; then
     exit 1
 fi
 
-TOKEN_URL=$(echo "$proxygen_jwt_secrets" | jq -r .token_url)
-
+TOKEN_URL=$(echo "$PROXYGEN_JWT_SECRETS" | jq -r .token_url)
 # Request access token
 echo "Requesting access token from APIM..." >&2
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$TOKEN_URL" \
