@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/authenticate-apim
         with:
           api_name: ${{ inputs.api_name }}
-          env: ${{ inputs.environment }}
+          environment: ${{ inputs.environment }}
           aws_region: ${{ inputs.aws_region }}
       - name: Test Token - List Proxy Instances
         env:
