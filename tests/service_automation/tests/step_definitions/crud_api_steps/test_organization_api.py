@@ -349,6 +349,127 @@ def step_update_with_identifier(payload, api_request_context_mtls_crud):
     return response
 
 
+@when(
+    parsers.parse('I update the organization with an invalid TypedPeriod extension "{invalid_scenario}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_invalid_typed_period(invalid_scenario: str, api_request_context_mtls_crud):
+    payload = _load_default_payload()
+    typed_period_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+
+    # Build invalid extensions based on scenario
+    if invalid_scenario == "missing dateType":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "missing period":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                }
+            ]
+        }
+    elif invalid_scenario == "non-Legal dateType":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "empty period":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {}
+                }
+            ]
+        }
+    else:
+        raise ValueError(f"Unknown invalid_scenario: {invalid_scenario}")
+
+    payload["extension"] = [invalid_extension]
+    logger.info(f"Payload with invalid extension:\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse('I update the organization with legal dates start "{legal_start}" and end "{legal_end}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_legal_dates(legal_start: str, legal_end: str, api_request_context_mtls_crud):
+    """Update organization with legal start and end dates in YYYY-MM-DD format."""
+    payload = _load_default_payload()
+    typed_period_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+
+    # Build the period object based on what dates are provided (already in YYYY-MM-DD format)
+    period = {}
+    if legal_start != "null":
+        period["start"] = legal_start
+    if legal_end != "null":
+        period["end"] = legal_end
+
+    # Only add extension if at least one date is provided
+    if period:
+        typed_period_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": period
+                }
+            ]
+        }
+        payload["extension"] = [typed_period_extension]
+    else:
+        # Remove extension if both dates are null
+        payload.pop("extension", None)
+
+    logger.info(f"Payload with legal dates:\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
 @then(parsers.parse('the OperationOutcome contains an issue with code "{code}"'))
 def step_check_operation_outcome_code(fresponse, code):
     body = fresponse.json()
@@ -416,7 +537,9 @@ def step_validate_db_field(field: str, value: str, model_repo, fresponse):
         if field != "telecom"
         else getattr(item, "telecom", None)
     )
-    assert actual == value, f"{field} mismatch: expected {value}, got {actual}"
+    # Convert string "None" to Python None for comparison
+    expected = None if value == "None" else value
+    assert actual == expected, f"{field} mismatch: expected {expected}, got {actual}"
 
 
 @then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
@@ -476,6 +599,17 @@ def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
 )
 def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     """Verify that the diagnostics message contains the expected text."""
+    diagnostic = get_diagnostics_list(fresponse)[0]
+    assert diagnostic.get("type") == "extra_forbidden"
+    loc = diagnostic.get("loc", [])
+    assert field in loc or field == loc
+    assert diagnostic.get("msg") == "Extra inputs are not permitted"
+    assert diagnostic.get("input") == value
+
+
+@then(parsers.parse('the diagnostics message contains "{expected_error}"'))
+def step_diagnostics_contains(fresponse: object, expected_error: str) -> None:
+    """Check that the diagnostics message contains the expected error text."""
     body = fresponse.json()
     assert body.get("resourceType") == "OperationOutcome", (
         f"Unexpected response: {body}"
@@ -488,3 +622,10 @@ def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     )
 
     logger.info(f"Diagnostics correctly contains: {expected_message}")
+    issues = body.get("issue", [])
+    assert len(issues) > 0, "No issues found in OperationOutcome"
+
+    diagnostics = issues[0].get("diagnostics", "")
+    assert expected_error in diagnostics, (
+        f"Expected error '{expected_error}' not found in diagnostics: '{diagnostics}'"
+    )

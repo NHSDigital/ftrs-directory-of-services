@@ -222,6 +222,18 @@ paths:
                       identifier:
                         - system: "https://fhir.nhs.uk/Id/ods-organization-code"
                           value: "ABC123"
+                      extension:
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+                          extension:
+                            - url: "dateType"
+                              valueCoding:
+                                system: "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
+                                code: "Legal"
+                                display: "Legal"
+                            - url: "period"
+                              valuePeriod:
+                                start: "2020-01-15"
+                                end: "2025-12-31"
                       active: true
                       name: "Example Organization"
                       telecom:
@@ -410,7 +422,53 @@ paths:
       security:
         - app-level3: []
       summary: Update/overwrite an organization resource
-      description: Update or overwrite an existing organization resource by ID.
+      description: |
+        Update or overwrite an existing organization resource by ID.
+
+        ## Optional Extensions
+
+        The Organization resource supports the following optional FHIR extensions:
+
+        ### TypedPeriod Extension for Legal Dates
+
+        You can optionally include legal start and end dates using the TypedPeriod extension:
+
+        - **Extension URL**: `https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod`
+        - **Sub-extensions**:
+          - `dateType`: Must be set to "Legal" from the England-PeriodType CodeSystem
+          - `period`: Contains `start` and/or `end` dates in YYYY-MM-DD format
+
+        **Validation rules**:
+        - The extension must contain both `dateType` and `period` sub-extensions
+        - The `dateType` must be "Legal"
+        - The `period` must contain at least a `start` or `end` date
+        - Dates must be in YYYY-MM-DD format
+
+        **Example**:
+        ```json
+        "extension": [
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+              {
+                "url": "dateType",
+                "valueCoding": {
+                  "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                  "code": "Legal",
+                  "display": "Legal"
+                }
+              },
+              {
+                "url": "period",
+                "valuePeriod": {
+                  "start": "2020-01-15",
+                  "end": "2025-12-31"
+                }
+              }
+            ]
+          }
+        ]
+        ```
       parameters:
       - in: header
         name: Authorization
@@ -507,6 +565,58 @@ paths:
                   - severity: error
                     code: not-found
                     diagnostics: Organisation not found.
+        '422':
+          description: Unprocessable Entity (validation errors)
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              examples:
+                missing-required-field:
+                  summary: Missing required field
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Field 'name' is required"
+                invalid-typed-period-missing-subextension:
+                  summary: TypedPeriod extension missing required sub-extension
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "TypedPeriod extension must contain both 'dateType' and 'period' sub-extensions"
+                invalid-typed-period-non-legal:
+                  summary: TypedPeriod extension with non-Legal dateType
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "dateType must be 'Legal' from system 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'"
+                invalid-typed-period-empty-period:
+                  summary: TypedPeriod extension with empty period
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "period must contain at least start or end date"
 components:
   parameters:
     AcceptFHIR:
@@ -538,7 +648,6 @@ components:
         - name
         - type
         - identifier
-        - address
       properties:
         resourceType:
           type: string
@@ -555,6 +664,71 @@ components:
                 type: string
               example:
                 - https://fhir.nhs.uk/StructureDefinition/UKCore-Organization
+        extension:
+          type: array
+          description: |
+            Optional FHIR extensions. Currently supports:
+            - TypedPeriod extension for legal start and end dates
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                description: Extension URL identifying the extension type
+                example: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod
+              extension:
+                type: array
+                description: Sub-extensions containing dateType and period
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      enum:
+                        - dateType
+                        - period
+                      description: Sub-extension identifier
+                    valueCoding:
+                      type: object
+                      description: Used for dateType sub-extension
+                      properties:
+                        system:
+                          type: string
+                          example: https://fhir.nhs.uk/England/CodeSystem/England-PeriodType
+                        code:
+                          type: string
+                          enum:
+                            - Legal
+                          example: Legal
+                        display:
+                          type: string
+                          example: Legal
+                    valuePeriod:
+                      type: object
+                      description: Used for period sub-extension containing start and/or end dates
+                      properties:
+                        start:
+                          type: string
+                          format: date
+                          description: Legal start date in YYYY-MM-DD format
+                          example: "2020-01-15"
+                        end:
+                          type: string
+                          format: date
+                          description: Legal end date in YYYY-MM-DD format
+                          example: "2025-12-31"
+          example:
+            - url: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod
+              extension:
+                - url: dateType
+                  valueCoding:
+                    system: https://fhir.nhs.uk/England/CodeSystem/England-PeriodType
+                    code: Legal
+                    display: Legal
+                - url: period
+                  valuePeriod:
+                    start: "2020-01-15"
+                    end: "2025-12-31"
         active:
           type: boolean
           example: true
