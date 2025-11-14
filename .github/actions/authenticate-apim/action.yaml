@@ -32,7 +32,7 @@ runs:
       run: |
         export API_NAME=${{ inputs.api_name }}
         export ENV=${{ inputs.environment }}
-        export AWS_REGION=${{ vars.AWS_REGION }}
+        export AWS_REGION=${{ inputs.aws_region }}
 
         chmod +x ./scripts/workflow/get-apim-token.sh
         ACCESS_TOKEN=$(/bin/bash ./scripts/workflow/get-apim-token.sh)
