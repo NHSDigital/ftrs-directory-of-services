@@ -102,7 +102,7 @@ jobs:
     needs:
       - metadata
       - build-services
-  #     - perform-code-analysis
+      - perform-code-analysis
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
       - perform-code-analysis
     uses: ./.github/workflows/deploy-infrastructure.yaml

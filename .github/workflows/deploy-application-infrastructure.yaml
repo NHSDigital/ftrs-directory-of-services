@@ -60,7 +60,7 @@ jobs:
   plan-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }} "
     concurrency:
-      group: "${{ inputs.environment }}-${{ inputs.tag }}"
+      group: "${{ inputs.environment }}-${{ inputs.tag || inputs.workspace}}"
       cancel-in-progress: false
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
@@ -75,7 +75,7 @@ jobs:
     secrets: inherit
 
   manual-approval-application-infra:
-    name: "Manual approval for deployment of application to the ${{ inputs.environment }} environment"
+    name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
     if: ${{ needs.plan-application-infrastructure.outputs.plan_result == 'true' }}
     needs:
       - plan-application-infrastructure
@@ -91,7 +91,7 @@ jobs:
         run: echo "approved=true" >> $GITHUB_OUTPUT
 
   apply-application-infrastructure:
-    name: "Plan application infrastructure deployment to ${{ inputs.environment }}"
+    name: "Apply application infrastructure deployment to ${{ inputs.environment }}"
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.tag || inputs.workspace}}"
       cancel-in-progress: false
@@ -117,8 +117,11 @@ jobs:
       - apply-application-infrastructure
     if: always() && !cancelled()
     runs-on: ubuntu-latest
+    outputs:
+      deploy_status: ${{ steps.deployment_summary.outputs.deploy_status }}
     steps:
       - name: Deployment Summary
+        id: deployment_summary
         run: |
           if [ ${{ needs.manual-approval-application-infra.result }} == 'skipped' ]; then
             echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
