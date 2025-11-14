@@ -70,7 +70,7 @@ class SQLModelKVCache(Generic[T]):
             if self.prejoin:
                 stmt = stmt.options(joinedload("*"))
 
-            results = session.exec(stmt).all()
+            results = session.exec(stmt).unique().all()
             for item in results:
                 self.cache[item.id] = item
 
