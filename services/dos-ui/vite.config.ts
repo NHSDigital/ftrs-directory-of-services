@@ -23,6 +23,10 @@ const config = defineConfig({
     }),
     viteReact(),
   ],
+  server: {
+    host: '127.0.0.1',
+    port: 3000,
+  },
   ssr: {
     noExternal: [
       '@aws-lambda-powertools/logger',
