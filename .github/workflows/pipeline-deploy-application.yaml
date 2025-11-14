@@ -39,18 +39,6 @@ jobs:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
 
-  authenticate-with-apim:
-    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      # - manual-approval
-    uses: ./.github/workflows/authentication-to-apim.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      aws_region: ${{ vars.AWS_REGION }}
-      api_name: "dos-search"
-    secrets: inherit
-
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
@@ -140,6 +128,18 @@ jobs:
     steps:
       - name: Approval required
         run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+
+  authenticate-with-apim:
+    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/authentication-to-apim.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      aws_region: ${{ vars.AWS_REGION }}
+      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
+    secrets: inherit
 
   apply-infrastructure:
     name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
@@ -254,14 +254,6 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
       type: "app"
     secrets: inherit
-
-  # authenticate-with-apim:
-  #   name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
-  #   needs:
-  #     - metadata
-  #     - manual-approval
-  #     - apply-infrastructure
-  #   uses: ./.github/workflows/authentication-to-apim.yaml
 
   service-automation-tests:
     name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
