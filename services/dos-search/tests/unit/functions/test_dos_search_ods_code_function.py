@@ -69,10 +69,17 @@ def bundle():
 @pytest.fixture
 def log_data():
     return {
+        "logger": "ftrs_logger",
         "ftrs_nhsd_correlation_id": "FTRS_LOG_PLACEHOLDER",
         "ftrs_nhsd_request_id": "FTRS_LOG_PLACEHOLDER",
         "ftrs_message_id": "FTRS_LOG_PLACEHOLDER",
         "ftrs_message_category": "LOGGING",
+    }
+
+
+@pytest.fixture
+def details():
+    return {
         "ftrs_environment": "FTRS_LOG_PLACEHOLDER",
         "ftrs_api_version": "FTRS_LOG_PLACEHOLDER",
         "ftrs_lambda_version": "FTRS_LOG_PLACEHOLDER",
@@ -122,6 +129,7 @@ class TestLambdaHandler:
         event,
         bundle,
         log_data,
+        details,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
@@ -133,6 +141,7 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_logger.assert_has_calls(
             [
+                call.info("Logging one-time fields", log_data=log_data, **details),
                 call.info(
                     "Received request for odsCode", log_data=log_data, ods_code=ods_code
                 ),
@@ -196,6 +205,7 @@ class TestLambdaHandler:
         mock_error_util,
         mock_logger,
         log_data,
+        details,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
@@ -209,6 +219,7 @@ class TestLambdaHandler:
 
         mock_logger.assert_has_calls(
             [
+                call.info("Logging one-time fields", log_data=log_data, **details),
                 call.info(
                     "Received request for odsCode", log_data=log_data, ods_code=ods_code
                 ),
