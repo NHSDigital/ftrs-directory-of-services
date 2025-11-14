@@ -1,3 +1,4 @@
+import os
 from typing import Generic, TypeVar
 
 from ftrs_data_layer.domain.legacy import (
@@ -19,11 +20,19 @@ class SQLModelKVCache(Generic[T]):
     A simple key-value cache for storing and retrieving data.
     """
 
-    def __init__(self, engine: Engine, model: type[T], prejoin: bool = False) -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        model: type[T],
+        prejoin: bool = False,
+    ) -> None:
         self.cache: dict[int, T] = {}
         self.engine = engine
         self.model = model
         self.prejoin = prejoin
+
+        if os.getenv("PRELOAD_CACHE", "false").lower() == "true":
+            self._preload_cache()
 
     def get(self, key: int) -> T:
         """
@@ -51,6 +60,19 @@ class SQLModelKVCache(Generic[T]):
                 stmt = stmt.options(joinedload("*"))
 
             return session.exec(stmt).unique().first()
+
+    def _preload_cache(self) -> None:
+        """
+        Preload the cache with all items from the database.
+        """
+        with Session(self.engine) as session:
+            stmt = select(self.model)
+            if self.prejoin:
+                stmt = stmt.options(joinedload("*"))
+
+            results = session.exec(stmt).all()
+            for item in results:
+                self.cache[item.id] = item
 
 
 class DoSMetadataCache:

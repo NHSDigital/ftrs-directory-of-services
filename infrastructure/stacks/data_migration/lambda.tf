@@ -45,9 +45,10 @@ module "processor_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"   = var.environment
+    "WORKSPACE"     = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"  = var.project
+    "PRELOAD_CACHE" = "true"
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
