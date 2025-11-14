@@ -116,7 +116,7 @@ systemctl restart amazon-ssm-agent || systemctl start amazon-ssm-agent || true
 # Always install JMeter Plugin Manager, cmdrunner, and a sensible default plugin set
 PLUGINS_MANAGER_VERSION=1.11
 CMDRUNNER_VERSION=2.3
-DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional"
+DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional,kg.apc.jmeter.threads.UltimateThreadGroup=1.10"
 
 mkdir -p "$${JM_HOME}/lib/ext" "$${JM_HOME}/lib"
 curl -fL -o "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
