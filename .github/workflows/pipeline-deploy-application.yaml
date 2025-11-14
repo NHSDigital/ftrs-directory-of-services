@@ -48,6 +48,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       aws_region: ${{ vars.AWS_REGION }}
+      api_name: "dos-search"
 
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
