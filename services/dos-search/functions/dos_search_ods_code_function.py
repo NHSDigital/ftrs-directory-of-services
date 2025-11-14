@@ -8,7 +8,7 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.ftrs_logger import FtrsLogger, extract
+from functions.ftrs_logger import FtrsLogger
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.organization_query_params import OrganizationQueryParams
 
@@ -24,10 +24,13 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    log_data = extract(app.current_event)
+    print("easily searchable", app.current_event)
+    log_data = FtrsLogger.extract(app.current_event)
+    details = log_data.pop("details")
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
+        ftrs_logger.info("Logging one-time fields", log_data=log_data, **details)
 
         ods_code = validated_params.ods_code
         # Structured request log
