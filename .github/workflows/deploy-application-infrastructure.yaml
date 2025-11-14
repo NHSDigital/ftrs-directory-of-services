@@ -127,13 +127,13 @@ jobs:
             echo "deploy_status=Success" >> $GITHUB_OUTPUT
           fi
           if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
-            if [ "${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
+            if [ ${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
               echo "Planned changes to application infrastructure APPROVED for deployment to the ${{ inputs.environment }} environment."
               if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
                 echo "Changes APPROVED and successfully APPLIED to application infrastructure in the ${{ inputs.environment }} environment."
                 echo "deploy_status=Success" >> $GITHUB_OUTPUT
               else
-                echo "Changes APPROVED but were NOT applied to application infrastructure in the ${{ inputs.environment }} environment."
+                echo "Changes APPROVED but were NOT successfully applied to application infrastructure in the ${{ inputs.environment }} environment."
                 echo "deploy_status=Failed" >> $GITHUB_OUTPUT
               fi
             else
