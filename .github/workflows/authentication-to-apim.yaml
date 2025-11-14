@@ -27,6 +27,7 @@ jobs:
   get-access-token:
     name: Retrieve APIM Access Token
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     outputs:
       token: ${{ steps.get-token.outputs.access_token }}
 
@@ -37,7 +38,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: ./.github/actions/configure-credentials
         with:
-          aws_account_id: 123
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: app
 
