@@ -10,10 +10,6 @@ on:
         description: 'Environment to authenticate against (e.g., dev, test, prod)'
         required: true
         type: string
-      aws_region:
-        description: 'AWS region for Secrets Manager'
-        required: true
-        type: string
       api_name:
         description: 'Name of the API to access via Proxygen'
         required: true
@@ -49,7 +45,7 @@ jobs:
         with:
           api_name: ${{ inputs.api_name }}
           environment: ${{ inputs.environment }}
-          aws_region: ${{ inputs.aws_region }}
+          aws_region: ${{ vars.AWS_REGION }}
       - name: Test Token - List Proxy Instances
         env:
           ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}

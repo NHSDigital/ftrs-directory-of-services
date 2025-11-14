@@ -137,7 +137,6 @@ jobs:
     uses: ./.github/workflows/authentication-to-apim.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      aws_region: ${{ vars.AWS_REGION }}
       api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
     secrets: inherit
 

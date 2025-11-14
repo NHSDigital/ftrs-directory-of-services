@@ -50,7 +50,6 @@ if __name__ == "__main__":
     proxygen_jwt_secrets = os.environ.get('PROXYGEN_JWT_SECRETS')
 
     signed_jwt = create_signed_jwt(proxygen_jwt_secrets)
-    print(signed_jwt)
 PYTHON_SCRIPT
 
 # Generate signed JWT
