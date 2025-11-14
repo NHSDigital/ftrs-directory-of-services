@@ -10,13 +10,13 @@ SQS_CLIENT = boto3.client("sqs")
 
 
 def lambda_handler(event: dict, context: dict) -> None:
-    message = get_message_from_event(event)
+    LOGGER.info("Received event: %s", json.dumps(event))
     workspaces = get_dms_workspaces()
 
     for workspace_queue_url in workspaces:
         try:
             response = SQS_CLIENT.send_message(
-                QueueUrl=workspace_queue_url, MessageBody=json.dumps(message)
+                QueueUrl=workspace_queue_url, MessageBody=json.dumps(event)
             )
 
             LOGGER.info(
@@ -28,10 +28,3 @@ def lambda_handler(event: dict, context: dict) -> None:
             LOGGER.exception(
                 "Failed to send message to SQS for workspace %s", workspace_queue_url
             )
-
-
-def get_message_from_event(event: dict) -> dict:
-    LOGGER.info("Received event: %s", json.dumps(event))
-
-    message = {"source": "aurora_trigger", "event": event}
-    return message
