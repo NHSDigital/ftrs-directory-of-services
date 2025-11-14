@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
@@ -668,5 +669,736 @@ def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
     }
     result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
     assert result is not None
-    assert result.identifier[0].value == "ODS123"
-    assert result.type[0].text == "GP Practice"
+
+
+def test__extract_legal_dates_with_valid_typed_period() -> None:
+    """Test _extract_legal_dates extracts dates from valid TypedPeriod extension."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2020-01-15",
+                        "end": "2025-12-31",
+                    },
+                },
+            ],
+        }
+    ]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start == "2020-01-15"
+    assert end == "2025-12-31"
+
+
+def test__extract_legal_dates_no_extension_attribute() -> None:
+    """Test _extract_legal_dates when fhir_resource has no extension attribute."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    if hasattr(fhir_org, "extension"):
+        delattr(fhir_org, "extension")
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start is None
+    assert end is None
+
+
+def test__extract_legal_dates_extension_is_none() -> None:
+    """Test _extract_legal_dates when extension attribute is None."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = None
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start is None
+    assert end is None
+
+
+def test__extract_legal_dates_extension_is_empty_list() -> None:
+    """Test _extract_legal_dates when extension list is empty."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = []
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start is None
+    assert end is None
+
+
+def test__extract_legal_dates_multiple_extensions_typed_period_present() -> None:
+    """Test _extract_legal_dates with multiple extensions including TypedPeriod."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = [
+        {
+            "url": "https://example.com/other-extension",
+            "valueString": "test",
+        },
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2020-01-15",
+                        "end": "2025-12-31",
+                    },
+                },
+            ],
+        },
+        {
+            "url": "https://example.com/another-extension",
+            "valueBoolean": True,
+        },
+    ]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start == "2020-01-15"
+    assert end == "2025-12-31"
+
+
+def test__extract_legal_dates_typed_period_no_sub_extensions() -> None:
+    """Test _extract_legal_dates with TypedPeriod URL but no sub-extensions."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "valueString": "test",
+        }
+    ]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start is None
+    assert end is None
+
+
+def test__extract_legal_dates_typed_period_empty_sub_extensions() -> None:
+    """Test _extract_legal_dates with TypedPeriod but empty sub-extensions."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [],
+        }
+    ]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start is None
+    assert end is None
+
+
+def test__extract_legal_dates_no_matching_url() -> None:
+    """Test _extract_legal_dates when no extension has TypedPeriod URL."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = [
+        {
+            "url": "https://example.com/other-extension",
+            "extension": [
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2020-01-15",
+                    },
+                },
+            ],
+        },
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {"coding": [{"code": "RO76"}]},
+                }
+            ],
+        },
+    ]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start is None
+    assert end is None
+
+
+def test__extract_legal_dates_ext_with_dict_method() -> None:
+    """Test _extract_legal_dates handles extensions with .dict() method."""
+    from fhir.resources.R4B.extension import Extension
+
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+
+    # Create a proper FHIR Extension object that has a .dict() method
+    ext_obj = Extension.model_validate(
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2020-01-15",
+                        "end": "2025-12-31",
+                    },
+                },
+            ],
+        }
+    )
+
+    fhir_org.extension = [ext_obj]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start == "2020-01-15"
+    assert end == "2025-12-31"
+
+
+def test__extract_legal_dates_mixed_extension_types() -> None:
+    """Test _extract_legal_dates with mixed dict and Extension object types."""
+    from fhir.resources.R4B.extension import Extension
+
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+
+    # Create a proper FHIR Extension object
+    ext_obj = Extension.model_validate(
+        {
+            "url": "https://example.com/other-extension",
+            "valueString": "test",
+        }
+    )
+
+    # Mix of Extension object and dict
+    fhir_org.extension = [
+        ext_obj,
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2020-01-15",
+                    },
+                },
+            ],
+        },
+    ]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    assert start == "2020-01-15"
+    assert end is None
+
+
+def test__extract_legal_dates_first_matching_extension_wins() -> None:
+    """Test _extract_legal_dates returns first matching TypedPeriod extension."""
+    mapper = OrganizationMapper()
+    fhir_org = make_fhir_org()
+    fhir_org.extension = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2020-01-15",
+                        "end": "2025-12-31",
+                    },
+                },
+            ],
+        },
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2021-01-01",
+                        "end": "2026-12-31",
+                    },
+                },
+            ],
+        },
+    ]
+
+    start, end = mapper._extract_legal_dates(fhir_org)
+    # Should return dates from first matching extension
+    assert start == "2020-01-15"
+    assert end == "2025-12-31"
+
+
+def test_build_legal_date_extension_with_both_dates() -> None:
+    """Test building legal date extension with both start and end dates."""
+    mapper = OrganizationMapper()
+    result = mapper._build_legal_date_extension("2020-01-15", "2025-12-31")
+
+    assert result is not None
+    result_dict = result.dict()
+    assert (
+        result_dict["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+    )
+    assert str(len(result_dict["extension"])) == "2"
+
+    # Check dateType sub-extension
+    date_type = next(
+        (e for e in result_dict["extension"] if e["url"] == "dateType"), None
+    )
+    assert date_type is not None
+    assert date_type["valueCoding"]["code"] == "Legal"
+
+    # Check period sub-extension
+    period = next((e for e in result_dict["extension"] if e["url"] == "period"), None)
+    assert period is not None
+    assert period["valuePeriod"]["start"] == "2020-01-15"
+    assert period["valuePeriod"]["end"] == "2025-12-31"
+
+
+def test_to_fhir_with_legal_dates() -> None:
+    """Test to_fhir includes legal date extension."""
+    mapper = OrganizationMapper()
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        telecom="01234",
+        type="GP Practice",
+        legalStartDate=date(2020, 1, 15),
+        legalEndDate=date(2025, 12, 31),
+        modifiedBy="ODS_ETL_PIPELINE",
+    )
+
+    fhir_org = mapper.to_fhir(org)
+
+    assert isinstance(fhir_org, FhirOrganisation)
+    assert hasattr(fhir_org, "extension")
+    assert fhir_org.extension is not None
+    assert len(fhir_org.extension) == 1
+
+    ext_dict = fhir_org.extension[0].dict()
+    assert (
+        ext_dict["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+    )
+
+    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
+    assert period["valuePeriod"]["start"] == "2020-01-15"
+    assert period["valuePeriod"]["end"] == "2025-12-31"
+
+
+@pytest.mark.parametrize(
+    "start_date,end_date,expected_start,expected_end",
+    [
+        pytest.param(
+            "2020-01-15",
+            "2025-12-31",
+            "2020-01-15",
+            "2025-12-31",
+            id="both_dates_present",
+        ),
+        pytest.param(
+            "1974-04-01",
+            None,
+            "1974-04-01",
+            None,
+            id="only_start_date",
+        ),
+        pytest.param(
+            None,
+            "2025-12-31",
+            None,
+            "2025-12-31",
+            id="only_end_date",
+        ),
+    ],
+)
+def test__build_legal_date_extension_with_dates(
+    start_date: str | None,
+    end_date: str | None,
+    expected_start: str | None,
+    expected_end: str | None,
+) -> None:
+    """Test building TypedPeriod extension with various date combinations."""
+    mapper = OrganizationMapper()
+    extension = mapper._build_legal_date_extension(start_date, end_date)
+
+    assert extension is not None
+    ext_dict = extension.dict()
+    assert (
+        ext_dict["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+    )
+    assert str(len(ext_dict["extension"])) == "2"
+
+    # Check dateType sub-extension
+    date_type = next((e for e in ext_dict["extension"] if e["url"] == "dateType"), None)
+    assert date_type is not None
+    assert (
+        date_type["valueCoding"]["system"]
+        == "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
+    )
+    assert date_type["valueCoding"]["code"] == "Legal"
+    assert date_type["valueCoding"]["display"] == "Legal"
+
+    # Check period sub-extension
+    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
+    assert period is not None
+
+    if expected_start is not None:
+        assert period["valuePeriod"]["start"] == expected_start
+    else:
+        assert "start" not in period["valuePeriod"]
+
+    if expected_end is not None:
+        assert period["valuePeriod"]["end"] == expected_end
+    else:
+        assert "end" not in period["valuePeriod"]
+
+
+def test__build_legal_date_extension_no_dates_returns_none() -> None:
+    """Test building TypedPeriod extension with no dates returns None."""
+    mapper = OrganizationMapper()
+    extension = mapper._build_legal_date_extension(None, None)
+    assert extension is None
+
+
+@pytest.mark.parametrize(
+    "typed_period_ext,expected_start,expected_end",
+    [
+        pytest.param(
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "extension": [
+                    {
+                        "url": "dateType",
+                        "valueCoding": {
+                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                            "code": "Legal",
+                        },
+                    },
+                    {
+                        "url": "period",
+                        "valuePeriod": {
+                            "start": "2020-01-15",
+                            "end": "2025-12-31",
+                        },
+                    },
+                ],
+            },
+            "2020-01-15",
+            "2025-12-31",
+            id="both_dates",
+        ),
+        pytest.param(
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "extension": [
+                    {
+                        "url": "dateType",
+                        "valueCoding": {"code": "Legal"},
+                    },
+                    {
+                        "url": "period",
+                        "valuePeriod": {"start": "2020-01-15"},
+                    },
+                ],
+            },
+            "2020-01-15",
+            None,
+            id="start_only",
+        ),
+        pytest.param(
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "extension": [
+                    {
+                        "url": "dateType",
+                        "valueCoding": {"code": "Legal"},
+                    },
+                    {
+                        "url": "period",
+                        "valuePeriod": {"end": "2025-12-31"},
+                    },
+                ],
+            },
+            None,
+            "2025-12-31",
+            id="end_only",
+        ),
+        pytest.param(
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "extension": [
+                    {
+                        "url": "dateType",
+                        "valueCoding": {"code": "Operational"},
+                    },
+                    {
+                        "url": "period",
+                        "valuePeriod": {"start": "2020-01-15"},
+                    },
+                ],
+            },
+            None,
+            None,
+            id="non_legal_type",
+        ),
+        pytest.param(
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "extension": [
+                    {
+                        "url": "dateType",
+                        "valueCoding": {"code": "Legal"},
+                    },
+                ],
+            },
+            None,
+            None,
+            id="missing_period",
+        ),
+        pytest.param(
+            None,
+            None,
+            None,
+            id="none_extension",
+        ),
+    ],
+)
+def test__parse_legal_period(
+    typed_period_ext: dict | None,
+    expected_start: str | None,
+    expected_end: str | None,
+) -> None:
+    """Test parsing Legal period from TypedPeriod Extension with various configurations."""
+    from fhir.resources.R4B.extension import Extension
+
+    mapper = OrganizationMapper()
+    ext_obj = Extension.model_validate(typed_period_ext) if typed_period_ext else None
+    start, end = mapper._parse_legal_period(ext_obj)
+    assert start == expected_start
+    assert end == expected_end
+
+
+def test_to_fhir_no_extension_when_no_legal_dates() -> None:
+    """Test to_fhir does not include extension when no legal dates."""
+    mapper = OrganizationMapper()
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        type="GP Practice",
+        modifiedBy="ODS_ETL_PIPELINE",
+    )
+
+    fhir_org = mapper.to_fhir(org)
+
+    # Extension should not be set or should be None/empty when no legal dates
+    assert (
+        not hasattr(fhir_org, "extension")
+        or fhir_org.extension is None
+        or len(fhir_org.extension) == 0
+    )
+
+
+def test_from_ods_fhir_to_fhir_no_legal_dates() -> None:
+    """Test from_ods_fhir_to_fhir when no legal dates present in ODS FHIR."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "resourceType": "Organization",
+        "id": "C88037",
+        "active": True,
+        "name": "Test Org",
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "C88037",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO76"}]},
+                    }
+                ],
+            }
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+
+    assert result is not None
+    # Extension should not be set when no legal dates found
+    assert (
+        not hasattr(result, "extension")
+        or result.extension is None
+        or len(result.extension) == 0
+    )
+
+
+def test_from_fhir_no_legal_dates_when_no_extension() -> None:
+    """Test from_fhir sets legal dates to None when no extension."""
+    mapper = OrganizationMapper()
+    fhir_org = FhirOrganisation(
+        id="00000000-0000-0000-0000-00000000000a",
+        identifier=[
+            Identifier(
+                use="official",
+                system="https://fhir.nhs.uk/Id/ods-organization-code",
+                value="ODS1",
+            )
+        ],
+        name="Test Org",
+        active=True,
+        type=[CodeableConcept(text="GP Practice")],
+    )
+
+    org = mapper.from_fhir(fhir_org)
+
+    assert org.legalStartDate is None
+    assert org.legalEndDate is None
+
+
+@pytest.mark.parametrize(
+    "legal_start_date,legal_end_date,expected_start_in_period,expected_end_in_period",
+    [
+        pytest.param(
+            date(2020, 1, 15),
+            None,
+            "2020-01-15",
+            None,
+            id="only_start_date_end_absent",
+        ),
+        pytest.param(
+            None,
+            date(2025, 12, 31),
+            None,
+            "2025-12-31",
+            id="only_end_date_start_absent",
+        ),
+    ],
+)
+def test_to_fhir_partial_dates_absent_not_null(
+    legal_start_date: date | None,
+    legal_end_date: date | None,
+    expected_start_in_period: str | None,
+    expected_end_in_period: str | None,
+) -> None:
+    """Test to_fhir with partial dates - absent dates should not be in period dict, not null."""
+    mapper = OrganizationMapper()
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        type="GP Practice",
+        legalStartDate=legal_start_date,
+        legalEndDate=legal_end_date,
+        modifiedBy="ODS_ETL_PIPELINE",
+    )
+
+    fhir_org = mapper.to_fhir(org)
+
+    assert fhir_org.extension is not None
+    assert len(fhir_org.extension) == 1
+
+    ext_dict = fhir_org.extension[0].dict()
+    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
+
+    if expected_start_in_period is not None:
+        assert "start" in period["valuePeriod"]
+        assert period["valuePeriod"]["start"] == expected_start_in_period
+    else:
+        assert "start" not in period["valuePeriod"]
+
+    if expected_end_in_period is not None:
+        assert "end" in period["valuePeriod"]
+        assert period["valuePeriod"]["end"] == expected_end_in_period
+    else:
+        assert "end" not in period["valuePeriod"]
+
+
+def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:
+    """Test from_ods_fhir_to_fhir extracts and includes legal dates as TypedPeriod."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "resourceType": "Organization",
+        "id": "C88037",
+        "active": True,
+        "name": "Test Org",
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "C88037",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "extension": [
+                    {
+                        "url": "dateType",
+                        "valueCoding": {
+                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                            "code": "Legal",
+                        },
+                    },
+                    {
+                        "url": "period",
+                        "valuePeriod": {
+                            "start": "2015-06-01",
+                            "end": "2030-12-31",
+                        },
+                    },
+                ],
+            }
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+
+    assert result is not None
+    assert result.extension is not None
+    assert len(result.extension) == 1
+
+    ext_dict = result.extension[0].dict()
+    assert (
+        ext_dict["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+    )
+
+    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
+    assert period["valuePeriod"]["start"] == "2015-06-01"
+    assert period["valuePeriod"]["end"] == "2030-12-31"

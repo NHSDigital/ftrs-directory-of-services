@@ -1,3 +1,5 @@
+from datetime import date
+
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import OrganisationType
@@ -11,3 +13,5 @@ class Organisation(DBModel):
     telecom: str | None = None
     type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
+    legalStartDate: date | None = None
+    legalEndDate: date | None = None

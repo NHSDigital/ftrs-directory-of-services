@@ -3,6 +3,7 @@ from typing import Literal
 
 from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
 from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
@@ -14,6 +15,11 @@ IDENTIFIER_SYSTEM = "odsOrganisationCode"
 IDENTIFIER_SEPARATOR = "|"
 ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
 ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
+TYPED_PERIOD_URL = (
+    "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+)
+PERIOD_TYPE_SYSTEM = "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
+LEGAL_PERIOD_CODE = "Legal"
 
 
 class OrganizationQueryParams(BaseModel):
@@ -82,6 +88,7 @@ class OrganisationUpdatePayload(BaseModel):
     active: bool = Field(..., example=True)
     type: list[Type] = Field(..., description="Organization type")
     telecom: list[ContactPoint] | None = None
+    extension: list[Extension] | None = None
 
     model_config = {"extra": "forbid"}
 
@@ -92,6 +99,14 @@ class OrganisationUpdatePayload(BaseModel):
                 raise ValueError(ERROR_MESSAGE_TYPE)
             if t.coding and (not t.coding[0].code or t.coding[0].code == ""):
                 raise ValueError(ERROR_MESSAGE_TYPE)
+        return self
+
+    @model_validator(mode="after")
+    def validate_extensions(self) -> "OrganisationUpdatePayload":
+        """Validate that extensions follow the TypedPeriod structure with Legal dateType."""
+        if self.extension:
+            for ext in self.extension:
+                _validate_typed_period_extension(ext)
         return self
 
 
@@ -122,3 +137,38 @@ def _extract_identifier_value(identifier: str) -> str:
         if IDENTIFIER_SEPARATOR in identifier
         else ""
     )
+
+
+def _raise_validation_error(message: str) -> None:
+    """Helper to raise validation errors with consistent OperationOutcome formatting."""
+    outcome = OperationOutcomeHandler.build(
+        diagnostics=message,
+        code="invalid",
+        severity="error",
+    )
+    raise OperationOutcomeException(outcome)
+
+
+def _validate_typed_period_extension(ext: Extension) -> None:
+    """Validate TypedPeriod extension with Legal dateType."""
+    if ext.url != TYPED_PERIOD_URL:
+        _raise_validation_error(f"Invalid extension URL: {ext.url}")
+
+    date_type_ext = next((e for e in ext.extension if e.url == "dateType"), None)
+    period_ext = next((e for e in ext.extension if e.url == "period"), None)
+
+    if not date_type_ext or not period_ext:
+        _raise_validation_error(
+            "TypedPeriod extension must contain dateType and period"
+        )
+
+    if (
+        not date_type_ext.valueCoding
+        or date_type_ext.valueCoding.code != LEGAL_PERIOD_CODE
+    ):
+        _raise_validation_error("dateType must be Legal")
+
+    if not period_ext.valuePeriod or (
+        not period_ext.valuePeriod.start and not period_ext.valuePeriod.end
+    ):
+        _raise_validation_error("period must contain at least start or end date")

@@ -120,3 +120,57 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "unsupported-media-type"
     And the OperationOutcome contains an issue with diagnostics "PUT requests must have Content-Type 'application/fhir+json'"
+
+  Scenario Outline: Update Organization with legal dates
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I update the organization with legal dates start "<legal_start>" and end "<legal_end>"
+    Then I receive a status code "200" in response
+    And the response body contains an "OperationOutcome" resource
+    And the database reflects "legalStartDate" with value "<expected_db_start>"
+    And the database reflects "legalEndDate" with value "<expected_db_end>"
+
+    Examples:
+      | legal_start | legal_end  | expected_db_start | expected_db_end |
+      | 2020-01-15  | 2025-12-31 | 2020-01-15        | 2025-12-31      |
+      | 2020-02-15  | null       | 2020-02-15        | None            |
+      | null        | 2025-12-31 | None              | 2025-12-31      |
+      | null        | null       | None              | None            |
+
+  Scenario Outline: Reject Organization update with invalid TypedPeriod extension
+      Given that the stack is "organisation"
+      When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
+      And I receive the diagnostics "<expected_error>"
+
+      Examples:
+        | invalid_scenario         | expected_error                                         |
+        | missing dateType         | TypedPeriod extension must contain dateType and period |
+        | missing period           | TypedPeriod extension must contain dateType and period |
+        | non-Legal dateType       | dateType must be Legal                                 |
+        | empty period             | period must contain at least start or end date         |
+
+  Scenario Outline: Reject Organization update with invalid date format
+      Given that the stack is "organisation"
+      When I update the organization with invalid date format "<date_field>" value "<invalid_date>"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
+
+      Examples:
+        | date_field | invalid_date  |
+        | start      | 2020-13-45    |
+        | start      | 20-01-2020    |
+        | start      | 2020/01/15    |
+        | start      | 2020-1-5      |
+        | start      | 15-01-2020    |
+        | start      | invalid       |
+        | end        | 2025-13-45    |
+        | end        | 25-12-2025    |
+        | end        | 2025/12/31    |
+        | end        | 2025-12-1     |
