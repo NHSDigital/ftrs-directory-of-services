@@ -74,6 +74,8 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   enabled                            = var.dms_event_queue_enabled
   batch_size                         = var.dms_event_queue_batch_size
   maximum_batching_window_in_seconds = var.dms_event_queue_maximum_batching_window_in_seconds
+  function_response_types            = ["ReportBatchItemFailures"]
+
 
   scaling_config {
     maximum_concurrency = var.dms_event_queue_maximum_concurrency

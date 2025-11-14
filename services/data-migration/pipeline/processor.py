@@ -63,7 +63,9 @@ class DataMigrationProcessor:
             raise ValueError(
                 "Invalid DataMigrationConfig: db_config.connection_string must be a non-empty string"
             )
-        self.engine = create_engine(connection_string, echo=False)
+        self.engine = create_engine(connection_string, echo=False).execution_options(
+            postgresql_readonly=True
+        )
         self.metrics = DataMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
@@ -83,7 +85,16 @@ class DataMigrationProcessor:
             if not record:
                 raise ValueError(f"Service with ID {record_id} not found")
 
-            self._process_service(record)
+            untracked_record = legacy.Service(
+                **record.model_dump(exclude_none=True),
+                endpoints=list(record.endpoints),
+                scheduled_opening_times=list(record.scheduled_opening_times),
+                specified_opening_times=list(record.specified_opening_times),
+                sgsds=list(record.sgsds),
+                dispositions=list(record.dispositions),
+                age_range=list(record.age_range),
+            )
+            self._process_service(untracked_record)
 
     def _process_service(self, service: legacy.Service) -> None:
         """
@@ -174,7 +185,8 @@ class DataMigrationProcessor:
                 "Unexpected error encountered whilst processing service record"
             )
             self.logger.log(DataMigrationLogBase.DM_ETL_008, error=str(e))
-            return
+            self.logger.remove_keys(["record_id"])
+            raise
 
         finally:
             self.logger.remove_keys(["record_id"])
