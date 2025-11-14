@@ -1,7 +1,6 @@
 """BDD step definitions for running single service migration."""
 from typing import Any, Dict
 
-import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlmodel import Session
 
@@ -64,13 +63,11 @@ def sqs_event_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
     docstring: str,
-    capfd: pytest.CaptureFixture[str],
 ) -> Dict[str, Any]:
     run_sqs_event_migration(
         migration_helper,
         migration_context,
         docstring,
-        capfd,
     )
 
 @then(

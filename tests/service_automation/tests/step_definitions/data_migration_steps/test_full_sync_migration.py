@@ -1,7 +1,6 @@
 """BDD step definitions for running single service migration."""
 from typing import Any, Dict
 
-import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlmodel import Session
 
@@ -61,12 +60,10 @@ def create_service_with_attributes(
 def full_service_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
-    capfd: pytest.CaptureFixture[str],
 ) -> None:
     run_full_service_migration(
         migration_helper,
         migration_context,
-        capfd,
     )
 
 @then(

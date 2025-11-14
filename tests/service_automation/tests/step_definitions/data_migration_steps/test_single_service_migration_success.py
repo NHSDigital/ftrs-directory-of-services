@@ -1,11 +1,9 @@
 """BDD step definitions for running single service migration."""
 from typing import Any, Dict
 
-import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlmodel import Session
 
-from utilities.common.log_helper import LogVerificationConfig, verify_log_reference
 from utilities.common.migration_helper import MigrationHelper
 from utilities.common.data_migration_shared_steps import (
     run_create_service_with_attributes,
@@ -15,6 +13,7 @@ from utilities.common.data_migration_shared_steps import (
     run_single_service_migration,
     run_verify_migration_metrics_inline,
     run_verify_transformation_output,
+    run_verify_transformer_selected,
 )
 
 scenarios("../../tests/features/data_migration_features/single_service_migration_success.feature")
@@ -24,16 +23,19 @@ scenarios("../../tests/features/data_migration_features/single_service_migration
 def test_environment_configured(
     migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
 ) -> None:
+    """Verify test environment is properly configured."""
     run_test_environment_configured(migration_helper, dynamodb)
 
 
 @given("the DoS database has test data")
 def dos_database_has_test_data(dos_db_with_migration: Session) -> None:
+    """Verify DoS database is accessible and has tables."""
     run_dos_database_has_test_data(dos_db_with_migration)
 
 
 @given("DynamoDB tables are ready")
 def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
+    """Verify DynamoDB tables exist and are accessible."""
     run_dynamodb_tables_ready(dynamodb)
 
 
@@ -50,6 +52,7 @@ def create_service_with_attributes(
     entity_name: str,
     datatable: list[list[str]],
 ) -> Dict[str, Any]:
+    """Create a service in DoS database with attributes from Gherkin table."""
     run_create_service_with_attributes(
         dos_db_with_migration,
         migration_context,
@@ -64,13 +67,12 @@ def single_service_migration(
     migration_helper: MigrationHelper,
     migration_context: Dict[str, Any],
     service_id: int,
-    capfd: pytest.CaptureFixture[str],
 ) -> None:
+    """Execute migration for a single service and capture output."""
     run_single_service_migration(
         migration_helper,
         migration_context,
         service_id,
-        capfd,
     )
 
 
@@ -134,25 +136,7 @@ def verify_transformer_selected(
     transformer_name: str,
     service_id: int,
 ) -> None:
-    """
-    Verify the correct transformer was selected for the service.
-
-    Validates DM_ETL_003 log reference from DataMigrationLogBase.
-
-    Args:
-        migration_context: Test context dictionary with captured output
-        transformer_name: Expected transformer name (e.g., 'GPPracticeTransformer')
-        service_id: Service ID that was migrated
-
-    Raises:
-        AssertionError: If transformer selection log not found or wrong transformer
-    """
-    config = LogVerificationConfig(
-        log_reference="DM_ETL_003",
-        message_template=f'"message":"Transformer {transformer_name} selected for record"',
-    )
-
-    verify_log_reference(migration_context, service_id, config)
+    run_verify_transformer_selected(migration_context, transformer_name, service_id)
 
 
 @then(
@@ -170,6 +154,7 @@ def verify_transformation_output(
     location_count: int,
     service_count: int,
 ) -> None:
+    """Verify that a service was transformed into the expected number of resources."""
     run_verify_transformation_output(
         migration_context,
         service_id,

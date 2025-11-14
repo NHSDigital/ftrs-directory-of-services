@@ -1,4 +1,4 @@
-@data-migration @ftrs-pipeline
+@data-migration
 Feature: Run Full Sync Service Migration
   As a test author
   I want to execute a full data migration for all services
