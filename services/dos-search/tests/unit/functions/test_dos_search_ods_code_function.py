@@ -30,12 +30,6 @@ def mock_ftrs_service():
 
 
 @pytest.fixture
-def mock_logger():
-    with patch("functions.dos_search_ods_code_function.ftrs_logger") as mock:
-        yield mock
-
-
-@pytest.fixture
 def event(ods_code):
     return {
         "path": "/Organization",
@@ -79,7 +73,6 @@ def log_data():
 
 @pytest.fixture
 def details(event):
-    print("test easily searchable", event.get("queryStringParameters"))
     return {
         "ftrs_environment": "FTRS_LOG_PLACEHOLDER",
         "ftrs_api_version": "FTRS_LOG_PLACEHOLDER",
@@ -210,6 +203,7 @@ class TestLambdaHandler:
         log_data,
         details,
     ):
+        print("easily_searchable: ", mock_logger)
         # Arrange
         mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
 

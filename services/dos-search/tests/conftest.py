@@ -4,6 +4,7 @@ This module provides reusable fixtures that can be used across all test files.
 """
 
 from datetime import datetime
+from unittest.mock import patch
 from uuid import UUID, uuid4
 
 import pytest
@@ -189,3 +190,9 @@ def create_fhir_endpoint():
         )
 
     return _create_fhir_endpoint
+
+
+@pytest.fixture
+def mock_logger():
+    with patch("functions.dos_search_ods_code_function.ftrs_logger") as mock:
+        yield mock
