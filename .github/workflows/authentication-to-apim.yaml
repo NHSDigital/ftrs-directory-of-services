@@ -32,12 +32,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
         uses: ./.github/actions/configure-credentials
         with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_account_id: 123
           aws_region: ${{ vars.AWS_REGION }}
           type: app
 
