@@ -50,6 +50,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
@@ -62,6 +63,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check file format"
         uses: ./.github/actions/check-file-format
@@ -74,6 +76,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check Markdown format"
         uses: ./.github/actions/check-markdown-format
@@ -86,6 +89,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check English usage"
         uses: ./.github/actions/check-english-usage
@@ -98,6 +102,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
       - name: "Count lines of code"
         uses: ./.github/actions/create-lines-of-code-report
         with:
