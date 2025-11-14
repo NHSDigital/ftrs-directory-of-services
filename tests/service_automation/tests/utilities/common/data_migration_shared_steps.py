@@ -12,6 +12,7 @@ from utilities.common.db_helper import delete_service_if_exists, verify_service_
 from utilities.common.gherkin_helper import parse_gherkin_table
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
+    verify_migration_completed_log,
     verify_service_not_migrated_log,
     verify_service_skipped_log,
     verify_transformation_log,
@@ -742,6 +743,9 @@ def run_verify_sqs_event_metrics(
         metrics.skipped_records, skipped, "skipped records", migration_type
     )
     _assert_metric_matches(metrics.errors, errors, "errors", migration_type)
+
+    mock_logger = get_mock_logger_from_context(migration_context)
+    verify_migration_completed_log(mock_logger)
 
     sqs_event = migration_context.get("sqs_event", {})
     service_id = migration_context.get("sqs_service_id")

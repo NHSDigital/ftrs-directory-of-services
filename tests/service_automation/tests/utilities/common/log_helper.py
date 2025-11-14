@@ -236,6 +236,44 @@ def verify_transformer_selected_log(
     )
 
 
+def verify_migration_completed_log(
+    mock_logger: MockLogger,
+) -> None:
+    """
+    Verify DM_ETL_999 migration completion log exists.
+
+    This log is emitted at the end of the data migration pipeline,
+    indicating successful completion of the migration process.
+
+    Args:
+        mock_logger: MockLogger instance
+
+    Raises:
+        AssertionError: If completion log not found
+    """
+    assert_log_exists(mock_logger, "DM_ETL_999", level="INFO")
+
+    # Get the completion log
+    completion_logs = mock_logger.get_log("DM_ETL_999", level="INFO")
+
+    assert len(completion_logs) > 0, (
+        "DM_ETL_999 completion log not found\n"
+        f"Expected: Data Migration ETL Pipeline completed successfully\n"
+        f"Total INFO logs: {mock_logger.get_log_count('INFO')}"
+    )
+
+    # Verify the log message
+    log_entry = completion_logs[0]
+    assert "msg" in log_entry, f"Log entry missing 'msg' field: {log_entry}"
+
+    expected_message = "Data Migration ETL Pipeline completed successfully"
+    assert expected_message in log_entry["msg"], (
+        f"Unexpected completion message:\n"
+        f"  Expected: '{expected_message}'\n"
+        f"  Actual: '{log_entry['msg']}'"
+    )
+
+
 def get_mock_logger_from_context(
     migration_context: Dict[str, Any],
 ) -> MockLogger:

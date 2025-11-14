@@ -517,11 +517,15 @@ def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
     Context to store migration test data across BDD steps.
 
     Structure:
-        service_id: ID of service being migrated
-        result: MigrationRunResult from the migration
-        service_data: Dict of service attributes from Gherkin table
-        results: Dict of results for multiple migrations
-        db_session: Active database session
+        service_id (int|None): ID of service being migrated (None = full sync)
+        result (MigrationRunResult|None): Result from migration execution
+        service_data (dict): Service attributes from Gherkin table
+        service_name (str): Human-readable name for test service
+        sqs_event (dict): SQS event data for event-based migrations
+        sqs_service_ids (list[int]): Service IDs extracted from SQS event
+        sqs_service_id (int|None): Primary service ID from SQS event
+        mock_logger (MockLogger|None): MockLogger instance with captured logs
+        db_session (Session): Active database session
 
     Args:
         dos_db_with_migration: DoS database session fixture
@@ -530,9 +534,13 @@ def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
         Dictionary context for storing test state
     """
     return {
-        "service_id": None, # None indicates full sync migration
+        "service_id": None,  # None indicates full sync migration
         "result": None,
         "service_data": {},
-        "results": {},
+        "service_name": "",
+        "sqs_event": {},
+        "sqs_service_ids": [],
+        "sqs_service_id": None,
+        "mock_logger": None,
         "db_session": dos_db_with_migration,
     }
