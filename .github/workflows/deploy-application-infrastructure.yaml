@@ -128,7 +128,6 @@ jobs:
           fi
           if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
             if [ ${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
-              echo "Planned changes to application infrastructure APPROVED for deployment to the ${{ inputs.environment }} environment."
               if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
                 echo "Changes APPROVED and successfully APPLIED to application infrastructure in the ${{ inputs.environment }} environment."
                 echo "deploy_status=Success" >> $GITHUB_OUTPUT
@@ -140,5 +139,4 @@ jobs:
               echo "Planned changes to application infrastructure REJECTED for deployment to the ${{ inputs.environment }} environment."
               echo "deploy_status=Rejected" >> $GITHUB_OUTPUT
             fi
-            ]
           fi
