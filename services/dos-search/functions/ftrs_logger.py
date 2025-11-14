@@ -1,9 +1,6 @@
-import inspect
-import json
 import logging
 import os
-from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Optional
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 
@@ -38,15 +35,6 @@ class FtrsLogger:
 
     # --- helper utilities -------------------------------------------------
     @staticmethod
-    def _first_of(mapping: Dict[str, Any], keys: Iterable[str]) -> Optional[str]:
-        """Return the first non-empty mapping value for keys (case-sensitive keys assumed already normalized as needed)."""
-        for k in keys:
-            v = mapping.get(k)
-            if v not in (None, ""):
-                return v
-        return None
-
-    @staticmethod
     def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """Extract APIM headers and common event fields into the structured 'extra' dict.
 
@@ -58,18 +46,15 @@ class FtrsLogger:
         """
         placeholder = "FTRS_LOG_PLACEHOLDER"
 
-        headers = (
-            {}
-            if not event or not isinstance(event, dict)
-            else (event.get("headers") or {})
-        )
+        headers = event.get("headers") or {}
         hdr_lower = {k.lower(): v for k, v in headers.items()}
 
         def h(*names: str) -> Optional[str]:
             # try original casing keys first, then lowercased mapping
             for n in names:
-                if n in headers and headers.get(n) not in (None, ""):
-                    return headers.get(n)
+                val = headers.get(n)
+                if val not in (None, ""):
+                    return val
             # fallback to lowercased lookup of provided names
             for n in names:
                 val = hdr_lower.get(n.lower())
@@ -101,40 +86,26 @@ class FtrsLogger:
         out["ftrs_message_category"] = "LOGGING"
 
         # One-time fields added to "details" to separate
-        ("ftrs_response_time",)
-        ("ftrs_response_size",)
-        ("ftrs_message_category",)
-        ("ftrs_response",)
         out["details"] = {}
         details = out["details"]  # Alias for sub object access
 
         end_user_role = (
             h("x-end-user-role")
-            or (event.get("end_user_role") if isinstance(event, dict) else None)
-            or (
-                event.get("requestContext", {})
-                .get("authorizer", {})
-                .get("end_user_role")
-                if isinstance(event, dict)
-                else None
-            )
+            or event.get("end_user_role")
+            or event.get("requestContext", {})
+            .get("authorizer", {})
+            .get("end_user_role")
             or placeholder
         )
-        details["ftrs_end_user_role"] = end_user_role
+        details["opt_ftrs_end_user_role"] = end_user_role
 
-        client_id = (
-            h("x-client-id")
-            or (event.get("client_id") if isinstance(event, dict) else None)
-            or placeholder
-        )
-        details["ftrs_client_id"] = client_id
+        client_id = h("x-client-id") or event.get("client_id") or placeholder
+        details["opt_ftrs_client_id"] = client_id
 
         app_name = (
-            h("x-application-name")
-            or (event.get("application_name") if isinstance(event, dict) else None)
-            or placeholder
+            h("x-application-name") or event.get("application_name") or placeholder
         )
-        details["ftrs_application_name"] = app_name
+        details["opt_ftrs_application_name"] = app_name
 
         # Request params (queryStringParameters + pathParameters)
         req_params: Dict[str, Any] = {}
@@ -147,27 +118,27 @@ class FtrsLogger:
         request_context = (
             event.get("requestContext") or event.get("request_context") or {}
         )
-        if isinstance(query_params, dict):
-            req_params["query_params"] = query_params
-        if isinstance(path_params, dict):
-            req_params["path_params"] = path_params
-        if isinstance(request_context, dict):
-            req_params["request_context"] = request_context
-        details["ftrs_request_params"] = req_params or {}
+        req_params["query_params"] = query_params
+        req_params["path_params"] = path_params
+        req_params["request_context"] = request_context
 
-        details["ftrs_response_time"] = placeholder
+        details["opt_ftrs_request_params"] = req_params or {}
 
-        details["ftrs_environment"] = (
+        details["opt_ftrs_response_time"] = placeholder
+
+        details["opt_ftrs_environment"] = (
             os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
         )
 
-        details["ftrs_api_version"] = h("x-api-version", "api-version") or placeholder
+        details["opt_ftrs_api_version"] = (
+            h("x-api-version", "api-version") or placeholder
+        )
 
-        details["ftrs_lambda_version"] = (
+        details["opt_ftrs_lambda_version"] = (
             os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
         )
 
-        details["ftrs_response_size"] = placeholder
+        details["opt_ftrs_response_size"] = placeholder
 
         return out
 
@@ -193,81 +164,13 @@ class FtrsLogger:
             # swallow; best-effort only
             pass
 
-    # --- debug preview ---------------------------------------------------
-    def _debug_preview(self, message: str, extra: Dict[str, Any]) -> None:
-        if not self.debug:
-            return
-        try:
-            # use standard logger for debug preview to respect handlers
-            log = logging.getLogger(self._service + "-preview")
-            if not log.handlers:
-                ch = logging.StreamHandler()
-                ch.setFormatter(logging.Formatter("%(message)s"))
-                log.addHandler(ch)
-            log.info(json.dumps({"message": message, **extra}, indent=2))
-        except Exception:
-            print(message, extra)
-
-    # --- public helpers --------------------------------------------------
-    def get_powertools_metadata(
-        self, context: Optional[object] = None
-    ) -> Dict[str, Any]:
-        """Return a best-effort view of fields powertools would include at top level.
-
-        Useful for tests or responses; not authoritative (CloudWatch is).
-        """
-        placeholder = "FTRS_LOG_PLACEHOLDER"
-        meta: Dict[str, Any] = {}
-
-        now = datetime.now(timezone.utc)
-        ms = int(now.microsecond / 1000)
-        meta["timestamp"] = (
-            now.strftime("%Y-%m-%d %H:%M:%S") + f",{ms:03d}" + now.strftime("%z")
-        )
-
-        location = "<unknown>"
-        try:
-            stack = inspect.stack()
-            for frame_info in stack[1:]:
-                if frame_info.filename != __file__:
-                    location = f"{frame_info.function}:{frame_info.lineno}"
-                    break
-        except Exception:
-            location = "<unknown>"
-        meta["location"] = location
-
-        meta["function_name"] = (
-            os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or placeholder
-        )
-        meta["function_memory_size"] = (
-            os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE") or placeholder
-        )
-        meta["function_arn"] = os.environ.get("AWS_LAMBDA_FUNCTION_ARN") or placeholder
-
-        function_request_id = placeholder
-        try:
-            if context is not None and hasattr(context, "aws_request_id"):
-                function_request_id = getattr(context, "aws_request_id")
-        except Exception:
-            function_request_id = placeholder
-        meta["function_request_id"] = function_request_id
-
-        meta["correlation_id"] = self._last_appended_correlation or placeholder
-        meta["xray_trace_id"] = (
-            os.environ.get("_X_AMZN_TRACE_ID")
-            or os.environ.get("AWS_XRAY_TRACE_ID")
-            or placeholder
-        )
-        meta["level"] = "TBC"
-        return meta
-
     def _log_with_level(
         self,
         level: str,
         message: str,
         log_data: Optional[Dict[str, Any]] = None,
         **detail: object,
-    ) -> None:
+    ) -> Dict[str, Any]:
         # If log_data is provided, override last stored log state
         if log_data:
             self._last_log_data = log_data
@@ -286,16 +189,11 @@ class FtrsLogger:
             for k in list(detail_map.keys()):
                 if k in override_keys:
                     log_data[k] = detail_map.pop(k)
-                elif k is None:
-                    log_data.pop(k)
             if detail_map:
                 log_data["detail"] = detail_map
 
         # append powertools context where possible
         self._append_powertools_context(log_data)
-
-        # debug preview
-        self._debug_preview(message, log_data)
 
         # call powertools
         try:
@@ -312,68 +210,31 @@ class FtrsLogger:
         except TypeError:
             base_logger = logging.getLogger(self._service)
             (base_logger.info(message),)
+        return log_data
 
     def info(
         self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> None:
-        self._log_with_level("info", message, log_data, **detail)
-
-    def info_from_log_datax(self, message: str, log_data: Dict[str, Any]) -> None:
-        """Convenience method with signature info(message, log_data)."""
-        self.info(message, log_data)
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("info", message, log_data, **detail)
+        return log_data
 
     def warning(
         self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> None:
-        self._log_with_level("warning", message, log_data, **detail)
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("warning", message, log_data, **detail)
+        return log_data
 
     def error(
         self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> None:
-        self._log_with_level("error", message, log_data, **detail)
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("error", message, log_data, **detail)
+        return log_data
 
     def exception(
         self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> None:
-        self._log_with_level("exception", message, log_data, **detail)
-
-    def log_payload_only(
-        self,
-        message: Optional[str] = None,
-        event: Optional[Dict[str, Any]] = None,
-        level: int = logging.INFO,
-        **detail: object,
-    ) -> None:
-        """Emit only the structured payload (no powertools metadata).
-
-        The payload is JSON containing the extracted ftrs_* / nhsd_* / Opt_* fields plus
-        an optional message and any detail keys. This is useful when you want to
-        write searchable JSON fields without the powertools metadata wrapper.
-        """
-        payload = self._extract(event)
-        if detail:
-            payload = dict(payload)
-            payload.update(dict(detail))
-        if message is not None:
-            payload = dict(payload)
-            payload["message"] = message
-
-        try:
-            base_logger = logging.getLogger(self._service)
-            if not base_logger.handlers:
-                handler = logging.StreamHandler()
-                handler.setFormatter(logging.Formatter("%(message)s"))
-                base_logger.addHandler(handler)
-            base_logger.log(level, json.dumps(payload))
-        except Exception:
-            print(json.dumps(payload))
-
-    def info_payload(
-        self, message: str, event: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> None:
-        self.log_payload_only(
-            message=message, event=event, level=logging.INFO, **detail
-        )
+    ) -> Dict[str, Any]:
+        log_data = self._log_with_level("exception", message, log_data, **detail)
+        return log_data
 
 
 # Instantiate logger here to allow import to sub-directories
