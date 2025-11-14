@@ -407,10 +407,6 @@ def test_create_organisation_success() -> None:
     organisation_data = get_organisation()
     response = client.post("/Organization", json=organisation_data)
     assert response.status_code == HTTPStatus.CREATED
-    print("--- DEBUG OUTPUT ---")
-    print(organisation_data)
-    print("--- RESPONSE ---")
-    print(response.json())
     assert response.json() == {
         "message": "Organisation created successfully",
         "organisation": organisation_data,
