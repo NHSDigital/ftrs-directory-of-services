@@ -51,6 +51,6 @@ runs:
         echo "::add-mask::$ACCESS_TOKEN"
 
         # Set as output
-        echo "::add-mask::access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+        echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
 
         echo "✓ Access token retrieved successfully"
