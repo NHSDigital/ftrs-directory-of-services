@@ -16,6 +16,7 @@ def get_service_repository(
     model_cls: type[DBModelT],
     entity_name: str,
     logger: Logger | None = None,
+    endpoint_url: str | None = None,
 ) -> AttributeLevelRepository[DBModelT]:
     """
     Get a repository for the specified model and entity name.
@@ -30,7 +31,7 @@ def get_service_repository(
     return AttributeLevelRepository[DBModelT](
         table_name=get_table_name(entity_name),
         model_cls=model_cls,
-        endpoint_url=env_variable_settings.endpoint_url or None,
+        endpoint_url=endpoint_url or env_variable_settings.endpoint_url or None,
         logger=logger,
     )
 
