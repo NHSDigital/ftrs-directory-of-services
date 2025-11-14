@@ -30,27 +30,6 @@ def mock_ftrs_service():
 
 
 @pytest.fixture
-def event(ods_code):
-    return {
-        "path": "/Organization",
-        "httpMethod": "GET",
-        "queryStringParameters": {
-            "identifier": f"odsOrganisationCode|{ods_code}",
-            "_revinclude": "Endpoint:organization",
-        },
-        "requestContext": {
-            "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
-        },
-        "body": None,
-    }
-
-
-@pytest.fixture
-def ods_code():
-    return "ABC123"
-
-
-@pytest.fixture
 def lambda_context():
     return MagicMock()
 
@@ -58,36 +37,6 @@ def lambda_context():
 @pytest.fixture
 def bundle():
     return Bundle.model_construct(id="bundle-id")
-
-
-@pytest.fixture
-def log_data():
-    return {
-        "logger": "ftrs_logger",
-        "ftrs_nhsd_correlation_id": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_nhsd_request_id": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_message_id": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_message_category": "LOGGING",
-    }
-
-
-@pytest.fixture
-def details(event):
-    return {
-        "ftrs_environment": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_api_version": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_lambda_version": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_response_time": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_response_size": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_end_user_role": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_client_id": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_application_name": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_request_params": {
-            "query_params": event.get("queryStringParameters") or {},
-            "path_params": event.get("pathParams") or {},
-            "request_context": event.get("requestContext") or {},
-        },
-    }
 
 
 def assert_response(
@@ -144,8 +93,8 @@ class TestLambdaHandler:
                 call.info(
                     "Successfully processed",
                     log_data=log_data,
-                    ftrs_response_time=ANY,
-                    ftrs_response_size=ANY,
+                    opt_ftrs_response_time=ANY,
+                    opt_ftrs_response_size=ANY,
                 ),
                 call.info("Creating response", status_code=200),
                 call.clear_log_data(),
@@ -203,7 +152,6 @@ class TestLambdaHandler:
         log_data,
         details,
     ):
-        print("easily_searchable: ", mock_logger)
         # Arrange
         mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
 
