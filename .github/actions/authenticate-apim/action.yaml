@@ -40,7 +40,7 @@ runs:
         export AWS_REGION=${{ inputs.aws_region }}
 
         chmod +x ./scripts/workflow/get-apim-token.sh
-        ACCESS_TOKEN=${/bin/bash ./scripts/workflow/get-apim-token.sh}
+        ACCESS_TOKEN=$(/bin/bash ./scripts/workflow/get-apim-token.sh)
 
         if [ -z "$ACCESS_TOKEN" ]; then
           echo "Failed to retrieve access token"
