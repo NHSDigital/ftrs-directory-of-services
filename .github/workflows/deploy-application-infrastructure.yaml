@@ -123,7 +123,7 @@ jobs:
           if [ ${{ needs.manual-approval-application-infra.result }} == 'skipped' ]; then
             echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
             echo "deploy_status=Success" >> $GITHUB_OUTPUT
-          elsif
+          else
             if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
               if [ ${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
                 if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
