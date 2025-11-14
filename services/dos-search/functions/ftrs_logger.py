@@ -138,7 +138,6 @@ class FtrsLogger:
 
         # Request params (queryStringParameters + pathParameters)
         req_params: Dict[str, Any] = {}
-        print("ftrs_logger searchable: ", event.get("queryStringParameters"))
         query_params = (
             event.get("queryStringParameters")
             or event.get("query_string_parameters")
@@ -375,3 +374,8 @@ class FtrsLogger:
         self.log_payload_only(
             message=message, event=event, level=logging.INFO, **detail
         )
+
+
+# Instantiate logger here to allow import to sub-directories
+service = "dos-search"
+ftrs_logger = FtrsLogger(service=service)
