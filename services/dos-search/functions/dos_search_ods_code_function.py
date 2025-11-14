@@ -62,8 +62,8 @@ def get_organization() -> Response:
         ftrs_logger.info(
             "Successfully processed",
             log_data=log_data,
-            ftrs_response_time=f"{duration_ms}ms",
-            ftrs_response_size=response_size,
+            opt_ftrs_response_time=f"{duration_ms}ms",
+            opt_ftrs_response_size=response_size,
         )
         return create_response(200, fhir_resource)
 
