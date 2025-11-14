@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
+from aws_lambda_powertools.utilities.data_classes import SQSRecord
 from freezegun import freeze_time
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from pydantic import SecretStr
@@ -76,7 +77,7 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
     Test the local_handler function for single sync.
     """
     mock_app = mocker.patch("pipeline.cli.DataMigrationApplication")
-    mock_app.return_value.handle_dms_event = mocker.Mock()
+    mock_app.return_value.handle_sqs_record = mocker.Mock()
 
     result = runner.invoke(
         typer_app,
@@ -104,12 +105,17 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
         )
     )
 
-    mock_app.return_value.handle_dms_event.assert_called_once_with(
-        DMSEvent(
-            type="dms_event",
-            record_id=12345,
-            method="insert",
-            table_name="services",
+    mock_app.return_value.handle_sqs_record.assert_called_once_with(
+        SQSRecord(
+            data={
+                "messageId": "cli-service-12345",
+                "body": DMSEvent(
+                    type="dms_event",
+                    record_id=12345,
+                    method="insert",
+                    table_name="services",
+                ).model_dump_json(),
+            }
         )
     )
 

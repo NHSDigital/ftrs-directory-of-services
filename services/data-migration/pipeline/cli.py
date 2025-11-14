@@ -7,7 +7,7 @@ from typing import Annotated, Generator, List
 import rich
 from typer import Option, Typer
 
-from pipeline.application import DataMigrationApplication, DMSEvent
+from pipeline.application import DataMigrationApplication, DMSEvent, SQSRecord
 from pipeline.processor import ServiceTransformOutput
 from pipeline.queue_populator import populate_sqs_queue
 from pipeline.seeding.export_to_s3 import run_s3_export
@@ -76,7 +76,13 @@ def migrate_handler(  # noqa: PLR0913
                 method="insert",
                 table_name="services",
             )
-            app.handle_dms_event(event)
+            record = SQSRecord(
+                data={
+                    "messageId": f"cli-service-{service_id}",
+                    "body": event.model_dump_json(),
+                }
+            )
+            app.handle_sqs_record(record)
         else:
             app.handle_full_sync_event()
 

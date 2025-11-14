@@ -191,7 +191,9 @@ class ServiceTransformer(ABC):
         )
         if service.address and service.address != "Not Available":
             formatted_address = format_address(
-                service.address, service.town, service.postcode
+                service.address,
+                service.town,
+                service.postcode,
             )
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_015,
