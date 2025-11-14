@@ -123,18 +123,19 @@ jobs:
           if [ ${{ needs.manual-approval-application-infra.result }} == 'skipped' ]; then
             echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
             echo "deploy_status=Success" >> $GITHUB_OUTPUT
-          fi
-          if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
-            if [ ${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
-              if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
-                echo "Changes APPROVED and successfully APPLIED to application infrastructure in the ${{ inputs.environment }} environment."
-                echo "deploy_status=Success" >> $GITHUB_OUTPUT
+          elsif
+            if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
+              if [ ${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
+                if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
+                  echo "Changes APPROVED and successfully APPLIED to application infrastructure in the ${{ inputs.environment }} environment."
+                  echo "deploy_status=Success" >> $GITHUB_OUTPUT
+                else
+                  echo "Changes APPROVED but were NOT successfully applied to application infrastructure in the ${{ inputs.environment }} environment."
+                  echo "deploy_status=Failed" >> $GITHUB_OUTPUT
+                fi
               else
-                echo "Changes APPROVED but were NOT successfully applied to application infrastructure in the ${{ inputs.environment }} environment."
-                echo "deploy_status=Failed" >> $GITHUB_OUTPUT
+                echo "Planned changes to application infrastructure REJECTED for deployment to the ${{ inputs.environment }} environment."
+                echo "deploy_status=Rejected" >> $GITHUB_OUTPUT
               fi
-            else
-              echo "Planned changes to application infrastructure REJECTED for deployment to the ${{ inputs.environment }} environment."
-              echo "deploy_status=Rejected" >> $GITHUB_OUTPUT
             fi
           fi
