@@ -5,7 +5,7 @@ from pydantic import Field
 
 
 class Organisation(DBModel):
-    identifier_ODS_ODSCode: str | None = None
+    identifier_ODS_ODSCode: str
     active: bool
     name: str
     telecom: str | None = None
