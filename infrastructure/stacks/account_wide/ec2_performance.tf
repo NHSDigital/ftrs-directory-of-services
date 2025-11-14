@@ -99,7 +99,7 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:AbortMultipartUpload"
     ]
     resources = [
-      module.performance_s3.s3_bucket_arn + "/*"
+      "${module.performance_s3.s3_bucket_arn}/*"
     ]
   }
 }
