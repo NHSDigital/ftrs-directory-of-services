@@ -58,7 +58,7 @@ jobs:
 
           curl --request GET \
           --url https://proxygen.prod.api.platform.nhs.uk/apis/dos-search \
-          --header "Authorization: Bearer ::add-mask::$ACCESS_TOKEN"
+          --header "Authorization: Bearer $ACCESS_TOKEN"
 
       - name: Cleanup
         if: always()
