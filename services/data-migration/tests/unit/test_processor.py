@@ -386,7 +386,7 @@ def test_process_service(
         address=Address(
             line1="123 Main St",
             line2=None,
-            county=None,
+            county="West Yorkshire",
             town="Leeds",
             postcode="AB12 3CD",
         ),

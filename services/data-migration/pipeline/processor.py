@@ -86,7 +86,7 @@ class DataMigrationProcessor:
                 raise ValueError(f"Service with ID {record_id} not found")
 
             untracked_record = legacy.Service(
-                **record.model_dump(exclude_none=True),
+                **record.model_dump(),
                 endpoints=list(record.endpoints),
                 scheduled_opening_times=list(record.scheduled_opening_times),
                 specified_opening_times=list(record.specified_opening_times),
