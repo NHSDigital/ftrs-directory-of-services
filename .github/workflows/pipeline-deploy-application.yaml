@@ -98,55 +98,12 @@ jobs:
     secrets: inherit
 
   apply-infrastructure:
-    name: "Deploy application infrastructure  to the ${{ needs.metadata.outputs.environment }} environment"
-    needs:
-      - metadata
-      - build-services
-      - perform-code-analysis
-    uses: ./.github/workflows/deploy-application-infrastructure.yaml
-      - perform-code-analysis
-    uses: ./.github/workflows/deploy-infrastructure.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance','ui']"
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      action: plan
-      type: app
-    secrets: inherit
-
-  manual-approval:
-    name: "Manual approval for ${{ needs.metadata.outputs.environment }} deployment"
-    if: ${{ needs.plan-infrastructure.outputs.plan_result == 'true' }}
-    needs:
-      - metadata
-      - plan-infrastructure
-    runs-on: ubuntu-latest
-    environment: "${{ needs.metadata.outputs.environment }}-protected"
-    steps:
-      - name: Approval required
-        run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
-
-  authenticate-with-apim:
-    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      - manual-approval
-    uses: ./.github/workflows/authentication-to-apim.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
-    secrets: inherit
-
-  apply-infrastructure:
     name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
       cancel-in-progress: false
     needs:
       - metadata
-      - manual-approval
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -154,6 +111,17 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30
+    secrets: inherit
+
+  authenticate-with-apim:
+    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - apply-infrastructure
+    uses: ./.github/workflows/authentication-to-apim.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
     secrets: inherit
 
   migrate-data:
