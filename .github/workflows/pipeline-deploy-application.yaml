@@ -98,11 +98,12 @@ jobs:
     secrets: inherit
 
   apply-infrastructure:
-    name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
+    name: "Deploy application infrastructure  to the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
+      - build-services
       - perform-code-analysis
-    uses: ./.github/workflows/deploy-infrastructure.yaml
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
