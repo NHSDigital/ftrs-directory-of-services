@@ -19,7 +19,7 @@ from ftrs_data_layer.domain import HealthcareService, Location, Organisation, le
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
 from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
-from utilities.common.migration_helper import MigrationHelper
+from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.rds_data import gp_service
 
 # Constants
