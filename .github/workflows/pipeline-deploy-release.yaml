@@ -77,7 +77,7 @@ jobs:
       environment: ${{ inputs.environment }}
       workspace: default
       application_tag: ${{ inputs.release_tag }}
-      tag: ${{ inputs.release_tag }}
+      release_tag: ${{ inputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -122,7 +122,7 @@ jobs:
         needs.restore-dynamodb-from-s3.result == 'success' ||
         (
           needs.restore-dynamodb-from-s3.result == 'skipped' &&
-          (needs.export-dynamodb-to-s3.result == 'success' || needs.manual-approval-application-infra.result == 'skipped')
+          (needs.export-dynamodb-to-s3.result == 'success' || needs.deploy-application-infrastructure.result == 'success')
         )
       )
     uses: ./.github/workflows/service-automation-test.yaml

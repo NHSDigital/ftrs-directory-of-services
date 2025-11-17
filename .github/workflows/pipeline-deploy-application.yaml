@@ -97,8 +97,8 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
-  apply-infrastructure:
-    name: "Deploy application infrastructure  to the ${{ needs.metadata.outputs.environment }} environment"
+  deploy-application-infrastructure:
+    name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
       - build-services
@@ -108,6 +108,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
+      tag: ${{ inputs.tag }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30
     secrets: inherit
@@ -116,7 +117,7 @@ jobs:
     name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
-      - apply-infrastructure
+      - deploy-application-infrastructure
     uses: ./.github/workflows/authentication-to-apim.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -131,7 +132,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - apply-infrastructure
+      - deploy-application-infrastructure
     uses: ./.github/workflows/migrate-data.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -161,7 +162,7 @@ jobs:
     if: needs.metadata.outputs.workspace != 'default' && needs.metadata.outputs.environment != 'prod'
     needs:
       - metadata
-      - apply-infrastructure
+      - deploy-application-infrastructure
     uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -177,7 +178,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - apply-infrastructure
+      - deploy-application-infrastructure
     strategy:
       matrix:
         include:
@@ -203,7 +204,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - apply-infrastructure
+      - deploy-application-infrastructure
     uses: ./.github/workflows/deploy-data-migration-project.yaml
     with:
       name: "data-migration"
@@ -221,7 +222,7 @@ jobs:
     name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
-      - apply-infrastructure
+      - deploy-application-infrastructure
       - restore-dynamodb-from-s3
       - export-dynamodb-to-s3
     if: |
@@ -231,7 +232,7 @@ jobs:
         needs.restore-dynamodb-from-s3.result == 'success' ||
         (
           needs.restore-dynamodb-from-s3.result == 'skipped' &&
-          (needs.export-dynamodb-to-s3.result == 'success' || needs.manual-approval.result == 'skipped')
+          (needs.export-dynamodb-to-s3.result == 'success' || needs.deploy-application-infrastructure.result == 'success')
         )
       )
     uses: ./.github/workflows/service-automation-test.yaml
@@ -275,7 +276,7 @@ jobs:
       - metadata
       - quality-checks
       - build-services
-      - apply-infrastructure
+      - deploy-application-infrastructure
       - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3

@@ -24,6 +24,10 @@ on:
         description: "The git tag identifying the timeline in the repository to deploy from"
         required: false
         type: string
+      release_tag:
+        description: "The git tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
       application_tag:
         description: "The application tag identifying the timeline in the repository to deploy from"
         required: false
@@ -70,6 +74,7 @@ jobs:
       application_tag: ${{ inputs.application_tag }}
       commit_hash: ${{ inputs.commit_hash }}
       tag: ${{ inputs.tag }}
+      release_tag: ${{ inputs.release_tag }}
       action: plan
       type: ${{ inputs.type }}
     secrets: inherit
@@ -105,6 +110,7 @@ jobs:
       application_tag: ${{ inputs.application_tag }}
       commit_hash: ${{ inputs.commit_hash }}
       tag: ${{ inputs.tag }}
+      release_tag: ${{ inputs.release_tag }}
       action: apply
       type: ${{ inputs.type }}
     secrets: inherit
