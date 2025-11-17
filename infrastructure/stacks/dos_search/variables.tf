@@ -42,38 +42,38 @@ locals {
     resource_not_found = {
       response_type = "RESOURCE_NOT_FOUND"
       status_code   = "404"
-      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
+      template      = file("${local.fhir_outcome_dir}/unsupported_service.json")
     }
     missing_authentication_token = {
       # Includes cases where unsupported API method or resource is called
       response_type = "MISSING_AUTHENTICATION_TOKEN"
       status_code   = "404"
-      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
+      template      = file("${local.fhir_outcome_dir}/unsupported_service.json")
     }
     access_denied = {
       response_type = "ACCESS_DENIED"
       status_code   = "403"
-      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+      template      = file("${local.fhir_outcome_dir}/rec_forbidden.json")
     }
     unauthorized = {
       response_type = "UNAUTHORIZED"
       status_code   = "403"
-      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+      template      = file("${local.fhir_outcome_dir}/rec_forbidden.json")
     }
     default_4xx = {
       response_type = "DEFAULT_4XX"
       status_code   = "400"
-      template      = file("${local.fhir_outcome_dir}/default_4xx.json")
+      template      = file("${local.fhir_outcome_dir}/invalid_search_data.json")
     }
     throttled = {
       response_type = "THROTTLED"
       status_code   = "429"
-      template      = file("${local.fhir_outcome_dir}/throttled.json")
+      template      = file("${local.fhir_outcome_dir}/send_too_many_requests.json")
     }
     default_5xx = {
       response_type = "DEFAULT_5XX"
       status_code   = "500"
-      template      = file("${local.fhir_outcome_dir}/default_5xx.json")
+      template      = file("${local.fhir_outcome_dir}/fatal_exception.json")
     }
   }
 
