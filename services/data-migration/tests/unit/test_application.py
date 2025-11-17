@@ -1,4 +1,5 @@
 import pytest
+from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 
@@ -19,7 +20,7 @@ def test_application_init(
     assert isinstance(app.triage_code_processor, TriageCodeProcessor)
 
 
-def test_handle_dms_event_invalid_method(
+def test_handle_sqs_record_invalid_method(
     mocker: MockerFixture,
     mock_logger: MockLogger,
     mock_config: DataMigrationConfig,
@@ -32,9 +33,16 @@ def test_handle_dms_event_invalid_method(
         table_name="test_table",
         method="delete",  # Unsupported method
     )
+    mock_record = SQSRecord(
+        data={
+            "messageId": 123,
+            "body": mock_event.model_dump_json(),
+        }
+    )
+
     app.processor.sync_service = mocker.MagicMock()
 
-    app.handle_dms_event(mock_event)
+    app.handle_sqs_record(mock_record)
 
     # Ensure no processing occurs for unsupported methods
     assert not app.processor.sync_service.called
@@ -56,7 +64,7 @@ def test_handle_dms_event_invalid_method(
     ]
 
 
-def test_handle_dms_event_invalid_table(
+def test_handle_sqs_record_invalid_table(
     mocker: MockerFixture,
     mock_logger: MockLogger,
     mock_config: DataMigrationConfig,
@@ -69,9 +77,15 @@ def test_handle_dms_event_invalid_table(
         table_name="invalid_table",  # Unsupported table
         method="insert",
     )
+    mock_record = SQSRecord(
+        data={
+            "messageId": 123,
+            "body": mock_event.model_dump_json(),
+        }
+    )
     app.processor.sync_service = mocker.MagicMock()
 
-    app.handle_dms_event(mock_event)
+    app.handle_sqs_record(mock_record)
 
     # Ensure no processing occurs for unsupported tables
     assert not app.processor.sync_service.called
@@ -94,7 +108,7 @@ def test_handle_dms_event_invalid_table(
     ]
 
 
-def test_handle_dms_event_supported_event(
+def test_handle_sqs_record_supported_event(
     mocker: MockerFixture,
     mock_logger: MockLogger,
     mock_config: DataMigrationConfig,
@@ -107,9 +121,16 @@ def test_handle_dms_event_supported_event(
         table_name="services",
         method="insert",
     )
+    mock_record = SQSRecord(
+        data={
+            "messageId": 123,
+            "body": mock_event.model_dump_json(),
+        }
+    )
+
     app.processor.sync_service = mocker.MagicMock()
 
-    app.handle_dms_event(mock_event)
+    app.handle_sqs_record(mock_record)
 
     app.processor.sync_service.assert_called_once_with(123, "insert")
 

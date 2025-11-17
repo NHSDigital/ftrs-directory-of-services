@@ -1,7 +1,14 @@
 from typing import Literal
 from uuid import uuid4
 
-from aws_lambda_powertools.utilities.data_classes import SQSEvent
+from aws_lambda_powertools.utilities.batch import (
+    BatchProcessor,
+    EventType,
+    process_partial_response,
+)
+from aws_lambda_powertools.utilities.batch.types import PartialItemFailureResponse
+from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
@@ -24,28 +31,41 @@ class DataMigrationApplication:
         self.logger = self.create_logger()
         self.processor = self.create_processor()
         self.triage_code_processor = self.create_triage_code_processor()
+        self.batch_processor = BatchProcessor(event_type=EventType.SQS)
 
-    def handle_sqs_event(self, event: SQSEvent) -> None:
+    def handle_sqs_event(
+        self,
+        event: dict,
+        context: LambdaContext,
+    ) -> PartialItemFailureResponse:
         """
         Process the incoming event and run the correct processing logic for the change.
         """
         self.processor.metrics.reset()
         self.logger.log(DataMigrationLogBase.DM_ETL_000, event=event)
 
-        for record in event.records:
-            parsed_event = self.parse_event(record.json_body)
-            self.handle_dms_event(parsed_event)
+        result = process_partial_response(
+            event=event,
+            context=context,
+            record_handler=self.handle_sqs_record,
+            processor=self.batch_processor,
+        )
 
         self.logger.log(
             DataMigrationLogBase.DM_ETL_999,
             metrics=self.processor.metrics.model_dump(),
+            response=result,
         )
 
-    def handle_dms_event(self, event: DMSEvent) -> None:
+        return result
+
+    def handle_sqs_record(self, record: SQSRecord) -> None:
         """
-        Handle an event from DMS
+        Handle an record from SQS
         This should be a single record change event.
         """
+        event = self.parse_event(record.json_body)
+
         if event.method not in ["insert", "update"]:
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_010,
