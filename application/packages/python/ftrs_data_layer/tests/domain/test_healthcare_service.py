@@ -36,10 +36,10 @@ def test_healthcare_service_round_trip_and_types() -> None:
         migrationNotes=None,
         name="Test Healthcare Service",
         telecom=[
-            Telecom(type=TelecomType.PHONE, value="123456789", isPublic=False),
-            Telecom(type=TelecomType.PHONE, value="987654321", isPublic=True),
+            Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=False),
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
             Telecom(type=TelecomType.EMAIL, value="example@email.com", isPublic=True),
-            Telecom(type=TelecomType.WEB, value="www.example.com", isPublic=True),
+            Telecom(type=TelecomType.WEB, value="https://www.example.com", isPublic=True),
         ],
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
@@ -137,12 +137,12 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "migrationNotes": None,
         "name": "Test Healthcare Service",
-        "telecom": {
-            "phone_public": "123456789",
-            "phone_private": "987654321",
-            "email": "example@mail.com",
-            "web": "www.example.com",
-        },
+        "telecom":[
+            {"type": "phone", "value": "020 7972 3272", "isPublic": False},
+            {"type": "phone", "value":"0300 311 22 33", "isPublic": True},
+            {"type": "email", "value":"example@email.com", "isPublic": True},
+            {"type": "web", "value":"https://www.example.com", "isPublic": True},
+        ],
         "symptomGroupSymptomDiscriminators": [],
         "dispositions": [],
         "openingTime": [
@@ -158,20 +158,3 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
     # Act / Assert
     with pytest.raises(ValidationError):
         HealthcareService.model_validate(payload)
-
-
-def test_telecom() -> None:
-    telecom = [
-        Telecom(type=TelecomType.PHONE, value="00000000000", isPublic=True),
-        Telecom(type=TelecomType.PHONE, value="12345678901#EXT0123", isPublic=False),
-        Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
-        Telecom(type=TelecomType.WEB, value="ww.test.co.u", isPublic=True),
-    ]
-
-    telecoms = [tel.model_dump(mode="json") for tel in telecom]
-    assert telecoms == [
-        {"type": "phone", "value": "00000000000", "isPublic": True},
-        {"type": "phone", "value": "12345678901#EXT0123", "isPublic": False},
-        {"type": "email", "value": "test@nhs.net", "isPublic": True},
-        {"type": "web", "value": "ww.test.co.u", "isPublic": True},
-    ]
