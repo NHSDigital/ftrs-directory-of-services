@@ -144,15 +144,8 @@ jobs:
             fi
           fi
 
-          # Determine account type based on environment
-          # Handle JSON array environment (e.g. '["test", "int"]') as non-prod
-          if [[ "$environment" == "dev" || "$environment" == "test" ]]; then
-            account_type="dev"
-          elif [[ "$environment" == "prod" ]]; then
-            account_type="prod"
-          else
-            account_type="non-prod"
-          fi
+          # Setting account type same as the environment
+          account_type=$environment
 
           # Output results
           echo "environment=$environment" >> $GITHUB_OUTPUT
