@@ -1,0 +1,94 @@
+name: Deploy API to Proxygen
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - int
+          - prod
+      workspace:
+        description: 'Workspace identifier (e.g., FTRS-000)'
+        required: true
+        type: string
+      api_name:
+        description: 'API name'
+        required: true
+        type: string
+        default: 'dos-search'
+
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      workspace:
+        description: 'Workspace identifier (e.g., FTRS-000)'
+        required: true
+        type: string
+      api_name:
+        description: 'API name'
+        required: true
+        type: string
+
+jobs:
+  authenticate:
+    name: Authenticate with APIM
+    uses: ./.github/workflows/authentication-to-apim.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      api_name: ${{ inputs.api_name }}
+    secrets: inherit
+
+  deploy:
+    name: Deploy to Proxygen
+    needs: authenticate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Validate inputs
+        run: |
+          echo "Validating deployment inputs..."
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Workspace: ${{ inputs.workspace }}"
+          echo "API Name: ${{ inputs.api_name }}"
+
+      - name: Deploy API Specification
+        uses: ./.github/actions/deploy-proxygen
+        with:
+          api_name: ${{ inputs.api_name }}
+          workspace: ${{ inputs.workspace }}
+          environment: ${{ inputs.environment }}
+          access_token: ${{ needs.authenticate.outputs.access_token }}
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Complete 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| API Name | \`${{ inputs.api_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Workspace | \`${{ inputs.workspace }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ inputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | âœ" Success |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "### Deployment Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The deployment to Proxygen failed. Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
