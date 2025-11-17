@@ -14,7 +14,7 @@
           }
         ]
       },
-      "diagnostics": "Unsupported service: $context.resourcePath.split('/')[1]"
+      "diagnostics": "Unsupported service: $context.path"
     }
   ]
 }
