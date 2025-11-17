@@ -1,0 +1,70 @@
+name: 'Deploy to Proxygen'
+description: 'Deploy API specification to Proxygen with workspace modifications'
+
+inputs:
+  api_name:
+    description: 'Name of the API to deploy'
+    required: true
+  workspace:
+    description: 'Workspace identifier (e.g., FTRS-000)'
+    required: true
+  environment:
+    description: 'Environment to deploy to (e.g., dev, test, prod)'
+    required: true
+  access_token:
+    description: 'APIM access token for authentication'
+    required: true
+
+outputs:
+  deployment_status:
+    description: 'Status of the deployment'
+    value: ${{ steps.deploy.outputs.status }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyyaml
+
+    - name: Validate workspace format
+      shell: bash
+      run: |
+        if [[ ! "${{ inputs.workspace }}" =~ ^[A-Z]+-[0-9]{3}$ ]]; then
+          echo "Error: Workspace must be in format XXXX-000 (e.g., FTRS-000)"
+          exit 1
+        fi
+        echo "âœ" Workspace format validated: ${{ inputs.workspace }}"
+
+    - name: Deploy to Proxygen
+      id: deploy
+      shell: bash
+      run: |
+        export API_NAME=${{ inputs.api_name }}
+        export WORKSPACE=${{ inputs.workspace }}
+        export ENV=${{ inputs.environment }}
+        export AWS_REGION=${{ inputs.aws_region }}
+        export ACCESS_TOKEN=${{ inputs.access_token }}
+
+        chmod +x ./scripts/workflow/deploy-to-proxygen.sh
+        RESPONSE=$(./scripts/workflow/deploy-to-proxygen.sh)
+
+        if [ $? -eq 0 ]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "âœ" API deployed successfully to Proxygen"
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "❌ API deployment failed"
+          exit 1
+        fi
+
+    - name: Output deployment details
+      shell: bash
+      run: |
+        echo "Deployment Summary:"
+        echo "- API Name: ${{ inputs.api_name }}"
+        echo "- Workspace: ${{ inputs.workspace }}"
+        echo "- Environment: ${{ inputs.environment }}"
+        echo "- Status: ${{ steps.deploy.outputs.status }}"
