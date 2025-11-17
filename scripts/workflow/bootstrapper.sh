@@ -64,7 +64,7 @@ if [ $EXPORTS_SET = 1 ] ; then
     exit 1
 fi
 
-ENV_TF_VARS_FILE="$ENVIRONMENT.tfvars"
+ENV_TF_VARS_FILE="$ENVIRONMENT/environment.tfvars"
 if ! [ -f "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" ] ; then
   echo "No environment variables defined for $ENVIRONMENT environment"
   exit 1

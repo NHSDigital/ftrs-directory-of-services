@@ -14,7 +14,6 @@ on:
       - "infrastructure/stacks/terraform_management/**"
       - "infrastructure/stacks/artefact_management/**"
       - "infrastructure/stacks/domain_name/**"
-      - "infrastructure/stacks/logging/**"
       - "infrastructure/modules/dynamodb/**"
       - "infrastructure/modules/s3/**"
       - "infrastructure/stacks/account_security/**"
@@ -72,7 +71,7 @@ jobs:
       tag: ${{ inputs.tag }}
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','artefact_management','domain_name','logging','account_security']"
+      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
@@ -94,10 +93,10 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','logging']"
+            stacks: "['terraform_management','account_wide','domain_name']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name','logging']"
+            stacks: "['terraform_management','account_security','artefact_management','domain_name']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -138,10 +137,10 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','logging']"
+            stacks: "['terraform_management','account_wide','domain_name']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name','logging']"
+            stacks: "['terraform_management','account_security','artefact_management','domain_name']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
