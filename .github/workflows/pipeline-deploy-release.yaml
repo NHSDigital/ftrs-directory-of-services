@@ -78,6 +78,7 @@ jobs:
       workspace: default
       application_tag: ${{ inputs.release_tag }}
       release_tag: ${{ inputs.release_tag }}
+      tag: ${{ inputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
