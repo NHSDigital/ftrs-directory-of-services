@@ -23,6 +23,10 @@ resource "aws_api_gateway_integration" "organization" {
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = module.lambda.lambda_function_invoke_arn
+
+  request_parameters = {
+    "method.request.header.X-Test-Header" = false
+  }
 }
 
 resource "aws_api_gateway_method_response" "organization" {
