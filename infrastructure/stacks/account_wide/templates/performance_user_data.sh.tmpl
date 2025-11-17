@@ -9,7 +9,7 @@ JVER="${performance_version}"
 POWEROFF="${performance_poweroff_after_setup}"
 JWT_VER="${performance_jwt_dependency_version}"
 
-: "$${JAVA_HOME:=}"   # Predefine to avoid 'JAVA_HOME: unbound variable' under set -u
+# : "$${JAVA_HOME:=}"   # Predefine to avoid 'JAVA_HOME: unbound variable' under set -u
 
 # Update base packages (non-fatal if repos are temporarily unavailable)
 if command -v dnf >/dev/null 2>&1; then
