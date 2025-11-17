@@ -42,6 +42,10 @@ on:
         description: "The application tag identifying the timeline in the repository to deploy from"
         required: false
         type: string
+      release_tag:
+        description: "The release tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
       workflow_timeout:
         description: "Timeout duration in minutes"
         required: false
