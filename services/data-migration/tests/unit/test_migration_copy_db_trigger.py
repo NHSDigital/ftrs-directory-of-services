@@ -1,17 +1,17 @@
 import json
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
 
 from pipeline.migration_copy_db_trigger_lambda_handler import (
-    get_message_from_event,
     lambda_handler,
 )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def mock_boto3() -> MagicMock:
+def mock_boto3() -> Generator[MagicMock, None, None]:
     with patch.object(boto3, "client") as mock_boto3_client:
         mock_sqs = MagicMock()
         mock_boto3_client.return_value = mock_sqs
@@ -20,7 +20,7 @@ def mock_boto3() -> MagicMock:
 
 
 @pytest.fixture
-def mock_sqs_client() -> MagicMock:
+def mock_sqs_client() -> Generator[MagicMock, None, None]:
     with patch(
         "pipeline.migration_copy_db_trigger_lambda_handler.SQS_CLIENT"
     ) as mock_client:
@@ -29,7 +29,7 @@ def mock_sqs_client() -> MagicMock:
 
 
 @pytest.fixture
-def mock_workspaces() -> MagicMock:
+def mock_workspaces() -> Generator[MagicMock, None, None]:
     with patch(
         "pipeline.migration_copy_db_trigger_lambda_handler.get_dms_workspaces"
     ) as mock_get_workspaces:
@@ -49,11 +49,11 @@ def test_lambda_handler_sends_message_to_all_workspaces(
     assert mock_sqs_client.send_message.call_count == send_call_count
     mock_sqs_client.send_message.assert_any_call(
         QueueUrl="queue-url-1",
-        MessageBody=json.dumps({"source": "aurora_trigger", "event": event}),
+        MessageBody=json.dumps(event),
     )
     mock_sqs_client.send_message.assert_any_call(
         QueueUrl="queue-url-2",
-        MessageBody=json.dumps({"source": "aurora_trigger", "event": event}),
+        MessageBody=json.dumps(event),
     )
 
 
@@ -71,22 +71,6 @@ def test_lambda_handler_handles_sqs_exception(
     lambda_handler(event, context)
 
     assert mock_sqs_client.send_message.call_count == send_call_count
-
-
-def test_get_message_from_event_creates_correct_message_format() -> None:
-    event = {"detail": {"eventName": "INSERT"}}
-
-    message = get_message_from_event(event)
-
-    assert message == {"source": "aurora_trigger", "event": event}
-
-
-def test_get_message_from_event_handles_empty_event() -> None:
-    event = {}
-
-    message = get_message_from_event(event)
-
-    assert message == {"source": "aurora_trigger", "event": {}}
 
 
 def test_lambda_handler_handles_complex_event_structure(
@@ -114,8 +98,7 @@ def test_lambda_handler_handles_complex_event_structure(
 
     lambda_handler(complex_event, context)
 
-    expected_message = json.dumps({"source": "aurora_trigger", "event": complex_event})
-
     mock_sqs_client.send_message.assert_called_with(
-        QueueUrl="queue-url-2", MessageBody=expected_message
+        QueueUrl="queue-url-2",
+        MessageBody=json.dumps(complex_event),
     )
