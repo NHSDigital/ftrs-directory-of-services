@@ -20,6 +20,7 @@ This document explains how the service-local FTRS logging wrapper works and how 
 ### \_last_log_data
 
 - To ensure the key fields are present in all logs without having to pass the bulky event object around, the FtrsLogger class persists the last specified `log_data` keyword argument via this attribute.
+
 ```python
   ftrs_logger = FtrsLogger
 
