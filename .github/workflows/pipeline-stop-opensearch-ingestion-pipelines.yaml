@@ -42,6 +42,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: app
+          environment: ${{ needs.metadata.outputs.environment }}
       - name: "Stop active opensearch ingestion pipelines"
         uses: ./.github/actions/stop-opensearch-ingestion-pipelines
 
