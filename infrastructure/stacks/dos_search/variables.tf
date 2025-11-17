@@ -45,9 +45,10 @@ locals {
       template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
     }
     missing_authentication_token = {
+      # Includes cases where unsupported API method or resource is called
       response_type = "MISSING_AUTHENTICATION_TOKEN"
-      status_code   = "403"
-      template      = file("${local.fhir_outcome_dir}/access_denied.json")
+      status_code   = "404"
+      template      = file("${local.fhir_outcome_dir}/resource_not_found.json")
     }
     access_denied = {
       response_type = "ACCESS_DENIED"
