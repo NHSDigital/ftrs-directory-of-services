@@ -21,6 +21,6 @@ runs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4.0.2
       with:
-        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ github.event.repository.name }}-${{ inputs.environment }}-${{ inputs.type }}-github-runner
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ github.event.repository.name }}${{ inputs.environment != 'mgmt' && format('-{0}', inputs.environment) || '' }}-${{ inputs.type }}-github-runner
         role-session-name: github-pipeline-session
         aws-region: ${{ inputs.aws_region }}
