@@ -9,6 +9,8 @@ JVER="${performance_version}"
 POWEROFF="${performance_poweroff_after_setup}"
 JWT_VER="${performance_jwt_dependency_version}"
 
+: "${JAVA_HOME:=}"  # Predefine to avoid 'JAVA_HOME: unbound variable' under set -u
+
 # Update base packages (non-fatal if repos are temporarily unavailable)
 if command -v dnf >/dev/null 2>&1; then
   dnf -y update || true
@@ -116,7 +118,7 @@ systemctl restart amazon-ssm-agent || systemctl start amazon-ssm-agent || true
 # Always install JMeter Plugin Manager, cmdrunner, and a sensible default plugin set
 PLUGINS_MANAGER_VERSION=1.11
 CMDRUNNER_VERSION=2.3
-DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional,kg.apc.jmeter.threads.UltimateThreadGroup=1.10"
+DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional"
 
 mkdir -p "$${JM_HOME}/lib/ext" "$${JM_HOME}/lib"
 curl -fL -o "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
@@ -143,7 +145,7 @@ cat >/usr/local/bin/jmeter-run <<'WRAP'
 #!/usr/bin/env bash
 set -euo pipefail
 # Ensure JAVA_HOME if not set
-if [[ -z "$${JAVA_HOME:-}" ]]; then
+if [[ -z "${JAVA_HOME:-}" ]]; then
   if command -v java >/dev/null 2>&1; then
     JB=$(readlink -f "$(command -v java)" 2>/dev/null || command -v java)
     export JAVA_HOME="$(dirname "$(dirname "$JB")")"
@@ -151,7 +153,7 @@ if [[ -z "$${JAVA_HOME:-}" ]]; then
   fi
 fi
 # Ensure JMETER_HOME if not set
-if [[ -z "$${JMETER_HOME:-}" ]]; then
+if [[ -z "${JMETER_HOME:-}" ]]; then
   export JMETER_HOME="/opt/jmeter/current"
   export PATH="$JMETER_HOME/bin:$PATH"
 fi
