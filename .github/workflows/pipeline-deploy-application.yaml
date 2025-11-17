@@ -124,6 +124,38 @@ jobs:
       api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
     secrets: inherit
 
+  deploy-to-apim:
+    name: "Deploy DOS Search API to Proxygen in ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - authenticate-with-apim
+    uses: ./.github/workflows/deploy-to-proxygen.yaml
+    with:
+      api_name: "dos-search"
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      access_token: ${{ needs.authenticate-with-apim.outputs.access_token }}
+
+  apply-infrastructure:
+    name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search','is_performance', 'ui']"
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      action: apply
+      type: app
+      workflow_timeout: 30
+    secrets: inherit
+
   migrate-data:
     name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
     if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
