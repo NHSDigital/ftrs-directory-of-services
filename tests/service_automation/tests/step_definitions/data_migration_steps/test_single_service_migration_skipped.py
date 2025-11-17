@@ -1,4 +1,3 @@
-"""BDD step definitions for running single service migration."""
 from typing import Any, Dict
 
 from pytest_bdd import given, parsers, scenarios, then, when

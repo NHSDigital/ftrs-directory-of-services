@@ -1,13 +1,14 @@
 """Shared step definitions for data migration BDD tests."""
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal
 
 import pytest
 from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session
 
+from utilities.common.sqs_helper import build_sqs_event
 from utilities.common.db_helper import delete_service_if_exists, verify_service_exists
 from utilities.common.gherkin_helper import parse_gherkin_table
 from utilities.common.log_helper import (
@@ -111,50 +112,6 @@ def _get_migration_type_description(migration_context: MigrationContext) -> str:
         return "full sync"
     else:
         return f"service {service_id}"
-
-
-def _parse_sqs_event(docstring: str) -> SQSEvent:
-    """
-    Parse SQS event JSON from Gherkin docstring.
-
-    Args:
-        docstring: JSON string from Gherkin step
-
-    Returns:
-        Parsed event dictionary
-
-    Raises:
-        pytest.fail: If JSON is invalid
-    """
-    try:
-        return json.loads(docstring)
-    except json.JSONDecodeError as e:
-        pytest.fail(f"Invalid JSON in event docstring: {e}")
-
-
-def _extract_service_ids_from_sqs_event(event: SQSEvent) -> List[int]:
-    """
-    Extract service IDs from SQS event records.
-
-    Args:
-        event: SQS event dictionary
-
-    Returns:
-        List of service IDs found in event records
-    """
-    service_ids = []
-
-    if event.get("Records"):
-        for record in event["Records"]:
-            body = record.get("body", "{}")
-            try:
-                body_json = json.loads(body)
-                if "record_id" in body_json:
-                    service_ids.append(body_json["record_id"])
-            except json.JSONDecodeError:
-                logger.warning(f"Could not parse record body: {body}")
-
-    return service_ids
 
 
 def _validate_service_attributes(attributes: ServiceAttributes) -> None:
@@ -634,34 +591,42 @@ def run_verify_transformer_selected(
 # ============================================================
 
 
-def run_sqs_event_migration(
+def run_sqs_event_migration_with_params(
     migration_helper: MigrationHelper,
     migration_context: MigrationContext,
-    docstring: str,
+    table_name: str,
+    record_id: int,
+    method: Literal["insert", "update", "delete"],
 ) -> Dict[str, Any]:
     """
-    Execute migration with SQS event and capture output.
+    Execute migration with SQS event built from minimal parameters.
 
     Args:
         migration_helper: Helper for running migrations
         migration_context: Test context dictionary
-        docstring: JSON event string from Gherkin docstring
+        table_name: Name of the table (e.g., 'services')
+        record_id: Database record ID (e.g., service ID)
+        method: DMS operation type ('insert', 'update', or 'delete')
 
     Returns:
         Dictionary containing event processing result
 
     Raises:
-        pytest.fail: If event JSON is invalid
+        AssertionError: If migration fails unexpectedly
     """
-    event = _parse_sqs_event(docstring)
-    service_ids = _extract_service_ids_from_sqs_event(event)
+    # Build SQS event from parameters
+    event = build_sqs_event(
+        table_name=table_name,
+        record_id=record_id,
+        method=method,
+    )
 
     logger.debug(
-        "Processing SQS event",
+        "Processing SQS event with parameters",
         extra={
-            "record_count": len(event.get("Records", [])),
-            "is_empty": len(event) == 0,
-            "service_ids": service_ids,
+            "table_name": table_name,
+            "record_id": record_id,
+            "method": method,
         },
     )
 
@@ -670,8 +635,8 @@ def run_sqs_event_migration(
     migration_context["result"] = result
     migration_context["mock_logger"] = result.mock_logger
     migration_context["sqs_event"] = event
-    migration_context["sqs_service_ids"] = service_ids
-    migration_context["sqs_service_id"] = service_ids[0] if service_ids else None
+    migration_context["sqs_service_ids"] = [record_id]
+    migration_context["sqs_service_id"] = record_id
 
     logger.info(
         "SQS event migration completed",
@@ -680,8 +645,9 @@ def run_sqs_event_migration(
             "migrated_records": (
                 result.metrics.migrated_records if result.metrics else 0
             ),
-            "is_empty_event": len(event) == 0,
-            "service_ids": service_ids,
+            "table_name": table_name,
+            "record_id": record_id,
+            "method": method,
         },
     )
 

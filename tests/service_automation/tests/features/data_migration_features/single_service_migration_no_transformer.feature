@@ -1,5 +1,5 @@
 @data-migration
-Feature: Run Single Service Migration
+Feature: Single Service Migration - Unsupported Service Type
   As a test author
   I want to execute a data migration for an individual service
   So that I can confirm the migration process correctly identifies unsupported cases and handles them gracefully without errors

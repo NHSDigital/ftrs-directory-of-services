@@ -1,5 +1,5 @@
 @data-migration
-Feature: Run Full Sync Service Migration
+Feature: Full Database Synchronization - Batch Migration
   As a test author
   I want to execute a full data migration for all services
   So that I can validate the migration process handles large-scale synchronization accurately and reports correct metrics
