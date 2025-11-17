@@ -129,7 +129,7 @@ jobs:
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ inputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: default
       tag: ${{ inputs.release_tag }}
       test_tag: "ftrs-pipeline"
       test_type: "api"
