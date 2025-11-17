@@ -66,7 +66,7 @@ class DataMigrationApplication:
         """
         event = self.parse_event(record.json_body)
 
-        if event.method not in ["insert", "update"]:
+        if event.method.lower() not in ["insert", "update"]:
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_010,
                 method=event.method,

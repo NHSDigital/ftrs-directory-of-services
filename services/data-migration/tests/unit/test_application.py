@@ -138,6 +138,36 @@ def test_handle_sqs_record_supported_event(
     assert mock_logger.was_logged("DM_ETL_011") is False
 
 
+def test_handle_sqs_record_case_insensitive_method(
+    mocker: MockerFixture,
+    mock_logger: MockLogger,
+    mock_config: DataMigrationConfig,
+) -> None:
+    app = DataMigrationApplication(config=mock_config)
+
+    mock_event = DMSEvent(
+        type="dms_event",
+        record_id=123,
+        table_name="services",
+        method="InSeRt",  # Mixed case method
+    )
+    mock_record = SQSRecord(
+        data={
+            "messageId": 123,
+            "body": mock_event.model_dump_json(),
+        }
+    )
+
+    app.processor.sync_service = mocker.MagicMock()
+
+    app.handle_sqs_record(mock_record)
+
+    app.processor.sync_service.assert_called_once_with(123, "InSeRt")
+
+    assert mock_logger.was_logged("DM_ETL_010") is False
+    assert mock_logger.was_logged("DM_ETL_011") is False
+
+
 def test_handle_full_sync_event(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
