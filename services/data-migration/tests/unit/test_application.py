@@ -221,22 +221,22 @@ def test_parse_event_invalid_type(
                 "  Input should be 'dms_event' [type=literal_error, "
                 "input_value='invalid_event', input_type=str]\n"
                 "    For further information visit "
-                "https://errors.pydantic.dev/2.11/v/literal_error\n"
+                "https://errors.pydantic.dev/2.12/v/literal_error\n"
                 "record_id\n"
                 "  Field required [type=missing, input_value={'type': "
                 "'invalid_event'}, input_type=dict]\n"
                 "    For further information visit "
-                "https://errors.pydantic.dev/2.11/v/missing\n"
+                "https://errors.pydantic.dev/2.12/v/missing\n"
                 "table_name\n"
                 "  Field required [type=missing, input_value={'type': "
                 "'invalid_event'}, input_type=dict]\n"
                 "    For further information visit "
-                "https://errors.pydantic.dev/2.11/v/missing\n"
+                "https://errors.pydantic.dev/2.12/v/missing\n"
                 "method\n"
                 "  Field required [type=missing, input_value={'type': "
                 "'invalid_event'}, input_type=dict]\n"
                 "    For further information visit "
-                "https://errors.pydantic.dev/2.11/v/missing",
+                "https://errors.pydantic.dev/2.12/v/missing",
                 "event": {
                     "type": "invalid_event",
                 },
@@ -246,22 +246,22 @@ def test_parse_event_invalid_type(
             "  Input should be 'dms_event' [type=literal_error, "
             "input_value='invalid_event', input_type=str]\n"
             "    For further information visit "
-            "https://errors.pydantic.dev/2.11/v/literal_error\n"
+            "https://errors.pydantic.dev/2.12/v/literal_error\n"
             "record_id\n"
             "  Field required [type=missing, input_value={'type': "
             "'invalid_event'}, input_type=dict]\n"
             "    For further information visit "
-            "https://errors.pydantic.dev/2.11/v/missing\n"
+            "https://errors.pydantic.dev/2.12/v/missing\n"
             "table_name\n"
             "  Field required [type=missing, input_value={'type': "
             "'invalid_event'}, input_type=dict]\n"
             "    For further information visit "
-            "https://errors.pydantic.dev/2.11/v/missing\n"
+            "https://errors.pydantic.dev/2.12/v/missing\n"
             "method\n"
             "  Field required [type=missing, input_value={'type': "
             "'invalid_event'}, input_type=dict]\n"
             "    For further information visit "
-            "https://errors.pydantic.dev/2.11/v/missing",
+            "https://errors.pydantic.dev/2.12/v/missing",
         }
     ]
 
