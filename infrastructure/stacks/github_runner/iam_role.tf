@@ -11,7 +11,7 @@ locals {
 }
 
 resource "aws_iam_role" "account_github_runner_role" {
-  name = "${var.repo_name}-${var.account_github_runner_role_name}"
+  name = "${var.repo_name}-${var.environment}-${var.account_github_runner_role_name}"
 
   assume_role_policy = <<EOF
 {
@@ -36,7 +36,7 @@ EOF
 }
 
 resource "aws_iam_role" "app_github_runner_role" {
-  name = "${var.repo_name}-${var.app_github_runner_role_name}"
+  name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 
   assume_role_policy = <<EOF
 {
@@ -61,13 +61,13 @@ EOF
 }
 
 resource "aws_iam_policy" "account_github_runner_policy" {
-  name        = "${var.repo_name}-${var.account_github_runner_role_name}"
+  name        = "${var.repo_name}-${var.environment}-${var.account_github_runner_role_name}"
   description = "IAM policy for Account GitHub Actions runner"
   policy      = jsonencode(local.account_github_runner_policy)
 }
 
 resource "aws_iam_policy" "app_github_runner_policy" {
-  name        = "${var.repo_name}-${var.app_github_runner_role_name}"
+  name        = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
   description = "IAM policy for App GitHub Actions runner"
   policy      = jsonencode(local.app_github_runner_policy)
 }
@@ -93,7 +93,7 @@ data "aws_iam_policy_document" "app_runner_domain_name_cross_account_doc" {
 }
 
 resource "aws_iam_policy" "app_runner_domain_name_cross_account_policy" {
-  name        = "${local.domain_cross_account_role}-app-policy"
+  name        = "${local.domain_cross_account_role}-${var.environment}-app-policy"
   description = "Allow cross-account AssumeRole into mgmt Route53 role"
   policy      = data.aws_iam_policy_document.app_runner_domain_name_cross_account_doc.json
 }
@@ -114,7 +114,7 @@ data "aws_iam_policy_document" "account_runner_domain_name_cross_account_doc" {
 }
 
 resource "aws_iam_policy" "account_runner_domain_name_cross_account_policy" {
-  name        = "${local.domain_cross_account_role}-account-policy"
+  name        = "${local.domain_cross_account_role}-${var.environment}-account-policy"
   description = "Allow cross-account AssumeRole into mgmt Route53 role"
   policy      = data.aws_iam_policy_document.account_runner_domain_name_cross_account_doc.json
 }
