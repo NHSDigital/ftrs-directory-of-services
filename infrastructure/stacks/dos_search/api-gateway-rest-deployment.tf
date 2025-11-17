@@ -22,13 +22,7 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_method.status,
       aws_api_gateway_integration.organization,
       aws_api_gateway_integration.status,
-      [for k in sort(keys(local.gateway_responses)) : {
-        key           = k
-        response_type = local.gateway_responses[k].response_type
-        status_code   = local.gateway_responses[k].status_code
-        template      = local.gateway_responses[k].template
-      }],
-      var.fhir_content_type_header,
+      aws_api_gateway_gateway_response.default_gateway_response,
     ]))
   }
 
