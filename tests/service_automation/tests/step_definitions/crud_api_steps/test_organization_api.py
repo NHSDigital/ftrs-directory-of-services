@@ -143,9 +143,7 @@ def get_db_item(model_repo, payload: dict):
 def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = False):
     """
     Assert that the database item matches the payload.
-    Handles string/date comparison for legalStartDate and legalEndDate.
     """
-    date_fields = {"legalStartDate", "legalEndDate"}
     fields = [
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
         ("name", payload["name"].title()),
@@ -156,15 +154,8 @@ def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = Fals
     if not mandatory_only:
         fields.append(("telecom", payload.get("telecom", [{}])[0].get("value")))
 
-    # Add date fields if present in payload
-    for date_field in date_fields:
-        if date_field in payload:
-            fields.append((date_field, payload[date_field]))
-
     for attr, expected in fields:
         actual = getattr(item, attr, None)
-        if attr in date_fields and actual is not None and hasattr(actual, "isoformat"):
-            actual = actual.isoformat()
         logger.info(f"Validating {attr}: expected={expected}, actual={actual}")
         assert actual == expected, f"{attr} mismatch: {actual} != {expected}"
 
@@ -546,14 +537,19 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
-    actual = (
-        getattr(item, field, None)
-        if field != "telecom"
-        else getattr(item, "telecom", None)
-    )
+
     # Convert string "None" to Python None for comparison
     expected = None if value == "None" else value
-    # Handle date comparison for legalStartDate and legalEndDate
+    # Handle legalDates structure - convert legalStartDate/legalEndDate to legalDates.start/end
+    if field == "legalStartDate":
+        actual = getattr(item.legalDates, "start", None) if item.legalDates else None
+    elif field == "legalEndDate":
+        actual = getattr(item.legalDates, "end", None) if item.legalDates else None
+    elif field == "telecom":
+        actual = getattr(item, "telecom", None)
+    else:
+        actual = getattr(item, field, None)
+
     if field in ("legalStartDate", "legalEndDate") and actual is not None:
         if hasattr(actual, "isoformat"):
             actual = actual.isoformat()

@@ -7,6 +7,7 @@ from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.utils.title_case_sanitization import sanitize_string_field
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.organisation import LegalDates
 
 TYPED_PERIOD_URL = (
     "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
@@ -116,6 +117,11 @@ class OrganizationMapper(FhirMapper):
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
         """Convert FHIR Organization resource to Organisation domain object."""
         legal_start_date, legal_end_date = self._extract_legal_dates(fhir_resource)
+
+        legal_dates = None
+        if legal_start_date or legal_end_date:
+            legal_dates = LegalDates(start=legal_start_date, end=legal_end_date)
+
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),
@@ -123,8 +129,7 @@ class OrganizationMapper(FhirMapper):
             active=fhir_resource.active,
             telecom=self._get_org_telecom(fhir_resource),
             type=sanitize_string_field(self._get_org_type(fhir_resource)),
-            legalStartDate=legal_start_date,
-            legalEndDate=legal_end_date,
+            legalDates=legal_dates,
             modifiedBy="ODS_ETL_PIPELINE",
         )
 
@@ -195,8 +200,13 @@ class OrganizationMapper(FhirMapper):
         self, organisation: Organisation
     ) -> tuple[str | None, str | None]:
         """Return legal start and end dates as ISO 8601 strings."""
-        legal_start = getattr(organisation, "legalStartDate", None)
-        legal_end = getattr(organisation, "legalEndDate", None)
+        legal_dates = getattr(organisation, "legalDates", None)
+
+        if not legal_dates:
+            return None, None
+
+        legal_start = getattr(legal_dates, "start", None)
+        legal_end = getattr(legal_dates, "end", None)
         legal_start_str = legal_start.isoformat() if legal_start else None
         legal_end_str = legal_end.isoformat() if legal_end else None
         return legal_start_str, legal_end_str
