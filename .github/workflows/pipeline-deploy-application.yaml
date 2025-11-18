@@ -39,10 +39,64 @@ jobs:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
 
+  resolve-sandbox-config:
+    name: "Resolve sandbox Proxygen config from Makefile"
+    needs:
+      - metadata
+    runs-on: ubuntu-latest
+    outputs:
+      PROXYGEN_API_NAME: ${{ steps.collect.outputs.PROXYGEN_API_NAME }}
+      PROXYGEN_ENV: ${{ steps.collect.outputs.PROXYGEN_ENV }}
+      AWS_REGION: ${{ steps.collect.outputs.AWS_REGION }}
+      PROXYGEN_SPEC_PATH: ${{ steps.collect.outputs.PROXYGEN_SPEC_PATH }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: collect
+        name: "Collect Makefile config"
+        working-directory: services/dos-search/sandbox
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -s print-proxygen-config > cfg.env
+          cat cfg.env
+          while IFS='=' read -r k v; do
+            echo "${k}=${v}" >> $GITHUB_OUTPUT
+          done < cfg.env
+
+  validate-proxygen-config:
+    name: "Validate Proxygen configuration"
+    needs:
+      - metadata
+      - resolve-sandbox-config
+    runs-on: ubuntu-latest
+    env:
+      PROXYGEN_API_NAME: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_API_NAME }}
+      PROXYGEN_ENV: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_ENV }}
+      AWS_REGION: ${{ needs.resolve-sandbox-config.outputs.AWS_REGION }}
+    steps:
+      - name: Ensure required variables are set
+        env:
+          PROXYGEN_API_NAME: ${{ env.PROXYGEN_API_NAME }}
+          PROXYGEN_ENV: ${{ env.PROXYGEN_ENV }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          missing=()
+          for var in PROXYGEN_API_NAME PROXYGEN_ENV AWS_REGION; do
+            if [ -z "${!var}" ]; then
+              missing+=("$var")
+            fi
+          done
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "Missing Proxygen configuration: ${missing[*]}" >&2
+            exit 1
+          fi
+          echo "Proxygen config detected for ${PROXYGEN_API_NAME} (${PROXYGEN_ENV}, ${AWS_REGION})"
+
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
       - metadata
+      - validate-proxygen-config
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -52,11 +106,24 @@ jobs:
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 
+  authenticate-with-apim-sandbox:
+    name: "Authenticate with APIM (publish env)"
+    needs:
+      - metadata
+      - resolve-sandbox-config
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/authentication-to-apim.yaml
+    with:
+      environment: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_ENV }}
+      api_name: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_API_NAME }}
+    secrets: inherit
+
   build-services:
     name: "Build ${{ matrix.name }}"
     needs:
       - metadata
       - quality-checks
+      - resolve-sandbox-config
     strategy:
       matrix:
         include:
@@ -72,6 +139,11 @@ jobs:
             build_type: "service"
           - name: "dos-search"
             build_type: "service"
+          - name: "dos-search-sandbox"
+            build_type: "service"
+            working_directory: "services/dos-search/sandbox"
+            skip_publish: true
+            build_before_tests: true
           - name: "dos-ui"
             build_type: "service"
     uses: ./.github/workflows/build-project.yaml
@@ -85,7 +157,53 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
       type: app
+      working_directory: ${{ matrix.working_directory || '' }}
+      skip_publish: ${{ matrix.skip_publish || false }}
+      build_before_tests: ${{ matrix.build_before_tests || false }}
     secrets: inherit
+
+  deploy-dos-search-sandbox:
+    name: "Deploy dos-search sandbox"
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - build-services
+      - resolve-sandbox-config
+      - authenticate-with-apim-sandbox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Configure AWS Credentials
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+      - name: Build and push sandbox image
+        working-directory: services/dos-search/sandbox
+        env:
+          PROXYGEN_API_NAME: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_API_NAME }}
+          PROXYGEN_ENV: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_ENV }}
+          PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim-sandbox.outputs.access_token }}
+          AWS_REGION: ${{ needs.resolve-sandbox-config.outputs.AWS_REGION || vars.AWS_REGION }}
+        run: make push
+      - name: Publish sandbox proxy configuration
+        working-directory: services/dos-search/sandbox
+        env:
+          PROXYGEN_API_NAME: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_API_NAME }}
+          PROXYGEN_ENV: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_ENV }}
+          PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim-sandbox.outputs.access_token }}
+          AWS_REGION: ${{ needs.resolve-sandbox-config.outputs.AWS_REGION || vars.AWS_REGION }}
+        run: make publish
+      - name: Smoke test deployed sandbox (APIM)
+        working-directory: services/dos-search/sandbox
+        env:
+          DEPLOY_ENV: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_ENV }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4"
+          echo "Using sandbox base URL: ${BASE_URL}"
+          WAIT_SECS=60 BASE_URL="${BASE_URL}" ./scripts/smoke.sh
 
   perform-code-analysis:
     name: "Perform static code analysis"
@@ -296,6 +414,7 @@ jobs:
       - service-automation-tests
       - generate-prerelease
       - check-pipeline-status
+      - deploy-dos-search-sandbox
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
