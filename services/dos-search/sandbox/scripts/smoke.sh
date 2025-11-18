@@ -6,11 +6,6 @@ if [[ "${DEBUG:-0}" == "1" ]]; then set -x; fi
 
 BASE_URL=${BASE_URL:-http://localhost:9000}
 accept_hdr="Accept: application/fhir+json"
-# Optional api key header (for APIM)
-api_headers=()
-if [[ -n "${API_KEY:-}" ]]; then
-  api_headers+=( "-H" "apiKey: ${API_KEY}" )
-fi
 
 # Optional: wait up to WAIT_SECS for service to become ready (/_status). 0 means no wait.
 WAIT_SECS=${WAIT_SECS:-0}
@@ -41,7 +36,7 @@ do_call() {
   local expect_status="$2"
   local label="$3"
 
-  http_code=$(curl -s -o /tmp/smoke_out.json -w "%{http_code}" -H "$accept_hdr" ${api_headers[@]+"${api_headers[@]}"} "${BASE_URL}${path}") || true
+  http_code=$(curl -s -o /tmp/smoke_out.json -w "%{http_code}" -H "$accept_hdr" "${BASE_URL}${path}") || true
 
   if [[ "$http_code" != "$expect_status" ]]; then
     echo "--- Response body ---"
