@@ -42,7 +42,7 @@ jobs:
           echo "API Name: ${{ inputs.api_name }}"
 
       - name: Deploy API Specification
-        uses: ./.github/actions/deploy-proxygen
+        uses: ./.github/actions/deploy-to-proxygen
         with:
           api_name: ${{ inputs.api_name }}
           workspace: ${{ inputs.workspace }}
