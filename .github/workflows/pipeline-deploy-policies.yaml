@@ -29,6 +29,7 @@ on:
           - test
           - sandpit
           - int
+          - ref
           - prod
   workflow_call:
     inputs:
@@ -52,6 +53,7 @@ jobs:
       - metadata
     uses: ./.github/workflows/quality-checks.yaml
     with:
+      tag: ${{ inputs.tag }}
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
       stacks: "['github_runner','account_policies']"

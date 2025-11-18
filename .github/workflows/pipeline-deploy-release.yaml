@@ -15,7 +15,7 @@ on:
         options:
           - test
           - int
-          - preprod
+          - ref
           - prod
 
 permissions:
@@ -40,9 +40,11 @@ jobs:
 
   metadata:
     name: "Get CI/CD metadata"
-    uses: ./.github/workflows/metadata.yaml
     needs:
       - validate-release-tag
+    uses: ./.github/workflows/metadata.yaml
+    with:
+      tag: ${{ inputs.release_tag }}
 
   deploy-account-wide-policies:
     name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
@@ -62,15 +64,11 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
-
       tag: ${{ inputs.release_tag }}
     secrets: inherit
 
-  plan-application-infra:
-    name: "Plan application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
-    concurrency:
-      group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
-      cancel-in-progress: false
+  deploy-application-infrastructure:
+    name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
       - validate-release-tag
       - deploy-account-wide-infrastructure
@@ -80,45 +78,18 @@ jobs:
       workspace: default
       application_tag: ${{ inputs.release_tag }}
       release_tag: ${{ inputs.release_tag }}
-      action: plan
-    secrets: inherit
-
-  manual-approval-application-infra:
-    name: "Manual approval for deployment of application release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
-    if: ${{ needs.plan-application-infra.outputs.plan_result == 'true' }}
-    needs:
-      - plan-application-infra
-    runs-on: ubuntu-latest
-    environment: "${{ inputs.environment }}-protected"
-    steps:
-      - name: Approval required
-        run: echo "Deployment of application infra for release ${{ inputs.release_tag }} to ${{ inputs.environment }} paused for manual approval. Please approve in the Actions tab."
-
-  apply-application-infra:
-    name: "Apply application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
-    concurrency:
-      group: "${{ inputs.environment }}-${{ inputs.release_tag }}"
-      cancel-in-progress: false
-    needs:
-      - manual-approval-application-infra
-    uses: ./.github/workflows/deploy-application-infrastructure.yaml
-    with:
-      environment: ${{ inputs.environment }}
-      workspace: default
-      application_tag: ${{ inputs.release_tag }}
-      release_tag: ${{ inputs.release_tag }}
-      action: apply
+      tag: ${{ inputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
   deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
+    name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ inputs.environment }} environment"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-default"
+      group: "${{ inputs.environment }}-default"
       cancel-in-progress: false
     needs:
       - metadata
-      - apply-application-infra
+      - deploy-application-infrastructure
     strategy:
       matrix:
         include:
@@ -139,27 +110,26 @@ jobs:
     secrets: inherit
 
   service-automation-tests:
-    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
+    name: "Run service automation tests on ${{ inputs.environment }}"
     needs:
       - metadata
-      - manual-approval-application-infra
-      - apply-application-infra
+      - deploy-application-infrastructure
       - deploy-frontend-services
     if: |
       always() &&
-      ${{ needs.metadata.outputs.environment != 'prod' }} &&
+      ${{ inputs.environment != 'prod' }} &&
       !cancelled() &&
       (
         needs.restore-dynamodb-from-s3.result == 'success' ||
         (
           needs.restore-dynamodb-from-s3.result == 'skipped' &&
-          (needs.export-dynamodb-to-s3.result == 'success' || needs.manual-approval-application-infra.result == 'skipped')
+          (needs.export-dynamodb-to-s3.result == 'success' || needs.deploy-application-infrastructure.result == 'success')
         )
       )
     uses: ./.github/workflows/service-automation-test.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: ${{ inputs.environment }}
+      workspace: default
       tag: ${{ inputs.release_tag }}
       test_tag: "ftrs-pipeline"
       test_type: "api"
@@ -173,9 +143,7 @@ jobs:
       - metadata
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
-      - plan-application-infra
-      - manual-approval-application-infra
-      - apply-application-infra
+      - deploy-application-infrastructure
       - deploy-frontend-services
       - service-automation-tests
     if: always()
@@ -188,14 +156,12 @@ jobs:
       - metadata
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
-      - plan-application-infra
-      - manual-approval-application-infra
-      - apply-application-infra
+      - deploy-application-infrastructure
       - deploy-frontend-services
       - service-automation-tests
       - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: ${{ needs.metadata.outputs.environment }}
+      env: ${{ inputs.environment }}
     secrets: inherit
