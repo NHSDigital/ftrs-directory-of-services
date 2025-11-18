@@ -32,6 +32,12 @@ TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
 export TF_VAR_stack_name
 export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
 
+# Override ENVIRONMENT to non-prod for account_policies stack
+if [ "$STACK" = "account_policies" ] ; then
+  export ENVIRONMENT="non-prod"
+  echo "Stack is account_policies - overriding ENVIRONMENT to non-prod"
+fi
+
 # needed for terraform management stack
 export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"

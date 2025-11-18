@@ -144,12 +144,9 @@ jobs:
             fi
           fi
 
-          # Setting account type same as the environment
-          account_type=$environment
-
           # Output results
           echo "environment=$environment" >> $GITHUB_OUTPUT
-          echo "account_type=$account_type" >> $GITHUB_OUTPUT
+          echo "account_type=$environment" >> $GITHUB_OUTPUT
 
           echo "The determined environment is: $environment"
           echo "The determined account type is: $account_type"
