@@ -6,8 +6,8 @@ This document explains how the service-local FTRS logging wrapper works and how 
 
 ## Files covered
 
-- `services/dos-search/functions/ftrs_logger.py` — the FTRS logging wrapper used by this service. It builds the structured `extra` payload (ftrs*\*, nhsd*\_, Opt\_\_ fields) and delegates top-level metadata (timestamp, location, `function_name`, `xray_trace_id`, etc.) to aws_lambda_powertools' `Logger`.
-- `services/dos-search/functions/dos_search_ods_code_function.py` — the Lambda handler. It calls `ftrs_logger.info(...)` for request and response logging and demonstrates passing response metrics back to the logger.
+- `services/dos-search/functions/dos_logger.py` — the FTRS logging wrapper used by this service. It builds the structured `extra` payload (ftrs*\*, nhsd*\_, Opt\_\_ fields) and delegates top-level metadata (timestamp, location, `function_name`, `xray_trace_id`, etc.) to aws_lambda_powertools' `Logger`.
+- `services/dos-search/functions/dos_search_ods_code_function.py` — the Lambda handler. It calls `dos_logger.info(...)` for request and response logging and demonstrates passing response metrics back to the logger.
 
 ## Goals and behavior
 
@@ -19,17 +19,17 @@ This document explains how the service-local FTRS logging wrapper works and how 
 
 ### \_last_log_data
 
-- To ensure the key fields are present in all logs without having to pass the bulky event object around, the FtrsLogger class persists the last specified `log_data` keyword argument via this attribute.
+- To ensure the key fields are present in all logs without having to pass the bulky event object around, the DosLogger class persists the last specified `log_data` keyword argument via this attribute.
 ```python
-  ftrs_logger = FtrsLogger
+  dos_logger = DosLogger
 
-  log_data = FtrsLogger.extract(event)
+  log_data = DosLogger.extract(event)
 
-  ftrs_logger.info("Message", log_data=log_data)
-  ftrs_logger.warning("Message")
+  dos_logger.info("Message", log_data=log_data)
+  dos_logger.warning("Message")
   # Outputs warning log with `log_data` due to earlier call to `info` method
 ```
 
-- Due to this, it is important that all modules use the same instance of the logger rather than creating their own. The common logger used by all current modules is declared in `/functions/ftrs_logger.py`
+- Due to this, it is important that all modules use the same instance of the logger rather than creating their own. The common logger used by all current modules is declared in `/functions/dos_logger.py`
 
 - To explicitly avoid the accidental persisting of identifying information (such as ID values) and therefore contaminating our logs, all Lambda functions should call the provided helper cleanup method `clear_log_data` just before ending execution, such as immediately before the response is returned. See `/functions/dos_search_ods_code_function.py` for reference.

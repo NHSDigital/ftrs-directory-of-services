@@ -8,8 +8,8 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.ftrs_logger import FtrsLogger, ftrs_logger
 from functions.ftrs_service.ftrs_service import FtrsService
+from functions.logging.dos_logger import DosLogger, dos_logger
 from functions.organization_query_params import OrganizationQueryParams
 
 logger = Logger()
@@ -21,23 +21,23 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    log_data = FtrsLogger.extract(app.current_event)
+    log_data = DosLogger.extract(app.current_event)
     details = log_data.pop("details")
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
-        ftrs_logger.info("Logging one-time fields", log_data=log_data, **details)
+        dos_logger.info("Logging one-time fields", log_data=log_data, **details)
 
         ods_code = validated_params.ods_code
         # Structured request log
-        ftrs_logger.info("Received request for odsCode", ods_code=ods_code)
+        dos_logger.info("Received request for odsCode", ods_code=ods_code)
 
         ftrs_service = FtrsService()
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
 
     except ValidationError as exception:
         # Log warning with structured fields
-        ftrs_logger.warning(
+        dos_logger.warning(
             "Validation error occurred",
             log_data=log_data,
             validation_errors=exception.errors(),
@@ -46,7 +46,7 @@ def get_organization() -> Response:
         return create_response(400, fhir_resource)
     except Exception:
         # Log exception with structured fields
-        ftrs_logger.exception("Internal server error occurred", log_data=log_data)
+        dos_logger.exception("Internal server error occurred", log_data=log_data)
         fhir_resource = error_util.create_resource_internal_server_error()
         return create_response(500, fhir_resource)
     else:
@@ -59,7 +59,7 @@ def get_organization() -> Response:
         except Exception:
             response_size = None
 
-        ftrs_logger.info(
+        dos_logger.info(
             "Successfully processed",
             log_data=log_data,
             opt_ftrs_response_time=f"{duration_ms}ms",
@@ -71,9 +71,9 @@ def get_organization() -> Response:
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
-    ftrs_logger.info("Creating response", status_code=status_code)
+    dos_logger.info("Creating response", status_code=status_code)
     # Clears cached log data at final stage to prevent accidental persisting of ID values
-    ftrs_logger.clear_log_data()
+    dos_logger.clear_log_data()
     return Response(
         status_code=status_code,
         content_type="application/fhir+json",
