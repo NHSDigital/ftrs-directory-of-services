@@ -44,6 +44,13 @@ jobs:
           echo "Environment: ${{ inputs.environment }}"
           echo "Workspace: ${{ inputs.workspace }}"
           echo "API Name: ${{ inputs.api_name }}"
+          echo "Proxy Env: ${{ inputs.proxy_env }}"
+          # Check if access_token input is received (without exposing value)
+          if [ -z "${{ inputs.access_token }}" ]; then
+            echo "ERROR: access_token input is EMPTY at workflow level"
+            exit 1
+          fi
+          echo "access_token input received (length: ${{ length(inputs.access_token) }} characters)"
 
       - name: Deploy API Specification
         uses: ./.github/actions/deploy-to-proxygen

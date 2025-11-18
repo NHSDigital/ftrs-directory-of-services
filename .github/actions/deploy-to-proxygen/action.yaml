@@ -58,7 +58,6 @@ runs:
         # Debug: Check if ACCESS_TOKEN is set
         if [ -z "$ACCESS_TOKEN" ]; then
           echo "ERROR: ACCESS_TOKEN is empty after assignment from inputs"
-          echo "Input value length: ${#{{ inputs.access_token }}}"
           exit 1
         fi
         echo "ACCESS_TOKEN is set (length: ${#ACCESS_TOKEN} characters)"
