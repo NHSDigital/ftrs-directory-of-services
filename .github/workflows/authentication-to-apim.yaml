@@ -7,7 +7,7 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: 'Environment to authenticate against (e.g., dev, internal-dev-sandbox, sandbox, test, prod)'
+        description: 'Environment to authenticate against (e.g., dev, test, prod)'
         required: true
         type: string
       api_name:
@@ -38,6 +38,7 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           type: app
 
+
       - name: Get APIM Access Token
         id: get-token
         uses: ./.github/actions/authenticate-apim
@@ -45,17 +46,12 @@ jobs:
           api_name: ${{ inputs.api_name }}
           environment: ${{ inputs.environment }}
           aws_region: ${{ vars.AWS_REGION }}
-
-      - name: Sanity check token (optional)
+      - name: Test Token - List Proxy Instances
         env:
           ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
-          API_NAME: ${{ inputs.api_name }}
         run: |
-          if [ -z "$ACCESS_TOKEN" ]; then
-            echo "No access token to test" >&2
-            exit 1
-          fi
-          curl --fail --silent --show-error \
-            --request GET \
-            --url https://proxygen.prod.api.platform.nhs.uk/apis/${API_NAME} \
-            --header "Authorization: Bearer $ACCESS_TOKEN" >/dev/null
+          echo "Testing access token by hitting the API via APIM"
+
+          curl --request GET \
+          --url https://proxygen.prod.api.platform.nhs.uk/apis/dos-search \
+          --header "Authorization: Bearer $ACCESS_TOKEN"

@@ -11,7 +11,8 @@ SHELL := /bin/bash
 SERVICE ?= dos-search-sandbox
 AWS_REGION ?= eu-west-2
 PROXYGEN_CLI ?= proxygen
-PROXYGEN_API_NAME ?= dos-search_FHIR_R4
+PROXYGEN_API_NAME ?= dos-search
+PROXYGEN_INSTANCE_NAME ?= dos-search_FHIR_R4
 PROXYGEN_ENV ?= internal-dev-sandbox
 PROXYGEN_TOKEN_SCRIPT ?= ../../../scripts/workflow/get-apim-token.sh
 BUILD_DIR := ../../build/services/${SERVICE}
@@ -26,6 +27,7 @@ SMOKE_SCRIPT := ./scripts/smoke.sh
 .PHONY: print-proxygen-config
 print-proxygen-config:
 	@echo "PROXYGEN_API_NAME=${PROXYGEN_API_NAME}"
+	@echo "PROXYGEN_INSTANCE_NAME=${PROXYGEN_INSTANCE_NAME}"
 	@echo "PROXYGEN_ENV=${PROXYGEN_ENV}"
 	@echo "AWS_REGION=${AWS_REGION}"
 	@echo "PROXYGEN_SPEC_PATH=${PROXYGEN_SPEC_PATH}"
@@ -137,4 +139,4 @@ publish:
 		echo "${PROXYGEN_CLI} CLI not found on PATH"; \
 		exit 1; \
 	fi
-	PROXYGEN_ACCESS_TOKEN="$$DEPLOY_TOKEN" ${PROXYGEN_CLI} instance deploy ${PROXYGEN_ENV} ${PROXYGEN_API_NAME} "${PROXYGEN_SPEC_PATH}"
+	PROXYGEN_ACCESS_TOKEN="$$DEPLOY_TOKEN" ${PROXYGEN_CLI} instance deploy ${PROXYGEN_ENV} ${PROXYGEN_INSTANCE_NAME} "${PROXYGEN_SPEC_PATH}"
