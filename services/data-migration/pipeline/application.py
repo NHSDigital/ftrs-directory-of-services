@@ -14,6 +14,7 @@ from pipeline.utils.config import DataMigrationConfig
 class DMSEvent(BaseModel):
     type: Literal["dms_event"] = "dms_event"
     record_id: int
+    service_id: int
     table_name: str
     method: str
 
@@ -57,6 +58,8 @@ class DataMigrationApplication:
         match event.table_name:
             case "services":
                 return self.processor.sync_service(event.record_id, event.method)
+            case "serviceendpoints":
+                return self.handle_endpoint_event(event)
 
         self.logger.log(
             DataMigrationLogBase.DM_ETL_011,
@@ -116,3 +119,6 @@ class DataMigrationApplication:
             logger=self.logger,
             config=self.config,
         )
+
+    def handle_endpoint_event(self, event: DMSEvent) -> None:
+        return self.processor.sync_service(event.service_id, event.method)
