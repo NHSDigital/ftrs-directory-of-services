@@ -34,7 +34,8 @@ IGNORED_PATHS = [
 
 scenarios(
     "../features/data_migration_features/gp_practice_migration_happy_path.feature",
-    "../features/data_migration_features/gp_enhanced_access_happy_path.feature"
+    "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
+    "../features/data_migration_features/age_range_tranformation.feature"
 )
 
 @given("the data migration system is ready")
