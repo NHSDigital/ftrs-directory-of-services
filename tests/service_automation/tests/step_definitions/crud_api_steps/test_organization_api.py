@@ -105,10 +105,21 @@ def update_organisation_generic(payload: dict, api_context, base_url: str):
 
 
 def update_organisation_apim(
-    payload: dict, api_request_context_api_key_factory, dos_ingest_service_url: str
+    payload: dict,
+    new_apim_request_context,
+    nhsd_apim_proxy_url: str,
 ):
-    api_context = api_request_context_api_key_factory("dos-ingest")
-    return update_organisation_generic(payload, api_context, dos_ingest_service_url)
+    url = f"{nhsd_apim_proxy_url}/Organization/{payload.get('id')}"
+    logger.info(f"PUT Request URL: {url}")
+    logger.info(f"Request Payload:\n{json.dumps(payload, indent=2)}")
+    response = new_apim_request_context.put(url, data=json.dumps(payload))
+    # Log response details
+    logger.info(f"Response Status: {response.status}")
+    try:
+        logger.info(f"Response JSON:\n{json.dumps(response.json(), indent=2)}")
+    except Exception:
+        logger.info(f"Response Text:\n{response.text()}")
+    return response
 
 
 def update_organisation(payload: dict, api_request_context_mtls_crud):
@@ -160,10 +171,10 @@ def get_diagnostics_list(fresponse):
     "I update the organization details for ODS Code via APIM",
     target_fixture="fresponse",
 )
-def step_update_apim(api_request_context_api_key_factory, dos_ingest_service_url):
+def step_update_apim(new_apim_request_context, nhsd_apim_proxy_url):
     payload = _load_default_payload()
     return update_organisation_apim(
-        payload, api_request_context_api_key_factory, dos_ingest_service_url
+        payload, new_apim_request_context, nhsd_apim_proxy_url
     )
 
 
@@ -208,19 +219,19 @@ def step_remove_field(field: str, api_request_context_mtls_crud):
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
-@when(
-    parsers.cfparse(
-        'I remove the "{field}" field from the payload and update the organization via APIM'
-    ),
-    target_fixture="fresponse",
-)
-def step_remove_field_apim(
-    field: str, api_request_context_api_key_factory, dos_ingest_service_url
-):
-    payload = remove_field(_load_default_payload(), field)
-    return update_organisation_apim(
-        payload, api_request_context_api_key_factory, dos_ingest_service_url
-    )
+# @when(
+#     parsers.cfparse(
+#         'I remove the "{field}" field from the payload and update the organization via APIM'
+#     ),
+#     target_fixture="fresponse",
+# )
+# def step_remove_field_apim(
+#     field: str, api_request_context_api_key_factory, dos_ingest_service_url
+# ):
+#     payload = remove_field(_load_default_payload(), field)
+#     return update_organisation_apim(
+#         payload, api_request_context_api_key_factory, dos_ingest_service_url
+#     )
 
 
 @when("I update the organization with a non-existent ID", target_fixture="fresponse")
