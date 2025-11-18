@@ -61,7 +61,7 @@ def modify_spec(spec_file, workspace, api_name, environment):
             # https://dos-search-ftrs-000.dev.ftrs.cloud.nhs.uk
             parts = original_url.replace('https://', '').split('.', 1)
             if len(parts) == 2:
-                spec['x-nhsd-apim']['target']['url'] = f"https://{parts[0]}-{workspace.lower()}.{parts[1]}"
+                spec['x-nhsd-apim']['target']['url'] = f"https://{parts[0]}-{workspace}.{parts[1]}"
 
         # Update servers to match Proxygen format requirements
         # Only update internal-dev server for internal-dev environment
@@ -76,7 +76,7 @@ def modify_spec(spec_file, workspace, api_name, environment):
                         path_segments = '/'.join(url_parts[4:]) if len(url_parts) > 4 else ''
 
                         # Build new URL with workspace
-                        instance_name = f"{api_name}-{workspace.lower()}"
+                        instance_name = f"{api_name}-{workspace}"
                         if path_segments:
                             server['url'] = f"https://internal-dev.api.service.nhs.uk/{instance_name}/{path_segments}"
                         else:
@@ -125,21 +125,17 @@ python3 -c "import json; f=open('$MODIFIED_SPEC'); spec=json.load(f); print(f\"F
 # Set Proxygen API URL
 PROXYGEN_URL="https://proxygen.prod.api.platform.nhs.uk"
 
-# Convert workspace to lowercase using tr
-WORKSPACE_LOWER=$(echo "$WORKSPACE" | tr '[:upper:]' '[:lower:]')
-
 # Set instance name based on environment
 if [ "$PROXY_ENV" = "internal-dev" ]; then
     # For internal-dev, include the full path as instance name
     # e.g., dos-search-ftrs-000_FHIR_R4
-    INSTANCE_NAME="${API_NAME}-${WORKSPACE_LOWER}_FHIR_R4"
+    INSTANCE_NAME="${API_NAME}-${WORKSPACE}_FHIR_R4"
 else
     # For other environments, use just the API_NAME
     INSTANCE_NAME="${API_NAME}"
 fi
 
 echo "Debug: WORKSPACE=$WORKSPACE" >&2
-echo "Debug: WORKSPACE_LOWER=$WORKSPACE_LOWER" >&2
 echo "Debug: API_NAME=$API_NAME" >&2
 echo "Debug: PROXY_ENV=$PROXY_ENV" >&2
 echo "Using instance name: $INSTANCE_NAME" >&2
