@@ -36,7 +36,7 @@ runs:
           echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)"
           exit 1
         fi
-        echo "âœ" Workspace format validated: ${{ inputs.workspace }}"
+        echo "Workspace format validated: ${{ inputs.workspace }}"
 
     - name: Deploy to Proxygen
       id: deploy
