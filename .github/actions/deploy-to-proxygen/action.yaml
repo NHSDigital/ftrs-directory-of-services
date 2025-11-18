@@ -45,15 +45,23 @@ runs:
       id: deploy
       shell: bash
       run: |
-        export API_NAME=${{ inputs.api_name }}
+        export API_NAME="${{ inputs.api_name }}"
         echo "API Name: $API_NAME"
-        export WORKSPACE=${{ inputs.workspace }}
+        export WORKSPACE="${{ inputs.workspace }}"
         echo "Workspace: $WORKSPACE"
-        export ENV=${{ inputs.environment }}
+        export ENV="${{ inputs.environment }}"
         echo "Environment: $ENV"
-        export PROXY_ENV=${{ inputs.proxy_env }}
+        export PROXY_ENV="${{ inputs.proxy_env }}"
         echo "Proxy Environment: $PROXY_ENV"
-        export ACCESS_TOKEN=${{ inputs.access_token }}
+        export ACCESS_TOKEN="${{ inputs.access_token }}"
+
+        # Debug: Check if ACCESS_TOKEN is set
+        if [ -z "$ACCESS_TOKEN" ]; then
+          echo "ERROR: ACCESS_TOKEN is empty after assignment from inputs"
+          echo "Input value length: ${#{{ inputs.access_token }}}"
+          exit 1
+        fi
+        echo "ACCESS_TOKEN is set (length: ${#ACCESS_TOKEN} characters)"
 
         chmod +x ./scripts/workflow/deploy-to-proxygen.sh
         RESPONSE=$(./scripts/workflow/deploy-to-proxygen.sh)
