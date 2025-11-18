@@ -1,0 +1,102 @@
+name: Authenticate and Deploy API to Proxygen
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      workspace:
+        description: 'Workspace identifier (e.g., FTRS-000)'
+        required: true
+        type: string
+      api_name:
+        description: 'API name'
+        required: true
+        type: string
+      proxy_env:
+        description: 'Proxy environment (e.g., internal-dev)'
+        required: true
+        type: string
+    secrets:
+      ACCOUNT_ID:
+        description: 'AWS Account ID'
+        required: true
+      AWS_REGION:
+        description: 'AWS Region'
+        required: true
+
+jobs:
+  authenticate-and-deploy:
+    name: Authenticate and Deploy to Proxygen
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure AWS Credentials
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          type: app
+
+      - name: Get APIM Access Token
+        id: get-token
+        uses: ./.github/actions/authenticate-apim
+        with:
+          api_name: ${{ inputs.api_name }}
+          environment: ${{ inputs.environment }}
+          aws_region: ${{ secrets.AWS_REGION }}
+
+      - name: Verify Token Output
+        run: |
+          if [ -z "${{ steps.get-token.outputs.access_token }}" ]; then
+            echo "ERROR: access_token output from authenticate-apim action is EMPTY"
+            exit 1
+          fi
+          echo "✓ Token output verified"
+
+      - name: Test Token - List Proxy Instances
+        env:
+          ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
+        run: |
+          echo "Testing access token by hitting the API via APIM"
+
+          curl --request GET \
+          --url https://proxygen.prod.api.platform.nhs.uk/apis/dos-search \
+          --header "Authorization: Bearer $ACCESS_TOKEN"
+
+      - name: Deploy API Specification
+        uses: ./.github/actions/deploy-to-proxygen
+        with:
+          api_name: ${{ inputs.api_name }}
+          workspace: ${{ inputs.workspace }}
+          environment: ${{ inputs.environment }}
+          proxy_env: ${{ inputs.proxy_env }}
+          access_token: ${{ steps.get-token.outputs.access_token }}
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Complete 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| API Name | \`${{ inputs.api_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Workspace | \`${{ inputs.workspace }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ inputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "### Deployment Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The deployment to Proxygen failed. Please check the logs above for details." >> $GITHUB_STEP_SUMMARY

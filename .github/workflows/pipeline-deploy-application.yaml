@@ -39,34 +39,25 @@ jobs:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
 
-  authenticate-with-apim:
-    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
+  authenticate-and-deploy-to-apim:
+    name: "Authenticate and Deploy DOS Search API to Proxygen in ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
-    uses: ./.github/workflows/authentication-to-apim.yaml
+    uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
-    secrets: inherit
-
-  deploy-to-apim:
-    name: "Deploy DOS Search API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      - authenticate-with-apim
-    uses: ./.github/workflows/deploy-to-proxygen.yaml
-    with:
       api_name: "dos-search"
       workspace: ${{ needs.metadata.outputs.workspace }}
-      environment: ${{ needs.metadata.outputs.environment }}
       proxy_env: "internal-dev"
-      access_token: ${{ needs.authenticate-with-apim.outputs.access_token }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
 
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
       - metadata
-      - deploy-to-apim
+      - authenticate-and-deploy-to-apim
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
