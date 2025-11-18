@@ -214,10 +214,6 @@ jobs:
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
           RELEASE_BUILD: ${{ inputs.release_build }}
-          PROXYGEN_ACCESS_TOKEN: ${{ inputs.proxygen_access_token }}
-          PROXYGEN_API_NAME: ${{ inputs.proxygen_api_name }}
-          PROXYGEN_ENV: ${{ inputs.proxygen_env }}
-          AWS_REGION: ${{ inputs.aws_region }}
 
       - name: "Publish artefacts to GitHub"
         if: ${{ !inputs.skip_publish }}
