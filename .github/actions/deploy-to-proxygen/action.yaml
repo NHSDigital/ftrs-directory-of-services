@@ -32,8 +32,8 @@ runs:
     - name: Validate workspace format
       shell: bash
       run: |
-        if [[ ! "${{ inputs.workspace }}" =~ ^[A-Z]+-[0-9]{3}$ ]]; then
-          echo "Error: Workspace must be in format XXXX-000 (e.g., FTRS-000)"
+        if [[ ! "${{ inputs.workspace }}" =~ ^ftrs-[0-9]+$ ]]; then
+          echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)"
           exit 1
         fi
         echo "âœ" Workspace format validated: ${{ inputs.workspace }}"
