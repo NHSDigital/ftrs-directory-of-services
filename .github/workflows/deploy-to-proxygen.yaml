@@ -42,14 +42,6 @@ on:
         type: string
 
 jobs:
-  authenticate:
-    name: Authenticate with APIM
-    uses: ./.github/workflows/authentication-to-apim.yaml
-    with:
-      environment: ${{ inputs.environment }}
-      api_name: ${{ inputs.api_name }}
-    secrets: inherit
-
   deploy:
     name: Deploy to Proxygen
     needs: authenticate
@@ -73,7 +65,7 @@ jobs:
           api_name: ${{ inputs.api_name }}
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
-          access_token: ${{ needs.authenticate.outputs.access_token }}
+          access_token: ${{ inputs.access_token }}
 
       - name: Deployment Summary
         run: |
