@@ -21,32 +21,35 @@
 
 ```bash
 # From the repository root
-cd sandbox/dos-search
+cd services/dos-search/sandbox
 ```
 
 Or build from the repository root without changing directories:
 
 ```bash
 # Run from the repository root
-docker build -t dos-search:local sandbox/dos-search
+DOCKER_BUILDKIT=1 docker build -t dos-search-sandbox:local services/dos-search/sandbox
 ```
 
-1. Build (when inside `sandbox/dos-search`)
+1. Build (when inside `services/dos-search/sandbox`)
 
 ```bash
-docker build -t dos-search:local .
+make build
+# or docker build -t dos-search-sandbox:local .
 ```
 
 1. Run
 
 ```bash
-docker run --rm -p 9000:9000 dos-search:local
+make unit-test # runs the container and smoke tests locally
+# or run the container manually:
+docker run --rm -p 9000:9000 dos-search-sandbox:local
 ```
 
 Tip: Add `-d` to run in detached mode so you can use the same terminal to run the curl commands below:
 
 ```bash
-docker run -d --rm -p 9000:9000 dos-search:local
+docker run -d --rm -p 9000:9000 dos-search-sandbox:local
 ```
 
 1. Try it
@@ -72,8 +75,7 @@ curl -i -H "Accept: application/fhir+json" \
 1. Run smoke tests (optional)
 
 ```bash
-# From the sandbox/dos-search directory
-test -x scripts/smoke.sh || chmod +x scripts/smoke.sh
+# From the services/dos-search/sandbox directory
 BASE_URL=http://localhost:9000 ./scripts/smoke.sh
 ```
 
@@ -85,32 +87,32 @@ You can use Podman with equivalent commands.
 
 ```bash
 # From the repository root
-cd sandbox/dos-search
-podman build -t dos-search:local .
+cd services/dos-search/sandbox
+podman build -t dos-search-sandbox:local .
 ```
 
 - Or build from the repository root without changing directories:
 
 ```bash
-podman build -t dos-search:local sandbox/dos-search
+podman build -t dos-search-sandbox:local services/dos-search/sandbox
 ```
 
 - Run the container:
 
 ```bash
-podman run --rm -p 9000:9000 dos-search:local
+podman run --rm -p 9000:9000 dos-search-sandbox:local
 ```
 
 Tip: Add `-d` to run in detached mode so you can use the same terminal to run the curl commands below:
 
 ```bash
-podman run -d --rm -p 9000:9000 dos-search:local
+podman run -d --rm -p 9000:9000 dos-search-sandbox:local
 ```
 
 - Smoke test (optional):
 
 ```bash
-# From the sandbox/dos-search directory
+# From the services/dos-search/sandbox directory
 BASE_URL=http://localhost:9000 ./scripts/smoke.sh
 ```
 
