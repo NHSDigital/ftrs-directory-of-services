@@ -25,6 +25,10 @@ on:
         required: true
         type: string
         default: 'dos-search'
+      access_token:
+        description: 'Access token for authentication'
+        required: true
+        type: string
 
   workflow_call:
     inputs:
@@ -40,11 +44,14 @@ on:
         description: 'API name'
         required: true
         type: string
+      access_token:
+        description: 'Access token for authentication'
+        required: true
+        type: string
 
 jobs:
   deploy:
     name: Deploy to Proxygen
-    needs: authenticate
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -76,7 +83,7 @@ jobs:
           echo "| API Name | \`${{ inputs.api_name }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Workspace | \`${{ inputs.workspace }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Environment | \`${{ inputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Status | âœ" Success |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify on failure
         if: failure()
