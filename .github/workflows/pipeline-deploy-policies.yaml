@@ -29,6 +29,7 @@ on:
           - test
           - sandpit
           - int
+          - ref
           - prod
   workflow_call:
     inputs:

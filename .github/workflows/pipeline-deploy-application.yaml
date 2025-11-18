@@ -31,6 +31,7 @@ on:
           - test
           - sandpit
           - int
+          - ref
           - prod
 
 jobs:
@@ -127,6 +128,17 @@ jobs:
     steps:
       - name: Approval required
         run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+
+  authenticate-with-apim:
+    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/authentication-to-apim.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
+    secrets: inherit
 
   apply-infrastructure:
     name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
