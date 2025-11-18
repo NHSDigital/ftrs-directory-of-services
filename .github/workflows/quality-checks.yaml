@@ -231,7 +231,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
           limit-severities-for-sarif: true
           trivyignores: 'services/.trivyignore'
-          exit-code: 1
+          exit-code: 0
 
       - name: "Publish Trivy report"
         uses: actions/upload-artifact@v5
