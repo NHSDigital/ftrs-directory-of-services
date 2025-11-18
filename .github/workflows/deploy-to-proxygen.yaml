@@ -19,6 +19,10 @@ on:
         description: 'API name'
         required: true
         type: string
+      proxy_env:
+        description: 'Proxy environment (e.g., internal-dev)'
+        required: true
+        type: string
       access_token:
         description: 'Access token for authentication'
         required: true
@@ -47,6 +51,7 @@ jobs:
           api_name: ${{ inputs.api_name }}
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
+          proxy_env: ${{ inputs.proxy_env }}
           access_token: ${{ inputs.access_token }}
 
       - name: Deployment Summary
