@@ -39,6 +39,11 @@ resource "aws_instance" "performance" {
 
   instance_initiated_shutdown_behavior = "stop"
 
+  tags = {
+    Name = local.performance_name
+    Role = "performance"
+  }
+
 
   depends_on = [
     aws_iam_role_policy_attachment.ec2_performance_ssm_core
