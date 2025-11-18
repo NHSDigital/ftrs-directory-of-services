@@ -185,7 +185,9 @@ jobs:
           PROXYGEN_ENV: ${{ needs.resolve-sandbox-config.outputs.PROXYGEN_ENV }}
           PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim-sandbox.outputs.access_token }}
           AWS_REGION: ${{ needs.resolve-sandbox-config.outputs.AWS_REGION || vars.AWS_REGION }}
-        run: make push
+        run: |
+          COMMIT_HASH=${{ github.sha }} make build
+          COMMIT_HASH=${{ github.sha }} make unit-test
       - name: Publish sandbox proxy configuration
         working-directory: services/dos-search/sandbox
         env:
