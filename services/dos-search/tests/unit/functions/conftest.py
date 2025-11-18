@@ -3,10 +3,10 @@ from unittest.mock import patch
 import pytest
 
 
-# Fixtures extracted from functions/test_dos_search_ods_code_function.py to support functions/test_ftrs_logger.py
+# Fixtures extracted from functions/test_dos_search_ods_code_function.py to support functions/test_dos_logger.py
 @pytest.fixture
 def mock_logger():
-    with patch("functions.dos_search_ods_code_function.ftrs_logger") as mock:
+    with patch("functions.dos_search_ods_code_function.dos_logger") as mock:
         yield mock
 
 
@@ -35,26 +35,26 @@ def event(ods_code):
 @pytest.fixture
 def log_data():
     return {
-        "logger": "ftrs_logger",
-        "ftrs_nhsd_correlation_id": "correlation_id",
-        "ftrs_nhsd_request_id": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_message_id": "FTRS_LOG_PLACEHOLDER",
-        "ftrs_message_category": "LOGGING",
+        "logger": "dos_logger",
+        "dos_nhsd_correlation_id": "correlation_id",
+        "dos_nhsd_request_id": "DOS_LOG_PLACEHOLDER",
+        "dos_message_id": "DOS_LOG_PLACEHOLDER",
+        "dos_message_category": "LOGGING",
     }
 
 
 @pytest.fixture
 def details(event):
     return {
-        "opt_ftrs_environment": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_api_version": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_lambda_version": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_response_time": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_response_size": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_end_user_role": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_client_id": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_application_name": "FTRS_LOG_PLACEHOLDER",
-        "opt_ftrs_request_params": {
+        "opt_dos_environment": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_api_version": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_lambda_version": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_response_time": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_response_size": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_end_user_role": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_client_id": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_application_name": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_request_params": {
             "query_params": event.get("queryStringParameters") or {},
             "path_params": event.get("pathParams") or {},
             "request_context": event.get("requestContext") or {},

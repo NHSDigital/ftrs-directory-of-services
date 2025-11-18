@@ -5,23 +5,23 @@ from typing import Any, Dict, Optional
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 
 
-class FtrsLogger:
-    """Service-local wrapper that adds FTRS structured fields to powertools logs.
+class DosLogger:
+    """Service-local wrapper that adds DOS structured fields to powertools logs.
 
     Usage:
-        f = FtrsLogger(service='dos-search')
+        f = DosLogger(service='dos-search')
         f.info('message', event=my_event)
 
     Behavior:
     - Takes in a log_data field alongside any other extra fields
     - Calls powertools Logger with `extra=...` so powertools merges it into its JSON output
     - Optionally prints a debug preview when debug=True
-    - Placeholder for missing values is configurable via ENV `FTRS_LOG_PLACEHOLDER` (default 'TBC').
+    - Placeholder for missing values is configurable via ENV `DOS_LOG_PLACEHOLDER` (default 'TBC').
         If set to 'NULL' the wrapper will emit Python None (JSON null) for missing values.
     TODO: Add logic to persist last logged fields for future calls if log_data is not provided
     """
 
-    def __init__(self, service: str = "ftrs", debug: bool = False) -> None:
+    def __init__(self, service: str = "dos", debug: bool = False) -> None:
         self._logger = PowertoolsLogger(service=service)
         self._service = service
         self.debug = debug
@@ -42,9 +42,9 @@ class FtrsLogger:
         Optional one-time fields are prefixed with 'Opt_'.
 
         Extracts are handled here as passing the entire event object to the handler presents issues for the pytest library mocks.
-        Extracts could be moved back to the FtrsLogger class, but would more or less require the test mocks to implement log_data=ANY in each call, which may obfuscate more information
+        Extracts could be moved back to the DosLogger class, but would more or less require the test mocks to implement log_data=ANY in each call, which may obfuscate more information
         """
-        placeholder = "FTRS_LOG_PLACEHOLDER"
+        placeholder = "DOS_LOG_PLACEHOLDER"
 
         headers = event.get("headers") or {}
         hdr_lower = {k.lower(): v for k, v in headers.items()}
@@ -63,27 +63,27 @@ class FtrsLogger:
             return None
 
         out: Dict[str, Any] = {
-            "logger": "ftrs_logger"  # Identifier for when logs are created using our logger
+            "logger": "dos_logger"  # Identifier for when logs are created using our logger
         }
 
-        # Mandatory/default ftrs fields
+        # Mandatory/default DOS fields
         # NHSD correlation id
         corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
-        out["ftrs_nhsd_correlation_id"] = corr
+        out["dos_nhsd_correlation_id"] = corr
 
         # NHSD request id
         reqid = h("NHSD-Request-ID") or placeholder
-        out["ftrs_nhsd_request_id"] = reqid
+        out["dos_nhsd_request_id"] = reqid
 
         # APIM message id
         msgid = (
-            h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "ftrs-message-id")
+            h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "dos-message-id")
             or placeholder
         )
-        out["ftrs_message_id"] = msgid
+        out["dos_message_id"] = msgid
 
         # Default category to LOGGING, can be overridden later
-        out["ftrs_message_category"] = "LOGGING"
+        out["dos_message_category"] = "LOGGING"
 
         # One-time fields added to "details" to separate
         out["details"] = {}
@@ -97,15 +97,15 @@ class FtrsLogger:
             .get("end_user_role")
             or placeholder
         )
-        details["opt_ftrs_end_user_role"] = end_user_role
+        details["opt_dos_end_user_role"] = end_user_role
 
         client_id = h("x-client-id") or event.get("client_id") or placeholder
-        details["opt_ftrs_client_id"] = client_id
+        details["opt_dos_client_id"] = client_id
 
         app_name = (
             h("x-application-name") or event.get("application_name") or placeholder
         )
-        details["opt_ftrs_application_name"] = app_name
+        details["opt_dos_application_name"] = app_name
 
         # Request params (queryStringParameters + pathParameters)
         req_params: Dict[str, Any] = {}
@@ -122,23 +122,23 @@ class FtrsLogger:
         req_params["path_params"] = path_params
         req_params["request_context"] = request_context
 
-        details["opt_ftrs_request_params"] = req_params or {}
+        details["opt_dos_request_params"] = req_params or {}
 
-        details["opt_ftrs_response_time"] = placeholder
+        details["opt_dos_response_time"] = placeholder
 
-        details["opt_ftrs_environment"] = (
+        details["opt_dos_environment"] = (
             os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
         )
 
-        details["opt_ftrs_api_version"] = (
+        details["opt_dos_api_version"] = (
             h("x-api-version", "api-version") or placeholder
         )
 
-        details["opt_ftrs_lambda_version"] = (
+        details["opt_dos_lambda_version"] = (
             os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
         )
 
-        details["opt_ftrs_response_size"] = placeholder
+        details["opt_dos_response_size"] = placeholder
 
         return out
 
@@ -148,7 +148,7 @@ class FtrsLogger:
         Best-effort: if powertools Logger implements append_keys we call it; otherwise ignore.
         """
         try:
-            corr = extra.get("ftrs_nhsd_correlation_id")
+            corr = extra.get("dos_nhsd_correlation_id")
             if corr and corr != self._placeholder():
                 append = getattr(self._logger, "append_keys", None)
                 if callable(append):
@@ -181,9 +181,9 @@ class FtrsLogger:
         # convert detail (kwargs) to dict for manipulation
         detail_map = dict(detail) if detail else {}
 
-        # Allow certain ftrs_* fields to be provided as top-level overrides
+        # Allow certain dos_* fields to be provided as top-level overrides
         override_keys = {
-            "ftrs_message_category",
+            "dos_message_category",
         }
         if detail_map:
             for k in list(detail_map.keys()):
@@ -239,4 +239,4 @@ class FtrsLogger:
 
 # Instantiate logger here to allow import to sub-directories
 service = "dos-search"
-ftrs_logger = FtrsLogger(service=service)
+dos_logger = DosLogger(service=service)
