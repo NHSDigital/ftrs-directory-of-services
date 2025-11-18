@@ -43,9 +43,11 @@ runs:
       shell: bash
       run: |
         export API_NAME=${{ inputs.api_name }}
+        echo "API Name: $API_NAME"
         export WORKSPACE=${{ inputs.workspace }}
+        echo "Workspace: $WORKSPACE"
         export ENV=${{ inputs.environment }}
-        export AWS_REGION=${{ inputs.aws_region }}
+        echo "Environment: $ENV"
         export ACCESS_TOKEN=${{ inputs.access_token }}
 
         chmod +x ./scripts/workflow/deploy-to-proxygen.sh
