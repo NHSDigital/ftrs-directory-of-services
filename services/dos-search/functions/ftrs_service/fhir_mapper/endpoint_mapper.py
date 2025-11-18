@@ -4,7 +4,7 @@ from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain import Endpoint, Organisation
 
 # Import instantiated logger from dos_search_ods_code_function to persist log context from beginning of Lambda execution
-from functions.ftrs_logger import ftrs_logger
+from functions.logging.dos_logger import dos_logger
 
 
 class EndpointMapper:
@@ -118,7 +118,7 @@ class EndpointMapper:
         business_scenario_code = self.BUSINESS_SCENARIO_MAP.get(business_scenario)
 
         if not business_scenario_code:
-            ftrs_logger.error(f"Unknown business scenario: {business_scenario}")
+            dos_logger.error(f"Unknown business scenario: {business_scenario}")
             return None
 
         return {
