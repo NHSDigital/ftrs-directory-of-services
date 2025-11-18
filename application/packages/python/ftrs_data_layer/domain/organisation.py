@@ -3,10 +3,10 @@ from datetime import date
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import OrganisationType
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 
-class LegalDates:
+class LegalDates(BaseModel):
     start: date | None = None
     end: date | None = None
 
