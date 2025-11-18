@@ -60,7 +60,7 @@ runs:
 
         if [ $? -eq 0 ]; then
           echo "status=success" >> $GITHUB_OUTPUT
-          echo "âœ" API deployed successfully to Proxygen"
+          echo "✓ API deployed successfully to Proxygen"
         else
           echo "status=failed" >> $GITHUB_OUTPUT
           echo "❌ API deployment failed"
