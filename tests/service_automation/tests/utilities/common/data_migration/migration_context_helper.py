@@ -3,9 +3,6 @@ import os
 from typing import Any, Dict, Optional, Tuple
 
 from utilities.common.constants import (
-    DEFAULT_ENVIRONMENT,
-    DEFAULT_PROJECT_NAME,
-    DEFAULT_WORKSPACE,
     ENV_ENVIRONMENT,
     ENV_PROJECT_NAME,
     ENV_WORKSPACE,
@@ -100,9 +97,9 @@ def store_sqs_result(
 
 def get_expected_dynamodb_table_names() -> list[str]:
     """Get expected DynamoDB table names based on environment configuration."""
-    project_name = os.getenv(ENV_PROJECT_NAME, DEFAULT_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT, DEFAULT_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE, DEFAULT_WORKSPACE)
+    project_name = os.getenv(ENV_PROJECT_NAME)
+    environment = os.getenv(ENV_ENVIRONMENT)
+    workspace = os.getenv(ENV_WORKSPACE)
 
     return [
         f"{project_name}-{environment}-database-{resource}-{workspace}"

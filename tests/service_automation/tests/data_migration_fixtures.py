@@ -17,35 +17,11 @@ from testcontainers.postgres import PostgresContainer
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from utilities.common.constants import ENV_ENVIRONMENT, ENV_SOURCE_DB_HOST, ENV_SOURCE_DB_NAME, ENV_SOURCE_DB_PASSWORD, ENV_SOURCE_DB_PORT, ENV_SOURCE_DB_USER, ENV_WORKSPACE
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
 from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
 from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.rds_data import gp_service
-
-# Constants
-PATHWAYSDOS_SCHEMA = "pathwaysdos"
-PUBLIC_SCHEMA = "public"
-AWS_REGION = "eu-west-2"
-TEST_AWS_ACCESS_KEY = "test"
-TEST_AWS_SECRET_KEY = "test"
-
-# Environment variable keys
-ENV_SOURCE_DB_HOST = "SOURCE_DB_HOST"
-ENV_SOURCE_DB_PORT = "SOURCE_DB_PORT"
-ENV_SOURCE_DB_NAME = "SOURCE_DB_NAME"
-ENV_SOURCE_DB_USER = "SOURCE_DB_USER"
-ENV_SOURCE_DB_PASSWORD = "SOURCE_DB_PASSWORD"
-ENV_ENVIRONMENT = "ENVIRONMENT"
-ENV_WORKSPACE = "WORKSPACE"
-
-# Default values
-DEFAULT_DB_HOST = "localhost"
-DEFAULT_DB_PORT = "5432"
-DEFAULT_DB_NAME = "pathwaysdos"
-DEFAULT_DB_USER = "postgres"
-DEFAULT_DB_PASSWORD = "password"
-DEFAULT_ENVIRONMENT = "dev"
-DEFAULT_WORKSPACE = "test"
 
 
 @pytest.fixture(scope="session")
@@ -65,11 +41,11 @@ def localstack_container() -> Generator[LocalStackContainer, None, None]:
 def _get_source_db_config() -> Dict[str, str]:
     """Get source database configuration from environment variables."""
     return {
-        "host": os.getenv(ENV_SOURCE_DB_HOST, DEFAULT_DB_HOST),
-        "port": os.getenv(ENV_SOURCE_DB_PORT, DEFAULT_DB_PORT),
-        "database": os.getenv(ENV_SOURCE_DB_NAME, DEFAULT_DB_NAME),
-        "username": os.getenv(ENV_SOURCE_DB_USER, DEFAULT_DB_USER),
-        "password": os.getenv(ENV_SOURCE_DB_PASSWORD, DEFAULT_DB_PASSWORD),
+        "host": os.getenv(ENV_SOURCE_DB_HOST),
+        "port": os.getenv(ENV_SOURCE_DB_PORT),
+        "database": os.getenv(ENV_SOURCE_DB_NAME),
+        "username": os.getenv(ENV_SOURCE_DB_USER),
+        "password": os.getenv(ENV_SOURCE_DB_PASSWORD),
     }
 
 
@@ -317,7 +293,7 @@ def _create_dynamodb_tables(client: Any) -> None:
             logger.error(f"Failed to create table {table_name}: {e}")
             raise
 
-    logger.debug("DynamoDB tables ready")
+    logger.info("DynamoDB tables created successfully")
 
 
 def _cleanup_dynamodb_tables(client: Any) -> None:
@@ -341,6 +317,8 @@ def _cleanup_dynamodb_tables(client: Any) -> None:
                 logger.error(f"Failed to delete table {table_name}: {e}")
     except Exception as e:
         logger.error(f"DynamoDB cleanup failed: {e}")
+
+    logger.info("DynamoDB cleanup Successful")
 
 
 @pytest.fixture(name="dos_db", scope="function")
@@ -496,8 +474,8 @@ def migration_helper(
 
     dynamodb_endpoint = dynamodb["endpoint_url"]
 
-    environment = os.getenv(ENV_ENVIRONMENT, DEFAULT_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE, DEFAULT_WORKSPACE)
+    environment = os.getenv(ENV_ENVIRONMENT)
+    workspace = os.getenv(ENV_WORKSPACE)
 
     logger.debug(
         f"Creating MigrationHelper with environment={environment}, workspace={workspace}"

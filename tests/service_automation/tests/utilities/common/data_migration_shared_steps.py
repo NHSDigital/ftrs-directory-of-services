@@ -8,9 +8,6 @@ from sqlalchemy import text
 from sqlmodel import Session
 
 from utilities.common.constants import (
-    DEFAULT_ENVIRONMENT,
-    DEFAULT_PROJECT_NAME,
-    DEFAULT_WORKSPACE,
     DYNAMODB_CLIENT,
     ENV_ENVIRONMENT,
     ENV_PROJECT_NAME,
@@ -85,9 +82,9 @@ def run_dynamodb_tables_ready(dynamodb: DynamoDBFixture) -> None:
     missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
-        project_name = os.getenv(ENV_PROJECT_NAME, DEFAULT_PROJECT_NAME)
-        environment = os.getenv(ENV_ENVIRONMENT, DEFAULT_ENVIRONMENT)
-        workspace = os.getenv(ENV_WORKSPACE, DEFAULT_WORKSPACE)
+        project_name = os.getenv(ENV_PROJECT_NAME)
+        environment = os.getenv(ENV_ENVIRONMENT)
+        workspace = os.getenv(ENV_WORKSPACE)
 
         pytest.fail(
             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
