@@ -15,7 +15,9 @@ def test_organisation() -> None:
             Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True),
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=False),
             Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
-            Telecom(type=TelecomType.WEB, value="https://test-site.nhs.net", isPublic=True),
+            Telecom(
+                type=TelecomType.WEB, value="https://test-site.nhs.net", isPublic=True
+            ),
         ],
         type="GP Practice",
         createdBy="test_user",

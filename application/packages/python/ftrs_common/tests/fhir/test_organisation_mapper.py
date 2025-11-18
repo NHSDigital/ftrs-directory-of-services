@@ -39,7 +39,9 @@ def test_to_fhir_maps_fields_correctly() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -450,7 +452,9 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
@@ -508,6 +512,7 @@ def test__get_org_type_with_coding_display() -> None:
         id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
     )
     assert mapper._get_org_type(org) == "GP Practice"
+
 
 def test__get_org_type_with_no_display() -> None:
     mapper = OrganizationMapper()

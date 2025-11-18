@@ -28,6 +28,8 @@ dependencies = [
   "pytest-nhsd-apim (>=5.0.3,<6.0.0)",
   "authlib (>=1.6.5,<2.0.0)",
   "deepdiff==8.6.1",
+  "email-validator (>=2.3.0,<3.0.0)",
+  "phonenumbers (>=9.0.18,<10.0.0)",
 ]
 
 [build-system]
