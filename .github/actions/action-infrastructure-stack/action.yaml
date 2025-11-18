@@ -30,7 +30,6 @@ inputs:
   release_tag:
     description: "The release tag identifying the timeline in the repository to deploy from"
     required: false
-    type: string
 outputs:
   plan_result:
     description: "The Terraform plan output"
