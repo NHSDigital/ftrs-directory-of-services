@@ -16,13 +16,6 @@ from ftrs_data_layer.domain.telecom import Telecom
 from pydantic import BaseModel
 
 
-# class Telecom(BaseModel):
-#     phone_public: str | None
-#     phone_private: str | None
-#     email: str | None
-#     web: str | None
-
-
 class AgeRangeType(BaseModel):
     rangeFrom: Decimal
     rangeTo: Decimal

@@ -1,8 +1,8 @@
-from typing_extensions import Self, Annotated, Union
-from ftrs_data_layer.domain.enums import TelecomType
-from pydantic import BaseModel, Field, model_validator, HttpUrl
 from email_validator import validate_email
+from ftrs_data_layer.domain.enums import TelecomType
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 from pydantic_extra_types.phone_numbers import PhoneNumberValidator
+from typing_extensions import Self
 
 
 class Telecom(BaseModel):

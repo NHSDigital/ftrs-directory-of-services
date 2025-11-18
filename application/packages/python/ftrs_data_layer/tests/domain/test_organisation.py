@@ -1,8 +1,8 @@
 from uuid import uuid4
 
 from ftrs_data_layer.domain import Organisation
-from ftrs_data_layer.domain.telecom import Telecom
 from ftrs_data_layer.domain.enums import TelecomType
+from ftrs_data_layer.domain.telecom import Telecom
 
 
 def test_organisation() -> None:

@@ -1,10 +1,7 @@
 import pytest
-from pytest import ExceptionInfo
-
-from ftrs_data_layer.domain.telecom import Telecom
 from ftrs_data_layer.domain.enums import TelecomType
+from ftrs_data_layer.domain.telecom import Telecom
 from pydantic import ValidationError
-from email_validator import EmailNotValidError
 
 
 def test_telecom() -> None:
