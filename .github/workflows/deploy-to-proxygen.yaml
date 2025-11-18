@@ -5,31 +5,6 @@ permissions:
   contents: read
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        options:
-          - dev
-          - test
-          - int
-          - prod
-      workspace:
-        description: 'Workspace identifier (e.g., FTRS-000)'
-        required: true
-        type: string
-      api_name:
-        description: 'API name'
-        required: true
-        type: string
-        default: 'dos-search'
-      access_token:
-        description: 'Access token for authentication'
-        required: true
-        type: string
-
   workflow_call:
     inputs:
       environment:
