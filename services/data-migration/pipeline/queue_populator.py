@@ -59,6 +59,7 @@ def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[list[dict]]:
                 "MessageBody": DMSEvent(
                     type="dms_event",
                     record_id=record_id,
+                    service_id=record_id,
                     table_name="services",
                     method="insert",
                 ).model_dump_json(),

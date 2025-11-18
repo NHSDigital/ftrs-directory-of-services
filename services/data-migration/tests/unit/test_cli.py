@@ -108,6 +108,7 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
         DMSEvent(
             type="dms_event",
             record_id=12345,
+            service_id=12345,
             method="insert",
             table_name="services",
         )
