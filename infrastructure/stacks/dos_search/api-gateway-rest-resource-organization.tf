@@ -25,7 +25,7 @@ resource "aws_api_gateway_integration" "organization" {
   uri                     = module.lambda.lambda_function_invoke_arn
 
   request_parameters = {
-    "method.request.header.X-Test-Header" = false
+    "method.request.header.X-Test-Header" = "method.request.header.Test-Header"
   }
 }
 
