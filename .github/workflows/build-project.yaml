@@ -62,6 +62,26 @@ on:
         required: false
         type: boolean
         default: false
+      proxygen_access_token:
+        description: "Optional Proxygen access token for publish steps"
+        required: false
+        type: string
+        default: ""
+      proxygen_api_name:
+        description: "Optional Proxygen API name to pass through to make"
+        required: false
+        type: string
+        default: ""
+      proxygen_env:
+        description: "Optional Proxygen environment value"
+        required: false
+        type: string
+        default: ""
+      aws_region:
+        description: "Optional AWS region override for make targets"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build-project:
@@ -194,6 +214,10 @@ jobs:
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
           RELEASE_BUILD: ${{ inputs.release_build }}
+          PROXYGEN_ACCESS_TOKEN: ${{ inputs.proxygen_access_token }}
+          PROXYGEN_API_NAME: ${{ inputs.proxygen_api_name }}
+          PROXYGEN_ENV: ${{ inputs.proxygen_env }}
+          AWS_REGION: ${{ inputs.aws_region }}
 
       - name: "Publish artefacts to GitHub"
         if: ${{ !inputs.skip_publish }}
