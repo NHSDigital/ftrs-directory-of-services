@@ -30,6 +30,7 @@ dependencies = [
   "deepdiff==8.6.1",
   "email-validator (>=2.3.0,<3.0.0)",
   "phonenumbers (>=9.0.18,<10.0.0)",
+  "pydantic-extra-types (>=2.10.6,<3.0.0)",
 ]
 
 [build-system]
