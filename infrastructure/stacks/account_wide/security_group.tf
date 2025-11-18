@@ -6,7 +6,7 @@ resource "aws_security_group" "vpce_rds_security_group" {
 
 resource "aws_vpc_security_group_ingress_rule" "vpce_allow_all_ingress" {
   security_group_id            = aws_security_group.vpce_rds_security_group.id
-  referenced_security_group_id = data.aws_security_group.dms_replication_security_group.id
+  referenced_security_group_id = aws_security_group.dms_replication_security_group.id
   description                  = "Allow ingress from DMS replication instance"
   ip_protocol                  = "tcp"
   from_port                    = var.rds_port
@@ -65,4 +65,11 @@ resource "aws_vpc_security_group_egress_rule" "performance_egress_ntp_udp" {
   ip_protocol       = "udp"
   from_port         = 123
   to_port           = 123
+}
+
+resource "aws_security_group" "dms_replication_security_group" {
+  name        = "${local.resource_prefix}-etl-replication-sg"
+  description = "Security group for DMS ETL replication instance"
+  vpc_id      = module.vpc.vpc_id
+  depends_on  = [module.vpc]
 }

@@ -32,10 +32,10 @@ TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
 export TF_VAR_stack_name
 export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
 
-# Override ENVIRONMENT to non-prod for account_policies stack
-if [ "$STACK" = "account_policies" ] && [ "$ENVIRONMENT" = "ref" ] ; then
+# Override ENVIRONMENT to non-prod for account_policies or account_security stack
+if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && [ "$ENVIRONMENT" = "ref" ] ; then
   export ENVIRONMENT="non-prod"
-  echo "Stack is account_policies - overriding ENVIRONMENT to non-prod"
+  echo "Stack is $STACK - overriding ENVIRONMENT to non-prod"
 fi
 
 # needed for terraform management stack
