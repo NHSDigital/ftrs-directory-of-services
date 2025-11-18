@@ -23,10 +23,10 @@ on:
         description: 'Proxy environment (e.g., internal-dev)'
         required: true
         type: string
-    secrets:
       access_token:
         description: 'Access token for authentication'
         required: true
+        type: string
 
 jobs:
   deploy:
@@ -52,7 +52,7 @@ jobs:
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
           proxy_env: ${{ inputs.proxy_env }}
-          access_token: ${{ secrets.access_token }}
+          access_token: ${{ inputs.access_token }}
 
       - name: Deployment Summary
         run: |

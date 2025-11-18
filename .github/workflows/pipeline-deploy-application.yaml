@@ -60,7 +60,6 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       environment: ${{ needs.metadata.outputs.environment }}
       proxy_env: "internal-dev"
-    secrets:
       access_token: ${{ needs.authenticate-with-apim.outputs.access_token }}
 
   quality-checks:
