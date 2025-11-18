@@ -3,7 +3,7 @@ healthcheck: /_status
 containers:
   - name: dos-search
     image:
-      name: dos-search
+      name: sandbox-dos-search
       tag: latest
     environment:
       LOG_LEVEL: info
