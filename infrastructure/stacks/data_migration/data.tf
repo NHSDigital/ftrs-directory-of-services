@@ -184,3 +184,7 @@ data "aws_iam_policy_document" "rds_connect_policy" {
 data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
+
+data "aws_security_group" "dms_replication_security_group" {
+  name = "${var.project}-${var.environment}-*-etl-replication-sg"
+}
