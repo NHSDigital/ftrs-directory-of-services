@@ -26,11 +26,13 @@ if [ -z "$ACCESS_TOKEN" ]; then
     exit 1
 fi
 
-# Set the spec file path
-SPEC_FILE="../../docs/specification/dos-search.yaml"
+# Set the spec file path (relative to repository root)
+SPEC_FILE="docs/specification/dos-search.yaml"
 
 if [ ! -f "$SPEC_FILE" ]; then
     echo "Error: Spec file not found at $SPEC_FILE" >&2
+    echo "Current directory: $(pwd)" >&2
+    echo "Looking for file at: $(realpath $SPEC_FILE 2>/dev/null || echo $SPEC_FILE)" >&2
     exit 1
 fi
 
