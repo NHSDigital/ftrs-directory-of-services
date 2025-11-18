@@ -48,6 +48,8 @@ runs:
         echo "Workspace: $WORKSPACE"
         export ENV=${{ inputs.environment }}
         echo "Environment: $ENV"
+        export PROXY_ENV=${{ inputs.proxy_env }}
+        echo "Proxy Environment: $PROXY_ENV"
         export ACCESS_TOKEN=${{ inputs.access_token }}
 
         chmod +x ./scripts/workflow/deploy-to-proxygen.sh
