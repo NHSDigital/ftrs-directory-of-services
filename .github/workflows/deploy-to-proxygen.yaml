@@ -50,7 +50,7 @@ jobs:
             echo "ERROR: access_token input is EMPTY at workflow level"
             exit 1
           fi
-          echo "access_token input received (length: ${{ length(inputs.access_token) }} characters)"
+          echo "access_token input received successfully"
 
       - name: Deploy API Specification
         uses: ./.github/actions/deploy-to-proxygen
