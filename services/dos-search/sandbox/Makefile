@@ -14,8 +14,6 @@ PROXYGEN_CLI ?= proxygen
 PROXYGEN_API_NAME ?= dos-search_FHIR_R4
 PROXYGEN_ENV ?= internal-dev-sandbox
 PROXYGEN_TOKEN_SCRIPT ?= ../../../scripts/workflow/get-apim-token.sh
-PROXYGEN_DEPLOY_ENV ?= ${PROXYGEN_ENV}
-PROXYGEN_SPEC_PATH ?= ${ROOT_DIR}/docs/specification/dos-search-sandbox.yaml
 BUILD_DIR := ../../build/services/${SERVICE}
 IMAGE_REPOSITORY ?= ${ECR_REGISTRY}
 IMAGE_NAME ?= $(or ${IMAGE_OVERRIDE},sandbox-dos-search)
@@ -29,7 +27,6 @@ SMOKE_SCRIPT := ./scripts/smoke.sh
 print-proxygen-config:
 	@echo "PROXYGEN_API_NAME=${PROXYGEN_API_NAME}"
 	@echo "PROXYGEN_ENV=${PROXYGEN_ENV}"
-	@echo "PROXYGEN_DEPLOY_ENV=${PROXYGEN_DEPLOY_ENV}"
 	@echo "AWS_REGION=${AWS_REGION}"
 	@echo "PROXYGEN_SPEC_PATH=${PROXYGEN_SPEC_PATH}"
 
@@ -118,15 +115,11 @@ publish:
 		echo "Missing required environment variable: PROXYGEN_API_NAME"; \
 		exit 1; \
 	fi
-	if [ -z "${PROXYGEN_DEPLOY_ENV}" ]; then \
-		echo "Missing required environment variable: PROXYGEN_DEPLOY_ENV"; \
-		exit 1; \
-	fi
 	if [ ! -f "${PROXYGEN_SPEC_PATH}" ]; then \
 		echo "Specification file not found: ${PROXYGEN_SPEC_PATH}"; \
 		exit 1; \
 	fi
-	DEPLOY_TOKEN="${PROXYGEN_DEPLOY_ACCESS_TOKEN}"
+	DEPLOY_TOKEN="${PROXYGEN_ACCESS_TOKEN}"
 	if [ -z "$$DEPLOY_TOKEN" ]; then \
 		SCRIPT_PATH="${PROXYGEN_TOKEN_SCRIPT}"; \
 		if [ ! -f "$$SCRIPT_PATH" ]; then \
@@ -134,7 +127,7 @@ publish:
 			exit 1; \
 		fi; \
 		chmod +x "$$SCRIPT_PATH" >/dev/null 2>&1 || true; \
-		DEPLOY_TOKEN=$$(ENV=${PROXYGEN_DEPLOY_ENV} API_NAME=${PROXYGEN_API_NAME} AWS_REGION=${AWS_REGION} "$$SCRIPT_PATH"); \
+		DEPLOY_TOKEN=$$(ENV=${PROXYGEN_ENV} API_NAME=${PROXYGEN_API_NAME} AWS_REGION=${AWS_REGION} "$$SCRIPT_PATH"); \
 	fi
 	if [ -z "$$DEPLOY_TOKEN" ]; then \
 		echo "Failed to obtain Proxygen deploy token"; \
@@ -144,4 +137,4 @@ publish:
 		echo "${PROXYGEN_CLI} CLI not found on PATH"; \
 		exit 1; \
 	fi
-	PROXYGEN_ACCESS_TOKEN="$$DEPLOY_TOKEN" ${PROXYGEN_CLI} instance deploy ${PROXYGEN_DEPLOY_ENV} ${PROXYGEN_API_NAME} "${PROXYGEN_SPEC_PATH}"
+	PROXYGEN_ACCESS_TOKEN="$$DEPLOY_TOKEN" ${PROXYGEN_CLI} instance deploy ${PROXYGEN_ENV} ${PROXYGEN_API_NAME} "${PROXYGEN_SPEC_PATH}"
