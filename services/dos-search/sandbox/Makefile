@@ -8,13 +8,17 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL := build
 
+.PHONY: help clean install install-dependencies docker-install build unit-test push publish print-proxygen-config
+
 SERVICE ?= dos-search-sandbox
 AWS_REGION ?= eu-west-2
-PROXYGEN_CLI ?= proxygen
 PROXYGEN_API_NAME ?= dos-search
-PROXYGEN_INSTANCE_NAME ?= dos-search_FHIR_R4
 PROXYGEN_ENV ?= internal-dev-sandbox
 PROXYGEN_TOKEN_SCRIPT ?= ../../../scripts/workflow/get-apim-token.sh
+PUSH_SCRIPT ?= ./push.sh
+PUBLISH_SCRIPT ?= ./publish.sh
+COMMIT_HASH ?= $(shell git -C $(ROOT_DIR) rev-parse --short HEAD 2>/dev/null)
+REQUIRED_BINARIES ?= docker jq curl
 BUILD_DIR := ../../build/services/${SERVICE}
 IMAGE_REPOSITORY ?= ${ECR_REGISTRY}
 IMAGE_NAME ?= $(or ${IMAGE_OVERRIDE},sandbox-dos-search)
@@ -27,7 +31,6 @@ SMOKE_SCRIPT := ./scripts/smoke.sh
 .PHONY: print-proxygen-config
 print-proxygen-config:
 	@echo "PROXYGEN_API_NAME=${PROXYGEN_API_NAME}"
-	@echo "PROXYGEN_INSTANCE_NAME=${PROXYGEN_INSTANCE_NAME}"
 	@echo "PROXYGEN_ENV=${PROXYGEN_ENV}"
 	@echo "AWS_REGION=${AWS_REGION}"
 	@echo "PROXYGEN_SPEC_PATH=${PROXYGEN_SPEC_PATH}"
@@ -66,9 +69,21 @@ unit-test:
 	@trap 'docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true' EXIT TERM INT; \
 	WAIT_SECS=60 BASE_URL=http://localhost:9000 ${SMOKE_SCRIPT}
 
-push: build
+push:
 	if [ -z "${PROXYGEN_API_NAME}" ]; then \
 		echo "Missing required environment variable: PROXYGEN_API_NAME"; \
+		exit 1; \
+	fi
+	if ! docker image inspect ${FULL_IMAGE} >/dev/null 2>&1; then \
+		echo "Docker image ${FULL_IMAGE} not found; run 'make build' first"; \
+		exit 1; \
+	fi
+	if [ -z "${IMAGE_NAME}" ]; then \
+		echo "IMAGE_NAME is required"; \
+		exit 1; \
+	fi
+	if [ -z "${IMAGE_TAG}" ]; then \
+		echo "IMAGE_TAG is required"; \
 		exit 1; \
 	fi
 	TOKEN="${PROXYGEN_ACCESS_TOKEN}"
@@ -89,32 +104,20 @@ push: build
 		echo "Failed to obtain Proxygen access token"; \
 		exit 1; \
 	fi
-	if ! command -v ${PROXYGEN_CLI} >/dev/null 2>&1; then \
-		echo "${PROXYGEN_CLI} CLI not found on PATH"; \
+	if [ ! -f "${PUSH_SCRIPT}" ]; then \
+		echo "Push script not found: ${PUSH_SCRIPT}"; \
 		exit 1; \
 	fi
-	REGISTRY=$$(PROXYGEN_ACCESS_TOKEN="$$TOKEN" ${PROXYGEN_CLI} docker registry --api ${PROXYGEN_API_NAME})
-	if [ -z "$$REGISTRY" ]; then \
-		echo "Failed to resolve Proxygen docker registry"; \
-		exit 1; \
-	fi
-	LOGIN_CMD=$$(PROXYGEN_ACCESS_TOKEN="$$TOKEN" ${PROXYGEN_CLI} docker get-login --api ${PROXYGEN_API_NAME})
-	if [ -z "$$LOGIN_CMD" ]; then \
-		echo "Failed to obtain Proxygen docker login token"; \
-		exit 1; \
-	fi
-	docker login "$$LOGIN_CMD"
-	REGISTRY_IMAGE_COMMIT=$${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-	REGISTRY_IMAGE_LATEST=$${REGISTRY}/${IMAGE_NAME}:latest
-	docker tag ${FULL_IMAGE} $$REGISTRY_IMAGE_COMMIT
-	docker push $$REGISTRY_IMAGE_COMMIT
-	# Also update latest for stable spec consumption
-	docker tag ${FULL_IMAGE} $$REGISTRY_IMAGE_LATEST
-	docker push $$REGISTRY_IMAGE_LATEST
+	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
+	ACCESS_TOKEN="$$TOKEN" "${PUSH_SCRIPT}" "${PROXYGEN_API_NAME}" "${FULL_IMAGE}" "${IMAGE_NAME}" "${IMAGE_TAG}"
 
 publish:
 	if [ -z "${PROXYGEN_API_NAME}" ]; then \
 		echo "Missing required environment variable: PROXYGEN_API_NAME"; \
+		exit 1; \
+	fi
+	if [ -z "${PROXYGEN_SPEC_PATH}" ]; then \
+		echo "Missing required environment variable: PROXYGEN_SPEC_PATH"; \
 		exit 1; \
 	fi
 	if [ ! -f "${PROXYGEN_SPEC_PATH}" ]; then \
@@ -123,6 +126,10 @@ publish:
 	fi
 	DEPLOY_TOKEN="${PROXYGEN_ACCESS_TOKEN}"
 	if [ -z "$$DEPLOY_TOKEN" ]; then \
+		if [ -z "${PROXYGEN_ENV}" ]; then \
+			echo "Set PROXYGEN_ENV or provide PROXYGEN_ACCESS_TOKEN"; \
+			exit 1; \
+		fi; \
 		SCRIPT_PATH="${PROXYGEN_TOKEN_SCRIPT}"; \
 		if [ ! -f "$$SCRIPT_PATH" ]; then \
 			echo "Token script $$SCRIPT_PATH not found"; \
@@ -135,8 +142,9 @@ publish:
 		echo "Failed to obtain Proxygen deploy token"; \
 		exit 1; \
 	fi
-	if ! command -v ${PROXYGEN_CLI} >/dev/null 2>&1; then \
-		echo "${PROXYGEN_CLI} CLI not found on PATH"; \
+	if [ ! -f "${PUBLISH_SCRIPT}" ]; then \
+		echo "Publish script not found: ${PUBLISH_SCRIPT}"; \
 		exit 1; \
 	fi
-	PROXYGEN_ACCESS_TOKEN="$$DEPLOY_TOKEN" ${PROXYGEN_CLI} instance deploy ${PROXYGEN_ENV} ${PROXYGEN_INSTANCE_NAME} "${PROXYGEN_SPEC_PATH}"
+	chmod +x "${PUBLISH_SCRIPT}" >/dev/null 2>&1 || true
+	ACCESS_TOKEN="$$DEPLOY_TOKEN" "${PUBLISH_SCRIPT}" "${PROXYGEN_ENV}" "${PROXYGEN_API_NAME}" "${PROXYGEN_SPEC_PATH}"
