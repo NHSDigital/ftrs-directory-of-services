@@ -11,6 +11,9 @@ inputs:
   environment:
     description: 'Environment to deploy to (e.g., dev, test, prod)'
     required: true
+  proxy_env:
+    description: 'Proxy environment (e.g., internal-dev)'
+    required: true
   access_token:
     description: 'APIM access token for authentication'
     required: true
