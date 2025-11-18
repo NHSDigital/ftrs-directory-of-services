@@ -47,6 +47,15 @@ jobs:
           api_name: ${{ inputs.api_name }}
           environment: ${{ inputs.environment }}
           aws_region: ${{ vars.AWS_REGION }}
+
+      - name: Verify Token Output
+        run: |
+          if [ -z "${{ steps.get-token.outputs.access_token }}" ]; then
+            echo "ERROR: access_token output from authenticate-apim action is EMPTY"
+            exit 1
+          fi
+          echo "✓ Token output verified (will be passed to workflow output)"
+
       - name: Test Token - List Proxy Instances
         env:
           ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
