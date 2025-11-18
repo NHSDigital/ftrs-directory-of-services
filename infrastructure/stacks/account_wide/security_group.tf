@@ -68,6 +68,7 @@ resource "aws_vpc_security_group_egress_rule" "performance_egress_ntp_udp" {
 }
 
 resource "aws_security_group" "dms_replication_security_group" {
+  # checkov:skip=CKV2_AWS_5:Works locally in the checkov checks. Also is used in the file above
   name        = "${local.resource_prefix}-etl-replication-sg"
   description = "Security group for DMS ETL replication instance"
   vpc_id      = module.vpc.vpc_id
