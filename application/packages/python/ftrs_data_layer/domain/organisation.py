@@ -6,7 +6,7 @@ from ftrs_data_layer.domain.enums import OrganisationType
 from pydantic import Field
 
 
-class LegalDates():
+class LegalDates:
     start: date | None = None
     end: date | None = None
 
