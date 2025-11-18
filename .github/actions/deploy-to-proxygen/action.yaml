@@ -55,13 +55,6 @@ runs:
         echo "Proxy Environment: $PROXY_ENV"
         export ACCESS_TOKEN="${{ inputs.access_token }}"
 
-        # Debug: Check if ACCESS_TOKEN is set
-        if [ -z "$ACCESS_TOKEN" ]; then
-          echo "ERROR: ACCESS_TOKEN is empty after assignment from inputs"
-          exit 1
-        fi
-        echo "ACCESS_TOKEN is set (length: ${#ACCESS_TOKEN} characters)"
-
         chmod +x ./scripts/workflow/deploy-to-proxygen.sh
         RESPONSE=$(./scripts/workflow/deploy-to-proxygen.sh)
 
