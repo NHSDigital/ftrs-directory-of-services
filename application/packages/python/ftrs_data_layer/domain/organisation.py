@@ -6,6 +6,11 @@ from ftrs_data_layer.domain.enums import OrganisationType
 from pydantic import Field
 
 
+class LegalDates(DBModel):
+    start: date | None = None
+    end: date | None = None
+
+
 class Organisation(DBModel):
     identifier_ODS_ODSCode: str
     active: bool
@@ -13,5 +18,4 @@ class Organisation(DBModel):
     telecom: str | None = None
     type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
-    legalStartDate: date | None = None
-    legalEndDate: date | None = None
+    legalDates: LegalDates | None = None

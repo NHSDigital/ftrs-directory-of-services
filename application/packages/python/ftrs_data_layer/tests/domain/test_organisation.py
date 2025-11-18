@@ -29,6 +29,5 @@ def test_organisation() -> None:
         "telecom": "123456789",
         "type": "GP Practice",
         "endpoints": [],
-        "legalStartDate": None,
-        "legalEndDate": None,
+        "legalDates": None,
     }

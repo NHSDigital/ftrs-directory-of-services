@@ -178,8 +178,7 @@ class OrganisationService:
             "active",
             "identifier_ODS_ODSCode",
             "telecom",
-            "legalStartDate",
-            "legalEndDate",
+            "legalDates",
         }
         outdated_fields = {
             field: value

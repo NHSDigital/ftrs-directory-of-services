@@ -8,6 +8,7 @@ from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.organisation import LegalDates
 
 
 def make_fhir_org(
@@ -1056,8 +1057,7 @@ def test_to_fhir_with_legal_dates() -> None:
         active=True,
         telecom="01234",
         type="GP Practice",
-        legalStartDate=date(2020, 1, 15),
-        legalEndDate=date(2025, 12, 31),
+        legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
         modifiedBy="ODS_ETL_PIPELINE",
     )
 
@@ -1353,8 +1353,7 @@ def test_from_fhir_no_legal_dates_when_no_extension() -> None:
 
     org = mapper.from_fhir(fhir_org)
 
-    assert org.legalStartDate is None
-    assert org.legalEndDate is None
+    assert org.legalDates is None
 
 
 @pytest.mark.parametrize(
@@ -1383,15 +1382,21 @@ def test_to_fhir_partial_dates_absent_not_null(
     expected_end_in_period: str | None,
 ) -> None:
     """Test to_fhir with partial dates - absent dates should not be in period dict, not null."""
+    from ftrs_data_layer.domain.organisation import LegalDates
+
     mapper = OrganizationMapper()
+
+    legal_dates = None
+    if legal_start_date or legal_end_date:
+        legal_dates = LegalDates(start=legal_start_date, end=legal_end_date)
+
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
         type="GP Practice",
-        legalStartDate=legal_start_date,
-        legalEndDate=legal_end_date,
+        legalDates=legal_dates,
         modifiedBy="ODS_ETL_PIPELINE",
     )
 
