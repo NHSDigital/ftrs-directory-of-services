@@ -39,7 +39,9 @@ def test_healthcare_service_round_trip_and_types() -> None:
             Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=False),
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
             Telecom(type=TelecomType.EMAIL, value="example@email.com", isPublic=True),
-            Telecom(type=TelecomType.WEB, value="https://www.example.com", isPublic=True),
+            Telecom(
+                type=TelecomType.WEB, value="https://www.example.com", isPublic=True
+            ),
         ],
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
@@ -137,11 +139,11 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "migrationNotes": None,
         "name": "Test Healthcare Service",
-        "telecom":[
+        "telecom": [
             {"type": "phone", "value": "020 7972 3272", "isPublic": False},
-            {"type": "phone", "value":"0300 311 22 33", "isPublic": True},
-            {"type": "email", "value":"example@email.com", "isPublic": True},
-            {"type": "web", "value":"https://www.example.com", "isPublic": True},
+            {"type": "phone", "value": "0300 311 22 33", "isPublic": True},
+            {"type": "email", "value": "example@email.com", "isPublic": True},
+            {"type": "web", "value": "https://www.example.com", "isPublic": True},
         ],
         "symptomGroupSymptomDiscriminators": [],
         "dispositions": [],

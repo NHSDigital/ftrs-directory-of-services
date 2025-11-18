@@ -10,13 +10,13 @@ class Telecom(BaseModel):
     value: str
     isPublic: bool
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_valid_email(self) -> Self:
         if self.type == TelecomType.EMAIL:
             validate_email(self.value)
         return self
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_valid_web(self) -> Self:
         if self.type == TelecomType.WEB:
             HttpUrl(url=self.value)
@@ -25,9 +25,10 @@ class Telecom(BaseModel):
     @model_validator(mode="after")
     def check_valid_phone(self) -> Self:
         if self.type == TelecomType.PHONE:
-            PhoneNumberValidator._parse(region="GB",
-                                        number_format="NATIONAL",
-                                        supported_regions=["GB"],
-                                        phone_number=self.value
-                                        )
+            PhoneNumberValidator._parse(
+                region="GB",
+                number_format="NATIONAL",
+                supported_regions=["GB"],
+                phone_number=self.value,
+            )
         return self
