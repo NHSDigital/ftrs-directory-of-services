@@ -162,3 +162,9 @@ variable "minimum_protocol_version" {
   type        = string
   default     = "TLSv1.2_2021"
 }
+
+variable "cloudfront_logs_retention_in_days" {
+  description = "The number of days to retain CloudFront logs in CloudWatch"
+  type        = number
+  default     = 30
+}
