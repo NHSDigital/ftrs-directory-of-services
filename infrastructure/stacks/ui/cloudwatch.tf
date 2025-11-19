@@ -34,4 +34,5 @@ resource "aws_cloudwatch_log_delivery" "log_delivery" {
   delivery_source_name     = aws_cloudwatch_log_delivery_source.delivery_source.name
   delivery_destination_arn = aws_cloudwatch_log_delivery_destination.delivery_destination.arn
 
+  record_fields = var.included_cloudfront_log_fields
 }
