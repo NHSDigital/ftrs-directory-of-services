@@ -49,7 +49,7 @@ on:
       workflow_timeout:
         description: "Timeout duration in minutes"
         required: false
-        default: 5
+        default: 30
         type: number
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
