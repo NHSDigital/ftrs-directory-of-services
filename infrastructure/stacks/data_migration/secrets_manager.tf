@@ -112,7 +112,7 @@ resource "aws_secretsmanager_secret_version" "replica_rds_credentials" {
 
   secret_id = aws_secretsmanager_secret.replica_rds_credentials[0].id
   secret_string = jsonencode({
-    host     = module.rds[0].cluster_endpoint,
+    host     = try(module.rds[0].cluster_endpoint, "NOT_SET"),
     port     = var.rds_port,
     username = aws_secretsmanager_secret_version.rds_username[0].secret_string,
     password = aws_secretsmanager_secret_version.rds_password[0].secret_string,
