@@ -1,4 +1,6 @@
 resource "aws_cloudwatch_log_group" "log_group" {
+  # checkov:skip=CKV_AWS_158: TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-378
+  # checkov:skip=CKV_AWS_338: TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-378
   name              = "${local.resource_prefix}-${var.stack_name}-log-group${local.workspace_suffix}"
   retention_in_days = var.cloudfront_logs_retention_in_days
   region            = "us-east-1"
