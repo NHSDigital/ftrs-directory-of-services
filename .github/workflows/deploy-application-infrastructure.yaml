@@ -49,7 +49,8 @@ on:
       stacks:
         description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
         required: false
-        default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+        # default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+        default: "['database', 'crud_apis', 'data_migration', 'opensearch', 'etl_ods', 'dos_search', 'is_performance']"
         type: string
     outputs:
       plan_result:
