@@ -113,6 +113,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
     )
     payload = Organisation(
+        identifier_ODS_ODSCode="ABC123",
         active=False,
         name="Updated Organisation",
         telecom="67890",
@@ -132,7 +133,6 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         assert result_legal_dates == expected_legal_dates
 
         assert result == {
-            "identifier_ODS_ODSCode": "DEF456",
             "active": False,
             "name": "Updated Organisation",
             "telecom": "67890",
