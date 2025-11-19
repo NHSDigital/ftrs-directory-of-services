@@ -10,7 +10,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 resource "aws_cloudwatch_log_delivery_source" "delivery_source" {
   region = "us-east-1"
 
-  name         = "${local.resource_prefix}-delivery-source${local.workspace_suffix}"
+  name         = "${local.resource_prefix}-log-source${local.workspace_suffix}"
   log_type     = "ACCESS_LOGS"
   resource_arn = module.read_only_viewer_cloudfront.cloudfront_distribution_arn
 }
@@ -19,7 +19,7 @@ resource "aws_cloudwatch_log_delivery_source" "delivery_source" {
 resource "aws_cloudwatch_log_delivery_destination" "delivery_destination" {
   region = "us-east-1"
 
-  name          = "${local.resource_prefix}-log-delivery-destination${local.workspace_suffix}"
+  name          = "${local.resource_prefix}-log-destination${local.workspace_suffix}"
   output_format = "json"
 
   delivery_destination_configuration {
