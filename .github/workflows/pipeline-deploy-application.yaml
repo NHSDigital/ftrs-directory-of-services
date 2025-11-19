@@ -46,7 +46,6 @@ jobs:
     uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      api_name: "dos-search"
       workspace: ${{ needs.metadata.outputs.workspace }}
       proxy_env: "internal-dev"
     secrets:
