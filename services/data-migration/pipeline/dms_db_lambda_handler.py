@@ -1,6 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain import legacy
 
 from pipeline.service.dms_service import create_dms_user, create_rds_trigger_replica_db
 from pipeline.utils.config import DmsDatabaseConfig
@@ -25,9 +26,20 @@ def lambda_handler(event: dict, context: dict) -> None:
         # create a user if not exists
         create_dms_user(engine, rds_username, rds_password)
 
-        create_rds_trigger_replica_db(
-            engine, rds_username, dms_config.trigger_lambda_arn, aws_region
-        )
+        tables = [
+            "pathwaysdos." + legacy.Service.__tablename__,
+            "pathwaysdos." + legacy.ServiceEndpoint.__tablename__,
+        ]
+
+        for table_name in tables:
+            LOGGER.info("Creating trigger for table: %s", table_name)
+            create_rds_trigger_replica_db(
+                engine,
+                rds_username,
+                dms_config.trigger_lambda_arn,
+                aws_region,
+                table_name,
+            )
 
     except ClientError:
         LOGGER.exception("Error fetching secret for target RDS details or DMS user")

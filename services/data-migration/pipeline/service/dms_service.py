@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from ftrs_common.logger import Logger
-from ftrs_data_layer.domain import legacy
 from sqlalchemy import Engine, text
 
 LOGGER = Logger.get(service="DMS-Lambda-handler")
@@ -32,10 +31,7 @@ def create_dms_user(engine: Engine, rds_username: str, rds_password: str) -> Non
 
 
 def create_rds_trigger_replica_db(
-    engine: Engine,
-    rds_username: str,
-    lambda_arn: str,
-    aws_region: str,
+    engine: Engine, rds_username: str, lambda_arn: str, aws_region: str, table_name: str
 ) -> None:
     try:
         # Read the SQL template file
@@ -47,9 +43,7 @@ def create_rds_trigger_replica_db(
         sql_commands = sql_template.replace("${user}", rds_username)
         sql_commands = sql_commands.replace("${lambda_arn}", lambda_arn)
         sql_commands = sql_commands.replace("${aws_region}", aws_region)
-        sql_commands = sql_commands.replace(
-            "${table_name}", "pathwaysdos." + legacy.Service.__tablename__
-        )
+        sql_commands = sql_commands.replace("${table_name}", table_name)
 
         # Execute the SQL commands as a single statement
         with engine.connect() as connection:

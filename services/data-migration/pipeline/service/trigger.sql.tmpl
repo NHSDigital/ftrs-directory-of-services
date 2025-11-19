@@ -28,8 +28,8 @@ BEGIN
             payload,
             '${aws_region}'
         );
-        RETURN OLD;
 
+        RETURN OLD;
     ELSE
         payload := json_build_object(
             'table_name', TG_TABLE_NAME,
@@ -37,20 +37,22 @@ BEGIN
             'service_id', COALESCE(NEW.serviceid::text, '0'),
             'record_id', COALESCE(NEW.id::text, '0')
         );
+
         PERFORM aws_lambda.invoke(
             '${lambda_arn}',
             payload,
             '${aws_region}'
         );
+
         RETURN NEW;
     END IF;
 END;
 $function$;
 
 
--- Trigger on the serviceendpoints table to invoke Lambda on row-level changes
-CREATE TRIGGER serviceendpoints_lambda_notify
+-- Trigger on the table to invoke Lambda on row-level changes
+CREATE TRIGGER ${table_name}_lambda_notify
 AFTER INSERT OR UPDATE OR DELETE
-ON ${service_endpoints_table_name}
+ON ${table_name}
 FOR EACH ROW
 EXECUTE FUNCTION pathwaysdos.related_service_change_notify();
