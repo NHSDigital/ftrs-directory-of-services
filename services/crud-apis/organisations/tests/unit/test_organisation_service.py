@@ -31,8 +31,6 @@ def make_service(
 
 @freeze_time(FIXED_MODIFIED_TIME)
 def test_get_outdated_fields_no_changes() -> None:
-    from datetime import date
-
     organisation = Organisation(
         identifier_ODS_ODSCode="ABC123",
         active=True,
