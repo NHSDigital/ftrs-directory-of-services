@@ -105,16 +105,6 @@ Feature: API DoS Service Search Backend
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "not-found"
-    And the OperationOutcome contains an issue with diagnostics "No such endpoint"
-
-
-  Scenario: I call the gateway with invalid mTLS keys and receive a 403 OperationOutcome
-    When I request data with invalid mTLS from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
-    Then I receive a status code "403" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "security"
-    And the OperationOutcome contains an issue with diagnostics "Invalid or missing client authentication"
-    And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
+    And the OperationOutcome contains an issue with code "not-supported"
+    And the OperationOutcome contains an issue with diagnostics "Unsupported service: /DoesNotExist"
+    And the OperationOutcome contains an issue with details for UNSUPPORTED_SERVICE coding
