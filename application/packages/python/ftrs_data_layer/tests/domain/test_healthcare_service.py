@@ -13,7 +13,7 @@ from ftrs_data_layer.domain import (
     SymptomDiscriminator,
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
-    Telecom,
+    HealthcareServiceTelecom,
 )
 from ftrs_data_layer.domain.enums import TelecomType
 from pydantic import ValidationError
@@ -35,14 +35,12 @@ def test_healthcare_service_round_trip_and_types() -> None:
         modifiedDateTime="2023-10-01T00:00:00Z",
         migrationNotes=None,
         name="Test Healthcare Service",
-        telecom=[
-            Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=False),
-            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
-            Telecom(type=TelecomType.EMAIL, value="example@email.com", isPublic=True),
-            Telecom(
-                type=TelecomType.WEB, value="https://www.example.com", isPublic=True
-            ),
-        ],
+        telecom=HealthcareServiceTelecom(
+            phone_public="123456789",
+            phone_private="987654321",
+            email="example@mail.com",
+            web="www.example.com",
+        ),
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
                 sg=SymptomGroup(
@@ -139,12 +137,12 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "migrationNotes": None,
         "name": "Test Healthcare Service",
-        "telecom": [
-            {"type": "phone", "value": "020 7972 3272", "isPublic": False},
-            {"type": "phone", "value": "0300 311 22 33", "isPublic": True},
-            {"type": "email", "value": "example@email.com", "isPublic": True},
-            {"type": "web", "value": "https://www.example.com", "isPublic": True},
-        ],
+        "telecom": {
+            "phone_public": "123456789",
+            "phone_private": "987654321",
+            "email": "example@mail.com",
+            "web": "www.example.com",
+        },
         "symptomGroupSymptomDiscriminators": [],
         "dispositions": [],
         "openingTime": [
