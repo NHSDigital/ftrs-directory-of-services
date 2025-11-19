@@ -93,6 +93,7 @@ class OrganizationMapper(FhirMapper):
         ods_code = self._extract_ods_code_from_identifiers(
             ods_fhir_organization.get("identifier", [])
         )
+
         required_fields = {
             "resourceType": "Organization",
             "id": ods_fhir_organization.get("id"),
