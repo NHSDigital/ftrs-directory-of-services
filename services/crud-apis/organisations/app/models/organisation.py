@@ -206,6 +206,11 @@ def _validate_typed_period_extension(ext: Extension) -> None:
     if ext.url != TYPED_PERIOD_URL:
         _raise_validation_error(f"Invalid extension URL: {ext.url}")
 
+    if not ext.extension or len(ext.extension) == 0:
+        _raise_validation_error(
+            f"TypedPeriod extension with URL '{TYPED_PERIOD_URL}' must include a nested 'extension' array with 'dateType' and 'period' fields"
+        )
+
     date_type_ext = next((e for e in ext.extension if e.url == "dateType"), None)
     period_ext = next((e for e in ext.extension if e.url == "period"), None)
 
