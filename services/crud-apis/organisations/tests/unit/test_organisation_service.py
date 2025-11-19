@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from freezegun import freeze_time
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.organisation_service import OrganisationService
@@ -30,6 +31,8 @@ def make_service(
 
 @freeze_time(FIXED_MODIFIED_TIME)
 def test_get_outdated_fields_no_changes() -> None:
+    from datetime import date
+
     organisation = Organisation(
         identifier_ODS_ODSCode="ABC123",
         active=True,
@@ -42,6 +45,7 @@ def test_get_outdated_fields_no_changes() -> None:
         modifiedBy="ROBOT",
         modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
+        legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
     )
     payload = MagicMock(
         model_dump=lambda: {
@@ -51,6 +55,7 @@ def test_get_outdated_fields_no_changes() -> None:
             "telecom": "12345",
             "type": "GP Practice",
             "endpoints": [],
+            "legalDates": {"start": date(2020, 1, 15), "end": date(2025, 12, 31)},
         }
     )
     service = make_service()
@@ -71,11 +76,15 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         modifiedBy="ROBOT",
         modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
+        legalDates={"start": "2020-01-15", "end": "2025-12-31"},
     )
     updates = {
         "name": "Updated Org Name",
         "telecom": "99999",
         "modified_by": "UserX",
+        "legalDates": {
+            "start": "2020-01-15",
+        },
     }
     service = make_service()
     with patch(
@@ -103,18 +112,27 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         modifiedBy="ROBOT",
         modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
+        legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
     )
     payload = Organisation(
-        identifier_ODS_ODSCode="DEF456",
         active=False,
         name="Updated Organisation",
         telecom="67890",
         type="Updated Type",
         modifiedBy="ETL_ODS_PIPELINE",
+        legalDates=LegalDates(start=date(2021, 1, 1), end=date(2026, 12, 31)),
     )
     service = make_service()
     with caplog.at_level("INFO"):
         result = service._get_outdated_fields(organisation, payload)
+
+        # Extract legalDates from result for separate comparison
+        result_legal_dates = result.pop("legalDates", None)
+        expected_legal_dates = {"start": date(2021, 1, 1), "end": date(2026, 12, 31)}
+
+        # Compare legalDates separately
+        assert result_legal_dates == expected_legal_dates
+
         assert result == {
             "identifier_ODS_ODSCode": "DEF456",
             "active": False,
@@ -125,7 +143,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "modifiedDateTime": FIXED_MODIFIED_TIME,
         }
         assert (
-            "Computed outdated fields: ['identifier_ODS_ODSCode', 'active', 'name', 'telecom', 'type'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
+            "Computed outdated fields: ['active', 'name', 'telecom', 'type', 'legalDates'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
             in caplog.text
         )
 
