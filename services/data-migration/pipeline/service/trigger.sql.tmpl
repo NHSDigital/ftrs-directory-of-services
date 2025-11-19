@@ -51,7 +51,7 @@ $function$;
 
 
 -- Trigger on the table to invoke Lambda on row-level changes
-CREATE TRIGGER ${table_name}_lambda_notify
+CREATE TRIGGER service_lambda_notify
 AFTER INSERT OR UPDATE OR DELETE
 ON ${table_name}
 FOR EACH ROW
