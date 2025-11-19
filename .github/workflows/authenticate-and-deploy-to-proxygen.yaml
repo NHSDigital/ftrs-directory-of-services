@@ -15,10 +15,6 @@ on:
         description: 'Workspace identifier (e.g., FTRS-000)'
         required: true
         type: string
-      api_name:
-        description: 'API name'
-        required: true
-        type: string
       proxy_env:
         description: 'Proxy environment (e.g., internal-dev)'
         required: true
@@ -33,9 +29,14 @@ on:
 
 jobs:
   authenticate-and-deploy:
-    name: Authenticate and Deploy to Proxygen
+    name: Authenticate and Deploy to Proxygen - ${{ matrix.api_name }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        api_name:
+          - dos-search
+          # Add more API names here as needed
 
     steps:
       - name: Checkout repository
@@ -52,7 +53,7 @@ jobs:
         id: get-token
         uses: ./.github/actions/authenticate-apim
         with:
-          api_name: ${{ inputs.api_name }}
+          api_name: ${{ matrix.api_name }}
           environment: ${{ inputs.environment }}
           aws_region: ${{ secrets.AWS_REGION }}
 
@@ -77,7 +78,7 @@ jobs:
       - name: Deploy API Specification
         uses: ./.github/actions/deploy-to-proxygen
         with:
-          api_name: ${{ inputs.api_name }}
+          api_name: ${{ matrix.api_name }}
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
           proxy_env: ${{ inputs.proxy_env }}
@@ -89,7 +90,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API Name | \`${{ inputs.api_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Name | \`${{ matrix.api_name }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Workspace | \`${{ inputs.workspace }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Environment | \`${{ inputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
