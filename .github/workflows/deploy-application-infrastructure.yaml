@@ -77,6 +77,7 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
       action: plan
       type: ${{ inputs.type }}
+      workflow_timeout: ${{ inputs.workflow_timeout }}
     secrets: inherit
 
   manual-approval-application-infra:
@@ -113,6 +114,7 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
       action: apply
       type: ${{ inputs.type }}
+      workflow_timeout: ${{ inputs.workflow_timeout }}
     secrets: inherit
 
   deploy_summary:
