@@ -1,6 +1,6 @@
 #Shield Configurations
 isShieldProactiveEngagementEnabled = false
-isShieldSRTAccessEnabled           = true
+isShieldSRTAccessEnabled           = false
 isShieldAutomaticResponseEnabled   = false
 alarm_notification_email           = []
 emergency_contacts                 = []
