@@ -58,24 +58,6 @@ variable "frontend_lambda_runtime" {
   default     = "nodejs20.x"
 }
 
-variable "access_logs_bucket_name" {
-  description = "The name of the S3 bucket for access logs"
-  type        = string
-  default     = "cf-access-logs"
-}
-
-variable "force_destroy_access_logging_bucket" {
-  description = "Whether to forcefully destroy the bucket when it contains objects"
-  type        = bool
-  default     = false
-}
-
-variable "access_logs_prefix" {
-  description = "The prefix for the access logs in the S3 bucket"
-  type        = string
-  default     = "cloudfront"
-}
-
 variable "cloudfront_5xx_error_threshold" {
   description = "Threshold percentage for CloudFront 5xx errors that triggers the alarm"
   type        = number
@@ -143,4 +125,49 @@ variable "minimum_protocol_version" {
   description = "The minimum protocol version for CloudFront distribution"
   type        = string
   default     = "TLSv1.2_2021"
+}
+
+variable "cloudfront_logs_retention_in_days" {
+  description = "The number of days to retain CloudFront logs in CloudWatch"
+  type        = number
+  default     = 30
+}
+
+variable "included_cloudfront_log_fields" {
+  description = "List of CloudFront log fields to include in CloudWatch Logs"
+  type        = list(string)
+  default = [
+    "date",
+    "time",
+    "x-edge-location",
+    "sc-bytes",
+    "cs-method",
+    "cs(Host)",
+    "cs-uri-stem",
+    "sc-status",
+    "cs(Referer)",
+    "cs(User-Agent)",
+    "cs-uri-query",
+    "cs(Cookie)",
+    "x-edge-result-type",
+    "x-edge-request-id",
+    "x-host-header",
+    "cs-protocol",
+    "cs-bytes",
+    "time-taken",
+    "x-forwarded-for",
+    "ssl-protocol",
+    "ssl-cipher",
+    "x-edge-response-result-type",
+    "cs-protocol-version",
+    "fle-status",
+    "fle-encrypted-fields",
+    "c-port",
+    "time-to-first-byte",
+    "x-edge-detailed-result-type",
+    "sc-content-type",
+    "sc-content-len",
+    "sc-range-start",
+    "sc-range-end"
+  ]
 }
