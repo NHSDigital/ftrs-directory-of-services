@@ -142,6 +142,22 @@ def test_valid_typed_period_extension_with_end_only() -> None:
     assert organisation.extension is not None
 
 
+def test_invalid_sub_extension() -> None:
+    """Test validation fails with invalid sub extension."""
+    payload = _build_base_payload()
+    payload["extension"] = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+        }
+    ]
+    with pytest.raises(OperationOutcomeException) as e:
+        OrganisationUpdatePayload(**payload)
+    assert (
+        "TypedPeriod extension with URL 'https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod' must include a nested 'extension' array with 'dateType' and 'period' fields"
+        in str(e.value)
+    )
+
+
 def test_invalid_extension_url() -> None:
     """Test validation fails with invalid extension URL."""
     payload = _build_base_payload()
