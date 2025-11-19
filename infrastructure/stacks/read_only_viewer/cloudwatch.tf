@@ -12,7 +12,7 @@ resource "aws_cloudwatch_log_delivery_source" "delivery_source" {
 
   name         = "${local.resource_prefix}-${var.stack_name}-delivery-source${local.workspace_suffix}"
   log_type     = "ACCESS_LOGS"
-  resource_arn = module.ui_cloudfront.cloudfront_distribution_arn
+  resource_arn = module.read_only_viewer_cloudfront.cloudfront_distribution_arn
 }
 
 # Define a destination - ie where the cloudfront logs go and format
