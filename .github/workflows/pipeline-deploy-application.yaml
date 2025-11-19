@@ -144,29 +144,6 @@ jobs:
       - name: Approval required
         run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
 
-  # authenticate-with-apim:
-  #   name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
-  #   needs:
-  #     - metadata
-  #     - manual-approval
-  #   uses: ./.github/workflows/authentication-to-apim.yaml
-  #   with:
-  #     environment: ${{ needs.metadata.outputs.environment }}
-  #     api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
-  #   secrets: inherit
-
-  # deploy-to-apim:
-  #   name: "Deploy DOS Search API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-  #   needs:
-  #     - metadata
-  #     - authenticate-with-apim
-  #   uses: ./.github/workflows/deploy-to-proxygen.yaml
-  #   with:
-  #     api_name: "dos-search"
-  #     workspace: ${{ needs.metadata.outputs.workspace }}
-  #     environment: ${{ needs.metadata.outputs.environment }}
-  #     access_token: ${{ needs.authenticate-with-apim.outputs.access_token }}
-
   apply-infrastructure:
     name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
     concurrency:

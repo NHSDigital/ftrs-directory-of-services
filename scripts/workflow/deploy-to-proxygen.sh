@@ -137,11 +137,6 @@ else
     INSTANCE_NAME="${API_NAME}"
 fi
 
-echo "Debug: WORKSPACE=$WORKSPACE" >&2
-echo "Debug: API_NAME=$API_NAME" >&2
-echo "Debug: PROXY_ENV=$PROXY_ENV" >&2
-echo "Using instance name: $INSTANCE_NAME" >&2
-
 # Deploy to Proxygen using the environment/instance endpoint
 echo "Deploying to Proxygen API..." >&2
 echo "Endpoint: PUT ${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" >&2
