@@ -39,19 +39,6 @@ jobs:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
 
-  authenticate-and-deploy-to-apim:
-    name: "Authenticate and Deploy DOS Search API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-    uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      proxy_env: "internal-dev"
-    secrets:
-      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-      AWS_REGION: ${{ vars.AWS_REGION }}
-
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
@@ -142,6 +129,20 @@ jobs:
     steps:
       - name: Approval required
         run: echo "${{ needs.metadata.outputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+  
+  authenticate-and-deploy-to-apim:
+    name: "Authenticate and Deploy DOS Search API to Proxygen in ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - manual-approval
+    uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      proxy_env: "internal-dev"
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
 
   apply-infrastructure:
     name: "Apply ${{ needs.metadata.outputs.environment }} application infrastructure"
