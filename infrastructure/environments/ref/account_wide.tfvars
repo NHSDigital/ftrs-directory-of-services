@@ -1,6 +1,6 @@
 vpc = {
   name = "vpc"
-  cidr = "10.170.0.0/16"
+  cidr = "10.178.0.0/16"
 
   public_subnet_a = "10.178.1.0/24"
   public_subnet_b = "10.178.2.0/24"
