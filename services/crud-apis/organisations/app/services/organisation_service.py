@@ -11,6 +11,7 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
@@ -176,15 +177,24 @@ class OrganisationService:
             "name",
             "type",
             "active",
-            "identifier_ODS_ODSCode",
             "telecom",
             "legalDates",
         }
-        outdated_fields = {
-            field: value
-            for field, value in payload.model_dump().items()
-            if (field in allowed_fields and getattr(organisation, field, None) != value)
-        }
+        outdated_fields = {}
+
+        for field, value in payload.model_dump().items():
+            if field not in allowed_fields:
+                continue
+
+            existing_value = getattr(organisation, field, None)
+
+            # Special handling for legalDates to compare start and end values
+            if field == "legalDates":
+                if self._legal_dates_differ(existing_value, value):
+                    outdated_fields[field] = value
+            elif existing_value != value:
+                outdated_fields[field] = value
+
         if outdated_fields:
             self.logger.log(
                 CrudApisLogBase.ORGANISATION_006,
@@ -194,3 +204,24 @@ class OrganisationService:
             outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
             outdated_fields["modifiedDateTime"] = datetime.now(UTC)
         return outdated_fields
+
+    def _legal_dates_differ(self, existing: LegalDates, new: LegalDates) -> bool:
+        """Compare two legalDates to check if they differ."""
+        if existing is None and new is None:
+            return False
+        if existing is None or new is None:
+            return True
+
+        existing_start = self._extract_date_field(existing, "start")
+        existing_end = self._extract_date_field(existing, "end")
+        new_start = self._extract_date_field(new, "start")
+        new_end = self._extract_date_field(new, "end")
+
+        return existing_start != new_start or existing_end != new_end
+
+    def _extract_date_field(self, legal_dates: LegalDates, field: str) -> any:
+        if hasattr(legal_dates, field):
+            return getattr(legal_dates, field)
+        if isinstance(legal_dates, dict):
+            return legal_dates.get(field)
+        return None
