@@ -93,7 +93,6 @@ class OrganizationMapper(FhirMapper):
         ods_code = self._extract_ods_code_from_identifiers(
             ods_fhir_organization.get("identifier", [])
         )
-
         required_fields = {
             "resourceType": "Organization",
             "id": ods_fhir_organization.get("id"),
@@ -107,7 +106,7 @@ class OrganizationMapper(FhirMapper):
             required_fields["active"] = ods_fhir_organization["active"]
         return FhirValidator.validate(required_fields, FhirOrganisation)
 
-    # --- FHIR Extraction Helpers test ---
+    # --- FHIR Extraction Helpers ---
     def _extract_ods_code_from_identifiers(self, identifiers: list[dict]) -> str:
         """Extract ODS code from identifier list."""
         for identifier in identifiers:
