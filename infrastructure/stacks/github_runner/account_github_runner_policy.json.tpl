@@ -126,7 +126,8 @@
                 "StringEquals": {
                     "iam:PassedToService": [
                         "apigateway.amazonaws.com",
-                        "ec2.amazonaws.com"
+                        "ec2.amazonaws.com",
+                        "drt.shield.amazonaws.com"
                     ]
                 }
             }
