@@ -1,7 +1,7 @@
 resource "aws_cloudwatch_log_group" "log_group" {
   # checkov:skip=CKV_AWS_158: TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-378
   # checkov:skip=CKV_AWS_338: TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-378
-  name              = "${local.resource_prefix}-${var.stack_name}-log-group${local.workspace_suffix}"
+  name              = "${local.resource_prefix}-log-group${local.workspace_suffix}"
   retention_in_days = var.cloudfront_logs_retention_in_days
   region            = "us-east-1"
 }
@@ -10,7 +10,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 resource "aws_cloudwatch_log_delivery_source" "delivery_source" {
   region = "us-east-1"
 
-  name         = "${local.resource_prefix}-${var.stack_name}-delivery-source${local.workspace_suffix}"
+  name         = "${local.resource_prefix}-delivery-source${local.workspace_suffix}"
   log_type     = "ACCESS_LOGS"
   resource_arn = module.ui_cloudfront.cloudfront_distribution_arn
 }
@@ -19,7 +19,7 @@ resource "aws_cloudwatch_log_delivery_source" "delivery_source" {
 resource "aws_cloudwatch_log_delivery_destination" "delivery_destination" {
   region = "us-east-1"
 
-  name          = "${local.resource_prefix}-${var.stack_name}-log-delivery-destination${local.workspace_suffix}"
+  name          = "${local.resource_prefix}-log-delivery-destination${local.workspace_suffix}"
   output_format = "json"
 
   delivery_destination_configuration {
