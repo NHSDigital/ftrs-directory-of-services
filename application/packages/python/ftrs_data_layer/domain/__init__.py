@@ -27,7 +27,7 @@ from .enums import (
     OpeningTimeCategory,
     OrganisationType,
 )
-from .healthcare_service import HealthcareService
+from .healthcare_service import HealthcareService, HealthcareServiceTelecom
 from .location import Address, Location, PositionGCS
 from .organisation import Organisation
 from .telecom import Telecom
@@ -58,6 +58,7 @@ __all__ = [
     "ClinicalCodeSource",
     "ClinicalCodeType",
     "HealthcareService",
+    "HealthcareServiceTelecom",
     "Telecom",
     "Address",
     "PositionGCS",
