@@ -43,7 +43,6 @@ jobs:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
       - metadata
-      - authenticate-and-deploy-to-apim
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
