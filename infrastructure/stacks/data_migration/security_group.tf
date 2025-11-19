@@ -107,7 +107,7 @@ resource "aws_vpc_security_group_egress_rule" "queue_populator_allow_egress_to_i
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  referenced_security_group_id = data.aws_security_group.dms_replication_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.dms_replication_security_group.id
   description                  = "Allow ingress on port ${var.rds_port} from DMS replication security group"
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
@@ -127,7 +127,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
 
 resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_from_rds" {
   count                        = local.is_primary_environment ? 1 : 0
-  security_group_id            = data.aws_security_group.dms_replication_security_group[0].id
+  security_group_id            = data.aws_security_group.dms_replication_security_group.id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description                  = "Allow ingress on port ${var.rds_port} from RDS security group"
   from_port                    = var.rds_port
@@ -137,7 +137,7 @@ resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_fr
 
 resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_from_vpce" {
   count                        = local.is_primary_environment ? 1 : 0
-  security_group_id            = data.aws_security_group.dms_replication_security_group[0].id
+  security_group_id            = data.aws_security_group.dms_replication_security_group.id
   referenced_security_group_id = data.aws_security_group.vpce_rds_security_group.id
   description                  = "Allow ingress on port ${var.rds_port} from Live DoS VPC Endpoint"
   from_port                    = var.rds_port
@@ -147,7 +147,7 @@ resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_fr
 
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_rds" {
   count                        = local.is_primary_environment ? 1 : 0
-  security_group_id            = data.aws_security_group.dms_replication_security_group[0].id
+  security_group_id            = data.aws_security_group.dms_replication_security_group.id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description                  = "Allow egress on port ${var.rds_port} to RDS security group"
   from_port                    = var.rds_port
@@ -158,7 +158,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_https" {
   count             = local.is_primary_environment ? 1 : 0
-  security_group_id = data.aws_security_group.dms_replication_security_group[0].id
+  security_group_id = data.aws_security_group.dms_replication_security_group.id
   description       = "Allow egress to internet on HTTPS port"
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = var.https_port
@@ -169,7 +169,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_http
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns" {
   count             = local.is_primary_environment ? 1 : 0
-  security_group_id = data.aws_security_group.dms_replication_security_group[0].id
+  security_group_id = data.aws_security_group.dms_replication_security_group.id
   description       = "Allow egress for DNS resolution"
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = var.dns_port
@@ -180,7 +180,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns"
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_udp" {
   count             = local.is_primary_environment ? 1 : 0
-  security_group_id = data.aws_security_group.dms_replication_security_group[0].id
+  security_group_id = data.aws_security_group.dms_replication_security_group.id
   description       = "Allow egress for DNS resolution (UDP)"
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = var.dns_port
@@ -190,7 +190,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_
 
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_vpce" {
   count                        = local.is_primary_environment ? 1 : 0
-  security_group_id            = data.aws_security_group.dms_replication_security_group[0].id
+  security_group_id            = data.aws_security_group.dms_replication_security_group.id
   referenced_security_group_id = data.aws_security_group.vpce_rds_security_group.id
   description                  = "Allow egress to Live DoS VPC Endpoint"
   from_port                    = var.rds_port
