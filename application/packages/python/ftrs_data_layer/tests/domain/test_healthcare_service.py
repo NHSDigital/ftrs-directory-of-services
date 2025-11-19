@@ -15,7 +15,6 @@ from ftrs_data_layer.domain import (
     SymptomGroupSymptomDiscriminatorPair,
     HealthcareServiceTelecom,
 )
-from ftrs_data_layer.domain.enums import TelecomType
 from pydantic import ValidationError
 
 
