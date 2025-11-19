@@ -18,6 +18,7 @@ on:
       - "infrastructure/modules/s3/**"
       - "infrastructure/stacks/account_security/**"
       - "infrastructure/modules/shield/**"
+      - "infrastructure/stacks/logging/**"
   workflow_run:
     workflows: ["Pipeline Deploy Policies Infrastructure"]
     types:
@@ -71,7 +72,7 @@ jobs:
       tag: ${{ inputs.tag }}
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security']"
+      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','logging']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
@@ -96,7 +97,7 @@ jobs:
             stacks: "['terraform_management','account_wide','domain_name']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name']"
+            stacks: "['terraform_management','account_security','artefact_management','domain_name','logging']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -140,7 +141,7 @@ jobs:
             stacks: "['terraform_management','account_wide','domain_name']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name']"
+            stacks: "['terraform_management','account_security','artefact_management','domain_name','logging']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
