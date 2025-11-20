@@ -40,14 +40,7 @@ class OrganizationMapper(FhirMapper):
     def _build_legal_date_extension(
         self, legal_start_date: str | None, legal_end_date: str | None
     ) -> Extension | None:
-        """
-        Build FHIR TypedPeriod extension for legal dates using Extension model.
-        Args:
-            legal_start_date: Legal start date in ISO 8601 format (YYYY-MM-DD)
-            legal_end_date: Legal end date in ISO 8601 format (YYYY-MM-DD)
-        Returns:
-            Extension object if at least one date present, else None
-        """
+        """Build FHIR TypedPeriod extension for legal dates using Extension model."""
         if not legal_start_date and not legal_end_date:
             return None
         period_data = {}
@@ -257,34 +250,28 @@ class OrganizationMapper(FhirMapper):
             ext_obj = (
                 ext if isinstance(ext, Extension) else Extension.model_validate(ext)
             )
-            if ext_obj.url == TYPED_PERIOD_URL and getattr(ext_obj, "extension", None):
+            if ext_obj.url == TYPED_PERIOD_URL:
                 return ext_obj
         return None
 
     def _parse_legal_period(
         self, typed_period_ext: Extension | None
     ) -> tuple[str | None, str | None]:
-        """Parse Legal period from TypedPeriod Extension object."""
-        if not typed_period_ext or not getattr(typed_period_ext, "extension", None):
+        """Extract start and end dates from validated TypedPeriod Extension."""
+        if not typed_period_ext or not typed_period_ext.extension:
             return None, None
-        ext_objs = [
-            e if isinstance(e, Extension) else Extension.model_validate(e)
-            for e in typed_period_ext.extension
-        ]
-        date_type = next((e for e in ext_objs if e.url == "dateType"), None)
-        period = next((e for e in ext_objs if e.url == "period"), None)
-        if (
-            date_type
-            and getattr(date_type, "valueCoding", None)
-            and date_type.valueCoding.code == "Legal"
-            and period
-            and getattr(period, "valuePeriod", None)
-        ):
-            value_period = period.valuePeriod
-            start = getattr(value_period, "start", None)
-            end = getattr(value_period, "end", None)
-            return start, end
-        return None, None
+
+        period_ext = next(
+            (e for e in typed_period_ext.extension if e.url == "period"), None
+        )
+
+        if not period_ext or not period_ext.valuePeriod:
+            return None, None
+
+        start = getattr(period_ext.valuePeriod, "start", None)
+        end = getattr(period_ext.valuePeriod, "end", None)
+
+        return start, end
 
     def _extract_legal_dates(
         self, resource: FhirOrganisation
