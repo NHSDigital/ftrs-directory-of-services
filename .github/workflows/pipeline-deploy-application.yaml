@@ -98,6 +98,7 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
+      working_directory: ${{ matrix.working_directory }}
       type: app
     secrets: inherit
 
