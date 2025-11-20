@@ -153,6 +153,14 @@ def new_apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_hea
     apim_request_context.dispose()
 
 
+@pytest.fixture
+def new_apim_status_request_context(playwright, nhsd_apim_proxy_url, status_endpoint_auth_headers):
+    """Create a new Playwright API request context."""
+    apim_headers = status_endpoint_auth_headers
+    apim_request_context = playwright.request.new_context(extra_http_headers = apim_headers,)
+    yield apim_request_context
+    apim_request_context.dispose()
+
 @pytest.fixture(scope="session")
 def chromium():
     with sync_playwright() as p:
@@ -187,6 +195,11 @@ def _get_env_var(varname: str, default: str = None, required: bool = True) -> st
 @pytest.fixture(scope="session")
 def env() -> str:
     return _get_env_var("ENVIRONMENT")
+
+
+@pytest.fixture(scope="module")
+def apigee_token() -> str:
+    return _get_env_var("APIGEE_ACCESS_TOKEN")
 
 
 @pytest.fixture(scope="session", autouse=True)
