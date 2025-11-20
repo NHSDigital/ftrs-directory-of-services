@@ -79,8 +79,17 @@ class DataMigrationApplication:
     def parse_event(self, event: dict) -> DMSEvent:
         """
         Parse the incoming event into a DMSEvent object.
+        Handles both direct events and nested Aurora trigger events.
         """
         try:
+            # Unwrap nested Aurora trigger events from migration_copy_db_trigger_lambda_handler
+            if (
+                "source" in event
+                and event.get("source") == "aurora_trigger"
+                and "event" in event
+            ):
+                event = event["event"]
+
             return DMSEvent(**event)
         except Exception as e:
             self.logger.log(

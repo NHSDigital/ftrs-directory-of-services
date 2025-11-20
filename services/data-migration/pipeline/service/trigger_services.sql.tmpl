@@ -5,8 +5,11 @@ CREATE EXTENSION IF NOT EXISTS aws_lambda CASCADE;
 GRANT USAGE ON SCHEMA aws_lambda TO ${user};
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA aws_lambda TO ${user};
 
+
 -- Create unique trigger and function names for services table to avoid deadlocks
 DROP TRIGGER IF EXISTS services_lambda_notify ON ${table_name};
+
+DROP FUNCTION IF EXISTS pathwaysdos.lambda_notify() CASCADE;
 
 DROP FUNCTION IF EXISTS pathwaysdos.services_change_notify() CASCADE;
 
