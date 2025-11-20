@@ -8,55 +8,30 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL := build
 
-.PHONY: help clean install install-dependencies docker-install build unit-test push publish print-proxygen-config
+.PHONY: install build unit-test push publish lint
 
-SERVICE ?= dos-search-sandbox
-AWS_REGION ?= eu-west-2
-PROXYGEN_API_NAME ?= dos-search
-PROXYGEN_ENV ?= internal-dev-sandbox
-PROXYGEN_TOKEN_SCRIPT ?= ../../../scripts/workflow/get-apim-token.sh
-PUSH_SCRIPT ?= ./push.sh
+API_NAME ?= dos-search
 PUBLISH_SCRIPT ?= ./publish.sh
 COMMIT_HASH ?= $(shell git -C $(ROOT_DIR) rev-parse --short HEAD 2>/dev/null)
-REQUIRED_BINARIES ?= docker jq curl
-BUILD_DIR := ../../build/services/${SERVICE}
-IMAGE_REPOSITORY ?= ${ECR_REGISTRY}
-IMAGE_NAME ?= $(or ${IMAGE_OVERRIDE},sandbox-dos-search)
-IMAGE_TAG ?= $(or ${COMMIT_HASH},$(or ${APPLICATION_TAG},latest))
-FULL_IMAGE := $(if ${IMAGE_REPOSITORY},${IMAGE_REPOSITORY}/${IMAGE_NAME},${IMAGE_NAME}):${IMAGE_TAG}
-CONTAINER_NAME := ${SERVICE}-tests
+IMAGE_TAG ?= $(or ${COMMIT_HASH},latest)
+FULL_IMAGE := ${API_NAME}:${IMAGE_TAG}
+CONTAINER_NAME := ${API_NAME}-tests
 SMOKE_SCRIPT := ./scripts/smoke.sh
 
-# Emit Proxygen configuration in KEY=VALUE form for CI to consume
-.PHONY: print-proxygen-config
-print-proxygen-config:
-	@echo "PROXYGEN_API_NAME=${PROXYGEN_API_NAME}"
-	@echo "PROXYGEN_ENV=${PROXYGEN_ENV}"
-	@echo "AWS_REGION=${AWS_REGION}"
-	@echo "PROXYGEN_SPEC_PATH=${PROXYGEN_SPEC_PATH}"
-
-clean:
-	rm -rf $(BUILD_DIR)
-	docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true
-	docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "^${IMAGE_REPOSITORY}/${IMAGE_NAME}" | xargs -r docker rmi
-
-install: install-dependencies docker-install
-
-install-dependencies:
-	$(MAKE) -C $(ROOT_DIR) _install-dependencies
-
-docker-install:
-	if ! command -v docker >/dev/null 2>&1; then \
-		if command -v apt-get >/dev/null 2>&1; then \
-			sudo apt-get update; \
-			sudo apt-get install -y docker.io; \
-			sudo systemctl enable --now docker || true; \
-			sudo usermod -aG docker $$USER || true; \
-		else \
-			echo "Docker CLI not found and cannot be installed automatically on this platform"; \
-			exit 1; \
-		fi; \
+install:
+	if command -v docker >/dev/null 2>&1; then \
+		echo "Docker already installed"; \
+		docker version; \
+		exit 0; \
 	fi
+	DISTRO_CODENAME=$$(. /etc/os-release && echo $$VERSION_CODENAME); \
+	ARCH=$$(dpkg --print-architecture); \
+	sudo install -m 0755 -d /etc/apt/keyrings; \
+	sudo rm -f /etc/apt/keyrings/docker.gpg; \
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg; \
+	echo "deb [arch=$$ARCH signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $$DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null; \
+	sudo apt-get update; \
+	sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 	docker version
 
 build:
@@ -69,82 +44,38 @@ unit-test:
 	@trap 'docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true' EXIT TERM INT; \
 	WAIT_SECS=60 BASE_URL=http://localhost:9000 ${SMOKE_SCRIPT}
 
+publish:
+	@echo "Skipping S3 artefact publish for sandbox service"
+
 push:
-	if [ -z "${PROXYGEN_API_NAME}" ]; then \
-		echo "Missing required environment variable: PROXYGEN_API_NAME"; \
+	if [ -z "${API_NAME}" ]; then \
+		echo "Missing required environment variable: API_NAME"; \
 		exit 1; \
 	fi
 	if ! docker image inspect ${FULL_IMAGE} >/dev/null 2>&1; then \
 		echo "Docker image ${FULL_IMAGE} not found; run 'make build' first"; \
 		exit 1; \
 	fi
-	if [ -z "${IMAGE_NAME}" ]; then \
-		echo "IMAGE_NAME is required"; \
-		exit 1; \
-	fi
 	if [ -z "${IMAGE_TAG}" ]; then \
 		echo "IMAGE_TAG is required"; \
 		exit 1; \
 	fi
+
+	# Require PROXYGEN_ACCESS_TOKEN to be provided by the environment or caller
 	TOKEN="${PROXYGEN_ACCESS_TOKEN}"
 	if [ -z "$$TOKEN" ]; then \
-		if [ -z "${PROXYGEN_ENV}" ]; then \
-			echo "Set PROXYGEN_ENV or provide PROXYGEN_ACCESS_TOKEN"; \
-			exit 1; \
-		fi; \
-		SCRIPT_PATH="${PROXYGEN_TOKEN_SCRIPT}"; \
-		if [ ! -f "$$SCRIPT_PATH" ]; then \
-			echo "Token script $$SCRIPT_PATH not found"; \
-			exit 1; \
-		fi; \
-		chmod +x "$$SCRIPT_PATH" >/dev/null 2>&1 || true; \
-		TOKEN=$$(ENV=${PROXYGEN_ENV} API_NAME=${PROXYGEN_API_NAME} AWS_REGION=${AWS_REGION} "$$SCRIPT_PATH"); \
-	fi
-	if [ -z "$$TOKEN" ]; then \
-		echo "Failed to obtain Proxygen access token"; \
+		echo "Missing required environment variable: PROXYGEN_ACCESS_TOKEN"; \
 		exit 1; \
 	fi
-	if [ ! -f "${PUSH_SCRIPT}" ]; then \
-		echo "Push script not found: ${PUSH_SCRIPT}"; \
-		exit 1; \
-	fi
-	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
-	ACCESS_TOKEN="$$TOKEN" "${PUSH_SCRIPT}" "${PROXYGEN_API_NAME}" "${FULL_IMAGE}" "${IMAGE_NAME}" "${IMAGE_TAG}"
 
-publish:
-	if [ -z "${PROXYGEN_API_NAME}" ]; then \
-		echo "Missing required environment variable: PROXYGEN_API_NAME"; \
-		exit 1; \
-	fi
-	if [ -z "${PROXYGEN_SPEC_PATH}" ]; then \
-		echo "Missing required environment variable: PROXYGEN_SPEC_PATH"; \
-		exit 1; \
-	fi
-	if [ ! -f "${PROXYGEN_SPEC_PATH}" ]; then \
-		echo "Specification file not found: ${PROXYGEN_SPEC_PATH}"; \
-		exit 1; \
-	fi
-	DEPLOY_TOKEN="${PROXYGEN_ACCESS_TOKEN}"
-	if [ -z "$$DEPLOY_TOKEN" ]; then \
-		if [ -z "${PROXYGEN_ENV}" ]; then \
-			echo "Set PROXYGEN_ENV or provide PROXYGEN_ACCESS_TOKEN"; \
-			exit 1; \
-		fi; \
-		SCRIPT_PATH="${PROXYGEN_TOKEN_SCRIPT}"; \
-		if [ ! -f "$$SCRIPT_PATH" ]; then \
-			echo "Token script $$SCRIPT_PATH not found"; \
-			exit 1; \
-		fi; \
-		chmod +x "$$SCRIPT_PATH" >/dev/null 2>&1 || true; \
-		DEPLOY_TOKEN=$$(ENV=${PROXYGEN_ENV} API_NAME=${PROXYGEN_API_NAME} AWS_REGION=${AWS_REGION} "$$SCRIPT_PATH"); \
-	fi
-	if [ -z "$$DEPLOY_TOKEN" ]; then \
-		echo "Failed to obtain Proxygen deploy token"; \
-		exit 1; \
-	fi
+	# token present
+
 	if [ ! -f "${PUBLISH_SCRIPT}" ]; then \
-		echo "Publish script not found: ${PUBLISH_SCRIPT}"; \
+		echo "Push script not found: ${PUBLISH_SCRIPT}"; \
 		exit 1; \
 	fi
 	chmod +x "${PUBLISH_SCRIPT}" >/dev/null 2>&1 || true
-	ACCESS_TOKEN="$$DEPLOY_TOKEN" "${PUBLISH_SCRIPT}" "${PROXYGEN_ENV}" "${PROXYGEN_API_NAME}" "${PROXYGEN_SPEC_PATH}"
+	ACCESS_TOKEN="$$TOKEN" "${PUBLISH_SCRIPT}" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+
+lint:
+	@echo "No lint step for sandbox service"
