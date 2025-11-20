@@ -39,7 +39,7 @@ export const getCIS2PrivateKey = async (): Promise<CryptoKey> => {
   return await importPKCS8(cis2privateKeyPem, "RS512");
 };
 
-export const getOIDCConfig = async (): Promise<client.Configuration> => {
+export const getOIDCConfig = async (): Promise<{ oidcClient: client.Configuration; authConfig: CIS2ClientConfig }> => {
   const config = await getAuthConfig();
   const logger = getLogger();
 
@@ -69,7 +69,7 @@ export const getOIDCConfig = async (): Promise<client.Configuration> => {
       logger.warn("Could not log endpoint details", { error: metadataError });
     }
 
-    return oidcClientConfig;
+    return { oidcClient: oidcClientConfig, authConfig: config };
   } catch (error) {
     logger.error("CIS2 discovery failed", { error });
 
