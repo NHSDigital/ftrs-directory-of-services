@@ -21,21 +21,21 @@
 
 ```bash
 # From the repository root
-cd services/dos-search/sandbox
+cd services/sandbox-dos-search
 ```
 
 Or build from the repository root without changing directories:
 
 ```bash
 # Run from the repository root
-DOCKER_BUILDKIT=1 docker build -t dos-search-sandbox:local services/dos-search/sandbox
+DOCKER_BUILDKIT=1 docker build -t dos-search:local services/sandbox-dos-search
 ```
 
-1. Build (when inside `services/dos-search/sandbox`)
+1. Build (when inside `services/sandbox-dos-search`)
 
 ```bash
 make build
-# or docker build -t dos-search-sandbox:local .
+# or docker build -t dos-search:local .
 ```
 
 1. Run
@@ -43,13 +43,13 @@ make build
 ```bash
 make unit-test # runs the container and smoke tests locally
 # or run the container manually:
-docker run --rm -p 9000:9000 dos-search-sandbox:local
+docker run --rm -p 9000:9000 dos-search:local
 ```
 
 Tip: Add `-d` to run in detached mode so you can use the same terminal to run the curl commands below:
 
 ```bash
-docker run -d --rm -p 9000:9000 dos-search-sandbox:local
+docker run -d --rm -p 9000:9000 dos-search:local
 ```
 
 1. Try it
@@ -87,26 +87,26 @@ You can use Podman with equivalent commands.
 
 ```bash
 # From the repository root
-cd services/dos-search/sandbox
-podman build -t dos-search-sandbox:local .
+cd services/sandbox-dos-search
+podman build -t dos-search:local .
 ```
 
 - Or build from the repository root without changing directories:
 
 ```bash
-podman build -t dos-search-sandbox:local services/dos-search/sandbox
+podman build -t dos-search:local services/sandbox-dos-search
 ```
 
 - Run the container:
 
 ```bash
-podman run --rm -p 9000:9000 dos-search-sandbox:local
+podman run --rm -p 9000:9000 dos-search:local
 ```
 
 Tip: Add `-d` to run in detached mode so you can use the same terminal to run the curl commands below:
 
 ```bash
-podman run -d --rm -p 9000:9000 dos-search-sandbox:local
+podman run -d --rm -p 9000:9000 dos-search:local
 ```
 
 - Smoke test (optional):
