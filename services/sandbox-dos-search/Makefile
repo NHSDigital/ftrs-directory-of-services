@@ -58,7 +58,7 @@ build:
 	REPO_DIGEST=$$(docker image inspect -f '{{index .RepoDigests 0}}' "${FULL_IMAGE}" 2>/dev/null || echo "")
 	BUILT_AT=$$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-	printf '{"image":"%s","image_id":"%s","repo_digest":"%s","built_at":"%s"}\n' "${FULL_IMAGE}" "$${IMAGE_ID:-}" "$${REPO_DIGEST:-}" "$$BUILT_AT" > "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" && \
+	printf '{"image":"%s","image_id":"%s","repo_digest":"%s","built_at":"%s"}\n' "${FULL_IMAGE}" "$${IMAGE_ID:-}" "$${REPO_DIGEST:-}" "$${BUILT_AT:-}" > "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" && \
 	mv "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" "$(BUILD_OUTPUT_DIR)/manifest.json"
 
 	tar --exclude="build" --exclude=".git" --exclude=".venv" --exclude="venv" --exclude="node_modules" -czf "$(BUILD_OUTPUT_DIR)/source.tar.gz" -C "${DOCKER_CONTEXT}" . || true
