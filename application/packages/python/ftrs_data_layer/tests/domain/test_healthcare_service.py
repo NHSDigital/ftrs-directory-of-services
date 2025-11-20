@@ -9,11 +9,11 @@ from ftrs_data_layer.domain import (
     DayOfWeek,
     Disposition,
     HealthcareService,
+    HealthcareServiceTelecom,
     NotAvailable,
     SymptomDiscriminator,
     SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
-    HealthcareServiceTelecom,
 )
 from pydantic import ValidationError
 

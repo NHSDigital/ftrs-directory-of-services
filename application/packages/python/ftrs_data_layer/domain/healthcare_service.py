@@ -14,11 +14,13 @@ from ftrs_data_layer.domain.enums import (
 )
 from pydantic import BaseModel
 
+
 class HealthcareServiceTelecom(BaseModel):
     phone_public: str | None
     phone_private: str | None
     email: str | None
     web: str | None
+
 
 class AgeRangeType(BaseModel):
     rangeFrom: Decimal
