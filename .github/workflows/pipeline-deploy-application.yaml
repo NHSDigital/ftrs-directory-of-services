@@ -155,7 +155,12 @@ jobs:
         working-directory: services/sandbox-dos-search
         env:
           PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim.outputs.access_token }}
-        run: make push
+          COMMIT_HASH: ${{ needs.metadata.outputs.commit_hash }}
+        run: |
+          set -euo pipefail
+          make install
+          make unit-test
+          make push
 
   migrate-data:
     name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
