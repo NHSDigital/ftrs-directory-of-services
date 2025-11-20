@@ -2,7 +2,7 @@
 set -euo pipefail
 
 log() {
-  printf '[publish.sh] %s\n' "$1"
+  printf '[push.sh] %s\n' "$1"
 }
 
 die() {
@@ -37,13 +37,13 @@ if [[ -z "$ACCESS_TOKEN" ]]; then
   die "ACCESS_TOKEN is not set"
 fi
 
-if ! docker image inspect "$LOCAL_IMAGE" >/dev/null 2>&1; then
-  die "Local image $LOCAL_IMAGE not found"
-fi
-
 for dep in curl jq docker; do
   command -v "$dep" >/dev/null 2>&1 || die "Required dependency missing: $dep"
 done
+
+if ! docker image inspect "$LOCAL_IMAGE" >/dev/null 2>&1; then
+  die "Local image $LOCAL_IMAGE not found"
+fi
 
 BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
 
@@ -52,18 +52,27 @@ TOKEN_RESPONSE=$(curl -fsS --request GET \
   --url "${BASE_URL}/apis/${API_NAME}/docker-token" \
   --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
 
-LOGIN_CMD=$(echo "$TOKEN_RESPONSE" | jq -r '.loginCommand // empty')
+USER=$(echo "$TOKEN_RESPONSE" | jq -r '.user // empty')
+PASSWORD=$(echo "$TOKEN_RESPONSE" | jq -r '.password // empty')
 REGISTRY=$(echo "$TOKEN_RESPONSE" | jq -r '.registry // empty')
 
-if [[ -z "$LOGIN_CMD" || -z "$REGISTRY" ]]; then
-  die "Malformed response from Proxygen: $TOKEN_RESPONSE"
+if [[ -z "$REGISTRY" ]]; then
+  die "Malformed response from Proxygen: missing registry"
 fi
 
-log "Logging in to Docker registry: $REGISTRY"
-eval "$LOGIN_CMD"
+REGISTRY_HOST=$(echo "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
 
-REMOTE_COMMIT_TAG="${REGISTRY}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
-REMOTE_LATEST_TAG="${REGISTRY}/${REMOTE_IMAGE_NAME}:latest"
+
+if [[ -n "$USER" && -n "$PASSWORD" ]]; then
+  log "Logging in to Docker registry (user/password) at: $REGISTRY_HOST"
+  # Use password-stdin to avoid exposing password on the command line
+  echo "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
+else
+  die "No usable login credentials returned from Proxygen; expected 'user' and 'password' in response"
+fi
+
+REMOTE_COMMIT_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
+REMOTE_LATEST_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:latest"
 
 retry_push() {
   local tag="$1"
