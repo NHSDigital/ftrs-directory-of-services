@@ -14,7 +14,7 @@ SHELL := /bin/bash
 .PHONY: install build unit-test push publish lint
 
 API_NAME ?= dos-search
-PUBLISH_SCRIPT ?= ./publish.sh
+PUSH_SCRIPT ?= ./scripts/push.sh
 
 ifneq ($(strip $(COMMIT_HASH)),)
 COMMIT_SOURCE := $(strip $(COMMIT_HASH))
@@ -87,7 +87,7 @@ push:
 	fi
 
 	# Require PROXYGEN_ACCESS_TOKEN to be provided by the environment or caller
-	TOKEN="${PROXYGEN_ACCESS_TOKEN}"
+	TOKEN="$$PROXYGEN_ACCESS_TOKEN"; \
 	if [ -z "$$TOKEN" ]; then \
 		echo "Missing required environment variable: PROXYGEN_ACCESS_TOKEN"; \
 		exit 1; \
@@ -95,12 +95,13 @@ push:
 
 	# token present
 
-	if [ ! -f "${PUBLISH_SCRIPT}" ]; then \
-		echo "Push script not found: ${PUBLISH_SCRIPT}"; \
+	if [ ! -f "${PUSH_SCRIPT}" ]; then \
+		echo "Push script not found: ${PUSH_SCRIPT}"; \
 		exit 1; \
 	fi
-	chmod +x "${PUBLISH_SCRIPT}" >/dev/null 2>&1 || true
-	ACCESS_TOKEN="$$TOKEN" "${PUBLISH_SCRIPT}" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
+	ACCESS_TOKEN="$$PROXYGEN_ACCESS_TOKEN" "${PUSH_SCRIPT}" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
+
