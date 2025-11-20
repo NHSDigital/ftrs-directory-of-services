@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "throttled",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.nhs.uk/Codesystem/http-error-codes",
+            "version": "0.1.0",
+            "code": "SEND_TOO_MANY_REQUESTS",
+            "display": "429: Too many requests have been made by this source to the API in a given amount of time."
+          }
+        ]
+      },
+      "diagnostics": "You have exceeded the agreed rate limits for this endpoint. Please retry. If problems persist please contact support."
+    }
+  ]
+}

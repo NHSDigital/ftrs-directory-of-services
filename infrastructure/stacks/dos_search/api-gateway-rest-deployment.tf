@@ -2,6 +2,7 @@ resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
     aws_api_gateway_integration.organization,
     aws_api_gateway_integration.status,
+    aws_api_gateway_gateway_response.default_gateway_response,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
@@ -21,6 +22,7 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_method.status,
       aws_api_gateway_integration.organization,
       aws_api_gateway_integration.status,
+      aws_api_gateway_gateway_response.default_gateway_response,
     ]))
   }
 
