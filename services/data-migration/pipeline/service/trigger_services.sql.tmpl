@@ -1,0 +1,60 @@
+-- Enable the aws_lambda extension if not already present
+CREATE EXTENSION IF NOT EXISTS aws_lambda CASCADE;
+
+-- Grant access to the aws_lambda schema and functions to a specific user
+GRANT USAGE ON SCHEMA aws_lambda TO ${user};
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA aws_lambda TO ${user};
+
+-- Create unique trigger and function names for services table to avoid deadlocks
+DROP TRIGGER IF EXISTS services_lambda_notify ON ${table_name};
+
+DROP FUNCTION IF EXISTS pathwaysdos.services_change_notify() CASCADE;
+
+-- Trigger function specific to services table to notify AWS Lambda on INSERT/UPDATE/DELETE
+CREATE OR REPLACE FUNCTION pathwaysdos.services_change_notify()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $function$
+DECLARE
+    payload json;
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        payload := json_build_object(
+            'table_name', TG_TABLE_NAME,
+            'method', 'delete',
+            'service_id', COALESCE(OLD.serviceid::text, '0'),
+            'record_id', COALESCE(OLD.id::text, '0')
+        );
+        PERFORM aws_lambda.invoke(
+            '${lambda_arn}',
+            payload,
+            '${aws_region}'
+        );
+
+        RETURN OLD;
+    ELSE
+        payload := json_build_object(
+            'table_name', TG_TABLE_NAME,
+            'method', TG_OP,
+            'service_id', COALESCE(NEW.serviceid::text, '0'),
+            'record_id', COALESCE(NEW.id::text, '0')
+        );
+
+        PERFORM aws_lambda.invoke(
+            '${lambda_arn}',
+            payload,
+            '${aws_region}'
+        );
+
+        RETURN NEW;
+    END IF;
+END;
+$function$;
+
+
+-- Trigger on the services table to invoke Lambda on row-level changes
+CREATE TRIGGER services_lambda_notify
+AFTER INSERT OR UPDATE OR DELETE
+ON ${table_name}
+FOR EACH ROW
+EXECUTE FUNCTION pathwaysdos.services_change_notify();

@@ -34,8 +34,19 @@ def create_rds_trigger_replica_db(
     engine: Engine, rds_username: str, lambda_arn: str, aws_region: str, table_name: str
 ) -> None:
     try:
+        # Extract table name without schema for template selection
+        table_only_name = table_name.split(".")[-1] if "." in table_name else table_name
+
+        # Try to find a table-specific template first, fall back to default
+        template_dir = Path(__file__).parent
+        table_specific_template = template_dir / f"trigger_{table_only_name}.sql.tmpl"
+
+        if table_specific_template.exists():
+            template_path = table_specific_template
+            LOGGER.info(
+                f"Using table-specific template: trigger_{table_only_name}.sql.tmpl"
+            )
         # Read the SQL template file
-        template_path = Path(__file__).parent / "trigger.sql.tmpl"
         with open(template_path, "r") as file:
             sql_template = file.read()
 

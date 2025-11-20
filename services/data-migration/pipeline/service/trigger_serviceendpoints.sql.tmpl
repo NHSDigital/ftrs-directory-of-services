@@ -5,12 +5,13 @@ CREATE EXTENSION IF NOT EXISTS aws_lambda CASCADE;
 GRANT USAGE ON SCHEMA aws_lambda TO ${user};
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA aws_lambda TO ${user};
 
-DROP TRIGGER IF EXISTS service_lambda_notify ON ${table_name};
+-- Create unique trigger and function names for serviceendpoints table to avoid deadlocks
+DROP TRIGGER IF EXISTS serviceendpoints_lambda_notify ON ${table_name};
 
-DROP FUNCTION IF EXISTS pathwaysdos.related_service_change_notify() CASCADE;
+DROP FUNCTION IF EXISTS pathwaysdos.serviceendpoints_change_notify() CASCADE;
 
--- Trigger function on service-related tables to notify AWS Lambda on INSERT/UPDATE/DELETE
-CREATE OR REPLACE FUNCTION pathwaysdos.related_service_change_notify()
+-- Trigger function specific to serviceendpoints table to notify AWS Lambda on INSERT/UPDATE/DELETE
+CREATE OR REPLACE FUNCTION pathwaysdos.serviceendpoints_change_notify()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $function$
@@ -51,9 +52,10 @@ END;
 $function$;
 
 
--- Trigger on the table to invoke Lambda on row-level changes
-CREATE TRIGGER service_lambda_notify
+-- Trigger on the serviceendpoints table to invoke Lambda on row-level changes
+CREATE TRIGGER serviceendpoints_lambda_notify
 AFTER INSERT OR UPDATE OR DELETE
 ON ${table_name}
 FOR EACH ROW
-EXECUTE FUNCTION pathwaysdos.related_service_change_notify();
+EXECUTE FUNCTION pathwaysdos.serviceendpoints_change_notify();
+
