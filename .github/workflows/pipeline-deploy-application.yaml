@@ -83,9 +83,8 @@ jobs:
             build_type: "service"
           - name: "dos-search"
             build_type: "service"
-          - name: "dos-search-sandbox"
+          - name: "sandbox-dos-search"
             build_type: "service"
-            working_directory: "services/dos-search/sandbox"
           - name: "dos-ui"
             build_type: "service"
     uses: ./.github/workflows/build-project.yaml
@@ -98,7 +97,6 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
-      working_directory: ${{ matrix.working_directory }}
       type: app
     secrets: inherit
 
@@ -117,9 +115,10 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           type: app
       - name: Publish sandbox image
-        working-directory: services/dos-search/sandbox
+        working-directory: services/sandbox-dos-search
         env:
           PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim-sandbox.outputs.access_token }}
+          COMMIT_HASH: ${{ needs.metadata.outputs.commit_hash || github.sha }}
         run: make push
 
   perform-code-analysis:
