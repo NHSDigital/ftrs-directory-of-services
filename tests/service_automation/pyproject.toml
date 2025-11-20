@@ -42,6 +42,7 @@ ftrs-python-packages = { path = "../../application/packages/python", develop = t
 testcontainers = "^3.7.1"
 testcontainers-postgres = "^0.0.1rc1"
 testcontainers-localstack = "^0.0.1rc1"
+pipeline = { path = "../../services/data-migration", develop = true }
 
 
 [tool.pytest.ini_options]
@@ -53,7 +54,6 @@ markers = [
   "ui: mark test as UI test",
   "is-api: mark test as IS API test",
   "is-infra: mark test as IS infra test",
-  "ftrs-pipeline: mark test to be run in the ftrs pipeline",
   "is-lambda: marks test as IS lambda related",
   "is-s3: marks test as IS S3 related",
   "dos-search-ods-code-api: marks test as gp search related",
