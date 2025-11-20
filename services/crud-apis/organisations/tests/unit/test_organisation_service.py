@@ -5,9 +5,11 @@ from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
+from fhir.resources.R4B.contactpoint import ContactPoint
 from freezegun import freeze_time
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.organisation_service import OrganisationService
@@ -34,7 +36,7 @@ def test_get_outdated_fields_no_changes() -> None:
         identifier_ODS_ODSCode="ABC123",
         active=True,
         name="Test Organisation",
-        telecom="12345",
+        telecom=[Telecom(type= TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
@@ -48,7 +50,7 @@ def test_get_outdated_fields_no_changes() -> None:
             "identifier_ODS_ODSCode": "ABC123",
             "active": True,
             "name": "Test Organisation",
-            "telecom": "12345",
+            "telecom": [{"type": TelecomType.PHONE, "value":"0300 311 22 33", "isPublic":True}],
             "type": "GP Practice",
             "endpoints": [],
         }
@@ -63,7 +65,7 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         identifier_ODS_ODSCode="ABC123",
         active=True,
         name="Test Organisation",
-        telecom="12345",
+        telecom=[Telecom(type="phone", value="0300 311 22 33", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
@@ -74,7 +76,7 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
     )
     updates = {
         "name": "Updated Org Name",
-        "telecom": "99999",
+        "telecom": [Telecom(type="phone", value="020 7972 3272", isPublic=True)],
         "modified_by": "UserX",
     }
     service = make_service()
@@ -84,7 +86,7 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         mock_datetime.now.return_value = FIXED_MODIFIED_TIME
         service._apply_updates(organisation, updates)
     assert organisation.name == "Updated Org Name"
-    assert organisation.telecom == "99999"
+    assert organisation.telecom == [Telecom(type="phone", value="020 7972 3272", isPublic=True)]
     assert organisation.modifiedBy == "UserX"
     assert organisation.modifiedDateTime == FIXED_MODIFIED_TIME
 
@@ -95,7 +97,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         identifier_ODS_ODSCode="ABC123",
         active=True,
         name="Test Organisation",
-        telecom="12345",
+        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
@@ -108,7 +110,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         identifier_ODS_ODSCode="DEF456",
         active=False,
         name="Updated Organisation",
-        telecom="67890",
+        telecom=[Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)],
         type="Updated Type",
         modifiedBy="ETL_ODS_PIPELINE",
     )
@@ -119,7 +121,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "identifier_ODS_ODSCode": "DEF456",
             "active": False,
             "name": "Updated Organisation",
-            "telecom": "67890",
+            "telecom": [{"type":TelecomType.EMAIL, "value":"test@nhs.net", "isPublic":True}],
             "type": "Updated Type",
             "modified_by": "ETL_ODS_PIPELINE",
             "modifiedDateTime": FIXED_MODIFIED_TIME,
@@ -139,7 +141,7 @@ def test_creates_organisation_when_valid_data_provided() -> None:
         identifier_ODS_ODSCode="ABC123",
         active=True,
         name="Test Organisation",
-        telecom="12345",
+        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
@@ -155,6 +157,7 @@ def test_creates_organisation_when_valid_data_provided() -> None:
     org_repository.create.assert_called_once_with(organisation)
     assert result.createdBy == "ROBOT"
     assert result.identifier_ODS_ODSCode == "ABC123"
+    assert result.telecom == [Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)]
     assert result.active is True
     assert result.name == "Test Organisation"
 
@@ -166,6 +169,7 @@ def test_raises_error_when_organisation_already_exists() -> None:
         name="Existing Organisation",
         active=True,
         type="GP Practice",
+        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
         endpoints=[],
     )
 
@@ -173,8 +177,8 @@ def test_raises_error_when_organisation_already_exists() -> None:
         identifier_ODS_ODSCode="M81094",
         name="Test Organisation",
         active=True,
-        telecom="12345",
         type="GP Practice",
+        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
         endpoints=[],
     )
     service = make_service(org_repository=org_repository)
@@ -196,6 +200,7 @@ def test_generates_new_id_when_id_already_exists() -> None:
         name="Test Organisation",
         active=True,
         type="GP Practice",
+        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
         endpoints=[],
         createdBy="ROBOT",
         createdDateTime=FIXED_CREATED_TIME,
@@ -235,13 +240,13 @@ def test_process_organisation_update_no_changes(
                 "text": "GP Practice",
             }
         ],
-        "telecom": [{"system": "phone", "value": "12345", "use": "work"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33", "use": "work"}],
     }
     stored_organisation = Organisation(
         identifier_ODS_ODSCode="ODS1",
         active=True,
         name="Test Org",
-        telecom="12345",
+        telecom=[Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         id=organisation_id,
@@ -282,13 +287,13 @@ def test_process_organisation_update_with_changes(
                 "text": "GP Practice",
             }
         ],
-        "telecom": [{"system": "phone", "value": "12345", "use": "work"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33", "use": "work"}],
     }
     stored_organisation = Organisation(
         identifier_ODS_ODSCode="ODS1",
         active=True,
         name="Test Org",
-        telecom="12345",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         id=organisation_id,
@@ -342,7 +347,7 @@ def test_process_organisation_update_invalid_fhir_structure() -> None:
         "active": True,
         "name": "Test Org",
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
-        "telecom": [{"system": "phone", "value": "12345"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33", "use": "work"}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
         service.process_organisation_update(organisation_id, invalid_fhir)
@@ -357,7 +362,7 @@ def test_get_by_ods_code_success() -> None:
         identifier_ODS_ODSCode="ODS12345",
         active=True,
         name="Test Org",
-        telecom="12345",
+        telecom=[Telecom(type="phone", value="0300 311 22 33", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
@@ -408,7 +413,7 @@ def test_get_all_organisations() -> None:
         identifier_ODS_ODSCode="ODS12345",
         active=True,
         name="Test Org",
-        telecom="12345",
+        telecom=[Telecom(type="phone", value="0300 311 22 33", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
@@ -421,7 +426,7 @@ def test_get_all_organisations() -> None:
         identifier_ODS_ODSCode="ODS12345",
         active=True,
         name="Test Org",
-        telecom="12345",
+        telecom=[Telecom(type="phone", value="020 7972 3272", isPublic=True)],
         type="GP Practice",
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
