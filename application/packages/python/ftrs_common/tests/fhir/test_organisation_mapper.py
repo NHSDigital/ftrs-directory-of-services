@@ -1232,9 +1232,9 @@ def test__build_legal_date_extension_no_dates_returns_none() -> None:
                     },
                 ],
             },
+            "2020-01-15",
             None,
-            None,
-            id="non_legal_type",
+            id="non_legal_type_still_extracts_dates",
         ),
         pytest.param(
             {
@@ -1263,7 +1263,11 @@ def test__parse_legal_period(
     expected_start: str | None,
     expected_end: str | None,
 ) -> None:
-    """Test parsing Legal period from TypedPeriod Extension with various configurations."""
+    """Test extracting dates from TypedPeriod Extension.
+
+    Note: Validation of dateType='Legal' happens in Pydantic validator,
+    so the mapper just extracts dates regardless of dateType value.
+    """
     from fhir.resources.R4B.extension import Extension
 
     mapper = OrganizationMapper()
