@@ -118,7 +118,6 @@ jobs:
         working-directory: services/sandbox-dos-search
         env:
           PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim-sandbox.outputs.access_token }}
-          COMMIT_HASH: ${{ needs.metadata.outputs.commit_hash || github.sha }}
         run: make push
 
   perform-code-analysis:
