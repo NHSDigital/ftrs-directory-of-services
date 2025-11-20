@@ -18,10 +18,7 @@ if (file.exists()) {
             vars.put("param_${idx}_${col}", val)
         }
     }
-} else {
-    log.warn("Plan_params file not found: " + csvPath)
-    }
-
+}
 
 def pp_endpoint = vars.get("param_0_0")
 def pp_apim_env = vars.get("param_0_1")
