@@ -52,17 +52,6 @@ jobs:
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 
-  authenticate-with-apim-sandbox:
-    name: "Authenticate with APIM (publish env)"
-    needs:
-      - metadata
-    if: github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/authentication-to-apim.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      api_name: ${{ needs.metadata.outputs.api_name }}
-    secrets: inherit
-
   build-services:
     name: "Build ${{ matrix.name }}"
     needs:
@@ -99,26 +88,6 @@ jobs:
       application_tag: ${{ inputs.application_tag || 'latest' }}
       type: app
     secrets: inherit
-
-  publish-dos-search-image:
-    name: "Publish dos-search image"
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - build-services
-      - authenticate-with-apim-sandbox
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          type: app
-      - name: Publish sandbox image
-        working-directory: services/sandbox-dos-search
-        env:
-          PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim-sandbox.outputs.access_token }}
-        run: make push
 
   perform-code-analysis:
     name: "Perform static code analysis"
@@ -167,6 +136,26 @@ jobs:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
       PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
+
+  publish-dos-search-image:
+    name: "Publish dos-search image"
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - build-services
+      - authenticate-with-apim
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+      - name: Publish sandbox image
+        working-directory: services/sandbox-dos-search
+        env:
+          PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim.outputs.access_token }}
+        run: make push
 
   migrate-data:
     name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
