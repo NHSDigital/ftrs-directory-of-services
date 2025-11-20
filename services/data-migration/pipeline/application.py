@@ -47,7 +47,7 @@ class DataMigrationApplication:
         Handle an event from DMS
         This should be a single record change event.
         """
-        if event.method not in ["insert", "update"]:
+        if event.method.lower() not in ["insert", "update"]:
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_010,
                 method=event.method,

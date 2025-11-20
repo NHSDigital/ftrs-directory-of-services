@@ -5,6 +5,7 @@ CREATE EXTENSION IF NOT EXISTS aws_lambda CASCADE;
 GRANT USAGE ON SCHEMA aws_lambda TO ${user};
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA aws_lambda TO ${user};
 
+DROP TRIGGER IF EXISTS service_lambda_notify ON ${table_name};
 
 DROP FUNCTION IF EXISTS pathwaysdos.related_service_change_notify() CASCADE;
 
