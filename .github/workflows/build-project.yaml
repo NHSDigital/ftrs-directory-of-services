@@ -15,6 +15,10 @@ on:
         description: "The name of the package to build"
         required: true
         type: string
+      working_directory:
+        description: "Optional: explicit working directory to use instead of the computed default"
+        required: false
+        type: string
       python_version:
         description: "The version of Python"
         required: true
@@ -101,15 +105,15 @@ jobs:
 
       - name: "Install project"
         run: make install
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        working-directory: ${{ inputs.working_directory || steps.get-directories.outputs.working_directory }}
 
       - name: "Run linting"
         run: make lint
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        working-directory: ${{ inputs.working_directory || steps.get-directories.outputs.working_directory }}
 
       - name: "Build project"
         run: make build
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        working-directory: ${{ inputs.working_directory || steps.get-directories.outputs.working_directory }}
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
@@ -119,18 +123,18 @@ jobs:
 
       - name: "Run unit tests"
         run: make unit-test
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        working-directory: ${{ inputs.working_directory || steps.get-directories.outputs.working_directory }}
 
       - name: "Publish coverage report to GitHub"
         uses: actions/upload-artifact@v5
         with:
           name: coverage-${{ inputs.name }}.xml
-          path: ${{ steps.get-directories.outputs.working_directory }}/coverage-${{ inputs.name }}.xml
+          path: ${{ (inputs.working_directory || steps.get-directories.outputs.working_directory) }}/coverage-${{ inputs.name }}.xml
           if-no-files-found: ignore
 
       - name: "Publish artefacts to S3"
         run: make publish
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        working-directory: ${{ inputs.working_directory || steps.get-directories.outputs.working_directory }}
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
