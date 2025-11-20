@@ -125,20 +125,23 @@ def get_db_item(model_repo, payload: dict):
 
 
 def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = False):
-    expected = {
-        "identifier_ODS_ODSCode": payload["identifier"][0]["value"],
-        "name": payload["name"],
-        "type": payload["type"][0]["text"],
-        "active": payload["active"],
-        "modifiedBy": "ODS_ETL_PIPELINE",
-    }
+    """
+    Assert that the database item matches the payload.
+    """
+    fields = [
+        ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
+        ("name", payload["name"]),
+        ("type", payload["type"][0]["text"]),
+        ("active", payload["active"]),
+        ("modifiedBy", "ODS_ETL_PIPELINE"),
+    ]
     if not mandatory_only:
-        expected["telecom"] = payload.get("telecom", [{}])[0].get("value")
+        fields.append(("telecom", payload.get("telecom", [{}])[0].get("value")))
 
-    for attr, exp in expected.items():
+    for attr, expected in fields:
         actual = getattr(item, attr, None)
-        logger.info(f"Validating {attr}: expected={exp}, actual={actual}")
-        assert actual == exp, f"{attr} mismatch: {actual} != {exp}"
+        logger.info(f"Validating {attr}: expected={expected}, actual={actual}")
+        assert actual == expected, f"{attr} mismatch: {actual} != {expected}"
 
 
 def get_diagnostics_list(fresponse):
@@ -154,6 +157,32 @@ def get_diagnostics_list(fresponse):
             f"Diagnostics should be a list, got {type(diagnostics_list).__name__}"
         )
     return diagnostics_list
+
+
+def build_typed_period_extension(start_date: str = None, end_date: str = None, date_type_code: str = "Legal") -> dict:
+    period = {}
+    if start_date:
+        period["start"] = start_date
+    if end_date:
+        period["end"] = end_date
+
+    return {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+        "extension": [
+            {
+                "url": "dateType",
+                "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                    "code": date_type_code,
+                    "display": date_type_code
+                }
+            },
+            {
+                "url": "period",
+                "valuePeriod": period
+            }
+        ]
+    }
 
 
 @when(
@@ -262,6 +291,104 @@ def step_send_invalid_content_type(api_request_context_mtls_crud):
     return response
 
 
+@when(
+    parsers.parse('I update the organization with an invalid TypedPeriod extension "{invalid_scenario}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_invalid_typed_period(invalid_scenario: str, api_request_context_mtls_crud):
+    payload = _load_default_payload()
+    typed_period_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+
+    if invalid_scenario == "missing dateType":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "missing period":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                }
+            ]
+        }
+    elif invalid_scenario == "non-Legal dateType":
+        invalid_extension = build_typed_period_extension("2020-01-15", "2025-12-31", "Operational")
+    elif invalid_scenario == "empty period":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {}
+                }
+            ]
+        }
+    else:
+        raise ValueError(f"Unknown invalid_scenario: {invalid_scenario}")
+
+    payload["extension"] = [invalid_extension]
+    logger.info(f"Payload with invalid extension:\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse('I update the organization with legal dates start "{legal_start}" and end "{legal_end}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_legal_dates(legal_start: str, legal_end: str, api_request_context_mtls_crud):
+    """Update organization with legal start and end dates in YYYY-MM-DD format."""
+    payload = _load_default_payload()
+
+    # Convert "null" string to None
+    start = None if legal_start == "null" else legal_start
+    end = None if legal_end == "null" else legal_end
+
+    if start or end:
+        payload["extension"] = [build_typed_period_extension(start, end)]
+    else:
+        payload.pop("extension", None)
+
+    logger.info(f"Payload with legal dates:\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse('I update the organization with invalid date format "{date_field}" value "{invalid_date}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_invalid_date_format(date_field: str, invalid_date: str, api_request_context_mtls_crud):
+    """Update organization with invalid date format to test validation."""
+    payload = _load_default_payload()
+
+    start = invalid_date if date_field == "start" else "2020-01-15"
+    end = invalid_date if date_field == "end" else "2025-12-31"
+
+    payload["extension"] = [build_typed_period_extension(start, end)]
+
+    logger.info(f"Payload with invalid {date_field} date '{invalid_date}':\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
 @then(parsers.parse('the OperationOutcome contains an issue with code "{code}"'))
 def step_check_operation_outcome_code(fresponse, code):
     body = fresponse.json()
@@ -324,12 +451,23 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
-    actual = (
-        getattr(item, field, None)
-        if field != "telecom"
-        else getattr(item, "telecom", None)
-    )
-    assert actual == value, f"{field} mismatch: expected {value}, got {actual}"
+
+    # Convert string "None" to Python None for comparison
+    expected = None if value == "None" else value
+    # Handle legalDates structure - convert legalStartDate/legalEndDate to legalDates.start/end
+    if field == "legalStartDate":
+        actual = getattr(item.legalDates, "start", None) if item.legalDates else None
+    elif field == "legalEndDate":
+        actual = getattr(item.legalDates, "end", None) if item.legalDates else None
+    elif field == "telecom":
+        actual = getattr(item, "telecom", None)
+    else:
+        actual = getattr(item, field, None)
+
+    if field in ("legalStartDate", "legalEndDate") and actual is not None:
+        if hasattr(actual, "isoformat"):
+            actual = actual.isoformat()
+    assert actual == expected, f"{field} mismatch: expected {expected}, got {actual}"
 
 
 @then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
