@@ -78,7 +78,7 @@ jobs:
       plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
 
