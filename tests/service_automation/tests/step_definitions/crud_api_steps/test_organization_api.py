@@ -111,8 +111,6 @@ def update_organisation_apim(
 ):
     org_id = payload.get("id")
     url = f"{nhsd_apim_proxy_url}/{ENDPOINTS['organization']}/{org_id}"
-    logger.info(f"PUT Request URL: {url}")
-    logger.info(f"Request Payload:\n{json.dumps(payload, indent=2)}")
     headers = {"Content-Type": "application/fhir+json"}
     response = new_apim_request_context.put(
         url, data=json.dumps(payload), headers=headers
