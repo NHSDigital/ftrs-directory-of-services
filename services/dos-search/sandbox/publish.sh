@@ -1,50 +1,93 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
-ENVIRONMENT="${1:-}"
-API_NAME="${2:-}"
-OAS_SPEC_PATH="${3:-}"
-ACCESS_TOKEN="${ACCESS_TOKEN:-}"
+log() {
+  printf '[publish.sh] %s\n' "$1"
+}
 
-if [[ -z "$ENVIRONMENT" || -z "$API_NAME" || -z "$OAS_SPEC_PATH" ]]; then
-  echo "Usage: $0 <environment> <api-name> <oas-spec-path>" >&2
+die() {
+  log "ERROR: $1" >&2
   exit 1
+}
+
+usage() {
+  cat >&2 <<'EOF'
+Usage: push.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
+Environment:
+  ACCESS_TOKEN   Bearer token used when calling the Proxygen API
+  PUSH_LATEST    Optional flag (default: false) to mirror image to :latest
+  PUSH_RETRIES   Optional retry attempts for docker push (default: 3)
+EOF
+  exit 1
+}
+
+API_NAME="${1:-}"
+LOCAL_IMAGE="${2:-}"
+REMOTE_IMAGE_NAME="${3:-}"
+REMOTE_IMAGE_TAG="${4:-}"
+ACCESS_TOKEN="${ACCESS_TOKEN:-}"
+PUSH_LATEST="${PUSH_LATEST:-false}"
+PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
+
+if [[ -z "$API_NAME" || -z "$LOCAL_IMAGE" || -z "$REMOTE_IMAGE_NAME" || -z "$REMOTE_IMAGE_TAG" ]]; then
+  usage
 fi
 
 if [[ -z "$ACCESS_TOKEN" ]]; then
-  echo "ACCESS_TOKEN is not set. Export it first." >&2
-  exit 1
+  die "ACCESS_TOKEN is not set"
 fi
 
-for dep in curl jq; do
-  if ! command -v "$dep" >/dev/null 2>&1; then
-    echo "Required dependency missing: $dep" >&2
-    exit 1
-  fi
+if ! docker image inspect "$LOCAL_IMAGE" >/dev/null 2>&1; then
+  die "Local image $LOCAL_IMAGE not found"
+fi
+
+for dep in curl jq docker; do
+  command -v "$dep" >/dev/null 2>&1 || die "Required dependency missing: $dep"
 done
 
-if [[ ! -f "$OAS_SPEC_PATH" ]]; then
-  echo "OAS spec file not found: $OAS_SPEC_PATH" >&2
-  exit 1
+BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
+
+log "Fetching Docker token for API: $API_NAME via $BASE_URL..."
+TOKEN_RESPONSE=$(curl -fsS --request GET \
+  --url "${BASE_URL}/apis/${API_NAME}/docker-token" \
+  --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
+
+LOGIN_CMD=$(echo "$TOKEN_RESPONSE" | jq -r '.loginCommand // empty')
+REGISTRY=$(echo "$TOKEN_RESPONSE" | jq -r '.registry // empty')
+
+if [[ -z "$LOGIN_CMD" || -z "$REGISTRY" ]]; then
+  die "Malformed response from Proxygen: $TOKEN_RESPONSE"
 fi
 
-BASE_URL="https://proxygen.prod.api.platform.nhs.uk"
+log "Logging in to Docker registry: $REGISTRY"
+eval "$LOGIN_CMD"
 
-echo "Deploying API proxy instance for $API_NAME to $ENVIRONMENT..."
-RESPONSE=$(curl -fsS -w '\n%{http_code}' --request POST \
-  --url "${BASE_URL}/apis/${API_NAME}/environments/${ENVIRONMENT}/deploy" \
-  --header "Authorization: Bearer ${ACCESS_TOKEN}" \
-  --header "Content-Type: multipart/form-data" \
-  --form "oasSpec=@${OAS_SPEC_PATH}")
+REMOTE_COMMIT_TAG="${REGISTRY}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
+REMOTE_LATEST_TAG="${REGISTRY}/${REMOTE_IMAGE_NAME}:latest"
 
-HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-BODY=$(echo "$RESPONSE" | head -n-1)
+retry_push() {
+  local tag="$1"
+  local attempt=1
+  until docker push "$tag"; do
+    if (( attempt >= PUSH_RETRIES )); then
+      die "docker push $tag failed after $PUSH_RETRIES attempts"
+    fi
+    log "push $tag failed (attempt $attempt), retrying..."
+    sleep $(( attempt * 2 ))
+    (( attempt++ ))
+  done
+}
 
-if [[ "$HTTP_CODE" -ge 400 ]]; then
-  echo "Deployment failed with status $HTTP_CODE" >&2
-  echo "$BODY" >&2
-  exit 1
+log "Tagging ${LOCAL_IMAGE} as ${REMOTE_COMMIT_TAG}"
+docker tag "$LOCAL_IMAGE" "$REMOTE_COMMIT_TAG"
+retry_push "$REMOTE_COMMIT_TAG"
+
+if [[ "$PUSH_LATEST" == "true" ]]; then
+  log "Tagging ${LOCAL_IMAGE} as ${REMOTE_LATEST_TAG}"
+  docker tag "$LOCAL_IMAGE" "$REMOTE_LATEST_TAG"
+  retry_push "$REMOTE_LATEST_TAG"
+else
+  log "Skipping latest tag push (PUSH_LATEST=$PUSH_LATEST)"
 fi
 
-echo "Deployment initiated for $API_NAME in $ENVIRONMENT"
+log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${PUSH_LATEST:+ and latest}"
