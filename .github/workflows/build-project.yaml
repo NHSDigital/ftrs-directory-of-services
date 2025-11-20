@@ -110,6 +110,8 @@ jobs:
       - name: "Run unit tests"
         run: make unit-test
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
 
       - name: "Publish coverage report to GitHub"
         uses: actions/upload-artifact@v5
@@ -124,6 +126,7 @@ jobs:
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
+          COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
           REPO_NAME: ${{ inputs.repo_name }}
