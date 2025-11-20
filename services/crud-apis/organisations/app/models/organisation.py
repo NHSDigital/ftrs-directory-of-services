@@ -74,12 +74,15 @@ class Organisation(BaseModel):
 
     name: str = Field(..., example="GP Practice Name")
     active: bool = Field(..., example=True)
-    telecom: list[Telecom] | None = Field(default=[], example=[
-        Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
-        Telecom(type=TelecomType.WEB, value="https://test.nhs.uk", isPublic=True),
-        Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
-        Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=False)
-        ])
+    telecom: list[Telecom] | None = Field(
+        default=[],
+        example=[
+            Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
+            Telecom(type=TelecomType.WEB, value="https://test.nhs.uk", isPublic=True),
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
+            Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=False),
+        ],
+    )
     type: str = Field(default="GP Practice", example="GP Practice")
 
 

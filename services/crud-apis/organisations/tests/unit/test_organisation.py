@@ -26,7 +26,13 @@ def get_organisation() -> dict:
         "identifier_ODS_ODSCode": "ODS12345",
         "active": True,
         "name": "Test Organisation",
-        "telecom": [ {"type": TelecomType.PHONE.value, "value": "0300 311 22 33", "isPublic": True} ],
+        "telecom": [
+            {
+                "type": TelecomType.PHONE.value,
+                "value": "0300 311 22 33",
+                "isPublic": True,
+            }
+        ],
         "type": "GP Practice",
         "createdBy": "ROBOT",
         "createdDateTime": "2023-10-01T00:00:00Z",
