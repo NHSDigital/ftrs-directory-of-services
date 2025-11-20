@@ -221,7 +221,3 @@ poetry sync
      ```shell
      assume <role-name>
      ```
-
-## Sandbox
-
-The API sandbox serving canned responses for APIM now lives under `services/dos-search/sandbox`. Use the local `Makefile` targets there to build, test, and publish the Docker image that the application pipeline consumes.
