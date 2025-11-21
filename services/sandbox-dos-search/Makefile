@@ -169,7 +169,24 @@ check-get-apim-token:
 	@echo "Attempting to fetch APIM token via $(GET_APIM_TOKEN_SCRIPT)"; \
 	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then echo "WARN: $(GET_APIM_TOKEN_SCRIPT) not found; skipping APIM token check"; exit 0; fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$${ENVIRONMENT:-}" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>/dev/null || true)"; \
+	# Ensure python deps for token script are available for diagnostics
+	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
+	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
+	# Compute secret id used by the script (script expects ENV or ENVIRONMENT)
+	SECRET_ENV="$${ENV:-$${ENVIRONMENT:-}}"; \
+	SECRET_ID="/ftrs-dos/$${SECRET_ENV}/$${API_NAME}-proxygen-jwt-credentials"; \
+	echo "Secret id to fetch: $$SECRET_ID"; \
+	# Try to fetch the raw secret to surface permission or not-found errors
+	aws secretsmanager get-secret-value --secret-id "$$SECRET_ID" --region "$${AWS_REGION:-}" --output text >/dev/null 2>&1 || echo "WARN: unable to read secret $$SECRET_ID (check permissions/exists)"; \
+	# Run token script and let stderr surface for debugging
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$${SECRET_ENV}" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
+	# If script produced JSON or token on stdout, try to extract token from output
+	# Print full output for debugging when it fails
+	if echo "$$ACCESS_TOKEN" | grep -q 'Error:'; then \
+		echo "Token script error output:"; \
+		echo "$$ACCESS_TOKEN"; \
+		exit 1; \
+	fi; \
 	if [ -n "$$ACCESS_TOKEN" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n $$ACCESS_TOKEN | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
 
 # Aggregate diagnostics
