@@ -10,10 +10,9 @@ app.include_router(api_router)
 
 
 @app.get("/_status")
-def status():
+def status() -> Response:
     return Response(status_code=HTTP_200_OK)
 
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=9000)
-

@@ -6,6 +6,7 @@ if [[ "${DEBUG:-0}" == "1" ]]; then set -x; fi
 
 BASE_URL=${BASE_URL:-http://localhost:9000}
 accept_hdr="Accept: application/fhir+json"
+
 # Optional: wait up to WAIT_SECS for service to become ready (/_status). 0 means no wait.
 WAIT_SECS=${WAIT_SECS:-0}
 
@@ -15,7 +16,7 @@ fail() { echo "FAIL - $1"; exit 1; }
 wait_ready() {
   local deadline=$(( $(date +%s) + WAIT_SECS ))
   while true; do
-    if curl -fsS "$BASE_URL/_status" >/dev/null 2>&1; then
+    if curl -fsS -H "$accept_hdr" "${BASE_URL}/_status" >/dev/null 2>&1; then
       return 0
     fi
     if (( WAIT_SECS == 0 )); then

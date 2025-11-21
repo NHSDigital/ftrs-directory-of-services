@@ -72,6 +72,8 @@ jobs:
             build_type: "service"
           - name: "dos-search"
             build_type: "service"
+          - name: "sandbox-dos-search"
+            build_type: "service"
           - name: "dos-ui"
             build_type: "service"
     uses: ./.github/workflows/build-project.yaml
@@ -123,6 +125,31 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
     secrets: inherit
+
+  publish-dos-search-image:
+    name: "Publish dos-search image"
+    # if: github.ref == 'refs/heads/main'
+    needs:
+      - build-services
+      - authenticate-with-apim
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+      - name: Publish sandbox image
+        working-directory: services/sandbox-dos-search
+        env:
+          PROXYGEN_ACCESS_TOKEN: ${{ needs.authenticate-with-apim.outputs.access_token }}
+          COMMIT_HASH: ${{ needs.metadata.outputs.commit_hash }}
+        run: |
+          set -euo pipefail
+          make install
+          make unit-test
+          make push
 
   migrate-data:
     name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
@@ -285,6 +312,7 @@ jobs:
       - service-automation-tests
       - generate-prerelease
       - check-pipeline-status
+      - publish-dos-search-image
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
