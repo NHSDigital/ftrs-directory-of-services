@@ -1,0 +1,416 @@
+import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
+import { useSession } from "@tanstack/react-start/server";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { UserSessionSchema } from "../schema";
+import { buildSession, SessionManager } from "../session";
+
+vi.mock("openid-client", async () => {
+  const actual = await vi.importActual("openid-client");
+  return {
+    ...actual,
+    randomState: vi.fn().mockReturnValue("random-state"),
+  };
+});
+
+vi.mock("@tanstack/react-start/server", () => {
+  return {
+    useSession: vi.fn().mockReturnValue(
+      Promise.resolve({
+        data: null,
+        update: vi.fn(),
+        clear: vi.fn(),
+      }),
+    ),
+  };
+});
+
+vi.mock("@aws-lambda-powertools/parameters/secrets", () => {
+  return {
+    getSecret: vi.fn(),
+  };
+});
+
+describe("SessionManager", () => {
+  let sessionManager: SessionManager;
+  let mockSendCommand: Mock;
+  const mockSessionSecret =
+    "test-session-secret-that-is-long-enough-for-testing";
+
+  beforeEach(() => {
+    process.env.ENVIRONMENT = "test";
+    process.env.WORKSPACE = "";
+    (getSecret as Mock).mockResolvedValue(mockSessionSecret);
+    mockSendCommand = vi.fn();
+
+    sessionManager = new SessionManager();
+    // @ts-expect-error Updating a private property for testing
+    sessionManager.client.send = mockSendCommand;
+
+    vi.clearAllMocks();
+  });
+
+  it("should generate correct session table name without workspace", () => {
+    const tableName = SessionManager.getSessionTableName();
+    expect(tableName).toBe("ftrs-dos-test-ui-session-store");
+  });
+
+  it("should generate correct session table name with workspace", () => {
+    process.env.WORKSPACE = "dev";
+
+    const tableName = SessionManager.getSessionTableName();
+    expect(tableName).toBe("ftrs-dos-test-ui-session-store-dev");
+  });
+
+  it("should throw error if ENVIRONMENT is not set", () => {
+    delete process.env.ENVIRONMENT;
+
+    expect(() => SessionManager.getSessionTableName()).toThrowError(
+      "ENVIRONMENT environment variable must be set",
+    );
+  });
+
+  it("creates a new session", async () => {
+    vi.spyOn(crypto, "randomUUID").mockReturnValue(
+      "fac6596b-d957-4862-a4e1-2728e558410b",
+    );
+
+    const session = await sessionManager.createSession();
+
+    expect(session).toEqual({
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+      state: "random-state",
+      expiresAt: expect.any(Number),
+      userID: undefined,
+      user: undefined,
+      tokens: {
+        cis2: undefined,
+        apim: undefined,
+      },
+    });
+
+    expect(UserSessionSchema.parse(session)).toEqual(session);
+
+    expect(mockSendCommand).toHaveBeenCalledTimes(1);
+
+    const putCommandInput = mockSendCommand.mock.calls[0][0].input;
+    expect(putCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
+    expect(putCommandInput.Item).toEqual(session);
+    expect(putCommandInput.ReturnConsumedCapacity).toBe("INDEXES");
+  });
+
+  it("retrieves an existing session", async () => {
+    const mockSession = {
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+      state: "random-state",
+      expiresAt: Date.now() + 3600000,
+      userID: undefined,
+      user: undefined,
+      tokens: {
+        cis2: undefined,
+        apim: undefined,
+      },
+    };
+
+    mockSendCommand.mockResolvedValueOnce({ Item: mockSession });
+
+    const session = await sessionManager.getSession(
+      "fac6596b-d957-4862-a4e1-2728e558410b",
+    );
+
+    expect(session).toEqual(mockSession);
+
+    expect(mockSendCommand).toHaveBeenCalledTimes(1);
+
+    const getCommandInput = mockSendCommand.mock.calls[0][0].input;
+    expect(getCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
+    expect(getCommandInput.Key).toEqual({
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+    });
+    expect(getCommandInput.ConsistentRead).toBe(true);
+    expect(getCommandInput.ReturnConsumedCapacity).toBe("INDEXES");
+  });
+
+  it("returns null for non-existing session", async () => {
+    mockSendCommand.mockResolvedValueOnce({});
+
+    const session = await sessionManager.getSession("non-existing-session-id");
+    expect(session).toBeNull();
+  });
+
+  it("returns null for expired session", async () => {
+    const mockSession = {
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+      state: "random-state",
+      expiresAt: Date.now() - 1000,
+      userID: undefined,
+      user: undefined,
+      tokens: {
+        cis2: undefined,
+        apim: undefined,
+      },
+    };
+
+    mockSendCommand.mockResolvedValueOnce({ Item: mockSession });
+
+    const session = await sessionManager.getSession(
+      "fac6596b-d957-4862-a4e1-2728e558410b",
+    );
+    expect(session).toBeNull();
+  });
+  it("updates an existing session", async () => {
+    const mockSession = {
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+      state: "random-state",
+      expiresAt: Date.now() + 3600000,
+      userID: "12345",
+      user: undefined,
+      tokens: {
+        cis2: undefined,
+        apim: undefined,
+      },
+    };
+
+    const updatedSession = await sessionManager.updateSession(mockSession);
+
+    expect(updatedSession).toEqual(mockSession);
+
+    expect(mockSendCommand).toHaveBeenCalledTimes(1);
+
+    const putCommandInput = mockSendCommand.mock.calls[0][0].input;
+    expect(putCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
+    expect(putCommandInput.Item).toEqual(mockSession);
+    expect(putCommandInput.ReturnConsumedCapacity).toBe("INDEXES");
+  });
+
+  it("deletes an existing session", async () => {
+    mockSendCommand.mockResolvedValueOnce({});
+
+    await sessionManager.deleteSession("fac6596b-d957-4862-a4e1-2728e558410b");
+    expect(mockSendCommand).toHaveBeenCalledTimes(1);
+    const deleteCommandInput = mockSendCommand.mock.calls[0][0].input;
+    expect(deleteCommandInput.TableName).toBe("ftrs-dos-test-ui-session-store");
+    expect(deleteCommandInput.Key).toEqual({
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+    });
+    expect(deleteCommandInput.ReturnConsumedCapacity).toBe("INDEXES");
+  });
+
+  it("getSessionSecret returns the correct secret name", async () => {
+    process.env.ENVIRONMENT = "test";
+    delete process.env.WORKSPACE;
+
+    const result = await SessionManager.getSessionSecret();
+    expect(result).toBe(mockSessionSecret);
+
+    expect(getSecret).toHaveBeenCalledTimes(1);
+    expect(getSecret).toHaveBeenCalledWith("/ftrs-dos/test/ui-session-secret", {
+      maxAge: 60,
+    });
+  });
+
+  it("getSessionSecret returns the correct secret name with workspace", async () => {
+    process.env.ENVIRONMENT = "test";
+    process.env.WORKSPACE = "workspace";
+
+    const result = await SessionManager.getSessionSecret();
+    expect(result).toBe(mockSessionSecret);
+
+    expect(getSecret).toHaveBeenCalledTimes(1);
+    expect(getSecret).toHaveBeenCalledWith(
+      "/ftrs-dos/test-workspace/ui-session-secret",
+      { maxAge: 60 },
+    );
+  });
+
+  it("getSessionSecret throws error if ENVIRONMENT is not set", async () => {
+    delete process.env.ENVIRONMENT;
+    await expect(() => SessionManager.getSessionSecret()).rejects.toThrowError(
+      "ENVIRONMENT environment variable must be set",
+    );
+  });
+
+  it("getSessionSecret throws error if secret not found", async () => {
+    (getSecret as Mock).mockResolvedValueOnce(null);
+    process.env.ENVIRONMENT = "test";
+    delete process.env.WORKSPACE;
+
+    await expect(() => SessionManager.getSessionSecret()).rejects.toThrowError(
+      "Session secret not found in Secrets Manager: /ftrs-dos/test/ui-session-secret",
+    );
+  });
+
+  it("getSessionSecret returns LOCAL_SESSION_SECRET in local environment", async () => {
+    process.env.ENVIRONMENT = "local";
+    process.env.LOCAL_SESSION_SECRET = "local-test-secret";
+
+    const result = await SessionManager.getSessionSecret();
+    expect(result).toBe("local-test-secret");
+
+    expect(getSecret).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildSession", () => {
+  const mockSessionSecret =
+    "test-session-secret-that-is-long-enough-for-testing";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.ENVIRONMENT = "test";
+    (getSecret as Mock).mockResolvedValue(mockSessionSecret);
+  });
+
+  it("should create a new session using SessionManager", async () => {
+    process.env.SESSION_SECRET = "test-session-secret-that-is-long-enough";
+
+    const createSessionSpy = vi
+      .spyOn(SessionManager.prototype, "createSession")
+      .mockResolvedValue({
+        sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+        state: "random-state",
+        expiresAt: Date.now() + 3600000,
+        userID: undefined,
+        user: undefined,
+        tokens: {
+          cis2: undefined,
+          apim: undefined,
+        },
+      });
+
+    const session = await buildSession();
+
+    expect(createSessionSpy).toHaveBeenCalledTimes(1);
+    expect(session).toEqual({
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+      expiresAt: expect.any(Number),
+      state: "random-state",
+      user: undefined,
+      userID: undefined,
+    });
+
+    const useSessionMock = useSession as Mock<typeof useSession>;
+
+    expect(useSessionMock).toHaveBeenCalledWith({
+      name: "dos-ui-session",
+      password: mockSessionSecret,
+      maxAge: 1000 * 60 * 60, // 1 hour
+    });
+
+    const returnValue = await useSessionMock.mock.results[0].value;
+    expect(returnValue.update).toHaveBeenCalledTimes(1);
+    expect(returnValue.update).toHaveBeenCalledWith({
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+    });
+  });
+
+  it("should not create a new session if one already exists", async () => {
+    const useSessionMock = useSession as Mock<typeof useSession>;
+    useSessionMock.mockReturnValueOnce(
+      Promise.resolve({
+        id: "dos-ui-session",
+        data: {
+          sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+        },
+        update: vi.fn(),
+        clear: vi.fn(),
+      }),
+    );
+
+    const createSessionSpy = vi.spyOn(
+      SessionManager.prototype,
+      "createSession",
+    );
+    const getSessionSpy = vi
+      .spyOn(SessionManager.prototype, "getSession")
+      .mockResolvedValue({
+        sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+        state: "random-state",
+        expiresAt: Date.now() + 3600000,
+        userID: undefined,
+        user: undefined,
+        tokens: {
+          cis2: undefined,
+          apim: undefined,
+        },
+      });
+
+    const session = await buildSession();
+
+    expect(createSessionSpy).not.toHaveBeenCalled();
+    expect(getSessionSpy).toHaveBeenCalledTimes(1);
+
+    expect(session).toEqual({
+      sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+      expiresAt: expect.any(Number),
+      state: "random-state",
+      user: undefined,
+      userID: undefined,
+    });
+
+    expect(useSessionMock).toHaveBeenCalledWith({
+      name: "dos-ui-session",
+      password: mockSessionSecret,
+      maxAge: 1000 * 60 * 60, // 1 hour
+    });
+
+    const returnValue = await useSessionMock.mock.results[0].value;
+    expect(returnValue.update).not.toHaveBeenCalled();
+    expect(returnValue.clear).not.toHaveBeenCalled();
+  });
+
+  it("should create a new session if existing session is not found", async () => {
+    const useSessionMock = useSession as Mock<typeof useSession>;
+    useSessionMock.mockReturnValueOnce(
+      Promise.resolve({
+        id: "dos-ui-session",
+        data: {
+          sessionID: "fac6596b-d957-4862-a4e1-2728e558410b",
+        },
+        update: vi.fn(),
+        clear: vi.fn(),
+      }),
+    );
+
+    const createSessionSpy = vi
+      .spyOn(SessionManager.prototype, "createSession")
+      .mockResolvedValue({
+        sessionID: "9704d57e-ee93-4e1e-8bd6-130e2c72de79",
+        state: "random-state",
+        expiresAt: Date.now() + 3600000,
+        userID: undefined,
+        user: undefined,
+        tokens: {
+          cis2: undefined,
+          apim: undefined,
+        },
+      });
+    const getSessionSpy = vi
+      .spyOn(SessionManager.prototype, "getSession")
+      .mockResolvedValue(null);
+
+    const session = await buildSession();
+
+    expect(getSessionSpy).toHaveBeenCalledTimes(1);
+    expect(createSessionSpy).toHaveBeenCalledTimes(1);
+
+    expect(session).toEqual({
+      sessionID: "9704d57e-ee93-4e1e-8bd6-130e2c72de79",
+      expiresAt: expect.any(Number),
+      state: "random-state",
+      user: undefined,
+      userID: undefined,
+    });
+
+    expect(useSessionMock).toHaveBeenCalledWith({
+      name: "dos-ui-session",
+      password: mockSessionSecret,
+      maxAge: 1000 * 60 * 60, // 1 hour
+    });
+
+    const returnValue = await useSessionMock.mock.results[0].value;
+    expect(returnValue.update).toHaveBeenCalledTimes(1);
+    expect(returnValue.update).toHaveBeenCalledWith({
+      sessionID: "9704d57e-ee93-4e1e-8bd6-130e2c72de79",
+    });
+  });
+});

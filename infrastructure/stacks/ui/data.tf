@@ -30,7 +30,7 @@ data "aws_ssm_parameter" "dos_aws_account_id_mgmt" {
   name = "/dos/${var.environment}/aws_account_id_mgmt"
 }
 
-data "aws_iam_policy_document" "secretsmanager_cis2_credentials_access_policy" {
+data "aws_iam_policy_document" "secrets_access_policy" {
   statement {
     effect = "Allow"
     actions = [
@@ -38,7 +38,8 @@ data "aws_iam_policy_document" "secretsmanager_cis2_credentials_access_policy" {
     ]
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-private-key*",
-      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*",
+      aws_secretsmanager_secret.session_secret.arn,
     ]
   }
 }
@@ -103,4 +104,12 @@ data "aws_iam_policy_document" "dynamodb_session_store_policy" {
       "${module.ui_session_store.dynamodb_table_arn}/index/*"
     ]
   }
+}
+
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  name = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_origin_request_policy" "all_viewer_headers" {
+  name = "Managed-AllViewerExceptHostHeader"
 }

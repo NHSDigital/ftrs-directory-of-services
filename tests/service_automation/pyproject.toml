@@ -69,8 +69,5 @@ markers = [
   "data-migration: marks test as data migration related",
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
-  "data-migration: marks test as data migration related",
-  "manual: marks test as manual test",
-  "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

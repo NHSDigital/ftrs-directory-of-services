@@ -2,9 +2,8 @@ PROJECT_NAME := ftrs-dos
 ENVIRONMENT ?= dev
 SERVICE ?= is-performance
 PYTHON_VERSION ?= 3.12
-TEST_DIR := parameter_files
-WORKSPACE_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket-${WORKSPACE}
-MAIN_PARAMETER_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-parameter-files-bucket
+LOCAL_DIR := parameter_files
+MAIN_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-account-wide-is-performance-files-bucket
 JMETER_PLUGINS_MANAGER_VERSION := 1.11
 CMDRUNNER_VERSION := 2.3
 AWS_REGION ?= eu-west-2
@@ -27,7 +26,7 @@ install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required pl
 	java -cp $$(asdf where jmeter)/lib/ext/jmeter-plugins-manager-${JMETER_PLUGINS_MANAGER_VERSION}.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
 
 	echo "Installing jmeter plugins"
-	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional
+	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional,kg.apc:jmeter-plugins-casutg:3.1.1
 
 install-jmeter-dependencies: ## Installs jmeter dependencies
 	echo "Installing jmeter dependencies"
@@ -45,27 +44,23 @@ performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
 	jmeter -g ${TEST_DATA}.jtl -f -e -o reports
 
-download-workspace-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
-	echo "PROJECT_NAME: ${PROJECT_NAME}"
-	echo "ENVIRONMENT: ${ENVIRONMENT}"
-	echo "SERVICE: ${SERVICE}"
-	echo "WORKSPACE_PARAMETER_FILES_BUCKET: ${WORKSPACE_PARAMETER_FILES_BUCKET}"
-	aws s3 cp s3://${WORKSPACE_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
+download-performance-files: ##[AWS_REGION=aws region] [MAIN_FILES_BUCKET=main bucket for performance files]  [LOCAL_DIR=local folder]
+	echo "downloading performance test files from  ${MAIN_FILES_BUCKET}"
+	aws s3 cp s3://${MAIN_FILES_BUCKET} --region $(AWS_REGION) ${LOCAL_DIR}/ --recursive
 
-download-main-performance-parameter-files: ##[AWS_REGION=aws region]
-	echo "PROJECT_NAME: ${PROJECT_NAME}"
-	echo "ENVIRONMENT: ${ENVIRONMENT}"
-	echo "SERVICE: ${SERVICE}"
-	echo "MAIN_PARAMETER_FILES_BUCKET: ${MAIN_PARAMETER_FILES_BUCKET}"
-	aws s3 cp s3://${MAIN_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) ${TEST_DIR}/ --recursive
+upload-performance-file: ##[AWS_REGION=aws region] [WORKSPACE=workspace name +/] [MAIN_FILES_BUCKET=main bucket for performance files]
+## [FILE=file] [FILE_PATH=./local/path/to/file/]
+	echo "Uploading performance test file ${FILE_PATH}${FILE} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
+	aws s3 cp --region $(AWS_REGION) ${FILE_PATH}${FILE} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${FILE}
 
-copy-performance-parameter-files: ##[AWS_REGION=aws region] [WORKSPACE=workspace name]
-	echo "PROJECT_NAME: ${PROJECT_NAME}"
-	echo "ENVIRONMENT: ${ENVIRONMENT}"
-	echo "SERVICE: ${SERVICE}"
-	echo "WORKSPACE_PARAMETER_FILES_BUCKET: ${WORKSPACE_PARAMETER_FILES_BUCKET}"
-	echo "MAIN_PARAMETER_FILES_BUCKET: ${MAIN_PARAMETER_FILES_BUCKET}"
-	aws s3 cp s3://${MAIN_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) s3://${WORKSPACE_PARAMETER_FILES_BUCKET} --region $(AWS_REGION) --recursive
+upload-performance-folder: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files] [LOCAL_DIR=local folder]
+	echo "Uploading performance test files from ${LOCAL_DIR} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
+	aws s3 cp --region $(AWS_REGION) ${LOCAL_DIR} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${LOCAL_DIR} --recursive
+
+# Get a secret value from Secrets Manager
+secrets-get: ## [SECRET_ID=arn or name] [OUT=name of file to store secret]
+	aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString' --output text > $(OUT)
+
 
 _install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
@@ -77,6 +72,11 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
 		make _install-dependency name="$${plugin}"; \
 	done
+
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+# EC2 Make Targets
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 jmeter-ec2-id:
 	@ID="$(JMETER_INSTANCE_ID)"; \
@@ -264,4 +264,4 @@ jmeter-fetch-dir-inline: ## [REMOTE_DIR=artifacts] [LOCAL_DIR=tests/performance/
 	rm -rf "$$WORKDIR"; \
 	echo "Downloaded $$FETCHED files from '$$RDIR' to '$$LDIR' (listed $$COUNT)"
 
-.PHONY: jmeter-start-instance jmeter-stop-instance jmeter-version-remote jmeter-ssm-shell jmeter-copy-ssm-inline jmeter-ec2-id jmeter-private-ip jmeter-copy-dir-ssm-inline jmeter-fetch-file-inline jmeter-fetch-dir-inline
+.PHONY: s3-upload-file s3-upload-folder s3-download-file s3-download-folder secrets-get secrets-get-value

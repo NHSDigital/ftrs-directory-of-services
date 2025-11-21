@@ -74,13 +74,9 @@ def send_request(
     parsers.parse('I send a GET request to the "{endpoint}" endpoint'),
     target_fixture="fresponse",
 )
-def step_get(playwright, dos_ingestion_service_url: str, endpoint: str, api_key: str):
+def step_get(playwright, dos_ingest_service_url: str, endpoint: str):
     return send_request(
-        playwright,
-        "GET",
-        dos_ingestion_service_url,
-        ENDPOINTS.get(endpoint, endpoint),
-        api_key=api_key,
+        playwright, "GET", dos_ingest_service_url, ENDPOINTS.get(endpoint, endpoint)
     )
 
 
@@ -90,9 +86,9 @@ def step_get(playwright, dos_ingestion_service_url: str, endpoint: str, api_key:
     ),
     target_fixture="fresponse",
 )
-def step_get_no_auth(playwright, dos_ingestion_service_url: str, endpoint: str):
+def step_get_no_auth(playwright, dos_ingest_service_url: str, endpoint: str):
     return send_request(
-        playwright, "GET", dos_ingestion_service_url, ENDPOINTS.get(endpoint, endpoint)
+        playwright, "GET", dos_ingest_service_url, ENDPOINTS.get(endpoint, endpoint)
     )
 
 
@@ -102,13 +98,13 @@ def step_get_no_auth(playwright, dos_ingestion_service_url: str, endpoint: str):
     ),
     target_fixture="fresponse",
 )
-def step_put_no_auth(playwright, dos_ingestion_service_url: str, endpoint: str):
+def step_put_no_auth(playwright, dos_ingest_service_url: str, endpoint: str):
     payload = load_payload()
     org_id = payload.get("id")
     return send_request(
         playwright,
         "PUT",
-        dos_ingestion_service_url,
+        dos_ingest_service_url,
         ENDPOINTS.get(endpoint, endpoint),
         payload=payload,
         org_id=org_id,
@@ -122,14 +118,14 @@ def step_put_no_auth(playwright, dos_ingestion_service_url: str, endpoint: str):
     target_fixture="fresponse",
 )
 def step_put_invalid_key(
-    playwright, dos_ingestion_service_url: str, endpoint: str, api_key: str
+    playwright, dos_ingest_service_url: str, endpoint: str, api_key: str
 ):
     payload = load_payload()
     org_id = payload.get("id")
     return send_request(
         playwright,
         "PUT",
-        dos_ingestion_service_url,
+        dos_ingest_service_url,
         ENDPOINTS.get(endpoint, endpoint),
         payload=payload,
         org_id=org_id,

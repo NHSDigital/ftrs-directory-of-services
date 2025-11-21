@@ -2,7 +2,7 @@ import { importPKCS8 } from "jose";
 import * as client from "openid-client";
 import type { CIS2ClientConfig } from "@/types/CIS2ClientConfig.ts";
 import { getawsParameter, getawsSecret } from "@/utils/aws-util.ts";
-import { logger } from "@/utils/logger";
+import { getLogger } from "@/utils/logger";
 
 export const validateConfig = (config: {
   clientId: string;
@@ -18,6 +18,7 @@ export const validateConfig = (config: {
 };
 
 export const getAuthConfig = async (): Promise<CIS2ClientConfig> => {
+  const logger = getLogger();
   const cis2ConfigJson = await getawsParameter(
     `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-client-config`,
   );
@@ -28,16 +29,19 @@ export const getAuthConfig = async (): Promise<CIS2ClientConfig> => {
   });
   return config;
 };
-const getCIS2PrivateKey = async (): Promise<CryptoKey> => {
+
+export const getCIS2PrivateKey = async (): Promise<CryptoKey> => {
   const cis2privateKeyPem = await getawsSecret(
     `/${process.env.PROJECT}/${process.env.ENVIRONMENT}/cis2-private-key`,
   );
   if (!cis2privateKeyPem) throw new Error("CIS2 Private Key not found");
+
   return await importPKCS8(cis2privateKeyPem, "RS512");
 };
 
-export const getOIDCConfig = async (): Promise<client.Configuration> => {
+export const getOIDCConfig = async (): Promise<{ oidcClient: client.Configuration; authConfig: CIS2ClientConfig }> => {
   const config = await getAuthConfig();
+  const logger = getLogger();
 
   try {
     const issuerUrl = new URL(config.issuerUrl);
@@ -65,7 +69,7 @@ export const getOIDCConfig = async (): Promise<client.Configuration> => {
       logger.warn("Could not log endpoint details", { error: metadataError });
     }
 
-    return oidcClientConfig;
+    return { oidcClient: oidcClientConfig, authConfig: config };
   } catch (error) {
     logger.error("CIS2 discovery failed", { error });
 

@@ -1,0 +1,137 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`should render the root route > Root Route 1`] = `
+<div>
+  <header
+    class="nhsuk-header nhsuk-header__transactional"
+    role="banner"
+  >
+    <div
+      class="nhsuk-width-container nhsuk-header__container"
+    >
+      <div
+        class="nhsuk-header__logo nhsuk-header__transactional--logo"
+      >
+        <a
+          aria-label="NHS homepage"
+          class="nhsuk-header__link"
+          href="/"
+        >
+          <svg
+            aria-labelledby="nhsuk-logo_title"
+            class="nhsuk-logo"
+            height="40"
+            viewBox="0 0 40 16"
+            width="100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <title
+              id="nhsuk-logo_title"
+            >
+              NHS Logo
+            </title>
+            <path
+              class="nhsuk-logo__background"
+              d="M0 0h40v16H0z"
+              fill="#005eb8"
+            />
+            <path
+              class="nhsuk-logo__text"
+              d="M3.9 1.5h4.4l2.6 9h.1l1.8-9h3.3l-2.8 13H9l-2.7-9h-.1l-1.8 9H1.1M17.3 1.5h3.6l-1 4.9h4L25 1.5h3.5l-2.7 13h-3.5l1.1-5.6h-4.1l-1.2 5.6h-3.4M37.7 4.4c-.7-.3-1.6-.6-2.9-.6-1.4 0-2.5.2-2.5 1.3 0 1.8 5.1 1.2 5.1 5.1 0 3.6-3.3 4.5-6.4 4.5-1.3 0-2.9-.3-4-.7l.8-2.7c.7.4 2.1.7 3.2.7s2.8-.2 2.8-1.5c0-2.1-5.1-1.3-5.1-5 0-3.4 2.9-4.4 5.8-4.4 1.6 0 3.1.2 4 .6"
+              fill="#fff"
+            />
+          </svg>
+        </a>
+      </div>
+      <div
+        class="nhsuk-header__transactional-service-name"
+      >
+        <a
+          class="nhsuk-header__transactional-service-name--link"
+          href="/"
+        >
+          Directory of Services
+        </a>
+      </div>
+    </div>
+  </header>
+  <div
+    class="nhsuk-width-container"
+  >
+    <p
+      class="nhsuk-u-margin-top-3 nhsuk-u-margin-bottom-3 nhsuk-u-font-size-19"
+    >
+      <strong
+        class="nhsuk-tag nhsuk-u-margin-right-3"
+      >
+        DOS UI
+      </strong>
+      This is a basic placeholder landing page.
+    </p>
+    <hr
+      class="nhsuk-section-break nhsuk-section-break--s nhsuk-section-break--visible"
+    />
+  </div>
+  <div
+    class="nhsuk-width-container ftrs-page-container"
+  >
+    <h1
+      class="nhsuk-heading-l"
+    >
+      Page not found
+    </h1>
+    <p>
+      This page does not exist.
+    </p>
+    <p>
+      <a
+        href="/"
+      >
+        Return to the homepage
+      </a>
+    </p>
+  </div>
+  <footer
+    role="contentinfo"
+  >
+    <div
+      class="nhsuk-footer-container"
+    >
+      <div
+        class="nhsuk-width-container"
+      >
+        <h2
+          class="nhsuk-u-visually-hidden"
+        >
+          Support links
+        </h2>
+        <div
+          class="nhsuk-footer"
+        >
+          <ul
+            class="nhsuk-footer__list"
+          >
+            <li
+              class="nhsuk-footer__list-item nhsuk-footer-default__list-item"
+            >
+              <a
+                class="nhsuk-footer__list-item-link"
+                href="/"
+              >
+                Home
+              </a>
+            </li>
+          </ul>
+          <p
+            class="nhsuk-footer__copyright"
+          >
+            © 
+            2025
+             NHS England
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+`;

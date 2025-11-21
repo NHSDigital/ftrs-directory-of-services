@@ -17,9 +17,10 @@ from testcontainers.postgres import PostgresContainer
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from utilities.common.constants import ENV_ENVIRONMENT, ENV_SOURCE_DB_HOST, ENV_SOURCE_DB_NAME, ENV_SOURCE_DB_PASSWORD, ENV_SOURCE_DB_PORT, ENV_SOURCE_DB_USER, ENV_WORKSPACE
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
 from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
-from utilities.common.migration_helper import MigrationHelper
+from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.rds_data import gp_service
 
 
@@ -37,18 +38,19 @@ def localstack_container() -> Generator[LocalStackContainer, None, None]:
         yield localstack
 
 
-def _get_source_db_config() -> dict:
+def _get_source_db_config() -> Dict[str, str]:
+    """Get source database configuration from environment variables."""
     return {
-        "host": os.getenv("SOURCE_DB_HOST", "localhost"),
-        "port": os.getenv("SOURCE_DB_PORT", "5432"),
-        "database": os.getenv("SOURCE_DB_NAME", "pathwaysdos"),
-        "username": os.getenv("SOURCE_DB_USER", "postgres"),
-        "password": os.getenv("SOURCE_DB_PASSWORD", "password"),
+        "host": os.getenv(ENV_SOURCE_DB_HOST),
+        "port": os.getenv(ENV_SOURCE_DB_PORT),
+        "database": os.getenv(ENV_SOURCE_DB_NAME),
+        "username": os.getenv(ENV_SOURCE_DB_USER),
+        "password": os.getenv(ENV_SOURCE_DB_PASSWORD),
     }
 
 
 def _dump_schema_and_data(
-    source_config: dict, schema_file: str, data_file: str
+    source_config: Dict[str, str], schema_file: str, data_file: str
 ) -> None:
     """Dump database schema and data for selected tables using pg_dump."""
 
@@ -107,7 +109,7 @@ def _dump_schema_and_data(
 
 
 def _load_schema_and_data(
-    container_config: dict, schema_file: str, data_file: str
+    container_config: Dict[str, str], schema_file: str, data_file: str
 ) -> None:
     """Load schema and data into the test container."""
 
@@ -149,7 +151,7 @@ def _load_schema_and_data(
     logger.info("Schema and data loaded successfully")
 
 
-def _init_database(engine):
+def _init_database(engine: Any) -> None:
     """Initialize database with schema and tables."""
     # First, clean up any existing database to ensure we start fresh
     _cleanup_database(engine)
@@ -164,7 +166,7 @@ def _init_database(engine):
     legacy.LegacyDoSModel.metadata.create_all(engine)
 
 
-def _init_database_with_migration(postgres_container: PostgresContainer):
+def _init_database_with_migration(postgres_container: PostgresContainer) -> None:
     """Initialize database with schema and data from source database."""
     # Get container connection details
     connection_string = postgres_container.get_connection_url()
@@ -177,8 +179,6 @@ def _init_database_with_migration(postgres_container: PostgresContainer):
     source_config = _get_source_db_config()
 
     # Parse connection URL to get individual components for psql commands
-    from urllib.parse import urlparse
-
     parsed = urlparse(connection_string)
 
     container_config = {
@@ -215,7 +215,7 @@ def _init_database_with_migration(postgres_container: PostgresContainer):
             logger.warning(f"Failed to clean up temporary files: {e}")
 
 
-def _cleanup_database(engine):
+def _cleanup_database(engine) -> None:
     """Clean up a database by dropping all tables and schema."""
     try:
         with engine.connect() as conn:
@@ -259,12 +259,7 @@ def _cleanup_database(engine):
 
 
 def _seed_gp_organisations(session: Session) -> None:
-    """
-    Seed the database with GP organisations for testing.
-
-    Args:
-        session: Database session
-    """
+    """Seed the database with GP organisations for testing."""
     for org in gp_service:
         session.add(org)
     session.commit()
@@ -452,7 +447,6 @@ def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisati
 @pytest.fixture(scope="function")
 def migration_helper(
     postgres_container: PostgresContainer,
-    dos_db_with_migration: Session,
     dynamodb: Dict[str, Any],
 ) -> MigrationHelper:
     """
@@ -460,19 +454,30 @@ def migration_helper(
 
     Args:
         postgres_container: PostgreSQL container fixture
-        dos_db_with_migration: DoS database session with migrated schema
         dynamodb: DynamoDB fixture with pre-created tables
 
     Returns:
         Configured MigrationHelper instance
+
+    Raises:
+        AssertionError: If required DynamoDB configuration is missing
     """
     db_uri = postgres_container.get_connection_url()
 
-    assert "endpoint_url" in dynamodb, "DynamoDB fixture must provide endpoint_url"
+    if "endpoint_url" not in dynamodb:
+        raise AssertionError(
+            "DynamoDB fixture must provide endpoint_url. "
+            "Ensure fixture_dynamodb is correctly configured."
+        )
+
     dynamodb_endpoint = dynamodb["endpoint_url"]
 
-    environment = os.getenv("ENVIRONMENT", "dev")
-    workspace = os.getenv("WORKSPACE", "test")
+    environment = os.getenv(ENV_ENVIRONMENT)
+    workspace = os.getenv(ENV_WORKSPACE)
+
+    logger.debug(
+        f"Creating MigrationHelper with environment={environment}, workspace={workspace}"
+    )
 
     return MigrationHelper(
         db_uri=db_uri,
@@ -488,11 +493,15 @@ def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
     Context to store migration test data across BDD steps.
 
     Structure:
-        service_id: ID of service being migrated
-        result: MigrationRunResult from the migration
-        service_data: Dict of service attributes from Gherkin table
-        results: Dict of results for multiple migrations
-        db_session: Active database session
+        service_id (int|None): ID of service being migrated (None = full sync)
+        result (MigrationRunResult|None): Result from migration execution
+        service_data (dict): Service attributes from Gherkin table
+        service_name (str): Human-readable name for test service
+        sqs_event (dict): SQS event data for event-based migrations
+        sqs_service_ids (list[int]): Service IDs extracted from SQS event
+        sqs_service_id (int|None): Primary service ID from SQS event
+        mock_logger (MockLogger|None): MockLogger instance with captured logs
+        db_session (Session): Active database session
 
     Args:
         dos_db_with_migration: DoS database session fixture
@@ -501,9 +510,13 @@ def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
         Dictionary context for storing test state
     """
     return {
-        "service_id": None, # None indicates full sync migration
+        "service_id": None,  # None indicates full sync migration
         "result": None,
         "service_data": {},
-        "results": {},
+        "service_name": "",
+        "sqs_event": {},
+        "sqs_service_ids": [],
+        "sqs_service_id": None,
+        "mock_logger": None,
         "db_session": dos_db_with_migration,
     }

@@ -177,7 +177,7 @@ variable "waf_log_group_retention_days" {
 variable "performance_instance_type" {
   description = "EC2 instance type for performance testing"
   type        = string
-  default     = "t3.small"
+  default     = "c7a.xlarge"
 }
 
 variable "performance_ami_name_pattern" {
@@ -218,4 +218,11 @@ variable "performance_jwt_dependency_version" {
   description = "Version of java-jwt library to download"
   type        = string
   default     = "4.5.0"
+}
+
+# Performance S3 bucket names
+variable "performance_files_bucket_name" {
+  description = "S3 bucket name for performance files"
+  type        = string
+  default     = "is-performance-files-bucket"
 }

@@ -1,0 +1,167 @@
+name: Deploy Release Pipeline
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
+    inputs:
+      release_tag:
+        description: "Specify the release tag to be used for deployment (e.g. v1.1.0)"
+        required: true
+        type: string
+      environment:
+        description: "Specify the environment to deploy the release to"
+        required: true
+        type: choice
+        options:
+          - test
+          - int
+          - ref
+          - prod
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  validate-release-tag:
+    name: "Check format of input release tag"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Validate release tag"
+        id: validate
+        run: |
+          RELEASE_TAG="${{ inputs.release_tag }}"
+          if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release tag format: $RELEASE_TAG"
+            exit 1
+          else
+            echo "Release tag format is valid: $RELEASE_TAG"
+          fi
+
+  metadata:
+    name: "Get CI/CD metadata"
+    needs:
+      - validate-release-tag
+    uses: ./.github/workflows/metadata.yaml
+    with:
+      tag: ${{ inputs.release_tag }}
+
+  deploy-account-wide-policies:
+    name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
+    needs:
+      - metadata
+    uses: ./.github/workflows/pipeline-deploy-policies.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      tag: ${{ inputs.release_tag }}
+    secrets: inherit
+
+  deploy-account-wide-infrastructure:
+    name: "Deploy account wide infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
+    needs:
+      - metadata
+      - deploy-account-wide-policies
+    uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      tag: ${{ inputs.release_tag }}
+    secrets: inherit
+
+  deploy-application-infrastructure:
+    name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
+    needs:
+      - validate-release-tag
+      - deploy-account-wide-infrastructure
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: default
+      application_tag: ${{ inputs.release_tag }}
+      release_tag: ${{ inputs.release_tag }}
+      tag: ${{ inputs.release_tag }}
+      workflow_timeout: 30
+    secrets: inherit
+
+  deploy-frontend-services:
+    name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ inputs.environment }} environment"
+    concurrency:
+      group: "${{ inputs.environment }}-default"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    strategy:
+      matrix:
+        include:
+          - name: "dos-ui"
+          - name: "read-only-viewer"
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      environment: ${{ inputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: default
+      application_tag: ${{ inputs.release_tag }}
+      release_build: true
+      type: "app"
+      tag: ${{ inputs.release_tag }}
+    secrets: inherit
+
+  service-automation-tests:
+    name: "Run service automation tests on ${{ inputs.environment }}"
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+      - deploy-frontend-services
+    if: |
+      always() &&
+      ${{ inputs.environment != 'prod' }} &&
+      !cancelled() &&
+      (
+        needs.restore-dynamodb-from-s3.result == 'success' ||
+        (
+          needs.restore-dynamodb-from-s3.result == 'skipped' &&
+          (needs.export-dynamodb-to-s3.result == 'success' || needs.deploy-application-infrastructure.result == 'success')
+        )
+      )
+    uses: ./.github/workflows/service-automation-test.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: default
+      tag: ${{ inputs.release_tag }}
+      test_tag: "ftrs-pipeline"
+      test_type: "api"
+      type: app
+    secrets: inherit
+
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    needs:
+      - validate-release-tag
+      - metadata
+      - deploy-account-wide-policies
+      - deploy-account-wide-infrastructure
+      - deploy-application-infrastructure
+      - deploy-frontend-services
+      - service-automation-tests
+    if: always()
+    uses: ./.github/workflows/pipeline-status-check.yaml
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - validate-release-tag
+      - metadata
+      - deploy-account-wide-policies
+      - deploy-account-wide-infrastructure
+      - deploy-application-infrastructure
+      - deploy-frontend-services
+      - service-automation-tests
+      - check-pipeline-status
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ inputs.environment }}
+    secrets: inherit

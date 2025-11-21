@@ -36,6 +36,10 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+      build_timestamp:
+        description: "The build timestamp"
+        required: false
+        type: string
 
 jobs:
   scan-secrets:
@@ -46,6 +50,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
@@ -58,6 +63,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check file format"
         uses: ./.github/actions/check-file-format
@@ -70,6 +76,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check Markdown format"
         uses: ./.github/actions/check-markdown-format
@@ -82,6 +89,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check English usage"
         uses: ./.github/actions/check-english-usage
@@ -94,6 +102,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
       - name: "Count lines of code"
         uses: ./.github/actions/create-lines-of-code-report
         with:
@@ -192,7 +202,7 @@ jobs:
         uses: actions/upload-artifact@v5
         if: success() || failure()
         with:
-          name: "checkov.sarif"
+          name: "checkov-${{ inputs.build_timestamp }}.sarif"
           path: "checkov.sarif/"
           if-no-files-found: ignore
 
@@ -226,6 +236,6 @@ jobs:
         uses: actions/upload-artifact@v5
         if: success() || failure()
         with:
-          name: "trivy.sarif"
+          name: "trivy-${{ inputs.build_timestamp }}.sarif"
           path: "trivy.sarif"
           if-no-files-found: ignore

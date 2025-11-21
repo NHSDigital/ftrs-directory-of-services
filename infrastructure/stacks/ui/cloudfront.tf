@@ -44,12 +44,16 @@ module "ui_cloudfront" {
   }
 
   default_cache_behavior = {
-    target_origin_id       = "lambda_function"
-    allowed_methods        = ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
-    cached_methods         = ["GET", "HEAD"]
-    compress               = true
-    query_string           = true
-    viewer_protocol_policy = "redirect-to-https"
+    target_origin_id     = "lambda_function"
+    allowed_methods      = ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"]
+    cached_methods       = ["GET", "HEAD"]
+    compress             = true
+    query_string         = true
+    use_forwarded_values = false
+
+    viewer_protocol_policy   = "redirect-to-https"
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_headers.id
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
   }
 
   ordered_cache_behavior = [
@@ -102,12 +106,6 @@ module "ui_cloudfront" {
   aliases = ["${var.stack_name}${local.workspace_suffix}.${local.env_domain_name}"]
 
   web_acl_id = data.aws_wafv2_web_acl.waf_web_acl.arn
-
-  logging_config = {
-    include_cookies = false
-    bucket          = module.access_logging_bucket.s3_bucket_bucket_domain_name
-    prefix          = var.access_logs_prefix
-  }
 
   tags = {
     Name = "${local.resource_prefix}${local.workspace_suffix}"
