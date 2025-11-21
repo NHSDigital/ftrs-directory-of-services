@@ -33,6 +33,7 @@ endif
 IMAGE_TAG ?= $(if $(COMMIT_SOURCE),$(COMMIT_SOURCE),latest)
 COMMIT_HASH ?= $(IMAGE_TAG)
 FULL_IMAGE := ${API_NAME}:${IMAGE_TAG}
+PUSH_IMAGE ?= $(FULL_IMAGE)
 CONTAINER_NAME := ${API_NAME}-tests
 SMOKE_SCRIPT := ./scripts/smoke.sh
 
@@ -115,7 +116,7 @@ push-to-ecr:
 	else \
 		PUSH_IMAGE="${FULL_IMAGE}"; \
 	fi; \
-	ACCESS_TOKEN="$${ACCESS_TOKEN:-}" "${PUSH_SCRIPT}" "${API_NAME}" "$${PUSH_IMAGE:-${API_NAME}:${IMAGE_TAG}}" "${API_NAME}" "${IMAGE_TAG}"
+	ACCESS_TOKEN="$${ACCESS_TOKEN:-}" "${PUSH_SCRIPT}" "${API_NAME}" "$${PUSH_IMAGE:-${PUSH_IMAGE}}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
