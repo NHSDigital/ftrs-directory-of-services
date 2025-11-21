@@ -181,13 +181,13 @@ check-get-apim-token:
 	# Run token script and let stderr surface for debugging (pass expanded API_NAME and the make-computed ENV)
 	ACCESS_TOKEN="$$(API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
 	# If script produced JSON or token on stdout, try to extract token from output
-	# Print full output for debugging when it fails
-	if echo "$$ACCESS_TOKEN" | grep -q 'Error:'; then \
+	# Use parameter expansion so the shell doesn't error under set -u when ACCESS_TOKEN is empty
+	if echo "$${ACCESS_TOKEN:-}" | grep -q 'Error:'; then \
 		echo "Token script error output:"; \
-		echo "$$ACCESS_TOKEN"; \
+		echo "$${ACCESS_TOKEN:-}"; \
 		exit 1; \
 	fi; \
-	if [ -n "$$ACCESS_TOKEN" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n $$ACCESS_TOKEN | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
+	if [ -n "$${ACCESS_TOKEN:-}" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n "$${ACCESS_TOKEN:-}" | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
 
 # Aggregate diagnostics
 diagnose: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token
