@@ -79,7 +79,6 @@ publish:
 push-to-ecr:
 	@echo "Running pre-push diagnostics..."
 	@$(MAKE) diagnose
-+
 
 	if [ -z "${API_NAME}" ]; then \
 		echo "Missing required variable: API_NAME"; \
