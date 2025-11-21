@@ -125,20 +125,19 @@ lint:
 
 .PHONY: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token diagnose
 
-# Check that AWS environment variables are present
+# Check that AWS environment variables are present (non-fatal; sts check validates credentials)
 check-aws:
-	@echo "Checking AWS environment variables...";\
-	ok=1; \
-	if [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${AWS_SECRET_ACCESS_KEY:-}" ]; then \
-		echo "ERROR: AWS credentials (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY) are not set in the environment"; \
-		ok=0; \
+	@echo "Checking AWS environment variables (non-fatal)..."; \
+	if [ -n "$${AWS_ACCESS_KEY_ID:-}" ] && [ -n "$${AWS_SECRET_ACCESS_KEY:-}" ]; then \
+		echo "OK: AWS credentials present in environment"; \
 	else \
-		echo "OK: AWS credentials present"; \
+		echo "WARN: AWS env credentials not present; will verify via 'aws sts' check"; \
 	fi; \
-	if [ -z "${AWS_REGION:-}" ] && [ -z "${AWS_DEFAULT_REGION:-}" ]; then \
+	if [ -n "$${AWS_REGION:-}" ] || [ -n "$${AWS_DEFAULT_REGION:-}" ]; then \
+		echo "OK: AWS region set"; \
+	else \
 		echo "WARN: AWS region not set (AWS_REGION/AWS_DEFAULT_REGION)"; \
-	fi; \
-	[ $$ok -eq 1 ] || (echo "AWS env checks failed"; exit 1)
+	fi
 
 # Check aws CLI is available
 check-aws-cli:
@@ -170,7 +169,7 @@ check-get-apim-token:
 	@echo "Attempting to fetch APIM token via $(GET_APIM_TOKEN_SCRIPT)"; \
 	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then echo "WARN: $(GET_APIM_TOKEN_SCRIPT) not found; skipping APIM token check"; exit 0; fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="${ENVIRONMENT:-}" AWS_REGION="${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>/dev/null || true)"; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$${ENVIRONMENT:-}" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>/dev/null || true)"; \
 	if [ -n "$$ACCESS_TOKEN" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n $$ACCESS_TOKEN | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
 
 # Aggregate diagnostics

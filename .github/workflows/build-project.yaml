@@ -103,6 +103,15 @@ jobs:
             exit 1
           fi
 
+      - name: "Diagnostics: show AWS env and run Make checks"
+        run: |
+          echo "--- AWS env visible to job ---"
+          env | grep '^AWS_' || true
+          echo "--- Running make diagnose in service working dir ---"
+          make -C "${{ steps.get-directories.outputs.working_directory }}" diagnose
+        # run diagnostics in the same job so credentials configured earlier are available
+        shell: /bin/bash
+
       - name: "Install project"
         run: make install
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
@@ -159,4 +168,10 @@ jobs:
           COMMIT_HASH: ${{ inputs.commit_hash }}
           ENVIRONMENT: ${{ inputs.matrix_environment || inputs.environment }}
           AWS_REGION: ${{ vars.AWS_REGION }}
-        run: make push-to-ecr
+        run: |
+          echo "--- AWS environment visible to push step ---";
+          env | grep '^AWS_' || true;
+          echo "--- aws sts get-caller-identity (non-fatal) ---";
+          aws sts get-caller-identity --output json || true;
+          echo "--- invoking make push-to-ecr ---";
+          make push-to-ecr
