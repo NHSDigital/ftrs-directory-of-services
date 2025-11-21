@@ -17,14 +17,6 @@ def dos_logger():
 
 
 class TestDosLogger:
-    def test_clear_log_data(self, dos_logger):
-        # Arrange
-        dos_logger.info("test_message", log_data={"key": "value"})
-        # Act
-        dos_logger.clear_log_data()
-        # Assert
-        assert dos_logger._last_log_data == dict()
-
     def test_extract(self, dos_logger, event, log_data):
         # Arrange
         extract = dict(log_data)
@@ -56,76 +48,69 @@ class TestDosLogger:
         # Assert
         assert result == extract
 
-    def test_log_with_level_persists_last_log_call(self, dos_logger, log_data):
-        # Arrange
-        # Act
-        dos_logger.info("test_log_with_level_persists_last_log_call", log_data=log_data)
-        # Assert
-        assert dos_logger._last_log_data == log_data
-
-    def test_log_override_keys(self, dos_logger, log_data):
+    def test_log_override_keys(self, dos_logger):
         # Arrange
         # Act
         result = dos_logger.info(
             "test_log_with_level_persists_last_log_call",
-            log_data=log_data,
             dos_message_category="METRICS",
+            foo="bar",
         )
         # Assert
         assert result["dos_message_category"] == "METRICS"
+        assert result["detail"]["foo"] == "bar"
 
-    def test_log_with_no_log_data(self, dos_logger, log_data):
+    def test_detail_fields_added(self, dos_logger):
         # Arrange
-        dos_logger.info("initial call to set log_data", log_data=log_data)
         # Act
-        result = dos_logger.info("test_log_with_no_log_data")
+        result = dos_logger.info("test_detail_fields_added", foo="bar")
         # Assert
-        assert result == log_data
+        assert result["detail"]["foo"] == "bar"
 
-    def test_info_call(self, mock_dos_logger, log_data):
+    def test_info_call(self, mock_dos_logger):
         # Arrange
         info_message = "test_info_call: testing info call"
         # Act
-        mock_dos_logger.info(info_message, log_data=log_data)
+        mock_dos_logger.info(info_message)
         # Assert
         mock_dos_logger.assert_has_calls(
             [
-                call.info(info_message, log_data=log_data),
+                call.info(info_message),
             ]
         )
 
-    def test_warning_call(self, mock_dos_logger, log_data):
+    def test_warning_call(self, mock_dos_logger):
         # Arrange
         warning_message = "test_warning_call: testing warning call"
         # Act
-        mock_dos_logger.warning(warning_message, log_data=log_data)
+        mock_dos_logger.warning(warning_message)
         # Assert
         mock_dos_logger.assert_has_calls(
             [
-                call.warning(warning_message, log_data=log_data),
+                call.warning(warning_message),
             ]
         )
 
-    def test_error_call(self, mock_dos_logger, log_data):
+    def test_error_call(self, mock_dos_logger):
         # Arrange
         error_message = "test_error_call: testing error call"
         # Act
-        mock_dos_logger.error(error_message, log_data=log_data)
+        mock_dos_logger.error(error_message)
         # Assert
         mock_dos_logger.assert_has_calls(
             [
-                call.error(error_message, log_data=log_data),
+                call.error(error_message),
             ]
         )
 
-    def test_exception_call(self, mock_dos_logger, log_data):
+    def test_exception_call(self, mock_dos_logger):
         # Arrange
         exception_message = "test_exception_call: testing exception call"
         # Act
-        mock_dos_logger.exception(exception_message, log_data=log_data)
+        mock_dos_logger.exception(exception_message)
         # Assert
         mock_dos_logger.assert_has_calls(
             [
-                call.exception(exception_message, log_data=log_data),
+                call.exception(exception_message),
             ]
         )
