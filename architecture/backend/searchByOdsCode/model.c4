@@ -2,19 +2,19 @@ model {
 
   extend ftrs {
 
-    lambda searchByTriageCodeAPI "Search by Triage Code API" {
+    lambda searchByOdsCode "Search by ODS Code API" {
       description '
-        /search-by-triage-code
-        API for searching locations by triage code
+        /search-by-ods-code
+        API for searching for services by ods code
       '
-      lambda search "GET /location/triage-code/{triage_code}" {
-        description 'Retrieves services by triage code'
+      lambda search "GET /gp-search/{ods_code}" {
+        description 'Retrieves services by ods code'
       }
 
     }
   }
 
-  apim.dosSearchProxy -> searchByTriageCodeAPI "Proxies calls to"
+  apim.dosSearchProxy -> searchByOdsCode "Proxies calls to"
 
   search -> ftrs.openSearch "Queries data from"
 

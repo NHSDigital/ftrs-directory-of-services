@@ -56,6 +56,26 @@ model {
       }
     }
 
+    container liveDosDb "Live Dos Database" {
+      style {
+        icon aws:rds
+        shape storage
+      }
+    }
+
+    container awsMigrationService "AWS Data Migration Service" {
+      style {
+        icon aws:database-migration-service
+      }
+    }
+
+    container etlStagingDosDb "ETL Staging Dos Database" {
+      style {
+        icon aws:rds
+        shape storage
+      }
+    }
+
     ftrs.db.healthCareServiceTable -> ftrs.openSearch "Updates index in"
     ftrs.db.locationTable -> ftrs.openSearch "Updates index in"
     ftrs.db.orgTable -> ftrs.openSearch "Updates index in"

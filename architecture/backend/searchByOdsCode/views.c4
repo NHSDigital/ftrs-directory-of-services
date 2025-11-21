@@ -1,6 +1,6 @@
 views {
 
-  view of ftrs.searchByTriageCodeAPI {
+  view of ftrs.searchByOdsCode {
     title "FTRS CRUD APIs"
     description '
       APIs for CRUD operations on the Organizations table

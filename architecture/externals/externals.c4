@@ -1,5 +1,5 @@
 model {
-  dosLead = actor "DoS Admin" {
+  dosLead = actor "DoS Lead" {
     description "DoS Lead, DoS Dev Team or CM Admin"
     style {
       color muted
