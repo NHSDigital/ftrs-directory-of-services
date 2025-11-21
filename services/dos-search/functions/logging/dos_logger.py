@@ -28,83 +28,80 @@ class DosLogger:
         # remember last appended correlation id so we can expose it later
         self._last_appended_correlation: Optional[str] = None
         self._last_log_data = dict()
+        self.placeholder = "DOS_LOG_PLACEHOLDER"
+        self.headers = dict()
 
     # This method should be called at the final stages of Lambda operation (i.e. just before returning the response) to clear down persisting context and avoid contamination of future logs
     def clear_log_data(self) -> None:
         self._last_log_data = dict()
 
     # --- helper utilities -------------------------------------------------
-    @staticmethod
-    def extract(event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def _get_header(self, *names: str) -> str:
+        hdr_lower = {k.lower(): v for k, v in self.headers.items()}
+        # try original casing keys first, then lowercased mapping
+        for n in names:
+            val = self.headers.get(n)
+            if val not in (None, ""):
+                return val
+        # fallback to lowercased lookup of provided names
+        for n in names:
+            val = hdr_lower.get(n.lower())
+            if val not in (None, ""):
+                return val
+        return self.placeholder
+
+    # --- extract methods -------------------------------------------------
+    def extract(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """Extract APIM headers and common event fields into the structured 'extra' dict.
 
         All mandatory fields are present; missing values use the configured placeholder.
         Optional one-time fields are prefixed with 'Opt_'.
 
         Extracts are handled here as passing the entire event object to the handler presents issues for the pytest library mocks.
-        Extracts could be moved back to the DosLogger class, but would more or less require the test mocks to implement log_data=ANY in each call, which may obfuscate more information
         """
-        placeholder = "DOS_LOG_PLACEHOLDER"
 
-        headers = event.get("headers") or {}
-        hdr_lower = {k.lower(): v for k, v in headers.items()}
+        self.headers = event.get("headers") or {}
 
-        def h(*names: str) -> Optional[str]:
-            # try original casing keys first, then lowercased mapping
-            for n in names:
-                val = headers.get(n)
-                if val not in (None, ""):
-                    return val
-            # fallback to lowercased lookup of provided names
-            for n in names:
-                val = hdr_lower.get(n.lower())
-                if val not in (None, ""):
-                    return val
-            return None
-
-        out: Dict[str, Any] = {
+        mandatory: Dict[str, Any] = {
             "logger": "dos_logger"  # Identifier for when logs are created using our logger
         }
 
         # Mandatory/default DOS fields
         # NHSD correlation id
-        corr = h("NHSD-Correlation-ID", "X-Request-Id") or placeholder
-        out["dos_nhsd_correlation_id"] = corr
+        corr = self._get_header("NHSD-Correlation-ID", "NHSD-Request-Id")
+        mandatory["dos_nhsd_correlation_id"] = corr
 
         # NHSD request id
-        reqid = h("NHSD-Request-ID") or placeholder
-        out["dos_nhsd_request_id"] = reqid
+        reqid = self._get_header("NHSD-Request-ID")
+        mandatory["dos_nhsd_request_id"] = reqid
 
         # APIM message id
-        msgid = (
-            h("x-apim-msg-id", "X-Message-Id", "apim-message-id", "dos-message-id")
-            or placeholder
+        msgid = self._get_header(
+            "x-apim-msg-id", "X-Message-Id", "apim-message-id", "dos-message-id"
         )
-        out["dos_message_id"] = msgid
+        mandatory["dos_message_id"] = msgid
 
         # Default category to LOGGING, can be overridden later
-        out["dos_message_category"] = "LOGGING"
+        mandatory["dos_message_category"] = "LOGGING"
+
+        mandatory["details"] = {}
+
+        return mandatory
+
+    def extract_one_time(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        self.headers = event.get("headers") or {}
+        placeholder = self.placeholder
 
         # One-time fields added to "details" to separate
-        out["details"] = {}
-        details = out["details"]  # Alias for sub object access
+        details = {}
 
-        end_user_role = (
-            h("x-end-user-role")
-            or event.get("end_user_role")
-            or event.get("requestContext", {})
-            .get("authorizer", {})
-            .get("end_user_role")
-            or placeholder
-        )
+        end_user_role = self._get_header("NHSD-End-User-Role")
         details["opt_dos_end_user_role"] = end_user_role
 
-        client_id = h("x-client-id") or event.get("client_id") or placeholder
+        client_id = self._get_header("NHSD-Client-Id")
         details["opt_dos_client_id"] = client_id
 
-        app_name = (
-            h("x-application-name") or event.get("application_name") or placeholder
-        )
+        app_name = self._get_header("NHSD-Connecting-Party-App-Name")
         details["opt_dos_application_name"] = app_name
 
         # Request params (queryStringParameters + pathParameters)
@@ -131,7 +128,7 @@ class DosLogger:
         )
 
         details["opt_dos_api_version"] = (
-            h("x-api-version", "api-version") or placeholder
+            self._get_header("x-api-version", "api-version") or placeholder
         )
 
         details["opt_dos_lambda_version"] = (
@@ -140,7 +137,7 @@ class DosLogger:
 
         details["opt_dos_response_size"] = placeholder
 
-        return out
+        return details
 
     # --- powertools context -----------------------------------------------
     def _append_powertools_context(self, extra: Dict[str, Any]) -> None:

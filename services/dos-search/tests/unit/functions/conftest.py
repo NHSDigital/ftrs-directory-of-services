@@ -5,8 +5,10 @@ import pytest
 
 # Fixtures extracted from functions/test_dos_search_ods_code_function.py to support functions/test_dos_logger.py
 @pytest.fixture
-def mock_logger():
+def mock_logger(log_data, details):
     with patch("functions.dos_search_ods_code_function.dos_logger") as mock:
+        mock.extract.return_value = log_data
+        mock.extract_one_time.return_value = details
         yield mock
 
 
@@ -40,6 +42,7 @@ def log_data():
         "dos_nhsd_request_id": "DOS_LOG_PLACEHOLDER",
         "dos_message_id": "DOS_LOG_PLACEHOLDER",
         "dos_message_category": "LOGGING",
+        "details": {},
     }
 
 
