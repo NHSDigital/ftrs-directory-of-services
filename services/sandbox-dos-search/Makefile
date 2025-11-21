@@ -145,13 +145,14 @@ diagnose: check-aws check-aws-cli check-aws-sts check-docker check-pushscript ch
 # Additional verbose debug target to help CI debugging
 .PHONY: debug-info
 debug-info:
-	@echo "\n=== Debug info: environment and AWS identity ===";
-	@echo "Make variables: API_NAME=$(API_NAME), SECRET_ENV=$(SECRET_ENV_MAKE), IMAGE_TAG=$(IMAGE_TAG)";
-	@echo "Environment variables visible to shell:"; env | grep -E '^AWS_|^ENV|^API_NAME|^COMMIT_HASH' || true;
-	@echo "\n--- AWS sts get-caller-identity ---"; aws sts get-caller-identity --output json || true;
-	@echo "\n--- List Secrets matching /ftrs-dos or dos-search ---"; \
-	aws secretsmanager list-secrets --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" \
-	--query "SecretList[?contains(Name,'/ftrs-dos') || contains(Name,'dos-search')].{Name:Name,ARN:ARN}" --output table || true; \
-	@echo "\n--- Attempt to run get-apim-token.sh (shows stderr/stdout) ---"; \
-	API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 | sed -n '1,200p' || true;
-	@echo "\n=== End Debug info ===";
+	@echo "\n=== Debug info: environment and AWS identity ==="
+	@echo "Make variables: API_NAME=$(API_NAME), SECRET_ENV=$(SECRET_ENV_MAKE), IMAGE_TAG=$(IMAGE_TAG)"
+	@echo "Environment variables visible to shell:"
+	@env | grep -E '^AWS_|^ENV|^API_NAME|^COMMIT_HASH' || true
+	@echo "\n--- AWS sts get-caller-identity ---"
+	@aws sts get-caller-identity --output json || true
+	@echo "\n--- List Secrets matching /ftrs-dos or dos-search ---"
+	@aws secretsmanager list-secrets --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --query "SecretList[?contains(Name,'/ftrs-dos') || contains(Name,'dos-search')].{Name:Name,ARN:ARN}" --output table || true
+	@echo "\n--- Attempt to run get-apim-token.sh (shows stderr/stdout) ---"
+	@API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 | sed -n '1,200p' || true
+	@echo "\n=== End Debug info ==="
