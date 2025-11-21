@@ -27,10 +27,6 @@ on:
         description: "The deployment environment"
         required: true
         type: string
-      matrix_environment:
-        description: "Optional per-matrix override for environment"
-        required: false
-        type: string
       repo_name:
         description: "The name of the Git repo"
         required: true
@@ -157,12 +153,6 @@ jobs:
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           COMMIT_HASH: ${{ inputs.commit_hash }}
-          ENVIRONMENT: ${{ inputs.matrix_environment || inputs.environment }}
+          ENVIRONMENT: ${{ inputs.environment }}
           AWS_REGION: ${{ vars.AWS_REGION }}
-        run: |
-          echo "--- AWS environment visible to push step ---";
-          env | grep '^AWS_' || true;
-          echo "--- aws sts get-caller-identity (non-fatal) ---";
-          aws sts get-caller-identity --output json || true;
-          echo "--- invoking make push-to-ecr ---";
-          make push-to-ecr
+        run: make push-to-ecr
