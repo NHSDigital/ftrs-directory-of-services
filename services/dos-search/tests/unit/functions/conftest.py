@@ -42,7 +42,6 @@ def log_data():
         "dos_nhsd_request_id": "DOS_LOG_PLACEHOLDER",
         "dos_message_id": "DOS_LOG_PLACEHOLDER",
         "dos_message_category": "LOGGING",
-        "details": {},
     }
 
 

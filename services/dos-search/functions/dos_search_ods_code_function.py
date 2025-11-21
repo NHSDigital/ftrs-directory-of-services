@@ -22,9 +22,13 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    log_data = dos_logger.extract(app.current_event)
+    log_data = deepcopy(
+        dos_logger.extract(app.current_event)
+    )  # Deepcopy of dict to avoid subsequent expansion calls below from showing in tests as calls to this method due to assignment by reference
     details = deepcopy(dos_logger.extract_one_time(app.current_event))
-    dos_logger.info("Logging one-time fields", log_data=log_data, **details)
+
+    dos_logger.append_keys(log_data)
+    dos_logger.info("Logging one-time fields", **details)
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
@@ -71,8 +75,6 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
     dos_logger.info("Creating response", status_code=status_code)
-    # Clears cached log data at final stage to prevent accidental persisting of ID values
-    dos_logger.clear_log_data()
     return Response(
         status_code=status_code,
         content_type="application/fhir+json",
@@ -83,7 +85,7 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
 @logger.inject_lambda_context(
     correlation_id_path=correlation_paths.API_GATEWAY_REST,
     log_event=True,
-    clear_state=True,
+    clear_state=True,  # This should handle the clearing of any appended keys during execution
 )
 @tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
