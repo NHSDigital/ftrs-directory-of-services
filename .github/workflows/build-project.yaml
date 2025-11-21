@@ -147,6 +147,8 @@ jobs:
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v5
+        env:
+          ENVIRONMENT: ${{ inputs.build_type == 'container' && inputs.matrix_environment || inputs.environment }}
         with:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}
