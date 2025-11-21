@@ -2,7 +2,7 @@
 set -euo pipefail
 
 log() {
-  printf '[push.sh] %s\n' "$1"
+  printf '[push-to-ecr] %s\n' "$1"
 }
 
 die() {
@@ -12,7 +12,7 @@ die() {
 
 usage() {
   cat >&2 <<'EOF'
-Usage: push.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
+Usage: push-to-ecr.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
 Environment:
   ACCESS_TOKEN   Bearer token used when calling the Proxygen API
   PUSH_LATEST    Optional flag (default: false) to mirror image to :latest
@@ -65,7 +65,6 @@ REGISTRY_HOST=$(echo "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
 
 if [[ -n "$USER" && -n "$PASSWORD" ]]; then
   log "Logging in to Docker registry (user/password) at: $REGISTRY_HOST"
-  # Use password-stdin to avoid exposing password on the command line
   echo "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
 else
   die "No usable login credentials returned from Proxygen; expected 'user' and 'password' in response"
@@ -100,3 +99,4 @@ else
 fi
 
 log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${PUSH_LATEST:+ and latest}"
+
