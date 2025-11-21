@@ -174,11 +174,10 @@ check-get-apim-token:
 	# Ensure python deps for token script are available for diagnostics
 	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
 	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
-	# Use Make-computed secret environment to avoid shell unbound-variable issues
-	SECRET_ID="/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials"; \
-	echo "Secret id to fetch: $$SECRET_ID"; \
+	# Use make-expanded secret path directly to avoid shell unbound-variable issues
+	echo "Secret id to fetch: /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials"; \
 	# Try to fetch the raw secret to surface permission or not-found errors
-	aws secretsmanager get-secret-value --secret-id "$$SECRET_ID" --region "$${AWS_REGION:-}" --output text >/dev/null 2>&1 || echo "WARN: unable to read secret $$SECRET_ID (check permissions/exists)"; \
+	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "$${AWS_REGION:-}" --output text >/dev/null 2>&1 || echo "WARN: unable to read secret /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials (check permissions/exists)"; \
 	# Run token script and let stderr surface for debugging (pass expanded API_NAME and the make-computed ENV)
 	ACCESS_TOKEN="$$(API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
 	# If script produced JSON or token on stdout, try to extract token from output
