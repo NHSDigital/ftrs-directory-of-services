@@ -95,26 +95,27 @@ push-to-ecr:
 		exit 1; \
 	fi
 	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
-	# Prefer workflow-provided ACCESS_TOKEN; otherwise invoke token script
-	if [ -n "$${ACCESS_TOKEN:-}" ]; then \
-		echo "Using ACCESS_TOKEN provided by workflow (length=$$(echo -n "$${ACCESS_TOKEN}" | wc -c))"; \
-	else \
-		# Attempt to run local token script as fallback
-		python -m pip install --upgrade pip || true; \
-		python -m pip install "PyJWT>=2.0.0" "cryptography>=3.4" || true; \
-		if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
-			echo "get-apim-token script not found: $(GET_APIM_TOKEN_SCRIPT)"; \
-			exit 1; \
-		fi; \
-		chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-		ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
-		if [ -z "$${ACCESS_TOKEN:-}" ]; then \
-			echo "Failed to retrieve APIM access token from local script"; \
-			exit 1; \
-		fi; \
+	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
+	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
+	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
+		echo "get-apim-token script not found: $(GET_APIM_TOKEN_SCRIPT)"; \
+		exit 1; \
 	fi; \
-	# Call wrapper script that ensures ACCESS_TOKEN is set then execs the push script
-	@/bin/bash "$(ROOT_DIR)/scripts/workflow/push-wrapper.sh" "$(GET_APIM_TOKEN_SCRIPT)" "${PUSH_SCRIPT}" "${API_NAME}" "$${PUSH_IMAGE:-${API_NAME}:${IMAGE_TAG}}" "${IMAGE_TAG}" "${ENVIRONMENT}" "${AWS_REGION}"
+	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)")"; \
+	if [ -z "$$ACCESS_TOKEN" ]; then \
+		echo "Failed to retrieve APIM access token"; \
+		exit 1; \
+	fi
+	# If the desired commit (COMMIT_SOURCE) differs from IMAGE_TAG, retag the built image to COMMIT_SOURCE
+	if [ -n "${COMMIT_SOURCE}" ] && [ "${COMMIT_SOURCE}" != "${IMAGE_TAG}" ]; then \
+		echo "Retagging image ${FULL_IMAGE} -> ${API_NAME}:${COMMIT_SOURCE}"; \
+		docker tag "${FULL_IMAGE}" "${API_NAME}:${COMMIT_SOURCE}"; \
+		PUSH_IMAGE="${API_NAME}:${COMMIT_SOURCE}"; \
+	else \
+		PUSH_IMAGE="${FULL_IMAGE}"; \
+	fi; \
+	ACCESS_TOKEN="$$ACCESS_TOKEN" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
