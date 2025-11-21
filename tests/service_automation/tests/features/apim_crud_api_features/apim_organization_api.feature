@@ -1,4 +1,4 @@
-@apim-test
+@apim-test  @nhsd_apim_authorization(access="application",level="level3")
 Feature: Organization API Endpoint via APIM
 
   Background: Set stack and seed repo

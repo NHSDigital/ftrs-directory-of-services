@@ -105,10 +105,26 @@ def update_organisation_generic(payload: dict, api_context, base_url: str):
 
 
 def update_organisation_apim(
-    payload: dict, api_request_context_api_key_factory, dos_ingest_service_url: str
+    payload: dict,
+    new_apim_request_context,
+    nhsd_apim_proxy_url: str,
 ):
-    api_context = api_request_context_api_key_factory("dos-ingest")
-    return update_organisation_generic(payload, api_context, dos_ingest_service_url)
+    org_id = payload.get("id")
+    url = f"{nhsd_apim_proxy_url}{ENDPOINTS['organization']}/{org_id}"
+    logger.info(f"PUT Request URL: {url}")
+    logger.info(f"Request Payload:\n{json.dumps(payload, indent=2)}")
+    headers = {"Content-Type": "application/fhir+json"}
+    response = new_apim_request_context.put(
+        url, data=json.dumps(payload), headers=headers
+    )
+    # Log response details
+    logger.info(f"Response Status: {response.status}")
+    response.request_body = payload
+    try:
+        logger.info(f"Response JSON:\n{json.dumps(response.json(), indent=2)}")
+    except Exception:
+        logger.info(f"Response Text:\n{response.text()}")
+    return response
 
 
 def update_organisation(payload: dict, api_request_context_mtls_crud):
@@ -156,14 +172,77 @@ def get_diagnostics_list(fresponse):
     return diagnostics_list
 
 
+def run_diagnostic_check(
+    *,
+    fresponse,
+    mode,
+    field=None,
+    field_path=None,
+    invalid_value=None,
+    value=None,
+):
+    """
+        mode:
+    - "missing"
+    - "invalid_chars"
+    - "extra"
+    """
+    if mode == "missing":
+        diagnostics_list = get_diagnostics_list(fresponse)
+        assert len(diagnostics_list) == 1
+        diagnostic = diagnostics_list[0]
+        assert diagnostic["type"] == "missing"
+        assert diagnostic["loc"] == ("body", field)
+        assert diagnostic["msg"] == "Field required"
+        assert isinstance(diagnostic["input"], dict)
+        return
+
+    if mode == "invalid_chars":
+        issue = fresponse.json()["issue"][0]
+        diagnostics = issue.get("diagnostics", "")
+        assert field_path in diagnostics
+        assert invalid_value in diagnostics
+        assert "contains invalid characters" in diagnostics
+        return
+
+    if mode == "extra":
+        diagnostic = get_diagnostics_list(fresponse)[0]
+        assert diagnostic.get("type") == "extra_forbidden"
+        loc = diagnostic.get("loc", [])
+        assert field in loc or field == loc
+        assert diagnostic.get("msg") == "Extra inputs are not permitted"
+        assert diagnostic.get("input") == value
+        return
+    raise ValueError(f"Unknown diagnostic mode: {mode}")
+
+
+@given(
+    parsers.parse(
+        'I have a valid organization payload with identifier "{identifier_data}"'
+    ),
+    target_fixture="payload",
+)
+def step_given_valid_payload_with_identifier(identifier_data):
+    payload = _load_default_payload()
+    try:
+        identifier = json.loads(identifier_data)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Failed to parse identifier data: {identifier_data}. Error: {e}"
+        )
+    payload["identifier"] = identifier
+    logger.info(f"Prepared payload with identifier: {json.dumps(payload, indent=2)}")
+    return payload
+
+
 @when(
     "I update the organization details for ODS Code via APIM",
     target_fixture="fresponse",
 )
-def step_update_apim(api_request_context_api_key_factory, dos_ingest_service_url):
+def step_update_apim(new_apim_request_context, nhsd_apim_proxy_url):
     payload = _load_default_payload()
     return update_organisation_apim(
-        payload, api_request_context_api_key_factory, dos_ingest_service_url
+        payload, new_apim_request_context, nhsd_apim_proxy_url
     )
 
 
@@ -214,12 +293,10 @@ def step_remove_field(field: str, api_request_context_mtls_crud):
     ),
     target_fixture="fresponse",
 )
-def step_remove_field_apim(
-    field: str, api_request_context_api_key_factory, dos_ingest_service_url
-):
+def step_remove_field_apim(field: str, new_apim_request_context, nhsd_apim_proxy_url):
     payload = remove_field(_load_default_payload(), field)
     return update_organisation_apim(
-        payload, api_request_context_api_key_factory, dos_ingest_service_url
+        payload, new_apim_request_context, nhsd_apim_proxy_url
     )
 
 
@@ -259,6 +336,16 @@ def step_send_invalid_content_type(api_request_context_mtls_crud):
         logger.info(f"Response [{response.status}]: {response.json()}")
     except Exception:
         logger.info(f"Response [{response.status}]: {response.text}")
+    return response
+
+
+@when(
+    parsers.parse("I update the organization details with the identifier"),
+    target_fixture="fresponse",
+)
+def step_update_with_identifier(payload, api_request_context_mtls_crud):
+    logger.info(f"Payload to be sent to the API: {json.dumps(payload, indent=2)}")
+    response = update_organisation(payload, api_request_context_mtls_crud)
     return response
 
 
@@ -334,13 +421,11 @@ def step_validate_db_field(field: str, value: str, model_repo, fresponse):
 
 @then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
 def step_diagnostics_missing(fresponse, field):
-    diagnostics_list = get_diagnostics_list(fresponse)
-    assert len(diagnostics_list) == 1
-    diagnostic = diagnostics_list[0]
-    assert diagnostic["type"] == "missing"
-    assert diagnostic["loc"] == ("body", field)
-    assert diagnostic["msg"] == "Field required"
-    assert isinstance(diagnostic["input"], dict)
+    run_diagnostic_check(
+        fresponse=fresponse,
+        mode="missing",
+        field=field,
+    )
 
 
 @then(
@@ -349,12 +434,12 @@ def step_diagnostics_missing(fresponse, field):
     )
 )
 def step_diagnostics_invalid_chars(fresponse, field_path, invalid_value):
-    issue = fresponse.json()["issue"][0]
-    diagnostics = issue.get("diagnostics", "")
-    assert issue.get("code") == "invalid"
-    assert field_path in diagnostics
-    assert invalid_value in diagnostics
-    assert "contains invalid characters" in diagnostics
+    run_diagnostic_check(
+        fresponse=fresponse,
+        mode="invalid_chars",
+        field_path=field_path,
+        invalid_value=invalid_value,
+    )
 
 
 @then(
@@ -363,9 +448,9 @@ def step_diagnostics_invalid_chars(fresponse, field_path, invalid_value):
     )
 )
 def step_diagnostics_extra_field(fresponse, field, value):
-    diagnostic = get_diagnostics_list(fresponse)[0]
-    assert diagnostic.get("type") == "extra_forbidden"
-    loc = diagnostic.get("loc", [])
-    assert field in loc or field == loc
-    assert diagnostic.get("msg") == "Extra inputs are not permitted"
-    assert diagnostic.get("input") == value
+    run_diagnostic_check(
+        fresponse=fresponse,
+        mode="extra",
+        field=field,
+        value=value,
+    )

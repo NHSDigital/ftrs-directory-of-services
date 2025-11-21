@@ -74,13 +74,9 @@ def send_request(
     parsers.parse('I send a GET request to the "{endpoint}" endpoint'),
     target_fixture="fresponse",
 )
-def step_get(playwright, dos_ingest_service_url: str, endpoint: str, api_key: str):
+def step_get(playwright, dos_ingest_service_url: str, endpoint: str):
     return send_request(
-        playwright,
-        "GET",
-        dos_ingest_service_url,
-        ENDPOINTS.get(endpoint, endpoint),
-        api_key=api_key,
+        playwright, "GET", dos_ingest_service_url, ENDPOINTS.get(endpoint, endpoint)
     )
 
 
