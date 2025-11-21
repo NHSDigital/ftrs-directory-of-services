@@ -19,6 +19,8 @@ GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
 
 ENVIRONMENT ?=
 AWS_REGION ?=
+# Compute a canonical secret environment value inside make (prefer ENV, then ENVIRONMENT, otherwise 'mgmt')
+SECRET_ENV_MAKE := $(if $(ENV),$(ENV),$(if $(ENVIRONMENT),$(ENVIRONMENT),mgmt))
 
 ifneq ($(strip $(COMMIT_HASH)),)
 COMMIT_SOURCE := $(strip $(COMMIT_HASH))
@@ -172,15 +174,13 @@ check-get-apim-token:
 	# Ensure python deps for token script are available for diagnostics
 	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
 	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
-	# Compute secret id used by the script (script expects ENV or ENVIRONMENT); default to 'mgmt' if unset
-	SECRET_ENV="$${ENV:-$${ENVIRONMENT:-mgmt}}"; \
-	# Use make-expanded API_NAME so shell sees a concrete value
-	SECRET_ID="/ftrs-dos/$${SECRET_ENV}/$(API_NAME)-proxygen-jwt-credentials"; \
+	# Use Make-computed secret environment to avoid shell unbound-variable issues
+	SECRET_ID="/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials"; \
 	echo "Secret id to fetch: $$SECRET_ID"; \
 	# Try to fetch the raw secret to surface permission or not-found errors
 	aws secretsmanager get-secret-value --secret-id "$$SECRET_ID" --region "$${AWS_REGION:-}" --output text >/dev/null 2>&1 || echo "WARN: unable to read secret $$SECRET_ID (check permissions/exists)"; \
-	# Run token script and let stderr surface for debugging (pass expanded API_NAME into the script)
-	ACCESS_TOKEN="$$(API_NAME="$(API_NAME)" ENV="$${SECRET_ENV}" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
+	# Run token script and let stderr surface for debugging (pass expanded API_NAME and the make-computed ENV)
+	ACCESS_TOKEN="$$(API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
 	# If script produced JSON or token on stdout, try to extract token from output
 	# Print full output for debugging when it fails
 	if echo "$$ACCESS_TOKEN" | grep -q 'Error:'; then \
