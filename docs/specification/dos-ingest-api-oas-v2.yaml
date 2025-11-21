@@ -882,11 +882,9 @@ components:
         - id
         - resourceType
         - meta
-        - active
         - name
         - type
         - identifier
-        - telecom
         - address
       properties:
         resourceType:
