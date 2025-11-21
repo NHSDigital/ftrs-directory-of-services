@@ -83,7 +83,17 @@ class DataMigrationProcessor:
             if not record:
                 raise ValueError(f"Service with ID {record_id} not found")
 
-            self._process_service(record)
+            service = legacy.Service(
+                **record.model_dump(mode="python", warnings=False),
+                endpoints=list(record.endpoints),
+                scheduled_opening_times=list(record.scheduled_opening_times),
+                specified_opening_times=list(record.specified_opening_times),
+                sgsds=list(record.sgsds),
+                dispositions=list(record.dispositions),
+                age_range=list(record.age_range),
+            )
+
+            self._process_service(service)
 
     def _process_service(self, service: legacy.Service) -> None:
         """
