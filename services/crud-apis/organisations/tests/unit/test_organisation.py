@@ -27,6 +27,7 @@ def get_organisation() -> dict:
         "name": "Test Organisation",
         "telecom": "123456789",
         "type": "GP Practice",
+        "non_primary_roles": [],
         "createdBy": "ROBOT",
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
