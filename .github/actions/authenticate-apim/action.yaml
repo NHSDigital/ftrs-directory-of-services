@@ -1,0 +1,51 @@
+name: 'APIM Authenticate'
+description: 'Authenticate with APIM and retrieve access token for Proxygen API'
+
+inputs:
+  api_name:
+    description: 'Name of the API to access via Proxygen'
+    required: true
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+  aws_region:
+    description: 'AWS region for Secrets Manager'
+    required: true
+
+outputs:
+  access_token:
+    description: 'Short-lived access token for Proxygen API'
+    value: ${{ steps.authenticate.outputs.access_token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyjwt cryptography
+
+    - name: Run Authentication Script
+      id: authenticate
+      shell: bash
+      run: |
+        export API_NAME=${{ inputs.api_name }}
+        export ENV=${{ inputs.environment }}
+        export AWS_REGION=${{ inputs.aws_region }}
+
+        chmod +x ./scripts/workflow/get-apim-token.sh
+        ACCESS_TOKEN=$(/bin/bash ./scripts/workflow/get-apim-token.sh)
+
+        if [ -z "$ACCESS_TOKEN" ]; then
+          echo "Failed to retrieve access token"
+          exit 1
+        fi
+
+        # Mask the token in logs
+        echo "::add-mask::$ACCESS_TOKEN"
+
+        # Set as output
+        echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+
+        echo "✓ Access token retrieved successfully"

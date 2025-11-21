@@ -124,6 +124,8 @@ jobs:
         run: |
           if [[ "${{ github.event.inputs.environment }}" != "" ]]; then
             environment="${{ github.event.inputs.environment }}"
+          elif [[ "${{ github.event.client_payload.environment }}" != "" ]]; then
+            environment="${{ github.event.client_payload.environment }}"
           elif [[ "${{ inputs.environment }}" != "" ]]; then
             environment="${{ inputs.environment }}"
           elif [[ "${{ github.event.label.name }}" == "Test Ready" ]]; then

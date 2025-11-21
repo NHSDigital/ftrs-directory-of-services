@@ -3,6 +3,7 @@ import * as client from "openid-client";
 import { ACR_VALUE } from "@/types/CIS2ClientConfig.ts";
 import { getAuthConfig, getOIDCConfig } from "@/utils/cis2Configuration.ts";
 import { getLogger } from "@/utils/logger";
+import {SESSION_TIMEOUT_MS} from "@/core/constants.ts";
 
 type GetAuthorisationUrlInput = {
   data: {
@@ -15,25 +16,18 @@ export const getAuthorisationUrl = async ({
   const logger = getLogger();
 
   try {
-    const oidcConfig = await getOIDCConfig();
+    const { oidcClient } = await getOIDCConfig();
     const config = await getAuthConfig();
-
-    const nonce = client.randomNonce();
-    const codeVerifier = client.randomPKCECodeVerifier();
-    const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
 
     const parameters = {
       redirect_uri: config.redirectUri,
       scope: config.scope,
       acr_values: ACR_VALUE,
       state: data.state,
-      nonce,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-      max_age: "300",
+      max_age: SESSION_TIMEOUT_MS.toString(),
     };
     const authorizationUrl = client.buildAuthorizationUrl(
-      oidcConfig,
+      oidcClient,
       parameters,
     );
     logger.info("Authorization URL generated", {

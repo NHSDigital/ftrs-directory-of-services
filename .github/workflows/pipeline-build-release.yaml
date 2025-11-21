@@ -67,7 +67,6 @@ jobs:
       workspace: "rc"
       stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       type: app
-      build_datetime: ${{ needs.metadata.outputs.build_datetime }}
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
     secrets: inherit
 
@@ -107,55 +106,19 @@ jobs:
       type: app
     secrets: inherit
 
-  plan-infrastructure:
-    name: "Plan infrastructure deployment for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.tag-release.outputs.release_tag }}"
-      cancel-in-progress: false
+  deploy-application-infrastructure:
+    name: "Deploy application infrastructure for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
       - tag-release
       - build-release-artefacts
-    uses: ./.github/workflows/deploy-infrastructure.yaml
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "rc"
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       application_tag: ${{ needs.tag-release.outputs.release_tag }}
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
-      action: plan
-      type: app
-    secrets: inherit
-
-  manual-approval:
-    name: "Manual approval for ${{ needs.metadata.outputs.environment }} environment deployment"
-    needs:
-      - metadata
-      - plan-infrastructure
-    runs-on: ubuntu-latest
-    environment: "${{ needs.metadata.outputs.environment }}-protected"
-    steps:
-      - name: Approval required
-        run: echo "Deployment paused for manual approval. Please approve in the Actions tab."
-
-  apply-infrastructure:
-    name: "Apply infrastructure deployment for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.tag-release.outputs.release_tag }}"
-      cancel-in-progress: false
-    needs:
-      - metadata
-      - tag-release
-      - manual-approval
-    uses: ./.github/workflows/deploy-infrastructure.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: "rc"
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-      application_tag: ${{ needs.tag-release.outputs.release_tag }}
-      release_tag: ${{ needs.tag-release.outputs.release_tag }}
-      action: apply
-      type: app
+      tag: ${{ needs.tag-release.outputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -165,7 +128,7 @@ jobs:
     needs:
       - metadata
       - tag-release
-      - apply-infrastructure
+      - deploy-application-infrastructure
     uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -182,7 +145,7 @@ jobs:
     needs:
       - metadata
       - tag-release
-      - apply-infrastructure
+      - deploy-application-infrastructure
     strategy:
       matrix:
         include:
@@ -209,7 +172,7 @@ jobs:
     needs:
       - metadata
       - tag-release
-      - apply-infrastructure
+      - deploy-application-infrastructure
     uses: ./.github/workflows/deploy-data-migration-project.yaml
     with:
       name: "data-migration"
@@ -268,9 +231,7 @@ jobs:
       - metadata
       - quality-checks
       - build-release-artefacts
-      - plan-infrastructure
-      - manual-approval
-      - apply-infrastructure
+      - deploy-application-infrastructure
       - restore-dynamodb-from-s3
       - deploy-frontend-services
       - deploy-data-migration-service

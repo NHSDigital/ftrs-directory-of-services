@@ -31,7 +31,7 @@ dms_event_queue_maximum_batching_window_in_seconds = 1
 dms_event_queue_maximum_concurrency                = 20
 
 aws_lambda_layers = [
-  "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"
+  "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:19"
 ]
 
 data_migration_rds_min_capacity = 1

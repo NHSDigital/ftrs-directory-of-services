@@ -19,6 +19,7 @@ vi.mock("../logger", () => {
 
 import { getSecret } from "@aws-lambda-powertools/parameters/secrets";
 import { getParameter } from "@aws-lambda-powertools/parameters/ssm";
+import type { SDKOptionsTypeFromPowertools } from "@/types/SDKOptionsTypeFromPowertools";
 // Import after mocking
 import { getawsParameter, getawsSecret } from "../aws-util";
 
@@ -31,6 +32,13 @@ describe("getawsSecret", () => {
     vi.mocked(getSecret).mockResolvedValue("mocked-secret-value");
     const secret = await getawsSecret("test-secret");
     expect(secret).toBe("mocked-secret-value");
+  });
+
+  it("decodes Uint8Array secret to string", async () => {
+    const uint8Array = new Uint8Array(new TextEncoder().encode("binary-secret-data"));
+    vi.mocked(getSecret).mockResolvedValue(uint8Array as any);
+    const secret = await getawsSecret("test-secret");
+    expect(secret).toBe("binary-secret-data");
   });
 
   it("returns undefined when secret is not found", async () => {
@@ -69,7 +77,8 @@ describe("getawsParameter", () => {
   it("allows overriding WithDecryption option", async () => {
     vi.mocked(getParameter).mockResolvedValue("plain-value");
 
-    await getawsParameter("test-param", { WithDecryption: false });
+    const options: Partial<SDKOptionsTypeFromPowertools> = { WithDecryption: false };
+    await getawsParameter("test-param", options);
 
     expect(getParameter).toHaveBeenCalledWith("test-param", {
       sdkOptions: {
@@ -82,7 +91,8 @@ describe("getawsParameter", () => {
   it("allows overriding transform option", async () => {
     vi.mocked(getParameter).mockResolvedValue("binary-data");
 
-    await getawsParameter("test-param", { transform: "binary" });
+    const options: Partial<SDKOptionsTypeFromPowertools> = { transform: "binary" };
+    await getawsParameter("test-param", options);
 
     expect(getParameter).toHaveBeenCalledWith("test-param", {
       sdkOptions: {
@@ -95,10 +105,11 @@ describe("getawsParameter", () => {
   it("allows overriding both options", async () => {
     vi.mocked(getParameter).mockResolvedValue("custom-value");
 
-    await getawsParameter("test-param", {
+    const options: Partial<SDKOptionsTypeFromPowertools> = {
       WithDecryption: false,
       transform: "binary",
-    });
+    };
+    await getawsParameter("test-param", options);
 
     expect(getParameter).toHaveBeenCalledWith("test-param", {
       sdkOptions: {

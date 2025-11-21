@@ -45,16 +45,17 @@ jobs:
       - metadata
     uses: ./.github/workflows/infrastructure-cleardown.yaml
     with:
-      environment: ${{ inputs.environment || needs.metadata.outputs.environment }}
-      workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
+      environment: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
+      workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
       stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-      application_tag: ${{ inputs.application_tag || 'latest' }}
+      application_tag: ${{ inputs.application_tag || github.event.client_payload.application_tag  || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       workflow_timeout: 30
       type: app
     secrets: inherit
 
   cleardown-artefacts:
+    if: github.actor != 'github-actions[bot]'
     name: "Cleardown Artefacts"
     needs:
       - metadata
@@ -76,5 +77,5 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: ${{ needs.metadata.outputs.environment || inputs.environment }}
+      env: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
     secrets: inherit

@@ -13,7 +13,14 @@ from pydantic import BaseModel, Field, computed_field, field_validator, model_va
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
 IDENTIFIER_SEPARATOR = "|"
 ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
+
 ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
+ERROR_IDENTIFIER_EMPTY = "at least one identifier must be provided"
+ERROR_IDENTIFIER_NO_ODS_SYSTEM = "at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
+ERROR_IDENTIFIER_EMPTY_VALUE = "ODS identifier must have a non-empty value"
+ERROR_IDENTIFIER_INVALID_FORMAT = (
+    "invalid ODS code format: '{ods_code}' must follow format {ODS_REGEX}"
+)
 
 
 class OrganizationQueryParams(BaseModel):
@@ -84,6 +91,37 @@ class OrganisationUpdatePayload(BaseModel):
     telecom: list[ContactPoint] | None = None
 
     model_config = {"extra": "forbid"}
+
+    @field_validator("identifier", mode="before")
+    @classmethod
+    def validate_identifier_list(cls, v: list[dict]) -> list[dict]:
+        if not v:
+            raise ValueError(ERROR_IDENTIFIER_EMPTY)
+
+        ods_identifiers = [
+            identifier
+            for identifier in v
+            if isinstance(identifier, dict)
+            and identifier.get("system")
+            == "https://fhir.nhs.uk/Id/ods-organization-code"
+        ]
+
+        if not ods_identifiers:
+            raise ValueError(ERROR_IDENTIFIER_NO_ODS_SYSTEM)
+
+        for identifier in ods_identifiers:
+            if not identifier.get("value") or not identifier.get("value").strip():
+                raise ValueError(ERROR_IDENTIFIER_EMPTY_VALUE)
+
+            ods_code = identifier.get("value", "").strip()
+            if not re.match(ODS_REGEX, ods_code):
+                raise ValueError(
+                    ERROR_IDENTIFIER_INVALID_FORMAT.format(
+                        ods_code=ods_code, ODS_REGEX=ODS_REGEX
+                    )
+                )
+
+        return v
 
     @model_validator(mode="after")
     def check_type_coding_and_text(self) -> "OrganisationUpdatePayload":

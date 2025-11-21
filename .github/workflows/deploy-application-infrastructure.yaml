@@ -20,10 +20,9 @@ on:
         required: false
         default: "dos"
         type: string
-      action:
-        description: "The type of action to perform with the stack."
+      tag:
+        description: "The git tag identifying the timeline in the repository to deploy from"
         required: false
-        default: "plan"
         type: string
       release_tag:
         description: "The git tag identifying the timeline in the repository to deploy from"
@@ -55,19 +54,99 @@ on:
     outputs:
       plan_result:
         description: "The Terraform plan output"
-        value: ${{ jobs.action-infrastructure.outputs.plan_result }}
+        value: ${{ jobs.plan-application-infrastructure.outputs.plan_result }}
+      deploy_status:
+        description: "The status of the deployment"
+        value: ${{ jobs.deploy_summary.outputs.deploy_status }}
+
 
 jobs:
-  action-infrastructure:
-    name: "${{ inputs.action }} application infrastructure deployment to ${{ inputs.environment }} "
+  plan-application-infrastructure:
+    name: "Plan application infrastructure deployment to ${{ inputs.environment }} "
+    concurrency:
+      group: "${{ inputs.environment }}-${{ inputs.tag || inputs.workspace}}"
+      cancel-in-progress: false
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
       workspace: ${{ inputs.workspace }}
       stacks: ${{ inputs.stacks }}
-      application_tag: ${{ inputs.release_tag  }}
+      application_tag: ${{ inputs.application_tag }}
       commit_hash: ${{ inputs.commit_hash }}
+      tag: ${{ inputs.tag }}
       release_tag: ${{ inputs.release_tag }}
-      action: ${{ inputs.action }}
+      action: plan
       type: ${{ inputs.type }}
+      workflow_timeout: ${{ inputs.workflow_timeout }}
     secrets: inherit
+
+  manual-approval-application-infra:
+    name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
+    if: ${{ needs.plan-application-infrastructure.outputs.plan_result == 'true' }}
+    needs:
+      - plan-application-infrastructure
+    runs-on: ubuntu-latest
+    environment: "${{ inputs.environment }}-protected"
+    outputs:
+      approved: ${{ steps.log-approval.outputs.approved }}
+    steps:
+      - name: Approval required
+        run: echo "${{ inputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+      - name: Log approval
+        id: log-approval
+        run: echo "approved=true" >> $GITHUB_OUTPUT
+
+  apply-application-infrastructure:
+    name: "Apply application infrastructure deployment to ${{ inputs.environment }}"
+    concurrency:
+      group: "${{ inputs.environment }}-${{ inputs.tag || inputs.workspace}}"
+      cancel-in-progress: false
+    needs:
+      - manual-approval-application-infra
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: ${{ inputs.workspace }}
+      stacks: ${{ inputs.stacks }}
+      application_tag: ${{ inputs.application_tag }}
+      commit_hash: ${{ inputs.commit_hash }}
+      tag: ${{ inputs.tag }}
+      release_tag: ${{ inputs.release_tag }}
+      action: apply
+      type: ${{ inputs.type }}
+      workflow_timeout: ${{ inputs.workflow_timeout }}
+    secrets: inherit
+
+  deploy_summary:
+    name: "Summarise deployment of application infrastructure to ${{ inputs.environment }} environment"
+    needs:
+      - plan-application-infrastructure
+      - manual-approval-application-infra
+      - apply-application-infrastructure
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_status: ${{ steps.deployment_summary.outputs.deploy_status }}
+    steps:
+      - name: Deployment Summary
+        id: deployment_summary
+        run: |
+          if [ ${{ needs.manual-approval-application-infra.result }} == 'skipped' ]; then
+            echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
+            echo "deploy_status=Success" >> $GITHUB_OUTPUT
+          else
+            if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
+              if [ ${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
+                if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
+                  echo "Changes APPROVED and successfully APPLIED to application infrastructure in the ${{ inputs.environment }} environment."
+                  echo "deploy_status=Success" >> $GITHUB_OUTPUT
+                else
+                  echo "Changes APPROVED but were NOT successfully applied to application infrastructure in the ${{ inputs.environment }} environment."
+                  echo "deploy_status=Failed" >> $GITHUB_OUTPUT
+                fi
+              else
+                echo "Planned changes to application infrastructure REJECTED for deployment to the ${{ inputs.environment }} environment."
+                echo "deploy_status=Rejected" >> $GITHUB_OUTPUT
+              fi
+            fi
+          fi
