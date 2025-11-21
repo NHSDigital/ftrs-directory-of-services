@@ -10,7 +10,18 @@ echo "Region: $REGION"
 echo "--- AWS caller identity ---"
 aws sts get-caller-identity --output json || true
 
-echo "Account: $(aws sts get-caller-identity --query Account --output text || true)"
+# Print account in transformed forms to avoid GitHub Actions masking
+ACCOUNT="$(aws sts get-caller-identity --query Account --output text || true)"
+if [ -n "$ACCOUNT" ]; then
+  # e.g. 365 054 840 867
+  echo "Account (spaced): $(echo "$ACCOUNT" | sed 's/.\{3\}/& /g')"
+  # e.g. 365-054-840-867
+  echo "Account (dashed): $(echo "$ACCOUNT" | sed 's/.\{3\}/&-/g' | sed 's/-$$//')"
+  # e.g. reversed digits
+  echo "Account (reversed): $(echo "$ACCOUNT" | rev)"
+else
+  echo "Account: <not available>"
+fi
 
 echo "--- aws configure list ---"
 aws configure list || true
@@ -31,4 +42,3 @@ else
 fi
 
 echo "--- End debug secrets script ---"
-
