@@ -886,3 +886,171 @@ nfrs:
     intent: Consistent interpretation of latency metrics
     verification: Method document presence & tool config audit
     maturity: draft
+  - code: INT-001
+    domain: interoperability
+    title: FHIR R4 resources validated against UKCore profiles
+    intent: Assure standards compliance & downstream interoperability
+    verification: Automated profile validation report in CI
+    maturity: draft
+  - code: INT-002
+    domain: interoperability
+    title: Canonical API versioning & deprecation policy published
+    intent: Provide predictable evolution path for integrators
+    verification: Version policy doc & changelog diff checks
+    maturity: draft
+  - code: INT-003
+    domain: interoperability
+    title: Backward-compatible minor releases (no breaking changes ≤12 months)
+    intent: Reduce integration churn & upgrade risk
+    verification: Release diff analysis & consumer contract tests
+    maturity: draft
+  - code: INT-004
+    domain: interoperability
+    title: Semantic mapping fidelity (no material data loss in FHIR transform)
+    intent: Preserve clinical meaning across conversions
+    verification: Round-trip mapping tests & field coverage report
+    maturity: draft
+  - code: INT-005
+    domain: interoperability
+    title: Standard OperationOutcome error structure & codes
+    intent: Enable consistent error handling by clients
+    verification: Negative test suite validating code/severity/details schema
+    maturity: draft
+  - code: INT-006
+    domain: interoperability
+    title: Identifier normalization (ODS codes uppercase, trimmed, system-prefixed)
+    intent: Prevent mismatches & lookup failures
+    verification: Input normalization tests & sample log inspection
+    maturity: draft
+  - code: INT-007
+    domain: interoperability
+    title: Strict content negotiation (accept application/fhir+json; reject unsupported)
+    intent: Avoid ambiguous media handling
+    verification: HTTP negotiation tests & header compliance scan
+    maturity: draft
+  - code: INT-008
+    domain: interoperability
+    title: Reference data sync latency ≤24h for ODS updates
+    intent: Maintain currency of organisation endpoint data
+    verification: Sync job timestamp audit & delta latency metric
+    maturity: draft
+  - code: INT-009
+    domain: interoperability
+    title: Discoverability via standard FHIR search params only
+    intent: Keep API surface minimal & predictable
+    verification: API spec & grep confirms no undocumented params
+    maturity: draft
+  - code: INT-010
+    domain: interoperability
+    title: Published, version-controlled integration contract
+    intent: Ensure consumers rely on authoritative spec
+    verification: Contract repository presence & version tag diff
+    maturity: draft
+  - code: INT-011
+    domain: interoperability
+    title: Machine-readable changelog (structured diff per release)
+    intent: Automate consumer impact assessment
+    verification: Changelog schema validation & CI generation job
+    maturity: draft
+  - code: INT-012
+    domain: interoperability
+    title: Mandatory terminology bindings validated (codesystems & valuesets)
+    intent: Prevent invalid coded data exchange
+    verification: Terminology validation test pass rate report
+    maturity: draft
+  - code: INT-013
+    domain: interoperability
+    title: Correlation IDs preserved across outbound calls
+    intent: Enable end-to-end cross-system traceability
+    verification: Trace sample shows matching transaction IDs
+    maturity: draft
+  - code: INT-014
+    domain: interoperability
+    title: Null vs absent data handled per FHIR guidelines
+    intent: Avoid semantic ambiguity for clients
+    verification: Test matrix covering empty, null, absent fields
+    maturity: draft
+  - code: INT-015
+    domain: interoperability
+    title: ≥90% critical exchange scenarios covered by interop test suite
+    intent: Reduce production integration defects
+    verification: Coverage report & scenario manifest
+    maturity: draft
+  - code: INT-016
+    domain: interoperability
+    title: Stateless, sequence-independent API operations (atomic per call)
+    intent: Enable horizontal scalability & resilient retry without side-effects
+    verification: Architectural review (no server-held conversational state) & idempotent failure tests
+    maturity: draft
+  - code: INT-017
+    domain: interoperability
+    title: Complete field-level input validation every request
+    intent: Prevent malformed/unsafe data from propagating
+    verification: Negative input fuzz test suite coverage report
+    maturity: draft
+  - code: INT-018
+    domain: interoperability
+    title: Central NHS CIS2 identity integration as single source of user identity
+    intent: Ensure consistent authentication & access governance
+    verification: CIS2 auth flow test & token claim validation
+    maturity: draft
+  - code: INT-019
+    domain: interoperability
+    title: All external APIs exposed via NHS England API Management gateway
+    intent: Standardise security, analytics & traffic governance
+    verification: Gateway config audit & successful policy enforcement tests
+    maturity: draft
+  - code: INT-020
+    domain: interoperability
+    title: SNOMED CT coding adopted for service/triage classification
+    intent: Support standard clinical terminology driven search
+    verification: Terminology validation test (SNOMED codeset) & mapping coverage
+    maturity: draft
+  - code: INT-021
+    domain: interoperability
+    title: Dual-stack & IPv6-only client support
+    intent: Future-proof network interoperability & meet NHS mandates
+    verification: IPv6-only integration test & connectivity report
+    maturity: draft
+  - code: COST-001
+    domain: cost
+    title: Standard tagging applied to all AWS resources
+    intent: Enable accurate cost attribution, governance & reporting across environments
+    verification: Automated tag compliance scan & Cost Explorer filter accuracy test
+    maturity: draft
+  - code: COST-002
+    domain: cost
+    title: Monthly Cost Explorer review & anomaly monitoring
+    intent: Detect spend trends & anomalies early to drive optimisation actions
+    verification: Review meeting notes & anomaly report retention
+    maturity: draft
+  - code: COST-003
+    domain: cost
+    title: CloudHealth access provisioned for each team infra engineer
+    intent: Ensure teams can self-serve deeper cost & utilisation insights
+    verification: Access roster audit vs team list
+    maturity: draft
+  - code: COST-004
+    domain: cost
+    title: CloudHealth used for tagging compliance & underutilisation identification
+    intent: Improve resource efficiency & tagging hygiene continuously
+    verification: Monthly CloudHealth optimisation & tag compliance report
+    maturity: draft
+  - code: COST-005
+    domain: cost
+    title: AWS Budgets with multi-channel threshold alerts
+    intent: Provide proactive notification before material overspend occurs
+    verification: Budget configuration export & SNS / Slack alert test
+    maturity: draft
+  - code: COST-006
+    domain: cost
+    title: Central #ftrs-cost-alerts Slack channel operational
+    intent: Consolidate cost signals for rapid triage & visibility
+    verification: Channel existence & test alert message capture
+    maturity: draft
+  - code: COST-007
+    domain: cost
+    title: Quarterly formal cost review with documented actions
+    intent: Institutionalise optimisation cadence & accountability
+    verification: Quarterly review minutes & action tracker updates
+    maturity: draft
