@@ -119,3 +119,20 @@ jobs:
           name: allure-report
           path: tests/service_automation/allure-reports/index.html
           retention-days: ${{ inputs.allure_report_retention }}
+
+      - name: Configure AWS Credentials (mgmt artefacts)
+        if: always()
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+
+      - name: Upload allure report to S3
+        if: always()
+        env:
+          ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
+          WORKSPACE: ${{ inputs.workspace }}
+          COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
+        run: |
+          ./scripts/workflow/upload-allure-report.sh
