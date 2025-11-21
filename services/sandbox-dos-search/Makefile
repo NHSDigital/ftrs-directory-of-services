@@ -77,6 +77,10 @@ publish:
 	@echo "Skipping S3 artefact publish for sandbox service"
 
 push-to-ecr:
+	@echo "Running pre-push diagnostics..."
+	@$(MAKE) diagnose
++
+
 	if [ -z "${API_NAME}" ]; then \
 		echo "Missing required variable: API_NAME"; \
 		exit 1; \
@@ -124,15 +128,15 @@ lint:
 
 # Check that AWS environment variables are present
 check-aws:
-	@echo "Checking AWS environment variables...";
+	@echo "Checking AWS environment variables...";\
 	ok=1; \
-	if [ -z "$$AWS_ACCESS_KEY_ID" ] || [ -z "$$AWS_SECRET_ACCESS_KEY" ]; then \
+	if [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${AWS_SECRET_ACCESS_KEY:-}" ]; then \
 		echo "ERROR: AWS credentials (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY) are not set in the environment"; \
 		ok=0; \
 	else \
 		echo "OK: AWS credentials present"; \
 	fi; \
-	if [ -z "$$AWS_REGION" ] && [ -z "$$AWS_DEFAULT_REGION" ]; then \
+	if [ -z "${AWS_REGION:-}" ] && [ -z "${AWS_DEFAULT_REGION:-}" ]; then \
 		echo "WARN: AWS region not set (AWS_REGION/AWS_DEFAULT_REGION)"; \
 	fi; \
 	[ $$ok -eq 1 ] || (echo "AWS env checks failed"; exit 1)
@@ -167,7 +171,7 @@ check-get-apim-token:
 	@echo "Attempting to fetch APIM token via $(GET_APIM_TOKEN_SCRIPT)"; \
 	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then echo "WARN: $(GET_APIM_TOKEN_SCRIPT) not found; skipping APIM token check"; exit 0; fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>/dev/null || true)"; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="${ENVIRONMENT:-}" AWS_REGION="${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>/dev/null || true)"; \
 	if [ -n "$$ACCESS_TOKEN" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n $$ACCESS_TOKEN | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
 
 # Aggregate diagnostics
