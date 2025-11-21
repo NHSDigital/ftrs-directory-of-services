@@ -77,21 +77,24 @@ publish:
 	@echo "Skipping S3 artefact publish for sandbox service"
 
 push-to-ecr:
-	# Robust explicit Secrets Manager read test (dev) – resolve ARN then fetch; non-fatal
-	SECRET_NAME="/ftrs-dos/dev/dos-search-proxygen-jwt-credentials"; \
-	REGION="$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}"; \
-	echo "Attempting to read secret $$SECRET_NAME in region $$REGION"; \
+	# Robust explicit Secrets Manager read test (dev) – run in one shell so variables are defined
+	@bash -euo pipefail <<'SH'
+	SECRET_NAME="/ftrs-dos/dev/dos-search-proxygen-jwt-credentials"
+	REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-eu-west-2}}"
+	echo "Attempting to read secret $${SECRET_NAME} in region $${REGION}"
 	# Print AWS account and caller ARN for debugging
-	echo "AWS account (runner): $$(aws sts get-caller-identity --query Account --output text || true)"; \
-	echo "AWS caller ARN (runner): $$(aws sts get-caller-identity --query Arn --output text || true)"; \
-	SECRET_ARN="$$(aws secretsmanager list-secrets --region "$$REGION" --query "SecretList[?Name=='$$SECRET_NAME'].ARN | [0]" --output text 2>/dev/null || true)"; \
-	if [ -n "$$SECRET_ARN" ] && [ "$$SECRET_ARN" != "None" ]; then \
-		echo "Resolved secret ARN: $$SECRET_ARN"; \
-		aws secretsmanager get-secret-value --secret-id "$$SECRET_ARN" --region "$$REGION" --query SecretString --output text || echo "SECRET READ FAILED (by ARN)"; \
-	else \
-		echo "No ARN resolved for $$SECRET_NAME; trying by name"; \
-		aws secretsmanager get-secret-value --secret-id "$$SECRET_NAME" --region "$$REGION" --query SecretString --output text || echo "SECRET READ FAILED (by name)"; \
+	echo "AWS account (runner): $(aws sts get-caller-identity --query Account --output text || true)"
+	echo "AWS caller ARN (runner): $(aws sts get-caller-identity --query Arn --output text || true)"
+	# Resolve ARN (handles random suffix in ARN)
+	SECRET_ARN="$(aws secretsmanager list-secrets --region "${REGION}" --query "SecretList[?Name=='${SECRET_NAME}'].ARN | [0]" --output text 2>/dev/null || true)"
+	if [ -n "${SECRET_ARN}" ] && [ "${SECRET_ARN}" != "None" ]; then
+		echo "Resolved secret ARN: ${SECRET_ARN}"
+		aws secretsmanager get-secret-value --secret-id "${SECRET_ARN}" --region "${REGION}" --query SecretString --output text || echo "SECRET READ FAILED (by ARN)"
+	else
+		echo "No ARN resolved for ${SECRET_NAME}; trying by name"
+		aws secretsmanager get-secret-value --secret-id "${SECRET_NAME}" --region "${REGION}" --query SecretString --output text || echo "SECRET READ FAILED (by name)"
 	fi
+	SH
 
 	@echo "Running pre-push diagnostics..."
 	@$(MAKE) diagnose
