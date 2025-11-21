@@ -115,7 +115,7 @@ push-to-ecr:
 	else \
 		PUSH_IMAGE="${FULL_IMAGE}"; \
 	fi; \
-	ACCESS_TOKEN="$$ACCESS_TOKEN" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	ACCESS_TOKEN="$${ACCESS_TOKEN:-}" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
