@@ -119,3 +119,57 @@ push-to-ecr:
 
 lint:
 	@echo "No lint step for sandbox service"
+
+.PHONY: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token diagnose
+
+# Check that AWS environment variables are present
+check-aws:
+	@echo "Checking AWS environment variables...";
+	ok=1; \
+	if [ -z "$$AWS_ACCESS_KEY_ID" ] || [ -z "$$AWS_SECRET_ACCESS_KEY" ]; then \
+		echo "ERROR: AWS credentials (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY) are not set in the environment"; \
+		ok=0; \
+	else \
+		echo "OK: AWS credentials present"; \
+	fi; \
+	if [ -z "$$AWS_REGION" ] && [ -z "$$AWS_DEFAULT_REGION" ]; then \
+		echo "WARN: AWS region not set (AWS_REGION/AWS_DEFAULT_REGION)"; \
+	fi; \
+	[ $$ok -eq 1 ] || (echo "AWS env checks failed"; exit 1)
+
+# Check aws CLI is available
+check-aws-cli:
+	@command -v aws >/dev/null 2>&1 && echo "OK: aws CLI found: $$(aws --version 2>&1 | head -n1)" || (echo "ERROR: aws CLI not found"; exit 1)
+
+# Try calling STS to verify assumed credentials work
+check-aws-sts:
+	@echo "Verifying AWS caller identity..."; \
+	aws sts get-caller-identity --output json >/dev/null 2>&1 && echo "OK: sts get-caller-identity succeeded" || (echo "ERROR: sts get-caller-identity failed (check credentials/role)"; exit 1)
+
+# Check docker availability and daemon
+check-docker:
+	@command -v docker >/dev/null 2>&1 || (echo "ERROR: docker not installed"; exit 1); \
+	docker info >/dev/null 2>&1 && echo "OK: docker is running" || (echo "ERROR: docker daemon not available or permission denied"; exit 1)
+
+# Ensure push script exists and look for explicit AWS env forwarding in it
+check-pushscript:
+	@echo "Checking push script at $(PUSH_SCRIPT)"; \
+	if [ -f "$(PUSH_SCRIPT)" ]; then echo "OK: push script exists"; else echo "ERROR: push script $(PUSH_SCRIPT) not found"; exit 1; fi; \
+	# Look for docker -e or AWS env references inside script to warn if docker run might not get creds
+	if grep -E "-e\s+AWS|AWS_ACCESS_KEY_ID|AWS_SESSION_TOKEN|AWS_SECRET_ACCESS_KEY|--env" "$(PUSH_SCRIPT)" >/dev/null 2>&1; then \
+		echo "Note: push script forwards AWS envs or references AWS vars"; \
+	else \
+		echo "Note: push script does not explicitly forward AWS envs; if it runs docker containers ensure AWS vars are passed"; \
+	fi
+
+# Attempt to retrieve APIM token using the token script (non-fatal if script not present)
+check-get-apim-token:
+	@echo "Attempting to fetch APIM token via $(GET_APIM_TOKEN_SCRIPT)"; \
+	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then echo "WARN: $(GET_APIM_TOKEN_SCRIPT) not found; skipping APIM token check"; exit 0; fi; \
+	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>/dev/null || true)"; \
+	if [ -n "$$ACCESS_TOKEN" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n $$ACCESS_TOKEN | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
+
+# Aggregate diagnostics
+diagnose: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token
+	@echo "All diagnostics complete"
