@@ -169,6 +169,10 @@ check-pushscript:
 # Attempt to retrieve APIM token using the token script (non-fatal if script not present)
 check-get-apim-token:
 	@echo "Attempting to fetch APIM token via $(GET_APIM_TOKEN_SCRIPT)"; \
+	if [ -n "$${ACCESS_TOKEN:-}" ]; then \
+		echo "ACCESS_TOKEN provided from environment; skipping secret read/test"; \
+		exit 0; \
+	fi; \
 	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then echo "WARN: $(GET_APIM_TOKEN_SCRIPT) not found; skipping APIM token check"; exit 0; fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
 	# Ensure python deps for token script are available for diagnostics
@@ -176,19 +180,17 @@ check-get-apim-token:
 	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
 	# Explicit one-step Secrets Manager read test (shows JSON on success or prints exit code on failure)
 	echo "Running explicit secret read test:"; \
-	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "${AWS_REGION:-eu-west-2}" --output json || echo "SECRET READ FAILED: $$?"; \
+	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --output json || echo "SECRET READ FAILED: $$?"; \
 	# Use make-expanded secret path directly to avoid shell unbound-variable issues
 	echo "Secret id to fetch: /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials"; \
 	# Try to fetch the raw secret to surface permission or not-found errors
-	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "$${AWS_REGION:-}" --output text >/dev/null 2>&1 || echo "WARN: unable to read secret /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials (check permissions/exists)"; \
+	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --output text >/dev/null 2>&1 || echo "WARN: unable to read secret /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials (check permissions/exists)"; \
 	# Run token script and let stderr surface for debugging (pass expanded API_NAME and the make-computed ENV)
-	ACCESS_TOKEN="$$(API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
-	# If script produced JSON or token on stdout, try to extract token from output
-	# Use parameter expansion so the shell doesn't error under set -u when ACCESS_TOKEN is empty
-	if echo "$${ACCESS_TOKEN:-}" | grep -q 'Error:'; then \
-		echo "Token script error output:"; \
-		echo "$${ACCESS_TOKEN:-}"; \
-		exit 1; \
+	# Prefer externally provided ACCESS_TOKEN; otherwise invoke the token script
+	if [ -n "$${ACCESS_TOKEN:-}" ]; then \
+		echo "Using ACCESS_TOKEN provided by workflow"; \
+	else \
+		ACCESS_TOKEN="$$(API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
 	fi; \
 	if [ -n "$${ACCESS_TOKEN:-}" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n "$${ACCESS_TOKEN:-}" | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
 
