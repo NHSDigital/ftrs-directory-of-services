@@ -21,25 +21,28 @@
 
 ```bash
 # From the repository root
-cd sandbox/dos-search
+cd services/sandbox-dos-search
 ```
 
 Or build from the repository root without changing directories:
 
 ```bash
 # Run from the repository root
-docker build -t dos-search:local sandbox/dos-search
+DOCKER_BUILDKIT=1 docker build -t dos-search:local services/sandbox-dos-search
 ```
 
-1. Build (when inside `sandbox/dos-search`)
+1. Build (when inside `services/sandbox-dos-search`)
 
 ```bash
-docker build -t dos-search:local .
+make build
+# or docker build -t dos-search:local .
 ```
 
 1. Run
 
 ```bash
+make unit-test # runs the container and smoke tests locally
+# or run the container manually:
 docker run --rm -p 9000:9000 dos-search:local
 ```
 
@@ -72,8 +75,7 @@ curl -i -H "Accept: application/fhir+json" \
 1. Run smoke tests (optional)
 
 ```bash
-# From the sandbox/dos-search directory
-test -x scripts/smoke.sh || chmod +x scripts/smoke.sh
+# From the services/dos-search/sandbox directory
 BASE_URL=http://localhost:9000 ./scripts/smoke.sh
 ```
 
@@ -85,14 +87,14 @@ You can use Podman with equivalent commands.
 
 ```bash
 # From the repository root
-cd sandbox/dos-search
+cd services/sandbox-dos-search
 podman build -t dos-search:local .
 ```
 
 - Or build from the repository root without changing directories:
 
 ```bash
-podman build -t dos-search:local sandbox/dos-search
+podman build -t dos-search:local services/sandbox-dos-search
 ```
 
 - Run the container:
@@ -110,7 +112,7 @@ podman run -d --rm -p 9000:9000 dos-search:local
 - Smoke test (optional):
 
 ```bash
-# From the sandbox/dos-search directory
+# From the services/dos-search/sandbox directory
 BASE_URL=http://localhost:9000 ./scripts/smoke.sh
 ```
 
