@@ -25,15 +25,8 @@ class DosLogger:
         self._logger = PowertoolsLogger(service=service)
         self._service = service
         self.debug = debug
-        # remember last appended correlation id so we can expose it later
-        self._last_appended_correlation: Optional[str] = None
-        self._last_log_data = dict()
         self.placeholder = "DOS_LOG_PLACEHOLDER"
         self.headers = dict()
-
-    # This method should be called at the final stages of Lambda operation (i.e. just before returning the response) to clear down persisting context and avoid contamination of future logs
-    def clear_log_data(self) -> None:
-        self._last_log_data = dict()
 
     # --- helper utilities -------------------------------------------------
     def _get_header(self, *names: str) -> str:
@@ -83,8 +76,6 @@ class DosLogger:
 
         # Default category to LOGGING, can be overridden later
         mandatory["dos_message_category"] = "LOGGING"
-
-        mandatory["details"] = {}
 
         return mandatory
 
@@ -140,41 +131,22 @@ class DosLogger:
         return details
 
     # --- powertools context -----------------------------------------------
-    def _append_powertools_context(self, extra: Dict[str, Any]) -> None:
-        """Append keys to powertools logger context where possible.
-        Best-effort: if powertools Logger implements append_keys we call it; otherwise ignore.
-        """
-        try:
-            corr = extra.get("dos_nhsd_correlation_id")
-            if corr and corr != self._placeholder():
-                append = getattr(self._logger, "append_keys", None)
-                if callable(append):
-                    try:
-                        append(correlation_id=corr)
-                        self._last_appended_correlation = corr
-                    except Exception:
-                        self._last_appended_correlation = corr
-                else:
-                    # still remember the value locally
-                    self._last_appended_correlation = corr
-        except Exception:
-            # swallow; best-effort only
-            pass
+    def append_keys(self, extra: Dict[str, Any]) -> None:
+        self._logger.append_keys(**extra)
 
+    # Manual method to clear ALL appended keys. Not used as setting `clear_state=True` in the Lambda handler should suffice for current logging behaviour
+    def clear_state(self) -> None:
+        self._logger.clear_state()
+
+    # --- logging methods -----------------------------------------------
     def _log_with_level(
         self,
         level: str,
         message: str,
-        log_data: Optional[Dict[str, Any]] = None,
         **detail: object,
     ) -> Dict[str, Any]:
-        # If log_data is provided, override last stored log state
-        if log_data:
-            self._last_log_data = log_data
-        # Handles deliberately passed None values, attempting to read previously logged data from the session if set
-        log_data = (
-            log_data if log_data else self._last_log_data if self._last_log_data else {}
-        )
+        # Handles deliberately passed None values
+        log_data = {}
         # convert detail (kwargs) to dict for manipulation
         detail_map = dict(detail) if detail else {}
 
@@ -188,9 +160,6 @@ class DosLogger:
                     log_data[k] = detail_map.pop(k)
             if detail_map:
                 log_data["detail"] = detail_map
-
-        # append powertools context where possible
-        self._append_powertools_context(log_data)
 
         # call powertools
         try:
@@ -209,28 +178,20 @@ class DosLogger:
             (base_logger.info(message),)
         return log_data
 
-    def info(
-        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> Dict[str, Any]:
-        log_data = self._log_with_level("info", message, log_data, **detail)
+    def info(self, message: str, **detail: object) -> Dict[str, Any]:
+        log_data = self._log_with_level("info", message, **detail)
         return log_data
 
-    def warning(
-        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> Dict[str, Any]:
-        log_data = self._log_with_level("warning", message, log_data, **detail)
+    def warning(self, message: str, **detail: object) -> Dict[str, Any]:
+        log_data = self._log_with_level("warning", message, **detail)
         return log_data
 
-    def error(
-        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> Dict[str, Any]:
-        log_data = self._log_with_level("error", message, log_data, **detail)
+    def error(self, message: str, **detail: object) -> Dict[str, Any]:
+        log_data = self._log_with_level("error", message, **detail)
         return log_data
 
-    def exception(
-        self, message: str, log_data: Optional[Dict[str, Any]] = None, **detail: object
-    ) -> Dict[str, Any]:
-        log_data = self._log_with_level("exception", message, log_data, **detail)
+    def exception(self, message: str, **detail: object) -> Dict[str, Any]:
+        log_data = self._log_with_level("exception", message, **detail)
         return log_data
 
 
