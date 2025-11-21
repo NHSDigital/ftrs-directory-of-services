@@ -101,8 +101,8 @@ push-to-ecr:
 		exit 1; \
 	fi
 	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
-	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
-	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
+	python -m pip install --upgrade pip || true; \
+	python -m pip install "PyJWT>=2.0.0" "cryptography>=3.4" || true; \
 	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
 		echo "get-apim-token script not found: $(GET_APIM_TOKEN_SCRIPT)"; \
 		exit 1; \
@@ -147,6 +147,6 @@ debug-info:
 	@aws configure list || true
 	@echo "\n--- List Secrets matching /ftrs-dos or dos-search ---"
 	@aws secretsmanager list-secrets --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --query "SecretList[?contains(Name,'/ftrs-dos') || contains(Name,'dos-search')].{Name:Name,ARN:ARN}" --output table || true
-	@echo "\n--- Attempt to run get-apim-token.sh (shows stderr/stdout) ---"
-	@API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 | sed -n '1,200p' || true
+	@echo "\n--- Skipping get-apim-token.sh in debug-info (requires Python deps) ---"
+	@echo "Run 'make check-get-apim-token' after dependencies are installed to exercise token retrieval"
 	@echo "\n=== End Debug info ==="
