@@ -19,8 +19,6 @@ GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
 
 ENVIRONMENT ?=
 AWS_REGION ?=
-# Compute a canonical secret environment value inside make (prefer ENV, then ENVIRONMENT, otherwise 'mgmt')
-SECRET_ENV_MAKE := $(if $(ENV),$(ENV),$(if $(ENVIRONMENT),$(ENVIRONMENT),mgmt))
 
 ifneq ($(strip $(COMMIT_HASH)),)
 COMMIT_SOURCE := $(strip $(COMMIT_HASH))
@@ -79,6 +77,13 @@ publish:
 	@echo "Skipping S3 artefact publish for sandbox service"
 
 push-to-ecr:
+	# Run explicit Secrets Manager read test (hardcoded for dev)
+	aws secretsmanager get-secret-value \
+	--secret-id "/ftrs-dos/dev/dos-search-proxygen-jwt-credentials" \
+	--region eu-west-2 \
+	--query SecretString \
+	--output text
+
 	@echo "Running pre-push diagnostics..."
 	@$(MAKE) diagnose
 
@@ -124,76 +129,3 @@ push-to-ecr:
 
 lint:
 	@echo "No lint step for sandbox service"
-
-.PHONY: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token diagnose
-
-# Check that AWS environment variables are present (non-fatal; sts check validates credentials)
-check-aws:
-	@echo "Checking AWS environment variables (non-fatal)..."; \
-	if [ -n "$${AWS_ACCESS_KEY_ID:-}" ] && [ -n "$${AWS_SECRET_ACCESS_KEY:-}" ]; then \
-		echo "OK: AWS credentials present in environment"; \
-	else \
-		echo "WARN: AWS env credentials not present; will verify via 'aws sts' check"; \
-	fi; \
-	if [ -n "$${AWS_REGION:-}" ] || [ -n "$${AWS_DEFAULT_REGION:-}" ]; then \
-		echo "OK: AWS region set"; \
-	else \
-		echo "WARN: AWS region not set (AWS_REGION/AWS_DEFAULT_REGION)"; \
-	fi
-
-# Check aws CLI is available
-check-aws-cli:
-	@command -v aws >/dev/null 2>&1 && echo "OK: aws CLI found: $$(aws --version 2>&1 | head -n1)" || (echo "ERROR: aws CLI not found"; exit 1)
-
-# Try calling STS to verify assumed credentials work
-check-aws-sts:
-	@echo "Verifying AWS caller identity..."; \
-	aws sts get-caller-identity --output json >/dev/null 2>&1 && echo "OK: sts get-caller-identity succeeded" || (echo "ERROR: sts get-caller-identity failed (check credentials/role)"; exit 1)
-
-# Check docker availability and daemon
-check-docker:
-	@command -v docker >/dev/null 2>&1 || (echo "ERROR: docker not installed"; exit 1); \
-	docker info >/dev/null 2>&1 && echo "OK: docker is running" || (echo "ERROR: docker daemon not available or permission denied"; exit 1)
-
-# Ensure push script exists and look for explicit AWS env forwarding in it
-check-pushscript:
-	@echo "Checking push script at $(PUSH_SCRIPT)"; \
-	if [ -f "$(PUSH_SCRIPT)" ]; then echo "OK: push script exists"; else echo "ERROR: push script $(PUSH_SCRIPT) not found"; exit 1; fi; \
-	# Look for docker -e or AWS env references inside script to warn if docker run might not get creds
-	if grep -E "-e\s+AWS|AWS_ACCESS_KEY_ID|AWS_SESSION_TOKEN|AWS_SECRET_ACCESS_KEY|--env" "$(PUSH_SCRIPT)" >/dev/null 2>&1; then \
-		echo "Note: push script forwards AWS envs or references AWS vars"; \
-	else \
-		echo "Note: push script does not explicitly forward AWS envs; if it runs docker containers ensure AWS vars are passed"; \
-	fi
-
-# Attempt to retrieve APIM token using the token script (non-fatal if script not present)
-check-get-apim-token:
-	@echo "Attempting to fetch APIM token via $(GET_APIM_TOKEN_SCRIPT)"; \
-	if [ -n "$${ACCESS_TOKEN:-}" ]; then \
-		echo "ACCESS_TOKEN provided from environment; skipping secret read/test"; \
-		exit 0; \
-	fi; \
-	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then echo "WARN: $(GET_APIM_TOKEN_SCRIPT) not found; skipping APIM token check"; exit 0; fi; \
-	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	# Ensure python deps for token script are available for diagnostics
-	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
-	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
-	# Explicit one-step Secrets Manager read test (shows JSON on success or prints exit code on failure)
-	echo "Running explicit secret read test:"; \
-	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --output json || echo "SECRET READ FAILED: $$?"; \
-	# Use make-expanded secret path directly to avoid shell unbound-variable issues
-	echo "Secret id to fetch: /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials"; \
-	# Try to fetch the raw secret to surface permission or not-found errors
-	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --output text >/dev/null 2>&1 || echo "WARN: unable to read secret /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials (check permissions/exists)"; \
-	# Run token script and let stderr surface for debugging (pass expanded API_NAME and the make-computed ENV)
-	# Prefer externally provided ACCESS_TOKEN; otherwise invoke the token script
-	if [ -n "$${ACCESS_TOKEN:-}" ]; then \
-		echo "Using ACCESS_TOKEN provided by workflow"; \
-	else \
-		ACCESS_TOKEN="$$(API_NAME="$(API_NAME)" ENV="$(SECRET_ENV_MAKE)" AWS_REGION="$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" 2>&1 || true)"; \
-	fi; \
-	if [ -n "$${ACCESS_TOKEN:-}" ]; then echo "OK: Retrieved APIM token (len=$$(echo -n "$${ACCESS_TOKEN:-}" | wc -c))"; else echo "ERROR: Failed to retrieve APIM token (empty)"; exit 1; fi
-
-# Aggregate diagnostics
-diagnose: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token
-	@echo "All diagnostics complete"
