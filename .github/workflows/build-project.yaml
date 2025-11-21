@@ -88,7 +88,7 @@ jobs:
       - name: "Get directories"
         id: get-directories
         run: |
-          if [[ "${{ inputs.build_type }}" == "service" ]]; then
+          if [[ "${{ inputs.build_type }}" == "service" ]] || [[ "${{ inputs.build_type }}" == "container" ]]; then
             echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
             echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
           elif [[ "${{ inputs.build_type }}" == "package" ]]; then
@@ -129,6 +129,7 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
 
       - name: "Publish artefacts to S3"
+        if: ${{ inputs.build_type != 'container' }}
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
@@ -147,3 +148,12 @@ jobs:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
+
+      - name: "Push image to ECR"
+        if: ${{ inputs.build_type == 'container' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          COMMIT_HASH: ${{ inputs.commit_hash }}
+          ENV: ${{ inputs.environment }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: make push-to-ecr

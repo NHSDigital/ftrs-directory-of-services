@@ -14,7 +14,11 @@ SHELL := /bin/bash
 .PHONY: install build unit-test push publish lint
 
 API_NAME ?= dos-search
-PUSH_SCRIPT ?= ./scripts/push.sh
+PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
+GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
+
+ENV ?=
+AWS_REGION ?=
 
 ifneq ($(strip $(COMMIT_HASH)),)
 COMMIT_SOURCE := $(strip $(COMMIT_HASH))
@@ -72,9 +76,9 @@ unit-test: build
 publish:
 	@echo "Skipping S3 artefact publish for sandbox service"
 
-push:
+push-to-ecr:
 	if [ -z "${API_NAME}" ]; then \
-		echo "Missing required environment variable: API_NAME"; \
+		echo "Missing required variable: API_NAME"; \
 		exit 1; \
 	fi
 	if ! docker image inspect ${FULL_IMAGE} >/dev/null 2>&1; then \
@@ -86,22 +90,32 @@ push:
 		exit 1; \
 	fi
 
-	# Require PROXYGEN_ACCESS_TOKEN to be provided by the environment or caller
-	TOKEN="$$PROXYGEN_ACCESS_TOKEN"; \
-	if [ -z "$$TOKEN" ]; then \
-		echo "Missing required environment variable: PROXYGEN_ACCESS_TOKEN"; \
-		exit 1; \
-	fi
-
-	# token present
-
 	if [ ! -f "${PUSH_SCRIPT}" ]; then \
 		echo "Push script not found: ${PUSH_SCRIPT}"; \
 		exit 1; \
 	fi
 	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
-	ACCESS_TOKEN="$$PROXYGEN_ACCESS_TOKEN" "${PUSH_SCRIPT}" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
+	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
+	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
+		echo "get-apim-token script not found: $(GET_APIM_TOKEN_SCRIPT)"; \
+		exit 1; \
+	fi; \
+	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENV)" AWS_REGION="$(AWS_REGION)" COMMIT_HASH="${COMMIT_HASH}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)")"; \
+	if [ -z "$$ACCESS_TOKEN" ]; then \
+		echo "Failed to retrieve APIM access token"; \
+		exit 1; \
+	fi
+	# If the desired commit (COMMIT_SOURCE) differs from IMAGE_TAG, retag the built image to COMMIT_SOURCE
+	if [ -n "${COMMIT_SOURCE}" ] && [ "${COMMIT_SOURCE}" != "${IMAGE_TAG}" ]; then \
+		echo "Retagging image ${FULL_IMAGE} -> ${API_NAME}:${COMMIT_SOURCE}"; \
+		docker tag "${FULL_IMAGE}" "${API_NAME}:${COMMIT_SOURCE}"; \
+		PUSH_IMAGE="${API_NAME}:${COMMIT_SOURCE}"; \
+	else \
+		PUSH_IMAGE="${FULL_IMAGE}"; \
+	fi; \
+	ACCESS_TOKEN="$$ACCESS_TOKEN" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
-
