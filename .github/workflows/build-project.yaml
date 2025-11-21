@@ -103,15 +103,6 @@ jobs:
             exit 1
           fi
 
-      - name: "Diagnostics: show AWS env and run Make checks"
-        run: |
-          echo "--- AWS env visible to job ---"
-          env | grep '^AWS_' || true
-          echo "--- Running make diagnose in service working dir ---"
-          make -C "${{ steps.get-directories.outputs.working_directory }}" diagnose
-        # run diagnostics in the same job so credentials configured earlier are available
-        shell: /bin/bash
-
       - name: "Install project"
         run: make install
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
