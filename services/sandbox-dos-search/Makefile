@@ -81,6 +81,9 @@ push-to-ecr:
 	SECRET_NAME="/ftrs-dos/dev/dos-search-proxygen-jwt-credentials"; \
 	REGION="$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}"; \
 	echo "Attempting to read secret $$SECRET_NAME in region $$REGION"; \
+	# Print AWS account and caller ARN for debugging
+	echo "AWS account (runner): $$(aws sts get-caller-identity --query Account --output text || true)"; \
+	echo "AWS caller ARN (runner): $$(aws sts get-caller-identity --query Arn --output text || true)"; \
 	SECRET_ARN="$$(aws secretsmanager list-secrets --region "$$REGION" --query "SecretList[?Name=='$$SECRET_NAME'].ARN | [0]" --output text 2>/dev/null || true)"; \
 	if [ -n "$$SECRET_ARN" ] && [ "$$SECRET_ARN" != "None" ]; then \
 		echo "Resolved secret ARN: $$SECRET_ARN"; \
@@ -151,6 +154,10 @@ debug-info:
 	@env | grep -E '^AWS_|^ENV|^API_NAME|^COMMIT_HASH' || true
 	@echo "\n--- AWS sts get-caller-identity ---"
 	@aws sts get-caller-identity --output json || true
+	@echo "AWS account ID: $$(aws sts get-caller-identity --query Account --output text || true)"
+	@echo "AWS account (extracted from ARN): $$(aws sts get-caller-identity --query Arn --output text 2>/dev/null | sed -E 's/arn:aws:sts::([0-9]+):.*/\1/' || true)"
+	@echo "\n--- aws configure list (shows credential source) ---"
+	@aws configure list || true
 	@echo "\n--- List Secrets matching /ftrs-dos or dos-search ---"
 	@aws secretsmanager list-secrets --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --query "SecretList[?contains(Name,'/ftrs-dos') || contains(Name,'dos-search')].{Name:Name,ARN:ARN}" --output table || true
 	@echo "\n--- Attempt to run get-apim-token.sh (shows stderr/stdout) ---"
