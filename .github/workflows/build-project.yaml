@@ -27,6 +27,10 @@ on:
         description: "The deployment environment"
         required: true
         type: string
+      matrix_environment:
+        description: "Optional per-matrix override for environment"
+        required: false
+        type: string
       repo_name:
         description: "The name of the Git repo"
         required: true
@@ -135,7 +139,7 @@ jobs:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
           COMMIT_HASH: ${{ inputs.commit_hash }}
-          ENVIRONMENT: ${{ inputs.environment }}
+          ENVIRONMENT: ${{ inputs.build_type == 'container' && inputs.matrix_environment || inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
