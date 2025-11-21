@@ -9,5 +9,6 @@ class Organisation(DBModel):
     active: bool
     name: str
     telecom: str | None = None
-    type: OrganisationType | str
+    type: OrganisationType
+    non_primary_roles: list[OrganisationType] = Field(default_factory=list)
     endpoints: list["Endpoint"] = Field(default_factory=list)

@@ -71,11 +71,13 @@ def _process_organisation(organisation: dict) -> str | None:
         correlation_id = get_correlation_id()
         request_id = get_request_id()
 
-        permitted_org_type = get_permitted_org_type(organisation)
+        permitted_org_type, non_primary_roles = get_permitted_org_type(organisation)
         if not permitted_org_type:
             return None
 
-        fhir_organisation = transform_to_payload(organisation, permitted_org_type)
+        fhir_organisation = transform_to_payload(
+            organisation, permitted_org_type, non_primary_roles
+        )
         ods_code = fhir_organisation.identifier[0].value
 
         org_uuid = fetch_organisation_uuid(ods_code)
