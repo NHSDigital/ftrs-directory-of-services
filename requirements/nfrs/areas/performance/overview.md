@@ -21,15 +21,19 @@ Performance covers end-to-end request handling time within FtRS owned architectu
 ## Atomic Requirements
 | Code | Title | Intent | Verification |
 |------|-------|--------|-------------|
-| PERF-002 | Adopt performance pillar lifecycle | Embed best practice | Pillar checklist & closure report |
-| PERF-003 | Performance expectation specification | Define measurable targets | Versioned expectations table |
-| PERF-004 | Live-like anonymised dataset | Realistic profiling without PID | Dataset review & anonymisation audit |
-| PERF-005 | Automated tests for defined actions only | Focus testing scope | Manifest vs table diff |
-| PERF-006 | Batch impact ≤5% p95 delta | Safeguard UX during background work | Comparative latency report |
-| PERF-007 | Telemetry overhead thresholds | Balance observability & latency | Profiling overhead benchmark |
-| PERF-008 | 8h window stability ≤10% variance | Predictable performance | Variance report & dashboard |
-| PERF-009 | Regression alert >10% p95 increase | Early degradation detection | Alert simulation & ticket link |
-| PERF-010 | Percentile methodology documented | Consistent metrics interpretation | Method doc & tool config scan |
+| PERF-001 | Percentile latency adherence per operation | Each registry operation (expectations.yaml) meets p50/p95 thresholds defined in current version; targets may evolve via refinement stories | Automated validator compares live metrics to registry; dashboards overlay targets |
+| PERF-002 | Adopt performance pillar lifecycle | Lifecycle activities (profiling, review, optimisation) tracked per refinement story affecting quantitative targets | Pillar checklist with story links; closure report references changed registry version |
+| PERF-003 | Performance expectation specification | Maintain a versioned registry of per-operation quantitative targets decoupled from NFR wording | Registry file version + changelog entries; diff review on PR |
+| PERF-004 | Live-like anonymised dataset | Provide representative anonymised samples enabling realistic percentile validation without exposing PID | Dataset review log + anonymisation audit artefact tied to stories updating coverage |
+| PERF-005 | Automated tests for defined actions only | Test manifest derived from registry operation_id list; excludes deprecated/undocumented actions | Manifest vs expectations.yaml operation_id diff gate in CI |
+| PERF-006 | Batch impact ≤5% p95 delta | Background ETL / batch operations do not increase affected endpoint p95 by >5% vs baseline window | Comparative latency report referencing registry version + time window |
+| PERF-007 | Telemetry overhead thresholds | Observability instrumentation overhead kept within documented CPU / latency budgets; adjustments tracked via stories | Profiling benchmark run; overhead metrics ≤ thresholds; story links for changes |
+| PERF-008 | 8h window stability ≤10% variance | Rolling 8h p95 for each operation remains within ±10% of target unless exception story approved | Variance dashboard & validator summary; exception_story field in registry for SLOW ops |
+| PERF-009 | Regression alert >10% p95 increase | Automatic alert/story creation when p95 exceeds target +10% sustained for configured window | Alert simulation test + ticket referencing operation_id & registry version |
+| PERF-010 | Percentile methodology documented | Single authoritative methodology doc and tool config; any change triggers registry version bump if targets recalculated | Doc presence + config scan; story referencing methodology and registry version |
+| PERF-011 | Burst throughput capacity per operation | Each gp-search endpoint supports ≥150 TPS burst without breaching latency targets | Load test report (burst phase) vs registry burst_tps_target |
+| PERF-012 | Sustained throughput baseline | Each gp-search endpoint sustains ≥150 TPS steady state for defined window meeting latency targets | Load test steady phase metrics vs sustained_tps_target |
+| PERF-013 | Request payload size constraint | Maximum inbound request payload ≤1MB; larger payloads rejected early | Test suite boundary cases; registry max_request_payload_bytes field |
 
 ## Metrics & Thresholds
 | Metric | Target |
