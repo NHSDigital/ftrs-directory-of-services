@@ -17,7 +17,7 @@ API_NAME ?= dos-search
 PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
 GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
 
-ENV ?=
+ENVIRONMENT ?=
 AWS_REGION ?=
 
 ifneq ($(strip $(COMMIT_HASH)),)
@@ -102,7 +102,7 @@ push-to-ecr:
 		exit 1; \
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENV)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)")"; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)")"; \
 	if [ -z "$$ACCESS_TOKEN" ]; then \
 		echo "Failed to retrieve APIM access token"; \
 		exit 1; \
