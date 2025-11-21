@@ -152,16 +152,6 @@ jobs:
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
 
-      - name: "DEBUG: Check Proxygen JWT secret access"
-        if: ${{ inputs.build_type == 'container' }}
-        run: |
-          echo "Computing secret id for API=${{ inputs.name }} env=${{ inputs.matrix_environment || inputs.environment }}";
-          SECRET_ID="/ftrs-dos/${{ inputs.matrix_environment || inputs.environment }}/${{ inputs.name }}-proxygen-jwt-credentials";
-          echo "Secret id to check: $SECRET_ID";
-          echo "Attempting to read secret (will show AccessDenied or NotFound in logs)";
-          aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --region ${{ vars.AWS_REGION }} --output json || echo "DEBUG: could not read secret $SECRET_ID";
-        shell: /bin/bash
-
       - name: "Push image to ECR"
         if: ${{ inputs.build_type == 'container' }} # && github.ref == 'refs/heads/main' }}
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
