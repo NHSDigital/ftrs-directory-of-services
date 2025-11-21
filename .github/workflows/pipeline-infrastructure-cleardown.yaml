@@ -28,6 +28,7 @@ on:
         options:
           - dev
           - test
+          - ref
       workspace:
         description: "Specify the workspace to cleardown"
         required: true
