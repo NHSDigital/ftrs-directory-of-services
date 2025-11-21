@@ -25,29 +25,34 @@ class TestDosLogger:
         # Assert
         assert dos_logger._last_log_data == dict()
 
-    def test_extract(self, dos_logger, event, log_data, details):
+    def test_extract(self, dos_logger, event, log_data):
         # Arrange
-        extract = log_data
-        extract["details"] = details
+        extract = dict(log_data)
         # Act
         result = dos_logger.extract(event)
         # Assert
         assert result == extract
 
-    def test_extract_with_lower_case_headers(
-        self, dos_logger, event, log_data, details
-    ):
+    def test_extract_with_lower_case_headers(self, dos_logger, event, log_data):
         # Arrange
         test_headers = {
             "nhsd-request-id": "value"  # Lower case
         }
         formatted_event = event
         formatted_event["headers"].update(test_headers)
-        extract = log_data
+
+        extract = dict(log_data)
         extract["dos_nhsd_request_id"] = test_headers["nhsd-request-id"]
-        extract["details"] = details
         # Act
         result = dos_logger.extract(formatted_event)
+        # Assert
+        assert result == extract
+
+    def test_extract_one_time(self, dos_logger, event, details):
+        # Arrange
+        extract = dict(details)
+        # Act
+        result = dos_logger.extract_one_time(event)
         # Assert
         assert result == extract
 

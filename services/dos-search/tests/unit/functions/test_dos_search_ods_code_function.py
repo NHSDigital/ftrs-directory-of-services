@@ -88,11 +88,12 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_logger.assert_has_calls(
             [
+                call.extract(ANY),
+                call.extract_one_time(ANY),
                 call.info("Logging one-time fields", log_data=log_data, **details),
                 call.info("Received request for odsCode", ods_code=ods_code),
                 call.info(
                     "Successfully processed",
-                    log_data=log_data,
                     opt_ftrs_response_time=ANY,
                     opt_ftrs_response_size=ANY,
                 ),
@@ -106,7 +107,7 @@ class TestLambdaHandler:
         )
 
     def test_lambda_handler_with_validation_error(
-        self, lambda_context, mock_error_util, mock_logger, event, log_data
+        self, lambda_context, mock_error_util, mock_logger, event, log_data, details
     ):
         # Arrange
         validation_error = ValidationError.from_exception_data("ValidationError", [])
@@ -125,9 +126,9 @@ class TestLambdaHandler:
 
         mock_logger.assert_has_calls(
             [
+                call.info("Logging one-time fields", log_data=log_data, **details),
                 call.warning(
                     "Validation error occurred",
-                    log_data=log_data,
                     validation_errors=validation_error.errors(),
                 ),
                 call.info("Creating response", status_code=400),
@@ -161,12 +162,14 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_error_util.create_resource_internal_server_error.assert_called_once()
-
+        # print("test easily search", details)
         mock_logger.assert_has_calls(
             [
+                call.extract(ANY),
+                call.extract_one_time(ANY),
                 call.info("Logging one-time fields", log_data=log_data, **details),
                 call.info("Received request for odsCode", ods_code=ods_code),
-                call.exception("Internal server error occurred", log_data=log_data),
+                call.exception("Internal server error occurred"),
                 call.info("Creating response", status_code=500),
                 call.clear_log_data(),
             ]

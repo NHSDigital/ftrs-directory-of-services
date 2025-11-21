@@ -1,4 +1,5 @@
 import time
+from copy import deepcopy
 
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
@@ -9,7 +10,7 @@ from pydantic import ValidationError
 
 from functions import error_util
 from functions.ftrs_service.ftrs_service import FtrsService
-from functions.logging.dos_logger import DosLogger, dos_logger
+from functions.logging.dos_logger import dos_logger
 from functions.organization_query_params import OrganizationQueryParams
 
 logger = Logger()
@@ -21,12 +22,12 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    log_data = DosLogger.extract(app.current_event)
-    details = log_data.pop("details")
+    log_data = dos_logger.extract(app.current_event)
+    details = deepcopy(dos_logger.extract_one_time(app.current_event))
+    dos_logger.info("Logging one-time fields", log_data=log_data, **details)
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
-        dos_logger.info("Logging one-time fields", log_data=log_data, **details)
 
         ods_code = validated_params.ods_code
         # Structured request log
@@ -39,14 +40,13 @@ def get_organization() -> Response:
         # Log warning with structured fields
         dos_logger.warning(
             "Validation error occurred",
-            log_data=log_data,
             validation_errors=exception.errors(),
         )
         fhir_resource = error_util.create_validation_error_operation_outcome(exception)
         return create_response(400, fhir_resource)
     except Exception:
         # Log exception with structured fields
-        dos_logger.exception("Internal server error occurred", log_data=log_data)
+        dos_logger.exception("Internal server error occurred")
         fhir_resource = error_util.create_resource_internal_server_error()
         return create_response(500, fhir_resource)
     else:
@@ -61,7 +61,6 @@ def get_organization() -> Response:
 
         dos_logger.info(
             "Successfully processed",
-            log_data=log_data,
             opt_ftrs_response_time=f"{duration_ms}ms",
             opt_ftrs_response_size=response_size,
         )
