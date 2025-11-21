@@ -5,6 +5,7 @@ from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.enums import OrganisationType
 
 
 class OrganizationMapper(FhirMapper):
@@ -64,15 +65,35 @@ class OrganizationMapper(FhirMapper):
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
         """Convert FHIR Organization resource to Organisation domain object."""
+        primary_type = self._get_org_type(fhir_resource)
+        non_primary_roles = self._get_non_primary_roles(fhir_resource)
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),
             name=fhir_resource.name,
             active=fhir_resource.active,
             telecom=self._get_org_telecom(fhir_resource),
-            type=self._get_org_type(fhir_resource),
+            type=OrganisationType(primary_type),
+            non_primary_roles=non_primary_roles,
             modifiedBy="ODS_ETL_PIPELINE",
         )
+
+    def _get_non_primary_roles(
+        self, fhir_org: FhirOrganisation
+    ) -> list[OrganisationType]:
+        """Extract non-primary organization roles from FHIR Organization resource."""
+        if not fhir_org.type or len(fhir_org.type) <= 1:
+            return []
+
+        non_primary_roles = []
+        for type_obj in fhir_org.type[1:]:
+            if text := getattr(type_obj, "text", None):
+                try:
+                    non_primary_roles.append(OrganisationType(text))
+                except ValueError:
+                    pass
+
+        return non_primary_roles
 
     def to_fhir_bundle(self, organisations: list[Organisation]) -> Bundle:
         """Convert list of Organisation objects to FHIR Bundle (searchset)."""
@@ -88,11 +109,19 @@ class OrganizationMapper(FhirMapper):
         return bundle
 
     def from_ods_fhir_to_fhir(
-        self, ods_fhir_organization: dict, dos_org_type: str
+        self,
+        ods_fhir_organization: dict,
+        dos_org_type: str,
+        non_primary_roles: list[str] | None = None,
     ) -> FhirOrganisation | None:
         ods_code = self._extract_ods_code_from_identifiers(
             ods_fhir_organization.get("identifier", [])
         )
+
+        type_list = self._build_type(dos_org_type)
+        if non_primary_roles:
+            for role in non_primary_roles:
+                type_list.extend(self._build_type(role))
 
         required_fields = {
             "resourceType": "Organization",
@@ -100,7 +129,7 @@ class OrganizationMapper(FhirMapper):
             "meta": self._build_meta_profile(),
             "active": ods_fhir_organization.get("active"),
             "name": ods_fhir_organization.get("name"),
-            "type": self._build_type(dos_org_type),
+            "type": type_list,
             "identifier": self._build_identifier(ods_code),
             "telecom": ods_fhir_organization.get("telecom", []),
         }

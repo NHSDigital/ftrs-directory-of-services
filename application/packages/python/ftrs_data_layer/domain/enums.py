@@ -20,6 +20,9 @@ class DayOfWeek(str, Enum):
 
 class OrganisationType(str, Enum):
     GP_PRACTICE = "GP Practice"
+    OUT_OF_HOURS_COST_CENTRE = "Out of Hours Cost Centre"
+    WALK_IN_CENTRE = "Walk-In Centre"
+    PHARMACY = "Pharmacy"
 
 
 class HealthcareServiceCategory(str, Enum):

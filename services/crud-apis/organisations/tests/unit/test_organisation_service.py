@@ -109,7 +109,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         active=False,
         name="Updated Organisation",
         telecom="67890",
-        type="Updated Type",
+        type="Pharmacy",
         modifiedBy="ETL_ODS_PIPELINE",
     )
     service = make_service()
@@ -120,7 +120,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "active": False,
             "name": "Updated Organisation",
             "telecom": "67890",
-            "type": "Updated Type",
+            "type": "Pharmacy",
             "modified_by": "ETL_ODS_PIPELINE",
             "modifiedDateTime": FIXED_MODIFIED_TIME,
         }
