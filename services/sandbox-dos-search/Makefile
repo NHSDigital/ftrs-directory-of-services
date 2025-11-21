@@ -174,6 +174,9 @@ check-get-apim-token:
 	# Ensure python deps for token script are available for diagnostics
 	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
 	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
+	# Explicit one-step Secrets Manager read test (shows JSON on success or prints exit code on failure)
+	echo "Running explicit secret read test:"; \
+	aws secretsmanager get-secret-value --secret-id "/ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials" --region "${AWS_REGION:-eu-west-2}" --output json || echo "SECRET READ FAILED: $$?"; \
 	# Use make-expanded secret path directly to avoid shell unbound-variable issues
 	echo "Secret id to fetch: /ftrs-dos/$(SECRET_ENV_MAKE)/$(API_NAME)-proxygen-jwt-credentials"; \
 	# Try to fetch the raw secret to surface permission or not-found errors
