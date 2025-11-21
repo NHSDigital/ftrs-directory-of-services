@@ -77,12 +77,6 @@ publish:
 	@echo "Skipping S3 artefact publish for sandbox service"
 
 push-to-ecr:
-	# Use helper script to debug secrets and avoid heredoc/unbound-var issues
-	@/bin/bash "$(ROOT_DIR)/scripts/workflow/debug-secrets.sh" "/ftrs-dos/dev/dos-search-proxygen-jwt-credentials" "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" || true
-
-	@echo "Running pre-push diagnostics..."
-	@$(MAKE) diagnose
-
 	if [ -z "${API_NAME}" ]; then \
 		echo "Missing required variable: API_NAME"; \
 		exit 1; \
@@ -101,8 +95,8 @@ push-to-ecr:
 		exit 1; \
 	fi
 	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
-	python -m pip install --upgrade pip || true; \
-	python -m pip install "PyJWT>=2.0.0" "cryptography>=3.4" || true; \
+	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
+	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
 	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
 		echo "get-apim-token script not found: $(GET_APIM_TOKEN_SCRIPT)"; \
 		exit 1; \
@@ -125,28 +119,3 @@ push-to-ecr:
 
 lint:
 	@echo "No lint step for sandbox service"
-
-.PHONY: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token diagnose
-
-# Aggregate diagnostics
-diagnose: check-aws check-aws-cli check-aws-sts check-docker check-pushscript check-get-apim-token debug-info
-	@echo "All diagnostics complete"
-
-# Additional verbose debug target to help CI debugging
-.PHONY: debug-info
-debug-info:
-	@echo "\n=== Debug info: environment and AWS identity ==="
-	@echo "Make variables: API_NAME=$(API_NAME), SECRET_ENV=$(SECRET_ENV_MAKE), IMAGE_TAG=$(IMAGE_TAG)"
-	@echo "Environment variables visible to shell:"
-	@env | grep -E '^AWS_|^ENV|^API_NAME|^COMMIT_HASH' || true
-	@echo "\n--- AWS sts get-caller-identity ---"
-	@aws sts get-caller-identity --output json || true
-	@echo "AWS account ID: $$(aws sts get-caller-identity --query Account --output text || true)"
-	@echo "AWS account (extracted from ARN): $$(aws sts get-caller-identity --query Arn --output text 2>/dev/null | sed -E 's/arn:aws:sts::([0-9]+):.*/\1/' || true)"
-	@echo "\n--- aws configure list (shows credential source) ---"
-	@aws configure list || true
-	@echo "\n--- List Secrets matching /ftrs-dos or dos-search ---"
-	@aws secretsmanager list-secrets --region "$${AWS_REGION:-$${AWS_DEFAULT_REGION:-eu-west-2}}" --query "SecretList[?contains(Name,'/ftrs-dos') || contains(Name,'dos-search')].{Name:Name,ARN:ARN}" --output table || true
-	@echo "\n--- Skipping get-apim-token.sh in debug-info (requires Python deps) ---"
-	@echo "Run 'make check-get-apim-token' after dependencies are installed to exercise token retrieval"
-	@echo "\n=== End Debug info ==="
