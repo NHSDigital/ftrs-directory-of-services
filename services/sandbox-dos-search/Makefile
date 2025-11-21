@@ -113,9 +113,8 @@ push-to-ecr:
 			exit 1; \
 		fi; \
 	fi; \
-	# Make sure ACCESS_TOKEN is exported in the current shell and call the push script
-	export ACCESS_TOKEN="$${ACCESS_TOKEN}"; \
-	"${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	# Call wrapper script that ensures ACCESS_TOKEN is set then execs the push script
+	@/bin/bash "$(ROOT_DIR)/scripts/workflow/push-wrapper.sh" "$(GET_APIM_TOKEN_SCRIPT)" "${PUSH_SCRIPT}" "${API_NAME}" "$${PUSH_IMAGE:-${API_NAME}:${IMAGE_TAG}}" "${IMAGE_TAG}" "${ENVIRONMENT}" "${AWS_REGION}"
 
 lint:
 	@echo "No lint step for sandbox service"
