@@ -1,0 +1,55 @@
+---
+story_id: STORY-SEC-001
+jira_key:
+title: All public/private API endpoints enforce TLS; storage services enable encryption
+role: Security Engineer
+goal: Implement and validate: All public/private API endpoints enforce TLS; storage services enable encryption at rest
+value: Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift
+nfr_refs: [SEC-003]
+status: draft
+---
+
+## Description
+Implement automated validation for: All public/private API endpoints enforce TLS; storage services enable encryption at rest.
+
+## Acceptance Criteria
+1. 100% compliant across resources
+2. Tooling: AWS Config rules + Terraform policy checks operational
+3. Cadence: Continuous (real-time) with CI enforcement on change validated
+4. Environments: dev, int, ref, prod covered
+5. Monitoring configured and alerting tested
+
+## Non-Functional Acceptance
+- Control ID: `tls-encryption-endpoints`\n- Threshold: 100% compliant across resources\n- Tooling: AWS Config rules + Terraform policy checks\n- Cadence: Continuous (real-time) with CI enforcement on change\n- Environments: dev, int, ref, prod
+
+## Test Strategy
+| Test Type | Tooling | Focus |
+|-----------|---------|-------|
+| Compliance | Automated tooling | Policy enforcement |
+| Integration | CI pipeline | Continuous validation |
+| Audit | Manual review | Compliance assessment |
+
+## Out of Scope
+Implementation details to be refined during sprint planning
+
+## Implementation Notes
+- Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift
+- Cadence: Continuous (real-time) with CI enforcement on change
+- Status: draft
+
+## Monitoring & Metrics
+- `tls_encryption_endpoints_compliance_status` gauge
+- `tls_encryption_endpoints_violations_total` counter
+
+## Risks & Mitigation
+| Risk | Impact | Mitigation |
+|------|--------|-----------|
+| Configuration drift | Non-compliance | Automated remediation |
+| Tool failures | Missed violations | Redundant checks |
+
+## Traceability
+- NFR: SEC-003
+- Registry: security/expectations.yaml v1.0
+
+## Open Questions
+None
