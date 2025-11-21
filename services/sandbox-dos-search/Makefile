@@ -172,8 +172,8 @@ check-get-apim-token:
 	# Ensure python deps for token script are available for diagnostics
 	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
 	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
-	# Compute secret id used by the script (script expects ENV or ENVIRONMENT)
-	SECRET_ENV="$${ENV:-$${ENVIRONMENT:-}}"; \
+	# Compute secret id used by the script (script expects ENV or ENVIRONMENT); default to 'mgmt' if unset
+	SECRET_ENV="$${ENV:-$${ENVIRONMENT:-mgmt}}"; \
 	# Use make-expanded API_NAME so shell sees a concrete value
 	SECRET_ID="/ftrs-dos/$${SECRET_ENV}/$(API_NAME)-proxygen-jwt-credentials"; \
 	echo "Secret id to fetch: $$SECRET_ID"; \
