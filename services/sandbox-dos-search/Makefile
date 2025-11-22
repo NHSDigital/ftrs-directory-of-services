@@ -103,7 +103,13 @@ push-to-ecr:
 		exit 1; \
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)"; \
+	API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" WRITE_TOKEN_FILE=true /bin/bash "$(GET_APIM_TOKEN_SCRIPT)"; \
+	# Try to capture the token from stdout as well (run token script without writing file), then verify
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" WRITE_TOKEN_FILE=false /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" | tr -d '\r\n')"; \
+	if [ -z "$$ACCESS_TOKEN" ]; then \
+		echo "Failed to capture APIM token from stdout"; \
+		exit 1; \
+	fi; \
 	if [ -n "${COMMIT_SOURCE}" ] && [ "${COMMIT_SOURCE}" != "${IMAGE_TAG}" ]; then \
 		echo "Retagging image ${FULL_IMAGE} -> ${API_NAME}:${COMMIT_SOURCE}"; \
 		docker tag "${FULL_IMAGE}" "${API_NAME}:${COMMIT_SOURCE}"; \

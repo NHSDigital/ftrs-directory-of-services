@@ -98,14 +98,24 @@ fi
 echo "Successfully retrieved access token" >&2
 echo "$ACCESS_TOKEN"
 
+case "$(printf '%s' "${WRITE_TOKEN_FILE:-}" | tr '[:upper:]' '[:lower:]')" in
+  true|1|yes)
+    ;;
+  *)
+    echo "Skipping token file write because WRITE_TOKEN_FILE='${WRITE_TOKEN_FILE:-}'" >&2
+    exit 0
+    ;;
+esac
+
 if [ -n "${OUTPUT_FILE:-}" ]; then
   TOKEN_FILE="${OUTPUT_FILE}"
 else
-  if [ -z "${API_NAME:-}" ] || [ -z "${ENV:-}" ]; then
+  ENV_NAME="${ENVIRONMENT:-${ENV:-}}"
+  if [ -z "${API_NAME:-}" ] || [ -z "${ENV_NAME:-}" ]; then
     echo "Error: OUTPUT_FILE not set and API_NAME/ENV not provided to derive token path" >&2
     exit 1
   fi
-  TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENV}"
+  TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENV_NAME}"
 fi
 
 mkdir -p "$(dirname "$TOKEN_FILE")" 2>/dev/null || true
