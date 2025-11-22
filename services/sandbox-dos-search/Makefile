@@ -16,6 +16,7 @@ SHELL := /bin/bash
 API_NAME ?= dos-search
 PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
 GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
+PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-inmemory-wrapper.sh
 
 ENVIRONMENT ?=
 AWS_REGION ?=
@@ -91,11 +92,12 @@ push-to-ecr:
 		exit 1; \
 	fi
 
-	if [ ! -f "${PUSH_SCRIPT}" ]; then \
+	if [ -f "${PUSH_SCRIPT}" ]; then \
+		chmod +x "$(PUSH_SCRIPT)" >/dev/null 2>&1 || true; \
+	else \
 		echo "Push script not found: ${PUSH_SCRIPT}"; \
 		exit 1; \
 	fi
-	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
 	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
 	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
 	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
@@ -103,23 +105,10 @@ push-to-ecr:
 		exit 1; \
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" WRITE_TOKEN_FILE=true /bin/bash "$(GET_APIM_TOKEN_SCRIPT)"; \
-	# Try to capture the token from stdout as well (run token script without writing file), then verify
-	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" WRITE_TOKEN_FILE=true /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" | tr -d '\r\n')"; \
-	if [ -z "$${ACCESS_TOKEN:-}" ]; then \
-		echo "Failed to capture APIM token from stdout"; \
-		exit 1; \
-	fi; \
-	# Print the captured token to stdout (raw) as requested (use ${ACCESS_TOKEN:-} to avoid unbound var under -u)
-	echo "ACCESS_TOKEN is $${ACCESS_TOKEN:-}"; \
-	if [ -n "${COMMIT_SOURCE}" ] && [ "${COMMIT_SOURCE}" != "${IMAGE_TAG}" ]; then \
-		echo "Retagging image ${FULL_IMAGE} -> ${API_NAME}:${COMMIT_SOURCE}"; \
-		docker tag "${FULL_IMAGE}" "${API_NAME}:${COMMIT_SOURCE}"; \
-		PUSH_IMAGE="${API_NAME}:${COMMIT_SOURCE}"; \
-	else \
-		PUSH_IMAGE="${FULL_IMAGE}"; \
-	fi; \
-	"${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	# Ensure the wrapper is executable so we can invoke it directly
+	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
+	# Call in-memory wrapper which captures the token and calls push-to-ecr with ACCESS_TOKEN in env
+	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"; \
 
 lint:
 	@echo "No lint step for sandbox service"

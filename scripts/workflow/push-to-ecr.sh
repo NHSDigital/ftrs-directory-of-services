@@ -40,25 +40,36 @@ LOCAL_IMAGE="${2:-}"
 REMOTE_IMAGE_NAME="${3:-}"
 REMOTE_IMAGE_TAG="${4:-}"
 
-unset ACCESS_TOKEN 2>/dev/null || true
+# Do not unset ACCESS_TOKEN here; allow callers to provide it via environment for in-memory flow
+# unset ACCESS_TOKEN 2>/dev/null || true
 PUSH_LATEST="${PUSH_LATEST:-false}"
 PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
 
+# Determine token file path if needed
 if [ -n "${OUTPUT_FILE:-}" ]; then
   TOKEN_FILE="${OUTPUT_FILE}"
 else
   if [ -n "${ENVIRONMENT:-}" ]; then
     TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENVIRONMENT}"
   else
-    die "Token file path ambiguous: set OUTPUT_FILE or ENVIRONMENT"
+    TOKEN_FILE=""
   fi
 fi
 
-if [ -s "${TOKEN_FILE}" ]; then
-  ACCESS_TOKEN="$(tr -d '\r\n' < "${TOKEN_FILE}")"
-  log "Loaded ACCESS_TOKEN from token file: ${TOKEN_FILE}"
+# Prefer ACCESS_TOKEN from environment when set; otherwise load from token file
+if [ -z "${ACCESS_TOKEN:-}" ]; then
+  if [ -n "${TOKEN_FILE:-}" ]; then
+    if [ -s "${TOKEN_FILE}" ]; then
+      ACCESS_TOKEN="$(tr -d '\r\n' < "${TOKEN_FILE}")"
+      log "Loaded ACCESS_TOKEN from token file: ${TOKEN_FILE}"
+    else
+      die "Token file not found or empty: ${TOKEN_FILE} (ensure get-apim-token.sh wrote the token to this file or provide ACCESS_TOKEN env)"
+    fi
+  else
+    die "Token not provided: set ACCESS_TOKEN env or OUTPUT_FILE/ENVIRONMENT"
+  fi
 else
-  die "Token file not found or empty: ${TOKEN_FILE} (ensure get-apim-token.sh wrote the token to this file)"
+  log "Using ACCESS_TOKEN from environment"
 fi
 
 if [[ -z "$API_NAME" || -z "$LOCAL_IMAGE" || -z "$REMOTE_IMAGE_NAME" || -z "$REMOTE_IMAGE_TAG" ]]; then
@@ -136,4 +147,3 @@ if [ -n "${TOKEN_FILE:-}" ] && [ -f "${TOKEN_FILE}" ]; then
   log "Removing token file: ${TOKEN_FILE}"
   rm -f "${TOKEN_FILE}" || log "Warning: failed to remove token file ${TOKEN_FILE}" >&2
 fi
-
