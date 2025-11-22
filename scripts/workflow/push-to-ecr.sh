@@ -170,7 +170,8 @@ else
   # AWS/ECR path not available; try skopeo (uses docker/auth) to list remote tags
   if command -v skopeo >/dev/null 2>&1; then
     log "AWS CLI not available or registry not ECR; using skopeo to list tags for ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}"
-    if skopeo list-tags --tls-verify=false docker://${REGISTRY_HOST}/${REMOTE_IMAGE_NAME} 2>/tmp/skopeo_out.$$; then
+    # capture both stdout and stderr to a temp file so we can always inspect it
+    if skopeo list-tags --tls-verify=false docker://${REGISTRY_HOST}/${REMOTE_IMAGE_NAME} > /tmp/skopeo_out.$$ 2>&1; then
       # pretty print skopeo output (JSON) if possible
       if command -v jq >/dev/null 2>&1; then
         jq . /tmp/skopeo_out.$$ || cat /tmp/skopeo_out.$$
