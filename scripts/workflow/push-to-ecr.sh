@@ -118,3 +118,18 @@ else
 fi
 
 log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${PUSH_LATEST:+ and latest}"
+
+# Print repository images for the repo after a successful push (ECR listing only)
+log "Listing images for repository ${REMOTE_IMAGE_NAME} at ${REGISTRY_HOST}"
+if command -v aws >/dev/null 2>&1 && echo "${REGISTRY_HOST}" | grep -qE 'dkr\\.ecr\\.'; then
+  # Use AWS_REGION from environment
+  ECR_REGION="${AWS_REGION:-}"
+  if [ -z "${ECR_REGION}" ]; then
+    log "AWS_REGION not set; skipping ECR listing"
+  else
+    log "Querying ECR (${ECR_REGION}) for repository ${REMOTE_IMAGE_NAME}"
+    aws ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" \
+      --query 'imageDetails[].{Tags:imageTags, Digest:imageDigest, PushedAt:imagePushedAt}' --output table || log "Failed to list images from ECR"
+  fi
+fi
+
