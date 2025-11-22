@@ -75,10 +75,10 @@ unit-test: build
 	@trap 'docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true' EXIT TERM INT; \
 	WAIT_SECS=60 BASE_URL=http://localhost:9000 ${SMOKE_SCRIPT}
 
-publish:
-	@echo "Skipping S3 artefact publish for sandbox service"
+# publish:
+# 	@echo "Skipping S3 artefact publish for sandbox service"
 
-push-to-ecr:
+publish:
 	if [ -z "${API_NAME}" ]; then \
 		echo "Missing required variable: API_NAME"; \
 		exit 1; \
