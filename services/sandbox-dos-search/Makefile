@@ -103,11 +103,17 @@ push-to-ecr:
 		exit 1; \
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)")"; \
-	if [ -z "$$ACCESS_TOKEN" ]; then \
-		echo "Failed to retrieve APIM access token"; \
-		exit 1; \
-	fi
+		# Run the token script and write token to a temp file, then read it to avoid subshell/stdout scoping issues
+		TMP_TOKEN_FILE="$$(mktemp /tmp/ftrs_apim_${API_NAME}_$$.XXXXXXXX)"; \
+		OUTPUT_FILE="$$TMP_TOKEN_FILE" API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
+		if [ -s "$$TMP_TOKEN_FILE" ]; then \
+			ACCESS_TOKEN="$$(cat "$$TMP_TOKEN_FILE")"; \
+			rm -f "$$TMP_TOKEN_FILE" || true; \
+		else \
+			echo "Failed to retrieve APIM access token (no token file)"; \
+			rm -f "$$TMP_TOKEN_FILE" >/dev/null 2>&1 || true; \
+			exit 1; \
+		fi; \
 	# If the desired commit (COMMIT_SOURCE) differs from IMAGE_TAG, retag the built image to COMMIT_SOURCE
 	if [ -n "${COMMIT_SOURCE}" ] && [ "${COMMIT_SOURCE}" != "${IMAGE_TAG}" ]; then \
 		echo "Retagging image ${FULL_IMAGE} -> ${API_NAME}:${COMMIT_SOURCE}"; \
