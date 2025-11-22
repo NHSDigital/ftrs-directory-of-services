@@ -116,6 +116,8 @@ push-to-ecr:
 	else \
 		PUSH_IMAGE="${FULL_IMAGE}"; \
 	fi; \
+	# Debug: echo ACCESS_TOKEN (use shell expansion default to avoid unbound-variable under set -u)
+	echo "DEBUG: ACCESS_TOKEN=$${ACCESS_TOKEN:-}"; \
 	ACCESS_TOKEN="$${ACCESS_TOKEN:-}" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
