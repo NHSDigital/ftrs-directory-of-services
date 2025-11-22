@@ -98,8 +98,6 @@ fi
 echo "Successfully retrieved access token" >&2
 echo "$ACCESS_TOKEN"
 
-# Atomically write the access token to a file and print it.
-# Prefer explicit OUTPUT_FILE; otherwise derive a canonical path using API_NAME and ENV.
 if [ -n "${OUTPUT_FILE:-}" ]; then
   TOKEN_FILE="${OUTPUT_FILE}"
 else
@@ -110,17 +108,12 @@ else
   TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENV}"
 fi
 
-# Ensure directory exists (in case a path with dirs provided)
 mkdir -p "$(dirname "$TOKEN_FILE")" 2>/dev/null || true
 
 TMP_TOKEN_FILE="${TOKEN_FILE}.$$"
-# Use strict umask to ensure created file has only owner perms
 umask 077
 printf '%s' "$ACCESS_TOKEN" > "$TMP_TOKEN_FILE"
 chmod 600 "$TMP_TOKEN_FILE"
 mv "$TMP_TOKEN_FILE" "$TOKEN_FILE"
 
-# Feedback and print token contents
-echo "Successfully retrieved access token" >&2
 echo "Wrote token to file: $TOKEN_FILE" >&2
-cat "$TOKEN_FILE"
