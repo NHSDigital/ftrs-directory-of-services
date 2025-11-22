@@ -113,6 +113,11 @@ mkdir -p "$(dirname "$TOKEN_FILE")" 2>/dev/null || true
 TMP_TOKEN_FILE="${TOKEN_FILE}.$$"
 umask 077
 printf '%s' "$ACCESS_TOKEN" > "$TMP_TOKEN_FILE"
+if [ ! -s "$TMP_TOKEN_FILE" ]; then
+  echo "Error: token file is empty after write: $TMP_TOKEN_FILE" >&2
+  rm -f "$TMP_TOKEN_FILE" 2>/dev/null || true
+  exit 1
+fi
 chmod 600 "$TMP_TOKEN_FILE"
 mv "$TMP_TOKEN_FILE" "$TOKEN_FILE"
 
