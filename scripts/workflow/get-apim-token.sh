@@ -97,38 +97,3 @@ fi
 
 echo "Successfully retrieved access token" >&2
 echo "$ACCESS_TOKEN"
-
-case "$(printf '%s' "${WRITE_TOKEN_FILE:-}" | tr '[:upper:]' '[:lower:]')" in
-  true|1|yes)
-    ;;
-  *)
-    echo "Skipping token file write because WRITE_TOKEN_FILE='${WRITE_TOKEN_FILE:-}'" >&2
-    exit 0
-    ;;
-esac
-
-if [ -n "${OUTPUT_FILE:-}" ]; then
-  TOKEN_FILE="${OUTPUT_FILE}"
-else
-  ENV_NAME="${ENVIRONMENT:-${ENV:-}}"
-  if [ -z "${API_NAME:-}" ] || [ -z "${ENV_NAME:-}" ]; then
-    echo "Error: OUTPUT_FILE not set and API_NAME/ENV not provided to derive token path" >&2
-    exit 1
-  fi
-  TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENV_NAME}"
-fi
-
-mkdir -p "$(dirname "$TOKEN_FILE")" 2>/dev/null || true
-
-TMP_TOKEN_FILE="${TOKEN_FILE}.$$"
-umask 077
-printf '%s' "$ACCESS_TOKEN" > "$TMP_TOKEN_FILE"
-if [ ! -s "$TMP_TOKEN_FILE" ]; then
-  echo "Error: token file is empty after write: $TMP_TOKEN_FILE" >&2
-  rm -f "$TMP_TOKEN_FILE" 2>/dev/null || true
-  exit 1
-fi
-chmod 600 "$TMP_TOKEN_FILE"
-mv "$TMP_TOKEN_FILE" "$TOKEN_FILE"
-
-echo "Wrote token to file: $TOKEN_FILE" >&2
