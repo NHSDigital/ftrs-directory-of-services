@@ -123,9 +123,11 @@ push-to-ecr:
 		PUSH_IMAGE="${FULL_IMAGE}"; \
 	fi; \
 	# Debug: show token presence — print length and base64 (avoids exact-string masking)
-	echo "DEBUG: ACCESS_TOKEN length=$$(printf '%s' "$$ACCESS_TOKEN" | wc -c)"; \
-	echo "DEBUG: ACCESS_TOKEN b64=$$(printf '%s' "$$ACCESS_TOKEN" | base64)"; \
-	ACCESS_TOKEN="$${ACCESS_TOKEN:-}" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	echo "DEBUG: ACCESS_TOKEN length=$$(printf '%s' "$${ACCESS_TOKEN:-}" | wc -c)"; \
+	echo "DEBUG: ACCESS_TOKEN b64=$$(printf '%s' "$${ACCESS_TOKEN:-}" | base64)"; \
+	# Export ACCESS_TOKEN into the current shell, then invoke push script to avoid inline-assignment issues
+	export ACCESS_TOKEN="$${ACCESS_TOKEN:-}"; \
+	"${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
