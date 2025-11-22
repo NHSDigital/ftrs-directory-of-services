@@ -103,9 +103,9 @@ push-to-ecr:
 		exit 1; \
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	ENV="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" WRITE_TOKEN_FILE=true OUTPUT_FILE="$(BUILD_OUTPUT_DIR)/ftrs_apim_${API_NAME}_${ENVIRONMENT}" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)"; \
-	if [ ! -s "$(BUILD_OUTPUT_DIR)/ftrs_apim_${API_NAME}_${ENVIRONMENT}" ]; then \
-		echo "Failed to retrieve APIM access token file"; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)")"; \
+	if [ -z "$$ACCESS_TOKEN" ]; then \
+		echo "Failed to retrieve APIM access token"; \
 		exit 1; \
 	fi
 	# If the desired commit (COMMIT_SOURCE) differs from IMAGE_TAG, retag the built image to COMMIT_SOURCE
@@ -116,9 +116,10 @@ push-to-ecr:
 	else \
 		PUSH_IMAGE="${FULL_IMAGE}"; \
 	fi; \
-
-	# invoke push script with ENVIRONMENT and AWS_REGION so it can locate the token file
-	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	# Debug: show token presence — print length and base64 (avoids exact-string masking)
+	echo "DEBUG: ACCESS_TOKEN length=$$(printf '%s' "$$ACCESS_TOKEN" | wc -c)"; \
+	echo "DEBUG: ACCESS_TOKEN b64=$$(printf '%s' "$$ACCESS_TOKEN" | base64)"; \
+	ACCESS_TOKEN="$${ACCESS_TOKEN:-}" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
