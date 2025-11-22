@@ -13,10 +13,24 @@ die() {
 usage() {
   cat >&2 <<'EOF'
 Usage: push-to-ecr.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
-Environment:
-  ACCESS_TOKEN   Bearer token used when calling the Proxygen API
-  PUSH_LATEST    Optional flag (default: false) to mirror image to :latest
+
+Required/important environment:
+  OUTPUT_FILE    Path to a file containing the APIM bearer token (preferred). The script reads the token from this file.
+  ENVIRONMENT    Name of the environment (e.g., dev). When OUTPUT_FILE is not set the script derives the canonical
+                  token path as /tmp/ftrs_apim_<api>_<env> (so ENVIRONMENT must be set in that case).
+
+Optional:
+  PUSH_LATEST    Optional flag (default: false) to also push a :latest tag
   PUSH_RETRIES   Optional retry attempts for docker push (default: 3)
+
+Security/notes:
+  - The token file should contain only the bearer token and be readable only by the runner (e.g. chmod 600).
+  - The Makefile or token generator should create and clean up the token file; this script will fail if the file
+    is missing or empty.
+
+Example:
+  OUTPUT_FILE=/tmp/ftrs_apim_dos-search_dev ./scripts/workflow/push-to-ecr.sh dos-search dos-search:local dos-search 123456
+
 EOF
   exit 1
 }
@@ -25,15 +39,37 @@ API_NAME="${1:-}"
 LOCAL_IMAGE="${2:-}"
 REMOTE_IMAGE_NAME="${3:-}"
 REMOTE_IMAGE_TAG="${4:-}"
-ACCESS_TOKEN="${ACCESS_TOKEN:-}"
+## ACCESS_TOKEN will be loaded from a token file below; do not rely on env
+unset ACCESS_TOKEN 2>/dev/null || true
 PUSH_LATEST="${PUSH_LATEST:-false}"
 PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
+
+# Always read ACCESS_TOKEN from a token file produced by the token script.
+# Prefer explicit OUTPUT_FILE; otherwise require ENVIRONMENT to build the canonical filename.
+if [ -n "${OUTPUT_FILE:-}" ]; then
+  TOKEN_FILE="${OUTPUT_FILE}"
+else
+  # require ENVIRONMENT when OUTPUT_FILE not provided
+  if [ -n "${ENVIRONMENT:-}" ]; then
+    TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENVIRONMENT}"
+  else
+    die "Token file path ambiguous: set OUTPUT_FILE or ENVIRONMENT"
+  fi
+fi
+
+if [ -s "${TOKEN_FILE}" ]; then
+  # Read token and trim any trailing newline safely
+  ACCESS_TOKEN="$(tr -d '\r\n' < "${TOKEN_FILE}")"
+  log "Loaded ACCESS_TOKEN from token file: ${TOKEN_FILE}"
+else
+  die "Token file not found or empty: ${TOKEN_FILE} (ensure get-apim-token.sh wrote the token to this file)"
+fi
 
 if [[ -z "$API_NAME" || -z "$LOCAL_IMAGE" || -z "$REMOTE_IMAGE_NAME" || -z "$REMOTE_IMAGE_TAG" ]]; then
   usage
 fi
 
-if [[ -z "$ACCESS_TOKEN" ]]; then
+if [[ -z "${ACCESS_TOKEN}" ]]; then
   die "ACCESS_TOKEN is not set"
 fi
 
@@ -99,4 +135,3 @@ else
 fi
 
 log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${PUSH_LATEST:+ and latest}"
-

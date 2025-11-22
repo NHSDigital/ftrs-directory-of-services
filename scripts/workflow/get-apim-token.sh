@@ -96,16 +96,4 @@ if [ -z "$ACCESS_TOKEN" ]; then
 fi
 
 echo "Successfully retrieved access token" >&2
-# Debug: show presence without printing raw token (printed to stderr)
-printf 'DEBUG: ACCESS_TOKEN length=%s\n' "$(printf '%s' "$ACCESS_TOKEN" | wc -c)" >&2
-printf 'DEBUG: ACCESS_TOKEN preview=%s\n' "$(printf '%s' "$ACCESS_TOKEN" | cut -c1-8)" >&2
-printf 'DEBUG: ACCESS_TOKEN b64=%s\n' "$(printf '%s' "$ACCESS_TOKEN" | base64)" >&2
-
-# Original output: token on stdout
 echo "$ACCESS_TOKEN"
-
-# Also write token to output file if requested (or default location) so callers can read it reliably
-OUTPUT_FILE="${OUTPUT_FILE:-/tmp/ftrs_apim_${API_NAME}_${ENV}}"
-# Use printf to avoid trailing newlines variance
-printf '%s' "$ACCESS_TOKEN" > "$OUTPUT_FILE" 2>/dev/null || true
-printf 'DEBUG: Wrote token to %s\n' "$OUTPUT_FILE" >&2
