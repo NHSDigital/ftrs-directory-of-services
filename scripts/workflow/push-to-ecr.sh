@@ -39,7 +39,7 @@ API_NAME="${1:-}"
 LOCAL_IMAGE="${2:-}"
 REMOTE_IMAGE_NAME="${3:-}"
 REMOTE_IMAGE_TAG="${4:-}"
-## ACCESS_TOKEN will be loaded from a token file below; do not rely on env
+
 unset ACCESS_TOKEN 2>/dev/null || true
 PUSH_LATEST="${PUSH_LATEST:-false}"
 PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
