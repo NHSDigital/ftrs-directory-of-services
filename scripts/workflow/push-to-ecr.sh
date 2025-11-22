@@ -128,8 +128,32 @@ if command -v aws >/dev/null 2>&1 && echo "${REGISTRY_HOST}" | grep -qE 'dkr\\.e
     log "AWS_REGION not set; skipping ECR listing"
   else
     log "Querying ECR (${ECR_REGION}) for repository ${REMOTE_IMAGE_NAME}"
-    aws ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" \
-      --query 'imageDetails[].{Tags:imageTags, Digest:imageDigest, PushedAt:imagePushedAt}' --output table || log "Failed to list images from ECR"
+    # Capture raw JSON or error output so we can diagnose empty/permission issues
+    IMAGES_RAW="$(aws ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" --output json 2>&1 || true)"
+    AWS_RC=$?
+    if [ $AWS_RC -ne 0 ]; then
+      log "Failed to call AWS ECR describe-images (exit $AWS_RC) — raw output follows"
+      printf '%s\n' "$IMAGES_RAW"
+      log "Checking AWS caller identity (may help diagnose permissions)"
+      aws sts get-caller-identity --region "${ECR_REGION}" 2>&1 || log "Failed to query sts get-caller-identity"
+      log "Checking repository existence"
+      aws ecr describe-repositories --repository-names "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" 2>&1 || log "Failed to describe repository"
+    else
+      # parse number of images
+      IMAGE_COUNT=$(echo "$IMAGES_RAW" | jq '.imageDetails | length' 2>/dev/null || echo 0)
+      if [ "$IMAGE_COUNT" -gt 0 ]; then
+        log "Found ${IMAGE_COUNT} images in ECR repo ${REMOTE_IMAGE_NAME}; printing table"
+        aws ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" \
+          --query 'imageDetails[].{Tags:imageTags, Digest:imageDigest, PushedAt:imagePushedAt}' --output table || log "Failed to render images table"
+      else
+        log "No images returned for repository ${REMOTE_IMAGE_NAME} (imageDetails empty) — raw output follows"
+        printf '%s\n' "$IMAGES_RAW"
+        log "Checking repository existence"
+        aws ecr describe-repositories --repository-names "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" 2>&1 || log "Failed to describe repository"
+        log "Check caller identity to verify permissions"
+        aws sts get-caller-identity --region "${ECR_REGION}" 2>&1 || log "Failed to query sts get-caller-identity"
+      fi
+    fi
   fi
 fi
 
