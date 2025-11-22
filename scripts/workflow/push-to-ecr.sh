@@ -44,12 +44,9 @@ unset ACCESS_TOKEN 2>/dev/null || true
 PUSH_LATEST="${PUSH_LATEST:-false}"
 PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
 
-# Always read ACCESS_TOKEN from a token file produced by the token script.
-# Prefer explicit OUTPUT_FILE; otherwise require ENVIRONMENT to build the canonical filename.
 if [ -n "${OUTPUT_FILE:-}" ]; then
   TOKEN_FILE="${OUTPUT_FILE}"
 else
-  # require ENVIRONMENT when OUTPUT_FILE not provided
   if [ -n "${ENVIRONMENT:-}" ]; then
     TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENVIRONMENT}"
   else
@@ -58,7 +55,6 @@ else
 fi
 
 if [ -s "${TOKEN_FILE}" ]; then
-  # Read token and trim any trailing newline safely
   ACCESS_TOKEN="$(tr -d '\r\n' < "${TOKEN_FILE}")"
   log "Loaded ACCESS_TOKEN from token file: ${TOKEN_FILE}"
 else
@@ -135,3 +131,8 @@ else
 fi
 
 log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${PUSH_LATEST:+ and latest}"
+
+if [ -n "${TOKEN_FILE:-}" ] && [ -f "${TOKEN_FILE}" ]; then
+  log "Removing token file: ${TOKEN_FILE}"
+  rm -f "${TOKEN_FILE}" || log "Warning: failed to remove token file ${TOKEN_FILE}" >&2
+fi
