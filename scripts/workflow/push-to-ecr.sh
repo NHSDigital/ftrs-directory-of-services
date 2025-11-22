@@ -121,6 +121,7 @@ log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${PUSH_LATEST:+ and latest
 
 # Print repository images for the repo after a successful push (ECR listing only)
 log "Listing images for repository ${REMOTE_IMAGE_NAME} at ${REGISTRY_HOST}"
+# Prefer AWS ECR API when available and registry is ECR
 if command -v aws >/dev/null 2>&1 && echo "${REGISTRY_HOST}" | grep -qE 'dkr\\.ecr\\.'; then
   # Use AWS_REGION from environment
   ECR_REGION="${AWS_REGION:-}"
@@ -154,6 +155,27 @@ if command -v aws >/dev/null 2>&1 && echo "${REGISTRY_HOST}" | grep -qE 'dkr\\.e
         aws sts get-caller-identity --region "${ECR_REGION}" 2>&1 || log "Failed to query sts get-caller-identity"
       fi
     fi
+  fi
+else
+  # AWS/ECR path not available; try skopeo (uses docker/auth) to list remote tags
+  if command -v skopeo >/dev/null 2>&1; then
+    log "AWS CLI not available or registry not ECR; using skopeo to list tags for ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}"
+    if skopeo list-tags --tls-verify=false docker://${REGISTRY_HOST}/${REMOTE_IMAGE_NAME} 2>/tmp/skopeo_out.$$; then
+      # pretty print skopeo output (JSON) if possible
+      if command -v jq >/dev/null 2>&1; then
+        jq . /tmp/skopeo_out.$$ || cat /tmp/skopeo_out.$$
+      else
+        cat /tmp/skopeo_out.$$
+      fi
+      rm -f /tmp/skopeo_out.$$ || true
+    else
+      log "skopeo failed to list tags for ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}; raw output follows"
+      cat /tmp/skopeo_out.$$ 2>/dev/null || true
+      rm -f /tmp/skopeo_out.$$ || true
+    fi
+  else
+    log "Skipping remote listing: AWS CLI unavailable or registry not ECR, and 'skopeo' not installed to query the registry directly"
+    log "To enable remote listing either install 'aws' and provide AWS_REGION and credentials, or install 'skopeo' so the script can query the registry using the existing docker credentials"
   fi
 fi
 
