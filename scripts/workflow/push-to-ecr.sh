@@ -89,16 +89,6 @@ else
   die "No usable login credentials returned from Proxygen; expected 'user' and 'password' in response"
 fi
 
-# Diagnostic: if aws CLI is available, show the AWS caller account and compare to registry account
-if command -v aws >/dev/null 2>&1; then
-  REGISTRY_ACCOUNT=$(echo "$REGISTRY_HOST" | cut -d. -f1 2>/dev/null || true)
-  AWS_CALLER_ACCOUNT="$(aws sts get-caller-identity --region "${AWS_REGION:-}" --query Account --output text 2>/dev/null || true)"
-  log "Registry account: ${REGISTRY_ACCOUNT:-unknown}, AWS caller account: ${AWS_CALLER_ACCOUNT:-unknown}"
-  if [ -n "${REGISTRY_ACCOUNT:-}" ] && [ -n "${AWS_CALLER_ACCOUNT:-}" ] && [ "${REGISTRY_ACCOUNT}" != "${AWS_CALLER_ACCOUNT}" ]; then
-    log "Warning: AWS caller account does not match registry account — describe-images may query a different account than the registry you pushed to"
-  fi
-fi
-
 REMOTE_COMMIT_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
 REMOTE_LATEST_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:latest"
 
@@ -129,63 +119,48 @@ fi
 
 log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${PUSH_LATEST:+ and latest}"
 
-# Print repository images for the repo after a successful push (ECR listing only)
-log "Listing images for repository ${REMOTE_IMAGE_NAME} at ${REGISTRY_HOST}"
-# Prefer AWS ECR API when available and registry is ECR
-if command -v aws >/dev/null 2>&1 && echo "${REGISTRY_HOST}" | grep -qE 'dkr\\.ecr\\.'; then
-  # Use AWS_REGION from environment
-  ECR_REGION="${AWS_REGION:-}"
-  if [ -z "${ECR_REGION}" ]; then
-    log "AWS_REGION not set; skipping ECR listing"
-  else
-    log "Querying ECR (${ECR_REGION}) for repository ${REMOTE_IMAGE_NAME}"
-    # Capture raw JSON or error output so we can diagnose empty/permission issues
-    IMAGES_RAW="$(aws ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" --output json 2>&1 || true)"
-    AWS_RC=$?
-    if [ $AWS_RC -ne 0 ]; then
-      log "Failed to call AWS ECR describe-images (exit $AWS_RC) — raw output follows"
-      printf '%s\n' "$IMAGES_RAW"
-      log "Checking AWS caller identity (may help diagnose permissions)"
-      aws sts get-caller-identity --region "${ECR_REGION}" 2>&1 || log "Failed to query sts get-caller-identity"
-      log "Checking repository existence"
-      aws ecr describe-repositories --repository-names "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" 2>&1 || log "Failed to describe repository"
+log "Listing images for repository ${REMOTE_IMAGE_NAME} at ${REGISTRY_HOST} using skopeo"
+if command -v skopeo >/dev/null 2>&1; then
+  TMP_OUT="/tmp/skopeo_out.$$"
+  if skopeo list-tags --tls-verify=false docker://${REGISTRY_HOST}/${REMOTE_IMAGE_NAME} >"${TMP_OUT}" 2>&1; then
+    # Extract tags
+    if command -v jq >/dev/null 2>&1; then
+      TAGS=$(jq -r '.Tags[]' "${TMP_OUT}" 2>/dev/null || true)
     else
-      # parse number of images
-      IMAGE_COUNT=$(echo "$IMAGES_RAW" | jq '.imageDetails | length' 2>/dev/null || echo 0)
-      if [ "$IMAGE_COUNT" -gt 0 ]; then
-        log "Found ${IMAGE_COUNT} images in ECR repo ${REMOTE_IMAGE_NAME}; printing table"
-        aws ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" \
-          --query 'imageDetails[].{Tags:imageTags, Digest:imageDigest, PushedAt:imagePushedAt}' --output table || log "Failed to render images table"
-      else
-        log "No images returned for repository ${REMOTE_IMAGE_NAME} (imageDetails empty) — raw output follows"
-        printf '%s\n' "$IMAGES_RAW"
-        log "Checking repository existence"
-        aws ecr describe-repositories --repository-names "${REMOTE_IMAGE_NAME}" --region "${ECR_REGION}" 2>&1 || log "Failed to describe repository"
-        log "Check caller identity to verify permissions"
-        aws sts get-caller-identity --region "${ECR_REGION}" 2>&1 || log "Failed to query sts get-caller-identity"
-      fi
+      # crude fallback to parse tags from JSON
+      TAGS=$(grep -o '"Tags"[[:space:]]*:[[:space:]]*\[[^]]*\]' "${TMP_OUT}" | sed -E 's/.*\[|\].*//g' | tr -d '" ' | tr ',' '\n' || true)
     fi
+
+    if [ -z "${TAGS}" ]; then
+      log "No tags found for ${REMOTE_IMAGE_NAME} (empty tag list)"
+      cat "${TMP_OUT}"
+    else
+      # Print header
+      printf '%s\t%s\t%s\n' "TAG" "DIGEST" "PUSHED_AT"
+      # Inspect each tag and print tag, digest and created timestamp
+      for tag in ${TAGS}; do
+        INFO_TMP="/tmp/skopeo_inspect.$$"
+        if skopeo inspect --tls-verify=false docker://${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:"${tag}" >"${INFO_TMP}" 2>/dev/null; then
+          if command -v jq >/dev/null 2>&1; then
+            DIGEST=$(jq -r '.Digest // empty' "${INFO_TMP}" 2>/dev/null || echo "")
+            CREATED=$(jq -r '.Created // empty' "${INFO_TMP}" 2>/dev/null || echo "")
+          else
+            DIGEST=$(grep -o '"Digest"[[:space:]]*:[[:space:]]*"[^"]*"' "${INFO_TMP}" | head -1 | sed -E 's/.*:"?([^"}]+)"?/\1/' || echo "")
+            CREATED=$(grep -o '"Created"[[:space:]]*:[[:space:]]*"[^"]*"' "${INFO_TMP}" | head -1 | sed -E 's/.*:"?([^"}]+)"?/\1/' || echo "")
+          fi
+          printf '%s\t%s\t%s\n' "${tag}" "${DIGEST:-}" "${CREATED:-}"
+        else
+          printf '%s\t%s\t%s\n' "${tag}" "(inspect failed)" ""
+        fi
+        rm -f "${INFO_TMP}" 2>/dev/null || true
+      done | (command -v column >/dev/null 2>&1 && column -t -s $'\t' || cat)
+    fi
+  else
+    log "skopeo failed to list tags for ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}; raw output follows"
+    cat "${TMP_OUT}" 2>/dev/null || true
   fi
+  rm -f "${TMP_OUT}" || true
 else
-  # AWS/ECR path not available; try skopeo (uses docker/auth) to list remote tags
-  if command -v skopeo >/dev/null 2>&1; then
-    log "AWS CLI not available or registry not ECR; using skopeo to list tags for ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}"
-    # capture both stdout and stderr to a temp file so we can always inspect it
-    if skopeo list-tags --tls-verify=false docker://${REGISTRY_HOST}/${REMOTE_IMAGE_NAME} > /tmp/skopeo_out.$$ 2>&1; then
-      # pretty print skopeo output (JSON) if possible
-      if command -v jq >/dev/null 2>&1; then
-        jq . /tmp/skopeo_out.$$ || cat /tmp/skopeo_out.$$
-      else
-        cat /tmp/skopeo_out.$$
-      fi
-      rm -f /tmp/skopeo_out.$$ || true
-    else
-      log "skopeo failed to list tags for ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}; raw output follows"
-      cat /tmp/skopeo_out.$$ 2>/dev/null || true
-      rm -f /tmp/skopeo_out.$$ || true
-    fi
-  else
-    log "Skipping remote listing: AWS CLI unavailable or registry not ECR, and 'skopeo' not installed to query the registry directly"
-    log "To enable remote listing either install 'aws' and provide AWS_REGION and credentials, or install 'skopeo' so the script can query the registry using the existing docker credentials"
-  fi
+  log "skopeo not installed; cannot list remote images via registry auth"
+  log "Install 'skopeo' on the runner or use the AWS CLI (requires AWS creds for registry account)"
 fi
