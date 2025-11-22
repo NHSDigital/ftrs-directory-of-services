@@ -89,6 +89,16 @@ else
   die "No usable login credentials returned from Proxygen; expected 'user' and 'password' in response"
 fi
 
+# Diagnostic: if aws CLI is available, show the AWS caller account and compare to registry account
+if command -v aws >/dev/null 2>&1; then
+  REGISTRY_ACCOUNT=$(echo "$REGISTRY_HOST" | cut -d. -f1 2>/dev/null || true)
+  AWS_CALLER_ACCOUNT="$(aws sts get-caller-identity --region "${AWS_REGION:-}" --query Account --output text 2>/dev/null || true)"
+  log "Registry account: ${REGISTRY_ACCOUNT:-unknown}, AWS caller account: ${AWS_CALLER_ACCOUNT:-unknown}"
+  if [ -n "${REGISTRY_ACCOUNT:-}" ] && [ -n "${AWS_CALLER_ACCOUNT:-}" ] && [ "${REGISTRY_ACCOUNT}" != "${AWS_CALLER_ACCOUNT}" ]; then
+    log "Warning: AWS caller account does not match registry account — describe-images may query a different account than the registry you pushed to"
+  fi
+fi
+
 REMOTE_COMMIT_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
 REMOTE_LATEST_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:latest"
 
@@ -178,4 +188,3 @@ else
     log "To enable remote listing either install 'aws' and provide AWS_REGION and credentials, or install 'skopeo' so the script can query the registry using the existing docker credentials"
   fi
 fi
-
