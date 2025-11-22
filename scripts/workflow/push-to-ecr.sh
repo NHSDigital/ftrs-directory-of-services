@@ -135,12 +135,13 @@ if command -v skopeo >/dev/null 2>&1; then
       log "No tags found for ${REMOTE_IMAGE_NAME} (empty tag list)"
       cat "${TMP_OUT}"
     else
-      # Print header (include fully-qualified IMAGE column)
+      # Print header (include IMAGE column without registry host)
       printf '%s\t%s\t%s\t%s\n' "IMAGE" "TAG" "DIGEST" "PUSHED_AT"
-      # Inspect each tag and print image (registry/repo:tag), tag, digest and created timestamp
+      # Inspect each tag and print image (repo:tag), tag, digest and created timestamp
       for tag in ${TAGS}; do
         INFO_TMP="/tmp/skopeo_inspect.$$"
-        IMAGE_FQ="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${tag}"
+        IMAGE_NAME="${REMOTE_IMAGE_NAME}:${tag}"
+        IMAGE_FQ="${REGISTRY_HOST}/${IMAGE_NAME}"
         if skopeo inspect --tls-verify=false docker://${IMAGE_FQ} >"${INFO_TMP}" 2>/dev/null; then
           if command -v jq >/dev/null 2>&1; then
             DIGEST=$(jq -r '.Digest // empty' "${INFO_TMP}" 2>/dev/null || echo "")
@@ -149,9 +150,9 @@ if command -v skopeo >/dev/null 2>&1; then
             DIGEST=$(grep -o '"Digest"[[:space:]]*:[[:space:]]*"[^"]*"' "${INFO_TMP}" | head -1 | sed -E 's/.*:"?([^"}]+)"?/\1/' || echo "")
             CREATED=$(grep -o '"Created"[[:space:]]*:[[:space:]]*"[^"]*"' "${INFO_TMP}" | head -1 | sed -E 's/.*:"?([^"}]+)"?/\1/' || echo "")
           fi
-          printf '%s\t%s\t%s\t%s\n' "${IMAGE_FQ}" "${tag}" "${DIGEST:-}" "${CREATED:-}"
+          printf '%s\t%s\t%s\t%s\n' "${IMAGE_NAME}" "${tag}" "${DIGEST:-}" "${CREATED:-}"
         else
-          printf '%s\t%s\t%s\t%s\n' "${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${tag}" "${tag}" "(inspect failed)" ""
+          printf '%s\t%s\t%s\t%s\n' "${IMAGE_NAME}" "${tag}" "(inspect failed)" ""
         fi
         rm -f "${INFO_TMP}" 2>/dev/null || true
       done | (command -v column >/dev/null 2>&1 && column -t -s $'\t' || cat)
