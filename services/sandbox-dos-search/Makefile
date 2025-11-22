@@ -96,18 +96,16 @@ push-to-ecr:
 		exit 1; \
 	fi
 	chmod +x "${PUSH_SCRIPT}" >/dev/null 2>&1 || true
-	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	# Ensure Python deps for get-apim-token.sh are available
 	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
-	python -m pip install "PyJWT>=2" "cryptography" >/dev/null 2>&1 || true; \
-	# Write token to a temp file using the token script, then let push-to-ecr.sh read it
-	TMP_TOKEN_FILE="$$(mktemp /tmp/ftrs_apim_${API_NAME}_$$.XXXXXXXX)"; \
-	OUTPUT_FILE="$$TMP_TOKEN_FILE" API_NAME="${API_NAME}" ENVIRONMENT="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	if [ -s "$$TMP_TOKEN_FILE" ]; then \
-		echo "DEBUG: wrote token to file $$TMP_TOKEN_FILE"; \
-	else \
-		echo "Failed to retrieve APIM access token (no token file)"; \
-		rm -f "$$TMP_TOKEN_FILE" >/dev/null 2>&1 || true; \
+	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
+	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
+		echo "get-apim-token script not found: $(GET_APIM_TOKEN_SCRIPT)"; \
+		exit 1; \
+	fi; \
+	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
+	ACCESS_TOKEN="$$(API_NAME="${API_NAME}" ENV="$(ENVIRONMENT)" AWS_REGION="$(AWS_REGION)" /bin/bash "$(GET_APIM_TOKEN_SCRIPT)")"; \
+	if [ -z "$$ACCESS_TOKEN" ]; then \
+		echo "Failed to retrieve APIM access token"; \
 		exit 1; \
 	fi
 	# If the desired commit (COMMIT_SOURCE) differs from IMAGE_TAG, retag the built image to COMMIT_SOURCE
@@ -119,10 +117,9 @@ push-to-ecr:
 		PUSH_IMAGE="${FULL_IMAGE}"; \
 	fi; \
 	# Debug: show token presence — print length and base64 (avoids exact-string masking)
-	echo "DEBUG: token file path=$$TMP_TOKEN_FILE"; \
-	# Call push script and pass OUTPUT_FILE so it reads the token file
-	OUTPUT_FILE="$$TMP_TOKEN_FILE" ENVIRONMENT="$(ENVIRONMENT)" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"; \
-	rm -f "$$TMP_TOKEN_FILE" >/dev/null 2>&1 || true
+	echo "DEBUG: ACCESS_TOKEN length=$$(printf '%s' "$$ACCESS_TOKEN" | wc -c)"; \
+	echo "DEBUG: ACCESS_TOKEN b64=$$(printf '%s' "$$ACCESS_TOKEN" | base64)"; \
+	ACCESS_TOKEN="$${ACCESS_TOKEN:-}" "${PUSH_SCRIPT}" "${API_NAME}" "${PUSH_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
