@@ -95,32 +95,39 @@ if [ -z "$ACCESS_TOKEN" ]; then
     exit 1
 fi
 
+# Always print the token to stdout so callers can capture it
 echo "Successfully retrieved access token" >&2
 echo "$ACCESS_TOKEN"
 
-# Atomically write the access token to a file and print it.
-# Prefer explicit OUTPUT_FILE; otherwise derive a canonical path using API_NAME and ENV.
+WRITE_TOKEN_FILE_RAW=${WRITE_TOKEN_FILE:-}
+WRITE_TOKEN_FILE_LC=$(echo "${WRITE_TOKEN_FILE_RAW}" | tr '[:upper:]' '[:lower:]')
+case "${WRITE_TOKEN_FILE_LC}" in
+  true|1|yes)
+    ;;
+  *)
+    echo "Skipping token file write because WRITE_TOKEN_FILE='${WRITE_TOKEN_FILE_RAW}' (default is to not write)" >&2
+    exit 0
+    ;;
+esac
+
+# Determine token file path; prefer ENVIRONMENT (from Makefile) then ENV for backward compat
+ENV_NAME="${ENVIRONMENT:-${ENV:-}}"
 if [ -n "${OUTPUT_FILE:-}" ]; then
   TOKEN_FILE="${OUTPUT_FILE}"
 else
-  if [ -z "${API_NAME:-}" ] || [ -z "${ENV:-}" ]; then
+  if [ -z "${API_NAME:-}" ] || [ -z "${ENV_NAME:-}" ]; then
     echo "Error: OUTPUT_FILE not set and API_NAME/ENV not provided to derive token path" >&2
     exit 1
   fi
-  TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENV}"
+  TOKEN_FILE="/tmp/ftrs_apim_${API_NAME}_${ENV_NAME}"
 fi
 
-# Ensure directory exists (in case a path with dirs provided)
 mkdir -p "$(dirname "$TOKEN_FILE")" 2>/dev/null || true
 
 TMP_TOKEN_FILE="${TOKEN_FILE}.$$"
-# Use strict umask to ensure created file has only owner perms
 umask 077
 printf '%s' "$ACCESS_TOKEN" > "$TMP_TOKEN_FILE"
 chmod 600 "$TMP_TOKEN_FILE"
 mv "$TMP_TOKEN_FILE" "$TOKEN_FILE"
 
-# Feedback and print token contents
-echo "Successfully retrieved access token" >&2
 echo "Wrote token to file: $TOKEN_FILE" >&2
-cat "$TOKEN_FILE"
