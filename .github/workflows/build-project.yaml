@@ -27,6 +27,10 @@ on:
         description: "The deployment environment"
         required: true
         type: string
+      matrix_environment:
+        description: "Optional per-matrix override for environment"
+        required: false
+        type: string
       repo_name:
         description: "The name of the Git repo"
         required: true
@@ -88,7 +92,7 @@ jobs:
       - name: "Get directories"
         id: get-directories
         run: |
-          if [[ "${{ inputs.build_type }}" == "service" ]]; then
+          if [[ "${{ inputs.build_type }}" == "service" ]] || [[ "${{ inputs.build_type }}" == "container" ]]; then
             echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
             echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
           elif [[ "${{ inputs.build_type }}" == "package" ]]; then
@@ -128,7 +132,9 @@ jobs:
           APPLICATION_TAG: ${{ inputs.application_tag }}
           REPO_NAME: ${{ inputs.repo_name }}
 
-      - name: "Publish artefacts to S3"
+      - name: ${{ inputs.build_type == 'container' && 'Push image to ECR' || 'Publish artefacts to S3' }}
+        # if: ${{ inputs.build_type == 'service' || (inputs.build_type == 'container' && github.ref == 'refs/heads/main') }}
+        if: ${{ inputs.build_type == 'service' || inputs.build_type == 'container' }}
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
@@ -140,9 +146,12 @@ jobs:
           WORKSPACE: ${{ inputs.workspace }}
           APPLICATION_TAG: ${{ inputs.application_tag }}
           RELEASE_BUILD: ${{ inputs.release_build }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v5
+        env:
+          ENVIRONMENT: ${{ inputs.build_type == 'container' && inputs.matrix_environment || inputs.environment }}
         with:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}
