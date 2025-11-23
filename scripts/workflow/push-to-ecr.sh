@@ -208,7 +208,11 @@ truncate_digest(){
   if [ ${#d} -le "$max" ]; then
     printf '%s' "$d"
   else
-    printf '%s...%s' "${d:0:12}" "${d: - (max-15) }" 2>/dev/null || printf '%s' "${d:0:$max}"
+    local head tail_len tail
+    head="${d:0:12}"
+    tail_len=$((max - 15))
+    tail="${d: -$tail_len}"
+    printf '%s...%s' "$head" "$tail"
   fi
 }
 
@@ -216,12 +220,14 @@ PUSHED_AT_NORM=$(normalize_ts "$PUSHED_AT")
 DIGEST_CLEAN=${DIGEST#sha256:}
 
 COL1=28
-COL2=64
+COL2=48
 FORMAT=$(printf '%%-%ds  %%-%ds  %%s\n' "$COL1" "$COL2")
 
 print_header(){
-  printf '%s\n' "List latest pushed image in ECR"
+  printf '\nList latest pushed image in ECR\n\n'
   printf "$FORMAT" "IMAGE" "DIGEST" "PUSHED_AT"
+  printf "$FORMAT" "$(printf '%*s' $COL1 '' | tr ' ' '-')" "$(printf '%*s' $COL2 '' | tr ' ' '-')" "$(printf '%*s' 19 '' | tr ' ' '-')"
+  printf '\n'
 }
 
 print_row(){
