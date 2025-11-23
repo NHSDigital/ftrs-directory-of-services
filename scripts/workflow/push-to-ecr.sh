@@ -134,7 +134,7 @@ if ! http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/tags/list" -o "$
 fi
 
 if command -v jq >/dev/null 2>&1; then jq -r '.tags[]' "$TMP_TAGS" > "$TMP_TAG_LIST" 2>/dev/null || true; else sed -n 's/.*"tags"[[:space:]]*:[[:space:]]*\[//p' "$TMP_TAGS" | tr -d '[]" ' | tr ',' '\n' > "$TMP_TAG_LIST" || true; fi
-TAG_COUNT=$$(wc -l < "$TMP_TAG_LIST" 2>/dev/null || echo 0)
+TAG_COUNT=$(wc -l < "$TMP_TAG_LIST" 2>/dev/null || echo 0)
 log "Found ${TAG_COUNT} tags for ${REMOTE_IMAGE_NAME} (is_ecr=${IS_ECR}, aws_available=${AWS_AVAILABLE})"
 [ -s "$TMP_TAG_LIST" ] || { log "No tags found for ${REMOTE_IMAGE_NAME}"; exit 0; }
 
