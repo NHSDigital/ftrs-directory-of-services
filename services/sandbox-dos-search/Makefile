@@ -60,10 +60,9 @@ build:
 
 	mkdir -p "$(BUILD_OUTPUT_DIR)"
 
-	IMAGE_ID=$$(docker image inspect -f '{{.Id}}' "${FULL_IMAGE}" 2>/dev/null || echo "")
-	REPO_DIGEST=$$(docker image inspect -f '{{index .RepoDigests 0}}' "${FULL_IMAGE}" 2>/dev/null || echo "")
-	BUILT_AT=$$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
+	IMAGE_ID=$$(docker image inspect -f '{{.Id}}' "${FULL_IMAGE}" 2>/dev/null || echo "") ; \
+	REPO_DIGEST=$$(docker image inspect -f '{{index .RepoDigests 0}}' "${FULL_IMAGE}" 2>/dev/null || echo "") ; \
+	BUILT_AT=$$(date -u +"%Y-%m-%dT%H:%M:%SZ") ; \
 	printf '{"image":"%s","image_id":"%s","repo_digest":"%s","built_at":"%s"}\n' "${FULL_IMAGE}" "$$IMAGE_ID" "$$REPO_DIGEST" "$$BUILT_AT" > "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" && \
 	mv "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" "$(BUILD_OUTPUT_DIR)/manifest.json"
 
