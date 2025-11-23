@@ -66,12 +66,12 @@ print_summary(){
   dash1=$(printf '%*s' "$col1" '' | tr ' ' '-')
   dash2=$(printf '%*s' 72 '' | tr ' ' '-')
   local format="%-${col1}s | %s\n"
-  printf '\n'
   printf '\nLatest pushed image summary for repository: %s on registry: %s\n\n' "${REMOTE_IMAGE_NAME}" "${REGISTRY_HOST}"
   printf "$format" "IMAGE" "DIGEST"
   printf "$format" "$dash1" "$dash2"
   printf '\n'
   printf "$format" "$image" "$digest"
+  printf '\n'
 }
 
 init(){
