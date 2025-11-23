@@ -48,10 +48,7 @@ PASSWORD=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.password // empty')
 REGISTRY=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.registry // empty')
 [ -n "$REGISTRY" ] || die "Malformed response from Proxygen: missing registry"
 REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
-IS_ECR=false
-if printf '%s' "$REGISTRY_HOST" | grep -q 'dkr.ecr.'; then IS_ECR=true; fi
 AWS_CMD=aws
-log "Assuming aws CLI at: $AWS_CMD"
 
 [ -n "$USER" -a -n "$PASSWORD" ] || die "No usable login credentials returned from Proxygen"
 printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
@@ -143,7 +140,7 @@ TMP_MANIFEST=$(mktemp /tmp/registry_manifest.XXXXXX)
 TMP_CONFIG=$(mktemp /tmp/registry_config.XXXXXX)
 trap 'rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true' EXIT
 
-if [ "${IS_ECR}" = "true" ]; then
+if printf '%s' "$REGISTRY_HOST" | grep -qE '^[0-9]+\.dkr\.ecr\.'; then
   AWS_REGION_EFFECTIVE="${AWS_REGION}"
   AWS_OUT=$(${AWS_CMD} --region "${AWS_REGION_EFFECTIVE}" ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --image-ids imageTag="${REMOTE_IMAGE_TAG}" --query 'imageDetails[0].[imageDigest,imagePushedAt]' --output text 2>/dev/null || true)
   if [ -n "${AWS_OUT}" ]; then
@@ -194,7 +191,45 @@ if [ -z "${PUSHED_AT}" ]; then
   log "PUSHED_AT unknown from local/registry; falling back to current UTC time: ${PUSHED_AT}"
 fi
 
-printf '%s
-' "List images in ECR"
-printf '%-40s  %-72s  %s\n' "IMAGE" "DIGEST" "PUSHED_AT"
-printf '%-40s  %-72s  %s\n' "$IMAGE_NAME" "$DIGEST" "$PUSHED_AT"
+normalize_ts(){
+  local ts="$1" out
+  [ -z "$ts" ] && { printf ''; return 0; }
+  out=$(date -u -d "$ts" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || true)
+  if [ -n "$out" ]; then
+    printf '%s' "$out"
+  else
+    printf '%s' "$ts"
+  fi
+}
+
+truncate_digest(){
+  local d="$1" max="$2"
+  [ -z "$d" ] && { printf ''; return 0; }
+  if [ ${#d} -le "$max" ]; then
+    printf '%s' "$d"
+  else
+    printf '%s...%s' "${d:0:12}" "${d: - (max-15) }" 2>/dev/null || printf '%s' "${d:0:$max}"
+  fi
+}
+
+PUSHED_AT_NORM=$(normalize_ts "$PUSHED_AT")
+DIGEST_CLEAN=${DIGEST#sha256:}
+
+COL1=28
+COL2=64
+FORMAT=$(printf '%%-%ds  %%-%ds  %%s\n' "$COL1" "$COL2")
+
+print_header(){
+  printf '%s\n' "List latest pushed image in ECR"
+  printf "$FORMAT" "IMAGE" "DIGEST" "PUSHED_AT"
+}
+
+print_row(){
+  local img="$1" dig="$2" ts="$3"
+  local dig_trunc
+  dig_trunc=$(truncate_digest "$dig" "$COL2")
+  printf "$FORMAT" "$img" "$dig_trunc" "$ts"
+}
+
+print_header
+print_row "$IMAGE_NAME" "$DIGEST_CLEAN" "$PUSHED_AT_NORM"
