@@ -16,7 +16,7 @@ SHELL := /bin/bash
 API_NAME ?= dos-search
 PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
 GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
-PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-inmemory-wrapper.sh
+PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-wrapper.sh
 
 ENVIRONMENT ?=
 AWS_REGION ?=
@@ -64,7 +64,7 @@ build:
 	REPO_DIGEST=$$(docker image inspect -f '{{index .RepoDigests 0}}' "${FULL_IMAGE}" 2>/dev/null || echo "")
 	BUILT_AT=$$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-	printf '{"image":"%s","image_id":"%s","repo_digest":"%s","built_at":"%s"}\n' "${FULL_IMAGE}" "$${IMAGE_ID:-}" "$${REPO_DIGEST:-}" "$${BUILT_AT:-}" > "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" && \
+	printf '{"image":"%s","image_id":"%s","repo_digest":"%s","built_at":"%s"}\n' "${FULL_IMAGE}" "$$IMAGE_ID" "$$REPO_DIGEST" "$$BUILT_AT" > "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" && \
 	mv "$(BUILD_OUTPUT_DIR)/manifest.json.tmp" "$(BUILD_OUTPUT_DIR)/manifest.json"
 
 	tar --exclude="build" --exclude=".git" --exclude=".venv" --exclude="venv" --exclude="node_modules" -czf "$(BUILD_OUTPUT_DIR)/source.tar.gz" -C "${DOCKER_CONTEXT}" . || true
@@ -74,9 +74,6 @@ unit-test: build
 	docker run -d --rm -p 9000:9000 --name ${CONTAINER_NAME} ${FULL_IMAGE}
 	@trap 'docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true' EXIT TERM INT; \
 	WAIT_SECS=60 BASE_URL=http://localhost:9000 ${SMOKE_SCRIPT}
-
-# publish:
-# 	@echo "Skipping S3 artefact publish for sandbox service"
 
 publish:
 	if [ -z "${API_NAME}" ]; then \
@@ -105,9 +102,7 @@ publish:
 		exit 1; \
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
-	# Ensure the wrapper is executable so we can invoke it directly
 	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
-	# Call in-memory wrapper which captures the token and calls push-to-ecr with ACCESS_TOKEN in env
 	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"; \
 
 lint:
