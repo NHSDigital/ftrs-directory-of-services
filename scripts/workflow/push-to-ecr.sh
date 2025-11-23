@@ -50,33 +50,14 @@ REGISTRY=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.registry // empty')
 REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
 IS_ECR=false
 if printf '%s' "$REGISTRY_HOST" | grep -q 'dkr.ecr.'; then IS_ECR=true; fi
-AWS_AVAILABLE=false
-if command -v aws >/dev/null 2>&1; then AWS_AVAILABLE=true; AWS_CMD=aws; fi
-# Try to install awscli if we're on ECR and aws not present (best-effort)
-if [ "$IS_ECR" = "true" ] && [ "$AWS_AVAILABLE" = "false" ]; then
-  if command -v python3 >/dev/null 2>&1; then
-    log "aws CLI not found; attempting python3 -m pip install awscli (best-effort)"
-    set +e
-    python3 -m pip install --quiet --user --upgrade awscli >/dev/null 2>&1 || python3 -m pip install --quiet --upgrade awscli >/dev/null 2>&1 || true
-    set -e
-    if command -v aws >/dev/null 2>&1; then AWS_AVAILABLE=true; AWS_CMD=aws; fi
-    if [ "$AWS_AVAILABLE" = "false" ]; then
-      if python3 -m awscli --version >/dev/null 2>&1; then AWS_AVAILABLE=true; AWS_CMD="python3 -m awscli"; fi
-    fi
-    if [ "$AWS_AVAILABLE" = "true" ]; then
-      log "aws CLI available via: $AWS_CMD"
-    else
-      log "aws CLI not available; will fallback to config blob for timestamps"
-    fi
-  fi
-fi
+AWS_CMD=aws
+log "Assuming aws CLI at: $AWS_CMD"
+
 [ -n "$USER" -a -n "$PASSWORD" ] || die "No usable login credentials returned from Proxygen"
 printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
 
 REMOTE_COMMIT_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
 REMOTE_LATEST_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:latest"
-
-LATEST_PUSHED=false
 
 retry_push(){
   local tag="$1" attempt=1
@@ -107,27 +88,44 @@ get_manifest_digest(){
 epoch_from_iso(){
   local iso="${1:-}" s
   [ -z "$iso" ] && { printf '0'; return 0; }
-  s=$(printf '%s' "$iso" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/\.[0-9]+//; s/Z$//')
+  s=$(printf '%s' "$iso" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/\.[0-9]\+//; s/Z$//')
   if date -d "$s" +%s >/dev/null 2>&1; then date -d "$s" +%s 2>/dev/null && return 0; fi
   printf '0'
 }
 
-if [ "$PUSH_LATEST" = "true" ]; then
-  if [ "$REMOTE_IMAGE_TAG" = "latest" ]; then
+get_local_created(){
+  local candidates img out repo_created
+  candidates=("${REMOTE_COMMIT_TAG}" "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${REMOTE_IMAGE_NAME##*/}:${REMOTE_IMAGE_TAG}")
+  for img in "${candidates[@]}"; do
+    out=$(docker image inspect -f '{{.Created}}' "$img" 2>/dev/null || true)
+    if [ -n "$out" ]; then
+      printf '%s' "$out"
+      return 0
+    fi
+  done
+  repo_created=$(docker images --format '{{.Repository}}:{{.Tag}}\t{{.CreatedAt}}' 2>/dev/null | awk -v repo1="${REMOTE_COMMIT_TAG}" -v repo2="${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" -v repo3="${REMOTE_IMAGE_NAME##*/}:${REMOTE_IMAGE_TAG}" 'BEGIN{FS="\t"}{if($1==repo1||$1==repo2||$1==repo3){print $2; exit}}')
+  if [ -n "$repo_created" ]; then
+    printf '%s' "$repo_created"
+    return 0
+  fi
+  return 1
+}
+
+if [ "${PUSH_LATEST}" = "true" ]; then
+  if [ "${REMOTE_IMAGE_TAG}" = "latest" ]; then
     log "IMAGE_TAG is 'latest' - skipping separate latest"
   else
-    COMMIT_DIGEST=$(get_manifest_digest "$REMOTE_IMAGE_TAG" || true)
+    COMMIT_DIGEST=$(get_manifest_digest "${REMOTE_IMAGE_TAG}" || true)
     LATEST_DIGEST=$(get_manifest_digest "latest" || true)
     log "COMMIT_DIGEST='${COMMIT_DIGEST:-<none>}' LATEST_DIGEST='${LATEST_DIGEST:-<none>}'"
-    if [ -z "$COMMIT_DIGEST" ]; then
+    if [ -z "${COMMIT_DIGEST}" ]; then
       log "Unable to determine manifest digest for ${REMOTE_IMAGE_TAG}; skipping :latest push"
-    elif [ -n "$LATEST_DIGEST" ] && [ "$COMMIT_DIGEST" = "$LATEST_DIGEST" ]; then
+    elif [ -n "${LATEST_DIGEST}" ] && [ "${COMMIT_DIGEST}" = "${LATEST_DIGEST}" ]; then
       log "Remote latest already points to the same manifest - skipping :latest push"
     else
-      log "Tagging $LOCAL_IMAGE as $REMOTE_LATEST_TAG"
-      docker tag "$LOCAL_IMAGE" "$REMOTE_LATEST_TAG"
-      retry_push "$REMOTE_LATEST_TAG"
-      LATEST_PUSHED=true
+      log "Tagging ${LOCAL_IMAGE} as ${REMOTE_LATEST_TAG}"
+      docker tag "${LOCAL_IMAGE}" "${REMOTE_LATEST_TAG}"
+      retry_push "${REMOTE_LATEST_TAG}"
     fi
   fi
 else
@@ -135,52 +133,68 @@ else
 fi
 
 LATEST_SUFFIX=""
-[ "$PUSH_LATEST" = "true" ] && LATEST_SUFFIX=" and latest"
+[ "${PUSH_LATEST}" = "true" ] && LATEST_SUFFIX=" and latest"
 log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${LATEST_SUFFIX}"
-
-TMP_MANIFEST=$(mktemp /tmp/registry_manifest.XXXXXX)
-TMP_CONFIG=$(mktemp /tmp/registry_config.XXXXXX)
-trap 'rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true' EXIT
 
 IMAGE_NAME="${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
 DIGEST=""
 PUSHED_AT=""
+TMP_MANIFEST=$(mktemp /tmp/registry_manifest.XXXXXX)
+TMP_CONFIG=$(mktemp /tmp/registry_config.XXXXXX)
+trap 'rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true' EXIT
 
-if [ "$IS_ECR" = "true" ] && [ "$AWS_AVAILABLE" = "true" ]; then
-  AWS_REGION_EFFECTIVE="${AWS_REGION:-eu-west-2}"
-  AWS_OUT=$($AWS_CMD --region "$AWS_REGION_EFFECTIVE" ecr describe-images --repository-name "$REMOTE_IMAGE_NAME" --image-ids imageTag="$REMOTE_IMAGE_TAG" --query 'imageDetails[0].[imageDigest,imagePushedAt]' --output text 2>/dev/null || true)
-  if [ -n "$AWS_OUT" ]; then
-    DIGEST=$(printf '%s' "$AWS_OUT" | awk '{print $1}')
-    PUSHED_AT=$(printf '%s' "$AWS_OUT" | awk '{print $2}')
+if [ "${IS_ECR}" = "true" ]; then
+  AWS_REGION_EFFECTIVE="${AWS_REGION}"
+  AWS_OUT=$(${AWS_CMD} --region "${AWS_REGION_EFFECTIVE}" ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --image-ids imageTag="${REMOTE_IMAGE_TAG}" --query 'imageDetails[0].[imageDigest,imagePushedAt]' --output text 2>/dev/null || true)
+  if [ -n "${AWS_OUT}" ]; then
+    DIGEST=$(printf '%s' "${AWS_OUT}" | awk '{print $1}')
+    PUSHED_AT_CAND=$(printf '%s' "${AWS_OUT}" | awk '{print $2}')
+    if [ -n "${PUSHED_AT_CAND}" ] && [ "${PUSHED_AT_CAND}" != "None" ]; then
+      PUSHED_AT="${PUSHED_AT_CAND}"
+      log "AWS ECR provided pushedAt for ${REMOTE_IMAGE_TAG}: ${PUSHED_AT}"
+    fi
   fi
 fi
 
-if [ -z "$DIGEST" ]; then
-  DIGEST=$(get_manifest_digest "$REMOTE_IMAGE_TAG" || true)
+if [ -z "${PUSHED_AT}" ] && docker image inspect "${REMOTE_COMMIT_TAG}" >/dev/null 2>&1; then
+  PUSHED_AT=$(docker image inspect -f '{{.Created}}' "${REMOTE_COMMIT_TAG}" 2>/dev/null || true)
+  log "Found local Created for ${REMOTE_COMMIT_TAG}: ${PUSHED_AT}"
 fi
 
-if [ -z "$PUSHED_AT" ]; then
-  if http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" -o "$TMP_MANIFEST" 2>/dev/null; then
+if [ -z "${PUSHED_AT}" ] && docker image inspect "${LOCAL_IMAGE}" >/dev/null 2>&1; then
+  PUSHED_AT=$(docker image inspect -f '{{.Created}}' "${LOCAL_IMAGE}" 2>/dev/null || true)
+  log "Found local Created for ${LOCAL_IMAGE}: ${PUSHED_AT}"
+fi
+
+if [ -z "${PUSHED_AT}" ]; then
+  if http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" -o "${TMP_MANIFEST}" 2>/dev/null; then
     if command -v jq >/dev/null 2>&1; then
-      CONFIG_DIGEST=$(jq -r '.config.digest // empty' "$TMP_MANIFEST" 2>/dev/null || true)
+      CONFIG_DIGEST=$(jq -r '.config.digest // empty' "${TMP_MANIFEST}" 2>/dev/null || true)
     else
-      CONFIG_DIGEST=$(grep -o '"config"[^{]*{[^}]*"digest"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_MANIFEST" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)"/\1/' | head -1 || true)
+      CONFIG_DIGEST=$(grep -o '"config"[^{]*{[^}]*"digest"[[:space:]]*:[[:space:]]*"[^"]*"' "${TMP_MANIFEST}" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)"/\1/' | head -1 || true)
     fi
-    if [ -n "$CONFIG_DIGEST" ]; then
-      if http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/blobs/${CONFIG_DIGEST}" -o "$TMP_CONFIG" 2>/dev/null; then
+    if [ -n "${CONFIG_DIGEST}" ]; then
+      if http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/blobs/${CONFIG_DIGEST}" -o "${TMP_CONFIG}" 2>/dev/null; then
         if command -v jq >/dev/null 2>&1; then
-          PUSHED_AT=$(jq -r '.created // .created_at // empty' "$TMP_CONFIG" 2>/dev/null || true)
+          PUSHED_AT=$(jq -r '.created // .created_at // empty' "${TMP_CONFIG}" 2>/dev/null || true)
         else
-          PUSHED_AT=$(grep -o '"created"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_CONFIG" | head -1 | sed -E 's/.*:[[:space:]]*"([^\"]*)"/\1/' || true)
+          PUSHED_AT=$(grep -o '"created"[[:space:]]*:[[:space:]]*"[^"]*"' "${TMP_CONFIG}" | head -1 | sed -E 's/.*:[[:space:]]*"([^\"]*)"/\1/' || true)
         fi
       fi
     fi
   fi
 fi
 
-[ -z "$DIGEST" ] && DIGEST=""
-[ -z "$PUSHED_AT" ] && PUSHED_AT=""
+if [ -z "${DIGEST}" ]; then
+  DIGEST=$(get_manifest_digest "${REMOTE_IMAGE_TAG}" || true)
+fi
 
-printf '%s\t%s\t%s\n' "IMAGE" "DIGEST" "PUSHED_AT"
-printf '%s\t%s\t%s\n' "$IMAGE_NAME" "$DIGEST" "$PUSHED_AT"
-printf '\nLATEST_PUSHED=%s\n' "$LATEST_PUSHED"
+if [ -z "${PUSHED_AT}" ]; then
+  PUSHED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  log "PUSHED_AT unknown from local/registry; falling back to current UTC time: ${PUSHED_AT}"
+fi
+
+printf '%s
+' "List images in ECR"
+printf '%-40s  %-72s  %s\n' "IMAGE" "DIGEST" "PUSHED_AT"
+printf '%-40s  %-72s  %s\n' "$IMAGE_NAME" "$DIGEST" "$PUSHED_AT"
