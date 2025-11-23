@@ -41,6 +41,21 @@ REGISTRY=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.registry // empty')
 [ -n "$REGISTRY" ] || die "Malformed response from Proxygen: missing registry"
 REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
 
+# verify registry account and region match AWS environment (log warnings if not)
+REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
+REGISTRY_REGION=$(printf '%s' "$REGISTRY_HOST" | awk -F'.' '{for(i=1;i<=NF;i++){ if($i=="ecr"){print $(i+1); exit}}}')
+if command -v aws >/dev/null 2>&1; then
+  AWS_CALLER_ACCOUNT=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
+  if [ -n "$AWS_CALLER_ACCOUNT" ] && [ "$AWS_CALLER_ACCOUNT" != "$REGISTRY_ACCOUNT" ]; then
+    log "WARNING: AWS caller account ($AWS_CALLER_ACCOUNT) does not match registry account ($REGISTRY_ACCOUNT)"
+  fi
+else
+  log "WARNING: aws CLI not available to validate registry/account"
+fi
+if [ -n "${AWS_REGION:-}" ] && [ -n "$REGISTRY_REGION" ] && [ "${AWS_REGION}" != "$REGISTRY_REGION" ]; then
+  log "WARNING: AWS_REGION (${AWS_REGION}) does not match registry region (${REGISTRY_REGION})"
+fi
+
 [ -n "$USER" -a -n "$PASSWORD" ] || die "No usable login credentials returned from Proxygen"
 printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
 
@@ -66,8 +81,22 @@ DIGEST=""
 PUSHED_AT=""
 PUSHED_AT_SOURCE=""
 
+ECR_DESCRIBE_RETRIES=${ECR_DESCRIBE_RETRIES:-5}
+ECR_DESCRIBE_SLEEP=${ECR_DESCRIBE_SLEEP:-1}
+attempt=1
+AWS_OUT=""
 if printf '%s' "${REGISTRY_HOST}" | grep -qE '^[0-9]+\.dkr\.ecr\.'; then
-  AWS_OUT=$(aws --region "${AWS_REGION}" ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --image-ids imageTag="${REMOTE_IMAGE_TAG}" --query 'imageDetails[0].[imageDigest,imagePushedAt]' --output text 2>/dev/null || true)
+  while [ $attempt -le $ECR_DESCRIBE_RETRIES ]; do
+    AWS_OUT=$(aws --region "${AWS_REGION}" ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --image-ids imageTag="${REMOTE_IMAGE_TAG}" --query 'imageDetails[0].[imageDigest,imagePushedAt]' --output text 2>/dev/null || true)
+    if [ -n "${AWS_OUT}" ]; then
+      break
+    fi
+    log "aws ecr describe-images returned no data for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} (attempt ${attempt}/${ECR_DESCRIBE_RETRIES}), retrying after ${ECR_DESCRIBE_SLEEP}s"
+    sleep ${ECR_DESCRIBE_SLEEP}
+    ECR_DESCRIBE_SLEEP=$(( ECR_DESCRIBE_SLEEP * 2 ))
+    attempt=$(( attempt + 1 ))
+  done
+
   if [ -n "${AWS_OUT}" ]; then
     DIGEST=$(printf '%s' "${AWS_OUT}" | awk '{print $1}')
     PUSHED_AT=$(printf '%s' "${AWS_OUT}" | awk '{print $2}')
@@ -75,7 +104,7 @@ if printf '%s' "${REGISTRY_HOST}" | grep -qE '^[0-9]+\.dkr\.ecr\.'; then
     ECR_AVAILABLE="true"
     log "ECR provided digest and pushedAt for ${REMOTE_IMAGE_TAG}: ${DIGEST}, ${PUSHED_AT}"
   else
-    log "WARNING: ECR returned no metadata for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}; continuing without ECR authoritative values"
+    log "WARNING: ECR returned no metadata for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} after ${ECR_DESCRIBE_RETRIES} attempts; continuing without ECR authoritative values"
     ECR_AVAILABLE="false"
   fi
 else
