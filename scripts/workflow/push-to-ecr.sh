@@ -207,26 +207,34 @@ truncate_digest(){
   [ -z "$d" ] && { printf ''; return 0; }
   if [ ${#d} -le "$max" ]; then
     printf '%s' "$d"
-  else
-    local head tail_len tail
-    head="${d:0:12}"
-    tail_len=$((max - 15))
-    tail="${d: -$tail_len}"
-    printf '%s...%s' "$head" "$tail"
+    return 0
   fi
+  local head_len=12 tail_len=12
+  if [ $((head_len + tail_len + 3)) -gt "$max" ]; then
+    head_len=$(( (max - 3) / 2 ))
+    tail_len=$(( max - 3 - head_len ))
+  fi
+  local head="${d:0:head_len}"
+  local tail="${d: -tail_len}"
+  printf '%s...%s' "$head" "$tail"
 }
 
 PUSHED_AT_NORM=$(normalize_ts "$PUSHED_AT")
 DIGEST_CLEAN=${DIGEST#sha256:}
 
-COL1=28
-COL2=48
-FORMAT=$(printf '%%-%ds  %%-%ds  %%s\n' "$COL1" "$COL2")
+COL1=20
+COL2=60
+
+dash1=$(printf '%*s' "$COL1" '' | tr ' ' '-')
+dash2=$(printf '%*s' "$COL2" '' | tr ' ' '-')
+dash3=$(printf '%*s' 19 '' | tr ' ' '-')
+
+FORMAT="%-${COL1}s  %-${COL2}s  %s\n"
 
 print_header(){
   printf '\nList latest pushed image in ECR\n\n'
   printf "$FORMAT" "IMAGE" "DIGEST" "PUSHED_AT"
-  printf "$FORMAT" "$(printf '%*s' $COL1 '' | tr ' ' '-')" "$(printf '%*s' $COL2 '' | tr ' ' '-')" "$(printf '%*s' 19 '' | tr ' ' '-')"
+  printf "$FORMAT" "$dash1" "$dash2" "$dash3"
   printf '\n'
 }
 
