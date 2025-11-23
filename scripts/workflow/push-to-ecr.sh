@@ -239,12 +239,11 @@ print_header(){
 }
 
 print_row(){
-  local img="$1" dig_trunc="$2" ts="$3" full_digest="$4"
+  local img="$1" dig="$2" ts="$3"
+  local dig_trunc
+  dig_trunc=$(truncate_digest "$dig" "$COL2")
   printf "$FORMAT" "$img" "$dig_trunc" "$ts"
-  printf "  DIGEST: %s\n\n" "$full_digest"
 }
 
 print_header
-print_row "$IMAGE_NAME" "$DIGEST_CLEAN" "$PUSHED_AT_NORM" "$DIGEST"
-
-exit 0
+print_row "$IMAGE_NAME" "$DIGEST_CLEAN" "$PUSHED_AT_NORM"
