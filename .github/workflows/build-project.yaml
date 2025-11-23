@@ -133,8 +133,7 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
 
       - name: ${{ inputs.build_type == 'container' && 'Push image to ECR' || 'Publish artefacts to S3' }}
-        # if: ${{ inputs.build_type == 'service' || (inputs.build_type == 'container' && github.ref == 'refs/heads/main') }}
-        if: ${{ inputs.build_type == 'service' || inputs.build_type == 'container' }}
+        if: ${{ inputs.build_type == 'service' || (inputs.build_type == 'container' && github.ref == 'refs/heads/main') }}
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
