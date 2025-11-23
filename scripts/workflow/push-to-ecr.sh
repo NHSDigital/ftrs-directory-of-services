@@ -61,14 +61,15 @@ extract_config_digest(){
 
 print_summary(){
   local image="$1" digest="$2"
-  local col1=36
-  local dash1
+  local col1=40
+  local dash1 dash2
   dash1=$(printf '%*s' "$col1" '' | tr ' ' '-')
-  local format="%-${col1}s  %s\n"
+  dash2=$(printf '%*s' 72 '' | tr ' ' '-')
+  local format="%-${col1}s | %s\n"
   printf '\n'
   printf '\nLatest pushed image summary for repository: %s on registry: %s\n\n' "${REMOTE_IMAGE_NAME}" "${REGISTRY_HOST}"
   printf "$format" "IMAGE" "DIGEST"
-  printf "$format" "$dash1" "$(printf '%*s' 64 '' | tr ' ' '-')"
+  printf "$format" "$dash1" "$dash2"
   printf '\n'
   printf "$format" "$image" "$digest"
 }
@@ -168,7 +169,7 @@ main(){
   push_image
   lookup_digest
   print_summary "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "$DIGEST"
-  log "[push-to-ecr] Verified image: ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} digest=${DIGEST}"
+  log "Verified image: ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} digest=${DIGEST}"
   printf '\n'
 }
 
