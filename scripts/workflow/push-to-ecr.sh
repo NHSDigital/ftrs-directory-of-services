@@ -193,6 +193,29 @@ print_row(){
   printf "$FORMAT" "$img" "$dig_trunc" "$ts"
 }
 
+default_truncate_digest(){
+  local d="$1" max="$2"
+  [ -z "$d" ] && { printf ''; return 0; }
+  if [ -z "$max" ]; then max=60; fi
+  if [ ${#d} -le "$max" ]; then
+    printf '%s' "$d"
+    return 0
+  fi
+  local head_len=20 tail_len=20
+  if [ $((head_len + tail_len + 3)) -gt "$max" ]; then
+    head_len=$(( (max - 3) / 2 ))
+    tail_len=$(( max - 3 - head_len ))
+  fi
+  local head="${d:0:head_len}"
+  local tail="${d: -tail_len}"
+  printf '%s...%s' "$head" "$tail"
+}
+
+# Provide a stable name the rest of the script expects
+truncate_digest(){
+  default_truncate_digest "$@"
+}
+
 print_header
 print_row "$IMAGE_PRINT" "$DIGEST_CLEAN" "$PUSHED_AT_NORM"
 
