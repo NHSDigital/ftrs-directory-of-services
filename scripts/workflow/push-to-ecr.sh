@@ -85,32 +85,83 @@ ECR_DESCRIBE_RETRIES=${ECR_DESCRIBE_RETRIES:-5}
 ECR_DESCRIBE_SLEEP=${ECR_DESCRIBE_SLEEP:-1}
 attempt=1
 AWS_OUT=""
-if printf '%s' "${REGISTRY_HOST}" | grep -qE '^[0-9]+\.dkr\.ecr\.'; then
-  while [ $attempt -le $ECR_DESCRIBE_RETRIES ]; do
-    AWS_OUT=$(aws --region "${AWS_REGION}" ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --image-ids imageTag="${REMOTE_IMAGE_TAG}" --query 'imageDetails[0].[imageDigest,imagePushedAt]' --output text 2>/dev/null || true)
-    if [ -n "${AWS_OUT}" ]; then
-      break
-    fi
-    log "aws ecr describe-images returned no data for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} (attempt ${attempt}/${ECR_DESCRIBE_RETRIES}), retrying after ${ECR_DESCRIBE_SLEEP}s"
-    sleep ${ECR_DESCRIBE_SLEEP}
-    ECR_DESCRIBE_SLEEP=$(( ECR_DESCRIBE_SLEEP * 2 ))
-    attempt=$(( attempt + 1 ))
-  done
 
-  if [ -n "${AWS_OUT}" ]; then
-    DIGEST=$(printf '%s' "${AWS_OUT}" | awk '{print $1}')
-    PUSHED_AT=$(printf '%s' "${AWS_OUT}" | awk '{print $2}')
-    PUSHED_AT_SOURCE="ecr"
-    ECR_AVAILABLE="true"
-    log "ECR provided digest and pushedAt for ${REMOTE_IMAGE_TAG}: ${DIGEST}, ${PUSHED_AT}"
+# Use registry API (manifest -> config) via Proxygen credentials to get digest and created/pushed time
+TMP_MANIFEST=$(mktemp /tmp/registry_manifest.XXXXXX)
+TMP_MANIFEST_SELECTED=""
+TMP_CONFIG=$(mktemp /tmp/registry_config.XXXXXX)
+if curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json' "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" -o "${TMP_MANIFEST}"; then
+  DIGEST_HEADER=$(curl -fsSI -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true)
+  # Determine if manifest is a manifest-list (multi-arch)
+  if command -v jq >/dev/null 2>&1 && jq -e '.manifests' "${TMP_MANIFEST}" >/dev/null 2>&1; then
+    # prefer linux/amd64 if present
+    SELECT_DIGEST=$(jq -r '.manifests[] | select(.platform.platform? // empty | .os == "linux" and (.architecture // "") == "amd64") | .digest' "${TMP_MANIFEST}" 2>/dev/null | head -n1 || true)
+    if [ -z "${SELECT_DIGEST}" ]; then
+      SELECT_DIGEST=$(jq -r '.manifests[0].digest // empty' "${TMP_MANIFEST}" 2>/dev/null || true)
+    fi
+    if [ -n "${SELECT_DIGEST}" ]; then
+      if curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${SELECT_DIGEST}" -o "${TMP_MANIFEST}.selected"; then
+        TMP_MANIFEST_SELECTED="${TMP_MANIFEST}.selected"
+        MANIFEST_TO_PARSE="${TMP_MANIFEST_SELECTED}"
+        DIGEST="${SELECT_DIGEST}"
+      else
+        MANIFEST_TO_PARSE="${TMP_MANIFEST}"
+      fi
+    else
+      MANIFEST_TO_PARSE="${TMP_MANIFEST}"
+    fi
   else
-    log "WARNING: ECR returned no metadata for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} after ${ECR_DESCRIBE_RETRIES} attempts; continuing without ECR authoritative values"
-    ECR_AVAILABLE="false"
+    MANIFEST_TO_PARSE="${TMP_MANIFEST}"
+  fi
+
+  if command -v jq >/dev/null 2>&1; then
+    CONFIG_DIGEST=$(jq -r '.config.digest // empty' "${MANIFEST_TO_PARSE}" 2>/dev/null || true)
+  else
+    CONFIG_DIGEST=$(grep -o '"config"[^{]*{[^}]*"digest"[[:space:]]*:[[:space:]]*"[^" ]*"' "${MANIFEST_TO_PARSE}" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)"/\1/' | head -1 || true)
+  fi
+
+  if [ -n "${CONFIG_DIGEST}" ]; then
+    if curl -fsS -u "${USER}:${PASSWORD}" "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/blobs/${CONFIG_DIGEST}" -o "${TMP_CONFIG}"; then
+      if command -v jq >/dev/null 2>&1; then
+        PUSHED_AT=$(jq -r '.created // .created_at // empty' "${TMP_CONFIG}" 2>/dev/null || true)
+      else
+        PUSHED_AT=$(grep -o '"created"[[:space:]]*:[[:space:]]*"[^\"]*"' "${TMP_CONFIG}" | head -1 | sed -E 's/.*:[[:space:]]*"([^\"]*)"/\1/' || true)
+      fi
+      [ -n "${PUSHED_AT}" ] && PUSHED_AT_SOURCE="registry"
+    fi
+  fi
+
+  # If DIGEST still empty, prefer header or manifest config digest
+  if [ -z "${DIGEST}" ]; then
+    DIGEST=${DIGEST_HEADER:-}
+    if [ -z "${DIGEST}" ] && [ -n "${CONFIG_DIGEST}" ]; then
+      DIGEST=${CONFIG_DIGEST}
+    fi
+  fi
+
+  ECR_AVAILABLE="false"
+  rm -f "${TMP_MANIFEST}" "${TMP_MANIFEST_SELECTED}" "${TMP_CONFIG}" 2>/dev/null || true
+  if [ -n "${DIGEST}" ]; then
+    log "Registry manifest lookup provided digest for ${REMOTE_IMAGE_TAG}: ${DIGEST} (source=registry)"
+  else
+    log "WARNING: Registry manifest lookup did not return a digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
   fi
 else
-  log "WARNING: Registry ${REGISTRY_HOST} does not appear to be ECR; skipping authoritative ECR listing"
+  log "WARNING: Failed to fetch manifest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} using Proxygen credentials"
+  rm -f "${TMP_MANIFEST}" "${TMP_MANIFEST_SELECTED}" "${TMP_CONFIG}" 2>/dev/null || true
   ECR_AVAILABLE="false"
 fi
+
+normalize_ts(){
+  local ts="${1:-}" out
+  [ -z "$ts" ] && { printf ''; return 0; }
+  out=$(date -u -d "$ts" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || true)
+  if [ -n "$out" ]; then
+    printf '%s' "$out"
+  else
+    printf '%s' "$ts"
+  fi
+}
 
 # normalize and prepare output
 PUSHED_AT_NORM=$(normalize_ts "$PUSHED_AT")
