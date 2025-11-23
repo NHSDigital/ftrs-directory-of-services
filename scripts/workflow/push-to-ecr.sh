@@ -1,21 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 
-log() {
-  printf '[push-to-ecr] %s\n' "$1"
-}
+log(){ printf '[push-to-ecr] %s\n' "$1"; }
+die(){ printf '[push-to-ecr] ERROR: %s\n' "$1" >&2; exit 1; }
 
-die() {
-  log "ERROR: $1" >&2
-  exit 1
-}
-
-usage() {
-  cat >&2 <<'EOF'
+usage(){ cat >&2 <<'EOF'
 Usage: push-to-ecr.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
 
 Required/important environment:
-  ACCESS_TOKEN   Bearer token for APIM (required). Provide this via the environment (preferred for in-memory flow).
+  ACCESS_TOKEN   Bearer token for APIM (required).
 
 Optional:
   PUSH_LATEST    Optional flag (default: false) to also push a :latest tag
@@ -41,56 +35,33 @@ esac
 
 PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
 
-if [ -z "${ACCESS_TOKEN:-}" ]; then
-  die "ACCESS_TOKEN not provided"
-fi
+[ -n "${ACCESS_TOKEN:-}" ] || die "ACCESS_TOKEN not provided"
+[ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
 
-if [ -z "$API_NAME" ] || [ -z "$LOCAL_IMAGE" ] || [ -z "$REMOTE_IMAGE_NAME" ] || [ -z "$REMOTE_IMAGE_TAG" ]; then
-  usage
-fi
-
-for dep in curl jq docker; do
-  command -v "$dep" >/dev/null 2>&1 || die "required dependency missing: $dep"
-done
-
-if ! docker image inspect "$LOCAL_IMAGE" >/dev/null 2>&1; then
-  die "Local image $LOCAL_IMAGE not found"
-fi
+for dep in curl jq docker; do command -v "$dep" >/dev/null 2>&1 || die "required dependency missing: $dep"; done
+if ! docker image inspect "$LOCAL_IMAGE" >/dev/null 2>&1; then die "Local image $LOCAL_IMAGE not found"; fi
 
 BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
-log "Requesting registry credentials from APIM for API: $API_NAME"
 TOKEN_RESPONSE=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
-
 USER=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.user // empty')
 PASSWORD=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.password // empty')
 REGISTRY=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.registry // empty')
-
-if [ -z "$REGISTRY" ]; then
-  die "Malformed response from Proxygen: missing registry"
-fi
-
+[ -n "$REGISTRY" ] || die "Malformed response from Proxygen: missing registry"
 REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
-
-if [ -n "$USER" ] && [ -n "$PASSWORD" ]; then
-  log "Logging in to registry: $REGISTRY_HOST"
-  printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
-else
-  die "No usable login credentials returned from Proxygen"
-fi
+[ -n "$USER" -a -n "$PASSWORD" ] || die "No usable login credentials returned from Proxygen"
+printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
 
 REMOTE_COMMIT_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
 REMOTE_LATEST_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:latest"
 
-retry_push() {
-  local tag="$1"
-  local attempt=1
+LATEST_PUSHED=false
+
+retry_push(){
+  local tag="$1" attempt=1
   until docker push "$tag"; do
-    if (( attempt >= PUSH_RETRIES )); then
-      die "docker push $tag failed after $PUSH_RETRIES attempts"
-    fi
+    if (( attempt >= PUSH_RETRIES )); then die "docker push $tag failed after $PUSH_RETRIES attempts"; fi
     log "push $tag failed (attempt $attempt), retrying..."
-    sleep $(( attempt * 2 ))
-    attempt=$(( attempt + 1 ))
+    sleep $(( attempt * 2 )); attempt=$(( attempt + 1 ))
   done
 }
 
@@ -98,26 +69,30 @@ log "Tagging $LOCAL_IMAGE as $REMOTE_COMMIT_TAG"
 docker tag "$LOCAL_IMAGE" "$REMOTE_COMMIT_TAG"
 retry_push "$REMOTE_COMMIT_TAG"
 
-get_manifest_digest() {
-  local tag="$1"
-  local attempt=1
-  local max_attempts=3
+http_head(){ curl --max-time 10 --retry 2 --retry-connrefused -fsS -u "${USER}:${PASSWORD}" -I -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' "$@"; }
+http_get(){ curl --max-time 10 --retry 2 --retry-connrefused -fsS -u "${USER}:${PASSWORD}" "$@"; }
+
+get_manifest_digest(){
+  local tag="$1" attempt=1 max_attempts=3 digest
   while [ $attempt -le $max_attempts ]; do
-    local digest
-    digest=$(curl -fsS -u "${USER}:${PASSWORD}" -I -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${tag}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true)
-    if [ -n "$digest" ]; then
-      printf '%s' "$digest"
-      return 0
-    fi
-    sleep $(( attempt ))
-    attempt=$(( attempt + 1 ))
+    digest=$(http_head "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${tag}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true)
+    [ -n "$digest" ] && { printf '%s' "$digest"; return 0; }
+    sleep $(( attempt )); attempt=$(( attempt + 1 ))
   done
   return 1
 }
 
+epoch_from_iso(){
+  local iso="${1:-}" s
+  [ -z "$iso" ] && { printf '0'; return 0; }
+  s=$(printf '%s' "$iso" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/\.[0-9]+//; s/Z$//')
+  if date -d "$s" +%s >/dev/null 2>&1; then date -d "$s" +%s 2>/dev/null && return 0; fi
+  printf '0'
+}
+
 if [ "$PUSH_LATEST" = "true" ]; then
   if [ "$REMOTE_IMAGE_TAG" = "latest" ]; then
-    log "IMAGE_TAG is 'latest' - skipping separate :latest push"
+    log "IMAGE_TAG is 'latest' - skipping separate latest"
   else
     COMMIT_DIGEST=$(get_manifest_digest "$REMOTE_IMAGE_TAG" || true)
     LATEST_DIGEST=$(get_manifest_digest "latest" || true)
@@ -130,17 +105,15 @@ if [ "$PUSH_LATEST" = "true" ]; then
       log "Tagging $LOCAL_IMAGE as $REMOTE_LATEST_TAG"
       docker tag "$LOCAL_IMAGE" "$REMOTE_LATEST_TAG"
       retry_push "$REMOTE_LATEST_TAG"
+      LATEST_PUSHED=true
     fi
   fi
 else
   log "Skipping latest tag push (PUSH_LATEST=${PUSH_LATEST})"
 fi
 
-if [ "$PUSH_LATEST" = "true" ]; then
-  LATEST_SUFFIX=" and latest"
-else
-  LATEST_SUFFIX=""
-fi
+LATEST_SUFFIX=""
+[ "$PUSH_LATEST" = "true" ] && LATEST_SUFFIX=" and latest"
 log "Image pushed successfully to ${REMOTE_COMMIT_TAG}${LATEST_SUFFIX}"
 
 LIST_LIMIT=${LIST_LIMIT:-5}
@@ -148,33 +121,22 @@ TMP_TAGS=$(mktemp /tmp/registry_tags.XXXXXX)
 TMP_MANIFEST=$(mktemp /tmp/registry_manifest.XXXXXX)
 TMP_CONFIG=$(mktemp /tmp/registry_config.XXXXXX)
 TMP_INDEX=$(mktemp /tmp/registry_index.XXXXXX)
-trap 'rm -f "$TMP_TAGS" "$TMP_MANIFEST" "$TMP_CONFIG" "$TMP_INDEX" 2>/dev/null || true' EXIT
+TMP_TAG_LIST=$(mktemp /tmp/registry_tags_list.XXXXXX)
+trap 'rm -f "$TMP_TAGS" "$TMP_MANIFEST" "$TMP_CONFIG" "$TMP_INDEX" "$TMP_TAG_LIST" 2>/dev/null || true' EXIT
 
-if ! curl -fsS -u "${USER}:${PASSWORD}" "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/tags/list" -o "$TMP_TAGS" 2>/dev/null; then
+if ! http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/tags/list" -o "$TMP_TAGS" 2>/dev/null; then
   log "Failed to fetch tags for ${REMOTE_IMAGE_NAME}" && sed -n '1,200p' "$TMP_TAGS" || true
   exit 0
 fi
 
-if command -v jq >/dev/null 2>&1; then
-  TAGS=$(jq -r '.tags[]' "$TMP_TAGS" 2>/dev/null || true)
-else
-  TAGS=$(sed -n 's/.*"tags"[[:space:]]*:[[:space:]]*\[//p' "$TMP_TAGS" | tr -d '[]" ' | tr ',' '\n' || true)
-fi
-
-if [ -z "${TAGS}" ]; then
-  log "No tags found for ${REMOTE_IMAGE_NAME}"
-  exit 0
-fi
+if command -v jq >/dev/null 2>&1; then jq -r '.tags[]' "$TMP_TAGS" > "$TMP_TAG_LIST" 2>/dev/null || true; else sed -n 's/.*"tags"[[:space:]]*:[[:space:]]*\[//p' "$TMP_TAGS" | tr -d '[]" ' | tr ',' '\n' > "$TMP_TAG_LIST" || true; fi
+[ -s "$TMP_TAG_LIST" ] || { log "No tags found for ${REMOTE_IMAGE_NAME}"; exit 0; }
 
 : >"$TMP_INDEX"
-for tag in ${TAGS}; do
-  if curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${tag}" -o "$TMP_MANIFEST" 2>/dev/null; then
-    if command -v jq >/dev/null 2>&1; then
-      CONFIG_DIGEST=$(jq -r '.config.digest // empty' "$TMP_MANIFEST" 2>/dev/null || true)
-    else
-      CONFIG_DIGEST=$(grep -o '"config"[^{]*{[^}]*"digest"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_MANIFEST" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)"/\1/' | head -1 || true)
-    fi
-    MANIFEST_DIGEST=$(curl -fsS -u "${USER}:${PASSWORD}" -I -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${tag}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true)
+while IFS= read -r tag; do
+  if http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${tag}" -o "$TMP_MANIFEST" 2>/dev/null; then
+    if command -v jq >/dev/null 2>&1; then CONFIG_DIGEST=$(jq -r '.config.digest // empty' "$TMP_MANIFEST" 2>/dev/null || true); else CONFIG_DIGEST=$(grep -o '"config"[^{]*{[^}]*"digest"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_MANIFEST" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)"/\1/' | head -1 || true); fi
+    MANIFEST_DIGEST=$(http_head "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${tag}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true)
   else
     CONFIG_DIGEST=""
     MANIFEST_DIGEST=""
@@ -182,32 +144,23 @@ for tag in ${TAGS}; do
   CREATED=""
   DIGEST=""
   if [ -n "$CONFIG_DIGEST" ]; then
-    if curl -fsS -u "${USER}:${PASSWORD}" "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/blobs/${CONFIG_DIGEST}" -o "$TMP_CONFIG" 2>/dev/null; then
-      if command -v jq >/dev/null 2>&1; then
-        CREATED=$(jq -r '.created // .created // empty' "$TMP_CONFIG" 2>/dev/null || true)
-      else
-        CREATED=$(grep -o '"created"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_CONFIG" | head -1 | sed -E 's/.*:[[:space:]]*"([^\"]*)"/\1/' || true)
-      fi
-      if [ -n "$MANIFEST_DIGEST" ]; then
-        DIGEST="$MANIFEST_DIGEST"
-      else
-        DIGEST="$CONFIG_DIGEST"
-      fi
+    if http_get "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/blobs/${CONFIG_DIGEST}" -o "$TMP_CONFIG" 2>/dev/null; then
+      if command -v jq >/dev/null 2>&1; then CREATED=$(jq -r '.created // .created_at // empty' "$TMP_CONFIG" 2>/dev/null || true); else CREATED=$(grep -o '"created"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_CONFIG" | head -1 | sed -E 's/.*:[[:space:]]*"([^\"]*)"/\1/' || true); fi
+      [ -n "$MANIFEST_DIGEST" ] && DIGEST="$MANIFEST_DIGEST" || DIGEST="$CONFIG_DIGEST"
     fi
   fi
-  [ -z "$CREATED" ] && CREATED="1970-01-01T00:00:00Z"
-  printf '%s\t%s\t%s\n' "$CREATED" "$tag" "$DIGEST" >>"$TMP_INDEX"
-done
+  if [ -z "$CREATED" ]; then EPOCH=0; CREATED=""; else EPOCH=$(epoch_from_iso "$CREATED" 2>/dev/null || echo 0); fi
+  printf '%s\t%s\t%s\t%s\n' "$EPOCH" "$CREATED" "$tag" "$DIGEST" >>"$TMP_INDEX"
+done < "$TMP_TAG_LIST"
+rm -f "$TMP_TAG_LIST" || true
 
-sort -r "$TMP_INDEX" | head -n "$LIST_LIMIT" >"${TMP_INDEX}.top" || true
+sort -nr "$TMP_INDEX" | head -n "$LIST_LIMIT" >"${TMP_INDEX}.top" || true
 
 printf '%s\t%s\t%s\n' "IMAGE" "DIGEST" "PUSHED_AT"
-while IFS=$'\t' read -r CREATED TAG DIGEST; do
+while IFS=$'\t' read -r EPOCH CREATED TAG DIGEST; do
   IMAGE_NAME="${REMOTE_IMAGE_NAME}:${TAG}"
-  if [ "$CREATED" = "1970-01-01T00:00:00Z" ]; then
-    DISPLAY_CREATED=""
-  else
-    DISPLAY_CREATED="$CREATED"
-  fi
+  [ -z "${CREATED}" ] && DISPLAY_CREATED="" || DISPLAY_CREATED="${CREATED}"
   printf '%s\t%s\t%s\n' "$IMAGE_NAME" "$DIGEST" "$DISPLAY_CREATED"
 done <"${TMP_INDEX}.top" | (command -v column >/dev/null 2>&1 && column -t -s $'\t' || cat)
+
+printf '\nLATEST_PUSHED=%s\n' "$LATEST_PUSHED"
