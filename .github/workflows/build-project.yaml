@@ -133,7 +133,6 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
 
       - name: ${{ inputs.build_type == 'container' && 'Push image to ECR' || 'Publish artefacts to S3' }}
-        # Original condition commented out to disable branch check on containers:
         # if: ${{ inputs.build_type == 'service' || (inputs.build_type == 'container' && github.ref == 'refs/heads/main') }}
         if: ${{ inputs.build_type == 'service' || inputs.build_type == 'container' }}
         run: make publish
@@ -157,12 +156,3 @@ jobs:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
-
-      # - name: "Push image to ECR"
-      #   if: ${{ inputs.build_type == 'container' }} # && github.ref == 'refs/heads/main' }}
-      #   working-directory: ${{ steps.get-directories.outputs.working_directory }}
-      #   env:
-      #     COMMIT_HASH: ${{ inputs.commit_hash }}
-      #     ENVIRONMENT: ${{ inputs.environment }}
-      #     AWS_REGION: ${{ vars.AWS_REGION }}
-      #   run: make push-to-ecr
