@@ -65,6 +65,7 @@ print_summary(){
   local dash1
   dash1=$(printf '%*s' "$col1" '' | tr ' ' '-')
   local format="%-${col1}s  %s\n"
+  printf '\n'
   printf '\nLatest pushed image summary for repository: %s on registry: %s\n\n' "${REMOTE_IMAGE_NAME}" "${REGISTRY_HOST}"
   printf "$format" "IMAGE" "DIGEST"
   printf "$format" "$dash1" "$(printf '%*s' 64 '' | tr ' ' '-')"
@@ -96,6 +97,7 @@ get_apim_token_and_registry(){
   REGISTRY=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.registry // empty')
   [ -n "$REGISTRY" ] || die "Malformed response from Proxygen: missing registry"
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
+  log "Accessing registry via Docker Registry HTTP API"
   REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
   REGISTRY_REGION=$(printf '%s' "$REGISTRY_HOST" | awk -F'.' '{for(i=1;i<=NF;i++){ if($i=="ecr"){print $(i+1); exit}}}')
   AWS_CALLER_ACCOUNT=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)
@@ -167,6 +169,7 @@ main(){
   lookup_digest
   print_summary "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "$DIGEST"
   log "[push-to-ecr] Verified image: ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} digest=${DIGEST}"
+  printf '\n'
 }
 
 main "$@"
