@@ -8,10 +8,11 @@ BUILD_OUTPUT_DIR := $(ROOT_DIR)/build/services/$(ARTIFACT_NAME)
 
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
+.ONESHELL:
 
 .DEFAULT_GOAL := build
 
-.PHONY: install build unit-test push publish lint
+.PHONY: install build unit-test publish lint
 
 API_NAME ?= dos-search
 PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
@@ -102,7 +103,7 @@ publish:
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
 	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
-	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"; \
+	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
