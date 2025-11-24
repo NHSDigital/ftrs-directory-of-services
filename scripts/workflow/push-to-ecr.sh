@@ -83,8 +83,8 @@ proxygen_describe(){
 
 parse_proxygen_resp(){
   local resp="$1"
-  DIGEST=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imageDigest // empty' 2>/dev/null || true)
-  CREATED=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imagePushedAt // empty' 2>/dev/null || true)
+  DIGEST=$(printf '%s' "$resp" | jq -r '(.imageDetails[0].imageDigest // .imageDetails[0].digest // .imageDigest // empty)' 2>/dev/null || true)
+  CREATED=$(printf '%s' "$resp" | jq -r '(.imageDetails[0].imagePushedAt // .imageDetails[0].pushedAt // .imagePushedAt // empty)' 2>/dev/null || true)
 }
 
 fetch_image_metadata(){
@@ -95,12 +95,21 @@ fetch_image_metadata(){
 
   resp=$(proxygen_describe "$PAYLOAD")
   if [ -z "$resp" ]; then
-    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
+    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen (empty response)"
   fi
 
   parse_proxygen_resp "$resp"
   if [ -z "$DIGEST" ]; then
-    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
+    log "[push-to-ecr] Proxygen did not return a digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}; response (truncated):"
+    printf '%s' "$resp" | head -c 1000 | sed 's/^/[push-to-ecr] /' >&2 || true
+    log "[push-to-ecr] Attempting manifest header lookup as fallback"
+    DIGEST_HEADER=$(fetch_manifest_header)
+    DIGEST=$(printf '%s' "$DIGEST_HEADER" | tr -d '\r' || true)
+    if [ -n "$DIGEST" ]; then
+      log "[push-to-ecr] Retrieved digest from manifest header: $DIGEST"
+    else
+      die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen or manifest header"
+    fi
   fi
 
   DIGEST="${DIGEST#sha256:}"
