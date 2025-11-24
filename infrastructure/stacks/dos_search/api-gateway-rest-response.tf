@@ -24,6 +24,12 @@ locals {
       status_code   = "403"
       template      = file("${local.fhir_outcome_dir}/rec_forbidden.json")
     }
+    invalid_api_key = {
+      # Includes cases where mTLS cert key pair not in our keystore are provided
+      response_type = "INVALID_API_KEY"
+      status_code   = "403"
+      template      = file("${local.fhir_outcome_dir}/rec_forbidden.json")
+    }
     default_4xx = {
       response_type = "DEFAULT_4XX"
       status_code   = "400"
