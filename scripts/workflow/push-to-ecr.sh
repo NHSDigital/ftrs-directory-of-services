@@ -72,21 +72,24 @@ parse_proxygen_resp(){
 }
 
 fetch_image_metadata(){
-  DIGEST=""
   PROXYGEN_API="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}/aws/ecr/DescribeImages"
-
-  PAYLOAD=$(printf '{"repositoryName":"%s","imageIds":[{"imageTag":"%s"}]}' "${REMOTE_IMAGE_NAME}" "${REMOTE_IMAGE_TAG}")
-  resp=$(proxygen_describe "$PAYLOAD") || resp=""
-  if [ -n "$resp" ]; then
-    DIGEST=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imageDigest // .imageDigest // empty' 2>/dev/null || true)
-  fi
-
-  if [ -z "$DIGEST" ]; then
-    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
-  fi
-
-  DIGEST="${DIGEST#sha256:}"
-  DIGEST="sha256:${DIGEST}"
+  NEXT_TOKEN=""
+  printf '\nImages for repository: %s\n' "${REMOTE_IMAGE_NAME}"
+  printf 'TAGS\tDIGEST\tPUSHED_AT\n'
+  while :; do
+    if [ -z "$NEXT_TOKEN" ]; then
+      PAYLOAD=$(printf '{"repositoryName":"%s"}' "${REMOTE_IMAGE_NAME}")
+    else
+      PAYLOAD=$(printf '{"repositoryName":"%s","nextToken":"%s"}' "${REMOTE_IMAGE_NAME}" "$NEXT_TOKEN")
+    fi
+    resp=$(proxygen_describe "$PAYLOAD") || resp=""
+    if [ -z "$resp" ]; then
+      die "Proxygen returned empty response when listing images for ${REMOTE_IMAGE_NAME}"
+    fi
+    printf '%s\n' "$(printf '%s' "$resp" | jq -r '.imageDetails[]? | ((.imageTags // ["<none>"]) | join(",")) + "\t" + (.imageDigest // "<none>") + "\t" + (.imagePushedAt // "<none>")' 2>/dev/null || true)"
+    NEXT_TOKEN=$(printf '%s' "$resp" | jq -r '.nextToken // empty' 2>/dev/null || true)
+    [ -z "$NEXT_TOKEN" ] && break
+  done
 }
 
 main(){
