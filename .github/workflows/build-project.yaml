@@ -58,6 +58,8 @@ jobs:
     name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    env:
+      PUBLISH_STEP_NAME: ${{ inputs.build_type == 'container' && 'Push image to ECR' || 'Publish artefacts to S3' }}
 
     steps:
       - name: "Checkout code"
@@ -132,8 +134,7 @@ jobs:
           APPLICATION_TAG: ${{ inputs.application_tag }}
           REPO_NAME: ${{ inputs.repo_name }}
 
-      - name: ${{ inputs.build_type == 'container' && 'Push image to ECR' || 'Publish artefacts to S3' }}
-        # if: ${{ inputs.build_type == 'service' || (inputs.build_type == 'container' && github.ref == 'refs/heads/main') }}
+      - name: ${{ env.PUBLISH_STEP_NAME }}
         if: ${{ inputs.build_type == 'service' || inputs.build_type == 'container' }}
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
