@@ -86,7 +86,16 @@ fetch_image_metadata(){
     if [ -z "$resp" ]; then
       die "Proxygen returned empty response when listing images for ${REMOTE_IMAGE_NAME}"
     fi
-    printf '%s\n' "$(printf '%s' "$resp" | jq -r '.imageDetails[]? | ((.imageTags // ["<none>"]) | join(",")) + "\t" + (.imageDigest // "<none>") + "\t" + (.imagePushedAt // "<none>")' 2>/dev/null || true)"
+    if ! command -v jq >/dev/null 2>&1; then
+      die "jq is required to parse Proxygen responses; please install jq on the runner"
+    fi
+    LINES=$(printf '%s' "$resp" | jq -r '.imageDetails[]? | ((.imageTags // ["<none>"]) | join(",")) + "\t" + (.imageDigest // "<none>") + "\t" + (.imagePushedAt // "<none>")' 2>/dev/null || true)
+    if [ -z "$LINES" ]; then
+      log "[push-to-ecr] Proxygen returned a response but no image entries were parsed; truncated response:"
+      printf '%s' "$resp" | head -c 2000 | sed 's/^/[push-to-ecr] /' >&2 || true
+      die "No image entries could be parsed from Proxygen response for ${REMOTE_IMAGE_NAME}"
+    fi
+    printf '%s\n' "$LINES"
     NEXT_TOKEN=$(printf '%s' "$resp" | jq -r '.nextToken // empty' 2>/dev/null || true)
     [ -z "$NEXT_TOKEN" ] && break
   done
