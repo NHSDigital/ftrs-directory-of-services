@@ -25,10 +25,16 @@ def get_organization() -> Response:
     log_data = deepcopy(
         dos_logger.extract(app.current_event)
     )  # Deepcopy of dict to avoid subsequent expansion calls below from showing in tests as calls to this method due to assignment by reference
-    details = deepcopy(dos_logger.extract_one_time(app.current_event))
+    details = deepcopy(
+        dos_logger.extract_one_time(app.current_event)
+    )  # Extract of one-time fields for logging below
 
-    dos_logger.append_keys(log_data)
-    dos_logger.info("Logging one-time fields", **details)
+    dos_logger.append_keys(log_data)  # Appends common fields to all subsequent logs
+    dos_logger.info(
+        "Logging one-time fields from Request",
+        **details,
+        dos_message_category="REQUEST",
+    )
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
@@ -64,9 +70,10 @@ def get_organization() -> Response:
             response_size = None
 
         dos_logger.info(
-            "Successfully processed",
+            "Successfully processed: Logging response time & size",
             opt_ftrs_response_time=f"{duration_ms}ms",
             opt_ftrs_response_size=response_size,
+            dos_message_category="METRICS",
         )
         return create_response(200, fhir_resource)
 
@@ -74,7 +81,9 @@ def get_organization() -> Response:
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
-    dos_logger.info("Creating response", status_code=status_code)
+    dos_logger.info(
+        "Creating response", status_code=status_code, dos_message_category="RESPONSE"
+    )
     return Response(
         status_code=status_code,
         content_type="application/fhir+json",
@@ -85,7 +94,7 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
 @logger.inject_lambda_context(
     correlation_id_path=correlation_paths.API_GATEWAY_REST,
     log_event=True,
-    clear_state=True,  # This should handle the clearing of any appended keys during execution
+    clear_state=True,  # This should be sufficient to handle the clearing of any keys appended during execution
 )
 @tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
