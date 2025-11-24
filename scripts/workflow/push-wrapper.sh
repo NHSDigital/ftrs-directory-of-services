@@ -49,7 +49,14 @@ if [ ! -x "$PUSH_SCRIPT" ]; then
 fi
 
 log "Requesting APIM token for API: $API_NAME"
-TOKEN_OUTPUT=$(API_NAME="$API_NAME" ENV="$ENVIRONMENT" AWS_REGION="$AWS_REGION" /bin/bash "$GET_APIM_TOKEN_SCRIPT" 2>/dev/null || true)
+TOKEN_OUTPUT=$(API_NAME="$API_NAME" ENV="$ENVIRONMENT" ENVIRONMENT="$ENVIRONMENT" AWS_REGION="$AWS_REGION" /bin/bash "$GET_APIM_TOKEN_SCRIPT" 2>&1)
+TOKEN_RC=$?
+
+if [ $TOKEN_RC -ne 0 ]; then
+  err "get-apim-token.sh failed with exit code $TOKEN_RC: $TOKEN_OUTPUT"
+  exit 1
+fi
+
 ACCESS_TOKEN=$(printf '%s' "$TOKEN_OUTPUT" | tr -d '\r\n')
 
 if [ -z "$ACCESS_TOKEN" ]; then
