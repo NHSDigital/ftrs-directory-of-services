@@ -108,8 +108,10 @@
                 "arn:aws:iam::*:policy/rw_*",
                 "arn:aws:iam::*:instance-profile/${repo_name}-*",
                 "arn:aws:iam::*:role/dms-vpc-role",
-                "arn:aws:iam::*:role/ftrs-dos-*",
-                "arn:aws:iam::*:policy/ftrs-dos-*",
+                "arn:aws:iam::*:role/${project}-*",
+                "arn:aws:iam::*:policy/${project}-*",
+                "arn:aws:iam::*:analyzer/${project}-*",
+                "arn:aws:iam::*:rule/${project}-*",
                 "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
             ]
         },
@@ -120,7 +122,7 @@
                 "iam:PassRole"
             ],
             "Resource": [
-                "arn:aws:iam::*:role/ftrs-dos-*",
+                "arn:aws:iam::*:role/${project}-*",
                 "arn:aws:iam::*:role/${repo_name}-*"
             ],
             "Condition": {
