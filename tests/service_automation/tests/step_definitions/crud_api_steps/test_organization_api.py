@@ -143,8 +143,8 @@ def get_db_item(model_repo, payload: dict):
 def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = False):
     expected = {
         "identifier_ODS_ODSCode": payload["identifier"][0]["value"],
-        "name": payload["name"],
-        "type": payload["type"][0]["text"],
+        "name": payload["name"].title(),
+        "type": payload["type"][0]["text"].title(),
         "active": payload["active"],
         "modifiedBy": "ODS_ETL_PIPELINE",
     }
