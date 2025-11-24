@@ -244,3 +244,11 @@ Feature: Organization API Endpoint
         | end        | 25-12-2025    |
         | end        | 2025/12/31    |
         | end        | 2025-12-1     |
+
+  Scenario Outline: Reject Organization update when start date matches end date
+      Given that the stack is "organisation"
+      When I update the organization with legal dates start "2025-01-01" and end "2025-01-01"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
