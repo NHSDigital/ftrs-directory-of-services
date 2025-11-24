@@ -27,10 +27,6 @@ on:
         description: "The deployment environment"
         required: true
         type: string
-      matrix_environment:
-        description: "Optional per-matrix override for environment"
-        required: false
-        type: string
       repo_name:
         description: "The name of the Git repo"
         required: true
@@ -151,8 +147,6 @@ jobs:
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v5
-        env:
-          ENVIRONMENT: ${{ inputs.build_type == 'container' && inputs.matrix_environment || inputs.environment }}
         with:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}
