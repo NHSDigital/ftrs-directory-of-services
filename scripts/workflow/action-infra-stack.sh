@@ -33,7 +33,7 @@ export TF_VAR_stack_name
 export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
 
 # Override ENVIRONMENT to non-prod for account_policies or account_security stack
-if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && {[ "$ENVIRONMENT" = "ref" ] || [ "$ENVIRONMENT" = "dev" ] || [ "$ENVIRONMENT" = "test" ] || [ "$ENVIRONMENT" = "sandpit" ] || [ "$ENVIRONMENT" = "int" ] ; } then
+if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && { [ "$ENVIRONMENT" = "ref" ] || [ "$ENVIRONMENT" = "dev" ] || [ "$ENVIRONMENT" = "test" ] || [ "$ENVIRONMENT" = "sandpit" ] || [ "$ENVIRONMENT" = "int" ] ; } then
   export ENVIRONMENT="non-prod"
   echo "Stack is $STACK - overriding ENVIRONMENT to non-prod"
 fi
