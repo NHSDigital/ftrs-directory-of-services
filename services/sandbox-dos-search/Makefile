@@ -19,7 +19,7 @@ PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
 GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
 PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-wrapper.sh
 
-ENVIRONMENT ?=
+override ENVIRONMENT := dev
 AWS_REGION ?=
 
 ifneq ($(strip $(COMMIT_HASH)),)
