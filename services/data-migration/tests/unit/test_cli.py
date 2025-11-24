@@ -208,6 +208,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
         "modifiedBy": "SYSTEM",
         "modifiedDateTime": "2025-07-15T12:00:00Z",
         "endpoints": [],
+        "non_primary_roles": [],
         "telecom": None,
     }
     assert loc_content == {
