@@ -7,12 +7,11 @@ err() { printf '[push-wrapper] ERROR: %s\n' "$1" >&2; }
 
 usage() {
   cat <<'EOF' >&2
-Usage: push-wrapper.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
+Usage: push-wrapper.sh <api-name> <local-image> <remote-image-name> <remote-image-tag> <environment>
 
 Captures an APIM token (in-memory) and invokes push-to-ecr.sh with ACCESS_TOKEN exported.
 
 Environment (optional):
-  ENVIRONMENT    (read from environment if set)
   AWS_REGION     (read from environment if set)
 
 EOF
@@ -23,10 +22,10 @@ API_NAME="${1:-}"
 LOCAL_IMAGE="${2:-}"
 REMOTE_NAME="${3:-}"
 REMOTE_TAG="${4:-}"
-ENVIRONMENT="${ENVIRONMENT:-}"
+ENVIRONMENT="${5:-}"
 AWS_REGION="${AWS_REGION:-}"
 
-if [ -z "$API_NAME" ] || [ -z "$LOCAL_IMAGE" ] || [ -z "$REMOTE_NAME" ] || [ -z "$REMOTE_TAG" ]; then
+if [ -z "$API_NAME" ] || [ -z "$LOCAL_IMAGE" ] || [ -z "$REMOTE_NAME" ] || [ -z "$REMOTE_TAG" ] || [ -z "$ENVIRONMENT" ]; then
   usage
 fi
 
@@ -59,7 +58,6 @@ if [ -z "$ACCESS_TOKEN" ]; then
 fi
 
 export ACCESS_TOKEN
-export ENVIRONMENT
 export AWS_REGION
 
 log "Invoking push script"
