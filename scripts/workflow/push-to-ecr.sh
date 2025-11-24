@@ -83,8 +83,8 @@ proxygen_describe(){
 
 parse_proxygen_resp(){
   local resp="$1"
-  DIGEST=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imageDigest // empty' 2>/dev/null || true)
-  CREATED=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imagePushedAt // empty' 2>/dev/null || true)
+  DIGEST=$(printf '%s' "$resp" | jq -r '[.imageDetails[]?.imageDigest, .imageDetails[]?.digest, .imageDigest] | map(select(. != null and . != "")) | .[0] // empty' 2>/dev/null || true)
+  CREATED=$(printf '%s' "$resp" | jq -r '[.imageDetails[]?.imagePushedAt, .imageDetails[]?.pushedAt, .imagePushedAt] | map(select(. != null and . != "")) | .[0] // empty' 2>/dev/null || true)
 }
 
 fetch_image_metadata(){
@@ -92,28 +92,55 @@ fetch_image_metadata(){
   CREATED=""
   PROXYGEN_API="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}/aws/ecr/DescribeImages"
 
+  # If test mode enabled, list all images for the repository (handle pagination via NextToken)
   if [ "${LIST_ALL_IMAGES:-false}" = "true" ]; then
-    PAYLOAD=$(printf '{"repositoryName":"%s"}' "${REMOTE_IMAGE_NAME}")
-    resp=$(proxygen_describe "$PAYLOAD")
-    if [ -z "$resp" ]; then
-      die "Proxygen returned empty response when listing images for ${REMOTE_IMAGE_NAME}"
-    fi
+    NEXT_TOKEN=""
     printf '\nImages for repository: %s\n' "${REMOTE_IMAGE_NAME}"
     printf 'TAGS\tDIGEST\tPUSHED_AT\n'
-    printf '%s\n' "$(printf '%s' "$resp" | jq -r '.imageDetails[]? as $d | ( ($d.imageTags // ["<none>"]) | join(",") ) + "\t" + ($d.imageDigest // "<none>") + "\t" + ($d.imagePushedAt // "<none>")' 2>/dev/null || true)"
+    while :; do
+      if [ -n "$NEXT_TOKEN" ]; then
+        PAYLOAD=$(jq -n --arg repo "$REMOTE_IMAGE_NAME" --arg nt "$NEXT_TOKEN" '{repositoryName:$repo, nextToken:$nt}')
+      else
+        PAYLOAD=$(jq -n --arg repo "$REMOTE_IMAGE_NAME" '{repositoryName:$repo}')
+      fi
+      resp=$(proxygen_describe "$PAYLOAD")
+      if [ -z "$resp" ]; then
+        die "Proxygen returned empty response when listing images for ${REMOTE_IMAGE_NAME}"
+      fi
+      # print entries from this page
+      printf '%s\n' "$(printf '%s' "$resp" | jq -r '.imageDetails[]? as $d | ( ($d.imageTags // ["<none>"]) | join(",") ) + "\t" + ($d.imageDigest // "<none>") + "\t" + ($d.imagePushedAt // "<none>")' 2>/dev/null || true)"
+      NEXT_TOKEN=$(printf '%s' "$resp" | jq -r '.nextToken // empty' 2>/dev/null || true)
+      [ -z "$NEXT_TOKEN" ] && break
+    done
     return 0
   fi
 
   PAYLOAD=$(printf '{"repositoryName":"%s","imageIds":[{"imageTag":"%s"}]}' "${REMOTE_IMAGE_NAME}" "${REMOTE_IMAGE_TAG}")
 
-  resp=$(proxygen_describe "$PAYLOAD")
-  if [ -z "$resp" ]; then
-    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
-  fi
+  # Try a few times to allow for eventual consistency in the registry / proxy
+  ATTEMPTS=${FETCH_ATTEMPTS:-3}
+  SLEEP=${FETCH_SLEEP:-2}
+  attempt=1
+  while [ $attempt -le $ATTEMPTS ]; do
+    resp=$(proxygen_describe "$PAYLOAD")
+    if [ -n "$resp" ]; then
+      parse_proxygen_resp "$resp"
+      if [ -n "$DIGEST" ]; then
+        break
+      fi
+    fi
+    log "[push-to-ecr] DescribeImages did not return digest (attempt $attempt/$ATTEMPTS), retrying after ${SLEEP}s"
+    sleep $SLEEP
+    attempt=$((attempt + 1))
+  done
 
-  parse_proxygen_resp "$resp"
   if [ -z "$DIGEST" ]; then
-    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
+    log "[push-to-ecr] Proxygen did not return a digest after ${ATTEMPTS} attempts; trying manifest header as fallback"
+    DIGEST_HEADER=$(fetch_manifest_header)
+    DIGEST=$(printf '%s' "$DIGEST_HEADER" | tr -d '\r' || true)
+    if [ -z "$DIGEST" ]; then
+      die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen or manifest header"
+    fi
   fi
 
   DIGEST="${DIGEST#sha256:}"
