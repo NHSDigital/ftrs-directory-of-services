@@ -186,5 +186,5 @@ data "aws_prefix_list" "dynamodb" {
 }
 
 data "aws_security_group" "dms_replication_security_group" {
-  name = "${var.project}-${var.environment}-*-etl-replication-sg"
+  name = "${var.project}-${var.environment}-account-wide-etl-replication-sg"
 }
