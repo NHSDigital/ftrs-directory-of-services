@@ -4,7 +4,7 @@
 
 This document explains how the service-local DOS logging wrapper works and how the three files in this service interact to produce structured JSON logging suitable for CloudWatch (via aws_lambda_powertools). It's intended for developers working on the `dos-search` stack.
 
-The logger is implemented as a singular instance instantiated during the `init` phase of a Lambda execution, and is shared between DOS Python module files during execution. Cleardown of appended keys is handled by the `clear_state=True` setting specified in the Lambda Handler as a decorator, which should be sufficient for current logging behavior to avoid log data accidentally persisting into a subsequent invocation. If more explicit control is required in the future, a `clear_state` method is implemented as a shallow wrapper over the underlying PowerTools `clear_state` method on the DOS Logger to support this. For more information about Lambda concurrency and how this setting avoids contamination, see [AWS Lambda Concurrency](https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html).
+The logger is implemented as a singular instance instantiated during the `init` phase of a Lambda execution, and is shared between DOS Python module files during execution. Clearing down of appended keys is handled by the `clear_state=True` setting specified in the Lambda Handler as a decorator, which should be sufficient for current logging behavior to avoid log data accidentally persisting into a subsequent invocation. If more explicit control is required in the future, a `clear_state` method is implemented as a shallow wrapper over the underlying PowerTools `clear_state` method on the DOS Logger to support this. For more information about Lambda concurrency and how this setting avoids contamination, see [AWS Lambda Concurrency](https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html).
 
 ## Files covered
 
@@ -22,6 +22,7 @@ The logger is implemented as a singular instance instantiated during the `init` 
 ### \_last_log_data
 
 - To ensure the key fields are present in all logs without having to pass the bulky event object around, the DosLogger class persists the last specified `log_data` keyword argument via this attribute.
+
 ```python
   dos_logger = DosLogger
 
