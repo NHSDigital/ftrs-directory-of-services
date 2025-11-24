@@ -83,33 +83,37 @@ proxygen_describe(){
 
 parse_proxygen_resp(){
   local resp="$1"
-  DIGEST=$(printf '%s' "$resp" | jq -r '(.imageDetails[0].imageDigest // .imageDetails[0].digest // .imageDigest // empty)' 2>/dev/null || true)
-  CREATED=$(printf '%s' "$resp" | jq -r '(.imageDetails[0].imagePushedAt // .imageDetails[0].pushedAt // .imagePushedAt // empty)' 2>/dev/null || true)
+  DIGEST=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imageDigest // empty' 2>/dev/null || true)
+  CREATED=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imagePushedAt // empty' 2>/dev/null || true)
 }
 
 fetch_image_metadata(){
   DIGEST=""
   CREATED=""
   PROXYGEN_API="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}/aws/ecr/DescribeImages"
+
+  if [ "${LIST_ALL_IMAGES:-false}" = "true" ]; then
+    PAYLOAD=$(printf '{"repositoryName":"%s"}' "${REMOTE_IMAGE_NAME}")
+    resp=$(proxygen_describe "$PAYLOAD")
+    if [ -z "$resp" ]; then
+      die "Proxygen returned empty response when listing images for ${REMOTE_IMAGE_NAME}"
+    fi
+    printf '\nImages for repository: %s\n' "${REMOTE_IMAGE_NAME}"
+    printf 'TAGS\tDIGEST\tPUSHED_AT\n'
+    printf '%s\n' "$(printf '%s' "$resp" | jq -r '.imageDetails[]? as $d | ( ($d.imageTags // ["<none>"]) | join(",") ) + "\t" + ($d.imageDigest // "<none>") + "\t" + ($d.imagePushedAt // "<none>")' 2>/dev/null || true)"
+    return 0
+  fi
+
   PAYLOAD=$(printf '{"repositoryName":"%s","imageIds":[{"imageTag":"%s"}]}' "${REMOTE_IMAGE_NAME}" "${REMOTE_IMAGE_TAG}")
 
   resp=$(proxygen_describe "$PAYLOAD")
   if [ -z "$resp" ]; then
-    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen (empty response)"
+    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
   fi
 
   parse_proxygen_resp "$resp"
   if [ -z "$DIGEST" ]; then
-    log "[push-to-ecr] Proxygen did not return a digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}; response (truncated):"
-    printf '%s' "$resp" | head -c 1000 | sed 's/^/[push-to-ecr] /' >&2 || true
-    log "[push-to-ecr] Attempting manifest header lookup as fallback"
-    DIGEST_HEADER=$(fetch_manifest_header)
-    DIGEST=$(printf '%s' "$DIGEST_HEADER" | tr -d '\r' || true)
-    if [ -n "$DIGEST" ]; then
-      log "[push-to-ecr] Retrieved digest from manifest header: $DIGEST"
-    else
-      die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen or manifest header"
-    fi
+    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
   fi
 
   DIGEST="${DIGEST#sha256:}"
