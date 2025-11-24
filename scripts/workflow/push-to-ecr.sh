@@ -84,6 +84,12 @@ init(){
   [ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
 }
 
+check_deps(){
+  for dep in curl jq docker; do
+    command -v "$dep" >/dev/null 2>&1 || die "required dependency missing: $dep"
+  done
+}
+
 get_apim_token_and_registry(){
   BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
   TOKEN_RESPONSE=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
@@ -116,65 +122,52 @@ push_image(){
   log "Image pushed successfully to ${REMOTE_COMMIT_TAG}"
 }
 
-inspect_image_metadata(){
+lookup_digest(){
   DIGEST=""
-  CREATED=""
+  TMP_MANIFEST=$(mktemp /tmp/registry_manifest.XXXXXX)
+  TMP_MANIFEST_SELECTED=""
+  trap 'rm -f "${TMP_MANIFEST}" "${TMP_MANIFEST_SELECTED}" 2>/dev/null || true' EXIT
 
-  if ! command -v aws >/dev/null 2>&1; then
-    die "aws CLI not available; required to query ECR for image metadata"
-  fi
-  if ! command -v jq >/dev/null 2>&1; then
-    die "jq is required to parse AWS CLI output; please install jq"
-  fi
-
-  REGION_EFFECTIVE="${AWS_REGION:-${REGISTRY_REGION:-}}"
-  if [ -z "${REGION_EFFECTIVE}" ]; then
-    die "AWS region unknown (AWS_REGION or registry region); set AWS_REGION or ensure REGISTRY_REGION is set"
-  fi
-
-  ATTEMPTS=5
-  SLEEP_SECS=1
-  for attempt in $(seq 1 ${ATTEMPTS}); do
-    set +e
-    RESP=$(aws ecr describe-images --repository-name "${REMOTE_IMAGE_NAME}" --image-ids imageTag="${REMOTE_IMAGE_TAG}" --region "${REGION_EFFECTIVE}" --output json 2>/dev/null)
-    RC=$?
-    set -e
-    if [ ${RC} -ne 0 ] || [ -z "${RESP}" ]; then
-      log "[push-to-ecr] aws ecr describe-images returned no data for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} (attempt ${attempt}/${ATTEMPTS}), retrying after ${SLEEP_SECS}s"
-      sleep ${SLEEP_SECS}
-      SLEEP_SECS=$((SLEEP_SECS * 2))
-      continue
+  if fetch_manifest "$TMP_MANIFEST"; then
+    DIGEST_HEADER=$(fetch_manifest_header)
+    MANIFEST_TO_PARSE="$TMP_MANIFEST"
+    if command -v jq >/dev/null 2>&1 && jq -e '.manifests' "$TMP_MANIFEST" >/dev/null 2>&1; then
+      SELECT_DIGEST=$(choose_manifest_from_list "$TMP_MANIFEST" "${MANIFEST_PLATFORM:-}")
+      if [ -n "$SELECT_DIGEST" ]; then
+        if curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${SELECT_DIGEST}" -o "${TMP_MANIFEST}.selected"; then
+          TMP_MANIFEST_SELECTED="${TMP_MANIFEST}.selected"
+          MANIFEST_TO_PARSE="$TMP_MANIFEST_SELECTED"
+          DIGEST="$SELECT_DIGEST"
+        fi
+      fi
     fi
-
-    DIGEST=$(printf '%s' "${RESP}" | jq -r '.imageDetails[0].imageDigest // empty' 2>/dev/null || true)
-    CREATED=$(printf '%s' "${RESP}" | jq -r '.imageDetails[0].imagePushedAt // empty' 2>/dev/null || true)
-
-    if [ -n "${DIGEST}" ]; then
-      break
+    if [ -z "$DIGEST" ]; then
+      if [ -n "$DIGEST_HEADER" ]; then
+        DIGEST="$DIGEST_HEADER"
+      else
+        CONFIG_DIGEST=$(extract_config_digest "$MANIFEST_TO_PARSE")
+        if [ -n "$CONFIG_DIGEST" ]; then
+          DIGEST="$CONFIG_DIGEST"
+        fi
+      fi
     fi
-
-    log "[push-to-ecr] ECR returned no digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} (attempt ${attempt}/${ATTEMPTS}), retrying after ${SLEEP_SECS}s"
-    sleep ${SLEEP_SECS}
-    SLEEP_SECS=$((SLEEP_SECS * 2))
-  done
-
-  if [ -z "${DIGEST}" ]; then
-    die "ECR returned no metadata for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}; ensure AWS credentials can access registry account ${REGISTRY_ACCOUNT} in region ${REGION_EFFECTIVE}"
+    if [ -z "$DIGEST" ]; then
+      die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
+    fi
+  else
+    rm -f "$TMP_MANIFEST" 2>/dev/null || true
+    die "Failed to fetch manifest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} using Proxygen credentials"
   fi
-
-  DIGEST="${DIGEST#sha256:}"
-  DIGEST="sha256:${DIGEST}"
-
-  [ -n "${CREATED:-}" ] && log "[push-to-ecr] Found ECR imagePushedAt for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}: ${CREATED}"
-  log "[push-to-ecr] Found digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}: ${DIGEST}"
 }
 
 main(){
   init "$@"
+  check_deps
   get_apim_token_and_registry
   docker_login
   push_image
-  inspect_image_metadata
+  lookup_digest
+  log "Accessing registry via Docker Registry HTTP API"
   print_summary "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "$DIGEST"
   log "Verified image: ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} digest=${DIGEST}"
   printf '\n'
