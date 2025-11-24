@@ -73,6 +73,25 @@ parse_proxygen_resp(){
 
 fetch_image_metadata(){
   PROXYGEN_API="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}/aws/ecr/DescribeImages"
+
+  if ! command -v jq >/dev/null 2>&1; then
+    die "jq is required to parse Proxygen responses; please install jq on the runner"
+  fi
+
+  # First try the single-image form (imageIds) — this is authoritative and often works when listing is disabled
+  PAYLOAD_TAG=$(printf '{"repositoryName":"%s","imageIds":[{"imageTag":"%s"}]}' "${REMOTE_IMAGE_NAME}" "${REMOTE_IMAGE_TAG}")
+  resp_tag=$(proxygen_describe "$PAYLOAD_TAG") || resp_tag=""
+  if [ -n "$resp_tag" ] && printf '%s' "$resp_tag" | jq -e '.imageDetails and (.imageDetails | length > 0)' >/dev/null 2>&1; then
+    LINES=$(printf '%s' "$resp_tag" | jq -r '.imageDetails[]? | ((.imageTags // ["<none>"]) | join(",")) + "\t" + (.imageDigest // "<none>") + "\t" + (.imagePushedAt // "<none>")' 2>/dev/null || true)
+    if [ -n "$LINES" ]; then
+      printf '\nImages for repository: %s\n' "${REMOTE_IMAGE_NAME}"
+      printf 'TAGS\tDIGEST\tPUSHED_AT\n'
+      printf '%s\n' "$LINES"
+      return 0
+    fi
+  fi
+
+  # Fall back to repository listing (paginated)
   NEXT_TOKEN=""
   printf '\nImages for repository: %s\n' "${REMOTE_IMAGE_NAME}"
   printf 'TAGS\tDIGEST\tPUSHED_AT\n'
@@ -86,14 +105,22 @@ fetch_image_metadata(){
     if [ -z "$resp" ]; then
       die "Proxygen returned empty response when listing images for ${REMOTE_IMAGE_NAME}"
     fi
-    if ! command -v jq >/dev/null 2>&1; then
-      die "jq is required to parse Proxygen responses; please install jq on the runner"
+    # If listing is not available, Proxygen may respond {"detail":"Not Found"}; in that case we've already tried imageIds, so bail with diagnostics
+    if printf '%s' "$resp" | jq -e '.detail? == "Not Found"' >/dev/null 2>&1; then
+      log "[push-to-ecr] Repository listing not available (Not Found) and imageIds form returned no results; saving response and aborting"
+      printf '%s' "$resp" > /tmp/proxygen_resp.json 2>/dev/null || true
+      printf '%s' "$resp_tag" > /tmp/proxygen_resp_tag.json 2>/dev/null || true
+      log "[push-to-ecr] Saved responses to /tmp/proxygen_resp.json and /tmp/proxygen_resp_tag.json"
+      die "Repository listing not available and imageIds lookup returned no images for ${REMOTE_IMAGE_NAME}"
     fi
+
     LINES=$(printf '%s' "$resp" | jq -r '.imageDetails[]? | ((.imageTags // ["<none>"]) | join(",")) + "\t" + (.imageDigest // "<none>") + "\t" + (.imagePushedAt // "<none>")' 2>/dev/null || true)
     if [ -z "$LINES" ]; then
       log "[push-to-ecr] Proxygen returned a response but no image entries were parsed; truncated response:"
       printf '%s' "$resp" | head -c 2000 | sed 's/^/[push-to-ecr] /' >&2 || true
-      die "No image entries could be parsed from Proxygen response for ${REMOTE_IMAGE_NAME}"
+      printf '%s' "$resp" > /tmp/proxygen_resp.json 2>/dev/null || true
+      log "[push-to-ecr] Saved raw response to /tmp/proxygen_resp.json"
+      die "No image entries could be parsed from Proxygen response for ${REMOTE_IMAGE_NAME}; raw response saved to /tmp/proxygen_resp.json"
     fi
     printf '%s\n' "$LINES"
     NEXT_TOKEN=$(printf '%s' "$resp" | jq -r '.nextToken // empty' 2>/dev/null || true)
