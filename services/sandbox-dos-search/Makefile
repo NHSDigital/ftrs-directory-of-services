@@ -19,7 +19,7 @@ PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
 GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
 PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-wrapper.sh
 
-override ENVIRONMENT := dev
+ENVIRONMENT ?=
 AWS_REGION ?=
 
 ifneq ($(strip $(COMMIT_HASH)),)
@@ -103,7 +103,7 @@ publish:
 	fi; \
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
 	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
-	AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}" "${ENVIRONMENT}"
+	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
 
 lint:
 	@echo "No lint step for sandbox service"
