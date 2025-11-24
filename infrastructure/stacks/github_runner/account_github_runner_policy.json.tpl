@@ -142,6 +142,16 @@
             }
         },
         {
+            "Sid": "EventsFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "events:*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
             "Sid": "KMSFullAccess",
             "Effect": "Allow",
             "Action": [
