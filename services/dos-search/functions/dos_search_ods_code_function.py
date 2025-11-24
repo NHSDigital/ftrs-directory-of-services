@@ -41,7 +41,11 @@ def get_organization() -> Response:
 
         ods_code = validated_params.ods_code
         # Structured request log
-        dos_logger.info("Received request for odsCode", ods_code=ods_code)
+        dos_logger.info(
+            "Received request for odsCode",
+            ods_code=ods_code,
+            dos_message_category="REQUEST",
+        )
 
         ftrs_service = FtrsService()
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)

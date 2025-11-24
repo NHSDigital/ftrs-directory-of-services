@@ -91,14 +91,27 @@ class TestLambdaHandler:
                 call.extract(ANY),
                 call.extract_one_time(ANY),
                 call.append_keys(log_data),
-                call.info("Logging one-time fields", **details),
-                call.info("Received request for odsCode", ods_code=ods_code),
                 call.info(
-                    "Successfully processed",
+                    "Logging one-time fields from Request",
+                    **details,
+                    dos_message_category="REQUEST",
+                ),
+                call.info(
+                    "Received request for odsCode",
+                    ods_code=ods_code,
+                    dos_message_category="REQUEST",
+                ),
+                call.info(
+                    "Successfully processed: Logging response time & size",
                     opt_ftrs_response_time=ANY,
                     opt_ftrs_response_size=ANY,
+                    dos_message_category="METRICS",
                 ),
-                call.info("Creating response", status_code=200),
+                call.info(
+                    "Creating response",
+                    status_code=200,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
@@ -126,12 +139,20 @@ class TestLambdaHandler:
 
         mock_logger.assert_has_calls(
             [
-                call.info("Logging one-time fields", **details),
+                call.info(
+                    "Logging one-time fields from Request",
+                    **details,
+                    dos_message_category="REQUEST",
+                ),
                 call.warning(
                     "Validation error occurred",
                     validation_errors=validation_error.errors(),
                 ),
-                call.info("Creating response", status_code=400),
+                call.info(
+                    "Creating response",
+                    status_code=400,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
@@ -167,10 +188,22 @@ class TestLambdaHandler:
                 call.extract(ANY),
                 call.extract_one_time(ANY),
                 call.append_keys(log_data),
-                call.info("Logging one-time fields", **details),
-                call.info("Received request for odsCode", ods_code=ods_code),
+                call.info(
+                    "Logging one-time fields from Request",
+                    **details,
+                    dos_message_category="REQUEST",
+                ),
+                call.info(
+                    "Received request for odsCode",
+                    ods_code=ods_code,
+                    dos_message_category="REQUEST",
+                ),
                 call.exception("Internal server error occurred"),
-                call.info("Creating response", status_code=500),
+                call.info(
+                    "Creating response",
+                    status_code=500,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
