@@ -27,41 +27,6 @@ retry_push(){
   done
 }
 
-fetch_manifest(){
-  local out_file="$1"
-  curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json,application/vnd.docker.distribution.manifest.list.v2+json' \
-    "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" -o "$out_file"
-}
-
-fetch_manifest_header(){
-  curl -fsSI -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
-    "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true
-}
-
-choose_manifest_from_list(){
-  local manifest_file="$1" platform="$2"
-  if command -v jq >/dev/null 2>&1; then
-    if [ -n "$platform" ]; then
-      local os=${platform%%/*}
-      local arch=${platform#*/}
-      jq -r --arg os "$os" --arg arch "$arch" '.manifests[]? | select(.platform? and .platform.os==$os and .platform.architecture==$arch) | .digest' "$manifest_file" 2>/dev/null | head -n1 || true
-    else
-      jq -r '.manifests[]?.digest' "$manifest_file" 2>/dev/null | head -n1 || true
-    fi
-  else
-    grep -o '"digest"[[:space:]]*:[[:space:]]*"[^\"]*"' "$manifest_file" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)"/\1/' | head -n1 || true
-  fi
-}
-
-extract_config_digest(){
-  local manifest_file="$1"
-  if command -v jq >/dev/null 2>&1; then
-    jq -r '.config.digest // empty' "$manifest_file" 2>/dev/null || true
-  else
-    grep -o '"config"[^{]*{[^}]*"digest"[[:space:]]*:[[:space:]]*"[^\"]*"' "$manifest_file" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)"/\1/' | head -1 || true
-  fi
-}
-
 print_summary(){
   local image="$1" digest="$2"
   local col1=40
