@@ -33,6 +33,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 GET_APIM_TOKEN_SCRIPT="$SCRIPT_DIR/get-apim-token.sh"
 PUSH_SCRIPT="$SCRIPT_DIR/push-to-ecr.sh"
 
+# Ensure ENVIRONMENT is present in the process environment for child scripts
+export ENVIRONMENT
+export ENV="$ENVIRONMENT"
+
 if [ ! -f "$GET_APIM_TOKEN_SCRIPT" ]; then
   err "token script not found: $GET_APIM_TOKEN_SCRIPT"
   exit 1
@@ -49,7 +53,7 @@ if [ ! -x "$PUSH_SCRIPT" ]; then
 fi
 
 log "Requesting APIM token for API: $API_NAME"
-TOKEN_OUTPUT=$(API_NAME="$API_NAME" ENV="$ENVIRONMENT" AWS_REGION="$AWS_REGION" /bin/bash "$GET_APIM_TOKEN_SCRIPT" 2>&1)
+TOKEN_OUTPUT=$(API_NAME="$API_NAME" ENV="$ENVIRONMENT" ENVIRONMENT="$ENVIRONMENT" AWS_REGION="$AWS_REGION" /bin/bash "$GET_APIM_TOKEN_SCRIPT" 2>&1)
 TOKEN_RC=$?
 
 if [ $TOKEN_RC -ne 0 ]; then
