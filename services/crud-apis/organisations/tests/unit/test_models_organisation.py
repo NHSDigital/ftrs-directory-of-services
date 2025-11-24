@@ -404,3 +404,31 @@ def test_valid_date_formats_accepted() -> None:
         assert organisation.extension is not None, (
             f"Valid dates {start_date} to {end_date} should be accepted"
         )
+
+
+def test_invalid_legal_period_start_equals_end() -> None:
+    payload = _build_base_payload()
+    payload["extension"] = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                    },
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {
+                        "start": "2022-01-01",
+                        "end": "2022-01-01",
+                    },
+                },
+            ],
+        }
+    ]
+    with pytest.raises(OperationOutcomeException) as e:
+        OrganisationUpdatePayload(**payload)
+    assert "Legal period start and end dates must not be equal" in str(e.value)
