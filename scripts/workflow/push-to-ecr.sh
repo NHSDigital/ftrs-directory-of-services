@@ -27,21 +27,6 @@ retry_push(){
   done
 }
 
-print_summary(){
-  local image="$1" digest="$2"
-  local col1=40
-  local dash1 dash2
-  dash1=$(printf '%*s' "$col1" '' | tr ' ' '-')
-  dash2=$(printf '%*s' 72 '' | tr ' ' '-')
-  local format="%-${col1}s | %s\n"
-  printf '\nLatest pushed image summary for repository: %s on registry: %s\n\n' "${REMOTE_IMAGE_NAME}" "${REGISTRY_HOST}"
-  printf "$format" "IMAGE" "DIGEST"
-  printf "$format" "$dash1" "$dash2"
-  printf '\n'
-  printf "$format" "$image" "$digest"
-  printf '\n'
-}
-
 init(){
   API_NAME="${1:-}"
   LOCAL_IMAGE="${2:-}"
@@ -84,30 +69,24 @@ proxygen_describe(){
 parse_proxygen_resp(){
   local resp="$1"
   DIGEST=$(printf '%s' "$resp" | jq -r '[.imageDetails[]?.imageDigest, .imageDetails[]?.digest, .imageDigest] | map(select(. != null and . != "")) | .[0] // empty' 2>/dev/null || true)
-  CREATED=$(printf '%s' "$resp" | jq -r '[.imageDetails[]?.imagePushedAt, .imageDetails[]?.pushedAt, .imagePushedAt] | map(select(. != null and . != "")) | .[0] // empty' 2>/dev/null || true)
 }
 
 fetch_image_metadata(){
   DIGEST=""
-  CREATED=""
   PROXYGEN_API="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}/aws/ecr/DescribeImages"
 
   PAYLOAD=$(printf '{"repositoryName":"%s","imageIds":[{"imageTag":"%s"}]}' "${REMOTE_IMAGE_NAME}" "${REMOTE_IMAGE_TAG}")
   resp=$(proxygen_describe "$PAYLOAD") || resp=""
   if [ -n "$resp" ]; then
     DIGEST=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imageDigest // .imageDigest // empty' 2>/dev/null || true)
-    CREATED=$(printf '%s' "$resp" | jq -r '.imageDetails[0].imagePushedAt // .imagePushedAt // empty' 2>/dev/null || true)
   fi
 
   if [ -z "$DIGEST" ]; then
-    DIGEST=$(fetch_manifest_header)
-    DIGEST=$(printf '%s' "$DIGEST" | tr -d '\r' || true)
-    [ -n "$DIGEST" ] || die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen or manifest header"
+    die "Failed to determine image digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via Proxygen"
   fi
 
   DIGEST="${DIGEST#sha256:}"
   DIGEST="sha256:${DIGEST}"
-  [ -n "${CREATED:-}" ] && log "[push-to-ecr] Found pushed time for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} at ${CREATED}"
 }
 
 main(){
@@ -116,9 +95,6 @@ main(){
   docker_login
   push_image
   fetch_image_metadata
-  print_summary "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "$DIGEST"
-  log "Verified image: ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} digest=${DIGEST}"
-  printf '\n'
 }
 
 main "$@"
