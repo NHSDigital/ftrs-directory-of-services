@@ -70,6 +70,7 @@
             "Sid": "IAMFullAccess",
             "Effect": "Allow",
             "Action": [
+                "access-analyzer:*",
                 "iam:List*",
                 "iam:Get*",
                 "iam:CreateRole",
