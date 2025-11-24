@@ -27,12 +27,12 @@ def build_sqs_event(
         Dictionary containing SQS event structure
 
     Example:
-        >>> event = build_sqs_event(
+        ... event = build_sqs_event(
         ...     table_name="services",
         ...     record_id=300010,
         ...     method="insert"
         ... )
-        >>> event["Records"][0]["body"]
+        ... event["Records"][0]["body"]
         '{"type": "dms_event", "record_id": 300010, "table_name": "services", "method": "insert"}'
     """
     timestamp_ms = str(int(datetime.now().timestamp() * 1000))

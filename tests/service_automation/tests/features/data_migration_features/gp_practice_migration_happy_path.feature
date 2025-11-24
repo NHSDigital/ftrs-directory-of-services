@@ -7,7 +7,7 @@ Feature: Data Migration
     And DynamoDB tables are ready
 
   Scenario: Happy path migration for a GP Practice
-    Given a "Service" exists in DoS with attributes
+    Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
       | key                                 | value                                                                                                                                                                                                                                   |
       | id                                  | 10005752                                                                                                                                                                                                                                |
       | uid                                 | 138179                                                                                                                                                                                                                                  |
@@ -37,7 +37,7 @@ Feature: Data Migration
       | parentid                            | 150013                                                                                                                                                                                                                                  |
       | subregionid                         | 150013                                                                                                                                                                                                                                  |
       | statusid                            | 1                                                                                                                                                                                                                                       |
-      | organisationid                      |                                                                                                                                                                                                                                         |
+      | organisationid                      |                                                                                                                                                                                                   |
       | returnifopenminutes                 |                                                                                                                                                                                                                                         |
       | publicname                          | Abbey Medical Practice                                                                                                                                                                                                                  |
       | latitude                            | 52.0910543                                                                                                                                                                                                                              |

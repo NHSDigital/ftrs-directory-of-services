@@ -7,7 +7,7 @@ Feature: Data Migration
         And DynamoDB tables are ready
 
     Scenario: Multiple consecutive date ranges are transformed
-        Given a "Service" exists in DoS with attributes
+         Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
             | key                                 | value                                                       |
             | id                                  | 1001533                                                     |
             | uid                                 | 113474                                                      |

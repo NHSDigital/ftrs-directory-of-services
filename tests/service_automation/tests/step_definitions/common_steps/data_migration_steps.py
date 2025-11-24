@@ -49,7 +49,7 @@ from utilities.common.log_helper import (
 
 
 @given("the test environment is configured")
-def test_environment_configured(
+def environment_configured(
     migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
 ) -> None:
     """Verify test environment is properly configured."""

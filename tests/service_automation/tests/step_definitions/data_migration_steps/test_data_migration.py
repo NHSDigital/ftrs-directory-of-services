@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import re
 
@@ -5,9 +6,8 @@ from decimal import Decimal
 from deepdiff import DeepDiff
 from pprint import pprint
 from pytest_bdd import scenarios, given, when, then, parsers, scenario
-from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from step_definitions.common_steps.data_steps import *  # noqa: F403
-from step_definitions.data_migration_steps.run_data_migration_steps import *  # noqa: F403
+from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 
 
 class DecimalEncoder(json.JSONEncoder):

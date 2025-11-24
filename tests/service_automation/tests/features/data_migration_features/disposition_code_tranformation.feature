@@ -7,7 +7,7 @@ Feature: Data Migration
         And DynamoDB tables are ready
 
     Scenario: Multiple disposition codes are transformed
-        Given a "Service" exists in DoS with attributes
+         Given a 'Service' exists called 'Redlam Surgery' in DoS with attributes:
             | key                                 | value                                                       |
             | id                                  | 6001533                                                     |
             | uid                                 | 113474                                                      |
@@ -47,13 +47,13 @@ Feature: Data Migration
             | lastverified                        |                                                             |
             | nextverificationdue                 |                                                             |
 
-        Given a "ServiceDisposition" exists in DoS with attributes
+        Given a 'ServiceDisposition' exists called 'Redlam Surgery' in DoS with attributes:
             | key           | value     |
             | id            | 61007338 |
             | serviceid      | 6001533   |
             | dispositionid | 4         |
 
-        Given a "ServiceDisposition" exists in DoS with attributes
+        Given a 'ServiceDisposition' exists called 'Redlam Surgery' in DoS with attributes:
             | key           | value      |
             | id            | 62007338 |
             | serviceid      | 6001533    |

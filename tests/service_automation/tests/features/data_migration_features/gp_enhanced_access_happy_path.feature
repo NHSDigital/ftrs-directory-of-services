@@ -7,7 +7,7 @@ Feature: Data Migration
     And DynamoDB tables are ready
 
   Scenario: Happy path migration for a GP Enhanced Access
-    Given a "Service" exists in DoS with attributes
+     Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
       | key                                 | value                                                         |
       | id                                  | 100178970                                                     |
       | uid                                 | 2000094797                                                    |
