@@ -255,7 +255,7 @@ def test_update_organisation_success() -> None:
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)

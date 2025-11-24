@@ -164,11 +164,11 @@ def test_check_for_special_characters_valid(resource: dict) -> None:
 @pytest.mark.parametrize(
     "resource,expected_error_field",
     [
-        ({"resourceType": "DummyResource", "name": 'Invalid"Name'}, "name"),
+        ({"resourceType": "DummyResource", "name": "Invalid@Name"}, "name"),
         ({"resourceType": "DummyResource", "modifiedBy": "Invalid#User"}, "modifiedBy"),
         (
-            {"resourceType": "DummyResource", "telecom": [{"value": "123;456"}]},
-            "telecom[0].value",
+            {"resourceType": "DummyResource", "telecom": [{"system": "123;456"}]},
+            "telecom[0].system",
         ),
         (
             {"resourceType": "DummyResource", "type": [{"text": "Type$1"}]},

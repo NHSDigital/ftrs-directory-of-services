@@ -79,7 +79,10 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
     )
     updates = {
         "name": "Updated Org Name",
-        "telecom": [Telecom(type="phone", value="020 7972 3272", isPublic=True)],
+        "telecom": [
+            Telecom(type="phone", value="020 7972 3272", isPublic=True),
+            Telecom(type="email", value="test@nhs.net", isPublic=True),
+        ],
         "modified_by": "UserX",
     }
     service = make_service()
@@ -90,7 +93,8 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         service._apply_updates(organisation, updates)
     assert organisation.name == "Updated Org Name"
     assert organisation.telecom == [
-        Telecom(type="phone", value="020 7972 3272", isPublic=True)
+        Telecom(type="phone", value="020 7972 3272", isPublic=True),
+        Telecom(type="email", value="test@nhs.net", isPublic=True),
     ]
     assert organisation.modifiedBy == "UserX"
     assert organisation.modifiedDateTime == FIXED_MODIFIED_TIME
