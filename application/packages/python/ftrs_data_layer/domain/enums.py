@@ -89,3 +89,8 @@ class TelecomType(str, Enum):
     PHONE = "phone"
     EMAIL = "email"
     WEB = "web"
+
+    def to_fhir_value(self) -> str:
+        if self == TelecomType.WEB:
+            return "url"
+        return self.value
