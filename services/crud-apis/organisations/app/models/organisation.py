@@ -9,6 +9,8 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
@@ -215,3 +217,13 @@ def _validate_typed_period_extension(ext: Extension) -> None:
         not period_ext.valuePeriod.start and not period_ext.valuePeriod.end
     ):
         _raise_validation_error("period must contain at least start or end date")
+
+    start = getattr(period_ext.valuePeriod, "start", None)
+    end = getattr(period_ext.valuePeriod, "end", None)
+    if start and end and start == end:
+        logger = Logger.get(service="crud_organisation_logger")
+        logger.log(
+            CrudApisLogBase.ORGANISATION_022,
+            date=start,
+        )
+        _raise_validation_error("Legal period start and end dates must not be equal")
