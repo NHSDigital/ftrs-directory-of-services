@@ -70,7 +70,7 @@ class DosLogger:
 
         # APIM message id
         msgid = self._get_header(
-            "x-apim-msg-id", "X-Message-Id", "apim-message-id", "dos-message-id"
+            "Message-Id",
         )
         mandatory["dos_message_id"] = msgid
 
