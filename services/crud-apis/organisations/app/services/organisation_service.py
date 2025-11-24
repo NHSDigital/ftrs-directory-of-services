@@ -15,6 +15,8 @@ from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
+from organisations.app.models.organisation import LegalDateField
+
 
 class OrganisationService:
     def __init__(
@@ -212,16 +214,22 @@ class OrganisationService:
         if existing is None or new is None:
             return True
 
-        existing_start = self._extract_date_field(existing, "start")
-        existing_end = self._extract_date_field(existing, "end")
-        new_start = self._extract_date_field(new, "start")
-        new_end = self._extract_date_field(new, "end")
+        existing_start = self._extract_date_field(existing, LegalDateField.START)
+        existing_end = self._extract_date_field(existing, LegalDateField.END)
+        new_start = self._extract_date_field(new, LegalDateField.START)
+        new_end = self._extract_date_field(new, LegalDateField.END)
 
         return existing_start != new_start or existing_end != new_end
 
-    def _extract_date_field(self, legal_dates: LegalDates, field: str) -> any:
-        if hasattr(legal_dates, field):
-            return getattr(legal_dates, field)
+    def _extract_date_field(
+        self, legal_dates: LegalDates, field: LegalDateField
+    ) -> any:
+        if not isinstance(field, LegalDateField):
+            err_msg = "field must be a LegalDateField Enum value"
+            raise TypeError(err_msg)
+        key = field.value
+        if hasattr(legal_dates, key):
+            return getattr(legal_dates, key)
         if isinstance(legal_dates, dict):
-            return legal_dates.get(field)
+            return legal_dates.get(key)
         return None
