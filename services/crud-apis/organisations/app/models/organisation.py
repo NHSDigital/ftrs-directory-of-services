@@ -8,6 +8,7 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
+from ftrs_data_layer.domain.enums import OrganisationType
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
@@ -70,7 +71,12 @@ class Organisation(BaseModel):
     name: str = Field(..., example="GP Practice Name")
     active: bool = Field(..., example=True)
     telecom: str | None = Field(default=None, example="01234 567890")
-    type: str = Field(default="GP Practice", example="GP Practice")
+    type: OrganisationType = Field(
+        default=OrganisationType.GP_PRACTICE, example="GP Practice"
+    )
+    non_primary_roles: list[OrganisationType] = Field(
+        default_factory=list, example=["Walk-In Centre"]
+    )
 
 
 class OrganisationUpdatePayload(BaseModel):
