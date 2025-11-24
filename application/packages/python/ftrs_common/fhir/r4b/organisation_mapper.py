@@ -149,7 +149,11 @@ class OrganizationMapper(FhirMapper):
         for telecom in fhir_org.telecom:
             if telecom.system in [t.to_fhir_value() for t in TelecomType]:
                 telecoms.append(
-                    Telecom(type=telecom.system, value=telecom.value, isPublic=True)
+                    Telecom(
+                        type=TelecomType.from_fhir_value(telecom.system),
+                        value=telecom.value,
+                        isPublic=True,
+                    )
                 )
         return telecoms
 

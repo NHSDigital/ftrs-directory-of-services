@@ -94,3 +94,12 @@ class TelecomType(str, Enum):
         if self == TelecomType.WEB:
             return "url"
         return self.value
+
+    @staticmethod
+    def from_fhir_value(value: str) -> "TelecomType":
+        if value == "url":
+            return TelecomType.WEB
+        for telecom_type in TelecomType:
+            if telecom_type.value == value:
+                return telecom_type
+        raise ValueError(value)
