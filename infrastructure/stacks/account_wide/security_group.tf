@@ -71,7 +71,7 @@ resource "aws_vpc_security_group_egress_rule" "performance_egress_ntp_udp" {
 # HTTP egress for software installation, AWS APIs, and performance tests
 # Note: 0.0.0.0/0 here still egresses via a NAT Gateway from private subnets; no inbound exposure.
 # trivy:ignore:aws-vpc-no-public-egress-sgr : FDOS-511 Required HTTPS egress to the internet for installs and AWS APIs; SG egress is least-privilege and NACLs restrict UDP
-resource "aws_vpc_security_group_egress_rule" "performance_egress_https" {
+resource "aws_vpc_security_group_egress_rule" "performance_egress_http" {
   security_group_id = aws_security_group.performance_ec2_sg.id
   description       = "Allow HTTP egress (tcp/80) to the internet for installs"
   cidr_ipv4         = "0.0.0.0/0"
