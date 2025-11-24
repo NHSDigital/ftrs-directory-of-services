@@ -130,4 +130,4 @@ class DataMigrationApplication:
         )
 
     def handle_endpoint_event(self, event: DMSEvent) -> None:
-        return self.processor.sync_service(event.service_id, event.method)
+        return self.processor.sync_service(event.service_id, "update")
