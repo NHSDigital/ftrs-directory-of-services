@@ -737,6 +737,8 @@ def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
     }
     result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
     assert result is not None
+    assert result.identifier[0].value == "ODS123"
+    assert result.type[0].text == "GP Practice"
 
 
 def test__extract_legal_dates_with_valid_typed_period() -> None:

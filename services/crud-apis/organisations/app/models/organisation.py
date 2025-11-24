@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 from typing import Literal
 
 from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
@@ -29,6 +30,11 @@ TYPED_PERIOD_URL = (
 )
 PERIOD_TYPE_SYSTEM = "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
 LEGAL_PERIOD_CODE = "Legal"
+
+
+class LegalDateField(Enum):
+    START = "start"
+    END = "end"
 
 
 class OrganizationQueryParams(BaseModel):

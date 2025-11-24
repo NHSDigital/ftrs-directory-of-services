@@ -90,6 +90,24 @@ def test_valid_typed_period_extension_with_both_dates() -> None:
     organisation = OrganisationUpdatePayload(**payload)
     assert organisation.extension is not None
     assert len(organisation.extension) == 1
+    ext = organisation.extension[0]
+    assert (
+        ext.url
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+    )
+    # Check sub-extensions
+    sub_exts = {e.url: e for e in ext.extension}
+    assert "dateType" in sub_exts
+    assert "period" in sub_exts
+    date_type_ext = sub_exts["dateType"]
+    period_ext = sub_exts["period"]
+    assert date_type_ext.valueCoding.code == "Legal"
+    assert (
+        date_type_ext.valueCoding.system
+        == "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
+    )
+    assert period_ext.valuePeriod.start == "2020-01-15"
+    assert period_ext.valuePeriod.end == "2025-12-31"
 
 
 def test_valid_typed_period_extension_with_start_only() -> None:
@@ -114,7 +132,11 @@ def test_valid_typed_period_extension_with_start_only() -> None:
         }
     ]
     organisation = OrganisationUpdatePayload(**payload)
-    assert organisation.extension is not None
+    ext = organisation.extension[0]
+    sub_exts = {e.url: e for e in ext.extension}
+    period_ext = sub_exts["period"]
+    assert period_ext.valuePeriod.start == "2020-01-15"
+    assert period_ext.valuePeriod.end is None
 
 
 def test_valid_typed_period_extension_with_end_only() -> None:
@@ -139,7 +161,11 @@ def test_valid_typed_period_extension_with_end_only() -> None:
         }
     ]
     organisation = OrganisationUpdatePayload(**payload)
-    assert organisation.extension is not None
+    ext = organisation.extension[0]
+    sub_exts = {e.url: e for e in ext.extension}
+    period_ext = sub_exts["period"]
+    assert period_ext.valuePeriod.start is None
+    assert period_ext.valuePeriod.end == "2025-12-31"
 
 
 def test_invalid_sub_extension() -> None:

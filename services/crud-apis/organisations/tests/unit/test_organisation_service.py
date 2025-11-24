@@ -11,6 +11,7 @@ from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
+from organisations.app.models.organisation import LegalDateField
 from organisations.app.services.organisation_service import OrganisationService
 
 FIXED_CREATED_TIME = datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
@@ -451,3 +452,20 @@ def test_get_all_organisations() -> None:
     result = service.get_all_organisations()
     assert result == [org1, org2]
     org_repository.iter_records.assert_called_once()
+
+
+def test_extract_date_field_from_enum() -> None:
+    service = OrganisationService(org_repository=MagicMock())
+    legal_dates = {"start": "2020-01-01", "end": "2025-12-31"}
+
+    assert (
+        service._extract_date_field(legal_dates, LegalDateField.START) == "2020-01-01"
+    )
+    assert service._extract_date_field(legal_dates, LegalDateField.END) == "2025-12-31"
+
+
+def test_extract_date_field_not_in_enum() -> None:
+    service = OrganisationService(org_repository=MagicMock())
+    legal_dates = {"start": "2020-01-01", "end": "2025-12-31"}
+    with pytest.raises(TypeError):
+        service._extract_date_field(legal_dates, "foo")
