@@ -67,6 +67,9 @@ Feature: Organization API Endpoint
     When I set the "<field>" field to "<value>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
     And the diagnostics message indicates invalid characters in the "<field_path>" with value "<invalid_value>"
 
     Examples:
@@ -120,3 +123,48 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "unsupported-media-type"
     And the OperationOutcome contains an issue with diagnostics "PUT requests must have Content-Type 'application/fhir+json'"
+
+
+  Scenario Outline: Update organization with valid identifier
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I have a valid organization payload with identifier "<identifier_data>"
+    When I update the organization details with the identifier
+    Then I receive a status code "200" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "information"
+    And the OperationOutcome contains an issue with code "success"
+    And the OperationOutcome contains an issue with diagnostics "Organisation updated successfully"
+    And the data in the database matches the inserted payload
+
+    Examples:
+      | identifier_data                                                                             |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M2T8W"}]              |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M2T8W", "use": null}] |
+
+  Scenario Outline: Update organization with invalid identifier
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I have a valid organization payload with identifier "<identifier_data>"
+    When I update the organization details with the identifier
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+
+
+    Examples:
+      | identifier_data                                                                                |
+      | [{"value": "M2T8W", "use": "official"}]                                                        |
+      | []                                                                                             |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": null, "use": "official"}] |
+      | [{"system": null, "value": "M2T8W", "use": "official"}]                                        |
+      | [{"system": "invalid-system", "value": "M2T8W", "use": "official"}]                            |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "", "use": "official"}]   |
+
+
+
