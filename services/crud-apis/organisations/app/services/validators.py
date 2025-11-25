@@ -1,4 +1,3 @@
-from ftrs_data_layer.domain.enums import OrganisationType
 from pydantic import field_validator
 
 from organisations.app.models.organisation import (
@@ -36,30 +35,3 @@ class CreatePayloadValidator(OrganisationCreatePayload):
         if not v.strip():
             raise ValueError(ODS_CODE_EMPTY_ERROR)
         return v
-
-    @field_validator("type")
-    def validate_type_enum(cls, v: str) -> OrganisationType:
-        """Validates that type is a valid OrganisationType enum value."""
-        try:
-            return OrganisationType(v)
-        except ValueError:
-            raise ValueError(
-                INVALID_ORG_TYPE_ERROR.format(
-                    invalid_type=v,
-                )
-            )
-
-    @field_validator("non_primary_roles")
-    def validate_non_primary_roles(cls, v: list[str]) -> list[OrganisationType]:
-        """Validates that all non-primary roles are valid OrganisationType enum values."""
-        validated_roles = []
-        for role in v:
-            try:
-                validated_roles.append(OrganisationType(role))
-            except ValueError:
-                raise ValueError(
-                    INVALID_NON_PRIMARY_ROLE_ERROR.format(
-                        invalid_role=role,
-                    )
-                )
-        return validated_roles

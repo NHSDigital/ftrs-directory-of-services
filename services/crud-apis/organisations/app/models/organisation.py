@@ -10,6 +10,7 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_data_layer.domain.enums import OrganisationType
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from validators.organisation_type_validator import OrganisationTypeValidator
 
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
 IDENTIFIER_SEPARATOR = "|"
@@ -136,6 +137,55 @@ class OrganisationUpdatePayload(BaseModel):
                 raise ValueError(ERROR_MESSAGE_TYPE)
             if t.coding and (not t.coding[0].code or t.coding[0].code == ""):
                 raise ValueError(ERROR_MESSAGE_TYPE)
+        return self
+
+    @model_validator(mode="after")
+    def validate_type_values(self) -> "OrganisationUpdatePayload":
+        """Validate that all type values are valid OrganisationType enums."""
+        for idx, type_entry in enumerate(self.type):
+            type_text = self._get_type_text(type_entry)
+
+            try:
+                OrganisationType(type_text)
+            except ValueError:
+                if idx == 0:
+                    raise OperationOutcomeException(
+                        OperationOutcomeHandler.build(
+                            diagnostics=f"Invalid organization type: '{type_text}'.",
+                            code="invalid",
+                            severity="error",
+                        )
+                    )
+                else:
+                    raise OperationOutcomeException(
+                        OperationOutcomeHandler.build(
+                            diagnostics=f"Invalid non-primary role: '{type_text}'.",
+                            code="invalid",
+                            severity="error",
+                        )
+                    )
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_type_combination(self) -> "OrganisationUpdatePayload":
+        """Validate that primary type and non-primary roles combination is permitted."""
+        primary_type = self.get_primary_type()
+        non_primary_roles = self.get_non_primary_roles()
+
+        is_valid, error_message = OrganisationTypeValidator.validate_type_combination(
+            primary_type, non_primary_roles
+        )
+
+        if not is_valid:
+            raise OperationOutcomeException(
+                OperationOutcomeHandler.build(
+                    diagnostics=error_message,
+                    code="invalid",
+                    severity="error",
+                )
+            )
+
         return self
 
 

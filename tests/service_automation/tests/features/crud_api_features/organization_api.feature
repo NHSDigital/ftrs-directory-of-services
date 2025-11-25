@@ -60,7 +60,6 @@ Feature: Organization API Endpoint
     Examples:
       | field   | value                           |
       | name    | MEDICAL PRACTICE - !COVID LOCAL |
-      | type    | !SURGERY                        |
       | telecom | 9876543210(                     |
 
   Scenario Outline: Reject Organization update with invalid special characters in specific fields
@@ -73,9 +72,61 @@ Feature: Organization API Endpoint
       | field   | value           | field_path       | invalid_value   |
       | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
       | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
-      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH SURGERY |
-      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#SURGERY  |
       | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
+
+  Scenario Outline: Update Organisation with valid non-primary roles
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I set the "type" field to "<primary_type>" with non-primary roles "<non_primary_roles>"
+    Then I receive a status code "200" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains an issue with code "success"
+    And the database reflects "type" with value "<primary_type>"
+    And the database reflects "non_primary_roles" with values "<non_primary_roles>"
+
+    Examples:
+      | primary_type                    | non_primary_roles                                      |
+      | Prescribing Cost Centre         | GP Practice                                            |
+      | Prescribing Cost Centre         | Out of Hours Cost Centre                               |
+      | Prescribing Cost Centre         | Walk-In Centre                                         |
+      | Prescribing Cost Centre         | GP Practice,Out of Hours Cost Centre                   |
+      | Prescribing Cost Centre         | GP Practice,Out of Hours Cost Centre,Walk-In Centre    |
+      | Pharmacy                        |                                                        |
+
+
+  Scenario Outline: Reject Organisation with invalid primary type
+    When I set the "type" field to "<invalid_type>" with non-primary roles ""
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the diagnostics message indicates invalid primary type "<invalid_type>"
+
+    Examples:
+      | invalid_type                    |
+      | GP Practice                     |
+      | Out of Hours Cost Centre        |
+      | Walk-In Centre                  |
+      | Hospital Trust                  |
+      | Invalid Type                    |
+
+
+  Scenario Outline: Reject Organisation with invalid non-primary roles
+    When I set the "type" field to "Prescribing Cost Centre" with non-primary roles "<invalid_roles>"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the diagnostics message indicates invalid non-primary role combination
+
+    Examples:
+      | invalid_roles                  |
+      | Pharmacy                       |
+      | Invalid Role Type              |
+      | Hospital Trust                 |
+
+
 
 
   Scenario Outline: Update Organization with missing "<field>" field
