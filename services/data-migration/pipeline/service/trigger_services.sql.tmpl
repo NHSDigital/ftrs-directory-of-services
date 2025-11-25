@@ -6,10 +6,16 @@ GRANT USAGE ON SCHEMA aws_lambda TO ${user};
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA aws_lambda TO ${user};
 
 
+-- Create unique trigger and function names for services table to avoid deadlocks
+DROP TRIGGER IF EXISTS services_lambda_notify ON ${table_name};
+
+-- Drop legacy trigger function if it exists (Raise tech debt jira to remove this after deploying)
 DROP FUNCTION IF EXISTS pathwaysdos.lambda_notify() CASCADE;
 
--- Trigger function to notify AWS Lambda on INSERT/UPDATE/DELETE
-CREATE OR REPLACE FUNCTION pathwaysdos.lambda_notify()
+DROP FUNCTION IF EXISTS pathwaysdos.services_change_notify() CASCADE;
+
+-- Trigger function specific to services table to notify AWS Lambda on INSERT/UPDATE/DELETE
+CREATE OR REPLACE FUNCTION pathwaysdos.services_change_notify()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $function$
@@ -20,9 +26,9 @@ BEGIN
         payload := json_build_object(
             'table_name', TG_TABLE_NAME,
             'method', 'delete',
+            'service_id', COALESCE(OLD.id::text, '0'),
             'record_id', COALESCE(OLD.id::text, '0')
         );
-
         PERFORM aws_lambda.invoke(
             '${lambda_arn}',
             payload,
@@ -34,6 +40,7 @@ BEGIN
         payload := json_build_object(
             'table_name', TG_TABLE_NAME,
             'method', TG_OP,
+            'service_id', COALESCE(NEW.id::text, '0'),
             'record_id', COALESCE(NEW.id::text, '0')
         );
 
@@ -54,4 +61,4 @@ CREATE TRIGGER services_lambda_notify
 AFTER INSERT OR UPDATE OR DELETE
 ON ${table_name}
 FOR EACH ROW
-EXECUTE FUNCTION pathwaysdos.lambda_notify();
+EXECUTE FUNCTION pathwaysdos.services_change_notify();
