@@ -1,0 +1,60 @@
+name: Deploy Open Search Indexes workflow
+
+permissions:
+  id-token: write
+  contents: read
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The name of the environment to deploy into"
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to deploy the application into"
+        required: true
+        type: string
+      domain:
+        description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
+        required: false
+        default: ${{ github.event.repository.name }}
+        type: string
+      tag:
+        description: "The tag to build and deploy from"
+        required: false
+        default: ""
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+jobs:
+  create-index:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          repository: ${{ inputs.domain }}
+          tag: ${{ inputs.tag }}
+
+      - name: Configure AWS Credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: Create OpenSearch Index
+        run: |
+          curl -X PUT "https://<your-domain>/_index/my-index" \
+          -H "Content-Type: application/json" \
+          -d '{"settings":{"number_of_shards":1},"mappings":{"properties":{"title":{"type":"text"}}}}'
+
+
+
+
+

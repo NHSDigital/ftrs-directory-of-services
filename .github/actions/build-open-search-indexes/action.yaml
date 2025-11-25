@@ -1,0 +1,21 @@
+name: "Build open search indexes action"
+description: "Builds the required indexes in open search."
+
+inputs:
+    service:
+        description: "The name of the service to build"
+        required: true
+    directory:
+        description: "The name of the directory to build in"
+        required: true
+
+runs:
+  using: "composite"
+
+  steps:
+      - name: Build Open Search Indexes
+        shell: bash
+        run: |
+          export SERVICE=${{ inputs.service }}
+          export DIRECTORY=${{ inputs.directory }}
+          /bin/bash ./uec-dos-management/scripts/workflow/build-open-search-index.sh
