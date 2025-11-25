@@ -591,9 +591,3 @@ def step_diagnostics_extra_field(fresponse, field, value):
         field=field,
         value=value,
     )
-    diagnostic = get_diagnostics_list(fresponse)[0]
-    assert diagnostic.get("type") == "extra_forbidden"
-    loc = diagnostic.get("loc", [])
-    assert field in loc or field == loc
-    assert diagnostic.get("msg") == "Extra inputs are not permitted"
-    assert diagnostic.get("input") == value
