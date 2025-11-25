@@ -59,10 +59,12 @@ push_image(){
   log "Image pushed successfully to ${REMOTE_COMMIT_TAG}"
 }
 
+fetch_manifest_header(){
+  curl -fsSI -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
+    "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true
+}
+
 print_manifest_metadata(){
-  if ! command -v jq >/dev/null 2>&1; then
-    die "jq is required to extract manifest metadata; please install jq"
-  fi
   TMP_MANIFEST=$(mktemp /tmp/manifest.XXXXXX)
   TMP_CONFIG=$(mktemp /tmp/config.XXXXXX)
   trap 'rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true' RETURN
@@ -70,11 +72,19 @@ print_manifest_metadata(){
   curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json,application/vnd.docker.distribution.manifest.list.v2+json' \
     "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" -o "$TMP_MANIFEST" || die "Failed to download manifest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
 
-  if jq -e '.manifests' "$TMP_MANIFEST" >/dev/null 2>&1; then
-    SELECT_DIGEST=$(jq -r '.manifests[0].digest' "$TMP_MANIFEST")
-    curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
-      "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${SELECT_DIGEST}" -o "$TMP_MANIFEST" || die "Failed to download selected manifest ${SELECT_DIGEST}"
+  DIGEST=$(fetch_manifest_header || true)
+  if [ -z "${DIGEST:-}" ]; then
+    DIGEST=$(jq -r '.config.digest // .manifests[0].digest // empty' "$TMP_MANIFEST" 2>/dev/null || true)
   fi
+  if [ -z "${DIGEST:-}" ]; then
+    DIGEST=$(grep -o '"digest"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_MANIFEST" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)".*/\1/' | head -n1 || true)
+  fi
+  if [ -z "${DIGEST:-}" ]; then
+    rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true
+    die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
+  fi
+  DIGEST="${DIGEST#sha256:}"
+  DIGEST="sha256:${DIGEST}"
 
   CONFIG_DIGEST=$(jq -r '.config.digest // empty' "$TMP_MANIFEST")
   [ -n "${CONFIG_DIGEST:-}" ] || die "Manifest does not contain a config.digest"
@@ -84,20 +94,6 @@ print_manifest_metadata(){
   CREATED=$(jq -r '.created // empty' "$TMP_CONFIG" 2>/dev/null || true)
   AUTHOR=$(jq -r '.author // empty' "$TMP_CONFIG" 2>/dev/null || true)
   CREATED_BY=$(jq -r '( .history[0].created_by // .created_by // empty )' "$TMP_CONFIG" 2>/dev/null || true)
-  ARCH=$(jq -r '.architecture // empty' "$TMP_CONFIG" 2>/dev/null || true)
-  OS=$(jq -r '.os // empty' "$TMP_CONFIG" 2>/dev/null || true)
-  USER_CFG=$(jq -r '.config.User // empty' "$TMP_CONFIG" 2>/dev/null || true)
-  WORKDIR=$(jq -r '.config.WorkingDir // empty' "$TMP_CONFIG" 2>/dev/null || true)
-  LABELS=$(jq -r '(.config.Labels // {}) | to_entries | map("\(.key)=\(.value)") | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
-  CMD=$(jq -r '.config.Cmd // [] | join(" ")' "$TMP_CONFIG" 2>/dev/null || true)
-  ENTRYPOINT=$(jq -r '.config.Entrypoint // [] | join(" ")' "$TMP_CONFIG" 2>/dev/null || true)
-  ENVVARS=$(jq -r '.config.Env // [] | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
-  EXPOSED_PORTS=$(jq -r '(.config.ExposedPorts // {}) | keys | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
-  VOLUMES=$(jq -r '(.config.Volumes // {}) | keys | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
-
-  LAYERS_COUNT=$(jq -r '.layers | length // 0' "$TMP_MANIFEST" 2>/dev/null || true)
-  TOTAL_SIZE=$(jq -r '[.layers[]?.size] | add // 0' "$TMP_MANIFEST" 2>/dev/null || true)
-  LAYER_DIGESTS=$(jq -r '[.layers[]?.digest] | join(",")' "$TMP_MANIFEST" 2>/dev/null || true)
 
   printf 'IMAGE\tDIGEST\tCREATED\tAUTHOR\tCREATED_BY\tOS/ARCH\tUSER\tWORKDIR\tEXPOSED_PORTS\tVOLUMES\tLAYERS\tSIZE\tLABELS\n'
   printf '%s\t%s\t%s\t%s\t%s\t%s/%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
