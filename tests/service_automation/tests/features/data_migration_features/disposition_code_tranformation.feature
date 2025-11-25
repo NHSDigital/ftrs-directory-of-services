@@ -7,7 +7,7 @@ Feature: Data Migration
         And DynamoDB tables are ready
 
     Scenario: Multiple disposition codes are transformed
-         Given a 'Service' exists called 'Redlam Surgery' in DoS with attributes:
+        Given a "Service" exists in DoS with attributes
             | key                                 | value                                                       |
             | id                                  | 6001533                                                     |
             | uid                                 | 113474                                                      |
@@ -47,40 +47,19 @@ Feature: Data Migration
             | lastverified                        |                                                             |
             | nextverificationdue                 |                                                             |
 
-        Given a 'ServiceDisposition' exists called 'Redlam Surgery' in DoS with attributes:
+        Given a "ServiceDisposition" exists in DoS with attributes
             | key           | value     |
             | id            | 61007338 |
             | serviceid      | 6001533   |
             | dispositionid | 4         |
 
-        Given a 'ServiceDisposition' exists called 'Redlam Surgery' in DoS with attributes:
+        Given a "ServiceDisposition" exists in DoS with attributes
             | key           | value      |
             | id            | 62007338 |
             | serviceid      | 6001533    |
             | dispositionid | 5          |
 
-        When the data migration process is run with the event:
-            """
-            {
-                "Records": [
-                    {
-                        "messageId": "test-message-1",
-                        "receiptHandle": "test-receipt-handle",
-                        "body": "{\"type\": \"dms_event\", \"record_id\": 6001533, \"table_name\": \"services\", \"method\": \"insert\"}",
-                        "attributes": {
-                            "ApproximateReceiveCount": "1",
-                            "SentTimestamp": "1704106800000",
-                            "SenderId": "EXAMPLE123456789012",
-                            "ApproximateFirstReceiveTimestamp": "1704106800000"
-                        },
-                        "messageAttributes": {},
-                        "md5OfBody": "test-md5",
-                        "eventSource": "aws:sqs",
-                        "awsRegion": "eu-west-2"
-                    }
-                ]
-            }
-            """
+        When the data migration process is run for table 'services', ID '6001533' and method 'insert'
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
 
@@ -90,7 +69,7 @@ Feature: Data Migration
                 "id": "6fa132cc-0096-5665-ada1-76e23823ac4c",
                 "field": "document",
                 "active": true,
-                "ageEligibilityCriteria": [],
+                "ageEligibilityCriteria": null,
                 "category": "GP Services",
                 "createdBy": "DATA_MIGRATION",
                 "createdDateTime": "2025-11-14T14:31:54.666870Z",

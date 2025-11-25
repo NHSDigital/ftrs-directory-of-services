@@ -7,7 +7,7 @@ Feature: Data Migration
         And DynamoDB tables are ready
 
     Scenario: Multiple consecutive date ranges are transformed
-         Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
+        Given a "Service" exists in DoS with attributes
             | key                                 | value                                                       |
             | id                                  | 1001533                                                     |
             | uid                                 | 113474                                                      |
@@ -78,28 +78,7 @@ Feature: Data Migration
             | daysto    | 364.25  |
             | serviceid | 1001533 |
 
-        When the data migration process is run with the event:
-            """
-            {
-                "Records": [
-                    {
-                        "messageId": "test-message-1",
-                        "receiptHandle": "test-receipt-handle",
-                        "body": "{\"type\": \"dms_event\", \"record_id\": 1001533, \"table_name\": \"services\", \"method\": \"insert\"}",
-                        "attributes": {
-                            "ApproximateReceiveCount": "1",
-                            "SentTimestamp": "1704106800000",
-                            "SenderId": "EXAMPLE123456789012",
-                            "ApproximateFirstReceiveTimestamp": "1704106800000"
-                        },
-                        "messageAttributes": {},
-                        "md5OfBody": "test-md5",
-                        "eventSource": "aws:sqs",
-                        "awsRegion": "eu-west-2"
-                    }
-                ]
-            }
-            """
+        When the data migration process is run for table 'services', ID '1001533' and method 'insert'
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
 
@@ -209,28 +188,7 @@ Feature: Data Migration
             | daysto    | 364.25  |
             | serviceid | 2001533 |
 
-        When the data migration process is run with the event:
-            """
-            {
-                "Records": [
-                    {
-                        "messageId": "test-message-1",
-                        "receiptHandle": "test-receipt-handle",
-                        "body": "{\"type\": \"dms_event\", \"record_id\": 2001533, \"table_name\": \"services\", \"method\": \"insert\"}",
-                        "attributes": {
-                            "ApproximateReceiveCount": "1",
-                            "SentTimestamp": "1704106800000",
-                            "SenderId": "EXAMPLE123456789012",
-                            "ApproximateFirstReceiveTimestamp": "1704106800000"
-                        },
-                        "messageAttributes": {},
-                        "md5OfBody": "test-md5",
-                        "eventSource": "aws:sqs",
-                        "awsRegion": "eu-west-2"
-                    }
-                ]
-            }
-            """
+        When the data migration process is run for table 'services', ID '2001533' and method 'insert'
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
 
@@ -334,28 +292,7 @@ Feature: Data Migration
             | daysto    | 37481.5 |
             | serviceid | 3001533 |
 
-        When the data migration process is run with the event:
-            """
-            {
-                "Records": [
-                    {
-                        "messageId": "test-message-1",
-                        "receiptHandle": "test-receipt-handle",
-                        "body": "{\"type\": \"dms_event\", \"record_id\": 3001533, \"table_name\": \"services\", \"method\": \"insert\"}",
-                        "attributes": {
-                            "ApproximateReceiveCount": "1",
-                            "SentTimestamp": "1704106800000",
-                            "SenderId": "EXAMPLE123456789012",
-                            "ApproximateFirstReceiveTimestamp": "1704106800000"
-                        },
-                        "messageAttributes": {},
-                        "md5OfBody": "test-md5",
-                        "eventSource": "aws:sqs",
-                        "awsRegion": "eu-west-2"
-                    }
-                ]
-            }
-            """
+        When the data migration process is run for table 'services', ID '3001533' and method 'insert'
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
         Then the 'healthcare-service' for service ID '8d73a7f5-1e60-5880-902f-4ad5d4b9f08b' has content:
@@ -463,28 +400,7 @@ Feature: Data Migration
             | daysto    | 364.25  |
             | serviceid | 4001533 |
 
-        When the data migration process is run with the event:
-            """
-            {
-                "Records": [
-                    {
-                        "messageId": "test-message-1",
-                        "receiptHandle": "test-receipt-handle",
-                        "body": "{\"type\": \"dms_event\", \"record_id\": 4001533, \"table_name\": \"services\", \"method\": \"insert\"}",
-                        "attributes": {
-                            "ApproximateReceiveCount": "1",
-                            "SentTimestamp": "1704106800000",
-                            "SenderId": "EXAMPLE123456789012",
-                            "ApproximateFirstReceiveTimestamp": "1704106800000"
-                        },
-                        "messageAttributes": {},
-                        "md5OfBody": "test-md5",
-                        "eventSource": "aws:sqs",
-                        "awsRegion": "eu-west-2"
-                    }
-                ]
-            }
-            """
+        When the data migration process is run for table 'services', ID '4001533' and method 'insert'
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
 

@@ -34,7 +34,7 @@ IGNORED_PATHS = [
 ]
 
 scenarios(
-    "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
+    "../features/data_migration_features/disposition_code_tranformation.feature"
 )
 
 # scenarios(
