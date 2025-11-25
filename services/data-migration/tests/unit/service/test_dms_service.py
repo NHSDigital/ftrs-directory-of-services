@@ -89,8 +89,11 @@ def test_rds_trigger_creation_succeeds_when_template_exists(
     username = "dms_user"
     lambda_arn = "arn:aws:lambda:eu-west-2:123456789012:function:my-function"
     aws_region = "eu-west-2"
+    service_table_name = "services"
 
-    create_rds_trigger_replica_db(mock_engine, username, lambda_arn, aws_region)
+    create_rds_trigger_replica_db(
+        mock_engine, username, lambda_arn, aws_region, service_table_name
+    )
 
     mock_connection = mock_engine.connect.return_value.__enter__.return_value
     mock_connection.execute.assert_called_once()
@@ -103,12 +106,15 @@ def test_rds_trigger_creation_propagates_exception_when_database_error_occurs(
     username = "dms_user"
     lambda_arn = "arn:aws:lambda:eu-west-2:123456789012:function:my-function"
     aws_region = "eu-west-2"
+    service_table_name = "services"
 
     mock_connection = mock_engine.connect.return_value.__enter__.return_value
     mock_connection.execute.side_effect = SQLAlchemyError("Trigger creation failed")
 
     with pytest.raises(SQLAlchemyError):
-        create_rds_trigger_replica_db(mock_engine, username, lambda_arn, aws_region)
+        create_rds_trigger_replica_db(
+            mock_engine, username, lambda_arn, aws_region, service_table_name
+        )
 
 
 def test_rds_trigger_creation_propagates_exception_when_template_file_not_found(
@@ -118,9 +124,12 @@ def test_rds_trigger_creation_propagates_exception_when_template_file_not_found(
     username = "dms_user"
     lambda_arn = "arn:aws:lambda:eu-west-2:123456789012:function:my-function"
     aws_region = "eu-west-2"
+    service_table_name = "services"
 
     with pytest.raises(FileNotFoundError):
-        create_rds_trigger_replica_db(mock_engine, username, lambda_arn, aws_region)
+        create_rds_trigger_replica_db(
+            mock_engine, username, lambda_arn, aws_region, service_table_name
+        )
 
 
 def test_rds_trigger_creation_handles_all_parameter_substitutions(
@@ -129,18 +138,20 @@ def test_rds_trigger_creation_handles_all_parameter_substitutions(
     username = "dms_user"
     lambda_arn = "arn:aws:lambda:eu-west-2:123456789012:function:my-function"
     aws_region = "eu-west-2"
+    service_table_name = "services"
 
-    with patch("ftrs_data_layer.domain.legacy.Service.__tablename__", "services"):
-        create_rds_trigger_replica_db(mock_engine, username, lambda_arn, aws_region)
+    create_rds_trigger_replica_db(
+        mock_engine, username, lambda_arn, aws_region, service_table_name
+    )
 
-        mock_connection = mock_engine.connect.return_value.__enter__.return_value
-        executed_sql = mock_connection.execute.call_args[0][0].text
+    mock_connection = mock_engine.connect.return_value.__enter__.return_value
+    executed_sql = mock_connection.execute.call_args[0][0].text
 
-        assert "${user}" not in executed_sql
-        assert "${lambda_arn}" not in executed_sql
-        assert "${aws_region}" not in executed_sql
-        assert "${table_name}" not in executed_sql
-        assert username in executed_sql
-        assert lambda_arn in executed_sql
-        assert aws_region in executed_sql
-        assert "services" in executed_sql
+    assert "${user}" not in executed_sql
+    assert "${lambda_arn}" not in executed_sql
+    assert "${aws_region}" not in executed_sql
+    assert "${table_name}" not in executed_sql
+    assert username in executed_sql
+    assert lambda_arn in executed_sql
+    assert aws_region in executed_sql
+    assert "services" in executed_sql

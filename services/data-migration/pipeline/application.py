@@ -14,6 +14,7 @@ from pipeline.utils.config import DataMigrationConfig
 class DMSEvent(BaseModel):
     type: Literal["dms_event"] = "dms_event"
     record_id: int
+    service_id: int
     table_name: str
     method: str
 
@@ -46,7 +47,7 @@ class DataMigrationApplication:
         Handle an event from DMS
         This should be a single record change event.
         """
-        if event.method not in ["insert", "update"]:
+        if event.method.lower() not in ["insert", "update"]:
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_010,
                 method=event.method,
@@ -57,6 +58,8 @@ class DataMigrationApplication:
         match event.table_name:
             case "services":
                 return self.processor.sync_service(event.record_id, event.method)
+            case "serviceendpoints":
+                return self.handle_endpoint_event(event)
 
         self.logger.log(
             DataMigrationLogBase.DM_ETL_011,
@@ -76,8 +79,17 @@ class DataMigrationApplication:
     def parse_event(self, event: dict) -> DMSEvent:
         """
         Parse the incoming event into a DMSEvent object.
+        Handles both direct events and nested Aurora trigger events.
         """
         try:
+            # Unwrap nested Aurora trigger events from migration_copy_db_trigger_lambda_handler
+            if (
+                "source" in event
+                and event.get("source") == "aurora_trigger"
+                and "event" in event
+            ):
+                event = event["event"]
+
             return DMSEvent(**event)
         except Exception as e:
             self.logger.log(
@@ -116,3 +128,6 @@ class DataMigrationApplication:
             logger=self.logger,
             config=self.config,
         )
+
+    def handle_endpoint_event(self, event: DMSEvent) -> None:
+        return self.processor.sync_service(event.service_id, "update")

@@ -232,6 +232,73 @@ def test_from_fhir_maps_fields_correctly() -> None:
     assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
 
+@pytest.mark.parametrize(
+    "fhir_name,expected_name",
+    [
+        ("nhs trust hospital", "NHS Trust Hospital"),
+        ("LONDON GP SURGERY", "London GP Surgery"),
+        ("the icb board", "The ICB Board"),
+        ("local pcn practice", "Local PCN Practice"),
+        ("Mixed Case NHS GP", "Mixed Case NHS GP"),
+    ],
+)
+def test_from_fhir_sanitizes_organization_name(
+    fhir_name: str, expected_name: str
+) -> None:
+    """Test that organization names are sanitized with title case and acronym preservation."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+    fhir_org = FhirOrganisation(
+        id=valid_uuid,
+        identifier=[
+            Identifier(
+                system="https://fhir.nhs.uk/Id/ods-organization-code",
+                value=valid_uuid,
+            )
+        ],
+        name=fhir_name,
+        active=True,
+        type=[CodeableConcept(text="Hospital")],
+    )
+
+    result = mapper.from_fhir(fhir_org)
+
+    assert result.name == expected_name
+
+
+@pytest.mark.parametrize(
+    "fhir_type,expected_type",
+    [
+        ("nhs trust", "NHS Trust"),
+        ("GP PRACTICE", "GP Practice"),
+        ("icb organization", "ICB Organization"),
+        ("pcn network", "PCN Network"),
+    ],
+)
+def test_from_fhir_sanitizes_organization_type(
+    fhir_type: str, expected_type: str
+) -> None:
+    """Test that organization types are sanitized with title case and acronym preservation."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+    fhir_org = FhirOrganisation(
+        id=valid_uuid,
+        identifier=[
+            Identifier(
+                system="https://fhir.nhs.uk/Id/ods-organization-code",
+                value=valid_uuid,
+            )
+        ],
+        name="Test Organization",
+        active=True,
+        type=[CodeableConcept(text=fhir_type)],
+    )
+
+    result = mapper.from_fhir(fhir_org)
+
+    assert result.type == expected_type
+
+
 def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     mapper = OrganizationMapper()
     ods_fhir_organisation = {
