@@ -177,12 +177,12 @@ jobs:
       - metadata
       - apply-infrastructure
       - restore-dynamodb-from-s3
-    uses: ./.github/workflows/deploy-opensearch-indexes.yaml
+    uses: ./.github/workflows/deploy-open-search-indexes.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.reponame }}
-      tag: ${{ inputs.tag }}
+      environment: ${{ needs.metadata.outputs.environment || github.event.inputs.environment || 'dev' }}
+      workspace: ${{ needs.metadata.outputs.workspace || 'default' }}
+      domain: ${{ needs.metadata.outputs.reponame || github.event.repository.name }}
+      tag: ${{ inputs.tag || '' }}
       type: app
     secrets: inherit
 
