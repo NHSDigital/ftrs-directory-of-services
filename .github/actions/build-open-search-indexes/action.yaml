@@ -63,8 +63,20 @@ runs:
             export INDEX="${SERVICE}"
           fi
 
-          # If domain input supplied, sanitize and use it; otherwise attempt to derive from AWS OpenSearch Serverless collection
+          # Determine whether DOMAIN_INPUT looks like a host/URL or is a bare repo name
+          IS_HOST=false
           if [[ -n "${DOMAIN_INPUT}" ]]; then
+            # remove scheme and path to inspect the host portion
+            TMP_HOST="${DOMAIN_INPUT#http://}"
+            TMP_HOST="${TMP_HOST#https://}"
+            TMP_HOST="${TMP_HOST%%/*}"
+            # Host-like if contains a dot, contains 'aoss' (serverless), or contains ':' (port), or original contained '://'
+            if [[ "${TMP_HOST}" == *.* ]] || [[ "${TMP_HOST}" == *aoss* ]] || [[ "${TMP_HOST}" == *:* ]] || [[ "${DOMAIN_INPUT}" =~ https?:// ]]; then
+              IS_HOST=true
+            fi
+          fi
+
+          if [[ "${IS_HOST}" == "true" ]]; then
             # Sanitize domain: remove leading scheme and any path/trailing slashes
             DOMAIN_CLEAN="${DOMAIN_INPUT#http://}"
             DOMAIN_CLEAN="${DOMAIN_CLEAN#https://}"
@@ -80,6 +92,8 @@ runs:
               echo "Auto-enabled SIGN_WITH_AWS for serverless endpoint"
             fi
           else
+            # Treat domain input as not provided (e.g., it was a repo name). Derive endpoint from AWS collection.
+            echo "Domain input '${DOMAIN_INPUT}' does not look like a host; deriving endpoint from collection ${COLLECTION_INPUT}"
             # Try to derive endpoint from AWS collection name using AWS CLI
             if ! command -v aws >/dev/null 2>&1; then
               echo "No domain provided and 'aws' CLI not available to query collection '${COLLECTION_INPUT}'. Provide 'domain' or install/configure AWS CLI." >&2
@@ -87,15 +101,8 @@ runs:
             fi
             # AWS_REGION should be set in environment (recommended). Fail fast if not set.
             if [[ -z "${AWS_REGION:-}" ]]; then
-              # try to read aws configured region as a fallback
-              AWS_REGION_FALLBACK=$(aws configure get region || true)
-              if [[ -n "${AWS_REGION_FALLBACK}" ]]; then
-                export AWS_REGION="${AWS_REGION_FALLBACK}"
-                echo "Using AWS_REGION from aws config: ${AWS_REGION}"
-              else
-                echo "AWS_REGION not set; required to query OpenSearch Serverless collection. Set AWS_REGION environment variable or provide 'domain' input." >&2
-                exit 2
-              fi
+              echo "AWS_REGION not set; required to query OpenSearch Serverless collection. Set AWS_REGION environment variable or provide 'domain' input." >&2
+              exit 2
             fi
 
             echo "Attempting to locate collection '${COLLECTION_INPUT}' in region ${AWS_REGION} to derive endpoint..."
