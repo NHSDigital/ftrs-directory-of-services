@@ -36,10 +36,13 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        uses: actions/checkout@v4
         with:
           repository: ${{ inputs.domain }}
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.tag || 'main' }}
+          path: service-repo
+          # Note: if the target repo is private and requires a different token, set it via secrets
+          # token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Configure AWS Credentials
         uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
