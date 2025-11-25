@@ -6,7 +6,7 @@ from pydantic import Field
 
 class Organisation(DBModel):
     identifier_ODS_ODSCode: str
-    active: bool | None = None
+    active: bool
     name: str
     telecom: str | None = None
     type: OrganisationType | str

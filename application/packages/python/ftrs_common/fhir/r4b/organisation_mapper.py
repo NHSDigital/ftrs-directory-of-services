@@ -98,13 +98,12 @@ class OrganizationMapper(FhirMapper):
             "resourceType": "Organization",
             "id": ods_fhir_organization.get("id"),
             "meta": self._build_meta_profile(),
+            "active": ods_fhir_organization.get("active"),
             "name": ods_fhir_organization.get("name"),
             "type": self._build_type(dos_org_type),
             "identifier": self._build_identifier(ods_code),
             "telecom": ods_fhir_organization.get("telecom", []),
         }
-        if "active" in ods_fhir_organization:
-            required_fields["active"] = ods_fhir_organization["active"]
         return FhirValidator.validate(required_fields, FhirOrganisation)
 
     # --- FHIR Extraction Helpers ---
