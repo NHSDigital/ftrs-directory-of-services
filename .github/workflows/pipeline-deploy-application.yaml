@@ -117,7 +117,6 @@ jobs:
     name: "Authenticate and Deploy DOS Search API to Proxygen in ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
-      - manual-approval
     uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
     strategy:
       matrix:
