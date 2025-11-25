@@ -36,94 +36,25 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
-        if: contains(inputs.domain, '/')
-        uses: actions/checkout@v4
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
         with:
           repository: ${{ inputs.domain }}
-          ref: ${{ inputs.tag || 'main' }}
-          path: service-repo
-          # Note: if the target repo is private and requires a different token, set it via secrets
-          # token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          tag: ${{ inputs.tag }}
 
-      - name: Skip checkout (non-fully-qualified repo)
-        if: !contains(inputs.domain, '/')
-        run: |
-          echo "inputs.domain='${{ inputs.domain }}' does not look like an owner/repo; skipping checkout"
-        shell: bash
-
-      - name: "Debug: show inputs and check workspace/files"
-        run: |
-          echo "DEBUG: workflow inputs"
-          echo "  environment='${{ inputs.environment }}'"
-          echo "  workspace='${{ inputs.workspace }}'"
-          echo "  domain='${{ inputs.domain }}'"
-          echo "  tag='${{ inputs.tag }}'"
-          echo "  type='${{ inputs.type }}'"
-
-          echo "\nDEBUG: list .github/actions"
-          ls -la .github/actions || true
-
-          echo "\nDEBUG: list scripts/workflow"
-          ls -la scripts/workflow || true
-
-          echo "\nDEBUG: check build-open-search-index script present"
-          if [[ -f scripts/workflow/build-open-search-index.sh ]]; then
-            echo "FOUND: scripts/workflow/build-open-search-index.sh"
-          else
-            echo "MISSING: scripts/workflow/build-open-search-index.sh"
-          fi
-
-          echo "\nDEBUG: check composite action exists"
-          if [[ -f .github/actions/build-open-search-indexes/action.yaml ]]; then
-            echo "FOUND: .github/actions/build-open-search-indexes/action.yaml"
-          else
-            echo "MISSING: .github/actions/build-open-search-indexes/action.yaml"
-          fi
-        shell: bash
-
-      - name: Configure AWS Credentials (assume role if available)
-        if: ${{ secrets.AWS_ROLE_ARN != '' }}
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Configure AWS Credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
-      - name: Configure AWS Credentials (fallback to access keys if role not provided)
-        if: ${{ secrets.AWS_ROLE_ARN == '' && secrets.AWS_ACCESS_KEY_ID != '' }}
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Validate AWS credentials
+      - name: Create OpenSearch Index
         run: |
-          echo "Validating AWS credentials and region"
-          aws sts get-caller-identity --output json
-        shell: bash
+          curl -X PUT "https://<your-domain>/_index/my-index" \
+          -H "Content-Type: application/json" \
+          -d '{"settings":{"number_of_shards":1},"mappings":{"properties":{"title":{"type":"text"}}}}'
 
-      - name: Install awscurl (for SigV4 signing)
-        run: |
-          python3 -m pip install --user awscurl
-          echo "Added awscurl to user path"
-        shell: bash
 
-      - name: Add pip user bin to PATH
-        run: |
-          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
-          echo "Added $HOME/.local/bin to PATH via GITHUB_ENV"
-        shell: bash
 
-      - name: Deploy OpenSearch index (derive endpoint from collection if needed)
-        uses: ./.github/actions/build-open-search-indexes
-        with:
-          service: ${{ inputs.domain }}
-          directory: ${{ inputs.workspace }}
-          collection: ftrs-dos-dev-osc
-          workspace: ${{ inputs.workspace }}
-          dry-run: 'false'
-          verbose: 'true'
-        env:
-          SIGN_WITH_AWS: 'true'
-          AWS_SERVICE: 'aoss'
-          AWS_REGION: ${{ vars.AWS_REGION }}
+
+

@@ -177,7 +177,7 @@ jobs:
       - metadata
       - apply-infrastructure
       - restore-dynamodb-from-s3
-    uses: ./.github/workflows/deploy-open-search-indexes.yaml
+    uses: ./.github/workflows/deploy-opensearch-indexes.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
