@@ -2,9 +2,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
-export BASE_URL
-
 log(){ printf '[push-to-ecr] %s\n' "$1"; }
 die(){ printf '[push-to-ecr] ERROR: %s\n' "$1" >&2; exit 1; }
 
@@ -38,6 +35,7 @@ init(){
 }
 
 fetch_proxygen_registry_credentials(){
+  BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
   TOKEN_RESPONSE=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
   USER=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.user // empty')
   PASSWORD=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.password // empty')
@@ -61,71 +59,51 @@ push_image(){
   log "Image pushed successfully to ${REMOTE_COMMIT_TAG}"
 }
 
-proxygen_describe(){
-  local payload="$1"
-  curl -sS -H "Authorization: Bearer ${ACCESS_TOKEN}" -H 'Content-Type: application/json' -d "$payload" "$PROXYGEN_API" || true
-}
-
-parse_proxygen_resp(){
-  local resp="$1"
-  DIGEST=$(printf '%s' "$resp" | jq -r '[.imageDetails[]?.imageDigest, .imageDetails[]?.digest, .imageDigest] | map(select(. != null and . != "")) | .[0] // empty' 2>/dev/null || true)
-}
-
-fetch_image_metadata(){
-  PROXYGEN_API="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}/aws/ecr/DescribeImages"
-
+print_manifest_metadata(){
   if ! command -v jq >/dev/null 2>&1; then
-    die "jq is required to parse Proxygen responses; please install jq on the runner"
+    die "jq is required to extract manifest metadata; please install jq"
+  fi
+  TMP_MANIFEST=$(mktemp /tmp/manifest.XXXXXX)
+  TMP_CONFIG=$(mktemp /tmp/config.XXXXXX)
+  trap 'rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true' RETURN
+
+  curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json,application/vnd.docker.distribution.manifest.list.v2+json' \
+    "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" -o "$TMP_MANIFEST" || die "Failed to download manifest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
+
+  if jq -e '.manifests' "$TMP_MANIFEST" >/dev/null 2>&1; then
+    SELECT_DIGEST=$(jq -r '.manifests[0].digest' "$TMP_MANIFEST")
+    curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
+      "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${SELECT_DIGEST}" -o "$TMP_MANIFEST" || die "Failed to download selected manifest ${SELECT_DIGEST}"
   fi
 
-  # First try the single-image form (imageIds) — this is authoritative and often works when listing is disabled
-  PAYLOAD_TAG=$(printf '{"repositoryName":"%s","imageIds":[{"imageTag":"%s"}]}' "${REMOTE_IMAGE_NAME}" "${REMOTE_IMAGE_TAG}")
-  resp_tag=$(proxygen_describe "$PAYLOAD_TAG") || resp_tag=""
-  if [ -n "$resp_tag" ] && printf '%s' "$resp_tag" | jq -e '.imageDetails and (.imageDetails | length > 0)' >/dev/null 2>&1; then
-    LINES=$(printf '%s' "$resp_tag" | jq -r '.imageDetails[]? | ((.imageTags // ["<none>"]) | join(",")) + "\t" + (.imageDigest // "<none>") + "\t" + (.imagePushedAt // "<none>")' 2>/dev/null || true)
-    if [ -n "$LINES" ]; then
-      printf '\nImages for repository: %s\n' "${REMOTE_IMAGE_NAME}"
-      printf 'TAGS\tDIGEST\tPUSHED_AT\n'
-      printf '%s\n' "$LINES"
-      return 0
-    fi
-  fi
+  CONFIG_DIGEST=$(jq -r '.config.digest // empty' "$TMP_MANIFEST")
+  [ -n "${CONFIG_DIGEST:-}" ] || die "Manifest does not contain a config.digest"
 
-  # Fall back to repository listing (paginated)
-  NEXT_TOKEN=""
-  printf '\nImages for repository: %s\n' "${REMOTE_IMAGE_NAME}"
-  printf 'TAGS\tDIGEST\tPUSHED_AT\n'
-  while :; do
-    if [ -z "$NEXT_TOKEN" ]; then
-      PAYLOAD=$(printf '{"repositoryName":"%s"}' "${REMOTE_IMAGE_NAME}")
-    else
-      PAYLOAD=$(printf '{"repositoryName":"%s","nextToken":"%s"}' "${REMOTE_IMAGE_NAME}" "$NEXT_TOKEN")
-    fi
-    resp=$(proxygen_describe "$PAYLOAD") || resp=""
-    if [ -z "$resp" ]; then
-      die "Proxygen returned empty response when listing images for ${REMOTE_IMAGE_NAME}"
-    fi
-    # If listing is not available, Proxygen may respond {"detail":"Not Found"}; in that case we've already tried imageIds, so bail with diagnostics
-    if printf '%s' "$resp" | jq -e '.detail? == "Not Found"' >/dev/null 2>&1; then
-      log "[push-to-ecr] Repository listing not available (Not Found) and imageIds form returned no results; saving response and aborting"
-      printf '%s' "$resp" > /tmp/proxygen_resp.json 2>/dev/null || true
-      printf '%s' "$resp_tag" > /tmp/proxygen_resp_tag.json 2>/dev/null || true
-      log "[push-to-ecr] Saved responses to /tmp/proxygen_resp.json and /tmp/proxygen_resp_tag.json"
-      die "Repository listing not available and imageIds lookup returned no images for ${REMOTE_IMAGE_NAME}"
-    fi
+  curl -fsS -u "${USER}:${PASSWORD}" "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/blobs/${CONFIG_DIGEST}" -o "$TMP_CONFIG" || die "Failed to fetch config blob ${CONFIG_DIGEST}"
 
-    LINES=$(printf '%s' "$resp" | jq -r '.imageDetails[]? | ((.imageTags // ["<none>"]) | join(",")) + "\t" + (.imageDigest // "<none>") + "\t" + (.imagePushedAt // "<none>")' 2>/dev/null || true)
-    if [ -z "$LINES" ]; then
-      log "[push-to-ecr] Proxygen returned a response but no image entries were parsed; truncated response:"
-      printf '%s' "$resp" | head -c 2000 | sed 's/^/[push-to-ecr] /' >&2 || true
-      printf '%s' "$resp" > /tmp/proxygen_resp.json 2>/dev/null || true
-      log "[push-to-ecr] Saved raw response to /tmp/proxygen_resp.json"
-      die "No image entries could be parsed from Proxygen response for ${REMOTE_IMAGE_NAME}; raw response saved to /tmp/proxygen_resp.json"
-    fi
-    printf '%s\n' "$LINES"
-    NEXT_TOKEN=$(printf '%s' "$resp" | jq -r '.nextToken // empty' 2>/dev/null || true)
-    [ -z "$NEXT_TOKEN" ] && break
-  done
+  CREATED=$(jq -r '.created // empty' "$TMP_CONFIG" 2>/dev/null || true)
+  AUTHOR=$(jq -r '.author // empty' "$TMP_CONFIG" 2>/dev/null || true)
+  CREATED_BY=$(jq -r '( .history[0].created_by // .created_by // empty )' "$TMP_CONFIG" 2>/dev/null || true)
+  ARCH=$(jq -r '.architecture // empty' "$TMP_CONFIG" 2>/dev/null || true)
+  OS=$(jq -r '.os // empty' "$TMP_CONFIG" 2>/dev/null || true)
+  USER_CFG=$(jq -r '.config.User // empty' "$TMP_CONFIG" 2>/dev/null || true)
+  WORKDIR=$(jq -r '.config.WorkingDir // empty' "$TMP_CONFIG" 2>/dev/null || true)
+  LABELS=$(jq -r '(.config.Labels // {}) | to_entries | map("\(.key)=\(.value)") | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
+  CMD=$(jq -r '.config.Cmd // [] | join(" ")' "$TMP_CONFIG" 2>/dev/null || true)
+  ENTRYPOINT=$(jq -r '.config.Entrypoint // [] | join(" ")' "$TMP_CONFIG" 2>/dev/null || true)
+  ENVVARS=$(jq -r '.config.Env // [] | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
+  EXPOSED_PORTS=$(jq -r '(.config.ExposedPorts // {}) | keys | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
+  VOLUMES=$(jq -r '(.config.Volumes // {}) | keys | join(",")' "$TMP_CONFIG" 2>/dev/null || true)
+
+  LAYERS_COUNT=$(jq -r '.layers | length // 0' "$TMP_MANIFEST" 2>/dev/null || true)
+  TOTAL_SIZE=$(jq -r '[.layers[]?.size] | add // 0' "$TMP_MANIFEST" 2>/dev/null || true)
+  LAYER_DIGESTS=$(jq -r '[.layers[]?.digest] | join(",")' "$TMP_MANIFEST" 2>/dev/null || true)
+
+  printf 'IMAGE\tDIGEST\tCREATED\tAUTHOR\tCREATED_BY\tOS/ARCH\tUSER\tWORKDIR\tEXPOSED_PORTS\tVOLUMES\tLAYERS\tSIZE\tLABELS\n'
+  printf '%s\t%s\t%s\t%s\t%s\t%s/%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${DIGEST}" "${CREATED}" "${AUTHOR}" "${CREATED_BY}" "${OS}" "${ARCH}" "${USER_CFG}" "${WORKDIR}" "${EXPOSED_PORTS}" "${VOLUMES}" "${LAYERS_COUNT}" "${TOTAL_SIZE}" "${LABELS}"
+
+  rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true
 }
 
 main(){
@@ -133,7 +111,7 @@ main(){
   fetch_proxygen_registry_credentials
   docker_login
   push_image
-  fetch_image_metadata
+  print_manifest_metadata
 }
 
 main "$@"
