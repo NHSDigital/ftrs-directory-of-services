@@ -118,14 +118,10 @@ jobs:
     needs:
       - metadata
     uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
-    strategy:
-      matrix:
-        include:
-          - api_name: "dos-search"
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      proxy_env: "internal-dev"
+      apim_env: "internal-dev"
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
