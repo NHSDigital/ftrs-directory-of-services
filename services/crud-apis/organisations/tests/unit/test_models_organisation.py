@@ -271,6 +271,33 @@ def test_invalid_non_legal_date_type() -> None:
     assert "dateType must be Legal" in str(e.value)
 
 
+def test_invalid_period_type_system() -> None:
+    """Test validation fails when valueCoding system is not the expected England-PeriodType."""
+    payload = _build_base_payload()
+    payload["extension"] = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-InvalidPeriodType",
+                        "code": "Legal",
+                    },
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15"},
+                },
+            ],
+        }
+    ]
+    with pytest.raises(OperationOutcomeException) as e:
+        OrganisationUpdatePayload(**payload)
+    assert "dateType system must be" in str(e.value)
+    assert "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType" in str(e.value)
+
+
 def test_invalid_period_without_dates() -> None:
     """Test validation fails when period has neither start nor end date."""
     payload = _build_base_payload()
