@@ -52,8 +52,7 @@ jobs:
         run: |
           COLLECTION_NAME="ftrs-dos-dev-osc"
 
-          echo "Deriving domain from collection ${COLLECTION_NAME}"
-          # assume aws CLI and AWS_REGION are available in the runner
+          # Derive the OpenSearch Serverless collection endpoint (assumes aws CLI + AWS_REGION available)
           AWS_REGION="${AWS_REGION:-$(aws configure get region || true)}"
           COLLECTION_ID=$(aws opensearchserverless list-collections --region "$AWS_REGION" --query "collections[?name=='${COLLECTION_NAME}'] | [0].id" --output text 2>/dev/null || true)
           COLLECTION_INFO=$(aws opensearchserverless get-collection --id "$COLLECTION_ID" --region "$AWS_REGION" --output json 2>/dev/null || true)
@@ -62,7 +61,7 @@ jobs:
 
           export OPEN_SEARCH_DOMAIN
 
-          # Normalize workspace -> prefix '-' if non-empty
+          # Normalize and export workspace (prefixed with '-')
           WORKSPACE_INPUT="${{ inputs.workspace }}"
           if [[ -n "$WORKSPACE_INPUT" ]]; then
             WORKSPACE="-${WORKSPACE_INPUT#-}"
@@ -71,17 +70,13 @@ jobs:
           fi
           export WORKSPACE
 
+          # Choose index name (kept minimal as before)
           INDEX="my-index"
           export INDEX
 
-          echo "Creating index ${INDEX}${WORKSPACE} on domain ${OPEN_SEARCH_DOMAIN}"
+          echo "Calling build script to create index: ${INDEX}${WORKSPACE} on ${OPEN_SEARCH_DOMAIN}"
 
-          # Use awscurl (SigV4) for serverless endpoints (SIGN_WITH_AWS removed)
-          PAYLOAD='{"settings":{"number_of_shards":1},"mappings":{"properties":{"title":{"type":"text"}}}}'
-
-          if ! command -v awscurl >/dev/null 2>&1; then
-            echo "ERROR: awscurl is not installed; required for signing requests to serverless endpoints" >&2
-            exit 2
-          fi
-          awscurl --service "${AWS_SERVICE:-aoss}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT "https://${OPEN_SEARCH_DOMAIN}/_index/${INDEX}${WORKSPACE}" -H "Content-Type: application/json" -d "$PAYLOAD"
+          # Ensure script is executable and delegate creation to it
+          chmod +x ./scripts/workflow/build-open-search-index.sh || true
+          /bin/bash ./scripts/workflow/build-open-search-index.sh
         shell: bash
