@@ -207,6 +207,8 @@ Feature: Organization API Endpoint
       | 2020-02-15  | null       | 2020-02-15        | None            |
       | null        | 2025-12-31 | None              | 2025-12-31      |
       | null        | null       | None              | None            |
+      | 2020-01-15  | 2024-12-31 | 2020-01-15        | 2024-12-31      |
+      | 2020-02-29  | 2028-02-29 | 2020-02-29        | 2028-02-29      |
 
   Scenario Outline: Reject Organization update with invalid TypedPeriod extension
       Given that the stack is "organisation"
