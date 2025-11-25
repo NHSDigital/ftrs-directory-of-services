@@ -537,6 +537,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Error getting organisation(s): {error_message}.",
     )
+    ORGANISATION_022 = LogReference(
+        level=ERROR,
+        message="Error: Active field is required and cannot be null.",
+    )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
         message="Received request to create healthcare service with name: {name} and type: {type}.",
