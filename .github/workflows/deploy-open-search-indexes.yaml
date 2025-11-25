@@ -51,7 +51,7 @@ jobs:
           echo "inputs.domain='${{ inputs.domain }}' does not look like an owner/repo; skipping checkout"
         shell: bash
 
-      - name: Debug: show inputs and check workspace/files
+      - name: "Debug: show inputs and check workspace/files"
         run: |
           echo "DEBUG: workflow inputs"
           echo "  environment='${{ inputs.environment }}'"
@@ -81,12 +81,26 @@ jobs:
           fi
         shell: bash
 
-      - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+      - name: Configure AWS Credentials (assume role if available)
+        if: ${{ secrets.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          type: ${{ inputs.type }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Configure AWS Credentials (fallback to access keys if role not provided)
+        if: ${{ secrets.AWS_ROLE_ARN == '' && secrets.AWS_ACCESS_KEY_ID != '' }}
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Validate AWS credentials
+        run: |
+          echo "Validating AWS credentials and region"
+          aws sts get-caller-identity --output json
+        shell: bash
 
       - name: Install awscurl (for SigV4 signing)
         run: |
