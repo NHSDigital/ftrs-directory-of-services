@@ -56,11 +56,11 @@ class FhirValidator:
                     new_path = f"{path}.{k}" if path else k
                     stack.append((v, new_path))
             elif isinstance(current, list):
-                # Skipping telecom field validation as it may contain special characters
                 for idx, item in enumerate(current):
                     new_path = f"{path}[{idx}]"
                     stack.append((item, new_path))
             elif isinstance(current, str):
+                # Skipping telecom value field validation as it may contain special characters
                 if not (
                     path.startswith("telecom") and path.endswith("value")
                 ) and re.search(special_characters_pattern, current):
