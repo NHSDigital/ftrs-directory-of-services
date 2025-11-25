@@ -1,5 +1,4 @@
 import time
-from copy import deepcopy
 
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
@@ -22,11 +21,9 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    log_data = deepcopy(
-        dos_logger.extract(app.current_event)
-    )  # Deepcopy of dict to avoid subsequent expansion calls below from showing in tests as calls to this method due to assignment by reference
-    details = deepcopy(
-        dos_logger.extract_one_time(app.current_event)
+    log_data = dos_logger.extract(app.current_event)
+    details = dos_logger.extract_one_time(
+        app.current_event
     )  # Extract of one-time fields for logging below
 
     dos_logger.append_keys(log_data)  # Appends common fields to all subsequent logs
