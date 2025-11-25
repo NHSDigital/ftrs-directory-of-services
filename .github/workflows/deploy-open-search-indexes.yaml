@@ -48,13 +48,22 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
 
-      - name: Create OpenSearch Index
+      - name: Install awscurl (for SigV4 signing)
         run: |
-          curl -X PUT "https://<your-domain>/_index/my-index" \
-          -H "Content-Type: application/json" \
-          -d '{"settings":{"number_of_shards":1},"mappings":{"properties":{"title":{"type":"text"}}}}'
+          python3 -m pip install --user awscurl
+          echo "Added awscurl to user path"
+        shell: bash
 
-
-
-
-
+      - name: Deploy OpenSearch index (derive endpoint from collection if needed)
+        uses: ./.github/actions/build-open-search-indexes
+        with:
+          service: ${{ inputs.domain }}
+          directory: ${{ inputs.workspace }}
+          collection: ftrs-dos-dev-osc
+          workspace: ${{ inputs.workspace }}
+          dry-run: 'false'
+          verbose: 'true'
+        env:
+          SIGN_WITH_AWS: 'true'
+          AWS_SERVICE: 'aoss'
+          AWS_REGION: ${{ vars.AWS_REGION }}

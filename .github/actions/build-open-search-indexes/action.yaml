@@ -1,5 +1,5 @@
 name: "Build open search indexes action"
-description: "Builds the required indexes in open search."
+description: "Builds the required indexes in open search. Wrapper around scripts/workflow/build-open-search-index.sh"
 
 inputs:
     service:
@@ -8,14 +8,172 @@ inputs:
     directory:
         description: "The name of the directory to build in"
         required: true
+    index:
+        description: "Index name (optional override)"
+        required: false
+    domain:
+        description: "OpenSearch domain (optional override). Can be full URL or host only"
+        required: false
+    collection:
+        description: "OpenSearch Serverless collection name to query for endpoint if domain not provided"
+        required: false
+        default: "ftrs-dos-dev-osc"
+    workspace:
+        description: "Workspace suffix to append to the index (optional)"
+        required: false
+    dry-run:
+        description: "If 'true', run in dry-run mode"
+        required: false
+        default: "false"
+    verbose:
+        description: "If 'true', enable verbose output"
+        required: false
+        default: "false"
 
 runs:
   using: "composite"
 
   steps:
-      - name: Build Open Search Indexes
+      - name: Validate inputs and build index
         shell: bash
         run: |
-          export SERVICE=${{ inputs.service }}
-          export DIRECTORY=${{ inputs.directory }}
-          /bin/bash ./uec-dos-management/scripts/workflow/build-open-search-index.sh
+          set -euo pipefail
+          SERVICE="${{ inputs.service }}"
+          DIRECTORY="${{ inputs.directory }}"
+          INDEX_INPUT="${{ inputs.index }}"
+          DOMAIN_INPUT="${{ inputs.domain }}"
+          COLLECTION_INPUT="${{ inputs.collection }}"
+          WORKSPACE_INPUT="${{ inputs.workspace }}"
+          DRY_RUN="${{ inputs.dry-run }}"
+          VERBOSE="${{ inputs.verbose }}"
+
+          # Resolve script path relative to repository root
+          SCRIPT_PATH="./scripts/workflow/build-open-search-index.sh"
+
+          if [[ ! -f "${SCRIPT_PATH}" ]]; then
+            echo "Could not find build script at ${SCRIPT_PATH}. Ensure the repository contains scripts/workflow/build-open-search-index.sh" >&2
+            exit 2
+          fi
+
+          # Populate environment variables consumed by the script
+          if [[ -n "${INDEX_INPUT}" ]]; then
+            export INDEX="${INDEX_INPUT}"
+          else
+            # fallback to service name if index not provided
+            export INDEX="${SERVICE}"
+          fi
+
+          # If domain input supplied, sanitize and use it; otherwise attempt to derive from AWS OpenSearch Serverless collection
+          if [[ -n "${DOMAIN_INPUT}" ]]; then
+            # Sanitize domain: remove leading scheme and any path/trailing slashes
+            DOMAIN_CLEAN="${DOMAIN_INPUT#http://}"
+            DOMAIN_CLEAN="${DOMAIN_CLEAN#https://}"
+            # strip anything after the host (remove path/query), keep host[:port]
+            DOMAIN_CLEAN="${DOMAIN_CLEAN%%/*}"
+            # export the cleaned host
+            export OPEN_SEARCH_DOMAIN="${DOMAIN_CLEAN}"
+
+            # If the host looks like an OpenSearch Serverless endpoint, auto-enable AWS signing unless explicitly set
+            if [[ -z "${SIGN_WITH_AWS:-}" ]] && [[ "${OPEN_SEARCH_DOMAIN}" =~ \.aoss\. ]]; then
+              export SIGN_WITH_AWS='true'
+              export AWS_SERVICE='aoss'
+              echo "Auto-enabled SIGN_WITH_AWS for serverless endpoint"
+            fi
+          else
+            # Try to derive endpoint from AWS collection name using AWS CLI
+            if ! command -v aws >/dev/null 2>&1; then
+              echo "No domain provided and 'aws' CLI not available to query collection '${COLLECTION_INPUT}'. Provide 'domain' or install/configure AWS CLI." >&2
+              exit 2
+            fi
+            # AWS_REGION should be set in environment (recommended). Fail fast if not set.
+            if [[ -z "${AWS_REGION:-}" ]]; then
+              # try to read aws configured region as a fallback
+              AWS_REGION_FALLBACK=$(aws configure get region || true)
+              if [[ -n "${AWS_REGION_FALLBACK}" ]]; then
+                export AWS_REGION="${AWS_REGION_FALLBACK}"
+                echo "Using AWS_REGION from aws config: ${AWS_REGION}"
+              else
+                echo "AWS_REGION not set; required to query OpenSearch Serverless collection. Set AWS_REGION environment variable or provide 'domain' input." >&2
+                exit 2
+              fi
+            fi
+
+            echo "Attempting to locate collection '${COLLECTION_INPUT}' in region ${AWS_REGION} to derive endpoint..."
+
+            # Try to find the collection id
+            COLLECTION_ID=$(aws opensearchserverless list-collections --region "${AWS_REGION}" --query "collections[?name=='${COLLECTION_INPUT}'] | [0].id" --output text 2>/dev/null || true)
+
+            if [[ -z "${COLLECTION_ID}" || "${COLLECTION_ID}" == "None" ]]; then
+              echo "Could not find collection named '${COLLECTION_INPUT}' in region ${AWS_REGION}. Provide a 'domain' input or verify the collection name and region." >&2
+              exit 2
+            fi
+
+            # Get full collection info and attempt to extract a host-looking endpoint
+            COLLECTION_INFO=$(aws opensearchserverless get-collection --id "${COLLECTION_ID}" --region "${AWS_REGION}" --output json 2>/dev/null || true)
+            if [[ -z "${COLLECTION_INFO}" ]]; then
+              echo "Failed to retrieve collection info for id ${COLLECTION_ID}." >&2
+              exit 2
+            fi
+
+            # Extract first https://... host-looking string from the JSON using grep/sed
+            ENDPOINT_HOST=$(printf '%s' "${COLLECTION_INFO}" | grep -oE 'https?://[A-Za-z0-9.-]+' | sed -E 's#https?://##' | head -n1 || true)
+
+            if [[ -z "${ENDPOINT_HOST}" ]]; then
+              echo "Could not extract endpoint host from collection info for ${COLLECTION_INPUT} (id=${COLLECTION_ID})." >&2
+              exit 2
+            fi
+
+            export OPEN_SEARCH_DOMAIN="${ENDPOINT_HOST}"
+            echo "Derived OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} from collection ${COLLECTION_INPUT} (id=${COLLECTION_ID})"
+
+            # When deriving from a collection, assume serverless signing is needed; allow override
+            if [[ -z "${SIGN_WITH_AWS:-}" ]]; then
+              export SIGN_WITH_AWS='true'
+              export AWS_SERVICE='aoss'
+              echo "Auto-enabled SIGN_WITH_AWS because domain was derived from collection"
+            fi
+          fi
+
+          # If signing is enabled, ensure awscurl is available; try to install if missing (but allow dry-run)
+          if [[ "${SIGN_WITH_AWS:-false}" == 'true' ]]; then
+            if ! command -v awscurl >/dev/null 2>&1; then
+              echo "awscurl not found; attempting to install via pip3..."
+              if command -v python3 >/dev/null 2>&1 && python3 -m pip install --user awscurl >/dev/null 2>&1; then
+                export PATH="$PATH:$HOME/.local/bin"
+                echo "awscurl installed to user path"
+              else
+                if [[ "${DRY_RUN}" == 'true' ]]; then
+                  echo "awscurl not installed; continuing because dry-run=true (network calls will be skipped)"
+                else
+                  echo "awscurl is required for SIGN_WITH_AWS=true but could not be installed. Install awscurl or set up the runner to include it." >&2
+                  exit 2
+                fi
+              fi
+            fi
+            # Ensure AWS_SERVICE has a value
+            if [[ -z "${AWS_SERVICE:-}" ]]; then
+              export AWS_SERVICE='aoss'
+            fi
+            echo "Signing enabled: SIGN_WITH_AWS=${SIGN_WITH_AWS}, AWS_SERVICE=${AWS_SERVICE}, AWS_REGION=${AWS_REGION:-<not-set>}"
+          fi
+
+          # Populate WORKSPACE: prefer input, else derive from directory basename
+          if [[ -n "${WORKSPACE_INPUT}" ]]; then
+            export WORKSPACE="${WORKSPACE_INPUT}"
+          else
+            # derive from directory name (strip path)
+            export WORKSPACE="$(basename "${DIRECTORY}")"
+          fi
+
+          # Forward optional flags
+          ARGS=()
+          if [[ "${DRY_RUN}" == "true" ]]; then
+            ARGS+=(--dry-run)
+          fi
+          if [[ "${VERBOSE}" == "true" ]]; then
+            ARGS+=(--verbose)
+          fi
+
+          echo "Running index builder for index '${INDEX}' against domain '${OPEN_SEARCH_DOMAIN:-<not-set>}' with workspace '${WORKSPACE}'"
+
+          /bin/bash "${SCRIPT_PATH}" "${ARGS[@]:-}"
