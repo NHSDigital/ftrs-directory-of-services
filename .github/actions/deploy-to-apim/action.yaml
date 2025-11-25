@@ -1,5 +1,5 @@
-name: 'Deploy to Proxygen'
-description: 'Deploy API specification to Proxygen with workspace modifications'
+name: 'Deploy API Proxy to APIM environment'
+description: 'Deploy an API Proxy into an APIM environment'
 
 inputs:
   api_name:
@@ -9,13 +9,13 @@ inputs:
     description: 'Workspace identifier (e.g., FTRS-000)'
     required: true
   environment:
-    description: 'Environment to deploy to (e.g., dev, test, prod)'
+    description: 'FTRS environment to deploy to (e.g., dev, test, prod)'
     required: true
-  proxy_env:
-    description: 'Proxy environment (e.g., internal-dev)'
+  apim_env:
+    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev)'
     required: true
   access_token:
-    description: 'APIM access token for authentication'
+    description: 'Access Token for the Proxygen API'
     required: true
 
 outputs:
@@ -41,25 +41,44 @@ runs:
         fi
         echo "Workspace format validated: ${{ inputs.workspace }}"
 
-    - name: Deploy to Proxygen
+    - name: Modify OAS Specification
+      id: modify-spec
+      shell: bash
+      run: |
+        export API_NAME="${{ inputs.api_name }}"
+        export WORKSPACE="${{ inputs.workspace }}"
+        export PROXY_ENV="${{ inputs.apim_env }}"
+
+        chmod +x ./scripts/workflow/modify-oas-spec.sh
+        MODIFIED_SPEC_PATH=$(./scripts/workflow/modify-oas-spec.sh)
+
+        if [ $? -eq 0 ]; then
+          echo "modified_spec_path=$MODIFIED_SPEC_PATH" >> $GITHUB_OUTPUT
+          echo "OAS spec modified successfully"
+        else
+          echo "Failed to modify OAS spec"
+          exit 1
+        fi
+
+    - name: Deploy API Proxy to APIM environment
       id: deploy
       shell: bash
       run: |
         export API_NAME="${{ inputs.api_name }}"
         export WORKSPACE="${{ inputs.workspace }}"
-        export ENV="${{ inputs.environment }}"
-        export PROXY_ENV="${{ inputs.proxy_env }}"
+        export PROXY_ENV="${{ inputs.apim_env }}"
         export ACCESS_TOKEN="${{ inputs.access_token }}"
+        export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
 
-        chmod +x ./scripts/workflow/deploy-to-proxygen.sh
-        RESPONSE=$(./scripts/workflow/deploy-to-proxygen.sh)
+        chmod +x ./scripts/workflow/deploy-to-apim.sh
+        RESPONSE=$(./scripts/workflow/deploy-spec-to-apim.sh)
 
         if [ $? -eq 0 ]; then
           echo "status=success" >> $GITHUB_OUTPUT
-          echo "✓ API deployed successfully to Proxygen"
+          echo "${{ inputs.api_name }} deployed successfully to APIM ${{ inputs.apim_env }} environment"
         else
           echo "status=failed" >> $GITHUB_OUTPUT
-          echo "❌ API deployment failed"
+          echo "${{ inputs.api_name }} deployment to ${{ inputs.apim_env }} failed"
           exit 1
         fi
 
@@ -70,4 +89,5 @@ runs:
         echo "- API Name: ${{ inputs.api_name }}"
         echo "- Workspace: ${{ inputs.workspace }}"
         echo "- Environment: ${{ inputs.environment }}"
+        echo "- APIM Environment: ${{inputs.apim_env }}"
         echo "- Status: ${{ steps.deploy.outputs.status }}"
