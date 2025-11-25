@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Any, Dict, Optional
 
@@ -23,8 +22,6 @@ class DosLogger:
 
     def __init__(self, service: str = "dos", debug: bool = False) -> None:
         self._logger = PowertoolsLogger(service=service)
-        self._service = service
-        self.debug = debug
         self.placeholder = "DOS_LOG_PLACEHOLDER"
         self.headers = dict()
 
@@ -61,7 +58,7 @@ class DosLogger:
 
         # Mandatory/default DOS fields
         # NHSD correlation id
-        corr = self._get_header("NHSD-Correlation-ID", "NHSD-Request-Id")
+        corr = self._get_header("NHSD-Correlation-ID")
         mandatory["dos_nhsd_correlation_id"] = corr
 
         # NHSD request id
@@ -99,10 +96,14 @@ class DosLogger:
         req_params: Dict[str, Any] = {}
         query_params = (
             event.get("queryStringParameters")
-            or event.get("query_string_parameters")
+            # or event.get("query_string_parameters")
             or {}
         )
-        path_params = event.get("pathParameters") or event.get("path_parameters") or {}
+        path_params = (
+            event.get("pathParameters")
+            # or event.get("path_parameters")
+            or {}
+        )
         request_context = (
             event.get("requestContext") or event.get("request_context") or {}
         )
@@ -114,9 +115,7 @@ class DosLogger:
 
         details["opt_dos_response_time"] = placeholder
 
-        details["opt_dos_environment"] = (
-            os.environ.get("ENVIRONMENT") or os.environ.get("WORKSPACE") or placeholder
-        )
+        details["opt_dos_environment"] = os.environ.get("ENVIRONMENT") or placeholder
 
         details["opt_dos_api_version"] = (
             self._get_header("x-api-version", "api-version") or placeholder
@@ -158,41 +157,31 @@ class DosLogger:
             for k in list(detail_map.keys()):
                 if k in override_keys:
                     log_data[k] = detail_map.pop(k)
-            if detail_map:
-                log_data["detail"] = detail_map
+            log_data["detail"] = detail_map
 
         # call powertools
-        try:
-            if level == "info":
-                self._logger.info(message, extra=log_data)
-            elif level == "warning":
-                self._logger.warning(message, extra=log_data)
-            elif level == "error":
-                self._logger.error(message, extra=log_data)
-            elif level == "exception":
-                self._logger.exception(message, extra=log_data)
-            else:
-                self._logger.info(message, extra=log_data)
-        except TypeError:
-            base_logger = logging.getLogger(self._service)
-            (base_logger.info(message),)
-        return log_data
+        if level == "info":
+            self._logger.info(message, extra=log_data)
+        elif level == "warning":
+            self._logger.warning(message, extra=log_data)
+        elif level == "error":
+            self._logger.error(message, extra=log_data)
+        elif level == "exception":
+            self._logger.exception(message, extra=log_data)
+        else:
+            self._logger.info(message, extra=log_data)
 
     def info(self, message: str, **detail: object) -> Dict[str, Any]:
-        log_data = self._log_with_level("info", message, **detail)
-        return log_data
+        self._log_with_level("info", message, **detail)
 
     def warning(self, message: str, **detail: object) -> Dict[str, Any]:
-        log_data = self._log_with_level("warning", message, **detail)
-        return log_data
+        self._log_with_level("warning", message, **detail)
 
     def error(self, message: str, **detail: object) -> Dict[str, Any]:
-        log_data = self._log_with_level("error", message, **detail)
-        return log_data
+        self._log_with_level("error", message, **detail)
 
     def exception(self, message: str, **detail: object) -> Dict[str, Any]:
-        log_data = self._log_with_level("exception", message, **detail)
-        return log_data
+        self._log_with_level("exception", message, **detail)
 
 
 # Instantiate logger here to allow import to sub-directories
