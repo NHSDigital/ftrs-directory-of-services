@@ -65,41 +65,14 @@ fetch_manifest_header(){
 }
 
 print_manifest_metadata(){
-  TMP_MANIFEST=$(mktemp /tmp/manifest.XXXXXX)
-  TMP_CONFIG=$(mktemp /tmp/config.XXXXXX)
-  trap 'rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true' RETURN
-
-  curl -fsS -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json,application/vnd.docker.distribution.manifest.list.v2+json' \
-    "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" -o "$TMP_MANIFEST" || die "Failed to download manifest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
-
   DIGEST=$(fetch_manifest_header || true)
   if [ -z "${DIGEST:-}" ]; then
-    DIGEST=$(jq -r '.config.digest // .manifests[0].digest // empty' "$TMP_MANIFEST" 2>/dev/null || true)
-  fi
-  if [ -z "${DIGEST:-}" ]; then
-    DIGEST=$(grep -o '"digest"[[:space:]]*:[[:space:]]*"[^"]*"' "$TMP_MANIFEST" | sed -E 's/.*"digest"[[:space:]]*:[[:space:]]*"([^\"]*)".*/\1/' | head -n1 || true)
-  fi
-  if [ -z "${DIGEST:-}" ]; then
-    rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true
-    die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
+    die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via manifest header"
   fi
   DIGEST="${DIGEST#sha256:}"
   DIGEST="sha256:${DIGEST}"
-
-  CONFIG_DIGEST=$(jq -r '.config.digest // empty' "$TMP_MANIFEST")
-  [ -n "${CONFIG_DIGEST:-}" ] || die "Manifest does not contain a config.digest"
-
-  curl -fsS -u "${USER}:${PASSWORD}" "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/blobs/${CONFIG_DIGEST}" -o "$TMP_CONFIG" || die "Failed to fetch config blob ${CONFIG_DIGEST}"
-
-  CREATED=$(jq -r '.created // empty' "$TMP_CONFIG" 2>/dev/null || true)
-  AUTHOR=$(jq -r '.author // empty' "$TMP_CONFIG" 2>/dev/null || true)
-  CREATED_BY=$(jq -r '( .history[0].created_by // .created_by // empty )' "$TMP_CONFIG" 2>/dev/null || true)
-
-  printf 'IMAGE\tDIGEST\tCREATED\tAUTHOR\tCREATED_BY\tOS/ARCH\tUSER\tWORKDIR\tEXPOSED_PORTS\tVOLUMES\tLAYERS\tSIZE\tLABELS\n'
-  printf '%s\t%s\t%s\t%s\t%s\t%s/%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-    "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${DIGEST}" "${CREATED}" "${AUTHOR}" "${CREATED_BY}" "${OS}" "${ARCH}" "${USER_CFG}" "${WORKDIR}" "${EXPOSED_PORTS}" "${VOLUMES}" "${LAYERS_COUNT}" "${TOTAL_SIZE}" "${LABELS}"
-
-  rm -f "$TMP_MANIFEST" "$TMP_CONFIG" 2>/dev/null || true
+  printf 'IMAGE\tDIGEST\n'
+  printf '%s\t%s\n' "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${DIGEST}"
 }
 
 main(){
