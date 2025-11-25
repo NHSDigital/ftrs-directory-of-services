@@ -31,4 +31,11 @@ Feature: Organization API Endpoint via APIM
       | type   |
       | active |
 
-
+  Scenario Outline: Update Organization with null active field
+    When I set the active field from the payload to null and update the organization via APIM
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the diagnostics message indicates the "active field cannot be null"

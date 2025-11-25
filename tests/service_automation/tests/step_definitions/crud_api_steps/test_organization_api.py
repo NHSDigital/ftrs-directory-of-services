@@ -454,3 +454,52 @@ def step_diagnostics_extra_field(fresponse, field, value):
         field=field,
         value=value,
     )
+
+def set_field_to_null(payload: dict, field: str) -> dict:
+    """Set a specific field to null in the payload."""
+    payload[field] = None
+    logger.info(f"Set field '{field}' to null:\n{json.dumps(payload, indent=2)}")
+    return payload
+
+
+@when(
+    "I set the active field from the payload to null and update the organization via APIM",
+    target_fixture="fresponse",
+)
+def step_set_active_null_apim(
+    new_apim_request_context, nhsd_apim_proxy_url: str
+) -> object:
+    """Set active field to null in the payload and update via APIM."""
+    payload = set_field_to_null(_load_default_payload(), "active")
+    return update_organisation_apim(
+        payload, new_apim_request_context, nhsd_apim_proxy_url
+    )
+
+
+@when(
+    "I set the active field from the payload to null and update the organization",
+    target_fixture="fresponse",
+)
+def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
+    """Set active field to null in the payload and update via CRUD API."""
+    payload = set_field_to_null(_load_default_payload(), "active")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@then(
+    parsers.parse('the diagnostics message indicates the "{expected_message}"')
+)
+def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
+    """Verify that the diagnostics message contains the expected text."""
+    body = fresponse.json()
+    assert body.get("resourceType") == "OperationOutcome", (
+        f"Unexpected response: {body}"
+    )
+
+    diagnostics = body["issue"][0].get("diagnostics", "")
+
+    assert expected_message in diagnostics, (
+        f"Expected diagnostics to contain '{expected_message}', got: {diagnostics}"
+    )
+
+    logger.info(f"Diagnostics correctly contains: {expected_message}")
