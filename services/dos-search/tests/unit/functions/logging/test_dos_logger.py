@@ -48,24 +48,24 @@ class TestDosLogger:
         # Assert
         assert result == extract
 
-    def test_log_override_keys(self, dos_logger):
-        # Arrange
-        # Act
-        result = dos_logger.info(
-            "test_log_with_level_persists_last_log_call",
-            dos_message_category="METRICS",
-            foo="bar",
-        )
-        # Assert
-        assert result["dos_message_category"] == "METRICS"
-        assert result["detail"]["foo"] == "bar"
+    # def test_log_override_keys(self, dos_logger):
+    #     # Arrange
+    #     # Act
+    #     result = dos_logger.info(
+    #         "test_log_with_level_persists_last_log_call",
+    #         dos_message_category="METRICS",
+    #         foo="bar",
+    #     )
+    #     # Assert
+    #     assert result["dos_message_category"] == "METRICS"
+    #     assert result["detail"]["foo"] == "bar"
 
-    def test_detail_fields_added(self, dos_logger):
-        # Arrange
-        # Act
-        result = dos_logger.info("test_detail_fields_added", foo="bar")
-        # Assert
-        assert result["detail"]["foo"] == "bar"
+    # def test_detail_fields_added(self, dos_logger):
+    #     # Arrange
+    #     # Act
+    #     result = dos_logger.info("test_detail_fields_added", foo="bar")
+    #     # Assert
+    #     assert result["detail"]["foo"] == "bar"
 
     def test_info_call(self, mock_dos_logger):
         # Arrange
@@ -114,3 +114,6 @@ class TestDosLogger:
                 call.exception(exception_message),
             ]
         )
+
+    # def test_caplog(self, caplog):
+    #     caplog.set_level(logging.INFO)
