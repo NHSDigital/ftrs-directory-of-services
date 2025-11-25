@@ -117,6 +117,7 @@ jobs:
     name: "Authenticate and Deploy ${{ matrix.api_name }} API to Proxygen in ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
+      - deploy-application-infrastructure
     uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
     strategy:
       matrix:
