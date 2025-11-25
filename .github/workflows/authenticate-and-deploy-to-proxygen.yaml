@@ -32,6 +32,11 @@ jobs:
     name: Authenticate and Deploy to APIM environment - ${{ matrix.api_name }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        api_name:
+          - dos-search
+          # Add more API names here as needed
 
     steps:
       - name: Checkout repository
