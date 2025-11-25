@@ -9,6 +9,8 @@ JVER="${performance_version}"
 POWEROFF="${performance_poweroff_after_setup}"
 JWT_VER="${performance_jwt_dependency_version}"
 
+: "$${JAVA_HOME:=}"   # Predefine to avoid 'JAVA_HOME: unbound variable' under set -u
+
 # Update base packages (non-fatal if repos are temporarily unavailable)
 if command -v dnf >/dev/null 2>&1; then
   dnf -y update || true
@@ -17,7 +19,7 @@ elif command -v yum >/dev/null 2>&1; then
 fi
 
 # Install Java 17 and base tools with fallback (dnf then yum)
-BASE_PKGS="unzip jq curl wget tar openssh-clients"
+BASE_PKGS="unzip jq curl wget tar openssh-clients make"
 if command -v dnf >/dev/null 2>&1; then
   dnf -y install $BASE_PKGS || true
   dnf -y install java-17-amazon-corretto-headless || true
@@ -116,7 +118,7 @@ systemctl restart amazon-ssm-agent || systemctl start amazon-ssm-agent || true
 # Always install JMeter Plugin Manager, cmdrunner, and a sensible default plugin set
 PLUGINS_MANAGER_VERSION=1.11
 CMDRUNNER_VERSION=2.3
-DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional"
+DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional,jpgc-tst,jpgc-casutg"
 
 mkdir -p "$${JM_HOME}/lib/ext" "$${JM_HOME}/lib"
 curl -fL -o "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \

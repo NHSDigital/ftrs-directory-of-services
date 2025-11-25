@@ -1,9 +1,9 @@
 PROJECT_NAME := ftrs-dos
+ENV_LEVEL_PROJECT := ftrs-directory-of-services
 ENVIRONMENT ?= dev
-SERVICE ?= is-performance
 PYTHON_VERSION ?= 3.12
 LOCAL_DIR := parameter_files
-MAIN_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-${SERVICE}-account-wide-is-performance-files-bucket
+MAIN_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-account-wide-is-performance-files-bucket
 JMETER_PLUGINS_MANAGER_VERSION := 1.11
 CMDRUNNER_VERSION := 2.3
 AWS_REGION ?= eu-west-2
@@ -26,7 +26,7 @@ install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required pl
 	java -cp $$(asdf where jmeter)/lib/ext/jmeter-plugins-manager-${JMETER_PLUGINS_MANAGER_VERSION}.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
 
 	echo "Installing jmeter plugins"
-	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional
+	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional,kg.apc:jmeter-plugins-tst,jmeter-plugins-casutg-3.1.1
 
 install-jmeter-dependencies: ## Installs jmeter dependencies
 	echo "Installing jmeter dependencies"
@@ -72,6 +72,36 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
 		make _install-dependency name="$${plugin}"; \
 	done
+
+jmeter-generate-pks-file: ## Generate PKCS#12 file from existing cert [CERT_NAME=cert_name] [KEY_NAME=key_name] [PFX_NAME=pfx_name]
+
+	aws secretsmanager get-secret-value \
+	--region eu-west-2 \
+	--secret-id /ftrs-directory-of-services/dev/api-ca-cert \
+	--query 'SecretString' \
+	--output text > ${LOCAL_DIR}/${CERT_NAME}.crt
+
+	aws secretsmanager get-secret-value \
+		--region eu-west-2 \
+		--secret-id /ftrs-directory-of-services/dev/api-ca-pk \
+		--query 'SecretString' \
+		--output text > ${LOCAL_DIR}/${KEY_NAME}.pem
+
+	echo "Retrieving passkey secret"; \
+	PASSKEY=$$(aws secretsmanager get-secret-value \
+		--region $(AWS_REGION) \
+		--secret-id /${ENV_LEVEL_PROJECT}/${ENVIRONMENT}/api-jmeter-pks-key \
+		--query 'SecretString' --output text); \
+	echo "Passkey retrieved"; \
+	echo "Generating PKCS#12 bundle ${PFX_NAME}.pfx"; \
+	openssl pkcs12 -export \
+		-in ${LOCAL_DIR}/${CERT_NAME}.crt \
+		-inkey ${LOCAL_DIR}/${KEY_NAME}.pem \
+		-out ${LOCAL_DIR}/${PFX_NAME}.pfx \
+		-passout pass:$$PASSKEY; \
+	echo "Created ${LOCAL_DIR}/${PFX_NAME}.pfx"; \
+
+
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------

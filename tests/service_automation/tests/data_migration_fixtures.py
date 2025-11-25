@@ -1,26 +1,29 @@
-import pytest
-import boto3
+"""Pytest fixtures for data migration testing."""
 import os
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Generator
+from typing import Any, Dict, Generator
+from urllib.parse import urlparse
+
+import boto3
+import pytest
+from loguru import logger
+from sqlalchemy import text
+from sqlmodel import Session, create_engine
+from testcontainers.localstack import LocalStackContainer
+from testcontainers.postgres import PostgresContainer
 
 from ftrs_common.utils.db_service import get_service_repository
-from loguru import logger
-
-from sqlalchemy import text, MetaData
-from testcontainers.postgres import PostgresContainer
-from testcontainers.localstack import LocalStackContainer
-from sqlmodel import create_engine, SQLModel, Session
-from ftrs_data_layer.domain import legacy, Organisation, Location, HealthcareService
-from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
-from utilities.common.rds_data import gp_service
-from utilities.common.dynamoDB_tables import dynamodb_tables
-
+from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from utilities.common.constants import ENV_ENVIRONMENT, ENV_SOURCE_DB_HOST, ENV_SOURCE_DB_NAME, ENV_SOURCE_DB_PASSWORD, ENV_SOURCE_DB_PORT, ENV_SOURCE_DB_USER, ENV_WORKSPACE
+from utilities.common.dynamoDB_tables import get_dynamodb_tables
+from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
+from utilities.common.data_migration.migration_helper import MigrationHelper
+from utilities.common.rds_data import gp_service
 
-# Session-scoped containers (keep these as session-scoped for efficiency)
+
 @pytest.fixture(scope="session")
 def postgres_container() -> Generator[PostgresContainer, None, None]:
     """PostgreSQL container for testing."""
@@ -35,18 +38,19 @@ def localstack_container() -> Generator[LocalStackContainer, None, None]:
         yield localstack
 
 
-def _get_source_db_config() -> dict:
+def _get_source_db_config() -> Dict[str, str]:
+    """Get source database configuration from environment variables."""
     return {
-        "host": os.getenv("SOURCE_DB_HOST", "localhost"),
-        "port": os.getenv("SOURCE_DB_PORT", "5432"),
-        "database": os.getenv("SOURCE_DB_NAME", "pathwaysdos"),
-        "username": os.getenv("SOURCE_DB_USER", "postgres"),
-        "password": os.getenv("SOURCE_DB_PASSWORD", "password"),
+        "host": os.getenv(ENV_SOURCE_DB_HOST),
+        "port": os.getenv(ENV_SOURCE_DB_PORT),
+        "database": os.getenv(ENV_SOURCE_DB_NAME),
+        "username": os.getenv(ENV_SOURCE_DB_USER),
+        "password": os.getenv(ENV_SOURCE_DB_PASSWORD),
     }
 
 
 def _dump_schema_and_data(
-    source_config: dict, schema_file: str, data_file: str
+    source_config: Dict[str, str], schema_file: str, data_file: str
 ) -> None:
     """Dump database schema and data for selected tables using pg_dump."""
 
@@ -105,7 +109,7 @@ def _dump_schema_and_data(
 
 
 def _load_schema_and_data(
-    container_config: dict, schema_file: str, data_file: str
+    container_config: Dict[str, str], schema_file: str, data_file: str
 ) -> None:
     """Load schema and data into the test container."""
 
@@ -147,7 +151,7 @@ def _load_schema_and_data(
     logger.info("Schema and data loaded successfully")
 
 
-def _init_database(engine):
+def _init_database(engine: Any) -> None:
     """Initialize database with schema and tables."""
     # First, clean up any existing database to ensure we start fresh
     _cleanup_database(engine)
@@ -162,7 +166,7 @@ def _init_database(engine):
     legacy.LegacyDoSModel.metadata.create_all(engine)
 
 
-def _init_database_with_migration(postgres_container: PostgresContainer):
+def _init_database_with_migration(postgres_container: PostgresContainer) -> None:
     """Initialize database with schema and data from source database."""
     # Get container connection details
     connection_string = postgres_container.get_connection_url()
@@ -175,8 +179,6 @@ def _init_database_with_migration(postgres_container: PostgresContainer):
     source_config = _get_source_db_config()
 
     # Parse connection URL to get individual components for psql commands
-    from urllib.parse import urlparse
-
     parsed = urlparse(connection_string)
 
     container_config = {
@@ -213,7 +215,7 @@ def _init_database_with_migration(postgres_container: PostgresContainer):
             logger.warning(f"Failed to clean up temporary files: {e}")
 
 
-def _cleanup_database(engine):
+def _cleanup_database(engine) -> None:
     """Clean up a database by dropping all tables and schema."""
     try:
         with engine.connect() as conn:
@@ -249,10 +251,74 @@ def _cleanup_database(engine):
                         text(f'DROP TABLE IF EXISTS "public"."{table}" CASCADE')
                     )
                 conn.commit()
+                logger.debug(f"Dropped {len(tables)} tables from public schema")
 
     except Exception as e:
         # Log error but don't fail the test
         logger.error(f"Warning: Failed to cleanup database: {e}")
+
+
+def _seed_gp_organisations(session: Session) -> None:
+    """Seed the database with GP organisations for testing."""
+    for org in gp_service:
+        session.add(org)
+    session.commit()
+
+
+def _create_dynamodb_tables(client: Any) -> None:
+    """
+    Create DynamoDB tables for testing using environment-based configuration.
+
+    Tables follow pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
+
+    Args:
+        client: Boto3 DynamoDB client
+
+    Raises:
+        Exception: If table creation fails
+    """
+    table_configs = get_dynamodb_tables()
+    logger.debug(f"Creating {len(table_configs)} DynamoDB tables")
+
+    for config in table_configs:
+        table_name = config["TableName"]
+        try:
+            client.create_table(**config)
+            waiter = client.get_waiter("table_exists")
+            waiter.wait(TableName=table_name)
+            logger.debug(f"Created table: {table_name}")
+        except client.exceptions.ResourceInUseException:
+            logger.debug(f"Table {table_name} already exists")
+        except Exception as e:
+            logger.error(f"Failed to create table {table_name}: {e}")
+            raise
+
+    logger.info("DynamoDB tables created successfully")
+
+
+def _cleanup_dynamodb_tables(client: Any) -> None:
+    """
+    Clean up DynamoDB tables after testing.
+
+    Args:
+        client: Boto3 DynamoDB client
+    """
+    try:
+        response = client.list_tables()
+        table_names = response.get("TableNames", [])
+
+        for table_name in table_names:
+            try:
+                client.delete_table(TableName=table_name)
+                waiter = client.get_waiter("table_not_exists")
+                waiter.wait(TableName=table_name)
+                logger.debug(f"Deleted DynamoDB table: {table_name}")
+            except Exception as e:
+                logger.error(f"Failed to delete table {table_name}: {e}")
+    except Exception as e:
+        logger.error(f"DynamoDB cleanup failed: {e}")
+
+    logger.info("DynamoDB cleanup Successful")
 
 
 @pytest.fixture(name="dos_db", scope="function")
@@ -260,73 +326,71 @@ def fixture_dos_db(
     postgres_container: PostgresContainer,
 ) -> Generator[Session, None, None]:
     """
-    DoS database fixture for BDD tests.
-    Creates a clean database session with all tables for each test.
+    DoS database fixture for BDD tests with clean schema for each test.
+
+    Args:
+        postgres_container: PostgreSQL container fixture
+
+    Yields:
+        Database session with initialized schema
     """
     connection_string = postgres_container.get_connection_url()
     engine = create_engine(connection_string, echo=False)
 
     try:
-        # Initialize a database with schema
         _init_database(engine)
-
-        # Create a session
         session = Session(engine)
         _seed_gp_organisations(session)
-
         yield session
-
     finally:
-        # Cleanup: close session and cleanup database
         if "session" in locals():
             session.close()
-
-        # Clean up the database
         _cleanup_database(engine)
-
-        # Dispose of the engine to close all connections
         engine.dispose()
 
 
-# New fixture for tests that need migrated data
 @pytest.fixture(name="dos_db_with_migration", scope="function")
 def fixture_dos_db_with_migration(
     postgres_container: PostgresContainer,
 ) -> Generator[Session, None, None]:
     """
-    DoS database fixture with migrated data from a source database.
-    Creates a database session with schema and data loaded from source DB.
+    DoS database fixture with migrated data from source database.
+
+    Args:
+        postgres_container: PostgreSQL container fixture
+
+    Yields:
+        Database session with schema and data from source DB
     """
     connection_string = postgres_container.get_connection_url()
     engine = create_engine(connection_string, echo=False)
 
     try:
-        logger.info("Initializing database with schema and data from source DB")
+        logger.debug("Initializing database with migrated data")
         _init_database_with_migration(postgres_container)
-
-        # Create a session
         session = Session(engine)
         yield session
-
     finally:
-        # Cleanup: close session and cleanup database
         if "session" in locals():
             session.close()
-
-        # Clean up the database
         _cleanup_database(engine)
-
-        # Dispose of the engine to close all connections
         engine.dispose()
 
 
 @pytest.fixture(name="dynamodb", scope="function")
 def fixture_dynamodb(
     localstack_container: LocalStackContainer,
-) -> Generator[dict, None, None]:
+) -> Generator[Dict[str, Any], None, None]:
     """
-    DynamoDB fixture for BDD tests.
-    Provides both client and resource with pre-created tables for each test.
+    DynamoDB fixture with pre-created tables for each test.
+
+    Tables follow pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
+
+    Args:
+        localstack_container: LocalStack container fixture
+
+    Yields:
+        Dictionary with client, resource, and endpoint_url
     """
     endpoint_url = localstack_container.get_url()
 
@@ -347,57 +411,20 @@ def fixture_dynamodb(
     )
 
     try:
-        # Create tables
         _create_dynamodb_tables(client)
-
         yield {"client": client, "resource": resource, "endpoint_url": endpoint_url}
-
     finally:
-        # Cleanup: Delete all tables
         _cleanup_dynamodb_tables(client)
 
 
-def _seed_gp_organisations(session: Session) -> None:
-    """Seed the database with GP organisations for testing."""
-    for org in gp_service:
-        session.add(org)
+@pytest.fixture(scope="function")
+def dos_search_context() -> Dict[str, Any]:
+    """
+    Context for storing test data during BDD scenarios.
 
-    session.commit()
-
-
-def _create_dynamodb_tables(client) -> None:
-    """Create DynamoDB tables for testing."""
-    for table_config in dynamodb_tables:
-        try:
-            client.create_table(**table_config)
-            waiter = client.get_waiter("table_exists")
-            waiter.wait(TableName=table_config["TableName"])
-        except client.exceptions.ResourceInUseException:
-            pass  # Table already exists
-
-
-def _cleanup_dynamodb_tables(client) -> None:
-    """Clean up DynamoDB tables after testing."""
-    try:
-        # List and delete all tables
-        response = client.list_tables()
-        for table_name in response.get("TableNames", []):
-            try:
-                client.delete_table(TableName=table_name)
-                waiter = client.get_waiter("table_not_exists")
-                waiter.wait(TableName=table_name)
-            except Exception as e:
-                # Log error but continue with other tables
-                logger.error(f"Warning: Failed to delete table {table_name}: {e}")
-    except Exception as e:
-        # Log error but don't fail the test
-        print(f"Warning: Failed to cleanup DynamoDB tables: {e}")
-
-
-# Step definition helpers
-@pytest.fixture(scope="function")  # Also change this to function scope
-def dos_search_context():
-    """Context for storing test data during BDD scenarios."""
+    Returns:
+        Empty dictionary for test state
+    """
     return {}
 
 
@@ -408,11 +435,90 @@ def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisati
         model_repo.resource = dynamodb[
             "resource"]  # fake credentials aligned with localstack set in the injected dynamodb client
         model_repo.table = dynamodb["resource"].Table(table_name)
-
         return model_repo
 
     return {
         "organisation": prep_local_repo("organisation", Organisation, dynamodb),
         "location": prep_local_repo("location", Location, dynamodb),
-        "healthcare-service": prep_local_repo("healthcare-service", HealthcareService, dynamodb),
+        "healthcare-service": prep_local_repo(
+            "healthcare-service", HealthcareService, dynamodb
+        ),
+    }
+
+
+@pytest.fixture(scope="function")
+def migration_helper(
+    postgres_container: PostgresContainer,
+    dynamodb: Dict[str, Any],
+) -> MigrationHelper:
+    """
+    Migration helper configured for test environment.
+
+    Args:
+        postgres_container: PostgreSQL container fixture
+        dynamodb: DynamoDB fixture with pre-created tables
+
+    Returns:
+        Configured MigrationHelper instance
+
+    Raises:
+        AssertionError: If required DynamoDB configuration is missing
+    """
+    db_uri = postgres_container.get_connection_url()
+
+    if "endpoint_url" not in dynamodb:
+        raise AssertionError(
+            "DynamoDB fixture must provide endpoint_url. "
+            "Ensure fixture_dynamodb is correctly configured."
+        )
+
+    dynamodb_endpoint = dynamodb["endpoint_url"]
+
+    environment = os.getenv(ENV_ENVIRONMENT)
+    workspace = os.getenv(ENV_WORKSPACE)
+
+    logger.debug(
+        f"Creating MigrationHelper with environment={environment}, workspace={workspace}"
+    )
+
+    return MigrationHelper(
+        db_uri=db_uri,
+        dynamodb_endpoint=dynamodb_endpoint,
+        environment=environment,
+        workspace=workspace,
+    )
+
+
+@pytest.fixture(scope="function")
+def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
+    """
+    Context to store migration test data across BDD steps.
+
+    Structure:
+        service_id (int|None): ID of service being migrated (None = full sync)
+        result (MigrationRunResult|None): Result from migration execution
+        service_data (dict): Service attributes from Gherkin table
+        service_name (str): Human-readable name for test service
+        sqs_event (dict): SQS event data for event-based migrations
+        sqs_service_ids (list[int]): Service IDs extracted from SQS event
+        sqs_service_id (int|None): Primary service ID from SQS event
+        mock_logger (MockLogger|None): MockLogger instance with captured logs
+        db_session (Session): Active database session
+
+    Args:
+        dos_db_with_migration: DoS database session fixture
+
+    Returns:
+        Dictionary context for storing test state
+    """
+    return {
+        "service_id": None,  # None indicates full sync migration
+        "result": None,
+        "service_data": {},
+        "service_name": "",
+        "sqs_event": {},
+        "sqs_service_ids": [],
+        "sqs_service_id": None,
+        "mock_logger": None,
+        "db_session": dos_db_with_migration,
     }

@@ -2,6 +2,12 @@
 // Creates a small Amazon Linux 2023 instance in a private subnet, reachable via SSM (Session Manager) only.
 // Installs Apache JMeter on first boot and powers off the instance when installation completes (configurable).
 
+
+locals {
+  # Name tag for Performance EC2 instance, scoped to this stack
+  performance_name = "${local.account_prefix}-performance"
+}
+
 resource "aws_instance" "performance" {
   ami                         = data.aws_ami.al2023.id
   instance_type               = var.performance_instance_type
@@ -32,6 +38,11 @@ resource "aws_instance" "performance" {
   }
 
   instance_initiated_shutdown_behavior = "stop"
+
+  tags = {
+    Name = local.performance_name
+    Role = "performance"
+  }
 
 
   depends_on = [
@@ -90,7 +101,7 @@ data "aws_iam_policy_document" "ec2_performance_s3" {
       "s3:AbortMultipartUpload"
     ]
     resources = [
-      module.performance_s3.s3_bucket_arn
+      "${module.performance_s3.s3_bucket_arn}/*"
     ]
   }
 }
