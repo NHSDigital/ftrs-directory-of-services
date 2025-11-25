@@ -71,7 +71,7 @@ runs:
         export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
 
         chmod +x ./scripts/workflow/deploy-to-apim.sh
-        RESPONSE=$(./scripts/workflow/deploy-spec-to-apim.sh)
+        RESPONSE=$(./scripts/workflow/deploy-to-apim.sh)
 
         if [ $? -eq 0 ]; then
           echo "status=success" >> $GITHUB_OUTPUT
