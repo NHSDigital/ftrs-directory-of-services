@@ -429,6 +429,42 @@ def step_update_with_invalid_typed_period(invalid_scenario: str, api_request_con
                 }
             ]
         }
+    elif invalid_scenario == "invalid extension url":
+        invalid_extension = {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "invalid system":
+        invalid_extension = {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-InvalidPeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
     else:
         raise ValueError(f"Unknown invalid_scenario: {invalid_scenario}")
 

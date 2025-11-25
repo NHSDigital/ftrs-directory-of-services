@@ -225,6 +225,8 @@ Feature: Organization API Endpoint
         | missing period           | TypedPeriod extension must contain dateType and period |
         | non-Legal dateType       | dateType must be Legal                                 |
         | empty period             | period must contain at least start or end date         |
+        | invalid extension url    | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod |
+        | invalid system           | period must contain at least start or end date         |
 
   Scenario Outline: Reject Organization update with invalid date format
       Given that the stack is "organisation"

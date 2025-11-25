@@ -225,10 +225,13 @@ def _validate_typed_period_extension(ext: Extension) -> None:
             "TypedPeriod extension must contain dateType and period"
         )
 
-    if (
-        not date_type_ext.valueCoding
-        or date_type_ext.valueCoding.code != LEGAL_PERIOD_CODE
-    ):
+    if not date_type_ext.valueCoding:
+        _raise_validation_error("dateType must have a valueCoding")
+
+    if date_type_ext.valueCoding.system != PERIOD_TYPE_SYSTEM:
+        _raise_validation_error(f"dateType system must be '{PERIOD_TYPE_SYSTEM}'")
+
+    if date_type_ext.valueCoding.code != LEGAL_PERIOD_CODE:
         _raise_validation_error("dateType must be Legal")
 
     if not period_ext.valuePeriod or (
