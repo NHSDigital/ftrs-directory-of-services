@@ -124,13 +124,13 @@ class OrganisationUpdatePayload(BaseModel):
 
         return v
 
-    @model_validator(mode="before")
+    @field_validator("active", mode="before")
     @classmethod
-    def validate_active_not_null(cls, values: dict) -> dict:
-        """Validates that active field is not None/null before type conversion."""
-        if "active" not in values or values.get("active") is None:
+    def validate_active_not_null(cls, v: bool | None) -> bool:
+        """Validates that active field is not None/null."""
+        if v is None:
             raise ValueError(ACTIVE_EMPTY_ERROR)
-        return values
+        return v
 
     @model_validator(mode="after")
     def check_type_coding_and_text(self) -> "OrganisationUpdatePayload":
