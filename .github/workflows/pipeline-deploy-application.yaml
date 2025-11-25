@@ -118,6 +118,11 @@ jobs:
     needs:
       - metadata
     uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
+    strategy:
+      matrix:
+        api_name:
+          - dos-search
+          # Add more API names here as needed
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
