@@ -72,8 +72,10 @@ print_manifest_metadata(){
   fi
   DIGEST="${DIGEST#sha256:}"
   DIGEST="sha256:${DIGEST}"
-  log "Verified that pushed image exists in repository ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
-  printf '%s\t%s\n' "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${DIGEST}"
+  log "Verified that pushed image exists in repository"
+  printf '\n%-40s %s\n' "IMAGE" "DIGEST"
+  printf '%-40s %s\n' "----------------------------------------" "----------------------------------------------------------------"
+  printf '%-40s %s\n' "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${DIGEST}"
 }
 
 main(){
