@@ -155,6 +155,7 @@ def run_sqs_event_migration_with_params(
     event = build_sqs_event(
         table_name=table_name,
         record_id=record_id,
+        service_id=record_id,
         method=method,
     )
 

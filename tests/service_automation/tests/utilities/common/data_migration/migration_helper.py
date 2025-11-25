@@ -257,6 +257,7 @@ class MigrationHelper:
             event = DMSEvent(
                 type="dms_event",
                 record_id=service_id,
+                service_id=service_id,
                 table_name="services",
                 method="insert",
             )

@@ -9,6 +9,7 @@ SQSEventMethod = Literal["insert", "update", "delete"]
 def build_sqs_event(
     table_name: str,
     record_id: int,
+    service_id: int,
     method: SQSEventMethod,
     message_id: str = "test-message-1",
     region: str = "eu-west-2",
@@ -18,7 +19,7 @@ def build_sqs_event(
 
     Args:
         table_name: Name of the table (e.g., 'services')
-        record_id: Database record ID (e.g., service ID)
+        record_id, service_id: Database record ID (e.g., service ID)
         method: DMS operation type ('insert', 'update', or 'delete')
         message_id: Optional message ID for the SQS record
         region: AWS region for the event
@@ -30,16 +31,18 @@ def build_sqs_event(
         ... event = build_sqs_event(
         ...     table_name="services",
         ...     record_id=300010,
+        ...     service_id=300010,
         ...     method="insert"
         ... )
         ... event["Records"][0]["body"]
-        '{"type": "dms_event", "record_id": 300010, "table_name": "services", "method": "insert"}'
+        '{"type": "dms_event", "record_id": 300010, "service_id": 300010, "table_name": "services", "method": "insert"}'
     """
     timestamp_ms = str(int(datetime.now().timestamp() * 1000))
 
     body = {
         "type": "dms_event",
         "record_id": record_id,
+        "service_id": service_id,
         "table_name": table_name,
         "method": method,
     }
@@ -81,8 +84,8 @@ def build_multi_record_sqs_event(
 
     Example:
         >>> event = build_multi_record_sqs_event([
-        ...     {"table_name": "services", "record_id": 300010, "method": "insert"},
-        ...     {"table_name": "services", "record_id": 300011, "method": "update"}
+        ...     {"table_name": "services", "record_id": 300010, "service_id": 300010, "method": "insert"},
+        ...     {"table_name": "services", "record_id": 300011, "service_id": 300011, "method": "update"}
         ... ])
         >>> len(event["Records"])
         2
@@ -94,6 +97,7 @@ def build_multi_record_sqs_event(
         body = {
             "type": "dms_event",
             "record_id": record["record_id"],
+            "service_id": record["service_id"],
             "table_name": record["table_name"],
             "method": record["method"],
         }
