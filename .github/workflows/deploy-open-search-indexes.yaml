@@ -50,11 +50,38 @@ jobs:
 
       - name: Create OpenSearch Index
         run: |
-          curl -X PUT "https://<your-domain>/_index/my-index" \
-          -H "Content-Type: application/json" \
-          -d '{"settings":{"number_of_shards":1},"mappings":{"properties":{"title":{"type":"text"}}}}'
+          COLLECTION_NAME="ftrs-dos-dev-osc"
 
+          echo "Deriving domain from collection ${COLLECTION_NAME}"
+          # assume aws CLI and AWS_REGION are available in the runner
+          AWS_REGION="${AWS_REGION:-$(aws configure get region || true)}"
+          COLLECTION_ID=$(aws opensearchserverless list-collections --region "$AWS_REGION" --query "collections[?name=='${COLLECTION_NAME}'] | [0].id" --output text 2>/dev/null || true)
+          COLLECTION_INFO=$(aws opensearchserverless get-collection --id "$COLLECTION_ID" --region "$AWS_REGION" --output json 2>/dev/null || true)
+          OPEN_SEARCH_DOMAIN=$(printf '%s' "$COLLECTION_INFO" | grep -oE 'https?://[A-Za-z0-9.-]+' | sed -E 's#https?://##' | head -n1 || true)
+          echo "Derived OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} from collection ${COLLECTION_NAME}"
 
+          export OPEN_SEARCH_DOMAIN
 
+          # Normalize workspace -> prefix '-' if non-empty
+          WORKSPACE_INPUT="${{ inputs.workspace }}"
+          if [[ -n "$WORKSPACE_INPUT" ]]; then
+            WORKSPACE="-${WORKSPACE_INPUT#-}"
+          else
+            WORKSPACE=""
+          fi
+          export WORKSPACE
 
+          INDEX="my-index"
+          export INDEX
 
+          echo "Creating index ${INDEX}${WORKSPACE} on domain ${OPEN_SEARCH_DOMAIN}"
+
+          # Use awscurl (SigV4) for serverless endpoints (SIGN_WITH_AWS removed)
+          PAYLOAD='{"settings":{"number_of_shards":1},"mappings":{"properties":{"title":{"type":"text"}}}}'
+
+          if ! command -v awscurl >/dev/null 2>&1; then
+            echo "ERROR: awscurl is not installed; required for signing requests to serverless endpoints" >&2
+            exit 2
+          fi
+          awscurl --service "${AWS_SERVICE:-aoss}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT "https://${OPEN_SEARCH_DOMAIN}/_index/${INDEX}${WORKSPACE}" -H "Content-Type: application/json" -d "$PAYLOAD"
+        shell: bash
