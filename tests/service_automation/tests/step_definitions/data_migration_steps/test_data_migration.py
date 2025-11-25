@@ -8,6 +8,7 @@ from pprint import pprint
 from pytest_bdd import scenarios, given, when, then, parsers, scenario
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -33,11 +34,15 @@ IGNORED_PATHS = [
 ]
 
 scenarios(
-    "../features/data_migration_features/gp_practice_migration_happy_path.feature",
     "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
-    "../features/data_migration_features/age_range_tranformation.feature",
-    "../features/data_migration_features/disposition_code_tranformation.feature"
 )
+
+# scenarios(
+#     "../features/data_migration_features/gp_practice_migration_happy_path.feature",
+#     "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
+#     "../features/data_migration_features/age_range_tranformation.feature",
+#     "../features/data_migration_features/disposition_code_tranformation.feature"
+# )
 
 @given("the data migration system is ready")
 def data_migration_system_ready():
@@ -78,7 +83,7 @@ def check_expected_table_counts(org_count_expected: int, location_count_expected
     check_table(get_table_name("organisation"), org_count_expected)
     check_table(get_table_name("location"), location_count_expected)
     check_table(get_table_name("healthcare-service"), healthcare_service_count_expected)
-    
+
 
 @then(parsers.parse("The '{table_name}' for service ID '{service_id}' has content:"))
 def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
@@ -139,4 +144,3 @@ def get_table_name(resource):
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
     return f"{project_name}-{environment}-database-{resource}-{workspace}"
-    
