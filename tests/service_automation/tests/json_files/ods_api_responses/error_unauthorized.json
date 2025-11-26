@@ -1,0 +1,18 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "401",
+      "details": {
+        "coding": [
+          {
+            "code": "401",
+            "display": "Unauthorized"
+          }
+        ]
+      },
+      "diagnostics": "{\"fault\":{\"faultstring\":\"Failed to resolve API Key variable request.header.apikey\",\"detail\":{\"errorcode\":\"steps.oauth.v2.FailedToResolveAPIKey\"}}}"
+    }
+  ]
+}
