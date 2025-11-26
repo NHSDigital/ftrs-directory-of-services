@@ -82,7 +82,7 @@ Feature: Data Migration
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
 
-        Then the 'healthcare-service' for service ID '3a3bab5d-6931-5e79-96af-e723aa87b078' has content:
+        Then the 'healthcare-service' for service ID '1001533' has content:
             """
             {
                 "id": "3a3bab5d-6931-5e79-96af-e723aa87b078",
@@ -192,7 +192,7 @@ Feature: Data Migration
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
 
-        Then the 'healthcare-service' for service ID '7194eaa7-8f8e-57e2-a8ac-b694aba132cf' has content:
+        Then the 'healthcare-service' for service ID '2001533' has content:
             """
             {
                 "id": "7194eaa7-8f8e-57e2-a8ac-b694aba132cf",
@@ -295,7 +295,7 @@ Feature: Data Migration
         When the data migration process is run for table 'services', ID '3001533' and method 'insert'
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
-        Then the 'healthcare-service' for service ID '8d73a7f5-1e60-5880-902f-4ad5d4b9f08b' has content:
+        Then the 'healthcare-service' for service ID '3001533' has content:
             """
             {
                 "id": "8d73a7f5-1e60-5880-902f-4ad5d4b9f08b",
@@ -404,7 +404,7 @@ Feature: Data Migration
         Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
         Then there is 1 organisation, 1 location and 1 healthcare services created
 
-        Then the 'healthcare-service' for service ID 'be4d2882-bfaf-521c-b3fe-7d6bd8c9142b' has content:
+        Then the 'healthcare-service' for service ID '4001533' has content:
             """
             {
                 "id": "be4d2882-bfaf-521c-b3fe-7d6bd8c9142b",

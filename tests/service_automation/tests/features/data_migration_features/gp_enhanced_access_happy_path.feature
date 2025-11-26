@@ -51,7 +51,7 @@ Feature: Data Migration
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
     Then there is 0 organisation, 0 location and 1 healthcare services created
 
-    Then the 'healthcare-service' for service ID '56101471-f2b1-5324-83e2-1c6d55f3628c' has content:
+    Then the 'healthcare-service' for service ID '100178970' has content:
       """
       {
         "id": "56101471-f2b1-5324-83e2-1c6d55f3628c",

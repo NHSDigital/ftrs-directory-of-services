@@ -9,7 +9,8 @@ from pytest_bdd import scenarios, given, when, then, parsers, scenario
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
-
+from utilities.common.dynamoDB_tables import get_table_name  # noqa: F403
+from pipeline.utils.uuid_utils import generate_uuid
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -82,6 +83,23 @@ def check_expected_table_counts(org_count_expected: int, location_count_expected
 
 @then(parsers.parse("The '{table_name}' for service ID '{service_id}' has content:"))
 def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
+    namespace = table_name.replace("-", "_")
+    generated_uuid = str(generate_uuid(service_id, namespace))
+
+    retrieved_item = json.loads(
+        json.dumps(
+            get_by_id(dynamodb, table_name, generated_uuid),
+            cls=DecimalEncoder
+        )
+    )
+    expected = json.loads(docstring)
+
+    validated_diff(expected, retrieved_item)
+    #validate_dynamic_fields(retrieved_item) #TODO: Temporarily disabled due to some nested fields not containing datetime metadata
+
+
+@then(parsers.parse("The '{table_name}' for service UUID '{service_id}' has content:"))
+def check_table_content_by_uuid(table_name, service_id, docstring, dynamodb):
     retrieved_item = json.loads(
         json.dumps(
             get_by_id(dynamodb, table_name, service_id),
@@ -91,7 +109,7 @@ def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
     expected = json.loads(docstring)
 
     validated_diff(expected, retrieved_item)
-    #validate_dynamic_fields(retrieved_item) # Temporarily disabled due to sone nested fields not containing datetime metadata
+    #validate_dynamic_fields(retrieved_item) #TODO: Temporarily disabled due to some nested fields not containing datetime metadata
 
 
 def validated_diff(expected, retrieved_item):
@@ -133,9 +151,3 @@ def get_by_id(dynamodb, table_name, service_id):
     item = response['Item']
 
     return item
-
-def get_table_name(resource):
-    project_name = os.getenv("PROJECT_NAME", "ftrs-dos")
-    environment = os.getenv("ENVIRONMENT", "dev")
-    workspace = os.getenv("WORKSPACE", "test")
-    return f"{project_name}-{environment}-database-{resource}-{workspace}"

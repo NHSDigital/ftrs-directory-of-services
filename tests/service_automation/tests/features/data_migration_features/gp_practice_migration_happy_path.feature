@@ -49,7 +49,7 @@ Feature: Data Migration
     When the data migration process is run for table 'services', ID '10005752' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
-    Then the 'organisation' for service ID '92c51dc4-9b80-54c1-bfcf-62826d6823f0' has content:
+    Then the 'organisation' for service ID '10005752' has content:
       """
       {
         "id": "92c51dc4-9b80-54c1-bfcf-62826d6823f0",
@@ -66,7 +66,7 @@ Feature: Data Migration
         "type": "GP Practice"
       }
       """
-    Then the 'healthcare-service' for service ID '48865e3d-b8f0-508b-8520-29b3113da1e3' has content:
+    Then the 'healthcare-service' for service ID '10005752' has content:
       """
       {
         "id": "48865e3d-b8f0-508b-8520-29b3113da1e3",
@@ -98,7 +98,7 @@ Feature: Data Migration
         "type": "GP Consultation Service"
       }
       """
-    Then the 'location' for service ID 'fbb2340b-53e0-56f9-ada3-ef5728ca8f98' has content:
+    Then the 'location' for service ID '10005752' has content:
       """
       {
         "id": "fbb2340b-53e0-56f9-ada3-ef5728ca8f98",
