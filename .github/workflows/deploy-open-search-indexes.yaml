@@ -35,20 +35,18 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout repository
-      - uses: actions/checkout@v5
+      - name: "Checkout code"
+        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
+        with:
+          repository: ${{ inputs.domain }}
+          tag: ${{ inputs.tag }}
 
-      - name: "Configure AWS Credentials"
-        uses: ./.github/actions/configure-credentials
+      - name: Configure AWS Credentials
+        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
-
-      - name: Install awscurl
-        run: |
-          python -m pip install --upgrade pip
-          pip install awscurl
 
       - name: Create OpenSearch Index
         run: |
