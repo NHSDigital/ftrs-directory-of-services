@@ -51,7 +51,7 @@ jobs:
           echo "inputs.type=${{ inputs.type }}"
 
       - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
