@@ -10,11 +10,6 @@ on:
         description: 'Environment to authenticate against (e.g., dev, test, prod)'
         required: true
         type: string
-      domain:
-        description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
-        required: false
-        default: ${{ github.event.repository.name }}
-        type: string
       workspace:
         description: "The name of the workspace to deploy the application into"
         required: true
@@ -42,4 +37,3 @@ jobs:
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
-          domain: ${{ inputs.domain }}

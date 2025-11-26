@@ -10,6 +10,11 @@ inputs:
   domain:
     description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
     required: false
+    default: ftrs-dos-dev-osc
+  index:
+    description: "The OpenSearch index name to create"
+    required: false
+    default: "os-index"
 
 runs:
   using: 'composite'
@@ -17,5 +22,16 @@ runs:
     - name: Build Service
       id: build_index
       shell: bash
+      env:
+        # map inputs to step-level env so the script can read them
+        INDEX: ${{ inputs.index }}
+        OPEN_SEARCH_DOMAIN: ${{ inputs.domain }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
+        set -euo pipefail
+
+        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} and INDEX=${INDEX} (workspace=${WORKSPACE})"
+
         ./scripts/workflow/build-open-search-index.sh

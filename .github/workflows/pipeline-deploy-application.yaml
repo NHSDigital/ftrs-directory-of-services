@@ -180,7 +180,6 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.domain }}
     secrets: inherit
 
   deploy-frontend-services:
