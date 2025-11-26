@@ -819,3 +819,149 @@ def test__get_api_key_for_url_non_ods_terminology_ignores_local_key() -> None:
         "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization"
     )
     assert api_key == ""
+
+
+def test_get_api_key_uses_test_mode_when_env_var_set() -> None:
+    """Test _get_api_key_for_url uses TEST_MODE_API_KEY when set."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    test_key = "test-mode-key-12345"
+
+    with patch.dict("os.environ", {"TEST_MODE_API_KEY": test_key}):
+        result = _get_api_key_for_url(url)
+
+    assert result == test_key
+
+
+@patch("pipeline.utilities.boto3")
+def test_get_api_key_uses_secrets_manager_when_no_test_mode(
+    mock_boto3: MagicMock,
+) -> None:
+    """Test _get_api_key_for_url uses Secrets Manager when TEST_MODE_API_KEY not set."""
+    mock_secrets_client = MagicMock()
+    mock_secrets_client.get_secret_value.return_value = {
+        "SecretString": json.dumps({"api_key": "real-secret-key"})
+    }
+    mock_boto3.client.return_value = mock_secrets_client
+
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "dev", "PROJECT_NAME": "ftrs", "AWS_REGION": "eu-west-2"},
+        clear=True,
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == "real-secret-key"
+    mock_secrets_client.get_secret_value.assert_called_once()
+
+
+def test_get_api_key_returns_empty_for_non_ods_url() -> None:
+    """Test _get_api_key_for_url returns empty string for non-ODS URLs."""
+    url = "https://example.com/api/data"
+    test_key = "test-mode-key"
+
+    with patch.dict("os.environ", {"TEST_MODE_API_KEY": test_key}):
+        result = _get_api_key_for_url(url)
+
+    assert result == ""
+
+
+def test_test_mode_key_takes_precedence_over_local_env() -> None:
+    """Test TEST_MODE_API_KEY takes precedence over LOCAL_API_KEY."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    test_key = "test-mode-key"
+    local_key = "local-key"
+
+    with patch.dict(
+        "os.environ",
+        {
+            "ENVIRONMENT": "local",
+            "TEST_MODE_API_KEY": test_key,
+            "LOCAL_API_KEY": local_key,
+        },
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == test_key  # Test mode takes precedence
+
+
+@patch("pipeline.utilities.boto3")
+def test_test_mode_does_not_call_secrets_manager(mock_boto3: MagicMock) -> None:
+    """Test that TEST_MODE_API_KEY bypasses Secrets Manager."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    test_key = "test-mode-key"
+
+    with patch.dict(
+        "os.environ", {"TEST_MODE_API_KEY": test_key, "ENVIRONMENT": "dev"}
+    ):
+        result = _get_api_key_for_url(url)
+
+    # Verify Secrets Manager was NOT called
+    mock_boto3.client.assert_not_called()
+    assert result == test_key
+
+
+def test_test_mode_key_only_from_environment() -> None:
+    """Test TEST_MODE_API_KEY only comes from environment variable."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    # Without env var, should not use test mode
+    with patch.dict(
+        "os.environ", {"ENVIRONMENT": "local", "LOCAL_API_KEY": "local-key"}, clear=True
+    ):
+        result = _get_api_key_for_url(url)
+
+    # Should use local key, not test mode
+    assert result == "local-key"
+
+
+@patch("pipeline.utilities.boto3")
+def test_normal_operation_without_test_mode(mock_boto3: MagicMock) -> None:
+    """Test normal Secrets Manager flow when TEST_MODE_API_KEY not set."""
+    # Mock Secrets Manager
+    mock_secrets_client = MagicMock()
+    mock_secrets_client.get_secret_value.return_value = {
+        "SecretString": json.dumps({"api_key": "real-key"})
+    }
+    mock_boto3.client.return_value = mock_secrets_client
+
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "dev", "PROJECT_NAME": "ftrs", "AWS_REGION": "eu-west-2"},
+        clear=True,
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == "real-key"
+    mock_secrets_client.get_secret_value.assert_called_once()
+
+
+def test_local_environment_without_test_mode() -> None:
+    """Test local environment works when TEST_MODE_API_KEY not set."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "local", "LOCAL_API_KEY": "my-local-key"},
+        clear=True,
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == "my-local-key"

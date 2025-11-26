@@ -61,10 +61,25 @@ def get_base_ods_terminology_api_url() -> str:
 
 
 def _get_api_key_for_url(url: str) -> str:
+    """
+    Get API key for ODS Terminology API requests.
+
+    In test mode (when TEST_MODE_API_KEY env var is set), uses that key.
+    Otherwise, fetches from Secrets Manager or local environment.
+    """
     is_ods_terminology_request = "organisation-data-terminology-api" in url
 
     if not is_ods_terminology_request:
         return ""
+
+    # TEST MODE: Check if Lambda env var contains test API key
+    test_mode_api_key = os.environ.get("TEST_MODE_API_KEY")
+    if test_mode_api_key:
+        ods_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_UTILS_005,
+            message="Using test mode API key from environment variable",
+        )
+        return test_mode_api_key
 
     env = os.environ.get("ENVIRONMENT")
 
