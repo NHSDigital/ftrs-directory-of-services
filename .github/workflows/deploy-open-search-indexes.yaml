@@ -1,4 +1,4 @@
-name: APIM Proxygen Authentication
+name: APIM2 Proxygen Authentication
 
 permissions:
   id-token: write
