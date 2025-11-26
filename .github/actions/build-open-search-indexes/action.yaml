@@ -18,4 +18,4 @@ runs:
         run: |
           export SERVICE=${{ inputs.service }}
           export DIRECTORY=${{ inputs.directory }}
-          /bin/bash ./uec-dos-management/scripts/workflow/build-open-search-index.sh
+          /bin/bash ./scripts/workflow/build-open-search-index.sh
