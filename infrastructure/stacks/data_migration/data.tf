@@ -87,6 +87,21 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       ]
     ])
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query"
+    ]
+    resources = [
+      module.state_table.dynamodb_table_arn,
+      "${module.state_table.dynamodb_table_arn}/index/*"
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "sqs_access_policy" {
