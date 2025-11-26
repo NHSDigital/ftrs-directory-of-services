@@ -178,7 +178,7 @@ jobs:
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
     # Run when infrastructure deployed successfully, and the restore step either succeeded or was skipped
-    if: needs.deploy-application-infrastructure.result == 'success' && contains(['success','skipped'], needs.restore-dynamodb-from-s3.result)
+    if: needs.deploy-application-infrastructure.result == 'success' && contains('success,skipped', needs.restore-dynamodb-from-s3.result)
     uses: ./.github/workflows/deploy-open-search-indexes.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
