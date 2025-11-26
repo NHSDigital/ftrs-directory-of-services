@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
@@ -27,33 +27,6 @@ def mock_ftrs_service():
     with patch("functions.dos_search_ods_code_function.FtrsService") as mock_class:
         mock_service = mock_class.return_value
         yield mock_service
-
-
-@pytest.fixture
-def mock_logger():
-    with patch("functions.dos_search_ods_code_function.logger") as mock:
-        yield mock
-
-
-@pytest.fixture
-def event(ods_code):
-    return {
-        "path": "/Organization",
-        "httpMethod": "GET",
-        "queryStringParameters": {
-            "identifier": f"odsOrganisationCode|{ods_code}",
-            "_revinclude": "Endpoint:organization",
-        },
-        "requestContext": {
-            "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
-        },
-        "body": None,
-    }
-
-
-@pytest.fixture
-def ods_code():
-    return "ABC123"
 
 
 @pytest.fixture
@@ -102,6 +75,8 @@ class TestLambdaHandler:
         ods_code,
         event,
         bundle,
+        log_data,
+        details,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
@@ -113,9 +88,30 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_logger.assert_has_calls(
             [
-                call.append_keys(ods_code=ods_code),
-                call.info("Successfully processed"),
-                call.info("Creating response", extra={"status_code": 200}),
+                call.extract(ANY),
+                call.extract_one_time(ANY),
+                call.append_keys(log_data),
+                call.info(
+                    "Logging one-time fields from Request",
+                    **details,
+                    dos_message_category="REQUEST",
+                ),
+                call.info(
+                    "Received request for odsCode",
+                    ods_code=ods_code,
+                    dos_message_category="REQUEST",
+                ),
+                call.info(
+                    "Successfully processed: Logging response time & size",
+                    opt_ftrs_response_time=ANY,
+                    opt_ftrs_response_size=ANY,
+                    dos_message_category="METRICS",
+                ),
+                call.info(
+                    "Creating response",
+                    status_code=200,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
@@ -124,7 +120,7 @@ class TestLambdaHandler:
         )
 
     def test_lambda_handler_with_validation_error(
-        self, lambda_context, mock_error_util, mock_logger, event
+        self, lambda_context, mock_error_util, mock_logger, event, log_data, details
     ):
         # Arrange
         validation_error = ValidationError.from_exception_data("ValidationError", [])
@@ -143,11 +139,20 @@ class TestLambdaHandler:
 
         mock_logger.assert_has_calls(
             [
+                call.info(
+                    "Logging one-time fields from Request",
+                    **details,
+                    dos_message_category="REQUEST",
+                ),
                 call.warning(
                     "Validation error occurred",
-                    extra={"validation_errors": validation_error.errors()},
+                    validation_errors=validation_error.errors(),
                 ),
-                call.info("Creating response", extra={"status_code": 400}),
+                call.info(
+                    "Creating response",
+                    status_code=400,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
@@ -165,6 +170,8 @@ class TestLambdaHandler:
         ods_code,
         mock_error_util,
         mock_logger,
+        log_data,
+        details,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
@@ -175,12 +182,28 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_error_util.create_resource_internal_server_error.assert_called_once()
-
+        # print("test easily search", details)
         mock_logger.assert_has_calls(
             [
-                call.append_keys(ods_code=ods_code),
+                call.extract(ANY),
+                call.extract_one_time(ANY),
+                call.append_keys(log_data),
+                call.info(
+                    "Logging one-time fields from Request",
+                    **details,
+                    dos_message_category="REQUEST",
+                ),
+                call.info(
+                    "Received request for odsCode",
+                    ods_code=ods_code,
+                    dos_message_category="REQUEST",
+                ),
                 call.exception("Internal server error occurred"),
-                call.info("Creating response", extra={"status_code": 500}),
+                call.info(
+                    "Creating response",
+                    status_code=500,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
