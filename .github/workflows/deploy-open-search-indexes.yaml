@@ -10,22 +10,20 @@ on:
         description: 'Environment to authenticate against (e.g., dev, test, prod)'
         required: true
         type: string
-      api_name:
-        description: 'Name of the API to access via Proxygen'
+      domain:
+        description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
+        required: false
+        default: ${{ github.event.repository.name }}
+        type: string
+      workspace:
+        description: "The name of the workspace to deploy the application into"
         required: true
         type: string
-    outputs:
-      access_token:
-        description: 'Short-lived access token for Proxygen API'
-        value: ${{ jobs.get-access-token.outputs.token }}
 
 jobs:
-  get-access-token:
-    name: Get index
+  build-index:
+    name: Build index
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    outputs:
-      token: ${{ steps.get-token.outputs.access_token }}
 
     steps:
       - name: Checkout repository
@@ -38,20 +36,10 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           type: app
 
-
-      - name: Get APIM Access Token
-        id: get-token
-        uses: ./.github/actions/authenticate-apim
+      - name:  Create OpenSearch Index
+        id: create-index
+        uses: ./.github/actions/build-open-search-indexes
         with:
-          api_name: ${{ inputs.api_name }}
           environment: ${{ inputs.environment }}
-          aws_region: ${{ vars.AWS_REGION }}
-      - name: Test Token - List Proxy Instances
-        env:
-          ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
-        run: |
-          echo "Testing access token by hitting the API via APIM"
-
-          curl --request GET \
-          --url https://proxygen.prod.api.platform.nhs.uk/apis/dos-search \
-          --header "Authorization: Bearer $ACCESS_TOKEN"
+          workspace: ${{ inputs.workspace }}
+          domain: ${{ inputs.domain }}

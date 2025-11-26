@@ -179,7 +179,8 @@ jobs:
     uses: ./.github/workflows/deploy-open-search-indexes.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      domain:
     secrets: inherit
 
   deploy-frontend-services:
