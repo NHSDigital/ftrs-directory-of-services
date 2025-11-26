@@ -12,9 +12,30 @@ AWS_SERVICE="${AWS_SERVICE:-aoss}"
 
 log(){ printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 
+# Basic validation
 if [[ -z "$OPEN_SEARCH_DOMAIN" || -z "$INDEX" ]]; then
   log "ERROR: OPEN_SEARCH_DOMAIN and INDEX must be set"
+  log "  Received: OPEN_SEARCH_DOMAIN='${OPEN_SEARCH_DOMAIN:-<unset>}' INDEX='${INDEX:-<unset>}'"
+  log "  Tip: pass the OpenSearch endpoint as the 'domain' input to the action/workflow (or ensure aws CLI can resolve the collection name)"
   exit 2
+fi
+
+# If OPEN_SEARCH_DOMAIN looks like a short collection name (no dot), try to resolve it via the AWS CLI
+if [[ "$OPEN_SEARCH_DOMAIN" != *.* ]]; then
+  log "OPEN_SEARCH_DOMAIN appears to be a collection name: '${OPEN_SEARCH_DOMAIN}' — attempting AWS lookup"
+
+  # Try modern OpenSearch API first (silence errors)
+  AWS_HOST="$(aws opensearch describe-domain --domain-name "${OPEN_SEARCH_DOMAIN}" --query 'DomainStatus.Endpoint' --output text 2>/dev/null || true)"
+
+  if [[ -n "$AWS_HOST" && "$AWS_HOST" != "None" ]]; then
+    log "AWS lookup found endpoint: ${AWS_HOST}"
+    OPEN_SEARCH_DOMAIN="$AWS_HOST"
+  else
+    log "ERROR: AWS lookup did not find a domain named '${OPEN_SEARCH_DOMAIN}'"
+    log "  Ensure the OpenSearch domain exists and the runner has permissions (cloud: opensearch:DescribeDomain or es:DescribeElasticsearchDomain)."
+    log "  Alternatively, pass the explicit FQDN as 'domain' when calling the action/workflow."
+    exit 2
+  fi
 fi
 
 # normalize workspace to a leading dash when provided
