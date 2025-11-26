@@ -182,11 +182,14 @@ Feature: Organization API Endpoint
       | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "", "use": "official"}]   |
 
   Scenario Outline: Update Organization with null active field
-    When I set the active field from the payload to null and update the organization via APIM
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I set the active field from the payload to null and update the organization
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates the "active field cannot be null"
+    And the diagnostics message indicates the "Active field is required and cannot be null"
 
