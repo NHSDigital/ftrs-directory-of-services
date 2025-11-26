@@ -461,21 +461,6 @@ def set_field_to_null(payload: dict, field: str) -> dict:
     logger.info(f"Set field '{field}' to null:\n{json.dumps(payload, indent=2)}")
     return payload
 
-
-@when(
-    "I set the active field from the payload to null and update the organization via APIM",
-    target_fixture="fresponse",
-)
-def step_set_active_null_apim(
-    new_apim_request_context, nhsd_apim_proxy_url: str
-) -> object:
-    """Set active field to null in the payload and update via APIM."""
-    payload = set_field_to_null(_load_default_payload(), "active")
-    return update_organisation_apim(
-        payload, new_apim_request_context, nhsd_apim_proxy_url
-    )
-
-
 @when(
     "I set the active field from the payload to null and update the organization",
     target_fixture="fresponse",
