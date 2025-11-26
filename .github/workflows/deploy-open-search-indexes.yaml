@@ -41,6 +41,15 @@ jobs:
           repository: ${{ inputs.domain }}
           tag: ${{ inputs.tag }}
 
+      - name: "Debug: print inputs"
+        run: |
+          echo "DEBUG: deploy-open-search-indexes invoked"
+          echo "inputs.environment=${{ inputs.environment }}"
+          echo "inputs.workspace=${{ inputs.workspace }}"
+          echo "inputs.domain=${{ inputs.domain }}"
+          echo "inputs.tag=${{ inputs.tag }}"
+          echo "inputs.type=${{ inputs.type }}"
+
       - name: Configure AWS Credentials
         uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
         with:
@@ -53,8 +62,3 @@ jobs:
           curl -X PUT "https://<your-domain>/_index/my-index" \
           -H "Content-Type: application/json" \
           -d '{"settings":{"number_of_shards":1},"mappings":{"properties":{"title":{"type":"text"}}}}'
-
-
-
-
-
