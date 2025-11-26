@@ -21,7 +21,7 @@ on:
 
 jobs:
   get-access-token:
-    name: Retrieve APIM Access Token
+    name: Get index
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:
