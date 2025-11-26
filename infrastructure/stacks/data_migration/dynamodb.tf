@@ -10,10 +10,6 @@ module "state_table" {
     {
       name = "source_record_id"
       type = "S"
-    },
-    {
-      name = "version"
-      type = "N"
     }
   ]
 
