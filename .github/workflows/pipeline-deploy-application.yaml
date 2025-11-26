@@ -184,6 +184,7 @@ jobs:
       domain: ${{ needs.metadata.outputs.reponame }}
       tag: ${{ inputs.tag }}
       type: app
+      api_name: ''
     secrets: inherit
 
   deploy-frontend-services:

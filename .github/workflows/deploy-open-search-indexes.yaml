@@ -1,4 +1,4 @@
-name: Deploy Open Search Indexes workflow
+name: APIM Proxygen Authentication
 
 permissions:
   id-token: write
@@ -7,31 +7,26 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: "The name of the environment to deploy into"
+        description: 'Environment to authenticate against (e.g., dev, test, prod)'
         required: true
         type: string
-      workspace:
-        description: "The name of the workspace to deploy the application into"
+      api_name:
+        description: 'Name of the API to access via Proxygen'
         required: true
         type: string
-      domain:
-        description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
-        required: false
-        default: ${{ github.event.repository.name }}
-        type: string
-      tag:
-        description: "The tag to build and deploy from"
-        required: false
-        default: ""
-        type: string
-      type:
-        description: "The type of permissions (e.g., account, app)"
-        required: true
-        type: string
+    outputs:
+      access_token:
+        description: 'Short-lived access token for Proxygen API'
+        value: ${{ jobs.get-access-token.outputs.token }}
+
 jobs:
-  create-index:
-    name: Create index
+  get-access-token:
+    name: Retrieve APIM Access Token
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    outputs:
+      token: ${{ steps.get-token.outputs.access_token }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -42,3 +37,21 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: app
+
+
+      - name: Get APIM Access Token
+        id: get-token
+        uses: ./.github/actions/authenticate-apim
+        with:
+          api_name: ${{ inputs.api_name }}
+          environment: ${{ inputs.environment }}
+          aws_region: ${{ vars.AWS_REGION }}
+      - name: Test Token - List Proxy Instances
+        env:
+          ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
+        run: |
+          echo "Testing access token by hitting the API via APIM"
+
+          curl --request GET \
+          --url https://proxygen.prod.api.platform.nhs.uk/apis/dos-search \
+          --header "Authorization: Bearer $ACCESS_TOKEN"
