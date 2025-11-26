@@ -24,11 +24,6 @@ on:
         required: false
         default: ""
         type: string
-      aws_account_id:
-        description: "The AWS account id used to construct the role ARN (recommended: pass the secret ACCOUNT_ID)"
-        required: false
-        default: ${{ secrets.ACCOUNT_ID }}
-        type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
@@ -39,14 +34,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    env:
-      TYPE: ${{ inputs.type }}
     steps:
-      - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
-        with:
-          repository: ${{ inputs.domain }}
-          tag: ${{ inputs.tag }}
+      - name: Checkout repository
+      - uses: actions/checkout@v5
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
