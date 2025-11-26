@@ -22,7 +22,7 @@ from utilities.infra.secrets_util import GetSecretWrapper
 import json
 from utilities.common.context import Context
 
-pytest_plugins = ["data_migration_fixtures"]
+pytest_plugins = ["data_migration_fixtures", "fixtures.ods_fixtures_vtl"]
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -45,6 +45,16 @@ def setup_logging():
     logger.info("Starting test session...")
     yield
     logger.info("Test session completed.")
+
+
+@pytest.fixture(scope="session")
+def aws_lambda_client():
+    """Fixture to initialize AWS Lambda utility for all tests."""
+    from utilities.infra.lambda_util import LambdaWrapper
+    iam_resource = boto3.resource("iam")
+    lambda_client = boto3.client("lambda")
+    wrapper = LambdaWrapper(lambda_client, iam_resource)
+    return wrapper
 
 
 @pytest.fixture(scope="session")

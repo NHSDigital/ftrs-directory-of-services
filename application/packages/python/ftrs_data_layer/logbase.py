@@ -464,6 +464,22 @@ class OdsETLPipelineLogBase(LogBase):
         level=ERROR,
         message="Error decoding json with issue: {error_message}.",
     )
+    ETL_UTILS_008 = LogReference(
+        level=INFO,
+        message="Running in against automated tests, using MOCK api key from secret manager.",
+    )
+    ETL_UTILS_009 = LogReference(
+        level=INFO,
+        message="Running in against automated tests, sending request to mock API Gateway with x-api-key header",
+    )
+    ETL_UTILS_010 = LogReference(
+        level=INFO,
+        message="Recieving API key for ODS Terminology API",
+    )
+    ETL_UTILS_011 = LogReference(
+        level=INFO,
+        message="Attempting to use mock ODS api in unauthorized environment: {env}. Mock can only be used in dev and test",
+    )
 
 
 class CrudApisLogBase(LogBase):

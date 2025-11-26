@@ -11,7 +11,15 @@ from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.utilities import (
+    _add_api_key_to_headers,
     _get_api_key_for_url,
+    _get_local_api_key,
+    _get_mock_api_key_from_secrets,
+    _get_production_api_key,
+    _get_secret_from_aws,
+    _is_mock_testing_mode,
+    _is_ods_terminology_request,
+    _update_logger_with_response_headers,
     build_headers,
     get_base_apim_api_url,
     get_base_ods_terminology_api_url,
@@ -600,25 +608,22 @@ def test__get_api_key_for_url_ods_terminology_key(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
+@patch("pipeline.utilities._get_secret_from_aws")
 def test__get_api_key_for_url_client_error_logs(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    mock_get_secret: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
     """
-    Test _get_api_key_for_url logs and raises ClientError when secret not found.
+    Test _get_api_key_for_url logs and raises KeyError when secret not found.
     """
-    mock_secretsmanager = MagicMock()
-    mock_boto_client.return_value = mock_secretsmanager
-    error_response = {"Error": {"Code": "ResourceNotFoundException"}}
-    mock_secretsmanager.get_secret_value.side_effect = ClientError(
-        error_response, "GetSecretValue"
+    mock_get_secret.side_effect = KeyError(
+        "Secret not found: /ftrs-dos/dev/ods-terminology-api-key"
     )
+
     with caplog.at_level("WARNING"):
-        with pytest.raises(ClientError):
+        with pytest.raises(KeyError):
             _get_api_key_for_url(
                 "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
             )
-        assert "Error with secret: /ftrs-dos/dev/ods-terminology-api-key" in caplog.text
 
 
 @patch.dict(
@@ -752,21 +757,16 @@ def test_build_headers_fhir_with_jwt(mocker: MockerFixture) -> None:
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
+@patch("pipeline.utilities._get_secret_from_aws")
 def test__get_api_key_for_url_json_decode_error_logs(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    mock_get_secret: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
-    mock_secretsmanager = MagicMock()
-    mock_boto_client.return_value = mock_secretsmanager
-    mock_secretsmanager.get_secret_value.return_value = {
-        "SecretString": "not-a-json-string"
-    }
-    with caplog.at_level("WARNING"):
-        with pytest.raises(json.JSONDecodeError):
-            _get_api_key_for_url(
-                "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
-            )
-        assert "Error decoding json with issue:" in caplog.text
+    mock_get_secret.return_value = "not-a-json-string"
+
+    result = _get_api_key_for_url(
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    assert result == "not-a-json-string"
 
 
 @patch.dict(
@@ -819,3 +819,571 @@ def test__get_api_key_for_url_non_ods_terminology_ignores_local_key() -> None:
         "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization"
     )
     assert api_key == ""
+
+
+@patch("pipeline.utilities._get_mock_api_key_from_secrets")
+def test_get_api_key_uses_test_mode_when_env_var_set(
+    mock_get_mock_key: MagicMock,
+) -> None:
+    """Test _get_api_key_for_url uses mock API key when MOCK_TESTING_SCENARIOS is enabled."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    test_key = "test-mode-key-12345"
+    mock_get_mock_key.return_value = test_key
+
+    with patch.dict(
+        "os.environ", {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": "dev"}
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == test_key
+    mock_get_mock_key.assert_called_once()
+
+
+@patch("pipeline.utilities._get_secret_from_aws")
+def test_get_api_key_uses_secrets_manager_when_no_test_mode(
+    mock_get_secret: MagicMock,
+) -> None:
+    mock_get_secret.return_value = "real-secret-key"
+
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "dev", "PROJECT_NAME": "ftrs", "AWS_REGION": "eu-west-2"},
+        clear=True,
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == "real-secret-key"
+    mock_get_secret.assert_called_once_with("/ftrs/dev/ods-terminology-api-key")
+
+
+def test_get_api_key_returns_empty_for_non_ods_url() -> None:
+    """Test _get_api_key_for_url returns empty string for non-ODS URLs."""
+    url = "https://example.com/api/data"
+
+    with patch.dict(
+        "os.environ", {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": "dev"}
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == ""
+
+
+@patch("pipeline.utilities._get_mock_api_key_from_secrets")
+def test_test_mode_key_takes_precedence_over_local_env(
+    mock_get_mock_key: MagicMock,
+) -> None:
+    """Test MOCK_TESTING_SCENARIOS takes precedence over local environment."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    mock_key = "test-mode-key"
+    local_key = "local-key"
+    mock_get_mock_key.return_value = mock_key
+
+    with patch.dict(
+        "os.environ",
+        {
+            "ENVIRONMENT": "dev",  # Changed from local to dev since mock testing only works in dev/test
+            "MOCK_TESTING_SCENARIOS": "true",
+            "LOCAL_API_KEY": local_key,
+        },
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == mock_key
+    mock_get_mock_key.assert_called_once()
+
+
+@patch("pipeline.utilities._get_mock_api_key_from_secrets")
+def test_test_mode_does_not_call_secrets_manager(mock_get_mock_key: MagicMock) -> None:
+    """Test that MOCK_TESTING_SCENARIOS bypasses production Secrets Manager."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+    test_key = "test-mode-key"
+    mock_get_mock_key.return_value = test_key
+
+    with patch("pipeline.utilities._get_secret_from_aws") as mock_get_secret:
+        with patch.dict(
+            "os.environ", {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": "dev"}
+        ):
+            result = _get_api_key_for_url(url)
+
+        mock_get_secret.assert_not_called()
+        mock_get_mock_key.assert_called_once()
+        assert result == test_key
+
+
+def test_test_mode_key_only_from_environment() -> None:
+    """Test mock testing only works when MOCK_TESTING_SCENARIOS is explicitly set."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    # Without MOCK_TESTING_SCENARIOS env var, should not use mock mode
+    with patch.dict(
+        "os.environ", {"ENVIRONMENT": "local", "LOCAL_API_KEY": "local-key"}, clear=True
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == "local-key"
+
+
+@patch("pipeline.utilities._get_secret_from_aws")
+def test_normal_operation_without_test_mode(mock_get_secret: MagicMock) -> None:
+    """Test normal Secrets Manager flow when MOCK_TESTING_SCENARIOS not set."""
+    # Mock Secrets Manager
+    mock_get_secret.return_value = "real-key"
+
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "dev", "PROJECT_NAME": "ftrs", "AWS_REGION": "eu-west-2"},
+        clear=True,
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == "real-key"
+    mock_get_secret.assert_called_once_with("/ftrs/dev/ods-terminology-api-key")
+
+
+def test_local_environment_without_test_mode() -> None:
+    """Test local environment works when MOCK_TESTING_SCENARIOS not set."""
+    url = (
+        "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    )
+
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "local", "LOCAL_API_KEY": "my-local-key"},
+        clear=True,
+    ):
+        result = _get_api_key_for_url(url)
+
+    assert result == "my-local-key"
+
+
+# Tests for refactored helper functions
+class TestIsOdsTerminologyRequest:
+    """Test cases for _is_ods_terminology_request function."""
+
+    def test_ods_terminology_url_returns_true(self) -> None:
+        """Test that ODS terminology URL returns True."""
+
+        url = "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+        assert _is_ods_terminology_request(url) is True
+
+    def test_non_ods_terminology_url_returns_false(self) -> None:
+        """Test that non-ODS terminology URL returns False."""
+
+        url = "https://api.example.com/other-api"
+        assert _is_ods_terminology_request(url) is False
+
+    def test_partial_match_returns_false(self) -> None:
+        """Test that partial match returns False."""
+
+        url = "https://api.service.nhs.uk/organisation-data"
+        assert _is_ods_terminology_request(url) is False
+
+    def test_empty_url_returns_false(self) -> None:
+        """Test that empty URL returns False."""
+
+        assert _is_ods_terminology_request("") is False
+
+
+class TestIsMockTestingMode:
+    """Test cases for _is_mock_testing_mode function."""
+
+    def test_mock_testing_disabled_returns_false(self) -> None:
+        """Test that when MOCK_TESTING_SCENARIOS is not set, returns False."""
+
+        with patch.dict(os.environ, {}, clear=True):
+            assert _is_mock_testing_mode() is False
+
+    def test_mock_testing_false_returns_false(self) -> None:
+        """Test that when MOCK_TESTING_SCENARIOS is false, returns False."""
+
+        with patch.dict(os.environ, {"MOCK_TESTING_SCENARIOS": "false"}, clear=True):
+            assert _is_mock_testing_mode() is False
+
+    def test_mock_testing_dev_environment_returns_true(self) -> None:
+        """Test that mock testing enabled in dev environment returns True."""
+
+        with patch.dict(
+            os.environ,
+            {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": "dev"},
+            clear=True,
+        ):
+            assert _is_mock_testing_mode() is True
+
+    def test_mock_testing_test_environment_returns_true(self) -> None:
+        """Test that mock testing enabled in test environment returns True."""
+
+        with patch.dict(
+            os.environ,
+            {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": "test"},
+            clear=True,
+        ):
+            assert _is_mock_testing_mode() is True
+
+    def test_mock_testing_prod_environment_raises_error(self) -> None:
+        """Test that mock testing in prod environment raises ValueError."""
+
+        with patch.dict(
+            os.environ,
+            {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": "prod"},
+            clear=True,
+        ):
+            with pytest.raises(
+                ValueError,
+                match="Mock testing scenarios cannot be enabled in environment 'prod'",
+            ):
+                _is_mock_testing_mode()
+
+    def test_mock_testing_invalid_environment_raises_error(self) -> None:
+        """Test that mock testing in invalid environment raises ValueError."""
+
+        with patch.dict(
+            os.environ,
+            {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": "staging"},
+            clear=True,
+        ):
+            with pytest.raises(
+                ValueError,
+                match="Mock testing scenarios cannot be enabled in environment 'staging'",
+            ):
+                _is_mock_testing_mode()
+
+    def test_mock_testing_case_insensitive(self) -> None:
+        """Test that environment checking is case insensitive."""
+
+        with patch.dict(
+            os.environ,
+            {"MOCK_TESTING_SCENARIOS": "TRUE", "ENVIRONMENT": "DEV"},
+            clear=True,
+        ):
+            assert _is_mock_testing_mode() is True
+
+    def test_mock_testing_empty_environment_raises_error(self) -> None:
+        """Test that mock testing with empty environment raises ValueError."""
+
+        with patch.dict(
+            os.environ,
+            {"MOCK_TESTING_SCENARIOS": "true", "ENVIRONMENT": ""},
+            clear=True,
+        ):
+            with pytest.raises(
+                ValueError,
+                match="Mock testing scenarios cannot be enabled in environment ''",
+            ):
+                _is_mock_testing_mode()
+
+
+class TestGetLocalApiKey:
+    """Test cases for _get_local_api_key function."""
+
+    def test_get_local_ods_api_key_priority(self) -> None:
+        """Test that LOCAL_ODS_TERMINOLOGY_API_KEY has priority over LOCAL_API_KEY."""
+
+        with patch.dict(
+            os.environ,
+            {
+                "LOCAL_ODS_TERMINOLOGY_API_KEY": "ods-key",
+                "LOCAL_API_KEY": "general-key",
+            },
+            clear=True,
+        ):
+            result = _get_local_api_key()
+            assert result == "ods-key"
+
+    def test_fallback_to_local_api_key(self) -> None:
+        """Test fallback to LOCAL_API_KEY when LOCAL_ODS_TERMINOLOGY_API_KEY not set."""
+
+        with patch.dict(os.environ, {"LOCAL_API_KEY": "general-key"}, clear=True):
+            result = _get_local_api_key()
+            assert result == "general-key"
+
+    def test_both_keys_missing_returns_empty(self) -> None:
+        """Test that when both keys are missing, returns empty string."""
+
+        with patch.dict(os.environ, {}, clear=True):
+            result = _get_local_api_key()
+            assert result == ""
+
+
+class TestGetSecretFromAws:
+    """Test cases for _get_secret_from_aws function."""
+
+    @patch("pipeline.utilities.boto3.client")
+    def test_get_secret_json_format(self, mock_boto_client: MagicMock) -> None:
+        """Test retrieving secret in JSON format."""
+
+        mock_secretsmanager = MagicMock()
+        mock_boto_client.return_value = mock_secretsmanager
+        mock_secretsmanager.get_secret_value.return_value = {
+            "SecretString": '{"api_key": "test-key-value"}'
+        }
+
+        result = _get_secret_from_aws("/test/secret")
+
+        assert result == "test-key-value"
+        mock_secretsmanager.get_secret_value.assert_called_once_with(
+            SecretId="/test/secret"
+        )
+
+    @patch("pipeline.utilities.boto3.client")
+    def test_get_secret_plain_text_format(self, mock_boto_client: MagicMock) -> None:
+        """Test retrieving secret in plain text format."""
+
+        mock_secretsmanager = MagicMock()
+        mock_boto_client.return_value = mock_secretsmanager
+        mock_secretsmanager.get_secret_value.return_value = {
+            "SecretString": "plain-text-secret"
+        }
+
+        result = _get_secret_from_aws("/test/secret")
+
+        assert result == "plain-text-secret"
+
+    @patch("pipeline.utilities.boto3.client")
+    def test_get_secret_json_without_api_key(self, mock_boto_client: MagicMock) -> None:
+        """Test retrieving JSON secret without api_key field."""
+
+        mock_secretsmanager = MagicMock()
+        mock_boto_client.return_value = mock_secretsmanager
+        mock_secretsmanager.get_secret_value.return_value = {
+            "SecretString": '{"other_field": "value"}'
+        }
+
+        result = _get_secret_from_aws("/test/secret")
+
+        assert result == '{"other_field": "value"}'
+
+    @patch("pipeline.utilities.boto3.client")
+    def test_get_secret_not_found_raises_key_error(
+        self, mock_boto_client: MagicMock
+    ) -> None:
+        """Test that ResourceNotFoundException raises KeyError."""
+
+        mock_secretsmanager = MagicMock()
+        mock_boto_client.return_value = mock_secretsmanager
+        error_response = {"Error": {"Code": "ResourceNotFoundException"}}
+        mock_secretsmanager.get_secret_value.side_effect = ClientError(
+            error_response, "GetSecretValue"
+        )
+
+        with pytest.raises(KeyError, match="Secret not found: /test/secret"):
+            _get_secret_from_aws("/test/secret")
+
+    @patch("pipeline.utilities.boto3.client")
+    def test_get_secret_other_client_error_raises(
+        self, mock_boto_client: MagicMock
+    ) -> None:
+        """Test that other ClientError types are re-raised."""
+
+        mock_secretsmanager = MagicMock()
+        mock_boto_client.return_value = mock_secretsmanager
+        error_response = {"Error": {"Code": "AccessDeniedException"}}
+        mock_secretsmanager.get_secret_value.side_effect = ClientError(
+            error_response, "GetSecretValue"
+        )
+
+        with pytest.raises(ClientError):
+            _get_secret_from_aws("/test/secret")
+
+
+class TestGetProductionApiKey:
+    """Test cases for _get_production_api_key function."""
+
+    @patch("pipeline.utilities._get_secret_from_aws")
+    @patch.dict(os.environ, {"PROJECT_NAME": "test-project", "ENVIRONMENT": "prod"})
+    def test_get_production_api_key_success(self, mock_get_secret: MagicMock) -> None:
+        """Test successful production API key retrieval."""
+
+        mock_get_secret.return_value = "prod-api-key"
+
+        result = _get_production_api_key()
+
+        assert result == "prod-api-key"
+        mock_get_secret.assert_called_once_with(
+            "/test-project/prod/ods-terminology-api-key"
+        )
+
+    @patch("pipeline.utilities._get_secret_from_aws")
+    @patch.dict(os.environ, {"PROJECT_NAME": "test-project", "ENVIRONMENT": "prod"})
+    def test_get_production_api_key_key_error_reraises(
+        self, mock_get_secret: MagicMock
+    ) -> None:
+        """Test that KeyError from _get_secret_from_aws is re-raised."""
+
+        mock_get_secret.side_effect = KeyError("Secret not found")
+
+        with pytest.raises(KeyError):
+            _get_production_api_key()
+
+    @patch("pipeline.utilities._get_secret_from_aws")
+    @patch.dict(os.environ, {"PROJECT_NAME": "test-project", "ENVIRONMENT": "prod"})
+    def test_get_production_api_key_other_exception_reraises(
+        self, mock_get_secret: MagicMock
+    ) -> None:
+        """Test that other exceptions from _get_secret_from_aws are re-raised."""
+
+        mock_get_secret.side_effect = Exception("Some other error")
+
+        with pytest.raises(Exception):
+            _get_production_api_key()
+
+
+class TestAddApiKeyToHeaders:
+    def test_add_api_key_no_key_does_nothing(self) -> None:
+        headers = {"existing": "header"}
+        _add_api_key_to_headers(headers, "")
+
+        assert headers == {"existing": "header"}
+
+    @patch("pipeline.utilities._is_mock_testing_mode")
+    def test_add_api_key_production_mode(self, mock_is_mock_mode: MagicMock) -> None:
+        mock_is_mock_mode.return_value = False
+        headers = {}
+
+        _add_api_key_to_headers(headers, "test-key")
+
+        assert headers["apikey"] == "test-key"
+        assert "x-api-key" not in headers
+
+    @patch("pipeline.utilities._is_mock_testing_mode")
+    def test_add_api_key_mock_mode(self, mock_is_mock_mode: MagicMock) -> None:
+        mock_is_mock_mode.return_value = True
+        headers = {}
+
+        _add_api_key_to_headers(headers, "test-key")
+
+        assert headers["x-api-key"] == "test-key"
+        assert "apikey" not in headers
+
+
+class TestGetBaseOdsTerminologyApiUrlMissingEnv:
+    """Test cases for get_base_ods_terminology_api_url when ODS_URL is missing."""
+
+    def test_get_base_ods_terminology_api_url_missing_env_raises_error(self) -> None:
+        """Test that missing ODS_URL environment variable raises KeyError."""
+        get_base_ods_terminology_api_url.cache_clear()
+
+        with patch.dict(os.environ, {"ENVIRONMENT": "prod"}, clear=True):
+            with pytest.raises(
+                KeyError, match="ODS_URL environment variable is not set"
+            ):
+                get_base_ods_terminology_api_url()
+
+
+class TestGetMockApiKeyFromSecretsErrorHandling:
+    """Test cases for error handling in _get_mock_api_key_from_secrets."""
+
+    @patch("pipeline.utilities._get_secret_from_aws")
+    @patch.dict(os.environ, {"PROJECT_NAME": "test-project", "ENVIRONMENT": "dev"})
+    def test_get_mock_api_key_key_error_handling(
+        self, mock_get_secret: MagicMock
+    ) -> None:
+        """Test KeyError handling in _get_mock_api_key_from_secrets."""
+
+        mock_get_secret.side_effect = KeyError(
+            "Secret not found: /test-project/dev/mock-api-gateway-key"
+        )
+
+        with pytest.raises(KeyError, match="Mock API key secret not found"):
+            _get_mock_api_key_from_secrets()
+
+    @patch("pipeline.utilities._get_secret_from_aws")
+    @patch.dict(os.environ, {"PROJECT_NAME": "test-project", "ENVIRONMENT": "dev"})
+    def test_get_mock_api_key_general_exception_handling(
+        self, mock_get_secret: MagicMock
+    ) -> None:
+        """Test general exception handling in _get_mock_api_key_from_secrets."""
+
+        mock_get_secret.side_effect = Exception("Some AWS error")
+
+        with pytest.raises(Exception, match="Some AWS error"):
+            _get_mock_api_key_from_secrets()
+
+
+class TestGetSecretFromAwsJsonError:
+    """Test cases for JSON decode error handling in _get_secret_from_aws."""
+
+    @patch("pipeline.utilities.json.loads")
+    @patch("pipeline.utilities.boto3.client")
+    @patch.dict(os.environ, {"AWS_REGION": "eu-west-2"})
+    def test_get_secret_from_aws_json_decode_error_coverage(
+        self, mock_boto_client: MagicMock, mock_json_loads: MagicMock
+    ) -> None:
+        """Test that JSONDecodeError is properly handled in _get_secret_from_aws."""
+        mock_secretsmanager = MagicMock()
+        mock_boto_client.return_value = mock_secretsmanager
+        secret_string = "some-secret-value"
+        mock_secretsmanager.get_secret_value.return_value = {
+            "SecretString": secret_string
+        }
+
+        mock_json_loads.side_effect = json.JSONDecodeError("Expecting value", "doc", 0)
+
+        result = _get_secret_from_aws("/test/secret")
+
+        assert result == secret_string
+        mock_json_loads.assert_called_once_with(secret_string)
+
+
+class TestUpdateLoggerWithResponseHeaders:
+    """Test cases for _update_logger_with_response_headers function."""
+
+    def test_update_logger_with_request_id_header(self) -> None:
+        """Test that response request ID header is properly logged."""
+        mock_response = MagicMock()
+        mock_response.headers.get.side_effect = lambda header: {
+            "X-Correlation-ID": None,
+            "X-Request-ID": "test-request-id-123",
+        }.get(header)
+
+        with patch("pipeline.utilities.ods_utils_logger") as mock_logger:
+            _update_logger_with_response_headers(mock_response)
+
+            mock_logger.append_keys.assert_called_once_with(
+                response_request_id="test-request-id-123"
+            )
+
+    def test_update_logger_with_both_headers(self) -> None:
+        """Test that both correlation ID and request ID headers are properly logged."""
+        mock_response = MagicMock()
+        mock_response.headers.get.side_effect = lambda header: {
+            "X-Correlation-ID": "test-correlation-id-456",
+            "X-Request-ID": "test-request-id-123",
+        }.get(header)
+
+        with patch("pipeline.utilities.ods_utils_logger") as mock_logger:
+            _update_logger_with_response_headers(mock_response)
+
+            # Should be called twice - once for each header
+            assert str(mock_logger.append_keys.call_count) == "2"
+            mock_logger.append_keys.assert_any_call(
+                response_correlation_id="test-correlation-id-456"
+            )
+            mock_logger.append_keys.assert_any_call(
+                response_request_id="test-request-id-123"
+            )
+
+    def test_update_logger_with_no_headers(self) -> None:
+        """Test that function handles missing headers gracefully."""
+        mock_response = MagicMock()
+        mock_response.headers.get.return_value = None
+
+        with patch("pipeline.utilities.ods_utils_logger") as mock_logger:
+            _update_logger_with_response_headers(mock_response)
+
+            mock_logger.append_keys.assert_not_called()

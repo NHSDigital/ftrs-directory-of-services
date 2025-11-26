@@ -15,19 +15,37 @@ service_automation
 ├── downloads
 ├── tests
 │   ├── csv_files
+│   ├── data_migration_fixtures.py
+│   ├── conftest.py
 │   ├── features
-│   │   ├── is_api_features
-│   │   └── is_infra_features
+│   │   ├── apim_crud_api_features
+│   │   ├── crud_api_features
+│   │   ├── data_migration_features
+│   │   ├── etl_ods_features
+│   │   ├── infra_features
+│   │   └── is_api_features
+│   ├── fixtures
+│   │   └── ods_fixtures_vtl.py
+│   ├── json_files
+│   │   ├── Organisation
+│   │   └── ods_api_responses
 │   ├── oas_schemas
 │   ├── pages
 │   │   └── ui_pages
 │   ├── step_definitions
+│   │   ├── apim_crud_api_steps
+│   │   ├── common_steps
+│   │   ├── crud_api_steps
+│   │   ├── data_migration_steps
+│   │   ├── etl_ods_steps
+│   │   ├── infra_steps
 │   │   ├── is_api_steps
-│   │   ├── is_infra_steps
 │   │   └── ui_steps
+│   ├── steps
 │   └── utilities
 │       ├── common
-│       └── infra
+│       ├── infra
+│       └── ods
 ├── .tool-versions
 ├── Makefile
 ├── README.MD
@@ -146,6 +164,36 @@ make test MARKERS="data-migration"
 
 ```shell
 make test MARKERS="etl-ods"
+```
+
+### Running ETL-ODS VTL Mock tests
+
+The ETL-ODS mock tests use AWS API Gateway with VTL (Velocity Template Language) to simulate different upstream API scenarios without hitting the real ODS API.
+
+**How it works:**
+- Creates a temporary API Gateway with VTL templates that return predefined responses based on date parameters
+- Lambda environment is configured to point to the mock API instead of the real ODS endpoint
+- Specific test dates (e.g., "2025-11-01") trigger different error scenarios defined in VTL templates
+- Mock API uses API key authentication stored in AWS Secrets Manager for security
+- JSON response templates are loaded from `tests/json_files/ods_api_responses/`
+- All AWS resources (API Gateway, API keys, usage plans, secrets) are automatically cleaned up after tests
+
+**Security features:**
+- Mock testing restricted to dev/test environments only (production blocked)
+- API keys securely stored in AWS Secrets Manager
+- Temporary resources with auto-cleanup
+- Session-scoped fixtures for efficient resource management
+
+**Test scenarios supported:**
+- Empty payload responses
+- Invalid data types
+- Missing required fields
+- Unauthorized errors (401)
+- Network timeouts and failures
+- Malformed JSON responses
+
+```shell
+make test MARKERS="etl-ods-mock"
 ```
 
 Or you can run tests for multiple markers

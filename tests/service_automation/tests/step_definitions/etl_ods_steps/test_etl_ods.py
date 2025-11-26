@@ -206,13 +206,6 @@ def validate_lambda_logs_for_extraction(
 
 
 @pytest.fixture(scope="module")
-def aws_lambda_client():
-    iam_resource = boto3.resource("iam")
-    lambda_client = boto3.client("lambda")
-    return LambdaWrapper(lambda_client, iam_resource)
-
-
-@pytest.fixture(scope="module")
 def shared_ods_data(api_request_context_ods_terminology):
     """Fetch and prepare ODS organization data for testing."""
     logger.info("Building shared ODS data for session.")
