@@ -35,18 +35,15 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: "Checkout code"
-        uses: NHSDigital/uec-dos-management/.github/actions/checkout-repository@latest
-        with:
-          repository: ${{ inputs.domain }}
-          tag: ${{ inputs.tag }}
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+        uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          type: ${{ inputs.type }}
+          type: app
 
       - name: Create OpenSearch Index
         run: |
