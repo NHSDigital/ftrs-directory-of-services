@@ -10,14 +10,6 @@ from utilities.infra.lambda_util import LambdaWrapper
 # Load feature file
 scenarios("./infra_features/dos-search-ods-code-lambda.feature")
 
-@pytest.fixture(scope="module")
-def aws_lambda_client():
-    """Fixture to initialize AWS Lambda utility"""
-    iam_resource = boto3.resource("iam")
-    lambda_client = boto3.client("lambda")
-    wrapper = LambdaWrapper(lambda_client, iam_resource)
-    return wrapper
-
 
 @given(parsers.parse('that the lambda function "{lambda_function}" exists for stack "{stack}"'), target_fixture='flambda_name')
 def confirm_lambda_exists(aws_lambda_client, project, lambda_function, stack, workspace, env):

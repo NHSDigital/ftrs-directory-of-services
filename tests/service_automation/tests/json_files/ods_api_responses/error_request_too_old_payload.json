@@ -1,0 +1,15 @@
+{
+  "resourceType": "Bundle",
+  "id": "1e47263e-db8c-4f25-8e31-3bf408bfde64",
+  "meta": {
+    "lastUpdated": "2025-11-17T18:28:19.885+00:00"
+  },
+  "type": "searchset",
+  "total": 0,
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2024-05-12"
+    }
+  ]
+}
