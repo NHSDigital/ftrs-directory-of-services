@@ -1,5 +1,5 @@
-name: 'APIM Authenticate'
-description: 'Authenticate with APIM and retrieve access token for Proxygen API'
+name: 'Build index'
+description: 'Build index'
 
 inputs:
   workspace:
