@@ -7,7 +7,7 @@ When you have the data loaded across you can now continue with this README.
 
 To set up the opensearch instance, run the following commands inside the data-migration directory as well:
 
-```
+```shell
 export ENABLE_OPENSEARCH=enabled
 # Enable OpenSearch when starting the services
 docker compose --profile enabled up
