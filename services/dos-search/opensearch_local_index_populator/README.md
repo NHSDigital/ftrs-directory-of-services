@@ -6,9 +6,12 @@ services/data-migration/README.md
 When you have the data loaded across you can now continue with this README.
 
 To set up the opensearch instance, run the following commands inside the data-migration directory as well:
-    ```export ENABLE_OPENSEARCH=enabled
-    # Enable OpenSearch when starting the services
-    docker compose --profile enabled up```
+
+```
+export ENABLE_OPENSEARCH=enabled
+# Enable OpenSearch when starting the services
+docker compose --profile enabled up
+```
 
 Once this is done, do initial set-up for the dos-search directory (parent of this directory).
 

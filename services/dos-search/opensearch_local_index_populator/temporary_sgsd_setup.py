@@ -1,6 +1,7 @@
 import json
 
 import boto3
+from mypy_boto3_dynamodb.client import DynamoDBClient
 from opensearchpy import OpenSearch
 
 index_definition = {
@@ -20,7 +21,7 @@ index_definition = {
 }
 
 
-def connect_to_dynamodb(endpoint_url: str) -> boto3.client:
+def connect_to_dynamodb(endpoint_url: str) -> DynamoDBClient:
     dynamodb_client = boto3.client("dynamodb", endpoint_url=endpoint_url)
     print(dynamodb_client.list_tables())
     return dynamodb_client
@@ -56,7 +57,7 @@ def initialise_index(opensearch_client: OpenSearch, index_name: str) -> None:
 
 
 def scan_dynamodb_table(
-    dynamodb_client: boto3.client, table_name: str, fields: list[str]
+    dynamodb_client: DynamoDBClient, table_name: str, fields: list[str]
 ) -> list[dict]:
     response = dynamodb_client.scan(
         TableName=table_name, ProjectionExpression=", ".join(fields), Limit=10

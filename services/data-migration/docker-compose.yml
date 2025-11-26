@@ -42,6 +42,7 @@ services:
     networks:
       - opensearch-net
 
+  ### Commented out for now - this may be enabled again later if localstack is setup ###
   # data-prepper:
   #   profiles: ["${ENABLE_OPENSEARCH:-disabled}" ]
   #   image: opensearchproject/data-prepper:latest
