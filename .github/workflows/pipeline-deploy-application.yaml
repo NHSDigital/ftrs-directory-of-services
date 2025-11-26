@@ -113,18 +113,6 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
-  deploy-open-search-indexes:
-    name: "Build indexes for ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/deploy-open-search-indexes.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      domain: ${{ needs.metadata.outputs.domain }}
-    secrets: inherit
-
   authenticate-with-apim:
     name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
     needs:
@@ -181,6 +169,18 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       action: import
       type: app
+    secrets: inherit
+
+  deploy-open-search-indexes:
+    name: "Build indexes for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/deploy-open-search-indexes.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      domain: ${{ needs.metadata.outputs.domain }}
     secrets: inherit
 
   deploy-frontend-services:
