@@ -24,6 +24,11 @@ on:
         required: false
         default: ""
         type: string
+      aws_account_id:
+        description: "The AWS account id used to construct the role ARN (recommended: pass the secret ACCOUNT_ID)"
+        required: false
+        default: ${{ secrets.ACCOUNT_ID }}
+        type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
@@ -43,11 +48,12 @@ jobs:
           repository: ${{ inputs.domain }}
           tag: ${{ inputs.tag }}
 
-      - name: Configure AWS Credentials
-        uses: NHSDigital/uec-dos-management/.github/actions/configure-credentials@latest
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
 
       - name: Install awscurl
         run: |
