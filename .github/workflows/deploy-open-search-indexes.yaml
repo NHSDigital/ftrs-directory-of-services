@@ -31,7 +31,7 @@ on:
 jobs:
   create-index:
     name: Create index
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
