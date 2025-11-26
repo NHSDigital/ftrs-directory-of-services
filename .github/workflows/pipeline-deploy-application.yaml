@@ -172,11 +172,11 @@ jobs:
     secrets: inherit
 
   deploy-open-search-indexes:
-    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
+    name: "Authenticates with APIM for ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
       - deploy-application-infrastructure
-    uses: ./.github/workflows/deploy-open-search-indexes.yaml.yaml
+    uses: ./.github/workflows/deploy-open-search-indexes.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
