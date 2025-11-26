@@ -31,10 +31,7 @@ on:
 jobs:
   create-index:
     name: Create index
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
+    runs-on: ubuntu-lates
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
