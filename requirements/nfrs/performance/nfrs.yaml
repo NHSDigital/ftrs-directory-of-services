@@ -1,0 +1,371 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: PERF-001
+  requirement: Each operation meets registry-defined percentile targets (p50/p95)
+    logged & asserted (see performance/expectations.yaml)
+  explanation: Each API or batch operation meets agreed median and 95th percentile
+    latency targets.
+  stories:
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    status: draft
+    rationale: Primary user-facing query; critical perceived responsiveness
+    stories:
+    - FTRS-1690
+    - FTRS-831
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    status: draft
+    rationale: Direct ODS code lookup; largely cacheable
+    stories:
+    - FTRS-831
+    - FTRS-887
+    - FTRS-1382
+  - service: dos-search
+    operation_id: dos-nearby
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    status: draft
+    rationale: Geo filtering + limited enrichment
+    stories:
+      - FTRS-831
+  - service: crud-apis
+    operation_id: org-get
+    p50_target_ms: 40
+    p95_target_ms: 100
+    absolute_max_ms: 300
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Simple primary key lookup; cached storage path
+  - service: crud-apis
+    operation_id: org-update
+    p50_target_ms: 70
+    p95_target_ms: 150
+    absolute_max_ms: 400
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Validation + persistence + OperationOutcome classification
+  - service: crud-apis
+    operation_id: healthcare-service-get
+    p50_target_ms: 50
+    p95_target_ms: 120
+    absolute_max_ms: 350
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Direct read + lightweight mapping
+  - service: crud-apis
+    operation_id: org-search-ods
+    p50_target_ms: 60
+    p95_target_ms: 140
+    absolute_max_ms: 400
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: ODS code normalization + single index scan
+  - service: etl-ods
+    operation_id: ods-daily-sync
+    p50_target_ms: 500
+    p95_target_ms: 1500
+    absolute_max_ms: 3000
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: exception
+    rationale: External ORD call + list parsing; acceptable longer latency
+  - service: etl-ods
+    operation_id: ods-batch-transform
+    p50_target_ms: 200
+    p95_target_ms: 600
+    absolute_max_ms: 1200
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Mapping + normalization + extension filtering
+  - service: etl-ods
+    operation_id: ods-sqs-batch-send
+    p50_target_ms: 30
+    p95_target_ms: 80
+    absolute_max_ms: 200
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Single AWS API batch request with lightweight payload
+  - service: data-migration
+    operation_id: dm-record-transform
+    p50_target_ms: 120
+    p95_target_ms: 250
+    absolute_max_ms: 800
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Single legacy record validation + transform + upsert
+  - service: data-migration
+    operation_id: dm-full-sync
+    p50_target_ms: 1200000
+    p95_target_ms: 1800000
+    absolute_max_ms: 2700000
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: End-to-end duration baseline including transform and upserts
+  controls:
+  - control_id: perf-dos-search-latency
+    measure: Assert p50/p95/max targets per operation
+    threshold: As per operations in PERF-001 (dos-search endpoints)
+    tooling: synthetic probes + real-user monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - dos-search
+    operation_id: dos-search
+    status: draft
+    rationale: Aligns with defined operation targets
+    stories: null
+  - control_id: perf-lookup-ods-latency
+    measure: Assert p50/p95/max targets per operation
+    threshold: As per operations in PERF-001 (dos-search endpoints)
+    tooling: synthetic probes + real-user monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - dos-search
+    operation_id: dos-lookup-ods
+    status: draft
+    rationale: Aligns with defined operation targets
+    stories:
+    - FTRS-887
+    - FTRS-1382
+  - control_id: perf-nearby-latency
+    measure: Assert p50/p95/max targets per operation
+    threshold: As per operations in PERF-001 (dos-search endpoints)
+    tooling: synthetic probes + real-user monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - dos-search
+    operation_id: dos-nearby
+    status: draft
+    rationale: Aligns with defined operation targets
+    stories: []
+  - control_id: perf-org-get-latency
+    measure: Assert p50/p95/max targets per operation
+    threshold: As per operations in PERF-001 (crud-apis endpoints)
+    tooling: synthetic probes + real-user monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - crud-apis
+    operation_id: org-get
+    status: draft
+    rationale: Aligns with defined operation targets
+  - control_id: perf-org-update-latency
+    measure: Assert p50/p95/max targets per operation
+    threshold: As per operations in PERF-001 (crud-apis endpoints)
+    tooling: synthetic probes + real-user monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - crud-apis
+    operation_id: org-update
+    status: draft
+    rationale: Aligns with defined operation targets
+- code: PERF-002
+  requirement: Performance pillar checklist completed & actions closed
+  explanation: Performance pillar checklist is completed and any actions are closed.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-003
+  requirement: Performance expectations table versioned & referenced
+  explanation: The versioned performance expectations table is maintained and referenced
+    by tests.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-004
+  requirement: Anonymised live-like dataset present & audited
+  explanation: A representative, anonymised dataset exists for realistic performance
+    validation.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-005
+  requirement: Automated test suite matches defined actions & exclusions
+  explanation: Automated performance tests implement all defined actions and listed
+    exclusions.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-006
+  requirement: Batch window p95 latency delta ≤5%
+  explanation: Batch window latency stays within a small variance (e.g., p95 delta
+    ≤ defined %).
+  stories: []
+  services:
+  - etl-ods
+  - data-migration
+- code: PERF-007
+  requirement: Telemetry overhead within CPU & latency thresholds
+  explanation: Telemetry overhead (CPU, latency) remains within acceptable limits
+    while capturing required data.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-008
+  requirement: 8h rolling window p95 variance ≤10%
+  explanation: Rolling window performance variance remains stable within target percentage
+    bounds.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-009
+  requirement: Regression alert triggers on >10% p95 increase
+  explanation: Alerting triggers when p95 latency regresses beyond the defined threshold
+    (e.g., >10%).
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-010
+  requirement: Percentile methodology document & tool configuration aligned
+  explanation: Documented percentile methodology matches tool configuration (consistent
+    measurement).
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: PERF-011
+  requirement: Endpoints sustain burst TPS at or above the defined target (burst_tps_target)
+  explanation: GP search endpoints handle short burst throughput at or above the target
+    TPS.
+  stories:
+  - FTRS-1382
+  - FTRS-738
+  - FTRS-831
+  services:
+  - dos-search
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    burst_tps_target: 150
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    burst_tps_target: 150
+  - service: dos-search
+    operation_id: dos-nearby
+    burst_tps_target: 150
+  controls:
+  - control_id: perf-dos-search-burst-tps
+    measure: dos-search endpoints sustain burst 150 TPS
+    threshold: Burst_tps_target met across key endpoints as per operations registry
+    tooling: Performance harness + synthetic load + RUM
+    cadence: Quarterly + CI smoke on change
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Verifies burst throughput capacity
+- code: PERF-012
+  requirement: Endpoints sustain steady-state TPS at or above the defined target (sustained_tps_target)
+  explanation: GP search endpoints sustain steady-state throughput at or above the
+    TPS target.
+  stories:
+  - FTRS-1650
+  - FTRS-738
+  - FTRS-1690
+  - FTRS-1382
+  services:
+  - dos-search
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    sustained_tps_target: 150
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    sustained_tps_target: 150
+  - service: dos-search
+    operation_id: dos-nearby
+    sustained_tps_target: 150
+  controls:
+  - control_id: perf-dos-search-steady-tps
+    measure: dos-search endpoints sustain steady 150 TPS
+    threshold: Sustained_tps_target met across key endpoints as per operations registry
+    tooling: Performance harness + soak tests + RUM
+    cadence: Quarterly + CI smoke on change
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Verifies steady-state throughput capacity
+- code: PERF-013
+  requirement: Request payload size per endpoint stays within the defined maximum
+    (max_request_payload_bytes)
+  explanation: Endpoint request payloads remain under the maximum defined size to
+    protect performance.
+  stories:
+  - (placeholder)
+  services:
+  - crud-apis
+  - dos-search
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    max_request_payload_bytes: 1048576
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    max_request_payload_bytes: 1048576
+  - service: dos-search
+    operation_id: dos-nearby
+    max_request_payload_bytes: 1048576
+  controls:
+  - control_id: perf-request-payload-limits
+    measure: Maximum request payload size per endpoint 1MB
+    threshold: Max_request_payload_bytes enforced per endpoint per operations registry
+    tooling: Gateway payload limit + contract tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents oversized payload degradation

@@ -55,7 +55,15 @@ function main() {
     if command -v markdownlint > /dev/null 2>&1 && ! is-arg-true "${FORCE_USE_DOCKER:-false}"; then
       files="$files" run-markdownlint-natively
     else
-      files="$files" run-markdownlint-in-docker
+      files="$files" run-markdownlint-in-docker || {
+        echo "Docker markdownlint failed; falling back to local if available" >&2
+        if command -v markdownlint > /dev/null 2>&1; then
+          files="$files" run-markdownlint-natively
+        else
+          echo "markdownlint not available locally and Docker run failed" >&2
+          exit 1
+        fi
+      }
     fi
   fi
 }

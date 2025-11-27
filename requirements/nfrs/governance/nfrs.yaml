@@ -1,0 +1,333 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: GOV-001
+  requirement: Service Management pre-live acceptance signed
+  explanation: Service Management pre-live acceptance is signed off before go-live.
+  stories: []
+  controls:
+  - control_id: service-management-pre-live
+    measure: Service Management pre-live acceptance signed
+    threshold: Acceptance signed; evidence stored
+    tooling: Governance tracker + document repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures service readiness sign-off
+    stories: []
+- code: GOV-002
+  requirement: Well-Architected review completed & actions closed
+  explanation: Well-Architected review completed; remediation actions closed.
+  stories: []
+  controls:
+  - control_id: well-architected-review
+    measure: Well-Architected review completed & actions closed
+    threshold: Review complete; actions closed or exceptioned
+    tooling: WAR tool + issue tracker
+    cadence: Pre-live + annual
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Maintains architectural quality
+    stories: []
+- code: GOV-003
+  requirement: Solution Architecture Framework assessment approved
+  explanation: Solution Architecture Framework assessment is approved.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: saf-assessment-approved
+    measure: Solution Architecture Framework assessment approved
+    threshold: Approved assessment stored with evidence link; exceptions recorded
+    tooling: Governance tracker + document repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures architectural governance sign-off
+- code: GOV-004
+  requirement: Engineering Red-lines compliance checklist signed
+  explanation: Engineering red-lines compliance checklist is signed.
+  stories:
+  - FTRS-6
+  controls:
+  - control_id: nhs-github-enterprise-repos
+    measure: All FtRS code repositories are hosted in NHS GitHub Enterprise and comply
+      with securing-repositories policy; engineering dashboards show compliance
+    threshold: 100% repositories on NHS GitHub Enterprise; 100% securing-repositories
+      checks passing; exceptions recorded with owner and review date
+    tooling: Enterprise repository policy audit + engineering compliance dashboards
+      + CI checks
+    cadence: Continuous (CI on change) + quarterly governance review
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise
+      and securing repositories; provides traceable evidence and automated verification
+- code: GOV-005
+  requirement: GDPR compliance assessment signed by IG
+  explanation: GDPR compliance assessment signed by Information Governance.
+  stories: []
+  controls:
+  - control_id: gdpr-assessment-signed
+    measure: GDPR compliance assessment signed by IG
+    threshold: Assessment signed; actions tracked
+    tooling: IG workflow + evidence repository
+    cadence: Pre-live + annual
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures data protection compliance
+    stories: []
+- code: GOV-006
+  requirement: Medical Device out-of-scope statement recorded
+  explanation: Statement confirming service is out of scope for Medical Device regulation.
+  stories:
+  - FTRS-1559
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: medical-device-out-of-scope
+    measure: Medical Device out-of-scope statement recorded
+    threshold: Statement recorded and reviewed annually
+    tooling: Evidence repository
+    cadence: Annual review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms regulatory position
+    stories: []
+- code: GOV-007
+  requirement: FtRS Architects review & approval logged
+  explanation: Architecture review and approval logged by FtRS architects.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: ftrs-architects-approval
+    measure: FtRS Architects review & approval logged
+    threshold: Review minutes and approval recorded; actions tracked
+    tooling: Review tracker + minutes repo
+    cadence: Pre-live + on major change
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Provides architectural oversight evidence
+    stories: []
+- code: GOV-008
+  requirement: Cloud Expert deployment approval documented
+  explanation: Cloud expert deployment approval documented (infrastructure readiness).
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: cloud-expert-approval
+    measure: Cloud Expert deployment approval documented
+    threshold: Approval recorded; infra readiness checklist passed
+    tooling: Infra checklist + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms infrastructure deployment readiness
+    stories: []
+- code: GOV-009
+  requirement: Solution Assurance approval ticket closed
+  explanation: Solution Assurance approval ticket is closed.
+  stories: []
+  controls:
+  - control_id: solution-assurance-approval
+    measure: Solution Assurance approval ticket closed
+    threshold: Approval obtained; ticket closed
+    tooling: Assurance workflow + evidence repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Meets governance approval requirements
+    stories: []
+- code: GOV-010
+  requirement: Clinical Safety assurance approval recorded
+  explanation: Clinical Safety assurance approval recorded.
+  stories:
+  - FTRS-1640
+  - FTRS-824
+  controls:
+  - control_id: clinical-safety-approval
+    measure: Clinical Safety assurance approval recorded
+    threshold: Approval recorded; evidence available
+    tooling: Clinical safety workflow + repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Complies with clinical safety governance
+    stories: []
+- code: GOV-011
+  requirement: Information Governance approval recorded
+  explanation: Information Governance approval recorded.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: ig-approval-recorded
+    measure: Information Governance approval recorded
+    threshold: Approval recorded; actions tracked
+    tooling: IG workflow + evidence repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Meets IG governance
+    stories: []
+- code: GOV-012
+  requirement: TRG approval session outcome logged
+  explanation: Technical Review Group (TRG) approval outcome documented.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: trg-approval-outcome
+    measure: TRG approval session outcome logged
+    threshold: Outcome recorded; decisions minuted; actions tracked
+    tooling: TRG minutes + tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Documents technical governance approval
+    stories: []
+- code: GOV-013
+  requirement: SIRO sign-off obtained
+  explanation: Senior Information Risk Owner (SIRO) sign-off obtained.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: siro-signoff
+    measure: SIRO sign-off obtained
+    threshold: Sign-off recorded; evidence stored
+    tooling: Governance tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms senior risk acceptance
+    stories: []
+- code: GOV-014
+  requirement: Caldicott Principles Guardian approval recorded
+  explanation: Caldicott Guardian approval recorded for data handling.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: caldicott-guardian-approval
+    measure: Caldicott Principles Guardian approval recorded
+    threshold: Approval recorded with data handling summary
+    tooling: Governance tracker + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures data handling governance
+    stories: []
+- code: GOV-015
+  requirement: DUEC Assurance Board acceptance logged
+  explanation: DUEC Assurance Board acceptance logged.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: duec-acceptance
+    measure: DUEC Assurance Board acceptance logged
+    threshold: Acceptance recorded; actions tracked
+    tooling: Board minutes + tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Documents assurance acceptance
+    stories: []
+- code: GOV-016
+  requirement: Live Services Board go-live approval recorded
+  explanation: Live Services Board go-live approval recorded.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+  controls:
+  - control_id: live-services-go-live
+    measure: Live Services Board go-live approval recorded
+    threshold: Go-live approval recorded; evidence stored
+    tooling: Governance tracker + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Final governance approval before production
+    stories: []

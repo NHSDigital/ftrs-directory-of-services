@@ -22,7 +22,7 @@ We are using **Conventional Commits** for all commit messages. Please follow the
 - `docs:` → Documentation updates (no version bump)
 - `style:` → Formatting or linting (no version bump)
 - `refactor:` → Code restructuring (no version bump)
-- `perf:` → Performance improvements (no version bump)
+- `performance:` → Performance improvements (no version bump)
 - `test:` → Adding or updating tests (no version bump)
 - `feat!:` → Breaking change (**MAJOR** version bump)
 - `ci:` → Changes to CI configuration or scripts (no version bump)
@@ -66,5 +66,5 @@ When generating commit messages, always follow these rules.
 
 When generating or updating test functions, always include explicit type annotations for all function arguments.
 
-```def test_example_function(input_data: dict, expected: int) -> None:```
+`def test_example_function(input_data: dict, expected: int) -> None:`
 This applies to all test files and all test functions, including fixtures and parameterized tests.

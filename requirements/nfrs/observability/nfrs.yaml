@@ -1,0 +1,439 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: OBS-001
+  requirement: App & infra health panels show green
+  explanation: Application and infrastructure health panels display green status during
+    normal operation.
+  stories:
+  - FTRS-1015
+  controls:
+  - control_id: health-panels-green
+    measure: App & infra health panels show green
+    threshold: All critical panels green; no stale data
+    tooling: Health checks + dashboard status API
+    cadence: Continuous + CI verification on change
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Ensures at-a-glance service health visibility
+    stories:
+    - FTRS-1015
+- code: OBS-002
+  requirement: Authenticated remote health dashboard accessible
+  explanation: Authenticated remote health dashboard is accessible to support teams.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-003
+  requirement: Health event visible ≤60s after failure
+  explanation: Health events appear on dashboards shortly after failures (within target
+    freshness).
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-004
+  requirement: Automated maintenance tasks executed; zero manual interventions
+  explanation: Automated maintenance tasks run successfully with no manual intervention
+    required.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-005
+  requirement: Performance metrics per layer present
+  explanation: Layered performance metrics (app, DB, cache) are visible.
+  stories:
+  - FTRS-1016
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-006
+  requirement: Remote performance dashboard matches local view
+  explanation: Remote performance dashboard mirrors local environment metrics accurately.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-007
+  requirement: Performance metrics latency ≤60s
+  explanation: Performance metrics latency (ingest to display) stays within defined
+    limit (e.g., ≤60s).
+  stories: []
+  controls:
+  - control_id: perf-metrics-latency
+    measure: Performance metrics latency ≤60s
+    threshold: Metrics pipeline delivers data within 60s latency
+    tooling: Metrics agent + ingestion SLA alerting
+    cadence: Continuous monitoring
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Fresh metrics are required for accurate operational decisions
+    stories: []
+- code: OBS-008
+  requirement: TPS per endpoint displayed & threshold alert configured
+  explanation: Per-endpoint transactions per second (TPS) are displayed with alert
+    thresholds.
+  stories:
+  - FTRS-1688
+  controls:
+  - control_id: tps-threshold-alert
+    measure: TPS per endpoint displayed & threshold alert configured
+    threshold: TPS dashboard present; alert rule configured and tested
+    tooling: Metrics backend + alerting system
+    cadence: CI validation + monthly alert fire drill
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Detects throughput anomalies proactively
+    stories:
+    - FTRS-1688
+- code: OBS-009
+  requirement: Endpoint latency histograms with p50/p95/p99
+  explanation: Latency histograms show p50/p95/p99 for each endpoint.
+  stories: []
+  controls:
+  - control_id: latency-histograms
+    measure: Endpoint latency histograms with p50/p95/p99
+    threshold: Histograms available per endpoint with p50/p95/p99 series
+    tooling: Metrics backend + dashboard
+    cadence: Continuous
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Percentile visibility supports performance governance
+    stories: []
+- code: OBS-010
+  requirement: Aggregate latency panel accurate within 2% roll-up
+  explanation: Aggregate latency panel roll-ups remain within acceptable accuracy
+    margin (e.g., ≤2%).
+  stories: []
+  controls:
+  - control_id: aggregate-latency-accuracy
+    measure: Aggregate latency panel accurate within 2% roll-up
+    threshold: Roll-up accuracy within \u22642% vs raw series
+    tooling: Dashboard query tests + calibration script
+    cadence: Monthly calibration
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures trustworthy aggregate metrics
+    stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-011
+  requirement: Failure types logged & classified in dashboard
+  explanation: Failure types are logged and classified for reporting.
+  stories: []
+  controls:
+  - control_id: failure-type-classification
+    measure: Failure types logged & classified in dashboard
+    threshold: 100% failures carry type; classification accuracy \u2265 95%
+    tooling: Structured logging + classifier + dashboard
+    cadence: Continuous + monthly accuracy audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Improves incident triage
+    stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-012
+  requirement: Error percentage metric & alert configured
+  explanation: Error rate metric and alert exist to highlight reliability issues.
+  stories:
+  - FTRS-1017
+  controls:
+  - control_id: error-percentage-alert
+    measure: Error percentage metric & alert configured
+    threshold: Alert triggers when error% > 1% over 5m; playbook linked
+    tooling: Metrics backend + alerting rules
+    cadence: Continuous + monthly tuning
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Early detection of reliability regressions
+    stories:
+    - FTRS-1017
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-013
+  requirement: Infra log query returns expected fields
+  explanation: Infrastructure logs return expected structured fields for queries.
+  stories:
+  - FTRS-323
+  controls:
+  - control_id: infra-log-query-fields
+    measure: Infra log query returns expected fields
+    threshold: Queries return required fields (timestamp, severity, host, correlation_id)
+    tooling: Log query tests + schema
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures log usability for ops
+    stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-014
+  requirement: Infra log entries include required fields
+  explanation: Infrastructure log entries include required contextual fields (e.g.,
+    IDs, timestamps).
+  stories: []
+  controls:
+  - control_id: infra-log-required-fields
+    measure: Infra log entries include required fields
+    threshold: 100% entries include required fields; schema lint passes
+    tooling: Log schema validators + CI checks
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Guarantees structured logging quality
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-015
+  requirement: Retention policy enforced & reported
+  explanation: Log retention policy is enforced and reported.
+  stories: null
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-016
+  requirement: SIEM forwarding delivers test event <60s
+  explanation: Security/event forwarding to SIEM delivers test events within freshness
+    target.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-017
+  requirement: All log levels supported; dynamic change works
+  explanation: All log levels are supported and can be changed dynamically.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-018
+  requirement: Log level propagation <2min with alert on breach
+  explanation: Log level changes propagate quickly (under defined minutes) with alert
+    if breach.
+  stories:
+  - FTRS-967
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-019
+  requirement: Operational log shows full transaction chain
+  explanation: Operational logs allow full transaction chain reconstruction.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-020
+  requirement: Operations logs reconstruct workflow
+  explanation: Operations logs reconstruct workflow sequences accurately.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-021
+  requirement: Operational events include transaction_id
+  explanation: Operational events include a transaction identifier for correlation.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-022
+  requirement: Audit trail reconstructs user action
+  explanation: Audit trail can reconstruct a specific user action sequence.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-023
+  requirement: Audit events share transaction_id & ordered timestamps
+  explanation: Audit events share transaction IDs and ordered timestamps for traceability.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-024
+  requirement: Alert rule triggers multi-channel notification
+  explanation: Alert rules trigger multi-channel notifications (e.g., chat + email).
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-025
+  requirement: Alerts delivered to multi-channel with context
+  explanation: Alerts delivered with sufficient context to act (multi-channel).
+  stories: []
+  controls:
+  - control_id: migration-variance-alerts
+    measure: Actionable alerts on data-migration error rate and duration variance
+    threshold: Alert when error_rate >1% over 5m window OR full-sync duration > baseline
+      +20%; include playbook link, correlation_id, impacted counts
+    tooling: Metrics backend, alerting engine, synthetic event injector, dashboard
+    cadence: Continuous evaluation; monthly threshold tuning; weekly report
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - data-migration
+    status: draft
+    rationale: Early detection of pipeline health issues to reduce MTTR and prevent
+      silent degradation
+- code: OBS-026
+  requirement: Analytics query identifies usage pattern
+  explanation: Analytics queries identify usage patterns from captured metrics.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-027
+  requirement: Analytics outage non-impacting to transactions
+  explanation: Analytics outages do not impact core transaction processing.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-028
+  requirement: RBAC restricts dashboard sections
+  explanation: Role-based access control (RBAC) restricts dashboard sections appropriately.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-029
+  requirement: Dashboard freshness age ≤60s
+  explanation: Dashboard freshness age remains under target (e.g., ≤60s).
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-030
+  requirement: Distributed trace spans cover end-to-end request
+  explanation: Distributed tracing spans cover end-to-end request path.
+  stories:
+  - FTRS-885
+  controls:
+  - control_id: distributed-trace-coverage
+    measure: Distributed trace spans cover end-to-end request
+    threshold: ≥95% of requests include spans across key tiers
+    tooling: Tracing SDKs + sampling config
+    cadence: Continuous + monthly sampling review
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Enables end-to-end diagnosis and correlation across layers
+    stories: []
+- code: OBS-031
+  requirement: Anonymised behaviour metrics collected without identifiers
+  explanation: Anonymised behavioural metrics are collected without exposing personal
+    identifiers.
+  stories: []
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-032
+  requirement: Per-endpoint 4xx/5xx response metrics & alert thresholds configured
+  explanation: Per-endpoint 4xx and 5xx response metrics are captured with alert thresholds
+    so error rate spikes are detected and acted upon quickly.
+  stories:
+  - FTRS-1573
+  services:
+  - crud-apis
+  - dos-search
+- code: OBS-033
+  requirement: Unauthorized API access attempts logged, classified, alerted
+  explanation: Unauthorized API access attempts (failed authentication, forbidden
+    operations, rate limit breaches, anomalous spikes) are logged with required context
+    and generate timely alerts for early detection of credential misuse or attack
+    patterns.
+  stories:
+  - FTRS-1607
+  - FTRS-1650
+  controls:
+  - control_id: unauth-access-monitoring
+    measure: Unauthorized API access attempts logged & alerted with context
+    threshold: 100% auth failures & forbidden requests produce structured log entry
+      with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed
+      auth attempts per principal per 1m or anomaly spike (>3x baseline)
+    tooling: API gateway logs, auth middleware, metrics backend, alerting rules, anomaly
+      detection job
+    cadence: Continuous collection + weekly anomaly review + monthly rule tuning
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    - dos-ingestion-api
+    - etl-ods
+    - read-only-viewer
+    status: draft
+    rationale: Early detection of credential stuffing, token misuse, and privilege
+      escalation attempts
