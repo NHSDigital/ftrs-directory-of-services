@@ -25,7 +25,8 @@ if command -v aws >/dev/null 2>&1; then
   err "aws CLI: ${AWS_CLI_VERSION}"
 
   # Capture aws STS output (stdout or stderr) for diagnostics. Don't print secrets.
-  STS_OUT=$(aws ${AWS_REGION:+--region "${AWS_REGION}"} sts get-caller-identity --query Account --output text 2>&1 || true)
+  # Rely on AWS_REGION/AWS_DEFAULT_REGION environment variables instead of passing --region
+  STS_OUT=$(aws sts get-caller-identity --query Account --output text 2>&1 || true)
 
   # If the output looks like an account number (digits), it's successful
   if [[ "${STS_OUT}" =~ ^[0-9]+$ ]]; then
@@ -50,18 +51,18 @@ resolve_serverless_collection(){
   region_arg=${2:+--region "$2"}
 
   # find collection id by name
-  id=$(aws ${AWS_REGION:+--region "$AWS_REGION"} opensearchserverless list-collections --query "collectionSummaries[?name=='${name}'].id | [0]" --output text 2>/dev/null || true)
+  id=$(aws opensearchserverless list-collections --query "collectionSummaries[?name=='${name}'].id | [0]" --output text 2>/dev/null || true)
   if [[ -z "$id" || "$id" == "None" ]]; then
     return 1
   fi
 
   # fetch details and try to extract the endpoint; try the common key first
-  endpoint=$(aws ${AWS_REGION:+--region "$AWS_REGION"} opensearchserverless batch-get-collection --ids "$id" --query 'collectionDetails[0].collectionEndpoint' --output text 2>/dev/null || true)
+  endpoint=$(aws opensearchserverless batch-get-collection --ids "$id" --query 'collectionDetails[0].collectionEndpoint' --output text 2>/dev/null || true)
   if [[ -z "$endpoint" || "$endpoint" == "None" ]]; then
-    endpoint=$(aws ${AWS_REGION:+--region "$AWS_REGION"} opensearchserverless batch-get-collection --ids "$id" --query 'collectionDetails[0].endpoint' --output text 2>/dev/null || true)
+    endpoint=$(aws opensearchserverless batch-get-collection --ids "$id" --query 'collectionDetails[0].endpoint' --output text 2>/dev/null || true)
   fi
   if [[ -z "$endpoint" || "$endpoint" == "None" ]]; then
-    endpoint=$(aws ${AWS_REGION:+--region "$AWS_REGION"} opensearchserverless batch-get-collection --ids "$id" --output json 2>/dev/null || true)
+    endpoint=$(aws opensearchserverless batch-get-collection --ids "$id" --output json 2>/dev/null || true)
     # try a simple grep/json parse fallback if needed (pure shell: grep+sed)
     if [[ -n "$endpoint" ]]; then
       parsed=$(printf '%s' "$endpoint" | grep -o '"[^" ]*endpoint[^" ]*"[[:space:]]*:[[:space:]]*"[^" ]*"' | sed -E 's/.*:[[:space:]]*"(.*)"/\1/' | head -n1 || true)

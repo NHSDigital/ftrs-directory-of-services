@@ -32,7 +32,6 @@ runs:
         OPEN_SEARCH_DOMAIN: ${{ inputs.domain }}
         WORKSPACE: ${{ inputs.workspace }}
         ENVIRONMENT: ${{ inputs.environment }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
         AWS_REGION: ${{ inputs.aws_region }}
         AWS_DEFAULT_REGION: ${{ inputs.aws_region }}
       run: |
