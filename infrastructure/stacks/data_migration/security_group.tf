@@ -279,3 +279,41 @@ resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_inte
   ip_protocol       = "tcp"
   to_port           = var.https_port
 }
+
+
+resource "aws_security_group" "reference_data_lambda_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
+  name        = "${local.resource_prefix}-${var.reference_data_lambda_name}-sg"
+  description = "Security group for reference data lambda"
+
+  vpc_id = data.aws_vpc.vpc.id
+}
+
+
+resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_reference_data_lambda" {
+  description                  = "Allow RDS ingress from reference data lambda"
+  security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  referenced_security_group_id = aws_security_group.reference_data_lambda_security_group.id
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
+}
+
+resource "aws_vpc_security_group_egress_rule" "reference_data_allow_egress_to_rds" {
+  description                  = "Allow egress to RDS"
+  security_group_id            = aws_security_group.reference_data_lambda_security_group.id
+  referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
+}
+
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
+resource "aws_vpc_security_group_egress_rule" "reference_data_allow_egress_to_internet" {
+  description       = "Allow egress to internet"
+  security_group_id = aws_security_group.reference_data_lambda_security_group.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = var.https_port
+  ip_protocol       = "tcp"
+  to_port           = var.https_port
+}

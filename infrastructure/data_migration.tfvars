@@ -30,6 +30,11 @@ dms_event_queue_batch_size                         = 50
 dms_event_queue_maximum_batching_window_in_seconds = 1
 dms_event_queue_maximum_concurrency                = 20
 
+reference_data_lambda_name        = "reference-data-lambda"
+reference_data_lambda_handler     = "reference_data_load.lambda_handler.lambda_handler"
+reference_data_lambda_timeout     = 300
+reference_data_lambda_memory_size = 1024
+
 aws_lambda_layers = [
   "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:19"
 ]
