@@ -293,7 +293,7 @@ def _create_dynamodb_tables(client: Any) -> None:
             logger.error(f"Failed to create table {table_name}: {e}")
             raise
 
-    logger.info("DynamoDB tables created successfully")
+    logger.debug("DynamoDB tables ready")
 
 
 def _cleanup_dynamodb_tables(client: Any) -> None:
@@ -317,8 +317,6 @@ def _cleanup_dynamodb_tables(client: Any) -> None:
                 logger.error(f"Failed to delete table {table_name}: {e}")
     except Exception as e:
         logger.error(f"DynamoDB cleanup failed: {e}")
-
-    logger.info("DynamoDB cleanup Successful")
 
 
 @pytest.fixture(name="dos_db", scope="function")

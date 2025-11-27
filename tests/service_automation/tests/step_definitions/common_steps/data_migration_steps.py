@@ -49,7 +49,7 @@ from utilities.common.log_helper import (
 
 
 @given("the test environment is configured")
-def test_environment_configured(
+def environment_configured(
     migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
 ) -> None:
     """Verify test environment is properly configured."""
@@ -172,6 +172,7 @@ def sqs_event_migration_with_params(
     event = build_sqs_event(
         table_name=table_name,
         record_id=record_id,
+        service_id=record_id,
         method=method,
     )
 

@@ -13,9 +13,6 @@ from ftrs_data_layer.domain import legacy as legacy_model
 from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 from utilities.common.constants import STRING_FIELDS
 
-# Load scenarios from feature files
-scenarios("../../tests/features/data_migration_features/dos_data_manipulation.feature")
-
 
 def parse_datatable_value(value: str) -> Any:
     """
