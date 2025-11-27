@@ -280,6 +280,21 @@ class MigrationHelper:
 
         return self._execute_migration(execute, "full service")
 
+
+    def run_triage_code_migration_only(self):
+        """
+        Run migration for only triage-code table.
+
+        Returns:
+            MigrationRunResult with success status, error, and metrics
+        """
+        def execute(app: DataMigrationApplication) -> None:
+            logger.info("Running triage code migration")
+            app.triage_code_processor.sync_all_triage_codes()
+
+        return self._execute_migration(execute, "triage-code only")
+
+
     def run_sqs_event_migration(self, sqs_event: Dict[str, Any]) -> MigrationRunResult:
         """
         Run migration with an SQS event.
