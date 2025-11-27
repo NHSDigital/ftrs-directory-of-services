@@ -6,6 +6,7 @@ from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
+from sqlalchemy import Engine
 from sqlmodel import Session, create_engine, select
 
 from common.cache import DoSMetadataCache
@@ -55,15 +56,7 @@ class DataMigrationProcessor:
     ) -> None:
         self.logger = logger
         self.config = config
-        # Validate the presence of a real connection string to avoid confusing errors when given mocks
-        connection_string = getattr(
-            getattr(config, "db_config", None), "connection_string", None
-        )
-        if not isinstance(connection_string, str) or not connection_string.strip():
-            raise ValueError(
-                "Invalid DataMigrationConfig: db_config.connection_string must be a non-empty string"
-            )
-        self.engine = create_engine(connection_string, echo=False)
+        self.engine = self.create_db_engine()
         self.metrics = DataMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
@@ -83,7 +76,16 @@ class DataMigrationProcessor:
             if not record:
                 raise ValueError(f"Service with ID {record_id} not found")
 
-            self._process_service(record)
+            service = legacy.Service(
+                **record.model_dump(mode="python", warnings=False),
+                endpoints=list(record.endpoints),
+                scheduled_opening_times=list(record.scheduled_opening_times),
+                specified_opening_times=list(record.specified_opening_times),
+                sgsds=list(record.sgsds),
+                dispositions=list(record.dispositions),
+                age_range=list(record.age_range),
+            )
+            self._process_service(service)
 
     def _process_service(self, service: legacy.Service) -> None:
         """
@@ -248,3 +250,17 @@ class DataMigrationProcessor:
             f"field:{issue.expression} ,error: {issue.code},message:{issue.diagnostics},value:{issue.value}"
             for issue in issues
         ]
+
+    def create_db_engine(self) -> Engine:
+        # Validate the presence of a real connection string to avoid confusing errors when given mocks
+        connection_string = getattr(
+            getattr(self.config, "db_config", None), "connection_string", None
+        )
+        if not isinstance(connection_string, str) or not connection_string.strip():
+            raise ValueError(
+                "Invalid DataMigrationConfig: db_config.connection_string must be a non-empty string"
+            )
+
+        return create_engine(connection_string, echo=False).execution_options(
+            postgresql_readonly=True
+        )
