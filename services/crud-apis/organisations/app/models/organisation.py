@@ -8,6 +8,8 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
+from ftrs_common.logger import Logger
+from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
@@ -21,6 +23,7 @@ ERROR_IDENTIFIER_EMPTY_VALUE = "ODS identifier must have a non-empty value"
 ERROR_IDENTIFIER_INVALID_FORMAT = (
     "invalid ODS code format: '{ods_code}' must follow format {ODS_REGEX}"
 )
+ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
 
 
 class OrganizationQueryParams(BaseModel):
@@ -121,6 +124,17 @@ class OrganisationUpdatePayload(BaseModel):
                     )
                 )
 
+        return v
+
+    @field_validator("active", mode="before")
+    @classmethod
+    def validate_active_not_null(cls, v: bool | None) -> bool:
+        """Validates that active field is not None/null."""
+        if v is None:
+            Logger.get(service="crud_organisation_logger").log(
+                CrudApisLogBase.ORGANISATION_022
+            )
+            raise ValueError(ACTIVE_EMPTY_ERROR)
         return v
 
     @model_validator(mode="after")
