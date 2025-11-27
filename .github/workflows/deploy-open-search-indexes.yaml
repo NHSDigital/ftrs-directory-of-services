@@ -35,25 +35,6 @@ jobs:
           aws_region: ${{ inputs.aws_region }}
           type: app
 
-      - name: Debug AWS credentials (non-sensitive)
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Print whether the typical AWS env vars are set (do not print values)
-          if [ -n "${AWS_ACCESS_KEY_ID:-}" ]; then echo "AWS_ACCESS_KEY_ID: set"; else echo "AWS_ACCESS_KEY_ID: unset"; fi
-          if [ -n "${AWS_SECRET_ACCESS_KEY:-}" ]; then echo "AWS_SECRET_ACCESS_KEY: set"; else echo "AWS_SECRET_ACCESS_KEY: unset"; fi
-          if [ -n "${AWS_SESSION_TOKEN:-}" ]; then echo "AWS_SESSION_TOKEN: set"; else echo "AWS_SESSION_TOKEN: unset"; fi
-          if [ -n "${AWS_REGION:-}" ]; then echo "AWS_REGION: ${AWS_REGION}"; else echo "AWS_REGION: unset"; fi
-          if [ -n "${AWS_DEFAULT_REGION:-}" ]; then echo "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"; else echo "AWS_DEFAULT_REGION: unset"; fi
-
-          # Try a simple STS call to confirm credentials are usable; print the exit code on failure
-          if command -v aws >/dev/null 2>&1; then
-            echo "Running 'aws sts get-caller-identity' for verification"
-            aws sts get-caller-identity ${AWS_REGION:+--region "${AWS_REGION}"} --query Account --output text || echo "aws sts failed with exit $?"
-          else
-            echo "aws CLI not found"
-          fi
-
       - name:  Create OpenSearch Index
         id: create-index
         uses: ./.github/actions/build-open-search-indexes

@@ -24,14 +24,24 @@ if command -v aws >/dev/null 2>&1; then
   AWS_CLI_VERSION=$(aws --version 2>&1 || true)
   err "aws CLI: ${AWS_CLI_VERSION}"
 
-  AWS_ACCOUNT=$(aws sts get-caller-identity ${AWS_REGION:+--region "${AWS_REGION}"} --query Account --output text 2>/dev/null || true)
-  if [ -n "$AWS_ACCOUNT" ] && [ "$AWS_ACCOUNT" != "None" ]; then
+  # Capture aws STS output (stdout or stderr) for diagnostics. Don't print secrets.
+  STS_OUT=$(aws sts get-caller-identity ${AWS_REGION:+--region "${AWS_REGION}"} --query Account --output text 2>&1 || true)
+
+  # If the output looks like an account number (digits), it's successful
+  if [[ "${STS_OUT}" =~ ^[0-9]+$ ]]; then
+    AWS_ACCOUNT="${STS_OUT}"
     err "AWS account: $AWS_ACCOUNT"
   else
     err "AWS account: unavailable (aws sts returned empty or failed)"
+    # Print the aws CLI error text for debugging (may show AccessDenied, could not find credentials, etc.)
+    err "aws sts error: ${STS_OUT}"
+    err "Failing early because valid AWS credentials are required to resolve serverless collections"
+    exit 3
   fi
 else
   err "aws CLI not found; cannot determine AWS account"
+  err "Failing early because aws CLI is required"
+  exit 4
 fi
 
 # Resolve a Serverless collection name to an endpoint using list -> batch-get

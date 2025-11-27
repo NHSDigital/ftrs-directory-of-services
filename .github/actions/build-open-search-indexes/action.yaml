@@ -40,4 +40,7 @@ runs:
 
         echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} and INDEX=${INDEX} (workspace=${WORKSPACE})"
 
+        # Ensure the build script is executable in case the checkout removed the execute bit
+        chmod +x ./scripts/workflow/build-open-search-index.sh || true
+
         ./scripts/workflow/build-open-search-index.sh
