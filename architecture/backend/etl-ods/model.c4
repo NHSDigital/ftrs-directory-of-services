@@ -1,0 +1,24 @@
+model {
+  extend ftrs {
+    container etlOds "FTRS ODS ETL" {
+      description 'ETL for non API consumer data sources'
+      lambda processor "ODS ETL Processor" {
+        description 'Lambda as ETL Processor'
+      }
+      sqs queue "ODS ETL Queue" {
+        description 'Queue for ETL Process'
+      }
+      lambda consumer "ODS ETL Consumer" {
+        description 'Dequeues requests and sends to API'
+      }
+    }
+  }
+
+  apim.dosIngressProxy -> ftrs.organizationAPI "Proxies write calls to"
+  apim.dosIngressProxy -> ftrs.organizationAPI "Proxies read calls to"
+  processor -> odsService "Extracts updated ods data for a date from"
+  processor -> queue "Enqueues messages in"
+  processor -> apim.dosIngressProxy "Gets ODS UUID via"
+  queue -> consumer "Dequeue messages from"
+  consumer -> apim.dosIngressProxy "Writes updates via"
+}

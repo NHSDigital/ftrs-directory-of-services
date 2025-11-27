@@ -1,0 +1,59 @@
+# Versioned Reliability Expectations Registry for FtRS
+version: 1.0
+generated: 2025-11-14
+
+controls:
+  - control_id: az-failure-simulation
+    nfr_code: REL-002
+    measure: AZ failure simulation maintains service
+    threshold: Successful failover with sustained service availability; no data loss
+    tooling: Chaos simulation + health checks
+    cadence: Quarterly exercise
+    environments: [int, ref]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Validates resilience to Availability Zone failures
+
+  - control_id: batch-suspend-resume-integrity
+    nfr_code: REL-010
+    measure: Batch suspend/resume preserves data integrity
+    threshold: 0 data loss; consistent resume and reconciliation
+    tooling: Batch controller + integrity checks
+    cadence: Release cycle validation
+    environments: [int, ref]
+    services: [etl-ods]
+    status: draft
+    rationale: Ensures reliable batch operations
+
+  - control_id: unhealthy-node-auto-replace
+    nfr_code: REL-011
+    measure: Unhealthy node auto-replaced; workload continues
+    threshold: Auto-replacement within policy; no user-visible downtime
+    tooling: Autoscaling group events + workload health
+    cadence: Continuous monitoring + quarterly drill
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Maintains reliability during node failures
+
+  - control_id: tier-failure-graceful-degrade
+    nfr_code: REL-013
+    measure: Tier failure graceful degradation & recovery evidenced
+    threshold: Documented fallback; recovery time within SLA
+    tooling: Chaos experiments + observability evidence
+    cadence: Quarterly
+    environments: [int, ref]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Demonstrates graceful degradation patterns
+
+  - control_id: auth-brute-force-protection
+    nfr_code: REL-007
+    measure: Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate burst supported)
+    threshold: Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s; ≤1% false positives
+    tooling: Auth gateway rate limiter + anomaly aggregator + performance harness + alerting
+    cadence: Continuous runtime enforcement + daily compliance script
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-search, dos-ingestion-api, etl-ods, read-only-viewer]
+    status: draft
+    rationale: Protects availability & integrity under authentication attack patterns
