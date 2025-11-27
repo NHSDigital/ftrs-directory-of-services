@@ -53,7 +53,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
     assert fhir_org.identifier[0].value == "ODS1"
     assert fhir_org.telecom[0].system == "phone"
     assert fhir_org.telecom[0].value == "0300 311 22 33"
-    assert fhir_org.telecom[0].use == "work"
+    assert fhir_org.telecom[0].use == None
     assert (
         fhir_org.meta.profile[0]
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
@@ -195,9 +195,9 @@ def test__build_telecom() -> None:
         [Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)]
     )
     assert isinstance(telecom, list)
-    assert telecom[0]["system"] == "phone"
-    assert telecom[0]["value"] == "0300 311 22 33"
-    assert telecom[0]["use"] == "work"
+    assert telecom[0].system== "phone"
+    assert telecom[0].value == "0300 311 22 33"
+    assert telecom[0].use == None
     telecom_empty_list = mapper._build_telecom([])
     assert telecom_empty_list == []
 
@@ -435,7 +435,7 @@ def test_to_fhir_bundle_single_org() -> None:
     assert resource.identifier[0].use == "official"
     assert resource.telecom[0].system == "phone"
     assert resource.telecom[0].value == "020 7972 3272"
-    assert resource.telecom[0].use == "work"
+    assert resource.telecom[0].use == None
     assert resource.type[0].coding[0].display == "GP Practice"
     assert resource.type[0].coding[0].code == "GP Practice"
     assert resource.type[0].text == "GP Practice"

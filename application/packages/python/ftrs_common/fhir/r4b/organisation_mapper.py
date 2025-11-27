@@ -2,6 +2,7 @@ from fhir.resources.R4B.bundle import Bundle, BundleEntry
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
+from fhir.resources.R4B.contactpoint import ContactPoint
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.utils.title_case_sanitization import sanitize_string_field
@@ -33,7 +34,9 @@ class OrganizationMapper(FhirMapper):
         fhir_telecom = []
         for tel in telecom:
             fhir_telecom.append(
-                {"system": tel.type.value, "value": tel.value, "use": "work"}
+                ContactPoint.model_validate(
+                    {"system": tel.type.value, "value": tel.value}
+                )
             )
         return fhir_telecom
 

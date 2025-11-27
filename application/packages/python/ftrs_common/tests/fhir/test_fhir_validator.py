@@ -185,3 +185,36 @@ def test_check_for_special_characters_invalid(
     assert f"Field '{expected_error_field}' contains invalid characters" in str(
         exc_info.value
     )
+
+@pytest.mark.parametrize(
+    "resource", [{"resourceType": "DummyResource",
+        "telecom": [
+            {"system": "phone", "value": "123456"},
+            {"system": "email", "value": "test@example.com"},
+            {"system": "url", "value": "http://example.com"},
+        ]}])
+def test_check_telecom_types_are_valid(resource) -> None:
+    model = DummyModel
+    assert (
+        FhirValidator._check_telecom_types_are_valid(resource, model) == resource
+    )
+@pytest.mark.parametrize(
+    "resource, expected_type_error", [({
+        "resourceType": "DummyResource",
+        "telecom": [{"system": "web", "value": "123456"},]},
+        "web"),
+        ({"resourceType": "DummyResource",
+        "telecom": [{"system": "invalid_type", "value": "123456"}]},
+        "invalid_type")
+        ])
+def test_check_telecom_types_are_invalid(resource, expected_type_error) -> None:
+    """
+    Test that a web telecom type or invalid_type raise an OperationOutcomeException.
+    Web is not a valid FHIR ContactPoint.system value, should be url at this stage.
+    """
+    model = DummyModel
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        FhirValidator._check_telecom_types_are_valid(resource, model)
+    assert f'Field \'telecom[0].system\' contains invalid telecom type: {expected_type_error}' in str(
+        exc_info.value
+    )

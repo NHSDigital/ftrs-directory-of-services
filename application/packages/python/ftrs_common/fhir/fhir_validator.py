@@ -70,6 +70,26 @@ class FhirValidator:
         return resource
 
     @staticmethod
+    def _check_telecom_types_are_valid(resource: dict, fhir_model: Type[FHIRAbstractModel]
+    ) -> dict:
+        """
+        Validates that the telecom types are valid FHIR ContactPoint.system values.
+        Returns the resource if valid, raises OperationOutcomeException if not.
+        """
+
+        valid_types = {"phone","fax","email","pager","url","sms","other"}
+
+        telecoms = resource.get("telecom", [])
+        for idx, telecom in enumerate(telecoms):
+            system = telecom.get("system")
+            if system and system not in valid_types:
+                path = f"telecom[{idx}].system"
+                msg = f"Field '{path}' contains invalid telecom type: {system}"
+                FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
+        return resource
+
+    @staticmethod
     def _log_and_raise(
         msg: str, code: str, fhir_model: Type[FHIRAbstractModel]
     ) -> None:
