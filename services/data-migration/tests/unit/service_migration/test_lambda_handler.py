@@ -2,7 +2,7 @@ from aws_lambda_powertools.utilities.data_classes import SQSEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from pytest_mock import MockerFixture
 
-from service_migration.application import DataMigrationApplication, DMSEvent
+from service_migration.application import DataMigrationApplication
 from service_migration.config import DataMigrationConfig
 from service_migration.lambda_handler import lambda_handler
 
@@ -13,7 +13,7 @@ def test_lambda_handler(
     mock_config: DataMigrationConfig,
 ) -> None:
     app = DataMigrationApplication(config=mock_config)
-    app.handle_dms_event = mocker.MagicMock()
+    app.handle_sqs_record = mocker.MagicMock()
 
     mocker.patch(
         "service_migration.lambda_handler.DataMigrationApplication", return_value=app
@@ -32,42 +32,51 @@ def test_lambda_handler(
         }
     )
 
-    lambda_handler(event, mock_lambda_context)
+    result = lambda_handler(event, mock_lambda_context)
 
-    app.handle_dms_event.assert_has_calls(
-        [
-            mocker.call(
-                DMSEvent(
-                    type="dms_event",
-                    record_id=1,
-                    service_id=1,
-                    table_name="test_table",
-                    method="insert",
-                )
-            ),
-            mocker.call(
-                DMSEvent(
-                    type="dms_event",
-                    record_id=2,
-                    service_id=2,
-                    table_name="test_table",
-                    method="update",
-                )
-            ),
-        ]
-    )
+    assert result == {"batchItemFailures": []}
+
+    expected_call_count = 2
+
+    assert app.handle_sqs_record.call_count == expected_call_count
+    first_call, second_call = app.handle_sqs_record.call_args_list
+
+    assert first_call.kwargs["record"].json_body == {
+        "type": "dms_event",
+        "record_id": 1,
+        "service_id": 1,
+        "table_name": "test_table",
+        "method": "insert",
+    }
+
+    assert second_call.kwargs["record"].json_body == {
+        "type": "dms_event",
+        "record_id": 2,
+        "service_id": 2,
+        "table_name": "test_table",
+        "method": "update",
+    }
 
 
 def test_lambda_handler_no_app(
     mocker: MockerFixture,
     mock_lambda_context: LambdaContext,
+    mock_config: DataMigrationConfig,
 ) -> None:
     """
     Test that the lambda_handler initializes the DataMigrationApplication if it is None.
     """
-    mock_app = mocker.patch("service_migration.lambda_handler.DataMigrationApplication")
+    mocker.patch(
+        "service_migration.application.DataMigrationConfig",
+        return_value=mock_config,
+    )
     mocker.patch("service_migration.lambda_handler.APP", None)
-    mock_app.return_value.handle_sqs_event = mocker.Mock()
+
+    app_init_spy = mocker.spy(DataMigrationApplication, "__init__")
+    mock_handle_sqs_event = mocker.patch.object(
+        DataMigrationApplication, "handle_sqs_event"
+    )
+    mock_handle_sqs_event.return_value = {"batchItemFailures": []}
 
     event = {
         "Records": [
@@ -77,22 +86,31 @@ def test_lambda_handler_no_app(
         ]
     }
 
-    lambda_handler(event, mock_lambda_context)
+    result = lambda_handler(event, mock_lambda_context)
+    assert result == {"batchItemFailures": []}
 
-    mock_app.assert_called_once()
-    mock_app.return_value.handle_sqs_event.assert_called_once_with(SQSEvent(data=event))
+    app_init_spy.assert_called_once()
+    mock_handle_sqs_event.assert_called_once_with(event, mock_lambda_context)
 
 
 def test_lambda_handler_existing_app(
     mocker: MockerFixture,
     mock_lambda_context: LambdaContext,
+    mock_config: DataMigrationConfig,
 ) -> None:
     """
     Test that the lambda_handler uses the existing DataMigrationApplication if it is already initialized.
     """
+    mocker.patch(
+        "service_migration.application.DataMigrationConfig",
+        return_value=mock_config,
+    )
     mock_app = mocker.patch("service_migration.lambda_handler.DataMigrationApplication")
+
     mocker.patch("service_migration.lambda_handler.APP", mock_app.return_value)
-    mock_app.return_value.handle_sqs_event = mocker.Mock()
+    mock_app.return_value.handle_sqs_event = mocker.Mock(
+        return_value={"batchItemFailures": []}
+    )
 
     event = {
         "Records": [
@@ -102,7 +120,10 @@ def test_lambda_handler_existing_app(
         ]
     }
 
-    lambda_handler(event, mock_lambda_context)
+    result = lambda_handler(event, mock_lambda_context)
+    assert result == {"batchItemFailures": []}
 
     mock_app.assert_not_called()  # Should not create a new instance
-    mock_app.return_value.handle_sqs_event.assert_called_once_with(SQSEvent(data=event))
+    mock_app.return_value.handle_sqs_event.assert_called_once_with(
+        event, mock_lambda_context
+    )

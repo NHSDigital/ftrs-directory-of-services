@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated, Generator, List
 
 import rich
+from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from typer import Option, Typer
 
 from common.config import DatabaseConfig
@@ -77,7 +78,13 @@ def migrate_handler(  # noqa: PLR0913
                 method="insert",
                 table_name="services",
             )
-            app.handle_dms_event(event)
+            record = SQSRecord(
+                data={
+                    "messageId": f"service-{service_id}",
+                    "body": event.model_dump_json(),
+                }
+            )
+            app.handle_sqs_record(record)
         else:
             app.handle_full_sync_event()
 

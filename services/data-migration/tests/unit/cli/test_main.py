@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
+from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from freezegun import freeze_time
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from pydantic import SecretStr
@@ -11,11 +12,8 @@ from typer.testing import CliRunner
 
 from cli.main import patch_local_save_method, typer_app
 from common.config import DatabaseConfig
-from common.events import DMSEvent
 from queue_populator.config import QueuePopulatorConfig
-from service_migration.config import (
-    DataMigrationConfig,
-)
+from service_migration.config import DataMigrationConfig
 from service_migration.processor import ServiceTransformOutput
 
 runner = CliRunner()
@@ -76,7 +74,7 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
     Test the local_handler function for single sync.
     """
     mock_app = mocker.patch("cli.main.DataMigrationApplication")
-    mock_app.return_value.handle_dms_event = mocker.Mock()
+    mock_app.return_value.handle_sqs_record = mocker.Mock()
 
     result = runner.invoke(
         typer_app,
@@ -104,15 +102,19 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
         )
     )
 
-    mock_app.return_value.handle_dms_event.assert_called_once_with(
-        DMSEvent(
-            type="dms_event",
-            record_id=12345,
-            service_id=12345,
-            method="insert",
-            table_name="services",
-        )
-    )
+    mock_app.return_value.handle_sqs_record.assert_called_once()
+
+    call_args = mock_app.return_value.handle_sqs_record.call_args[0][0]
+    assert isinstance(call_args, SQSRecord)
+
+    assert call_args.message_id == "service-12345"
+    assert call_args.json_body == {
+        "method": "insert",
+        "record_id": 12345,
+        "service_id": 12345,
+        "table_name": "services",
+        "type": "dms_event",
+    }
 
 
 def test_local_handler_output_dir(mocker: MockerFixture) -> None:
