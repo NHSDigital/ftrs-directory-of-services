@@ -6,7 +6,6 @@ import pytest
 
 from record_change_trigger.lambda_handler import (
     get_dms_workspaces,
-    get_message_from_event,
     lambda_handler,
 )
 
@@ -48,11 +47,11 @@ def test_lambda_handler_sends_message_to_all_workspaces(
     assert mock_sqs_client.send_message.call_count == send_call_count
     mock_sqs_client.send_message.assert_any_call(
         QueueUrl="queue-url-1",
-        MessageBody=json.dumps({"source": "aurora_trigger", "event": event}),
+        MessageBody=json.dumps(event),
     )
     mock_sqs_client.send_message.assert_any_call(
         QueueUrl="queue-url-2",
-        MessageBody=json.dumps({"source": "aurora_trigger", "event": event}),
+        MessageBody=json.dumps(event),
     )
 
 
@@ -70,22 +69,6 @@ def test_lambda_handler_handles_sqs_exception(
     lambda_handler(event, context)
 
     assert mock_sqs_client.send_message.call_count == send_call_count
-
-
-def test_get_message_from_event_creates_correct_message_format() -> None:
-    event = {"detail": {"eventName": "INSERT"}}
-
-    message = get_message_from_event(event)
-
-    assert message == {"source": "aurora_trigger", "event": event}
-
-
-def test_get_message_from_event_handles_empty_event() -> None:
-    event = {}
-
-    message = get_message_from_event(event)
-
-    assert message == {"source": "aurora_trigger", "event": {}}
 
 
 def test_lambda_handler_handles_complex_event_structure(
@@ -113,7 +96,7 @@ def test_lambda_handler_handles_complex_event_structure(
 
     lambda_handler(complex_event, context)
 
-    expected_message = json.dumps({"source": "aurora_trigger", "event": complex_event})
+    expected_message = json.dumps(complex_event)
 
     mock_sqs_client.send_message.assert_called_with(
         QueueUrl="queue-url-2", MessageBody=expected_message

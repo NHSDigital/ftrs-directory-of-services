@@ -91,6 +91,7 @@ class DataMigrationApplication:
         """
         try:
             # Unwrap nested Aurora trigger events from migration_copy_db_trigger_lambda_handler
+            # TODO: FTRS-1666 - Remove this once updated record change trigger is deployed to dev
             if (
                 "source" in event
                 and event.get("source") == "aurora_trigger"
