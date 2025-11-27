@@ -1,0 +1,17 @@
+views {
+
+  view of ftrs.gpSearchApi {
+    title "FTRS GP Search API"
+    description '
+      API for searching GP services
+    '
+    include *
+    include ftrs.openSearch
+    include ftrs.db
+
+    include ftrs
+    include apim.dosSearchProxy
+
+    autoLayout LeftRight 70 77
+  }
+}

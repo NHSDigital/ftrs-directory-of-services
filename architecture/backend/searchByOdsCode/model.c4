@@ -1,0 +1,21 @@
+model {
+
+  extend ftrs {
+
+    lambda searchByOdsCode "Search by ODS Code API" {
+      description '
+        /search-by-ods-code
+        API for searching for services by ods code
+      '
+      lambda search "GET /gp-search/{ods_code}" {
+        description 'Retrieves services by ods code'
+      }
+
+    }
+  }
+
+  apim.dosSearchProxy -> searchByOdsCode "Proxies calls to"
+
+  search -> ftrs.openSearch "Queries data from"
+
+}

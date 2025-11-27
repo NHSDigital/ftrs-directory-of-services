@@ -1,0 +1,59 @@
+# Versioned Availability Expectations Registry for FtRS
+version: 1.0
+generated: 2025-11-14
+
+controls:
+  - control_id: multi-az-uptime-report
+    nfr_code: AVAIL-001
+    measure: Availability report shows ≥99.90% multi-AZ uptime
+    threshold: ">= 99.90% monthly uptime across multi-AZ deployment"
+    tooling: Uptime monitoring + monthly report automation
+    cadence: Monthly
+    environments: [prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Tracks SLA against multi-AZ deployment goals
+
+  - control_id: region-dr-simulation
+    nfr_code: AVAIL-002
+    measure: Region DR simulation meets plan objectives
+    threshold: DR exercise meets RTO/RPO targets and user impact objectives
+    tooling: DR runbooks + simulation exercises
+    cadence: Semi-annual
+    environments: [int, ref]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Validates disaster recovery readiness across regions
+
+  - control_id: uptime-monitoring-coverage
+    nfr_code: AVAIL-003
+    measure: Uptime monitoring confirms 24x7 coverage
+    threshold: 24x7 coverage; alerts configured for service degradation
+    tooling: Uptime monitors + alerting system
+    cadence: Continuous monitoring
+    environments: [prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Ensures continuous availability monitoring
+
+  - control_id: maintenance-window-minutes
+    nfr_code: AVAIL-004
+    measure: Monthly maintenance minutes ≤150; single ≤60
+    threshold: Monthly total ≤150 minutes; single window ≤60 minutes
+    tooling: Maintenance logs + reporting
+    cadence: Monthly
+    environments: [prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Controls maintenance impact to meet availability objectives
+
+  - control_id: blue-green-zero-failures
+    nfr_code: AVAIL-010
+    measure: Blue/green deployment produces 0 failed requests
+    threshold: 0 failed requests during blue/green switch
+    tooling: Deployment controller + canary telemetry
+    cadence: Per deployment
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Ensures safe deployments without user impact

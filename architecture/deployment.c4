@@ -11,12 +11,12 @@ deployment {
 
           cloudfunction readProxyFunction "DoS Read Proxy Function" {
             description "Processes incoming requests and forwards them to the appropriate backend"
-            instanceOf apim.dosReadProxy
+            instanceOf apim.dosSearchProxy
           }
 
           cloudfunction writeProxyFunction "DoS Read Proxy Function" {
             description "Processes incoming requests and forwards them to the appropriate backend"
-            instanceOf apim.dosWriteProxy
+            instanceOf apim.dosIngressProxy
           }
         }
       }
@@ -33,12 +33,16 @@ deployment {
           instanceOf ftrs.assuranceEngine
 
           instanceOf ftrs.etl
+          instanceOf ftrs.etlOds
+          instanceOf ftrs.etlOds.processor
+          instanceOf ftrs.etlOds.queue
+          instanceOf ftrs.etlOds.consumer
           instanceOf ftrs.sourcingEtlConsumer
-          instanceOf ftrs.orgController.orgByOdsCode
-          instanceOf ftrs.updateOrgController.addOrg
-          instanceOf ftrs.updateOrgController.updateOrg
-          instanceOf ftrs.updateOrgController.deleteOrg
+          instanceOf ftrs.healthcareServiceAPI
+          instanceOf ftrs.locationAPI
+          instanceOf ftrs.organizationAPI
           instanceOf ftrs.tasksAPI.tasksController.getTasks
+          instanceOf odsService
         }
       }
       instanceOf ftrs.apiGateway

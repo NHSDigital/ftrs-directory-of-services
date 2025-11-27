@@ -1,0 +1,347 @@
+# Versioned Security Expectations Registry for FtRS
+version: 1.0
+generated: 2025-11-14
+
+# Each control defines a concrete, automatable expectation mapped to a SEC-* NFR.
+# Minimal fields:
+# - control_id: stable identifier for the check/control
+# - nfr_code: mapped Security NFR code (e.g., SEC-003)
+# - measure: short description of what is verified
+# - threshold: quantified acceptance level
+# - tooling: primary automation used to verify the measure
+# - cadence: how often the check runs
+# - environments: list of environment identifiers covered by the check
+# - status: governance state (draft/accepted/exception)
+# - rationale: brief notes supporting the target/tool choice
+# Optional fields (not rendered in the summary table): evidence_links, exception_stories
+
+controls:
+  - control_id: tls-encryption-endpoints
+    nfr_code: SEC-003
+    measure: All public/private API endpoints enforce TLS; storage services enable encryption at rest
+    threshold: 100% compliant across resources
+    tooling: AWS Config rules + Terraform policy checks
+    cadence: Continuous (real-time) with CI enforcement on change
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift
+
+  - control_id: high-cve-block
+    nfr_code: SEC-027
+    measure: Build fails when high/critical CVEs detected in application or container dependencies
+    threshold: 0 unresolved High/Critical CVEs at release time
+    tooling: SCA scanner (e.g., OWASP Dependency-Check), container scanner, pipeline gate
+    cadence: CI per build + scheduled weekly scans
+    environments: [dev, int, ref]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Prevents introduction of known vulnerabilities; gate aligned to release quality
+
+  - control_id: pid-mtls-enforcement
+    nfr_code: SEC-025
+    measure: Requests carrying PID fields require mutual TLS; plaintext requests blocked
+    threshold: 100% enforcement on designated endpoints
+    tooling: API gateway/WAF policy + integration tests
+    cadence: CI policy validation + continuous enforcement
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Ensures transport security for sensitive data; test coverage verifies enforcement
+
+  - control_id: cis-benchmark-compliance
+    nfr_code: SEC-009
+    measure: CIS benchmark automation reports meet pass thresholds for targeted services
+    threshold: ">= 95% controls passing; all high-severity findings remediated or exceptioned"
+    tooling: CIS benchmark tooling integrated in CI and periodic audits
+    cadence: CI per change + monthly full audit
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Baseline hardening validated continuously; monthly cadence catches drift
+
+  - control_id: iam-least-privilege
+    nfr_code: SEC-012
+    measure: IAM policy review confirms least privilege for system roles
+    threshold: ">= 95% policies compliant; no wildcard resource; explicit actions only"
+    tooling: IAM Access Analyzer + policy linters
+    cadence: CI per change + quarterly audit
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Continuous analysis prevents privilege creep; periodic review catches drift
+
+  - control_id: mtls-service-handshake
+    nfr_code: SEC-014
+    measure: mTLS handshake succeeds between designated services using ITOC-approved CA signed leaf + intermediate certs (chain to ITOC root); invalid/expired/revoked/untrusted-issuer/weak-cipher attempts rejected
+    threshold: 100% handshake success for valid ITOC chain; 0 successful handshakes with expired, revoked, weak cipher, or non-ITOC issuer certs; rotation introduces 0 downtime
+    tooling: Integration tests (valid/expired/revoked/wrong-CA/weak-cipher) + gateway cert management + OCSP/CRL polling
+    cadence: CI per build + cert rotation checks + revocation poll ≤5m
+    environments: [int, ref, prod]
+    services: [dos-search, crud-apis]
+    status: draft
+    rationale: Enforces trusted ITOC certificate chain, strong ciphers, timely revocation, and zero-downtime rotation for secure service-to-service trust
+
+  - control_id: authority-cert-validation
+    nfr_code: SEC-020
+    measure: Remote connections present valid Authority certs; invalid certs rejected
+    threshold: 100% validation events pass; 0 successful connections with invalid certs
+    tooling: TLS config tests + runtime observation in logs
+    cadence: CI policy validation + runtime checks
+    environments: [int, ref, prod]
+    services: [etl-ods]
+    status: draft
+    rationale: External data source interactions require strict certificate validation
+
+  - control_id: port-scan-diagnostic-only
+    nfr_code: SEC-021
+    measure: Port scan matches approved diagnostic list only
+    threshold: No unexpected open ports detected outside approved list
+    tooling: Automated port scan + baseline comparison
+    cadence: Monthly + CI smoke on infra changes
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Detects misconfigurations; verifies adherence to diagnostic port policy
+
+  - control_id: release-block-critical-findings
+    nfr_code: SEC-028
+    measure: Release pipeline blocks on critical unresolved findings
+    threshold: 0 critical unresolved findings prior to release
+    tooling: Pipeline gate integrated with SCA, container, IaC scanners
+    cadence: Per release
+    environments: [dev, int, ref]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Enforces remediation before release; gate consolidates multiple scanner outputs
+
+  - control_id: zero-long-lived-credentials
+    nfr_code: SEC-017
+    measure: Scan reports zero unmanaged long-lived credentials
+    threshold: 0 unmanaged long-lived credentials
+    tooling: Secret scanners + IAM credential report audit
+    cadence: CI per build + weekly audit
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Reduces risk from forgotten credentials; continuous scanning plus scheduled audits
+
+  - control_id: cert-secure-storage
+    nfr_code: SEC-030
+    measure: Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts
+    threshold: 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers
+    tooling: Secret scanning (git history + container layers), CI policy checks, artifact scanner, repo pre-commit hooks
+    cadence: CI per build + weekly full history & image layer scan
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning
+
+  - control_id: cross-env-access-denied
+    nfr_code: SEC-005
+    measure: Cross-env data access attempts denied and logged
+    threshold: 100% denial; audit logs prove enforcement
+    tooling: IAM policies + SCP guardrails + audit log queries
+    cadence: CI policy checks + monthly audit review
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Prevents accidental or malicious cross-environment data access
+
+  - control_id: segmentation-tenant-isolation
+    nfr_code: SEC-019
+    measure: Segmentation test confirms tenant isolation
+    threshold: 100% isolation; no cross-tenant data access observed
+    tooling: Segmentation test suite + log verification
+    cadence: Quarterly
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Ensures strict isolation between tenants per policy
+
+  - control_id: crypto-cipher-policy
+    nfr_code: SEC-001
+    measure: Crypto algorithms conform; weak ciphers rejected
+    threshold: TLS1.2+ only; no weak/legacy ciphers enabled
+    tooling: TLS scanner + configuration policy checks
+    cadence: CI per change + monthly scan
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Enforces modern TLS standards; automated scans detect drift
+
+  - control_id: waf-pillar-checklist
+    nfr_code: SEC-002
+    measure: WAF security pillar checklist completed & gaps tracked
+    threshold: Checklist complete; 100% actions tracked; 0 open critical gaps
+    tooling: WAF checklist repository + issue tracker gate
+    cadence: Quarterly + on change
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Formalizes WAF security governance; gaps tracked to closure
+
+  - control_id: storage-encryption-enabled
+    nfr_code: SEC-004
+    measure: Storage services show encryption enabled
+    threshold: 100% storage resources encrypted at rest
+    tooling: AWS Config rules + Terraform policy checks
+    cadence: Continuous + CI enforcement
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Guardrails ensure encryption at rest across services
+
+  - control_id: prod-console-access-audit
+    nfr_code: SEC-006
+    measure: No direct prod console queries detected in audit period
+    threshold: 0 non-approved console queries in audit period
+    tooling: CloudTrail + SIEM audit queries
+    cadence: Weekly audit + alerting
+    environments: [prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Detects improper direct access to production consoles
+
+  - control_id: sg-broad-ingress-denied
+    nfr_code: SEC-007
+    measure: SG rules audited; attempt broad ingress denied
+    threshold: 0 broad (0.0.0.0/0) ingress on restricted ports
+    tooling: AWS Config + IaC linter
+    cadence: CI per change + monthly audit
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Prevents risky network exposure via security groups
+
+  - control_id: perimeter-scan
+    nfr_code: SEC-008
+    measure: Perimeter scan shows no broad whitelist & secure channels
+    threshold: No broad whitelists; only secure channels reported
+    tooling: External perimeter scanner + config validation
+    cadence: Monthly + on change
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Confirms perimeter hygiene and secure external exposure
+
+  - control_id: annual-pentest
+    nfr_code: SEC-010
+    measure: Annual pen test executed; remediation tickets raised & closed
+    threshold: Pen test executed; all critical findings remediated or exceptioned
+    tooling: Pen test reports + remediation tracking
+    cadence: Annual
+    environments: [prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Validates security posture with external testing and tracked remediation
+
+  - control_id: security-features-latency-sla
+    nfr_code: SEC-011
+    measure: Security features enabled latency within SLA
+    threshold: Added latency within agreed SLA per endpoint
+    tooling: Performance tests with security features enabled
+    cadence: CI perf checks + monthly regression review
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Ensures security does not breach performance SLAs
+
+  - control_id: key-rotation-logging
+    nfr_code: SEC-013
+    measure: Key rotation events logged; unauthorized access denied
+    threshold: 100% rotation events logged; 0 unauthorized key access
+    tooling: KMS/AWS logs + SIEM correlation
+    cadence: Quarterly audit + CI checks on policy
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Audit trail confirms rotation compliance and denial of unauthorized access
+
+  - control_id: cert-expiry-alert-renewal
+    nfr_code: SEC-015
+    measure: Expiry alert fired in advance; renewal executed seamlessly
+    threshold: ">= 30 days prior alert; 0 outage during renewal"
+    tooling: Cert manager alerts + renewal runbooks
+    cadence: Continuous monitoring
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Proactive renewal prevents downtime; alerts ensure timely action
+
+  - control_id: privileged-mfa-enforced
+    nfr_code: SEC-016
+    measure: MFA enforced for all privileged infra roles
+    threshold: 100% privileged roles require MFA
+    tooling: IAM policy checks + directory audit
+    cadence: CI policy checks + quarterly audit
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Strong authentication for privileged accounts reduces risk
+
+  - control_id: cis2-jwt-auth-enforced
+    nfr_code: SEC-029
+    measure: All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims)
+    threshold: 100% endpoints require valid CIS2 JWT; invalid/missing tokens rejected with structured 401
+    tooling: OIDC integration tests + JWT validator + JWKS cache monitor
+    cadence: CI per build + continuous runtime enforcement
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-search, etl-ods, read-only-viewer]
+    status: draft
+    rationale: Ensures uniform strong authentication; claim + signature validation prevents unauthorized access
+
+  - control_id: supplier-audit-attestation
+    nfr_code: SEC-018
+    measure: Supplier audit attestation stored & verified
+    threshold: Attestations current; verification completed
+    tooling: Supplier management system + evidence repository
+    cadence: Annual + on contract change
+    environments: [prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Ensures supplier compliance and auditable records
+
+  - control_id: utility-access-restricted
+    nfr_code: SEC-022
+    measure: Utility program access restricted to approved roles
+    threshold: Only approved roles can access utility programs
+    tooling: RBAC policy checks + audit logs
+    cadence: CI policy checks + monthly audit
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Prevents misuse of diagnostic utilities
+
+  - control_id: deployment-provenance-traceable
+    nfr_code: SEC-023
+    measure: Deployment provenance shows unique traceable accounts
+    threshold: All deployments traceable to unique accounts
+    tooling: CI/CD audit trails + commit signing
+    cadence: Continuous
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Ensures accountability and traceability for all deployments
+
+  - control_id: transfer-integrity-secure
+    nfr_code: SEC-024
+    measure: Code/data transfer logs show integrity & secure channels
+    threshold: 100% transfers logged; integrity and secure channel verified
+    tooling: Checksums/signatures + TLS enforcement + audit logs
+    cadence: CI per change + weekly reviews
+    environments: [dev, int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Validates integrity and secure transport for all transfers
+
+  - control_id: pid-no-plaintext-response
+    nfr_code: SEC-026
+    measure: API responses contain no unencrypted PID fields
+    threshold: 0 occurrences of unencrypted PID in responses
+    tooling: Integration tests + response scanners
+    cadence: CI per build + periodic production sampling
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Ensures sensitive data is never returned unencrypted
