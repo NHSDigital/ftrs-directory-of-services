@@ -1,302 +1,93 @@
-name: Application Deployment Pipeline
+name: 'Deploy API Proxy to APIM environment'
+description: 'Deploy an API Proxy into an APIM environment'
 
-permissions:
-  id-token: write
-  contents: write
+inputs:
+  api_name:
+    description: 'Name of the API to deploy'
+    required: true
+  workspace:
+    description: 'Workspace identifier (e.g., FTRS-000)'
+    required: true
+  environment:
+    description: 'FTRS environment to deploy to (e.g., dev, test, prod)'
+    required: true
+  apim_env:
+    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev)'
+    required: true
+  access_token:
+    description: 'Access Token for the Proxygen API'
+    required: true
 
-on:
-  push:
-    branches:
-      - main
-      - "task/**"
-      - "dependabot/**"
-  workflow_dispatch:
-    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
-    inputs:
-      tag:
-        description: "Specify the tag to be used for deployment"
-        required: true
-        type: string
-      application_tag:
-        description: "Specify the application tag to be used for deployment"
-        required: true
-        type: string
-      environment:
-        description: "Deployment environment"
-        required: true
-        default: "dev"
-        type: choice
-        options:
-          - dev
-          - test
-          - sandpit
-          - int
-          - ref
-          - prod
+outputs:
+  deployment_status:
+    description: 'Status of the deployment'
+    value: ${{ steps.deploy.outputs.status }}
 
-jobs:
-  metadata:
-    name: "Get CI/CD metadata"
-    uses: ./.github/workflows/metadata.yaml
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyyaml
 
-  quality-checks:
-    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
-    needs:
-      - metadata
-    uses: ./.github/workflows/quality-checks.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-      type: app
-      build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
-    secrets: inherit
+    - name: Validate workspace format
+      shell: bash
+      run: |
+        if [[ ! "${{ inputs.workspace }}" =~ ^ftrs-[0-9]+$ ]]; then
+          echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)"
+          exit 1
+        fi
+        echo "Workspace format validated: ${{ inputs.workspace }}"
 
-  build-services:
-    name: "Build ${{ matrix.name }}"
-    needs:
-      - metadata
-      - quality-checks
-    strategy:
-      matrix:
-        include:
-          - name: "python"
-            build_type: "package"
-          - name: "crud-apis"
-            build_type: "service"
-          - name: "data-migration"
-            build_type: "service"
-          - name: "read-only-viewer"
-            build_type: "service"
-          - name: "etl-ods"
-            build_type: "service"
-          - name: "dos-search"
-            build_type: "service"
-          - name: "dos-ui"
-            build_type: "service"
-    uses: ./.github/workflows/build-project.yaml
-    with:
-      name: ${{ matrix.name }}
-      build_type: ${{ matrix.build_type }}
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: app
-    secrets: inherit
+    - name: Modify OAS Specification
+      id: modify-spec
+      shell: bash
+      run: |
+        export API_NAME="${{ inputs.api_name }}"
+        export WORKSPACE="${{ inputs.workspace }}"
+        export PROXY_ENV="${{ inputs.apim_env }}"
 
-  perform-code-analysis:
-    name: "Perform static code analysis"
-    needs:
-      - metadata
-      - build-services
-    uses: ./.github/workflows/static-code-analysis.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+        chmod +x ./scripts/workflow/modify-oas-spec.sh
+        MODIFIED_SPEC_PATH=$(./scripts/workflow/modify-oas-spec.sh)
 
-  deploy-application-infrastructure:
-    name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
-    needs:
-      - metadata
-      - build-services
-      - perform-code-analysis
-    uses: ./.github/workflows/deploy-application-infrastructure.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      tag: ${{ inputs.tag }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      workflow_timeout: 30
-    secrets: inherit
+        if [ $? -eq 0 ]; then
+          echo "modified_spec_path=$MODIFIED_SPEC_PATH" >> $GITHUB_OUTPUT
+          echo "OAS spec modified successfully"
+        else
+          echo "Failed to modify OAS spec"
+          exit 1
+        fi
 
-  deploy-proxy-to-apim:
-    name: "Authenticate and Deploy ${{ matrix.api_name }} API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-    if: needs.metadata.outputs.environment == 'dev' # TODO: Update condition once further environment work is complete
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
-    strategy:
-      matrix:
-        api_name:
-          - dos-search
-          # Add more API names here as needed
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      api_name: ${{ matrix.api_name }}
-      apim_env: "internal-dev"
-    secrets:
-      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-      AWS_REGION: ${{ vars.AWS_REGION }}
+    - name: Deploy API Proxy to APIM environment
+      id: deploy
+      shell: bash
+      run: |
+        export API_NAME="${{ inputs.api_name }}"
+        export WORKSPACE="${{ inputs.workspace }}"
+        export PROXY_ENV="${{ inputs.apim_env }}"
+        export ACCESS_TOKEN="${{ inputs.access_token }}"
+        export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
 
-  migrate-data:
-    name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
-    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
-      cancel-in-progress: false
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/migrate-data.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
-      queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
-      type: app
-    secrets: inherit
+        chmod +x ./scripts/workflow/deploy-to-apim.sh
+        RESPONSE=$(./scripts/workflow/deploy-to-apim.sh)
 
-  export-dynamodb-to-s3:
-    name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
-    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
-      cancel-in-progress: false
-    needs:
-      - metadata
-      - migrate-data
-    uses: ./.github/workflows/manage-dynamodb-data.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      type: app
-      action: export
-    secrets: inherit
+        if [ $? -eq 0 ]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "${{ inputs.api_name }} deployed successfully to APIM ${{ inputs.apim_env }} environment"
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "${{ inputs.api_name }} deployment to ${{ inputs.apim_env }} failed"
+          exit 1
+        fi
 
-  restore-dynamodb-from-s3:
-    name: "Restore data from S3 to DynamoDB tables in ${{ needs.metadata.outputs.workspace }}"
-    if: needs.metadata.outputs.workspace != 'default' && needs.metadata.outputs.environment != 'prod'
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/manage-dynamodb-data.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      action: import
-      type: app
-    secrets: inherit
-
-  deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-${{ matrix.name }}"
-      cancel-in-progress: false
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    strategy:
-      matrix:
-        include:
-          - name: "dos-ui"
-          - name: "read-only-viewer"
-    uses: ./.github/workflows/deploy-frontend-project.yaml
-    with:
-      name: ${{ matrix.name }}
-      build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: "app"
-    secrets: inherit
-
-  deploy-data-migration-service:
-    name: "Deploy data migration service to ${{ needs.metadata.outputs.environment }}"
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-data-migration-${{ needs.metadata.outputs.workspace }}"
-      cancel-in-progress: false
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/deploy-data-migration-project.yaml
-    with:
-      name: "data-migration"
-      build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: "app"
-    secrets: inherit
-
-  service-automation-tests:
-    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-      - restore-dynamodb-from-s3
-      - export-dynamodb-to-s3
-    if: |
-      always() &&
-      !cancelled() &&
-      (
-        needs.restore-dynamodb-from-s3.result == 'success' ||
-        (
-          needs.restore-dynamodb-from-s3.result == 'skipped' &&
-          (needs.export-dynamodb-to-s3.result == 'success' || needs.deploy-application-infrastructure.result == 'success')
-        )
-      )
-    uses: ./.github/workflows/service-automation-test.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      tag: ${{ inputs.tag }}
-      test_tag: "ftrs-pipeline"
-      test_type: "api"
-      type: app
-    secrets: inherit
-
-  generate-prerelease:
-    name: "Generate prerelease tag"
-    needs:
-      - deploy-frontend-services
-      - service-automation-tests
-    if: >
-      always() &&
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      needs.deploy-frontend-services.result == 'success' &&
-      needs.service-automation-tests.result == 'success'
-    uses: ./.github/workflows/generate-prerelease.yaml
-    secrets: inherit
-
-  check-pipeline-status:
-    name: "Check Pipeline Status"
-    needs:
-      - deploy-frontend-services
-      - deploy-data-migration-service
-      - service-automation-tests
-      - export-dynamodb-to-s3
-    if: always()
-    uses: ./.github/workflows/pipeline-status-check.yaml
-
-  slack-notifications:
-    name: "Send Notification to Slack"
-    needs:
-      - metadata
-      - quality-checks
-      - build-services
-      - deploy-application-infrastructure
-      - migrate-data
-      - export-dynamodb-to-s3
-      - restore-dynamodb-from-s3
-      - deploy-frontend-services
-      - deploy-data-migration-service
-      - service-automation-tests
-      - generate-prerelease
-      - check-pipeline-status
-    if: always()
-    uses: ./.github/workflows/slack-notifications.yaml
-    with:
-      env: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+    - name: Output deployment details
+      shell: bash
+      run: |
+        echo "Deployment Summary:"
+        echo "- API Name: ${{ inputs.api_name }}"
+        echo "- Workspace: ${{ inputs.workspace }}"
+        echo "- Environment: ${{ inputs.environment }}"
+        echo "- APIM Environment: ${{inputs.apim_env }}"
+        echo "- Status: ${{ steps.deploy.outputs.status }}"
