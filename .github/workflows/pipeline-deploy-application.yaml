@@ -180,6 +180,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
+      aws_region: ${{ vars.AWS_REGION }}
     secrets: inherit
 
   deploy-frontend-services:

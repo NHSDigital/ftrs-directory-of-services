@@ -14,6 +14,10 @@ on:
         description: "The name of the workspace to deploy the application into"
         required: true
         type: string
+      aws_region:
+        description: 'AWS region to use for AWS CLI calls'
+        required: false
+        type: string
 
 jobs:
   build-index:
@@ -28,7 +32,7 @@ jobs:
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
+          aws_region: ${{ inputs.aws_region }}
           type: app
 
       - name:  Create OpenSearch Index
@@ -37,3 +41,4 @@ jobs:
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
+          aws_region: ${{ inputs.aws_region }}

@@ -10,11 +10,15 @@ inputs:
   domain:
     description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
     required: false
-    default: ftrs-dos-dev-osc
+    default: "ftrs-dos-dev-osc"
   index:
     description: "The OpenSearch index name to create"
     required: false
     default: "os-index"
+  aws_region:
+    description: "AWS region to use for AWS CLI calls (optional). If empty, the script will rely on AWS CLI defaults or detect it."
+    required: false
+    default: ""
 
 runs:
   using: 'composite'
@@ -29,6 +33,8 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         ENVIRONMENT: ${{ inputs.environment }}
         GITHUB_REPOSITORY: ${{ github.repository }}
+        AWS_REGION: ${{ inputs.aws_region }}
+        AWS_DEFAULT_REGION: ${{ inputs.aws_region }}
       run: |
         set -euo pipefail
 
