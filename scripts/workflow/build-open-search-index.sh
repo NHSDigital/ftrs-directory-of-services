@@ -113,9 +113,17 @@ PAYLOAD='{
 }'
 URL="https://${OPEN_SEARCH_DOMAIN}/${FINAL_INDEX}"
 
+# Try awscurl first (signed requests), then curl as a fallback
 if command -v awscurl >/dev/null 2>&1; then
-  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT "${URL}" -H "Content-Type: application/json" -d "${PAYLOAD}"
+  err "Using awscurl to create index"
+  # Print awscurl version if available
+  AWSCURL_VERSION=$(awscurl --version 2>&1 || true)
+  err "awscurl: ${AWSCURL_VERSION}"
+
+  # Use -- to separate options from the URI to avoid argv parsing issues
+  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT -H "Content-Type: application/json" -d "${PAYLOAD}" -- "${URL}"
 else
+  err "awscurl not found; falling back to curl (unsigned request may return 403)"
   curl -sS --fail --max-time 30 --retry 2 -X PUT "${URL}" -H "Content-Type: application/json" -d "${PAYLOAD}"
 fi
 
