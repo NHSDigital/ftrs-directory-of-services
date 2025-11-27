@@ -1,12 +1,11 @@
 views {
 
   view of ftrs.searchByOdsCode {
-    title "FTRS CRUD APIs"
+    title "FTRS Search by ODS Code Endpoint"
     description '
-      APIs for CRUD operations on the Organizations table
-      and to retrieve data for the Healthcare Service dashboard
+      APIs for search operations on the Organizations table
     '
-    include *
+    // include *
     include ftrs.openSearch
     include ftrs.db
 

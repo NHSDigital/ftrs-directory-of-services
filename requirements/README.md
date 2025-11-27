@@ -9,16 +9,14 @@ This workspace holds product User Stories and Non-Functional Requirements (NFRs)
 ## Structure
 
 Key requirement artefacts:
-* `nfrs/` domain folders each with `expectations.yaml`
-* `nfrs/cross-references/nfr-matrix.md` – NFR code → story ID mapping
-* `nfrs/cross-references/nfr-explanations.yaml` – plain-language descriptions
-* `user-stories/` – story markdown files with `nfr_refs:` arrays
-* `scripts/nfr/refresh_simplified_nfr_page.py` – generates consolidated view
 
+- `nfrs/` domain folders each with `expectations.yaml`
+- `nfrs/cross-references/nfr-matrix.md` – NFR code → story ID mapping
 
 ## Role-Based Step-by-Step Guides
 
 ### 1. Add a New Atomic NFR (Business Analyst / Tech Lead)
+
 1. Identify the domain (e.g. Performance, Security).
 2. Pick next unused numeric code (e.g. if PERF-013 exists, new is PERF-014). Do NOT reuse codes.
 3. Create draft acceptance anchor line (succinct, testable) – one sentence, no conjunctions.
@@ -29,44 +27,44 @@ Key requirement artefacts:
 8. Commit (`feat(requirements): Add PERF-014 <JIRA-ID>`).
 
 ### 2. Create / Refine a Story Referencing NFRs (Business Analyst)
-1. Copy a template from `user-stories/templates/` into `user-stories/backlog/` (rename with `STORY-###-slug.md`).
-2. Fill `as_a`, `i_want`, `so_that`, and `business_value` fields.
-3. Add `nfr_refs: [PERF-001, SEC-003]` referencing codes actually impacted.
-4. Draft acceptance criteria: each must be objectively verifiable; avoid subjective language.
-5. Include edge cases and negative paths when relevant.
-6. Save and (optionally) run future linter once available (planned) to validate NFR codes exist.
-7. Move story to `in-progress/` when work starts; later to `done/` when accepted.
+
+1. Fill `as_a`, `i_want`, `so_that`, and `business_value` fields.
+2. Add `nfr_refs: [PERF-001, SEC-003]` referencing codes actually impacted.
+3. Draft acceptance criteria: each must be objectively verifiable; avoid subjective language.
 
 ### 3. Add a Performance Operation Entry (Tech Lead)
+
 1. Open `performance/expectations.yaml`.
 2. Duplicate an existing operation block as a starting template.
 3. Set `service`, unique `operation_id` (kebab-case, stable), and `performer_class` (FAST/STANDARD/SLOW).
 4. Define `p50_target_ms`, `p95_target_ms`, `absolute_max_ms` based on design & user impact.
 5. (Optional) Add `burst_tps_target`, `sustained_tps_target`, `max_request_payload_bytes`.
-6. Provide concise `rationale` (drivers, assumptions, constraints).
-7. Leave `status: draft` initially; change to `accepted` after review.
-8. Increment the file `version` if targets materially change (not for adding a new draft entry alone).
-9. Run refresh script and confirm new operation in the Performance table.
-10. Commit (`feat(performance): Add gp-list operation targets <JIRA-ID>`).
+6. Leave `status: draft` initially; change to `accepted` after review.
+7. Increment the file `version` if targets materially change (not for adding a new draft entry alone).
+8. Run refresh script and confirm new operation in the Performance table.
+9. Commit (`feat(performance): Add gp-list operation targets <JIRA-ID>`).
 
 ### 4. Add or Update a Domain Control (Tech Lead)
+
 1. Open relevant domain `expectations.yaml` (e.g. `security/expectations.yaml`).
 2. Add new object under `controls:` with unique `control_id` (kebab-case).
 3. Map `nfr_code` (ensure it exists in the matrix).
 4. Define `measure` (what is checked) and `threshold` (quantified target).
-5. Set `tooling` (scanner, test, policy engine) and `cadence` (CI, daily, monthly, per release).
-6. List `environments` and restrict `services` if not universal.
-# Requirements Workspace
+5. List `environments` and restrict `services` if not universal.
+
+## Requirements Workspace (AI assistants overview)
 
 This workspace holds product User Stories and Non-Functional Requirements (NFRs) in source control so AI assistants and automation can:
 
-* Suggest acceptance criteria based on tagged NFRs
-* Generate story scaffolds and traceability links
-* Surface governance gaps (draft / exception) before release
+- Suggest acceptance criteria based on tagged NFRs
+- Generate story scaffolds and traceability links
+- Surface governance gaps (draft / exception) before release
 
 ---
+
 ## 1. Structure Overview
-```
+
+```text
 requirements/
   README.md                     (this guide)
   nfrs/                         Domain expectation registries
@@ -75,7 +73,6 @@ requirements/
     reliability/                Reliability controls
     availability/               Availability controls
     scalability/                Scalability controls
-    observability/              Observability controls
     interoperability/           Interoperability controls
     accessibility/              Accessibility controls
     cost/                       Cost controls
@@ -86,18 +83,10 @@ requirements/
       nfr-explanations.yaml     Plain-language explanations
   user-stories/                 Story markdown files
 scripts/
-  nfr/refresh_simplified_nfr_page.py  Consolidated page generator
 ```
+
 Generated summary: `docs/developer-guides/nfr-all-simplified.md`.
 
----
-## 2. Traceability Flow (Lifecycle)
-`NFR code → capability spec → atomic stories → operational/acceptance registries → telemetry & tests → evidence (dashboards, scans)`
-
-Each artefact references upstream IDs (stories list `nfr_refs`; tests include `operation_id` or `control_id`).
-
----
-## 3. Adding Atomic NFRs (Business Analyst / Tech Lead)
 1. Pick domain (Performance, Security, etc.).
 2. Determine next unused code (e.g. PERF-014). Do not recycle.
 3. Draft anchor sentence (succinct, testable, single outcome).
@@ -107,48 +96,48 @@ Each artefact references upstream IDs (stories list `nfr_refs`; tests include `o
 7. Commit: `feat(requirements): Add PERF-014 <JIRA-ID>`.
 
 ### Explanation Guidelines
-* ≤ 40 words, plain language
-* Describe stakeholder value, not implementation
-* Avoid repeating anchor verbatim
+
+- ≤ 40 words, plain language
+- Describe stakeholder value, not implementation
+- Avoid repeating anchor verbatim
 
 ---
+
 ## 4. User Stories Referencing NFRs
+
 1. Copy template from `user-stories/templates/` into `user-stories/backlog/` (`STORY-###-slug.md`).
 2. Populate front matter: `as_a`, `i_want`, `so_that`, `business_value`.
-3. Add `nfr_refs: [PERF-001, SEC-003]` (only directly impacted codes).
-4. Draft objective acceptance criteria (include edge / negative cases).
-5. Move to `in-progress/` when work starts; `done/` when accepted.
+3. Draft objective acceptance criteria (include edge / negative cases).
+4. Move to `in-progress/` when work starts; `done/` when accepted.
 
 Story front matter expected keys:
-```
-as_a: <role>
-i_want: <capability>
-so_that: <value>
+
+```yaml
 business_value: <why>
-nfr_refs: [CODE,...]
 acceptance_criteria:
   - <criterion>
 out_of_scope:
-  - <item?>
-notes:
-  - <context?>
+  | Check | Action |
+  |-------|--------|
+  | Codes valid | Cross-check against `nfr-matrix.md` |
+  | Fields present | Compare with schema section above |
+  | Threshold realism | Peer review (Tech Lead) |
+  | Rationale clarity | Ensure assumption + source present |
+  | YAML parse | Run quick Python one-liner |
+  | Explanation uniqueness | Avoid repeating anchor verbatim |
+
 ```
 
----
-## 5. Performance Operation Entries (Tech Lead)
-File: `performance/expectations.yaml` (operation-centric schema).
 1. Duplicate an existing operation block.
 2. Set `service`, unique `operation_id` (kebab-case), `performer_class` (FAST|STANDARD|SLOW).
 3. Define `p50_target_ms`, `p95_target_ms`, `absolute_max_ms`.
 4. (Optional) Add `burst_tps_target`, `sustained_tps_target`, `max_request_payload_bytes`.
-5. Supply concise `rationale`.
-6. Start with `status: draft`; shift to `accepted` after review.
-7. Bump `version` only when changing existing targets materially.
-8. Run generator and verify.
-9. Commit: `feat(performance): Add gp-list operation targets <JIRA-ID>`.
+5. Start with `status: draft`; shift to `accepted` after review.
+6. Bump `version` only when changing existing targets materially.
+7. Run generator and verify.
+8. Commit: `feat(performance): Add gp-list operation targets <JIRA-ID>`.
 
-Operation schema:
-```
+```yaml
 version: <semver>
 operations:
   - service: <name>
@@ -164,9 +153,10 @@ operations:
     rationale: <text>
 ```
 
----
 ## 6. Domain Control Entries (Tech Lead)
+
 Non-performance domains use control-centric schema (`expectations.yaml`).
+
 1. Add object under `controls:` with unique `control_id`.
 2. Map valid `nfr_code`.
 3. Define `measure` & quantified `threshold`.
@@ -178,7 +168,8 @@ Non-performance domains use control-centric schema (`expectations.yaml`).
 9. Commit: `feat(security): Add build CVE gate control <JIRA-ID>`.
 
 Control schema:
-```
+
+```yaml
 version: <semver>
 controls:
   - control_id: <kebab-case>
@@ -196,17 +187,20 @@ controls:
 Exception rationale format suggestion: `reason; mitigation; review YYYY-MM-DD`.
 
 ---
+
 ## 7. Validation Checklist (Pre-Commit)
-| Check | Action |
-|-------|--------|
-| Codes valid | Ensure every `nfr_code` exists in `nfr-matrix.md` |
-| Unique IDs | No duplicate `operation_id` / `control_id` |
-| Versioning | Bump `version` only for changed existing targets |
-| Explanations | All codes have entries (generator warns otherwise) |
-| YAML parse | Run quick one-liner below |
-| Draft vs Accepted | Governance sign-off recorded before status change |
+
+| Check             | Action                                             |
+| ----------------- | -------------------------------------------------- |
+| Codes valid       | Ensure every `nfr_code` exists in `nfr-matrix.md`  |
+| Unique IDs        | No duplicate `operation_id` / `control_id`         |
+| Versioning        | Bump `version` only for changed existing targets   |
+| Explanations      | All codes have entries (generator warns otherwise) |
+| YAML parse        | Run quick one-liner below                          |
+| Draft vs Accepted | Governance sign-off recorded before status change  |
 
 One-liner parse:
+
 ```bash
 python3 - <<'PY'
 import yaml, pathlib, sys
@@ -224,7 +218,9 @@ PY
 ```
 
 ---
+
 ## 8. Handling Exceptions
+
 1. Set `status: exception`.
 2. Update `rationale` with cause, mitigation, review date.
 3. Link follow-up remediation story ID(s).
@@ -232,66 +228,80 @@ PY
 5. Commit: `fix(requirements): Record exception for burst throughput gp-nearby <JIRA-ID>`.
 
 ---
+
 ## 9. Governance Review Packet
+
 Inputs: refreshed simplified page + registries.
+
 Include:
-* Domain status counts (draft / accepted / exception)
-* Notable changes since last review (version bumps)
-* Exceptions with review dates
-* Upcoming remediation stories
+
+- Domain status counts (draft / accepted / exception)
+- Notable changes since last review (version bumps)
+- Exceptions with review dates
+- Upcoming remediation stories
 
 Summary prompt skeleton:
-```
+
+```text
 Produce governance summary: accepted=<A> draft=<D> exception=<E>. Two paragraphs: Overview + Recommended actions. <= 180 words.
 ```
 
 ---
+
 ## 10. AI Assistance (Prompt Patterns & Guardrails)
 
 ### Core Guardrails
-* Never invent NFR codes – reserve manually first.
-* AI proposals require human threshold validation.
-* Reject changes lacking rationale.
-* Keep explanation ≤ 40 words, stakeholder-focused.
-* Rerun generator after edits to catch omissions.
-* Parse YAML for any registry modifications.
+
+- Never invent NFR codes – reserve manually first.
+- AI proposals require human threshold validation.
+- Reject changes lacking rationale.
+- Keep explanation ≤ 40 words, stakeholder-focused.
+- Rerun generator after edits to catch omissions.
+- Parse YAML for any registry modifications.
 
 ### Prompt Skeleton Table
-| Scenario | Prompt Skeleton |
-|----------|-----------------|
-| New NFR | "Draft succinct, testable acceptance anchor for new Performance NFR about [topic]; propose p50/p95/absolute_max targets + 20-word rationale." |
-| Threshold refinement | "Given current p50=320ms/p95=780ms for operation gp-list, propose realistic FAST targets balancing UX and backend limits." |
-| Story acceptance criteria | "Generate 3 objective acceptance criteria for STORY-123 referencing PERF-004 and SEC-003; include one negative path." |
-| Explanation authoring | "Write a plain-language (<35 words) explanation for NFR REL-005 emphasizing user impact if unmet." |
-| Control ideation | "Suggest two Security controls for dependency scanning with measurable thresholds and tooling options." |
-| Exception rationale | "Provide concise exception rationale for control tls-encryption-endpoints not met due to legacy endpoint; include mitigation & review date." |
+
+| Scenario                  | Prompt Skeleton                                                                                                                               |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| New NFR                   | "Draft succinct, testable acceptance anchor for new Performance NFR about [topic]; propose p50/p95/absolute_max targets + 20-word rationale." |
+| Threshold refinement      | "Given current p50=320ms/p95=780ms for operation gp-list, propose realistic FAST targets balancing UX and backend limits."                    |
+| Story acceptance criteria | "Generate 3 objective acceptance criteria for STORY-123 referencing PERF-004 and SEC-003; include one negative path."                         |
+| Explanation authoring     | "Write a plain-language (<35 words) explanation for NFR REL-005 emphasizing user impact if unmet."                                            |
+| Control ideation          | "Suggest two Security controls for dependency scanning with measurable thresholds and tooling options."                                       |
+| Exception rationale       | "Provide concise exception rationale for control tls-encryption-endpoints not met due to legacy endpoint; include mitigation & review date."  |
 
 ### Rapid Evaluation Checklist
-| Aspect | Accept If |
-|--------|-----------|
-| Schema completeness | All mandatory fields present |
-| Code validity | Codes exist in matrix |
-| Threshold realism | Anchored by current telemetry or benchmarks |
-| Rationale clarity | States driver + assumption/source |
-| Explanation value | Adds clarity beyond anchor |
+
+| Aspect              | Accept If                                   |
+| ------------------- | ------------------------------------------- |
+| Schema completeness | All mandatory fields present                |
+| Code validity       | Codes exist in matrix                       |
+| Threshold realism   | Anchored by current telemetry or benchmarks |
+| Rationale clarity   | States driver + assumption/source           |
+| Explanation value   | Adds clarity beyond anchor                  |
 
 ### YAML Safety Pre-Lint Prompt
-```
+
+````text
 Content:
 ```yaml
 <PASTE BLOCK>
 ```
+
 List syntax/formatting issues (indent, tabs, quoting, lists). Return fixes + reasoning.
-```
+````
 
 ### Anti-Patterns (Reject)
-* Vague thresholds ("improve latency")
-* Multiple disparate outcomes in one control
-* Jargon-heavy explanations
-* Invented tooling names
+
+- Vague thresholds ("improve latency")
+- Multiple disparate outcomes in one control
+- Jargon-heavy explanations
+- Invented tooling names
 
 ---
+
 ## 11. Commit Guidance (Conventional Commits)
+
 | Type | Example |
 |------|---------|
 | feat | feat(performance): Add gp-bulk-search operation targets <JIRA-ID> |
@@ -303,18 +313,24 @@ List syntax/formatting issues (indent, tabs, quoting, lists). Return fixes + rea
 Include Jira key; capitalize first word after colon; no trailing period.
 
 ---
+
 ## 12. Refreshing the Simplified NFR Page
-* Command: `python3 scripts/nfr/refresh_simplified_nfr_page.py`
-* Output: `docs/developer-guides/nfr-all-simplified.md`
-* Warns for missing explanations.
-* Commit only with substantive registry/content changes.
+
+- Command: `python3 scripts/nfr/refresh_simplified_nfr_page.py`
+- Output: `docs/developer-guides/nfr-all-simplified.md`
+- Warns for missing explanations.
+- Commit only with substantive registry/content changes.
 
 ---
+
 ## 13. Quick Reference Schemas
+
 Performance (operations) and other domains (controls) are documented above; keep fields ordered for readability.
 
 ---
+
 ## 14. Future Enhancements (Backlog Ideas)
+
 | Idea | Value |
 |------|-------|
 | Linter for NFR codes in stories | Prevents typos & orphan references |
@@ -324,7 +340,9 @@ Performance (operations) and other domains (controls) are documented above; keep
 | Story acceptance criteria template generator | Reduces manual drafting time |
 
 ---
+
 ## 15. Glossary (Selected Terms)
+
 | Term | Definition |
 |------|------------|
 | Anchor | Single-sentence testable NFR expression |
@@ -334,16 +352,21 @@ Performance (operations) and other domains (controls) are documented above; keep
 | Performer Class | FAST/STANDARD/SLOW latency classification |
 
 ---
+
 ## 16. Minimal Parsing Sanity (One-Liner)
+
 ```bash
 python3 - <<'PY'
 import yaml, sys; yaml.safe_load(open('requirements/nfrs/performance/expectations.yaml').read()); print('performance OK')
 PY
 ```
+
 Extend pattern for other domains as needed.
 
 ---
+
 ## 17. Getting Started Checklist
+
 1. Read this README once end-to-end.
 2. Add first domain NFR (e.g. PERF-001) + explanation.
 3. Create initial story referencing it.
@@ -352,14 +375,18 @@ Extend pattern for other domains as needed.
 6. Iterate with AI assist + human review.
 
 ---
+
 ## 18. Anti-Regressions
+
 Before merging any README rewrite ensure:
-* Schemas remain accurate.
-* Traceability flow ordering intact.
-* AI guardrails section present.
-* Commit guidance table retained.
+
+- Schemas remain accurate.
+- Traceability flow ordering intact.
+- AI guardrails section present.
+- Commit guidance table retained.
 
 ---
+
 End of README.
 | Type | When to Use |
 |------|-------------|
@@ -372,15 +399,19 @@ End of README.
 Always append Jira ticket key at the end or in scope: `feat(performance): Add gp-bulk-search operation JIRA-1234`.
 
 ### 12. Quick Reference Flow Summary
+
 Immutable NFR codes → Capability specs → Atomic stories → Acceptance & operational specs (registries) → Telemetry → Automated validation → Evidence.
 
 ---
+
 End of role guides.
 \n+## AI Assistance (Prompt Patterns & Guardrails)
 \n+Use AI (Copilot / future MCP agents) to accelerate drafting while keeping humans accountable. Always validate generated output against the registry, matrix, and codebase before committing.\n+\n+### Core Guardrails
+
 1. Never invent NFR codes — only use those present in `nfr-matrix.md` or newly reserved by a human first.\n+2. Verify thresholds with a human; AI can propose but not approve governance values.\n+3. Reject any prompt output lacking rationale when changing a target.\n+4. Keep explanations stakeholder-friendly (avoid jargon beyond necessary domain terms).\n+5. Re-run the refresh script after accepting AI changes to detect omissions (explanation coverage, missing control fields).\n+6. Treat AI suggestions as drafts: run the YAML parse quick check if modifying registries.\n+\n+### Prompt Pattern Syntax
-Use angle brackets `<placeholder>` to indicate items to substitute. Provide context snippets (NFR codes, existing entries) inline for higher accuracy.\n+\n+### 1. Generate Plain-Language Explanations for New NFR Codes
-```
+   Use angle brackets `<placeholder>` to indicate items to substitute. Provide context snippets (NFR codes, existing entries) inline for higher accuracy.\n+\n+### 1. Generate Plain-Language Explanations for New NFR Codes
+
+```text
 You are helping update an explanations file. Given these NFR codes and anchors:
 # Requirements Workspace
 
@@ -484,69 +515,78 @@ Each stage should reference upstream identifiers (e.g. story lists its NFR codes
 
 All non-performance domains use a control-centric schema in their `expectations.yaml`:
 
-```
+```yaml
 version: <semantic-version>
 controls:
-  - control_id: <kebab-case-unique>
-    nfr_code: <CODE>
-    measure: <what is examined>
-    threshold: <quantified target>
-    tooling: <scanner/test/policy>
-    cadence: <CI|daily|monthly|per-release>
-    environments: [dev, int, prod]
-    services: [optional service list]
-    status: draft|accepted|exception
-    rationale: <brief justification>
+
+- control_id: <kebab-case-unique>
+  nfr_code: <CODE>
+  measure: <what is examined>
+  threshold: <quantified target>
+  tooling: <scanner/test/policy>
+  cadence: <CI|daily|monthly|per-release>
+  environments: [dev, int, prod]
+  services: [optional service list]
+  status: draft|accepted|exception
+  rationale: <brief justification>
+
 ```
 
 Performance uses an operation-centric schema:
 
-```
+```yaml
 version: <semantic-version>
 operations:
-  - service: <service-name>
-    operation_id: <kebab-case-unique>
-    performer_class: FAST|STANDARD|SLOW
-    p50_target_ms: <int>
-    p95_target_ms: <int>
-    absolute_max_ms: <int>
-    burst_tps_target: <int?>
-    sustained_tps_target: <int?>
-    max_request_payload_bytes: <int?>
-    status: draft|accepted
-    rationale: <brief justification>
+
+- service: <service-name>
+  operation_id: <kebab-case-unique>
+  performer_class: FAST|STANDARD|SLOW
+  p50_target_ms: <int>
+  p95_target_ms: <int>
+  absolute_max_ms: <int>
+  burst_tps_target: <int?>
+  sustained_tps_target: <int?>
+  max_request_payload_bytes: <int?>
+  status: draft|accepted
+  rationale: <brief justification>
 ```
 
 ## Refreshing the Simplified NFR Page
+
 Run the generator to produce the consolidated markdown tables summarising domains, operations, and explanations.
 
-* Command: `python3 scripts/nfr/refresh_simplified_nfr_page.py`
-* Output: `docs/developer-guides/nfr-all-simplified.md`
-* Includes warnings if explanations are missing for any NFR code.
+- Command: `python3 scripts/nfr/refresh_simplified_nfr_page.py`
+- Output: `docs/developer-guides/nfr-all-simplified.md`
+- Includes warnings if explanations are missing for any NFR code.
 
 ## Commit Guidance
 
 Follow Conventional Commits with Jira ticket IDs:
-* `feat(requirements): Add security expectations registry <JIRA-ID>`
-* `chore(scripts): Render domain registries in simplified NFR page <JIRA-ID>`
-* `docs(nfr): Regenerate simplified NFR page <JIRA-ID>`
+
+- `feat(requirements): Add security expectations registry <JIRA-ID>`
+- `chore(scripts): Render domain registries in simplified NFR page <JIRA-ID>`
+- `docs(nfr): Regenerate simplified NFR page <JIRA-ID>`
 
 See `.github/copilot-instructions.md` for full commit rules.
-\n+### 11. Governance Packet Summary Draft
-```
+
+### Governance Packet Summary Draft
+
 Provide a concise summary of NFR governance status counts given:
 accepted=<N_ACCEPTED> draft=<N_DRAFT> exception=<N_EXCEPTION>
 Produce 2 paragraphs: Overview + Action Focus. Max 180 words.
-```
-\n+### 12. YAML Safety Check (AI Pre-Lint)
-```
+
+### 12. YAML Safety Check (AI Pre-Lint)
+
 Content:
+
 ```yaml
 <PASTE BLOCK>
 ```
+
 Identify likely syntax / formatting issues (unquoted comparators, tabs, inconsistent indentation, missing commas in lists). Return list of issues and fixed YAML.
-```
-\n+### Evaluating AI Output Quickly
+
+### Evaluating AI Output Quickly
+
 | Check | Action |
 |-------|--------|
 | Codes valid | Cross-check against `nfr-matrix.md` |
@@ -555,60 +595,67 @@ Identify likely syntax / formatting issues (unquoted comparators, tabs, inconsis
 | Rationale clarity | Ensure assumption + source present |
 | YAML parse | Run quick Python one-liner |
 | Explanation uniqueness | Avoid repeating anchor verbatim |
-\n+### Example One-Liner to Parse Modified Snippet
+
+### Example One-Liner to Parse Modified Snippet
+
 ```bash
 python3 - <<'PY'
 import yaml, sys; yaml.safe_load(open('<FILE>').read()); print('YAML OK')
 PY
-```
-\n+### Anti-Patterns to Reject
+````
+
+### Anti-Patterns to Reject
+
 - Vague thresholds ("improve latency")
 - Multiple outcomes in one control/story
 - Jargon-heavy explanations not simplifying anchor
 - Invented tooling names or unsupported environment labels
-\n+### When to Prefer Manual Over AI
-| Scenario | Reason |
-|----------|--------|
-| Regulatory wording | Compliance nuance requires human legal review |
-| Novel domain risk | No training data context; high hallucination risk |
-| Final sign-off thresholds | Governance requires human accountability |
-\n+### Minimal Acceptance of AI Suggestions
-Accept only if: schema complete + rationale present + codes valid + no contradiction with existing registry entries.
-\n+---
-End of AI assistance section.
-requirements/
-  README.md                      Overview
+
+### When to Prefer Manual Over AI
+
+  | Scenario | Reason |
+  |----------|--------|
+  | Regulatory wording | Compliance nuance requires human legal review |
+  | Novel domain risk | No training data context; high hallucination risk |
+  | Final sign-off thresholds | Governance requires human accountability |
+  \n+### Minimal Acceptance of AI Suggestions
+  Accept only if: schema complete + rationale present + codes valid + no contradiction with existing registry entries.
+  \n+---
+  End of AI assistance section.
+  requirements/
+  README.md Overview
   nfrs/
-    areas/                       Top-level NFR domains
-      security/
-      performance/
-      reliability/
-      scalability/
-      operability/
-      maintainability/
-      accessibility/
-      privacy/
-      compliance/
-      cost/
-    cross-references/            Matrices & linkage files
-      index.yaml                 Canonical NFR registry
-      nfr-matrix.md              Table linking domains → stories
-      tags.md                    Tagging & coding conventions
+  areas/ Top-level NFR domains
+  security/
+  performance/
+  reliability/
+  scalability/
+  operability/
+  maintainability/
+  accessibility/
+  privacy/
+  compliance/
+  cost/
+  cross-references/ Matrices & linkage files
+  index.yaml Canonical NFR registry
+  nfr-matrix.md Table linking domains → stories
+  tags.md Tagging & coding conventions
   user-stories/
-    templates/                   Story & acceptance criteria templates
-    backlog/                     New / unprioritised stories
-    in-progress/                 Active development
-    done/                        Accepted & merged stories
-```
+  templates/ Story & acceptance criteria templates
+  backlog/ New / unprioritised stories
+  in-progress/ Active development
+  done/ Accepted & merged stories
 
 ## Conventions
 
 ### File Naming
+
 - NFR high-level domain overviews: `overview.md` inside each domain directory.
 - Atomic NFRs (testable statements): `NFR-CODE.md` (e.g. `PERF-001.md`).
 - User stories: `STORY-<increment>-<slug>.md` (e.g. `STORY-042-search-gp-endpoints.md`).
 
 ### Codes
+
 | Domain | Prefix |
 |--------|--------|
 | Security | SEC |
@@ -625,9 +672,11 @@ requirements/
 Each atomic NFR increments (e.g. `SEC-001`, `SEC-002`). Do not recycle codes.
 
 ### Linking Stories → NFRs
+
 In a story front-matter block include `nfr_refs: [SEC-003, PERF-002]`. Copilot can then surface acceptance criteria scaffolds.
 
 ### Story Template Keys
+
 - `as_a`
 - `i_want`
 - `so_that`
@@ -638,12 +687,14 @@ In a story front-matter block include `nfr_refs: [SEC-003, PERF-002]`. Copilot c
 - `notes`
 
 ## Cross Reference Flow
+
 1. Add or refine an atomic NFR in the relevant domain.
 2. Update `nfrs/cross-references/index.yaml` registry.
 3. Reference the NFR code(s) in story front-matter.
 4. Generate acceptance criteria using template - Copilot can expand by pulling test phrases aligned to each NFR.
 
 ## Next Steps
+
 - Populate each domain with initial NFRs.
 - Add story examples referencing them.
 - Automate validation (lint) to ensure referenced NFR codes exist.
@@ -653,6 +704,7 @@ In a story front-matter block include `nfr_refs: [SEC-003, PERF-002]`. Copilot c
 We use simple, versioned YAML registries to define concrete, automatable expectations per domain. These power the auto-generated summary in `docs/developer-guides/nfr-all-simplified.md` and guide test automation and governance.
 
 ### Where they live
+
 - Performance: `requirements/nfrs/performance/expectations.yaml`
 - Security: `requirements/nfrs/security/expectations.yaml`
 - Observability: `requirements/nfrs/observability/expectations.yaml`
@@ -666,6 +718,7 @@ We use simple, versioned YAML registries to define concrete, automatable expecta
 - Compatibility: `requirements/nfrs/compatibility/expectations.yaml`
 
 ### Common schema (controls)
+
 Each `expectations.yaml` (other than Performance, which is per-operation) contains:
 
 - `version`: registry version string (increment on meaningfully changed targets)
@@ -685,11 +738,13 @@ Each `expectations.yaml` (other than Performance, which is per-operation) contai
 Performance uses an operation-centric schema in `requirements/nfrs/performance/expectations.yaml` with keys like `service`, `operation_id`, `performer_class`, `p50_target_ms`, `p95_target_ms`, `absolute_max_ms` and optional `burst_tps_target`, `sustained_tps_target`, `max_request_payload_bytes`.
 
 ---
+
 ## Offline Jira Workflow & Tooling
 
 Until direct Jira API access is available, treat the repository as the authoritative source:
 
 ### Flow
+
 1. Create service spec from template: `requirements/service-specs/_template.md` → new spec file.
 2. Derive atomic stories using `requirements/user-stories/_story-template.md` → place in `requirements/user-stories/backlog/`.
 3. Populate front matter, acceptance criteria (≥3), and `nfr_refs` (must exist in `nfr-matrix.md`).
@@ -698,12 +753,14 @@ Until direct Jira API access is available, treat the repository as the authorita
 6. Once Jira keys exist, start including them in commit messages and (optionally) rename story files with real keys.
 
 ### Templates
+
 | Type | Path |
 |------|------|
 | Service Spec | `requirements/service-specs/_template.md` |
 | Story | `requirements/user-stories/_story-template.md` |
 
 ### Scripts
+
 | Script | Path | Purpose |
 |--------|------|---------|
 | Validation | `scripts/jira/validate_artifacts.py` | Ensures schema & references |
@@ -712,55 +769,65 @@ Until direct Jira API access is available, treat the repository as the authorita
 Requires PyYAML: `pip install PyYAML`.
 
 ### Commit Message Hook
+
 `scripts/githooks/commit-msg` warns if Conventional Commit format or Jira key absent (advisory only until keys available).
 
 ### Quick Commands
+
 ```bash
 python3 scripts/jira/validate_artifacts.py
 python3 scripts/jira/export_stories.py
 pip install PyYAML  # if yaml import missing
-```
+````
 
 ### Review Checklist Before Paste
-| Item | Check |
-|------|-------|
-| Story completeness | Front matter present; ≥3 criteria |
-| NFR refs | Codes valid & minimal |
-| Spec sections | All mandatory headers retained |
-| Export text | Contains Description + Acceptance + Non-Functional |
-| Commit advisory | Decide if placeholder key acceptable |
+
+| Item               | Check                                              |
+| ------------------ | -------------------------------------------------- |
+| Story completeness | Front matter present; ≥3 criteria                  |
+| NFR refs           | Codes valid & minimal                              |
+| Spec sections      | All mandatory headers retained                     |
+| Export text        | Contains Description + Acceptance + Non-Functional |
+| Commit advisory    | Decide if placeholder key acceptable               |
 
 ### Copy/Paste Guidance
-* Jira Summary = story title.
-* Jira Description = exported block (trim internal-only notes if undesired).
-* Labels (optional): `spec-derived`, `nfr:<CODE>`.
-* Link EPIC manually; include relative repo path to spec for traceability.
+
+- Jira Summary = story title.
+- Jira Description = exported block (trim internal-only notes if undesired).
+- Labels (optional): `spec-derived`, `nfr:<CODE>`.
+- Link EPIC manually; include relative repo path to spec for traceability.
 
 ### After Keys Allocated
+
 1. Amend commit messages going forward to include Jira key.
 2. Optionally interactive rebase to retrofit past commits (only if governance demands).
 3. Keep repo artefacts as canonical even after Jira population.
 
 ### Future Enhancements
-| Enhancement | Benefit |
-|------------|---------|
-| CI validation step | Prevents invalid artefacts merging |
-| HTML export | Better Jira formatting fidelity |
-| Bulk create script | Reduces manual ticket entry |
-| Test scaffold generator | Speeds coverage alignment |
+
+| Enhancement             | Benefit                            |
+| ----------------------- | ---------------------------------- |
+| CI validation step      | Prevents invalid artefacts merging |
+| HTML export             | Better Jira formatting fidelity    |
+| Bulk create script      | Reduces manual ticket entry        |
+| Test scaffold generator | Speeds coverage alignment          |
 
 ---
+
 ## Governance & Quality Quick Reference
-| Category | Good | Poor |
-|----------|------|------|
-| NFR anchor | Single outcome, testable | Multi-clause, vague |
-| Rationale | States driver + assumption | Restates anchor only |
-| Threshold | Numeric/time-bound | "Fast", "secure" |
-| Story criteria | Objective, measurable | Subjective, untestable |
-| Explanation | Adds context | Duplicates anchor |
+
+| Category       | Good                       | Poor                   |
+| -------------- | -------------------------- | ---------------------- |
+| NFR anchor     | Single outcome, testable   | Multi-clause, vague    |
+| Rationale      | States driver + assumption | Restates anchor only   |
+| Threshold      | Numeric/time-bound         | "Fast", "secure"       |
+| Story criteria | Objective, measurable      | Subjective, untestable |
+| Explanation    | Adds context               | Duplicates anchor      |
 
 ---
+
 ## One-Liner YAML Parse (All registries)
+
 ```bash
 python3 - <<'PY'
 import yaml, pathlib, sys
@@ -775,27 +842,34 @@ PY
 ```
 
 ---
+
 ## Conventional Commit Reminder
+
 `<type>(<scope>): <Description> <JIRA-ID>`
+
 Examples:
-* `feat(requirements): Add PERF-014 latency target PERF-321`
-* `docs(requirements): Update offline Jira workflow PERF-322`
-* `chore(scripts): Add story export script PERF-323`
+
+- `feat(requirements): Add PERF-014 latency target PERF-321`
+- `docs(requirements): Update offline Jira workflow PERF-322`
+- `chore(scripts): Add story export script PERF-323`
 
 ---
 
 ### Refreshing the simplified NFR page
+
 - Run: `python3 scripts/nfr/refresh_simplified_nfr_page.py`
 - Output: `docs/developer-guides/nfr-all-simplified.md`
 - The generator automatically includes domain registry summaries if the respective YAML file exists.
 
 ### Adding or refining controls
+
 - Edit the relevant domain `expectations.yaml`, following the schema above.
 - Prefer concrete thresholds and named tooling.
 - Use `services` to scope controls to specific services when not universal.
 - Increment `version` when materially changing targets or scope.
 
 ### Commit guidance
+
 - Use Conventional Commits and include the Jira ticket ID, e.g.:
   - `feat(requirements): Add security expectations registry`
   - `chore(scripts): Render domain registries in simplified NFR page`

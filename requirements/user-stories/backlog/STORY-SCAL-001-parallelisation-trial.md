@@ -9,6 +9,7 @@ status: draft
 ---
 
 ## Acceptance Criteria
+
 1. Partition strategy trialed (ID ranges); measure throughput vs workers.
 2. Document safe concurrency limits and DynamoDB capacity settings.
 3. No data integrity issues detected.

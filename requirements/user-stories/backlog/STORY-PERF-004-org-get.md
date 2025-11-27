@@ -10,15 +10,18 @@ status: draft
 ---
 
 ## Description
+
 Implement and validate performance for crud-apis operation: org-get.
 
 ## Acceptance Criteria
+
 1. p50 latency ≤40ms validated
 2. p95 latency ≤100ms validated
 3. Absolute max latency ≤300ms enforced
 4. Load testing completed successfully
 
 ## Non-Functional Acceptance
+
 - Operation ID: `org-get`
 - Service: crud-apis
 - p50: ≤40ms
@@ -26,16 +29,19 @@ Implement and validate performance for crud-apis operation: org-get.
 - Max: ≤300ms
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Simple primary key lookup; cached storage path
 - Service: crud-apis
 - Path: /Organization/{id}
@@ -44,19 +50,23 @@ Implementation details to be refined during sprint planning
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `org_get_latency_ms` histogram (p50, p95, p99)
 - `org_get_requests_total` counter
 - `org_get_errors_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: PERF-001
 - Registry: performance/expectations.yaml v1.6
 
 ## Open Questions
+
 None

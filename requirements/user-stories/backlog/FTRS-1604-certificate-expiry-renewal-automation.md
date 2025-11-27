@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement end-to-end automation that tracks every TLS/mTLS certificate (public endpoints, internal service mesh, database connections, message brokers) and renews them proactively before expiry. The system must continuously monitor expiry horizons, generate alerts at defined thresholds, perform unattended renewals (where supported), and orchestrate staged deployment (dual-cert / overlapping validity) to eliminate downtime. No certificate is allowed to reach an "critical" threshold window or expire in any environment.
 
 ## Acceptance Criteria
+
 1. Central certificate inventory includes: subject, SANs, issuing CA chain, environment, service, key type, creation date, expiry date, renewal mechanism, secret store path.
 2. Inventory validated daily against live endpoints (curl/OpenSSL handshake) — discrepancies (missing or stale entries) fail the compliance check.
 3. Configurable renewal thresholds: warn at <=45 days, escalate at <=30 days, critical at <=14 days before expiry.
@@ -30,6 +32,7 @@ Implement end-to-end automation that tracks every TLS/mTLS certificate (public e
 15. Rotation playbook includes rollback steps and verification of old cert revocation / retirement within 24h of deployment.
 
 ## Non-Functional Acceptance
+
 - Control: SEC-015 (certificate expiry & renewal)
 - Thresholds: Warning 45d, Escalation 30d, Critical 14d, Expired 0d (disallowed)
 - Tooling: Inventory validator, handshake probe, renewal pipeline, alerting, dashboard, compliance gate
@@ -37,43 +40,49 @@ Implement end-to-end automation that tracks every TLS/mTLS certificate (public e
 - Environments: dev, int, ref, prod
 
 ## Test Strategy
-| Test Type | Focus | Tooling |
-|-----------|-------|---------|
-| Unit | Threshold calculations & alert classification | Python threshold evaluator / date utilities |
-| Integration | Renewal pipeline end-to-end (staged dual-cert) | CI workflow + staging service |
-| Compliance | Inventory vs handshake audit | Probe script (OpenSSL) |
-| Synthetic Expiry | Simulated near-expiry cert triggers alerts | Inject test cert fixture |
-| Regression | No expired cert in rolling window | Metrics + historical scan |
+
+| Test Type        | Focus                                          | Tooling                                     |
+| ---------------- | ---------------------------------------------- | ------------------------------------------- |
+| Unit             | Threshold calculations & alert classification  | Python threshold evaluator / date utilities |
+| Integration      | Renewal pipeline end-to-end (staged dual-cert) | CI workflow + staging service               |
+| Compliance       | Inventory vs handshake audit                   | Probe script (OpenSSL)                      |
+| Synthetic Expiry | Simulated near-expiry cert triggers alerts     | Inject test cert fixture                    |
+| Regression       | No expired cert in rolling window              | Metrics + historical scan                   |
 
 ## Monitoring & Metrics
+
 - `cert_expiry_days_remaining{service,env}`
 - `cert_renewal_success_total{service}` / `cert_renewal_failure_total{reason}`
 - `cert_expiry_alerts_total{severity}`
 - SLO: 100% of certificates renewed before critical threshold (no <=14d without scheduled job)
 
 ## Implementation Notes
+
 - Leverage secret store metadata for expiry extraction; fallback to parsing PEM via OpenSSL if not provided.
 - Dual-cert deployment: introduce new cert while retaining old until successful traffic validation, then revoke old.
 - Provide CLI (`scripts/nfr/cert_expiry_check.py`) for local verification reused in CI.
 - Alert enrichment with rotation playbook URL and next scheduled run timestamp.
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Inventory drift | Missed renewals | Daily handshake audit & merge gate |
-| Renewal failure late | Potential outage | Early escalation & retry strategy |
-| False alerts | Noise & fatigue | Threshold tuning + dedup suppression |
-| Dual-cert conflict | Handshake issues | Staged rollout & pre-production canary |
-| Manual cert oversight | Expiry risk | Automated task generation & escalation |
+
+| Risk                  | Impact           | Mitigation                             |
+| --------------------- | ---------------- | -------------------------------------- |
+| Inventory drift       | Missed renewals  | Daily handshake audit & merge gate     |
+| Renewal failure late  | Potential outage | Early escalation & retry strategy      |
+| False alerts          | Noise & fatigue  | Threshold tuning + dedup suppression   |
+| Dual-cert conflict    | Handshake issues | Staged rollout & pre-production canary |
+| Manual cert oversight | Expiry risk      | Automated task generation & escalation |
 
 ## Traceability
+
 - NFR: SEC-015 (expiry & renewal), SEC-001 (crypto policy), SEC-014 (mTLS chain), SEC-030 (secure storage)
 - Expectations Registry: `security/expectations.yaml` control related to certificate lifecycle
 
 ## Open Questions
-| Topic | Question | Next Step |
-|-------|----------|-----------|
-| Renewal thresholds | Are 45/30/14 values final? | Confirm with security governance board |
-| Revocation handling | CRL vs OCSP enforcement depth? | Decide based on CA capabilities |
-| Dashboard tech | Reuse existing observability stack or new panel? | Evaluate Grafana vs internal UI |
-| Manual certs | Phase out or retain for edge cases? | Identify candidates for automation |
+
+| Topic               | Question                                         | Next Step                              |
+| ------------------- | ------------------------------------------------ | -------------------------------------- |
+| Renewal thresholds  | Are 45/30/14 values final?                       | Confirm with security governance board |
+| Revocation handling | CRL vs OCSP enforcement depth?                   | Decide based on CA capabilities        |
+| Dashboard tech      | Reuse existing observability stack or new panel? | Evaluate Grafana vs internal UI        |
+| Manual certs        | Phase out or retain for edge cases?              | Identify candidates for automation     |

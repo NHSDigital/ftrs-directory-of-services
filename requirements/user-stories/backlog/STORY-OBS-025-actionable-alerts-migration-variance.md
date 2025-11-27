@@ -9,6 +9,7 @@ status: draft
 ---
 
 ## Acceptance Criteria
+
 1. Alerts configured and tested for error rate and duration thresholds.
 2. Playbooks linked in alert payload; MTTR tracked.
 3. False positive ratio <10% over a month.

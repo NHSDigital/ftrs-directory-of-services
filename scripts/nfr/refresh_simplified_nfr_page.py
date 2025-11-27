@@ -5,11 +5,11 @@ Reads the NFR cross reference matrix (requirements/nfrs/cross-references/nfr-mat
 and produces docs/developer-guides/nfr-all-simplified.md with per-domain sections.
 
 Simplification rules:
- - Use table rows from the matrix.
- - For each row, treat the "Acceptance Criteria Anchor" column as the short requirement line.
- - Group by Domain.
- - Sort codes within a domain numerically (by the number after the prefix).
- - Include related story IDs comma-separated.
+    - Use table rows from the matrix.
+    - For each row, treat the "Acceptance Criteria Anchor" column as the short requirement line.
+    - Group by Domain.
+    - Sort codes within a domain numerically (by the number after the prefix).
+    - Include related story IDs comma-separated.
 
 Idempotent: running again overwrites the file.
 """
@@ -131,9 +131,9 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
     """Generate per-domain pages for improved readability.
 
     For each domain:
-      - Render NFR table (Code, Requirement, Explanation, Stories)
-      - For Performance domain include operations table.
-      - For control-centric domains group controls under each NFR code heading.
+        - Render NFR table (Code, Requirement, Explanation, Stories)
+        - For Performance domain include operations table.
+        - For control-centric domains group controls under each NFR code heading.
     """
     DOMAIN_OUT_DIR.mkdir(parents=True, exist_ok=True)
     # Removed volatile per-run timestamp to reduce unnecessary diffs

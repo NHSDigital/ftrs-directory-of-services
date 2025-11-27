@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: Vertical resize retains data & function without downtime.
 
 ## Acceptance Criteria
+
 1. Resize completes with zero downtime and no data loss
 2. Tooling: Resize runbook + health checks operational
 3. Cadence: Semi-annual exercise validated
@@ -20,36 +22,44 @@ Implement automated validation for: Vertical resize retains data & function with
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `vertical-resize-no-downtime`\n- Threshold: Resize completes with zero downtime and no data loss\n- Tooling: Resize runbook + health checks\n- Cadence: Semi-annual exercise\n- Environments: int, ref
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Ensures safe vertical scaling
 - Cadence: Semi-annual exercise
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `vertical_resize_no_downtime_compliance_status` gauge
 - `vertical_resize_no_downtime_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: SCAL-002
 - Registry: scalability/expectations.yaml v1.0
 
 ## Open Questions
+
 None

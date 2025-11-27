@@ -40,4 +40,3 @@ Version: 1.7
 | etl-ods | ods-batch-transform | 200 | 600 | 1200 |  |  |  | draft | Mapping + normalization + extension filtering |
 | etl-ods | ods-daily-sync | 500 | 1500 | 3000 |  |  |  | exception | External ORD call + list parsing; acceptable longer latency |
 | etl-ods | ods-sqs-batch-send | 30 | 80 | 200 |  |  |  | draft | Single AWS API batch request with lightweight payload |
-

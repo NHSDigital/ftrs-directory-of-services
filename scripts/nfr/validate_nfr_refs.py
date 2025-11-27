@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Validate that all nfr_refs in user story front matter exist in the canonical registry (index.yaml).
 Exit codes:
- 0 = success
- 1 = unknown NFR code(s) referenced
- 2 = parsing error
+    0 = success
+    1 = unknown NFR code(s) referenced
+    2 = parsing error
 Usage: python scripts/nfr/validate_nfr_refs.py
 """
 from __future__ import annotations

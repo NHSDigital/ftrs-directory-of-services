@@ -3,10 +3,10 @@
 
 Reads docs/developer-guides/nfr-traceability-slides.md and converts sections delimited by '---' into slides.
 Simple heuristics:
- - First non-empty line starting with '# ' => title (strip leading '#')
- - Else first non-empty line => title
- - Lines beginning with '-' or '*' become bullet points (stripped of leading marker)
- - Other non-empty lines become bullet points (to keep slides concise)
+    - First non-empty line starting with '# ' => title (strip leading '#')
+    - Else first non-empty line => title
+    - Lines beginning with '-' or '*' become bullet points (stripped of leading marker)
+    - Other non-empty lines become bullet points (to keep slides concise)
 
 Output: docs/developer-guides/nfr-traceability-deck.pptx
 
@@ -101,8 +101,8 @@ def main():
     args = sys.argv[1:]
     if args and args[0] in {'-h', '--help'}:
         print("Usage: build_traceability_deck.py [input_markdown] [output_pptx]\n" \
-              "Defaults: input='docs/developer-guides/nfr-traceability-slides.md' output='docs/developer-guides/nfr-traceability-deck.pptx'\n" \
-              "Example condensed: build_traceability_deck.py docs/developer-guides/nfr-traceability-slides-condensed.md docs/developer-guides/nfr-traceability-deck-condensed.pptx")
+            "Defaults: input='docs/developer-guides/nfr-traceability-slides.md' output='docs/developer-guides/nfr-traceability-deck.pptx'\n" \
+            "Example condensed: build_traceability_deck.py docs/developer-guides/nfr-traceability-slides-condensed.md docs/developer-guides/nfr-traceability-deck-condensed.pptx")
         return 0
 
     if len(args) >= 1:

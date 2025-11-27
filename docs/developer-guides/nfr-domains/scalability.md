@@ -22,13 +22,14 @@ This page is auto-generated; do not hand-edit.
 ## Controls
 
 ### SCAL-001
-Horizontal scaling increases throughput nearly linearly without quality loss.
 
+Horizontal scaling increases throughput nearly linearly without quality loss.
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | horizontal-scale-linear | Horizontal scale-out increases TPS linearly within tolerance | TPS increases ~linearly per replica within agreed tolerance | Load tests + autoscaling reports | Quarterly simulation | int,ref | crud-apis,dos-search | draft | Validates scale-out effectiveness |
 
 ### SCAL-002
+
 Vertical resizing (bigger instance) retains data and operation with no downtime.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -36,6 +37,7 @@ Vertical resizing (bigger instance) retains data and operation with no downtime.
 | vertical-resize-no-downtime | Vertical resize retains data & function without downtime | Resize completes with zero downtime and no data loss | Resize runbook + health checks | Semi-annual exercise | int,ref | crud-apis,dos-search | draft | Ensures safe vertical scaling |
 
 ### SCAL-005
+
 Autoscaling policy simulations trigger controlled scaling actions.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -43,6 +45,7 @@ Autoscaling policy simulations trigger controlled scaling actions.
 | autoscaling-policy-simulation | Autoscaling policy simulation triggers controlled scale | Policy simulates expected scale events; no flapping | Policy simulator + metrics | Quarterly | int,ref | crud-apis,dos-search | draft | Confirms autoscaling tuning |
 
 ### SCAL-006
+
 Scaling events do not cause SLA breaches in latency or error rate.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -50,9 +53,9 @@ Scaling events do not cause SLA breaches in latency or error rate.
 | scale-event-sla | Scale event shows no SLA breach in latency/error | No breach in latency/error SLAs during scale | Metrics/alerts during scale events | Continuous monitoring + quarterly drill | int,ref,prod | crud-apis,dos-search | draft | Protects user experience during scaling |
 
 ### SCAL-007
+
 Capacity planning shows adequate headroom (e.g., ≥30%).
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | capacity-headroom | Capacity report shows ≥30% headroom | >= 30% capacity headroom maintained | Capacity planning reports | Monthly | prod | crud-apis,dos-search | draft | Ensures buffer for demand spikes |
-

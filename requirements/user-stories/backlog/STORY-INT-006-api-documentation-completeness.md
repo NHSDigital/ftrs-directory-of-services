@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Produce and maintain a complete OpenAPI specification and associated catalogue documentation for each FtRS API exposed via Apigee (API Management). Documentation must satisfy interoperability transparency: functional overview, intended audience and use cases, related APIs, lifecycle status and roadmap, service level (SLA/SLO summary), technology stack, network access options (internet/HSCN), security & authorisation scheme, sandbox/test environment details, onboarding process steps, and full endpoint definitions with request/response schemas and illustrative examples.
 
 ## Acceptance Criteria
+
 1. Plain English overview paragraph present (≤150 words) accurately describing core purpose.
 2. Audience & permitted use section lists user groups + links to relevant "building healthcare software" guides.
 3. Related APIs list includes FtRS and external dependencies (minimum 2 if applicable) with rationale.
@@ -30,31 +32,37 @@ Produce and maintain a complete OpenAPI specification and associated catalogue d
 15. Documentation update process defined (owners + review cadence) and traceability note added.
 
 ## Non-Functional Acceptance
+
 - Lint severity: 0 critical, ≤5 minor advisory items.
 - Publish cadence: updates within 5 business days of a production API change.
 - Traceability: spec version annotated with commit SHA and date.
 
 ## Implementation Notes
+
 - Leverage existing OAS tooling (`spectral`, `openapi-diff`) in CI pipeline.
 - Use shared error schema (OperationOutcome) to maintain interoperability (INT-005 link).
 - Separate examples for common error codes (400 validation, 401 auth failure, 429 rate limit).
 
 ## Monitoring & Metrics
+
 - `api_spec_publish_events_total` counter
 - `api_spec_lint_errors_total` counter (labels: severity)
 - `api_spec_outdated_days` gauge (derived: days since last prod change not reflected)
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Incomplete examples reduce integrator clarity | Increased support load | Enforce example presence rule in lint |
-| Spec drift after rapid iteration | Integration failures | Automate diff + alert if >5 days stale |
-| Over-disclosure of internal tech | Security posture risk | Limit stack list to externally relevant components |
+
+| Risk                                          | Impact                 | Mitigation                                         |
+| --------------------------------------------- | ---------------------- | -------------------------------------------------- |
+| Incomplete examples reduce integrator clarity | Increased support load | Enforce example presence rule in lint              |
+| Spec drift after rapid iteration              | Integration failures   | Automate diff + alert if >5 days stale             |
+| Over-disclosure of internal tech              | Security posture risk  | Limit stack list to externally relevant components |
 
 ## Traceability
+
 - NFR: INT-018
 - Matrix: `nfr-matrix.md` updated with INT-018 row
 
 ## Open Questions
+
 1. Should onboarding include automated self-service key issuance or manual review only?
 2. Do we expose sandbox refresh schedule publicly or via support channel?
