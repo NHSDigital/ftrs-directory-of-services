@@ -113,7 +113,11 @@ PAYLOAD='{
 }'
 URL="https://${OPEN_SEARCH_DOMAIN}/${FINAL_INDEX}"
 
-# Try awscurl first (signed requests), then curl as a fallback
+# Write payload to temp file for Python fallback
+TMP_PAYLOAD_FILE=$(mktemp /tmp/os-payload-XXXXXX.json)
+printf '%s' "${PAYLOAD}" > "${TMP_PAYLOAD_FILE}"
+
+# Try awscurl first (signed requests), then curl or Python signed PUT as a fallback
 if command -v awscurl >/dev/null 2>&1; then
   err "Using awscurl to create index"
   # Print awscurl version if available
@@ -121,10 +125,17 @@ if command -v awscurl >/dev/null 2>&1; then
   err "awscurl: ${AWSCURL_VERSION}"
 
   # Call awscurl with URI as positional argument (URL must be the final parameter)
-  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT -H "Content-Type: application/json" -d "${PAYLOAD}" "${URL}"
+  if awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT -H "Content-Type: application/json" -d "${PAYLOAD}" "${URL}"; then
+    err "awscurl succeeded"
+  else
+    err "awscurl failed; falling back to signed Python PUT"
+    python3 ./scripts/workflow/signed_put.py "${URL}" "${TMP_PAYLOAD_FILE}" || { err "signed Python PUT failed"; rm -f "${TMP_PAYLOAD_FILE}"; exit 5; }
+  fi
 else
-  err "awscurl not found; falling back to curl (unsigned request may return 403)"
-  curl -sS --fail --max-time 30 --retry 2 -X PUT "${URL}" -H "Content-Type: application/json" -d "${PAYLOAD}"
+  err "awscurl not found; falling back to signed Python PUT"
+  python3 ./scripts/workflow/signed_put.py "${URL}" "${TMP_PAYLOAD_FILE}" || { err "signed Python PUT failed"; rm -f "${TMP_PAYLOAD_FILE}"; exit 5; }
 fi
+
+rm -f "${TMP_PAYLOAD_FILE}"
 
 err "Index ${FINAL_INDEX} created (or already exists) on ${OPEN_SEARCH_DOMAIN}"
