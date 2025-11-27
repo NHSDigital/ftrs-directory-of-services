@@ -1,4 +1,5 @@
 import json
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import boto3
@@ -11,7 +12,7 @@ from record_change_trigger.lambda_handler import (
 
 
 @pytest.fixture(scope="module", autouse=True)
-def mock_boto3() -> MagicMock:
+def mock_boto3() -> Generator[MagicMock, None, None]:
     with patch.object(boto3, "client") as mock_boto3_client:
         mock_sqs = MagicMock()
         mock_boto3_client.return_value = mock_sqs
@@ -20,14 +21,14 @@ def mock_boto3() -> MagicMock:
 
 
 @pytest.fixture
-def mock_sqs_client() -> MagicMock:
+def mock_sqs_client() -> Generator[MagicMock, None, None]:
     with patch("record_change_trigger.lambda_handler.SQS_CLIENT") as mock_client:
         mock_client.send_message.return_value = {"MessageId": "test-message-id"}
         yield mock_client
 
 
 @pytest.fixture
-def mock_workspaces() -> MagicMock:
+def mock_workspaces() -> Generator[MagicMock, None, None]:
     with patch(
         "record_change_trigger.lambda_handler.get_dms_workspaces"
     ) as mock_get_workspaces:
