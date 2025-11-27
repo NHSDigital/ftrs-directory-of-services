@@ -229,17 +229,10 @@ def _validate_organisation_role_extension(ext: Extension) -> None:
             f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
         )
 
-    first_typed_period_ext = next(
-        (
-            nested_ext
-            for nested_ext in ext.extension
-            if nested_ext.url == TYPED_PERIOD_URL
-        ),
-        None,
-    )
-
-    if first_typed_period_ext:
-        _validate_typed_period_extension(first_typed_period_ext)
+    for nested_ext in ext.extension:
+        if "TypedPeriod" in nested_ext.url:
+            _validate_typed_period_extension(nested_ext)
+            break  # Only validate the first TypedPeriod-like extension
 
 
 def _validate_typed_period_extension(ext: Extension) -> None:

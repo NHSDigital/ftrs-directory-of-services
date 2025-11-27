@@ -210,7 +210,7 @@ Feature: Organization API Endpoint
       | 2020-01-15  | 2024-12-31 | 2020-01-15        | 2024-12-31      |
       | 2020-02-29  | 2028-02-29 | 2020-02-29        | 2028-02-29      |
 
-  Scenario Outline: Reject Organization update with invalid TypedPeriod extension
+  Scenario Outline: Reject Organization update with invalid extensions for legal date
       Given that the stack is "organisation"
       When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
       Then I receive a status code "422" in response
@@ -220,13 +220,15 @@ Feature: Organization API Endpoint
       And I receive the diagnostics "<expected_error>"
 
       Examples:
-        | invalid_scenario         | expected_error                                         |
-        | missing dateType         | TypedPeriod extension must contain dateType and period |
-        | missing period           | TypedPeriod extension must contain dateType and period |
-        | non-Legal dateType       | dateType must be Legal                                 |
-        | empty period             | period must contain at least start or end date         |
-        | invalid extension url    | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod |
-        | invalid system           | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'        |
+        | invalid_scenario                 | expected_error                                         |
+        | missing dateType                 | TypedPeriod extension must contain dateType and period |
+        | missing period                   | TypedPeriod extension must contain dateType and period |
+        | non-Legal dateType               | dateType must be Legal                                 |
+        | empty period                     | period must contain at least start or end date         |
+        | invalid periodType extension url | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod |
+        | invalid periodType system        | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'        |
+        | invalid role extension url       | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
+        | missing role extension url       | Invalid extension URL: None                            |
 
   Scenario Outline: Reject Organization update with invalid date format
       Given that the stack is "organisation"
