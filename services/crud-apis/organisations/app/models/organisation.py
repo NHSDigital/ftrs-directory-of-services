@@ -29,6 +29,9 @@ ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
 TYPED_PERIOD_URL = (
     "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
 )
+ORGANISATION_ROLE_URL = (
+    "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+)
 PERIOD_TYPE_SYSTEM = "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
 LEGAL_PERIOD_CODE = "Legal"
 
@@ -161,10 +164,10 @@ class OrganisationUpdatePayload(BaseModel):
 
     @model_validator(mode="after")
     def validate_extensions(self) -> "OrganisationUpdatePayload":
-        """Validate that extensions follow the TypedPeriod structure with Legal dateType."""
+        """Validate that extensions follow the required structure for Legal dates."""
         if self.extension:
             for ext in self.extension:
-                _validate_typed_period_extension(ext)
+                _validate_organisation_extension(ext)
         return self
 
 
@@ -205,6 +208,38 @@ def _raise_validation_error(message: str) -> None:
         severity="error",
     )
     raise OperationOutcomeException(outcome)
+
+
+def _validate_organisation_extension(ext: Extension) -> None:
+    """Validate OrganisationRole extensions containing TypedPeriod extensions."""
+    if ext.url == ORGANISATION_ROLE_URL:
+        # Validate OrganisationRole extension structure
+        _validate_organisation_role_extension(ext)
+    elif ext.url == TYPED_PERIOD_URL:
+        # Handle legacy direct TypedPeriod extensions (if still allowed)
+        _validate_typed_period_extension(ext)
+    else:
+        _raise_validation_error(f"Invalid extension URL: {ext.url}")
+
+
+def _validate_organisation_role_extension(ext: Extension) -> None:
+    """Validate OrganisationRole extension containing the first Legal TypedPeriod extension."""
+    if not ext.extension or len(ext.extension) == 0:
+        _raise_validation_error(
+            f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
+        )
+
+    first_typed_period_ext = next(
+        (
+            nested_ext
+            for nested_ext in ext.extension
+            if nested_ext.url == TYPED_PERIOD_URL
+        ),
+        None,
+    )
+
+    if first_typed_period_ext:
+        _validate_typed_period_extension(first_typed_period_ext)
 
 
 def _validate_typed_period_extension(ext: Extension) -> None:
