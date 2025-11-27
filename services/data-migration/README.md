@@ -89,7 +89,7 @@ This will create a new schema named 'pathwaysdos' containing the tables and data
 
 ### Setting up the dynamo tables
 
-The tables creation and reset scripts for dynamo can be found under the readme at:
+The tables creation and reset scripts for dynamo can be found under the README at:
 ftrs-directory-of-services/application/packages/ftrs_aws_local/README.md
 
 ### Running the pipeline locally
