@@ -32,12 +32,20 @@ runs:
         OPEN_SEARCH_DOMAIN: ${{ inputs.domain }}
         WORKSPACE: ${{ inputs.workspace }}
         ENVIRONMENT: ${{ inputs.environment }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
         AWS_REGION: ${{ inputs.aws_region }}
         AWS_DEFAULT_REGION: ${{ inputs.aws_region }}
       run: |
         set -euo pipefail
 
         echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} and INDEX=${INDEX} (workspace=${WORKSPACE})"
+
+        # Ensure awscurl is installed so requests to OpenSearch Serverless are signed (prevents 403)
+        if ! command -v awscurl >/dev/null 2>&1; then
+          echo "awscurl not found; installing via pip"
+          python3 -m pip install --upgrade pip >/dev/null 2>&1 || true
+          pip install awscurl >/dev/null 2>&1 || true
+        fi
 
         # Ensure the build script is executable in case the checkout removed the execute bit
         chmod +x ./scripts/workflow/build-open-search-index.sh || true
