@@ -12,6 +12,18 @@ err(){ printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 [ -n "$OPEN_SEARCH_DOMAIN" ] || { err "ERROR: OPEN_SEARCH_DOMAIN not set"; exit 2; }
 [ -n "$INDEX" ] || { err "ERROR: INDEX not set"; exit 2; }
 
+# Print AWS account number for debugging (safe, region-aware)
+if command -v aws >/dev/null 2>&1; then
+  AWS_ACCOUNT=$(aws sts get-caller-identity ${AWS_REGION:+--region "$AWS_REGION"} --query Account --output text 2>/dev/null || true)
+  if [ -n "$AWS_ACCOUNT" ] && [ "$AWS_ACCOUNT" != "None" ]; then
+    err "AWS account: $AWS_ACCOUNT"
+  else
+    err "AWS account: unavailable (aws sts returned empty or failed)"
+  fi
+else
+  err "aws CLI not found; cannot determine AWS account"
+fi
+
 # Resolve a Serverless collection name to an endpoint using list -> batch-get
 resolve_serverless_collection(){
   local name="$1" region_arg aws_json id endpoint
@@ -32,7 +44,7 @@ resolve_serverless_collection(){
     endpoint=$(aws opensearchserverless batch-get-collection --ids "$id" ${AWS_REGION:+--region "$AWS_REGION"} --output json 2>/dev/null || true)
     # try a simple grep/json parse fallback if needed (pure shell: grep+sed)
     if [[ -n "$endpoint" ]]; then
-      parsed=$(printf '%s' "$endpoint" | grep -o '"[^"]*endpoint[^"]*"[[:space:]]*:[[:space:]]*"[^"]*"' | sed -E 's/.*:[[:space:]]*"(.*)"/\1/' | head -n1 || true)
+      parsed=$(printf '%s' "$endpoint" | grep -o '"[^" ]*endpoint[^" ]*"[[:space:]]*:[[:space:]]*"[^" ]*"' | sed -E 's/.*:[[:space:]]*"(.*)"/\1/' | head -n1 || true)
       if [[ -n "$parsed" ]]; then
         endpoint="$parsed"
       fi
