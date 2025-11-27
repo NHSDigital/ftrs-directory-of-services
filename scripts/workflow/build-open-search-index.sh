@@ -12,9 +12,19 @@ err(){ printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 [ -n "$OPEN_SEARCH_DOMAIN" ] || { err "ERROR: OPEN_SEARCH_DOMAIN not set"; exit 2; }
 [ -n "$INDEX" ] || { err "ERROR: INDEX not set"; exit 2; }
 
+# Debug: print AWS region(s) so we can see what the runner is using
+err "AWS_REGION: ${AWS_REGION:-<unset>}"
+if [ -n "${AWS_DEFAULT_REGION:-}" ]; then
+  err "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
+fi
+
 # Print AWS account number for debugging (safe, region-aware)
 if command -v aws >/dev/null 2>&1; then
-  AWS_ACCOUNT=$(aws sts get-caller-identity ${AWS_REGION:+--region "$AWS_REGION"} --query Account --output text 2>/dev/null || true)
+  # Print aws CLI version so logs show whether aws is installed and which version
+  AWS_CLI_VERSION=$(aws --version 2>&1 || true)
+  err "aws CLI: ${AWS_CLI_VERSION}"
+
+  AWS_ACCOUNT=$(aws sts get-caller-identity ${AWS_REGION:+--region "${AWS_REGION}"} --query Account --output text 2>/dev/null || true)
   if [ -n "$AWS_ACCOUNT" ] && [ "$AWS_ACCOUNT" != "None" ]; then
     err "AWS account: $AWS_ACCOUNT"
   else
