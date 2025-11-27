@@ -94,12 +94,6 @@ module "read_only_viewer_cloudfront" {
 
   web_acl_id = data.aws_wafv2_web_acl.waf_web_acl.arn
 
-  logging_config = {
-    include_cookies = false
-    bucket          = module.access_logging_bucket.s3_bucket_bucket_domain_name
-    prefix          = var.access_logs_prefix
-  }
-
   tags = {
     Name = "${local.resource_prefix}${local.workspace_suffix}"
   }

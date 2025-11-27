@@ -4,6 +4,7 @@ from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
+from ftrs_common.utils.title_case_sanitization import sanitize_string_field
 from ftrs_data_layer.domain import Organisation
 
 
@@ -67,10 +68,10 @@ class OrganizationMapper(FhirMapper):
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),
-            name=fhir_resource.name,
+            name=sanitize_string_field(fhir_resource.name),
             active=fhir_resource.active,
             telecom=self._get_org_telecom(fhir_resource),
-            type=self._get_org_type(fhir_resource),
+            type=sanitize_string_field(self._get_org_type(fhir_resource)),
             modifiedBy="ODS_ETL_PIPELINE",
         )
 
