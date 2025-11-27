@@ -4,9 +4,14 @@ from datetime import date
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
-from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
+from ftrs_common.fhir.r4b.organisation_mapper import (
+    ORGANISATION_ROLE_URL,
+    TYPED_PERIOD_URL,
+    OrganizationMapper,
+)
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.organisation import LegalDates
 
@@ -742,23 +747,34 @@ def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
 
 
 def test__extract_legal_dates_with_valid_typed_period() -> None:
-    """Test _extract_legal_dates extracts dates from valid TypedPeriod extension."""
+    """Test _extract_legal_dates extracts dates from valid TypedPeriod extension within OrganisationRole."""
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
     fhir_org.extension = [
         {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
                 {
-                    "url": "dateType",
-                    "valueCoding": {"code": "Legal"},
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"code": "RO76", "display": "GP PRACTICE"}]
+                    },
                 },
                 {
-                    "url": "period",
-                    "valuePeriod": {
-                        "start": "2020-01-15",
-                        "end": "2025-12-31",
-                    },
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Legal"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31",
+                            },
+                        },
+                    ],
                 },
             ],
         }
@@ -804,7 +820,7 @@ def test__extract_legal_dates_extension_is_empty_list() -> None:
 
 
 def test__extract_legal_dates_multiple_extensions_typed_period_present() -> None:
-    """Test _extract_legal_dates with multiple extensions including TypedPeriod."""
+    """Test _extract_legal_dates with multiple extensions including TypedPeriod within OrganisationRole."""
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
     fhir_org.extension = [
@@ -813,18 +829,29 @@ def test__extract_legal_dates_multiple_extensions_typed_period_present() -> None
             "valueString": "test",
         },
         {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
                 {
-                    "url": "dateType",
-                    "valueCoding": {"code": "Legal"},
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"code": "RO76", "display": "GP PRACTICE"}]
+                    },
                 },
                 {
-                    "url": "period",
-                    "valuePeriod": {
-                        "start": "2020-01-15",
-                        "end": "2025-12-31",
-                    },
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Legal"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31",
+                            },
+                        },
+                    ],
                 },
             ],
         },
@@ -904,33 +931,44 @@ def test__extract_legal_dates_no_matching_url() -> None:
 
 
 def test__extract_legal_dates_ext_with_dict_method() -> None:
-    """Test _extract_legal_dates handles extensions with .dict() method."""
+    """Test _extract_legal_dates handles extensions with .dict() method within OrganisationRole."""
     from fhir.resources.R4B.extension import Extension
 
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
 
     # Create a proper FHIR Extension object that has a .dict() method
-    ext_obj = Extension.model_validate(
+    role_ext = Extension.model_validate(
         {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
                 {
-                    "url": "dateType",
-                    "valueCoding": {"code": "Legal"},
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"code": "RO76", "display": "GP PRACTICE"}]
+                    },
                 },
                 {
-                    "url": "period",
-                    "valuePeriod": {
-                        "start": "2020-01-15",
-                        "end": "2025-12-31",
-                    },
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Legal"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31",
+                            },
+                        },
+                    ],
                 },
             ],
         }
     )
 
-    fhir_org.extension = [ext_obj]
+    fhir_org.extension = [role_ext]
 
     start, end = mapper._extract_legal_dates(fhir_org)
     assert start == "2020-01-15"
@@ -938,14 +976,14 @@ def test__extract_legal_dates_ext_with_dict_method() -> None:
 
 
 def test__extract_legal_dates_mixed_extension_types() -> None:
-    """Test _extract_legal_dates with mixed dict and Extension object types."""
+    """Test _extract_legal_dates with mixed dict and Extension object types within OrganisationRole."""
     from fhir.resources.R4B.extension import Extension
 
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
 
     # Create a proper FHIR Extension object
-    ext_obj = Extension.model_validate(
+    other_ext = Extension.model_validate(
         {
             "url": "https://example.com/other-extension",
             "valueString": "test",
@@ -954,19 +992,30 @@ def test__extract_legal_dates_mixed_extension_types() -> None:
 
     # Mix of Extension object and dict
     fhir_org.extension = [
-        ext_obj,
+        other_ext,
         {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
                 {
-                    "url": "dateType",
-                    "valueCoding": {"code": "Legal"},
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"code": "RO76", "display": "GP PRACTICE"}]
+                    },
                 },
                 {
-                    "url": "period",
-                    "valuePeriod": {
-                        "start": "2020-01-15",
-                    },
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Legal"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                            },
+                        },
+                    ],
                 },
             ],
         },
@@ -978,46 +1027,70 @@ def test__extract_legal_dates_mixed_extension_types() -> None:
 
 
 def test__extract_legal_dates_first_matching_extension_wins() -> None:
-    """Test _extract_legal_dates returns first matching TypedPeriod extension."""
+    """Test _extract_legal_dates returns first matching TypedPeriod extension from first OrganisationRole."""
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
     fhir_org.extension = [
         {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
                 {
-                    "url": "dateType",
-                    "valueCoding": {"code": "Legal"},
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {"code": "RO177", "display": "PRESCRIBING COST CENTRE"}
+                        ]
+                    },
                 },
                 {
-                    "url": "period",
-                    "valuePeriod": {
-                        "start": "2020-01-15",
-                        "end": "2025-12-31",
-                    },
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Legal"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31",
+                            },
+                        },
+                    ],
                 },
             ],
         },
         {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
                 {
-                    "url": "dateType",
-                    "valueCoding": {"code": "Legal"},
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"code": "RO76", "display": "GP PRACTICE"}]
+                    },
                 },
                 {
-                    "url": "period",
-                    "valuePeriod": {
-                        "start": "2021-01-01",
-                        "end": "2026-12-31",
-                    },
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Legal"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2021-01-01",
+                                "end": "2026-12-31",
+                            },
+                        },
+                    ],
                 },
             ],
         },
     ]
 
     start, end = mapper._extract_legal_dates(fhir_org)
-    # Should return dates from first matching extension
+    # Should return dates from first OrganisationRole
     assert start == "2020-01-15"
     assert end == "2025-12-31"
 
@@ -1302,7 +1375,7 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
 
 
 def test_from_ods_fhir_to_fhir_no_legal_dates() -> None:
-    """Test from_ods_fhir_to_fhir when no legal dates present in ODS FHIR."""
+    """Test from_ods_fhir_to_fhir when no legal dates present in ODS FHIR OrganisationRole."""
     mapper = OrganizationMapper()
     ods_org = {
         "resourceType": "Organization",
@@ -1332,11 +1405,13 @@ def test_from_ods_fhir_to_fhir_no_legal_dates() -> None:
     result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
 
     assert result is not None
-    # Extension should not be set when no legal dates found
+    # Extension should be present (the OrganisationRole), even without legal dates
+    assert result.extension is not None
+    assert len(result.extension) == 1
+    # Verify it's the OrganisationRole
     assert (
-        not hasattr(result, "extension")
-        or result.extension is None
-        or len(result.extension) == 0
+        result.extension[0].url
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
     )
 
 
@@ -1428,7 +1503,7 @@ def test_to_fhir_partial_dates_absent_not_null(
 
 
 def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:
-    """Test from_ods_fhir_to_fhir extracts and includes legal dates as TypedPeriod."""
+    """Test from_ods_fhir_to_fhir extracts and includes OrganisationRole with legal dates as TypedPeriod."""
     mapper = OrganizationMapper()
     ods_org = {
         "resourceType": "Organization",
@@ -1444,21 +1519,38 @@ def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:
         ],
         "extension": [
             {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
                     {
-                        "url": "dateType",
-                        "valueCoding": {
-                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                            "code": "Legal",
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                    "display": "GP PRACTICE",
+                                }
+                            ]
                         },
                     },
                     {
-                        "url": "period",
-                        "valuePeriod": {
-                            "start": "2015-06-01",
-                            "end": "2030-12-31",
-                        },
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "2015-06-01",
+                                    "end": "2030-12-31",
+                                },
+                            },
+                        ],
                     },
                 ],
             }
@@ -1474,9 +1566,628 @@ def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:
     ext_dict = result.extension[0].dict()
     assert (
         ext_dict["url"]
-        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
     )
 
-    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
+    # Find the TypedPeriod within the OrganisationRole
+    typed_period = next(
+        (
+            e
+            for e in ext_dict["extension"]
+            if e["url"]
+            == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+        ),
+        None,
+    )
+    assert typed_period is not None
+    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
     assert period["valuePeriod"]["start"] == "2015-06-01"
     assert period["valuePeriod"]["end"] == "2030-12-31"
+
+
+def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates() -> (
+    None
+):
+    """Test from_ods_fhir_to_fhir extracts first OrganisationRole with nested Legal TypedPeriod."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "resourceType": "Organization",
+        "id": "K84605",
+        "active": True,
+        "name": "Test Practice",
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "K84605",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "instanceID",
+                        "valueInteger": 78491,
+                    },
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                    "display": "PRESCRIBING COST CENTRE",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "1974-04-01"},
+                            },
+                        ],
+                    },
+                    {
+                        "url": "active",
+                        "valueBoolean": True,
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "instanceID",
+                        "valueInteger": 195368,
+                    },
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                    "display": "GP PRACTICE",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2014-04-15"},
+                            },
+                        ],
+                    },
+                    {
+                        "url": "active",
+                        "valueBoolean": True,
+                    },
+                ],
+            },
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+
+    assert result is not None
+    assert result.extension is not None
+    assert len(result.extension) == 1
+
+    # Should extract the FIRST OrganisationRole
+    ext_dict = result.extension[0].dict()
+    assert (
+        ext_dict["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )
+
+    # Verify it contains the first role code (RO177)
+    role_code_ext = next(
+        (e for e in ext_dict["extension"] if e["url"] == "roleCode"), None
+    )
+    assert role_code_ext is not None
+    assert role_code_ext["valueCodeableConcept"]["coding"][0]["code"] == "RO177"
+
+    # Verify it contains the Legal TypedPeriod with start date from first role
+    typed_period = next(
+        (
+            e
+            for e in ext_dict["extension"]
+            if e["url"]
+            == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+        ),
+        None,
+    )
+    assert typed_period is not None
+    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
+    assert period["valuePeriod"]["start"] == "1974-04-01"
+
+
+def test_from_ods_fhir_to_fhir_no_organisation_role() -> None:
+    """Test from_ods_fhir_to_fhir when no OrganisationRole extension is present."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "resourceType": "Organization",
+        "id": "TEST123",
+        "active": True,
+        "name": "Test Org No Role",
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "TEST123",
+            }
+        ],
+        "extension": [],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+
+    assert result is not None
+    # Should have no extensions when no OrganisationRole present
+    assert (
+        not hasattr(result, "extension")
+        or result.extension is None
+        or len(result.extension) == 0
+    )
+
+
+def test_from_ods_fhir_to_fhir_extracts_nested_legal_dates_from_role() -> None:
+    """Test from_ods_fhir_to_fhir extracts OrganisationRole with nested Legal TypedPeriod."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "resourceType": "Organization",
+        "id": "A12345",
+        "active": True,
+        "name": "Test GP Practice",
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "A12345",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "instanceID",
+                        "valueInteger": 183109,
+                    },
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                    "display": "GP PRACTICE",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "2014-04-15",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Operational",
+                                    "display": "Operational",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "2014-04-15",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "url": "active",
+                        "valueBoolean": True,
+                    },
+                ],
+            }
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+
+    # Verify the result has the entire OrganisationRole with nested TypedPeriod
+    assert result is not None
+    assert result.extension is not None
+    assert len(result.extension) == 1
+
+    ext_dict = result.extension[0].dict()
+    assert (
+        ext_dict["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )
+
+    # Verify the Legal TypedPeriod is nested within the OrganisationRole
+    typed_periods = [
+        e
+        for e in ext_dict["extension"]
+        if e["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+    ]
+    assert str(len(typed_periods)) == "2"
+
+    # Find the Legal period
+    legal_period = None
+    for tp in typed_periods:
+        date_type = next((e for e in tp["extension"] if e["url"] == "dateType"), None)
+        if date_type and date_type["valueCoding"]["code"] == "Legal":
+            legal_period = tp
+            break
+
+    assert legal_period is not None
+    period = next((e for e in legal_period["extension"] if e["url"] == "period"), None)
+    assert period is not None
+    assert period["valuePeriod"]["start"] == "2014-04-15"
+
+
+def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
+    """Test from_ods_fhir_to_fhir extracts first OrganisationRole when multiple roles exist."""
+    mapper = OrganizationMapper()
+    ods_org = {
+        "resourceType": "Organization",
+        "id": "B98765",
+        "active": True,
+        "name": "Multi-Role Organization",
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "B98765",
+            }
+        ],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                    "display": "PRESCRIBING COST CENTRE",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "1974-04-01",
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                    "display": "GP PRACTICE",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "2014-04-15",
+                                    "end": "2025-12-31",
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+
+    assert result is not None
+    assert result.extension is not None
+    assert len(result.extension) == 1
+
+    # Should extract the FIRST OrganisationRole (RO177)
+    ext_dict = result.extension[0].dict()
+    assert (
+        ext_dict["url"]
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )
+
+    # Verify it's the first role code
+    role_code_ext = next(
+        (e for e in ext_dict["extension"] if e["url"] == "roleCode"), None
+    )
+    assert role_code_ext is not None
+    assert role_code_ext["valueCodeableConcept"]["coding"][0]["code"] == "RO177"
+
+    # Verify the Legal TypedPeriod from the first role
+    typed_period = next(
+        (
+            e
+            for e in ext_dict["extension"]
+            if e["url"]
+            == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+        ),
+        None,
+    )
+    assert typed_period is not None
+    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
+    # First role's legal date should be extracted
+    assert period["valuePeriod"]["start"] == "1974-04-01"
+
+
+# --- Tests for refactored Extension-based legal period helpers ---
+
+
+@pytest.fixture
+def org_mapper() -> OrganizationMapper:
+    return OrganizationMapper()
+
+
+def make_typed_period_ext(
+    date_type: str = "Legal", start: str = "2020-01-01", end: str = "2021-01-01"
+) -> Extension:
+    """Create a TypedPeriod Extension for testing."""
+    return Extension.model_validate(
+        {
+            "url": TYPED_PERIOD_URL,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": date_type,
+                        "display": date_type,
+                    },
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": start, "end": end},
+                },
+            ],
+        }
+    )
+
+
+def make_org_role_ext(typed_period: Extension) -> Extension:
+    """Create an OrganisationRole Extension containing a TypedPeriod."""
+    return Extension.model_validate(
+        {
+            "url": ORGANISATION_ROLE_URL,
+            "extension": [typed_period.model_dump()],
+        }
+    )
+
+
+def test_is_legal_typed_period_extension_legal(org_mapper: OrganizationMapper) -> None:
+    """Test _is_legal_typed_period identifies Legal dateType correctly."""
+    legal_ext = make_typed_period_ext("Legal")
+    assert org_mapper._is_legal_typed_period(legal_ext) is True
+
+
+def test_is_legal_typed_period_extension_non_legal(
+    org_mapper: OrganizationMapper,
+) -> None:
+    """Test _is_legal_typed_period rejects non-Legal dateType."""
+    operational_ext = make_typed_period_ext("Operational")
+    assert org_mapper._is_legal_typed_period(operational_ext) is False
+
+
+def test_find_legal_typed_period_extension_found(
+    org_mapper: OrganizationMapper,
+) -> None:
+    """Test _find_legal_typed_period finds Legal TypedPeriod in OrganisationRole."""
+    legal_period = make_typed_period_ext("Legal")
+    org_role = make_org_role_ext(legal_period)
+    found = org_mapper._find_legal_typed_period(org_role)
+    assert found is not None
+    assert found.url == TYPED_PERIOD_URL
+
+
+def test_find_legal_typed_period_extension_not_found(
+    org_mapper: OrganizationMapper,
+) -> None:
+    """Test _find_legal_typed_period returns None when no Legal TypedPeriod."""
+    operational_period = make_typed_period_ext("Operational")
+    org_role = make_org_role_ext(operational_period)
+    found = org_mapper._find_legal_typed_period(org_role)
+    assert found is None
+
+
+def test_extract_first_organisation_role_with_legal_dates_extension_based(
+    org_mapper: OrganizationMapper,
+) -> None:
+    """Test _extract_first_organisation_role extracts role with Legal TypedPeriod (Extension-based)."""
+    legal_period = make_typed_period_ext("Legal", "2020-01-01", "2021-12-31")
+    org_role = make_org_role_ext(legal_period)
+    extensions = [org_role]
+
+    result = org_mapper._extract_first_organisation_role(extensions)
+
+    assert result is not None
+    assert result["url"] == ORGANISATION_ROLE_URL
+    assert len(result["extension"]) == 1
+    typed_period = result["extension"][0]
+    assert typed_period["url"] == TYPED_PERIOD_URL
+
+
+def test_extract_first_organisation_role_no_legal_dates_extension_based(
+    org_mapper: OrganizationMapper,
+) -> None:
+    """Test _extract_first_organisation_role returns OrganisationRole even when no Legal TypedPeriod (Extension-based)."""
+    operational_period = make_typed_period_ext("Operational")
+    org_role = make_org_role_ext(operational_period)
+    extensions = [org_role]
+
+    result = org_mapper._extract_first_organisation_role(extensions)
+    assert result is not None
+    assert result["url"] == ORGANISATION_ROLE_URL
+    # Should contain the Operational TypedPeriod
+    assert len(result["extension"]) == 1
+    assert result["extension"][0]["url"] == TYPED_PERIOD_URL
+
+
+def test_get_typed_period_extension_found(org_mapper: OrganizationMapper) -> None:
+    """Test _get_typed_period_extension finds Legal TypedPeriod in OrganisationRole."""
+    legal_period = make_typed_period_ext("Legal")
+    org_role = make_org_role_ext(legal_period)
+    extensions = [org_role]
+
+    result = org_mapper._get_typed_period_extension(extensions)
+
+    assert result is not None
+    assert isinstance(result, Extension)
+    assert result.url == TYPED_PERIOD_URL
+
+
+def test_get_typed_period_extension_not_found(org_mapper: OrganizationMapper) -> None:
+    """Test _get_typed_period_extension returns None when no Legal TypedPeriod."""
+    operational_period = make_typed_period_ext("Operational")
+    org_role = make_org_role_ext(operational_period)
+    extensions = [org_role]
+
+    result = org_mapper._get_typed_period_extension(extensions)
+    assert result is None
+
+
+def test_parse_legal_period_both_dates(org_mapper: OrganizationMapper) -> None:
+    """Test _parse_legal_period extracts both start and end dates."""
+    legal_ext = make_typed_period_ext("Legal", "2020-01-01", "2021-12-31")
+    start, end = org_mapper._parse_legal_period(legal_ext)
+
+    assert start == "2020-01-01"
+    assert end == "2021-12-31"
+
+
+def test_parse_legal_period_start_only(org_mapper: OrganizationMapper) -> None:
+    """Test _parse_legal_period extracts start date when end is missing."""
+    legal_ext = Extension.model_validate(
+        {
+            "url": TYPED_PERIOD_URL,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-01"},
+                },
+            ],
+        }
+    )
+    start, end = org_mapper._parse_legal_period(legal_ext)
+
+    assert start == "2020-01-01"
+    assert end is None
+
+
+def test_parse_legal_period_no_period(org_mapper: OrganizationMapper) -> None:
+    """Test _parse_legal_period returns None when no period sub-extension."""
+    ext_no_period = Extension.model_validate(
+        {
+            "url": TYPED_PERIOD_URL,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {"code": "Legal"},
+                },
+            ],
+        }
+    )
+    start, end = org_mapper._parse_legal_period(ext_no_period)
+
+    assert start is None
+    assert end is None
+
+
+def test_parse_legal_period_none_extension(org_mapper: OrganizationMapper) -> None:
+    """Test _parse_legal_period handles None input gracefully."""
+    start, end = org_mapper._parse_legal_period(None)
+
+    assert start is None
+    assert end is None
