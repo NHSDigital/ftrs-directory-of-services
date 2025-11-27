@@ -120,8 +120,8 @@ if command -v awscurl >/dev/null 2>&1; then
   AWSCURL_VERSION=$(awscurl --version 2>&1 || true)
   err "awscurl: ${AWSCURL_VERSION}"
 
-  # Use -- to separate options from the URI to avoid argv parsing issues
-  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT -H "Content-Type: application/json" -d "${PAYLOAD}" -- "${URL}"
+  # Call awscurl with URI as positional argument (URL must be the final parameter)
+  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT -H "Content-Type: application/json" -d "${PAYLOAD}" "${URL}"
 else
   err "awscurl not found; falling back to curl (unsigned request may return 403)"
   curl -sS --fail --max-time 30 --retry 2 -X PUT "${URL}" -H "Content-Type: application/json" -d "${PAYLOAD}"
