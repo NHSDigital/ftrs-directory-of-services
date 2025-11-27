@@ -18,24 +18,21 @@ if [ -n "${AWS_DEFAULT_REGION:-}" ]; then
   err "AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
 fi
 
-# Print AWS account number for debugging (safe, region-aware)
+# Print AWS account number and caller ARN for debugging (safe — ARN is non-secret)
 if command -v aws >/dev/null 2>&1; then
-  # Print aws CLI version so logs show whether aws is installed and which version
   AWS_CLI_VERSION=$(aws --version 2>&1 || true)
   err "aws CLI: ${AWS_CLI_VERSION}"
 
-  # Capture aws STS output (stdout or stderr) for diagnostics. Don't print secrets.
-  # Rely on AWS_REGION/AWS_DEFAULT_REGION environment variables instead of passing --region
-  STS_OUT=$(aws sts get-caller-identity --query Account --output text 2>&1 || true)
+  # Capture aws STS account and ARN for diagnostics. These are safe to log and help identify which principal is signing requests.
+  STS_ACCOUNT=$(aws sts get-caller-identity --query Account --output text 2>&1 || true)
+  STS_ARN=$(aws sts get-caller-identity --query Arn --output text 2>&1 || true)
 
-  # If the output looks like an account number (digits), it's successful
-  if [[ "${STS_OUT}" =~ ^[0-9]+$ ]]; then
-    AWS_ACCOUNT="${STS_OUT}"
-    err "AWS account: $AWS_ACCOUNT"
+  if [[ "${STS_ACCOUNT}" =~ ^[0-9]+$ ]]; then
+    err "AWS account: ${STS_ACCOUNT}"
+    err "AWS caller ARN: ${STS_ARN}"
   else
     err "AWS account: unavailable (aws sts returned empty or failed)"
-    # Print the aws CLI error text for debugging (may show AccessDenied, could not find credentials, etc.)
-    err "aws sts error: ${STS_OUT}"
+    err "aws sts error: ${STS_ACCOUNT}"
     err "Failing early because valid AWS credentials are required to resolve serverless collections"
     exit 3
   fi
@@ -113,27 +110,48 @@ PAYLOAD='{
 }'
 URL="https://${OPEN_SEARCH_DOMAIN}/${FINAL_INDEX}"
 
-# Write payload to temp file for Python fallback
+# Write payload to temp file for awscurl
 TMP_PAYLOAD_FILE=$(mktemp /tmp/os-payload-XXXXXX.json)
 printf '%s' "${PAYLOAD}" > "${TMP_PAYLOAD_FILE}"
 
-# Try awscurl first (signed requests), then curl or Python signed PUT as a fallback
+# Create index using awscurl (SigV4)
 if command -v awscurl >/dev/null 2>&1; then
   err "Using awscurl to create index"
-  # Print awscurl version if available
-  AWSCURL_VERSION=$(awscurl --version 2>&1 || true)
-  err "awscurl: ${AWSCURL_VERSION}"
 
-  # Call awscurl with URI as positional argument (URL must be the final parameter)
-  if awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} -X PUT -H "Content-Type: application/json" -d "${PAYLOAD}" "${URL}"; then
-    err "awscurl succeeded"
+  # Capture awscurl output (stdout/stderr) into temporary files so we can log them safely
+  AWSCURL_STDOUT=$(mktemp /tmp/awscurl-out-XXXXXX)
+  AWSCURL_STDERR=$(mktemp /tmp/awscurl-err-XXXXXX)
+
+  # Use --fail-with-body so non-2xx responses include response body
+  set +e
+  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} --fail-with-body -X PUT "${URL}" -H "Content-Type: application/json" -d "$(cat "${TMP_PAYLOAD_FILE}")" >"${AWSCURL_STDOUT}" 2>"${AWSCURL_STDERR}"
+  AWSCURL_RC=$?
+  set -e
+
+  # Log concise awscurl output for debugging (truncate to avoid huge logs)
+  if [ -s "${AWSCURL_STDOUT}" ]; then
+    err "awscurl stdout (first 4k):"
+    head -c 4096 "${AWSCURL_STDOUT}" | sed -n '1,200p' >&2 || true
+  fi
+  if [ -s "${AWSCURL_STDERR}" ]; then
+    err "awscurl stderr (first 4k):"
+    head -c 4096 "${AWSCURL_STDERR}" | sed -n '1,200p' >&2 || true
+  fi
+
+  if [ ${AWSCURL_RC} -ne 0 ]; then
+    err "awscurl returned non-zero exit code ${AWSCURL_RC}. This indicates a request or signing error."
+    err "Caller ARN (from STS): ${STS_ARN}"
+    err "If you see HTTP 403 in the awscurl stdout/stderr above, ensure the caller ARN is included in the OpenSearch collection's access policy and has the necessary aoss permissions."
+    rm -f "${TMP_PAYLOAD_FILE}" "${AWSCURL_STDOUT}" "${AWSCURL_STDERR}"
+    exit 7
   else
-    err "awscurl failed; falling back to signed Python PUT"
-    python3 ./scripts/workflow/signed_put.py "${URL}" "${TMP_PAYLOAD_FILE}" || { err "signed Python PUT failed"; rm -f "${TMP_PAYLOAD_FILE}"; exit 5; }
+    err "awscurl succeeded"
+    rm -f "${AWSCURL_STDOUT}" "${AWSCURL_STDERR}"
   fi
 else
-  err "awscurl not found; falling back to signed Python PUT"
-  python3 ./scripts/workflow/signed_put.py "${URL}" "${TMP_PAYLOAD_FILE}" || { err "signed Python PUT failed"; rm -f "${TMP_PAYLOAD_FILE}"; exit 5; }
+  err "awscurl not found. Install it or use Python SigV4 signing."
+  rm -f "${TMP_PAYLOAD_FILE}"
+  exit 2
 fi
 
 rm -f "${TMP_PAYLOAD_FILE}"
