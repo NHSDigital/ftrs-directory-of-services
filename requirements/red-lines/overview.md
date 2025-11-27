@@ -1,9 +1,15 @@
 # Red Lines Overview
 
-# Red Lines Overview
+## Notes
+- The engineering Red Lines are the key behaviours & practices we expect from teams to support our engineering principles
+- Any changes to the Red Lines must be discussed at the Engineering Board - please do not edit this page directly, instead please email suggestions to the Engineering Mailbox for review and discussion
+- The current scope of the Red Lines is engineering within Products & Platforms
+- Recent changes are highlighted in green, please see the change log for the details
+- Red lines where changes are required are highlighted in yellow
+- For details around the purpose, governance processes, etc, for the Red Lines please see Additional Information
+- You can view a heatmap of the Red Line self-assessments here.
 
-This document normalizes the PDF content into concise tables, separating core statements from noisy multi-column artefacts. The raw extract is preserved below for audit.
-
+## Verification
 Cross-reference: See the NFR/control mapping in `requirements/red-lines/mapping/red-lines-to-nfr.md`.
 
 Verification Checklist (update in mapping file):
@@ -14,67 +20,52 @@ Verification Checklist (update in mapping file):
 - [ ] Last review date within past quarter
 - [ ] Exceptions documented where applicability is partial
 
-### Cloud / Infrastructure
+## Cloud / Infrastructure
 
-| Ref | Summary | Related Principles/Patterns |
-|-----|---------|-----------------------------|
-| Cloud-1 | New services run on public cloud with product-owned accounts; AWS within NHS AWS Landing Zone; Azure within NHSE-LZ-Root; internet-first; autoscale down ≥40%; blue/green for gold/platinum; DR restore tested in isolation | Overproduction principle; Cloud practices; Deployments pattern |
-| Cloud-2 | Backup and restore: immutable backups with annual restore validation; additional measures if RPO=0 required | Cloud backups blueprint |
-| Cloud-3 | Active-passive services must swap active/passive at least every 12 months | Cloud practices |
-| Cloud-4 | Use mandatory cloud blueprints (AWS/Azure) for backups and DR | Cloud backups blueprint |
-| Cloud-5 | Inventory and utilization: infrastructure should be fully utilized; services auto-scale | Inventory principle; Cloud practices |
-| Cloud-6 | Test scenarios aligned to Cloud-5/6 for resilience | Deployments pattern |
-| Cloud-7 | Cloud backups must be defined and tested | Cloud backups blueprint |
-| Cloud-8 | No standing write access to production; only time-bound (≤24h) elevation with human approval; use AWS CCOE solution / Azure PIM | Security practices |
+| Ref No | Red Line | Related principles / patterns / etc |
+|--------|----------|--------------------------------------|
+| Cloud-1 | All new services must be developed on public cloud services, and:<br><ul><li>One set of accounts/subscriptions per product, with separation of production and non-production environments, owned by the product area</li><li>Accounts on AWS must be within the AWS Landing Zone in the NHS Digital AWS Organisation</li><li>Subscriptions on Azure must be within the NHSE-LZ-Root Management Group structure in the NHS Strategic Azure Tenant</li></ul>Note: Crown Hosting is not considered “public cloud” in this context | <ul><li>Overproduction - building when you could reuse or buy principle</li><li>Outsource from the bottom up pattern</li><li>Cloud practices</li><li>How Cloud-1 and SDLC-6 Red Lines Complement Each Other</li></ul> |
+| Cloud-2 | All services must be designed as Internet first - HSCN may be provided but only to support legacy connections. |  |
+| Cloud-3 | All production environments must automatically scale down by at least 40% running cost from peak hourly usage to off-peak usage | <ul><li>Inventory — unnecessary resources principle</li><li>Cloud practices: services auto-scale; infrastructure fully utilised</li></ul> |
+| Cloud-4 | Gold and platinum services must use zero-downtime blue/green deployments for all planned deployments | <ul><li><a href="https://github.com/NHSDigital/software-engineering-quality-framework/blob/main/patterns/deployment.md#zero-downtime-deployments">Deployment pattern</a></li></ul> |
+| Cloud-5 | DR: Gold/platinum must test full restore from production backups at least every 24 months (complete rebuild on new account) | <ul><li><a href="https://nhs.sharepoint.com/sites/X26_EngineeringCOE/SitePages/Red-Lines-Backup-Scenario---Overview.aspx">Test scenarios for cloud-5 and cloud-6</a></li></ul> |
+| Cloud-6 | Data recovery: persistent data backed up to immutable service; annual restore test; additional measures if RPO=0; use mandatory cloud blueprints | <ul><li>Testing: Test scenarios for cloud-5 and cloud-6</li><li>Solutions: Cloud backups</li></ul> |
+| Cloud-7 | Services in active-passive production must swap active/passive sites at least every 12 months |  |
+| Cloud-8 | Only temporary (≤24h) human write access to production, approved by a different human; no standing write access; AWS CCOE / Azure PIM | <ul><li>Security practices</li><li>For AWS: CCOE solution</li><li>For Azure: PIM configuration</li></ul> |
 
-### Using Shared Services
+## Using Shared Services
 
-| Ref | Summary | Related Principles/Patterns |
-|-----|---------|-----------------------------|
-| Reuse-1 | Use NHS Notify for citizen communications | Overproduction principle |
-| Reuse-2 | PDS is single source of truth for demographics | Data governance |
-| Reuse-3 | Citizen auth must use NHS login (proxy access currently excluded) | Identity & Access |
-| Reuse-4 | If IAL3 required use CIS2; otherwise use CIS2 or NHS.net | Identity Assurance (NIST IAL) |
-| Reuse-5 | Consult FDP/CDP for analytics; don’t build new analytics platforms; use cloud-native tools for simple analysis | Overproduction principle |
-| Reuse-6 | National cohorting must use Cohorting As A Service | Reuse-first |
-| Reuse-7 | Align UIs with `nhsuk-frontend` and NHS Design System; contribute new components; use `nhsuk-react-components` per WG | Design System |
+| Ref No | Red Line | Related principles / patterns / etc |
+|--------|----------|--------------------------------------|
+| Reuse-1 | NHS Notify must be used for citizen communications (currently no staff equivalent) | Overproduction - building when you could reuse or buy principle |
+| Reuse-2 | PDS is the single source of truth for demographic details; no overrides outside PDS | Overproduction - building when you could reuse or buy principle |
+| Reuse-3 | Citizen-facing authentication must use NHS login (proxy access currently unsupported) | Overproduction - building when you could reuse or buy principle |
+| Reuse-4 | If IAL3 required, use CIS2; otherwise use CIS2 or NHS.net | <ul><li>Overproduction - building when you could reuse or buy principle</li><li>Identity Assurance Levels (NIST):<ul><li>IAL3: in-person proofing; MUST for national clinical systems</li><li>IAL2: evidence + verification</li><li>IAL1: no real-world identity linkage required</li></ul></li></ul> |
+| Reuse-5 | Consult FDP/CDP for analytics; don’t build platforms; use cloud-native tools for simple analysis | Overproduction - building when you could reuse or buy principle |
+| Reuse-6 | National cohorting must be performed by Cohorting As A Service |  |
+| Reuse-7 | Align with nhsuk-frontend and NHS Design System; alter/extend only with evidenced needs | <ul><li>Feed new components to Design System Community Backlog</li><li>Use nhsuk-react-components per UI Working Group decision</li></ul> |
 
-### Software Development Lifecycle
+## Software Development Lifecycle
 
-| Ref | Summary | Related Principles/Patterns |
-|-----|---------|-----------------------------|
-| SDLC-1 | Use NHS GitHub Enterprise; comply with securing-repositories and engineering dashboards | Code security; Governance |
-| SDLC-2 | Primary branch builds use SonarCloud; pass 4 quality gates; total unit test coverage >50% | Accessing SonarCloud; Quality gates |
-| SDLC-3 | Build and deploy to production at least quarterly | Little and often pattern |
-| SDLC-4 | All planned production deployments must be automated | Automate everything pattern |
-| SDLC-5 | Under active development: build daily, deploy at least every two weeks outside freeze | Flow efficiency |
-| SDLC-6 | Apply architect-for-flow: deliver changes per bounded context in independently deployable components | Architect-for-flow pattern |
+| Ref No | Red Line | Related principles / patterns / etc |
+|--------|----------|--------------------------------------|
+| SDLC-1 | Use NHS GitHub Enterprise and comply with securing-repositories; engineering dashboards collect compliance | <ul><li>Overproduction - reinventing the wheel principle</li><li>Code security</li><li>Outsource bottom up pattern</li></ul> |
+| SDLC-2 | Primary branch builds must use SonarCloud; meet 4 Sonar Way quality gates; total unit test coverage > 50% | <ul><li>Accessing SonarCloud</li><li>Outsource bottom up pattern</li></ul> |
+| SDLC-3 | Build and deploy to production at least once a quarter, even with no code changes |  |
+| SDLC-4 | All planned deployments to production must be automated | Automate everything pattern |
+| SDLC-5 | Under active development: build daily; deploy at least every two weeks (outside change freeze) | Little and often pattern |
+| SDLC-6 | Apply architect-for-flow: deliver by bounded context in independently deployable components | <ul><li>Architect-for-flow pattern</li><li>How Cloud-1 and SDLC-6 Red Lines Complement Each Other</li></ul> |
 
-### Software Management
+## Software Management
 
-| Ref | Summary | Related Principles/Patterns |
-|-----|---------|-----------------------------|
-| Soft-1 | External APIs follow published API guidance; use Digital Onboarding Service (DOS); no SCALs | API Policies & Best Practice |
-| Soft-2 | Maintain Software Bill of Materials (SBOM) via central approach | SBOM; What Good Looks Like |
-| Soft-3 | Do not use end-of-life software; keep non-policy versions updated ≤6 months; apply patches per CVM | Cyber Vulnerability Management |
-| Soft-4 | Quarterly team maturity review using Software Quality Framework | Team self-assessment |
-| Soft-5 | Align with Tech Radar; migration away from AVOID; approval required for CONTAIN/PROPOSED/AVOID in production and for platform use | Tech Radar |
-| Soft-6 | Comply with mandatory engineering blueprints within 6 months of mandate | Blueprints |
-| Soft-7 | No dependencies on services/APIs within 6 months of retirement unless service retires first | Dependency hygiene |
-| Soft-8 | No network dependencies relying on security protocols within 6 months of retirement unless service retires first | Protocol hygiene |
+| Ref No | Red Line | Related principles / patterns / etc |
+|--------|----------|--------------------------------------|
+| Soft-1 | Externally facing (to the team) APIs must follow the published API guidance | <ul><li>API Policies and Best Practice</li><li>What Good Looks Like</li></ul> |
+| Soft-2 | All externally-facing APIs must use the Digital Onboarding Service (DOS); no SCALs for onboarding |  |
+| Soft-3 | <ul><li>Record all software and dependencies in a Software Bill of Materials (SBOM)</li><li>Do not use EOL software; remove if unsupported</li><li>Policy versions: only versions receiving security updates; prefer latest stable</li><li>No-policy versions: update ≤6 months to latest stable</li><li>Apply patches per Cyber Vulnerability Management standards</li></ul> | Teams should build SBOM via central approach and contribute when applicable |
+| Soft-4 | Teams must use the maturity review model with the software quality framework at least once a quarter | Team self-assessment maturity model |
+| Soft-5 | Align with the Tech Radar; add missing techs; migrate off AVOID; approvals needed for CONTAIN/PROPOSED/AVOID in production or platform use | Tech Radar |
+| Soft-6 | Comply with all mandatory blueprints in engineering framework within 6 months of mandate | Blueprints |
+| Soft-7 | No dependencies on services/components or API versions within 6 months of retirement, unless the service retires first |  |
+| Soft-8 | No network dependencies relying on security protocols within 6 months of retirement by the dependency, unless the service retires first |  |
 
-### Team-Specific (Spine)
-
-| Ref | Summary | Related Principles/Patterns |
-|-----|---------|-----------------------------|
-| Spine-1 | Riak database type is deprecated; retire in Spine by end of 2027 | Tech Radar |
-
----
-### Appendix: Raw Extract (sanitised)
-
-The following is the sanitized raw text extracted from the PDF for auditability.
-
-```text
-<< Raw extract omitted here for brevity — retained in version history >>
-```
-#### SDLC-1
