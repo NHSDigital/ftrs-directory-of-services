@@ -46,3 +46,7 @@ tests/performance/**/*.pfx
 tests/**/.env
 
 scans/*
+
+#Visual Studio
+./vscode
+tests/service_automation/.vscode/
