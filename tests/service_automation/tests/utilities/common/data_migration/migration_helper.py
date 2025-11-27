@@ -1,4 +1,5 @@
 """Helper utilities for running data migration in tests."""
+import json
 import os
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -7,6 +8,7 @@ from unittest.mock import patch
 from urllib.parse import unquote, urlparse
 
 from aws_lambda_powertools.utilities.data_classes import SQSEvent
+from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 
@@ -180,6 +182,17 @@ class MigrationHelper:
             )
             logger.debug(f"Log references: {references}")
 
+    def _create_sqs_record_from_dms_event(self, dms_event: DMSEvent) -> SQSRecord:
+        """Create a mock SQSRecord containing a DMSEvent."""
+        sqs_record_dict = {
+            "messageId": "test-message-id",
+            "body": json.dumps(dms_event.model_dump()),  # ← DMSEvent goes in body
+            # ... minimal SQS metadata
+        }
+
+        sqs_event = SQSEvent({"Records": [sqs_record_dict]})
+        return sqs_event.records[0]
+
     def _execute_migration(
         self,
         migration_fn: MigrationExecutor,
@@ -254,15 +267,21 @@ class MigrationHelper:
         """
 
         def execute(app: DataMigrationApplication) -> None:
-            event = DMSEvent(
+            dms_event = DMSEvent(
                 type="dms_event",
                 record_id=service_id,
                 service_id=service_id,
                 table_name="services",
                 method="insert",
             )
+
+            # Wrap in SQS record format
+            sqs_record = self._create_sqs_record_from_dms_event(dms_event)
+
             logger.info(f"Running single service migration for service ID: {service_id}")
-            app.handle_dms_event(event)
+
+            # Call the new method
+            app.handle_sqs_record(sqs_record)
 
         return self._execute_migration(execute, f"single service (ID: {service_id})")
 
@@ -305,7 +324,6 @@ class MigrationHelper:
         Returns:
             MigrationRunResult with success status, error, and metrics
         """
-
         def execute(app: DataMigrationApplication) -> None:
             record_count = len(sqs_event.get("Records", []))
             logger.info(f"Running SQS event migration with {record_count} record(s)")
