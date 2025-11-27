@@ -1,0 +1,21 @@
+model {
+
+  extend ftrs {
+
+    lambda gpSearchApi "GP Search API" {
+      description '
+        /gp-search
+        API for searching GP services
+      '
+
+      lambda getHealthcareService "GET /Organization?ods_code={ods_code}" {
+        description 'Retrieves a specific healthcare service by ODS code'
+      }
+
+    }
+  }
+
+  apim.dosSearchProxy -> gpSearchApi "Proxies calls to"
+  getHealthcareService -> ftrs.db.healthCareServiceTable "Reads from"
+  getHealthcareService -> ftrs.openSearch "Searches in"
+}

@@ -14,7 +14,7 @@ model {
     }
   }
   sourcingEtlProcessor -> sourcingEtlQueue "Messages sent to"
-  sourcingEtlProcessor -> apim.dosReadProxy "Makes calls to"
+  sourcingEtlProcessor -> apim.dosSearchProxy "Makes calls to"
   sourcingEtlQueue -> sourcingEtlConsumer "Dequeue messages"
-  sourcingEtlConsumer -> apim.dosWriteProxy "Makes calls to"
+  sourcingEtlConsumer -> apim.dosIngressProxy "Makes calls to"
 }

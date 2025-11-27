@@ -1,0 +1,8 @@
+model {
+  extend ftrs {
+    container migration "DoS Data ETL" {
+      description 'ETL for transforming Old DoS to New DoS'
+    }
+  }
+
+}

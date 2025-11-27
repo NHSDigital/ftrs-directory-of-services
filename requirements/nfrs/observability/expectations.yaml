@@ -1,0 +1,82 @@
+# Versioned Observability Expectations Registry for FtRS
+version: 1.0
+generated: 2025-11-14
+
+# Controls share the common schema used by Security registries for consistency
+controls:
+  - control_id: health-panels-green
+    nfr_code: OBS-001
+    measure: App & infra health panels show green
+    threshold: All critical panels green; no stale data
+    tooling: Health checks + dashboard status API
+    cadence: Continuous + CI verification on change
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Ensures at-a-glance service health visibility
+
+  - control_id: perf-metrics-latency
+    nfr_code: OBS-007
+    measure: Performance metrics latency ≤60s
+    threshold: Metrics pipeline delivers data within 60s latency
+    tooling: Metrics agent + ingestion SLA alerting
+    cadence: Continuous monitoring
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-ingestion-api, etl-ods, dos-search, read-only-viewer]
+    status: draft
+    rationale: Fresh metrics are required for accurate operational decisions
+
+  - control_id: tps-threshold-alert
+    nfr_code: OBS-008
+    measure: TPS per endpoint displayed & threshold alert configured
+    threshold: TPS dashboard present; alert rule configured and tested
+    tooling: Metrics backend + alerting system
+    cadence: CI validation + monthly alert fire drill
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Detects throughput anomalies proactively
+
+  - control_id: latency-histograms
+    nfr_code: OBS-009
+    measure: Endpoint latency histograms with p50/p95/p99
+    threshold: Histograms available per endpoint with p50/p95/p99 series
+    tooling: Metrics backend + dashboard
+    cadence: Continuous
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Percentile visibility supports performance governance
+
+  - control_id: distributed-trace-coverage
+    nfr_code: OBS-030
+    measure: Distributed trace spans cover end-to-end request
+    threshold: ≥95% of requests include spans across key tiers
+    tooling: Tracing SDKs + sampling config
+    cadence: Continuous + monthly sampling review
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Enables end-to-end diagnosis and correlation across layers
+
+  - control_id: unauth-access-monitoring
+    nfr_code: OBS-033
+    measure: Unauthorized API access attempts logged & alerted with context
+    threshold: 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline)
+    tooling: API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job
+    cadence: Continuous collection + weekly anomaly review + monthly rule tuning
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search, dos-ingestion-api, etl-ods, read-only-viewer]
+    status: draft
+    rationale: Early detection of credential stuffing, token misuse, and privilege escalation attempts
+
+  - control_id: migration-variance-alerts
+    nfr_code: OBS-025
+    measure: Actionable alerts on data-migration error rate and duration variance
+    threshold: Alert when error_rate >1% over 5m window OR full-sync duration > baseline +20%; include playbook link, correlation_id, impacted counts
+    tooling: Metrics backend, alerting engine, synthetic event injector, dashboard
+    cadence: Continuous evaluation; monthly threshold tuning; weekly report
+    environments: [int, ref, prod]
+    services: [data-migration]
+    status: draft
+    rationale: Early detection of pipeline health issues to reduce MTTR and prevent silent degradation

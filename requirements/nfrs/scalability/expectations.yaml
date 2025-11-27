@@ -1,0 +1,59 @@
+# Versioned Scalability Expectations Registry for FtRS
+version: 1.0
+generated: 2025-11-14
+
+controls:
+  - control_id: horizontal-scale-linear
+    nfr_code: SCAL-001
+    measure: Horizontal scale-out increases TPS linearly within tolerance
+    threshold: TPS increases ~linearly per replica within agreed tolerance
+    tooling: Load tests + autoscaling reports
+    cadence: Quarterly simulation
+    environments: [int, ref]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Validates scale-out effectiveness
+
+  - control_id: vertical-resize-no-downtime
+    nfr_code: SCAL-002
+    measure: Vertical resize retains data & function without downtime
+    threshold: Resize completes with zero downtime and no data loss
+    tooling: Resize runbook + health checks
+    cadence: Semi-annual exercise
+    environments: [int, ref]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Ensures safe vertical scaling
+
+  - control_id: autoscaling-policy-simulation
+    nfr_code: SCAL-005
+    measure: Autoscaling policy simulation triggers controlled scale
+    threshold: Policy simulates expected scale events; no flapping
+    tooling: Policy simulator + metrics
+    cadence: Quarterly
+    environments: [int, ref]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Confirms autoscaling tuning
+
+  - control_id: scale-event-sla
+    nfr_code: SCAL-006
+    measure: Scale event shows no SLA breach in latency/error
+    threshold: No breach in latency/error SLAs during scale
+    tooling: Metrics/alerts during scale events
+    cadence: Continuous monitoring + quarterly drill
+    environments: [int, ref, prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Protects user experience during scaling
+
+  - control_id: capacity-headroom
+    nfr_code: SCAL-007
+    measure: Capacity report shows ≥30% headroom
+    threshold: ">= 30% capacity headroom maintained"
+    tooling: Capacity planning reports
+    cadence: Monthly
+    environments: [prod]
+    services: [crud-apis, dos-search]
+    status: draft
+    rationale: Ensures buffer for demand spikes
