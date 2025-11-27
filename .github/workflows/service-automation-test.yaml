@@ -128,7 +128,7 @@ jobs:
           aws_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: app
-          environment: ${{ inputs.environment }}
+          environment: "mgmt"
 
       - name: Upload allure report to S3
         if: always()
