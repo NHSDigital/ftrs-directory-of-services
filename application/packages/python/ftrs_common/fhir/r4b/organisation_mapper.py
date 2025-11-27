@@ -12,6 +12,9 @@ from ftrs_data_layer.domain.organisation import LegalDates
 TYPED_PERIOD_URL = (
     "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
 )
+ORGANISATION_ROLE_URL = (
+    "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+)
 
 
 class OrganizationMapper(FhirMapper):
@@ -154,13 +157,14 @@ class OrganizationMapper(FhirMapper):
             "identifier": self._build_identifier(ods_code),
             "telecom": ods_fhir_organization.get("telecom", []),
         }
-        # Only include TypedPeriod extension if present
-        extensions = ods_fhir_organization.get("extension", [])
-        typed_period_ext = next(
-            (e for e in extensions if e.get("url") == TYPED_PERIOD_URL), None
-        )
-        if typed_period_ext:
-            required_fields["extension"] = [typed_period_ext]
+        extensions_dict = ods_fhir_organization.get("extension", [])
+        # Convert dictionary extensions to Extension objects
+        extensions = [
+            Extension.model_validate(ext_dict) for ext_dict in extensions_dict
+        ]
+        first_org_role = self._extract_first_organisation_role(extensions)
+        if first_org_role:
+            required_fields["extension"] = [first_org_role]
         return FhirValidator.validate(required_fields, FhirOrganisation)
 
     # --- FHIR Extraction Helpers ---
@@ -223,35 +227,91 @@ class OrganizationMapper(FhirMapper):
                         return coding[0].get("code")
         return None
 
+    def _is_legal_typed_period(self, ext: Extension) -> bool:
+        """
+        Check if a TypedPeriod Extension has dateType 'Legal'.
+        """
+        for sub_ext in ext.extension:
+            if getattr(sub_ext, "url", None) == "dateType" and getattr(
+                sub_ext, "valueCoding", None
+            ):
+                if getattr(sub_ext.valueCoding, "code", None) == "Legal":
+                    return True
+        return False
+
+    def _find_legal_typed_period(self, org_role_ext: Extension) -> Extension | None:
+        """
+        Return the Legal TypedPeriod sub-extension from an OrganisationRole Extension.
+        """
+        for sub_ext in org_role_ext.extension:
+            if getattr(
+                sub_ext, "url", None
+            ) == TYPED_PERIOD_URL and self._is_legal_typed_period(sub_ext):
+                return sub_ext
+        return None
+
+    def _extract_first_organisation_role(
+        self, extensions: list[Extension]
+    ) -> dict | None:
+        """
+        Extract the FIRST OrganisationRole extension from ODS extensions (list of Extension).
+        Returns the complete OrganisationRole dict as-is, preserving all TypedPeriods.
+        """
+        for ext in extensions:
+            if getattr(ext, "url", None) == ORGANISATION_ROLE_URL:
+                return ext.model_dump()
+        return None
+
+    def _extract_legal_typed_period_from_ods(
+        self, extensions: list[Extension]
+    ) -> dict | None:
+        """
+        Extract Legal TypedPeriod extension from ODS extensions (list of Extension).
+        Takes the Legal TypedPeriod from the FIRST OrganisationRole in the extension array.
+        Returns the raw dict to be included in the FHIR payload.
+        """
+        for ext in extensions:
+            if getattr(ext, "url", None) != ORGANISATION_ROLE_URL:
+                continue
+            legal_typed_period = self._find_legal_typed_period(ext)
+            if legal_typed_period:
+                return legal_typed_period.model_dump()
+            return None
+        return None
+
     def get_all_role_codes(self, ods_org: dict) -> list[str]:
         """
         Extract all role codes from ODS organization.
         Public method for use by ETL processes.
-        Args:
-            ods_org: ODS FHIR organization dictionary
-        Returns:
-            List of all role codes found in the organization extensions
         """
         role_codes = []
-        role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
         for ext in ods_org.get("extension", []):
-            if ext.get("url") != role_url:
+            if ext.get("url") != ORGANISATION_ROLE_URL:
                 continue
             role_code = self._get_role_code_from_extension(ext)
             if role_code is not None:
                 role_codes.append(role_code)
         return role_codes
 
-    def _get_typed_period_extension(self, extensions: list | None) -> Extension | None:
-        """Return the TypedPeriod Extension object from a list, or None."""
+    def _get_typed_period_extension(
+        self, extensions: list[Extension] | None
+    ) -> Extension | None:
+        """
+        Return the Legal TypedPeriod Extension object from extensions (list of Extension).
+        Searches within OrganisationRole extensions for TypedPeriod with dateType 'Legal'.
+        """
         if not extensions:
             return None
         for ext in extensions:
-            ext_obj = (
-                ext if isinstance(ext, Extension) else Extension.model_validate(ext)
-            )
-            if ext_obj.url == TYPED_PERIOD_URL:
-                return ext_obj
+            if getattr(ext, "url", None) != ORGANISATION_ROLE_URL or not getattr(
+                ext, "extension", None
+            ):
+                continue
+            for sub_ext in ext.extension:
+                if getattr(
+                    sub_ext, "url", None
+                ) == TYPED_PERIOD_URL and self._is_legal_typed_period(sub_ext):
+                    return sub_ext
         return None
 
     def _parse_legal_period(
