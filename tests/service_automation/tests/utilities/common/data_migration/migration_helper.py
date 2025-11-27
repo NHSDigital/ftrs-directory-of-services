@@ -10,9 +10,9 @@ from aws_lambda_powertools.utilities.data_classes import SQSEvent
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 
-from pipeline.application import DataMigrationApplication, DMSEvent
-from pipeline.processor import DataMigrationMetrics
-from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
+from service_migration.application import DataMigrationApplication, DMSEvent, DataMigrationConfig
+from service_migration.processor import DataMigrationMetrics
+from common.config import DatabaseConfig
 
 # Type aliases
 DbParams = Dict[str, str]
