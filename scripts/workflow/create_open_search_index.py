@@ -12,6 +12,7 @@ import sys
 import json
 import logging
 from typing import Optional
+import fnmatch
 
 import boto3
 import botocore.session
@@ -173,6 +174,82 @@ def inspect_iam_role_permissions(role_arn: str) -> None:
     except Exception:
         log.debug('IAM role inspection failed', exc_info=True)
 
+    # Additional analysis: check which attached policies would allow CreateIndex on the target
+    try:
+        # determine target resource(s) from environment if available
+        collection = os.environ.get('OPEN_SEARCH_DOMAIN')
+        idx = os.environ.get('INDEX')
+        w = os.environ.get('WORKSPACE') or ''
+        if idx == 'organisation':
+            final_index = 'organisation'
+        else:
+            final_index = idx + (('-' + w) if w and not w.startswith('-') else ('-' + w if w and w.startswith('-') else ''))
+        target_resource = 'index/{}/{}'.format(collection, final_index)
+        wanted = ['aoss:CreateIndex']
+        allowed = analyze_policies_for_resource(role_name, attached, target_resource, wanted)
+        if allowed:
+            log.info('POLICY ANALYSIS: managed policy statements that would allow CreateIndex on {}: {}'.format(target_resource, allowed))
+        else:
+            log.info('POLICY ANALYSIS: no managed policy statements found that allow CreateIndex on {}'.format(target_resource))
+        # Run policy simulation with ResourceArns to check resource-scoped decisions
+        try:
+            sts = boto3.client('sts')
+            account = sts.get_caller_identity().get('Account')
+            region = os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION') or 'us-east-1'
+            # Construct an AOSS-style ARN for the index (best-effort)
+            aoss_index_arn = 'arn:aws:aoss:{region}:{account}:index/{collection}/{index}'.format(region=region, account=account, collection=collection, index=final_index)
+            sim = iam.simulate_principal_policy(PolicySourceArn=role_arn, ActionNames=wanted, ResourceArns=[aoss_index_arn, target_resource])
+            for res in sim.get('EvaluationResults', []):
+                log.info('SIMULATION with ResourceArns - Action {} => {}'.format(res.get('EvalActionName'), res.get('EvalDecision')))
+                if 'MatchedStatements' in res and res.get('MatchedStatements'):
+                    log.info('MatchedStatements: {}'.format(res.get('MatchedStatements')))
+        except Exception:
+            log.debug('Resource-scoped IAM simulation failed', exc_info=True)
+
+        # Scan managed and inline policies for explicit Deny statements matching the target
+        try:
+            denies = {}
+            # check managed policies
+            for p in attached:
+                try:
+                    pol = iam.get_policy(PolicyArn=p.get('PolicyArn'))
+                    ver = iam.get_policy_version(PolicyArn=p.get('PolicyArn'), VersionId=pol['Policy']['DefaultVersionId'])
+                    doc = ver['PolicyVersion']['Document']
+                    for stmt in _normalize_to_list(doc.get('Statement')):
+                        if str(stmt.get('Effect','')).lower() != 'deny':
+                            continue
+                        stmt_actions = _normalize_to_list(stmt.get('Action'))
+                        stmt_resources = _normalize_to_list(stmt.get('Resource')) or ['*']
+                        for sa in stmt_actions:
+                            for sr in stmt_resources:
+                                if any(_action_matches(sa, w) for w in wanted) and (sr == '*' or _resource_matches(sr, target_resource)):
+                                    denies.setdefault(p.get('PolicyName'), []).append({'action': sa, 'resource': sr})
+                except Exception:
+                    pass
+            # check inline policies
+            for name in inline:
+                try:
+                    doc = iam.get_role_policy(RoleName=role_name, PolicyName=name)['PolicyDocument']
+                    for stmt in _normalize_to_list(doc.get('Statement')):
+                        if str(stmt.get('Effect','')).lower() != 'deny':
+                            continue
+                        stmt_actions = _normalize_to_list(stmt.get('Action'))
+                        stmt_resources = _normalize_to_list(stmt.get('Resource')) or ['*']
+                        for sa in stmt_actions:
+                            for sr in stmt_resources:
+                                if any(_action_matches(sa, w) for w in wanted) and (sr == '*' or _resource_matches(sr, target_resource)):
+                                    denies.setdefault(name, []).append({'action': sa, 'resource': sr})
+                except Exception:
+                    pass
+            if denies:
+                log.info('DENY ANALYSIS: explicit Deny statements that match CreateIndex on {}: {}'.format(target_resource, denies))
+            else:
+                log.info('DENY ANALYSIS: no explicit Deny statements found that match {} on {}'.format(wanted, target_resource))
+        except Exception:
+            log.debug('Deny analysis failed', exc_info=True)
+    except Exception:
+        log.debug('Policy analysis failed', exc_info=True)
+
 
 def inspect_opensearch_security_policies(collection_name: str, region: Optional[str]) -> None:
     """Attempt to list security/access policies for OpenSearch Serverless and log any that mention principals or resources of interest."""
@@ -203,6 +280,58 @@ def inspect_opensearch_security_policies(collection_name: str, region: Optional[
             log.debug('No list_* security policy methods available on opensearchserverless client')
     except Exception:
         log.debug('OpenSearch security policy inspection failed', exc_info=True)
+
+
+def _normalize_to_list(x):
+    if x is None:
+        return []
+    if isinstance(x, list):
+        return x
+    return [x]
+
+
+def _action_matches(stmt_action, wanted_action):
+    # support wildcard matching, case-insensitive
+    stmt = stmt_action.lower()
+    wanted = wanted_action.lower()
+    return fnmatch.fnmatch(stmt, wanted) or fnmatch.fnmatch(wanted, stmt)
+
+
+def _resource_matches(stmt_resource, target_resource):
+    # stmt_resource may be '*', contain wildcards, or be exact; use fnmatch
+    return fnmatch.fnmatch(target_resource, stmt_resource)
+
+
+def analyze_policies_for_resource(role_name: str, policies: list, target_resource: str, actions: list) -> dict:
+    """Return mapping of policy name -> list of (action, resource) statements that allow the action on the target_resource."""
+    iam = boto3.client('iam')
+    allowed = {}
+    for p in policies:
+        pname = p.get('PolicyName') or p.get('PolicyArn') or str(p)
+        try:
+            pol = iam.get_policy(PolicyArn=p.get('PolicyArn'))
+            ver = iam.get_policy_version(PolicyArn=p.get('PolicyArn'), VersionId=pol['Policy']['DefaultVersionId'])
+            doc = ver['PolicyVersion']['Document']
+        except Exception:
+            log.debug('Could not fetch managed policy document for {}'.format(pname), exc_info=True)
+            continue
+
+        for stmt in _normalize_to_list(doc.get('Statement')):
+            try:
+                if str(stmt.get('Effect', '')).lower() != 'allow':
+                    continue
+                stmt_actions = _normalize_to_list(stmt.get('Action'))
+                stmt_resources = _normalize_to_list(stmt.get('Resource')) or ['*']
+                for want in actions:
+                    for sa in stmt_actions:
+                        if _action_matches(sa, want):
+                            for sr in stmt_resources:
+                                if sr == '*' or _resource_matches(sr, target_resource):
+                                    allowed.setdefault(pname, []).append({'action': sa, 'resource': sr, 'matched_for': want})
+            except Exception:
+                log.debug('Error parsing statement in {}'.format(pname), exc_info=True)
+
+    return allowed
 
 
 def main() -> int:
