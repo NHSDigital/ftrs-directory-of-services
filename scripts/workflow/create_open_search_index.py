@@ -70,81 +70,6 @@ def resolve_serverless_collection(name: str, region: Optional[str]) -> Optional[
 
 def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "aoss") -> requests.Response:
     """Sign the HTTP request using botocore SigV4 and send via requests."""
-    # 1) Try aws-requests-auth AWSV4SignerAuth if available
-    try:
-        import importlib
-        mod = importlib.import_module('aws_requests_auth.aws_v4_auth')
-        AWSV4SignerAuth = getattr(mod, 'AWSV4SignerAuth')
-        session = botocore.session.get_session()
-        creds = session.get_credentials()
-        if creds is None:
-            raise RuntimeError("No AWS credentials available in the environment")
-        frozen = creds.get_frozen_credentials()
-        # Try the exact form suggested: AWSV4SignerAuth(credentials_obj, region, service)
-        try:
-            auth = AWSV4SignerAuth(creds, region or os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION'), service)
-        except Exception:
-            # Some versions accept frozen credentials or explicit value kwargs; try alternatives
-            try:
-                auth = AWSV4SignerAuth(frozen, region or os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION'), service)
-            except Exception:
-                auth = AWSV4SignerAuth(access_key=frozen.access_key, secret_key=frozen.secret_key, region=region or os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION'), service=service, session_token=frozen.token)
-
-        hdrs = {"Content-Type": "application/json"}
-        s = requests.Session()
-        req = requests.Request(method="PUT", url=url, data=payload, headers=hdrs, auth=auth)
-        prepared = s.prepare_request(req)
-        # Log redacted Authorization header if present after signing
-        try:
-            a = prepared.headers.get('Authorization') or prepared.headers.get('authorization')
-            if a:
-                redacted = a
-                if 'Signature=' in a:
-                    redacted = a.split('Signature=')[0] + 'Signature=<redacted>'
-                log.info('Signed Authorization header (AWSV4SignerAuth): {}'.format(redacted))
-        except Exception:
-            log.debug('Could not introspect prepared headers (AWSV4SignerAuth)', exc_info=True)
-
-        resp = s.send(prepared, timeout=30)
-        return resp
-    except ImportError:
-        log.debug('aws-requests-auth not available; trying requests-aws4auth', exc_info=True)
-    except Exception:
-        log.debug('AWSV4SignerAuth attempt failed; trying requests-aws4auth', exc_info=True)
-
-    # 2) Try requests-aws4auth.AWS4Auth
-    try:
-        mod = importlib.import_module('requests_aws4auth')
-        AWS4Auth = getattr(mod, 'AWS4Auth')
-        session = botocore.session.get_session()
-        creds = session.get_credentials()
-        if creds is None:
-            raise RuntimeError("No AWS credentials available in the environment")
-        frozen = creds.get_frozen_credentials()
-        auth = AWS4Auth(frozen.access_key, frozen.secret_key, region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION"), service, session_token=frozen.token)
-
-        # Send request signed by requests-aws4auth
-        hdrs = {"Content-Type": "application/json"}
-        s = requests.Session()
-        req = requests.Request(method="PUT", url=url, data=payload, headers=hdrs, auth=auth)
-        prepared = s.prepare_request(req)
-        # Log redacted Authorization header if present after signing
-        try:
-            a = prepared.headers.get('Authorization') or prepared.headers.get('authorization')
-            if a:
-                redacted = a
-                if 'Signature=' in a:
-                    redacted = a.split('Signature=')[0] + 'Signature=<redacted>'
-                log.info('Signed Authorization header (AWS4Auth): {}'.format(redacted))
-        except Exception:
-            log.debug('Could not introspect prepared headers (AWS4Auth)', exc_info=True)
-
-        resp = s.send(prepared, timeout=30)
-        return resp
-    except Exception:
-        log.debug('requests-aws4auth not available or failed; falling back to botocore SigV4Auth', exc_info=True)
-
-    # Fallback: use botocore SigV4Auth (existing method)
     session = botocore.session.get_session()
     creds = session.get_credentials()
     if creds is None:
@@ -218,13 +143,11 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
 
 def inspect_iam_role_permissions(role_arn: str) -> None:
     """Log attached and inline policies for the given IAM role and whether they mention aoss/opensearch actions."""
-    iam = boto3.client('iam')
-    role_name = role_arn.split('/')[-1]
-    attached = []
-    inline = []
-    log.info('Inspecting IAM role: {}'.format(role_arn))
-
     try:
+        iam = boto3.client('iam')
+        role_name = role_arn.split('/')[-1]
+        log.info('Inspecting IAM role: {}'.format(role_arn))
+
         attached = iam.list_attached_role_policies(RoleName=role_name).get('AttachedPolicies', [])
         log.info('Attached managed policies: {}'.format([p.get('PolicyName') for p in attached]))
         for p in attached:
@@ -237,10 +160,7 @@ def inspect_iam_role_permissions(role_arn: str) -> None:
                 log.info('Managed policy {} mentions aoss/opensearch keywords: {}'.format(p.get('PolicyName'), found))
             except Exception:
                 log.debug('Could not retrieve managed policy {}'.format(p.get('PolicyArn')), exc_info=True)
-    except Exception:
-        log.debug('Could not list attached managed policies', exc_info=True)
 
-    try:
         inline = iam.list_role_policies(RoleName=role_name).get('PolicyNames', [])
         log.info('Inline policies: {}'.format(inline))
         for name in inline:
@@ -252,7 +172,7 @@ def inspect_iam_role_permissions(role_arn: str) -> None:
             except Exception:
                 log.debug('Could not retrieve inline policy {}'.format(name), exc_info=True)
     except Exception:
-        log.debug('Could not list inline policies', exc_info=True)
+        log.debug('IAM role inspection failed', exc_info=True)
 
     # Additional analysis: check which attached policies would allow CreateIndex on the target
     try:
