@@ -293,8 +293,13 @@ def main() -> int:
     if OPEN_SEARCH_DOMAIN.startswith("https://"):
         OPEN_SEARCH_DOMAIN = OPEN_SEARCH_DOMAIN[len("https://"):]
 
-    if WORKSPACE and not WORKSPACE.startswith("-"):
-        WORKSPACE = "-{}".format(WORKSPACE)
+    # Special-case: do not append workspace suffix for certain index names
+    # (e.g., 'organisation' is managed as a single index across workspaces)
+    if INDEX == "organisation":
+        WORKSPACE = ""
+    else:
+        if WORKSPACE and not WORKSPACE.startswith("-"):
+            WORKSPACE = "-{}".format(WORKSPACE)
 
     FINAL_INDEX = "{}{}".format(INDEX, WORKSPACE)
 
