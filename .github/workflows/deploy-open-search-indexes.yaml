@@ -34,6 +34,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ inputs.aws_region }}
           type: app
+          environment: ${{ inputs.environment }}
 
       - name:  Create OpenSearch Index
         id: create-index
