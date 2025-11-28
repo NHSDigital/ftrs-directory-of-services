@@ -143,10 +143,16 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
 
 def inspect_iam_role_permissions(role_arn: str) -> None:
     """Log attached and inline policies for the given IAM role and whether they mention aoss/opensearch actions."""
+    # Initialize variables so static analysis won't warn about possible undefined references
+    iam = None
+    role_name = None
+    attached = []
+    inline = []
+    log.info('Inspecting IAM role: {}'.format(role_arn))
+
     try:
         iam = boto3.client('iam')
         role_name = role_arn.split('/')[-1]
-        log.info('Inspecting IAM role: {}'.format(role_arn))
 
         attached = iam.list_attached_role_policies(RoleName=role_name).get('AttachedPolicies', [])
         log.info('Attached managed policies: {}'.format([p.get('PolicyName') for p in attached]))
@@ -174,7 +180,11 @@ def inspect_iam_role_permissions(role_arn: str) -> None:
     except Exception:
         log.debug('IAM role inspection failed', exc_info=True)
 
-    # Additional analysis: check which attached policies would allow CreateIndex on the target
+    # Additional analysis: only run if we successfully obtained IAM client and role_name
+    if not iam or not role_name:
+        log.info('Skipping policy analysis because IAM role information is unavailable')
+        return
+
     try:
         # determine target resource(s) from environment if available
         collection = os.environ.get('OPEN_SEARCH_DOMAIN')
