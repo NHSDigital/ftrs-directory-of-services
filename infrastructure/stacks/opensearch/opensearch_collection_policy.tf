@@ -36,6 +36,20 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
               "aoss:DescribeCollectionItems",
               "aoss:DeleteCollectionItems"
             ]
+          },
+          # Allow actions on any index under this collection (wildcard). This enables CI/runners
+          # to create indices like "os-index-ftrs-856" without listing them explicitly.
+          {
+            ResourceType = "index"
+            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/*"]
+            Permission = [
+              "aoss:CreateIndex",
+              "aoss:UpdateIndex",
+              "aoss:DescribeIndex",
+              "aoss:DeleteIndex",
+              "aoss:ReadDocument",
+              "aoss:WriteDocument"
+            ]
           }
         ],
         [
