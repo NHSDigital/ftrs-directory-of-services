@@ -106,7 +106,7 @@ if command -v awscurl >/dev/null 2>&1; then
   err "Invoking awscurl: service=${AWS_SERVICE} region=${AWS_REGION:-<unset>}"
   err "AWS env creds present: AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:+yes:-no} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:+yes:-no} AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:+yes:-no}"
 
-  # ✅ FIX: Use inline payload instead of @file
+  # ✅ FIX: Ensure --data-binary flag is present and payload is quoted
   awscurl --verbose --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} \
     --fail-with-body -X PUT -H "Content-Type: application/json" \
     --data-binary "$(cat "${TMP_PAYLOAD_FILE}")" "${URL}" >"${AWSCURL_STDOUT}" 2>"${AWSCURL_STDERR}"
