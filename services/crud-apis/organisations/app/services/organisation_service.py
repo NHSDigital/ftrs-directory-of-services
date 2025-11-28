@@ -11,8 +11,10 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from validators.organisation_type_validator import OrganisationTypeValidator
 
 
 class OrganisationService:
@@ -170,20 +172,134 @@ class OrganisationService:
     ) -> dict:
         """
         Compare two Organisation objects and return a dict of fields that are outdated.
-        Containing which fields can be updated for now will dedpend on business validation definitions.
+        Containing which fields can be updated for now will depend on business validation definitions.
         """
-        allowed_fields = {"name", "type", "active", "identifier_ODS_ODSCode", "telecom"}
-        outdated_fields = {
-            field: value
-            for field, value in payload.model_dump().items()
-            if (field in allowed_fields and getattr(organisation, field, None) != value)
+        allowed_fields = {
+            "name",
+            "type",
+            "active",
+            "identifier_ODS_ODSCode",
+            "telecom",
+            "primary_role_code",
+            "non_primary_role_codes",
         }
+
+        outdated_fields = self._compute_outdated_fields(
+            organisation, payload, allowed_fields
+        )
+
         if outdated_fields:
-            self.logger.log(
-                CrudApisLogBase.ORGANISATION_006,
-                outdated_fields=list(outdated_fields.keys()),
-                organisation_id=getattr(organisation, "id", None),
-            )
-            outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
-            outdated_fields["modifiedDateTime"] = datetime.now(UTC)
+            self._validate_role_fields_if_changed(organisation, outdated_fields)
+            self._add_audit_fields(outdated_fields, payload)
+            self._log_outdated_fields(outdated_fields, organisation.id)
+
         return outdated_fields
+
+    def _compute_outdated_fields(
+        self,
+        organisation: Organisation,
+        payload: Organisation,
+        allowed_fields: set[str],
+    ) -> dict:
+        """Extract fields that have changed between stored and payload organisations."""
+        outdated_fields = {}
+
+        for field, value in payload.model_dump().items():
+            if field not in allowed_fields:
+                continue
+
+            existing_value = getattr(organisation, field, None)
+
+            if field == "primary_role_code":
+                self._validate_primary_role_type(value)
+                if existing_value != value:
+                    outdated_fields[field] = value
+            elif field == "non_primary_role_codes":
+                self._validate_non_primary_roles_type(value)
+                # Compare as sets for order-independent comparison
+                if set(existing_value or []) != set(value or []):
+                    outdated_fields[field] = value
+            elif existing_value != value:
+                outdated_fields[field] = value
+
+        return outdated_fields
+
+    def _validate_primary_role_type(self, value: any) -> None:
+        """Validate that primary role is an OrganisationTypeCode enum."""
+        if not isinstance(value, OrganisationTypeCode):
+            _raise_validation_error(
+                "primary_role_code must be an OrganisationTypeCode enum"
+            )
+
+    def _validate_non_primary_roles_type(self, roles: list) -> None:
+        """Validate that all non-primary roles are OrganisationTypeCode enums."""
+        for idx, role in enumerate(roles or []):
+            if not isinstance(role, OrganisationTypeCode):
+                _raise_validation_error(
+                    "non_primary_role_codes must be an OrganisationTypeCode enum"
+                )
+
+    def _validate_role_fields_if_changed(
+        self, organisation: Organisation, outdated_fields: dict
+    ) -> None:
+        """Validate role combination if role fields have changed."""
+        role_fields_changed = (
+            "primary_role_code" in outdated_fields
+            or "non_primary_role_codes" in outdated_fields
+        )
+
+        if not role_fields_changed:
+            return
+
+        primary_role = outdated_fields.get(
+            "primary_role_code", organisation.primary_role_code
+        )
+        non_primary_roles = outdated_fields.get(
+            "non_primary_role_codes", organisation.non_primary_role_codes or []
+        )
+
+        is_valid, error_message = OrganisationTypeValidator.validate_type_combination(
+            primary_role, non_primary_roles
+        )
+
+        if not is_valid:
+            self._handle_invalid_role_combination(organisation.id, error_message)
+
+    def _handle_invalid_role_combination(
+        self, organisation_id: str, error_message: str
+    ) -> None:
+        """Log and raise exception for invalid role combinations."""
+        self.logger.log(
+            CrudApisLogBase.ORGANISATION_022,
+            organisation_id=organisation_id,
+            error_message=error_message,
+        )
+        outcome = OperationOutcomeHandler.build(
+            diagnostics=error_message,
+            code="invalid",
+            severity="error",
+        )
+        raise OperationOutcomeException(outcome)
+
+    def _add_audit_fields(self, outdated_fields: dict, payload: Organisation) -> None:
+        """Add audit fields to outdated fields dictionary."""
+        outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
+        outdated_fields["modifiedDateTime"] = datetime.now(UTC)
+
+    def _log_outdated_fields(self, outdated_fields: dict, organisation_id: str) -> None:
+        """Log the fields that will be updated."""
+        self.logger.log(
+            CrudApisLogBase.ORGANISATION_006,
+            outdated_fields=list(outdated_fields.keys()),
+            organisation_id=organisation_id,
+        )
+
+
+def _raise_validation_error(message: str) -> None:
+    """Helper to raise validation errors with consistent OperationOutcome formatting."""
+    outcome = OperationOutcomeHandler.build(
+        diagnostics=message,
+        code="invalid",
+        severity="error",
+    )
+    raise OperationOutcomeException(outcome)

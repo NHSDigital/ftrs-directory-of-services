@@ -1,11 +1,17 @@
 from fhir.resources.R4B.bundle import Bundle, BundleEntry
 from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_data_layer.domain import Organisation
-from ftrs_data_layer.domain.enums import OrganisationType
+
+from validators.organisation_type_validator import VALID_PRIMARY_TYPE_CODES
+
+ROLE_URL = (
+    "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+)
 
 
 class OrganizationMapper(FhirMapper):
@@ -51,6 +57,7 @@ class OrganizationMapper(FhirMapper):
     # --- Domain <-> FHIR Conversion ---
     def to_fhir(self, organisation: Organisation) -> FhirOrganisation:
         """Convert Organisation domain object to FHIR Organization resource."""
+
         org_dict = {
             "resourceType": "Organization",
             "id": str(organisation.id),
@@ -61,39 +68,32 @@ class OrganizationMapper(FhirMapper):
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
             "telecom": self._build_telecom(organisation.telecom),
         }
+        if organisation.primary_role_code:
+            org_dict["extension"] = [
+                self._build_role_extension(organisation.primary_role_code)
+            ]
+        if organisation.non_primary_role_codes:
+            for code in organisation.non_primary_role_codes:
+                org_dict["extension"] = [self._build_role_extension(code)]
+
         return FhirOrganisation.model_validate(org_dict)
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
         """Convert FHIR Organization resource to Organisation domain object."""
-        primary_type = self._get_org_type(fhir_resource)
-        non_primary_roles = self._get_non_primary_roles(fhir_resource)
+        role_codes = self.get_all_role_codes(fhir_resource)
+        primary_code, non_primary_codes = self.get_primary_and_non_primary_role_codes(
+            role_codes
+        )
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),
             name=fhir_resource.name,
             active=fhir_resource.active,
             telecom=self._get_org_telecom(fhir_resource),
-            type=OrganisationType(primary_type),
-            non_primary_roles=non_primary_roles,
             modifiedBy="ODS_ETL_PIPELINE",
+            primary_role_code=primary_code,
+            non_primary_role_codes=non_primary_codes,
         )
-
-    def _get_non_primary_roles(
-        self, fhir_org: FhirOrganisation
-    ) -> list[OrganisationType]:
-        """Extract non-primary organization roles from FHIR Organization resource."""
-        if not fhir_org.type or len(fhir_org.type) <= 1:
-            return []
-
-        non_primary_roles = []
-        for type_obj in fhir_org.type[1:]:
-            if text := getattr(type_obj, "text", None):
-                try:
-                    non_primary_roles.append(OrganisationType(text))
-                except ValueError:
-                    pass
-
-        return non_primary_roles
 
     def to_fhir_bundle(self, organisations: list[Organisation]) -> Bundle:
         """Convert list of Organisation objects to FHIR Bundle (searchset)."""
@@ -109,19 +109,11 @@ class OrganizationMapper(FhirMapper):
         return bundle
 
     def from_ods_fhir_to_fhir(
-        self,
-        ods_fhir_organization: dict,
-        dos_org_type: str,
-        non_primary_roles: list[str] | None = None,
+        self, ods_fhir_organization: dict
     ) -> FhirOrganisation | None:
         ods_code = self._extract_ods_code_from_identifiers(
             ods_fhir_organization.get("identifier", [])
         )
-
-        type_list = self._build_type(dos_org_type)
-        if non_primary_roles:
-            for role in non_primary_roles:
-                type_list.extend(self._build_type(role))
 
         required_fields = {
             "resourceType": "Organization",
@@ -129,10 +121,15 @@ class OrganizationMapper(FhirMapper):
             "meta": self._build_meta_profile(),
             "active": ods_fhir_organization.get("active"),
             "name": ods_fhir_organization.get("name"),
-            "type": type_list,
             "identifier": self._build_identifier(ods_code),
             "telecom": ods_fhir_organization.get("telecom", []),
         }
+
+        extensions = ods_fhir_organization.get("extension", [])
+        role_ext = next((e for e in extensions if e.get("url") == ROLE_URL), None)
+        if role_ext:
+            required_fields["extension"] = [role_ext]
+
         return FhirValidator.validate(required_fields, FhirOrganisation)
 
     # --- FHIR Extraction Helpers ---
@@ -195,10 +192,9 @@ class OrganizationMapper(FhirMapper):
             List of all role codes found in the organization extensions
         """
         role_codes = []
-        role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
 
         for ext in ods_org.get("extension", []):
-            if ext.get("url") != role_url:
+            if ext.get("url") != ROLE_URL:
                 continue
 
             role_code = self._get_role_code_from_extension(ext)
@@ -206,3 +202,50 @@ class OrganizationMapper(FhirMapper):
                 role_codes.append(role_code)
 
         return role_codes
+
+    def get_primary_and_non_primary_role_codes(
+        self, role_codes: list[str]
+    ) -> tuple[str | None, list[str]]:
+        """
+        Extract primary and non-primary organization role codes from role codes.
+
+        Primary roles are:
+        - RO182 (Pharmacy)
+        - RO177 (Prescribing Cost Centre)
+
+        Args:
+            role_codes: List of ODS role codes
+
+        Returns:
+            Tuple of (primary_role_code, non_primary_role_codes)
+        """
+
+        primary_code = None
+        non_primary_codes = []
+
+        for role_code in role_codes:
+            if role_code in [code.value for code in VALID_PRIMARY_TYPE_CODES]:
+                primary_code = role_code
+            else:
+                non_primary_codes.append(role_code)
+
+        return primary_code, non_primary_codes
+
+    def _build_role_extension(self, role_code: str | None) -> Extension | None:
+        """Build FHIR TypedPeriod extension for legal dates using Extension model."""
+
+        ext = Extension.model_validate(
+            {
+                "url": ROLE_URL,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCoding": {
+                            "code": role_code,
+                            "display": role_code,
+                        },
+                    }
+                ],
+            }
+        )
+        return ext

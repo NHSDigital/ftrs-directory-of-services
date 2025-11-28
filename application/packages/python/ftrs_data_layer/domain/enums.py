@@ -19,11 +19,35 @@ class DayOfWeek(str, Enum):
 
 
 class OrganisationType(str, Enum):
-    PRESCRIBING_COST_CENTRE = "Prescribing Cost Centre"
     GP_PRACTICE = "GP Practice"
-    OUT_OF_HOURS_COST_CENTRE = "Out of Hours Cost Centre"
-    WALK_IN_CENTRE = "Walk-In Centre"
-    PHARMACY = "Pharmacy"
+    COMMUNITY_PHARMACY = "Community Pharmacy"
+    DISTANCE_SELLING_PHARMACY = "Distance Selling Pharmacy"
+
+
+# ignore for now
+# PRESCRIBING_COST_CENTRE = "Prescribing Cost Centre"
+# OUT_OF_HOURS_COST_CENTRE = "Out of Hours Cost Centre"
+# WALK_IN_CENTRE = "Walk-In Centre"
+# PRIMARY_CARE_NETWORK = "Primary Care Network"
+# NHS_TRUST = "NHS Trust"
+# GENERAL_DENTAL_PRACTICE = "General Dental Practice"
+# APPLICATION_SERVICE_PROVIDER = "Application Service Provider"
+# CARE_TRUST = "Care Trust"
+# INDEPENDENT_SECTOR_HEALTHCARE_PROVIDER = "Independent Sector Healthcare Provider"
+# LOCAL_AUTHORITY = "Local Authority"
+# NHS_ENGLAND_REGION = "NHS England (region)"
+# OPTICAL_HEADQUARTERS = "Optical Headquarters"
+# SEXUAL_ASSAULT_REFERRAL_CENTRE = "Sexual Assault Referral Centre"
+# SOCIAL_CARE_PROVIDER = "Social Care Provider"
+# STRATEGIC_PARTNERSHIP = "Strategic Partnership"
+
+
+class OrganisationTypeCode(str, Enum):
+    PRESCRIBING_COST_CENTRE_CODE = "RO177"
+    GP_PRACTICE_ROLE_CODE = "RO76"
+    OUT_OF_HOURS_ROLE_CODE = "RO80"
+    WALK_IN_CENTRE_ROLE_CODE = "RO87"
+    PHARMACY_ROLE_CODE = "RO182"
 
 
 class HealthcareServiceCategory(str, Enum):
