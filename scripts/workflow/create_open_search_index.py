@@ -88,22 +88,9 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
         # fallback to empty-body hash if hashing fails for any reason
         payload_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
-    # Use a single lowercase header key so SigV4 includes it in SignedHeaders
-    headers = {
-        "content-type": "application/json",
-        "x-amz-content-sha256": payload_sha256,
-    }
+    headers = {"Content-Type": "application/json", "x-amz-content-sha256": payload_sha256}
 
     aws_request = AWSRequest(method="PUT", url=url, data=payload, headers=headers)
-    # Log the request headers before signing to ensure the payload hash header is present
-    try:
-        pre_hdrs = dict(aws_request.headers)
-        # redact any sensitive header values
-        pre_hdrs_safe = {k: ('<redacted>' if k.lower() in ['authorization', 'x-amz-security-token'] else v) for k, v in pre_hdrs.items()}
-        log.info('Request headers before signing (sanitized): {}'.format(json.dumps(pre_hdrs_safe)))
-    except Exception:
-        log.debug('Could not log request headers before signing', exc_info=True)
-
     SigV4Auth(frozen, service, region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "").add_auth(aws_request)
 
     # Log redacted signing headers for debugging (do not print secret keys)
@@ -118,7 +105,7 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
                 redacted_auth = parts[0] + 'Signature=<redacted>'
             log.info('Signed Authorization header: {}'.format(redacted_auth))
         # Log that x-amz-content-sha256 was set (do not log full value for safety)
-        if any(k.lower() == 'x-amz-content-sha256' for k in hdrs.keys()):
+        if 'x-amz-content-sha256' in (k.lower() for k in hdrs.keys()):
             log.info('Signed request includes x-amz-content-sha256 header')
         if 'x-amz-security-token' in (k.lower() for k in hdrs.keys()):
             log.info('Signed request includes a session token (x-amz-security-token present)')
@@ -325,6 +312,38 @@ def inspect_opensearch_security_policies(collection_name: str, region: Optional[
         log.debug('OpenSearch security policy inspection failed', exc_info=True)
 
 
+def scan_access_policies_for_principal_and_resource(role_arn: str, collection_name: str, target_resource: str, region: Optional[str]) -> bool:
+    """Best-effort: list access/policies via boto3 opensearchserverless client and search the returned JSON for role_arn and target_resource.
+    Returns True if a policy containing both strings is found.
+    """
+    try:
+        kwargs = {}
+        if region:
+            kwargs['region_name'] = region
+        osc = boto3.client('opensearchserverless', **kwargs)
+        methods_to_try = ('list_access_policies', 'list_policies', 'list_security_policies', 'list_security_configs')
+        for method_name in methods_to_try:
+            if hasattr(osc, method_name):
+                try:
+                    fn = getattr(osc, method_name)
+                    res = fn()
+                    s = json.dumps(res, default=str)
+                    found_role = role_arn in s
+                    found_resource = target_resource in s or collection_name in s
+                    log.info('opensearchserverless.%s returned; role_found=%s resource_found=%s' % (method_name, found_role, found_resource))
+                    if found_role and found_resource:
+                        log.info('Collection access policy appears to include the role ARN and resource for index')
+                        return True
+                except Exception:
+                    log.debug('Call %s failed' % method_name, exc_info=True)
+        # if not found, also try to fetch policies by id if available
+        log.info('Did not find a policy entry that includes both the role ARN and target resource in list_* outputs')
+        return False
+    except Exception:
+        log.debug('Access policy scanning failed', exc_info=True)
+        return False
+
+
 def _normalize_to_list(x):
     if x is None:
         return []
@@ -379,6 +398,7 @@ def analyze_policies_for_resource(role_name: str, policies: list, target_resourc
 
 def main() -> int:
     OPEN_SEARCH_DOMAIN = env("OPEN_SEARCH_DOMAIN")
+    COLL_NAME = OPEN_SEARCH_DOMAIN
     INDEX = env("INDEX")
     WORKSPACE = env("WORKSPACE") or ""
     AWS_REGION = env("AWS_REGION") or env("AWS_DEFAULT_REGION")
@@ -474,6 +494,17 @@ def main() -> int:
             WORKSPACE = "-{}".format(WORKSPACE)
 
     FINAL_INDEX = "{}{}".format(INDEX, WORKSPACE)
+
+    # Best-effort: scan collection access policies (via opensearchserverless APIs) for principal and resource
+    try:
+        target_resource = 'index/{}/{}'.format(COLL_NAME, FINAL_INDEX)
+        if 'role_arn' in locals() and role_arn:
+            found = scan_access_policies_for_principal_and_resource(role_arn, COLL_NAME, target_resource, AWS_REGION)
+            log.info('scan_access_policies_for_principal_and_resource => {}'.format(found))
+        else:
+            log.info('Derived role ARN not available to scan collection policies')
+    except Exception:
+        log.debug('Collection policy scan failed', exc_info=True)
 
     payload = {
         "mappings": {
