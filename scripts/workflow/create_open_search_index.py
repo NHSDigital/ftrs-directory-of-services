@@ -140,6 +140,71 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
     return resp
 
 
+def inspect_iam_role_permissions(role_arn: str) -> None:
+    """Log attached and inline policies for the given IAM role and whether they mention aoss/opensearch actions."""
+    try:
+        iam = boto3.client('iam')
+        role_name = role_arn.split('/')[-1]
+        log.info('Inspecting IAM role: {}'.format(role_arn))
+
+        attached = iam.list_attached_role_policies(RoleName=role_name).get('AttachedPolicies', [])
+        log.info('Attached managed policies: {}'.format([p.get('PolicyName') for p in attached]))
+        for p in attached:
+            try:
+                pol = iam.get_policy(PolicyArn=p.get('PolicyArn'))
+                ver = iam.get_policy_version(PolicyArn=p.get('PolicyArn'), VersionId=pol['Policy']['DefaultVersionId'])
+                doc = ver['PolicyVersion']['Document']
+                s = json.dumps(doc)
+                found = any(k in s for k in ['aoss', 'opensearch', 'opensearchserverless', 'osis'])
+                log.info('Managed policy {} mentions aoss/opensearch keywords: {}'.format(p.get('PolicyName'), found))
+            except Exception:
+                log.debug('Could not retrieve managed policy {}'.format(p.get('PolicyArn')), exc_info=True)
+
+        inline = iam.list_role_policies(RoleName=role_name).get('PolicyNames', [])
+        log.info('Inline policies: {}'.format(inline))
+        for name in inline:
+            try:
+                doc = iam.get_role_policy(RoleName=role_name, PolicyName=name)['PolicyDocument']
+                s = json.dumps(doc)
+                found = any(k in s for k in ['aoss', 'opensearch', 'opensearchserverless', 'osis'])
+                log.info('Inline policy {} mentions aoss/opensearch keywords: {}'.format(name, found))
+            except Exception:
+                log.debug('Could not retrieve inline policy {}'.format(name), exc_info=True)
+    except Exception:
+        log.debug('IAM role inspection failed', exc_info=True)
+
+
+def inspect_opensearch_security_policies(collection_name: str, region: Optional[str]) -> None:
+    """Attempt to list security/access policies for OpenSearch Serverless and log any that mention principals or resources of interest."""
+    try:
+        kwargs = {}
+        if region:
+            kwargs['region_name'] = region
+        osc = boto3.client('opensearchserverless', **kwargs)
+
+        # Try a few API calls that different SDK versions might expose
+        tried = []
+        for method_name in ('list_security_policies', 'list_access_policies', 'list_policies', 'list_security_configs'):
+            if hasattr(osc, method_name):
+                try:
+                    tried.append(method_name)
+                    fn = getattr(osc, method_name)
+                    res = fn()
+                    log.info('opensearchserverless.%s result keys: %s' % (method_name, list(res.keys())))
+                    try:
+                        log.info('%s content (truncated): %s' % (method_name, json.dumps(res, default=str)[:4000]))
+                    except Exception:
+                        pass
+                except Exception:
+                    log.debug('Call %s failed' % method_name, exc_info=True)
+
+        # As a fallback, try to fetch policies by known ids/names if available via batch_get (no-op here)
+        if not tried:
+            log.debug('No list_* security policy methods available on opensearchserverless client')
+    except Exception:
+        log.debug('OpenSearch security policy inspection failed', exc_info=True)
+
+
 def main() -> int:
     OPEN_SEARCH_DOMAIN = env("OPEN_SEARCH_DOMAIN")
     INDEX = env("INDEX")
@@ -178,6 +243,7 @@ def main() -> int:
                 role_name = assumed_part.split('/', 2)[1]
                 role_arn = 'arn:aws:iam::{}:role/{}'.format(account_id, role_name)
                 log.info("Derived role ARN for collection policy: {}".format(role_arn))
+
                 # Run IAM simulation for several aoss actions to help debug 403
                 try:
                     iam = boto3.client('iam')
@@ -199,33 +265,15 @@ def main() -> int:
                 except Exception:
                     log.debug('IAM simulation failed', exc_info=True)
 
-                # Fetch the collection policy/details and search for the derived role ARN to confirm
+                # Inspect attached and inline IAM policies for the derived role
+                inspect_iam_role_permissions(role_arn)
+
+                # Attempt to inspect OpenSearch Serverless security/access policies (best-effort)
                 try:
-                    osc_kwargs = {}
-                    if AWS_REGION:
-                        osc_kwargs['region_name'] = AWS_REGION
-                    osc = boto3.client('opensearchserverless', **osc_kwargs)
-                    # reuse list_collections to find the collection id by name
-                    coll_list = osc.list_collections()
-                    coll_id = None
-                    for cs in coll_list.get('collectionSummaries', []):
-                        if cs.get('name') == OPEN_SEARCH_DOMAIN:
-                            coll_id = cs.get('id')
-                            break
-                    if coll_id:
-                        coll_details = osc.batch_get_collection(ids=[coll_id])
-                        try:
-                            coll_json = json.dumps(coll_details, default=str)
-                            if role_arn and role_arn in coll_json:
-                                log.info('Derived role ARN FOUND in collection details/policy')
-                            else:
-                                log.info('Derived role ARN NOT FOUND in collection details/policy')
-                        except Exception:
-                            log.debug('Could not stringify collection details for role search', exc_info=True)
-                    else:
-                        log.debug('Could not find collection id when checking for role in policy')
+                    inspect_opensearch_security_policies(OPEN_SEARCH_DOMAIN, AWS_REGION)
                 except Exception:
-                    log.debug('Failed to fetch collection details for policy inspection', exc_info=True)
+                    log.debug('Failed to inspect OpenSearch security policies', exc_info=True)
+
             except Exception:
                 log.debug("Failed to derive role ARN from caller ARN", exc_info=True)
     except Exception:
