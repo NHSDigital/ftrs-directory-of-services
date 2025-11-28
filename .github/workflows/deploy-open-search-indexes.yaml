@@ -1,23 +1,25 @@
-name: Create index
+name: Deploy Open Search Indexes workflow
 
 permissions:
   id-token: write
   contents: read
+
 on:
   workflow_call:
     inputs:
       environment:
-        description: 'Environment to authenticate against (e.g., dev, test, prod)'
+        description: "Environment to authenticate against (for example: dev, test, prod)"
         required: true
         type: string
       workspace:
-        description: "The name of the workspace to deploy the application into"
+        description: "Workspace name to deploy into"
         required: true
         type: string
       aws_region:
-        description: 'AWS region to use for AWS CLI calls'
+        description: "AWS region to use for AWS CLI calls"
         required: false
         type: string
+        default: ''
 
 jobs:
   build-index:
@@ -28,7 +30,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS credentials
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
@@ -36,7 +38,7 @@ jobs:
           type: app
           environment: ${{ inputs.environment }}
 
-      - name:  Create OpenSearch Index
+      - name: Create OpenSearch index
         id: create-index
         uses: ./.github/actions/build-open-search-indexes
         with:

@@ -12,6 +12,11 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
         {
           Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
           ResourceType = "dashboard"
+        },
+        # Allow public network access to the collection endpoint itself so the endpoint is reachable from the internet
+        {
+          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
+          ResourceType = "collection"
         }
       ]
     }

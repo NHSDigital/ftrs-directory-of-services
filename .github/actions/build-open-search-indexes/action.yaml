@@ -1,48 +1,50 @@
-name: 'Build index'
-description: 'Build index'
+name: 'Build open search indexes action'
+description: 'Builds the required indexes in open search'
 
 inputs:
   workspace:
-    description: "The name of the workspace"
+    description: 'The name of the workspace'
+    required: false
+    default: ''
   environment:
     description: 'Environment to authenticate against (e.g., dev, test, prod)'
     required: true
   domain:
-    description: "The name of the domain to deploy from. If not supplied, we will deploy from the domain that has invoked the workflow"
+    description: 'The name of the collection to target (defaults to ftrs-dos-dev-osc)'
     required: false
-    default: "ftrs-dos-dev-osc"
+    default: 'ftrs-dos-dev-osc'
   index:
-    description: "The OpenSearch index name to create"
+    description: 'The OpenSearch index name to create'
     required: false
-    default: "organisation"
+    default: 'organisation'
   aws_region:
-    description: "AWS region to use for AWS CLI calls (optional). If empty, the script will rely on AWS CLI defaults or detect it."
+    description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
     required: false
-    default: ""
+    default: ''
 
 runs:
   using: 'composite'
   steps:
-    - name: Build Service
-      id: build_index
+    - name: Create OpenSearch index
+      id: create_index
       shell: bash
       env:
-        # map inputs to step-level env so the script can read them
         INDEX: ${{ inputs.index }}
         OPEN_SEARCH_DOMAIN: ${{ inputs.domain }}
         WORKSPACE: ${{ inputs.workspace }}
         ENVIRONMENT: ${{ inputs.environment }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
         AWS_REGION: ${{ inputs.aws_region }}
-        AWS_DEFAULT_REGION: ${{ inputs.aws_region }}
       run: |
         set -euo pipefail
 
-        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} and INDEX=${INDEX} (workspace=${WORKSPACE})"
+        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} INDEX=${INDEX} WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>}"
 
-        # Call the Python signer to create the index (uses boto3/botocore SigV4 signing)
-        # Ensure Python deps are available (requests, boto3)
-        python3 -m pip install --upgrade pip >/dev/null 2>&1 || true
-        python3 -m pip install requests boto3 >/dev/null 2>&1 || true
+        python3 -m pip install --upgrade pip setuptools wheel
+
+        if [ -f "./scripts/workflow/requirements.txt" ]; then
+          python3 -m pip install -r ./scripts/workflow/requirements.txt
+        else
+          python3 -m pip install boto3 requests
+        fi
 
         python3 ./scripts/workflow/create_open_search_index.py

@@ -172,10 +172,11 @@ jobs:
     secrets: inherit
 
   deploy-open-search-indexes:
-    name: "Build indexes for ${{ needs.metadata.outputs.environment }}"
+    name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
       - deploy-application-infrastructure
+      - restore-dynamodb-from-s3
     uses: ./.github/workflows/deploy-open-search-indexes.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
