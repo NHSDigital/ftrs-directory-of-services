@@ -76,19 +76,8 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
         raise RuntimeError("No AWS credentials available in the environment")
     frozen = creds.get_frozen_credentials()
 
-    # Compute payload SHA256 (hex) for x-amz-content-sha256 header (mandatory for AOSS with payload)
-    try:
-        import hashlib
-        if payload is None or payload == "":
-            # precomputed SHA256 for empty string
-            payload_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        else:
-            payload_sha256 = hashlib.sha256(payload.encode('utf-8')).hexdigest()
-    except Exception:
-        # fallback to empty-body hash if hashing fails for any reason
-        payload_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-
-    headers = {"Content-Type": "application/json", "x-amz-content-sha256": payload_sha256}
+    # Use standard Content-Type header only (do not set x-amz-content-sha256)
+    headers = {"Content-Type": "application/json"}
 
     aws_request = AWSRequest(method="PUT", url=url, data=payload, headers=headers)
     SigV4Auth(frozen, service, region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "").add_auth(aws_request)
@@ -104,9 +93,6 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
                 parts = auth.split('Signature=')
                 redacted_auth = parts[0] + 'Signature=<redacted>'
             log.info('Signed Authorization header: {}'.format(redacted_auth))
-        # Log that x-amz-content-sha256 was set (do not log full value for safety)
-        if 'x-amz-content-sha256' in (k.lower() for k in hdrs.keys()):
-            log.info('Signed request includes x-amz-content-sha256 header')
         if 'x-amz-security-token' in (k.lower() for k in hdrs.keys()):
             log.info('Signed request includes a session token (x-amz-security-token present)')
         if 'x-amz-date' in (k.lower() for k in hdrs.keys()):
@@ -156,6 +142,58 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
         log.info('HTTP 403 received; ensure collection access policy includes the IAM role ARN and that Resource covers the target index')
 
     return resp
+
+
+def _normalize_to_list(x):
+    if x is None:
+        return []
+    if isinstance(x, list):
+        return x
+    return [x]
+
+
+def _action_matches(stmt_action, wanted_action):
+    # support wildcard matching, case-insensitive
+    stmt = stmt_action.lower()
+    wanted = wanted_action.lower()
+    return fnmatch.fnmatch(stmt, wanted) or fnmatch.fnmatch(wanted, stmt)
+
+
+def _resource_matches(stmt_resource, target_resource):
+    # stmt_resource may be '*', contain wildcards, or be exact; use fnmatch
+    return fnmatch.fnmatch(target_resource, stmt_resource)
+
+
+def analyze_policies_for_resource(role_name: str, policies: list, target_resource: str, actions: list) -> dict:
+    """Return mapping of policy name -> list of (action, resource) statements that allow the action on the target_resource."""
+    iam = boto3.client('iam')
+    allowed = {}
+    for p in policies:
+        pname = p.get('PolicyName') or p.get('PolicyArn') or str(p)
+        try:
+            pol = iam.get_policy(PolicyArn=p.get('PolicyArn'))
+            ver = iam.get_policy_version(PolicyArn=p.get('PolicyArn'), VersionId=pol['Policy']['DefaultVersionId'])
+            doc = ver['PolicyVersion']['Document']
+        except Exception:
+            log.debug('Could not fetch managed policy document for {}'.format(pname), exc_info=True)
+            continue
+
+        for stmt in _normalize_to_list(doc.get('Statement')):
+            try:
+                if str(stmt.get('Effect', '')).lower() != 'allow':
+                    continue
+                stmt_actions = _normalize_to_list(stmt.get('Action'))
+                stmt_resources = _normalize_to_list(stmt.get('Resource')) or ['*']
+                for want in actions:
+                    for sa in stmt_actions:
+                        if _action_matches(sa, want):
+                            for sr in stmt_resources:
+                                if sr == '*' or _resource_matches(sr, target_resource):
+                                    allowed.setdefault(pname, []).append({'action': sa, 'resource': sr, 'matched_for': want})
+            except Exception:
+                log.debug('Error parsing statement in {}'.format(pname), exc_info=True)
+
+    return allowed
 
 
 def inspect_iam_role_permissions(role_arn: str) -> None:
@@ -344,56 +382,91 @@ def scan_access_policies_for_principal_and_resource(role_arn: str, collection_na
         return False
 
 
-def _normalize_to_list(x):
-    if x is None:
-        return []
-    if isinstance(x, list):
-        return x
-    return [x]
-
-
-def _action_matches(stmt_action, wanted_action):
-    # support wildcard matching, case-insensitive
-    stmt = stmt_action.lower()
-    wanted = wanted_action.lower()
-    return fnmatch.fnmatch(stmt, wanted) or fnmatch.fnmatch(wanted, stmt)
-
-
-def _resource_matches(stmt_resource, target_resource):
-    # stmt_resource may be '*', contain wildcards, or be exact; use fnmatch
-    return fnmatch.fnmatch(target_resource, stmt_resource)
-
-
-def analyze_policies_for_resource(role_name: str, policies: list, target_resource: str, actions: list) -> dict:
-    """Return mapping of policy name -> list of (action, resource) statements that allow the action on the target_resource."""
-    iam = boto3.client('iam')
-    allowed = {}
-    for p in policies:
-        pname = p.get('PolicyName') or p.get('PolicyArn') or str(p)
-        try:
-            pol = iam.get_policy(PolicyArn=p.get('PolicyArn'))
-            ver = iam.get_policy_version(PolicyArn=p.get('PolicyArn'), VersionId=pol['Policy']['DefaultVersionId'])
-            doc = ver['PolicyVersion']['Document']
-        except Exception:
-            log.debug('Could not fetch managed policy document for {}'.format(pname), exc_info=True)
-            continue
-
-        for stmt in _normalize_to_list(doc.get('Statement')):
+def check_policy_object_for_requirements(policy_obj: dict, role_arn: str, target_resource: str) -> dict:
+    """Check a policy object (dict or string) for role ARN, resource and CreateIndex permission. Returns dict of booleans and some context."""
+    try:
+        # policy_obj may be a dict or a JSON string; normalize to dict/list
+        if isinstance(policy_obj, str):
             try:
-                if str(stmt.get('Effect', '')).lower() != 'allow':
-                    continue
-                stmt_actions = _normalize_to_list(stmt.get('Action'))
-                stmt_resources = _normalize_to_list(stmt.get('Resource')) or ['*']
-                for want in actions:
-                    for sa in stmt_actions:
-                        if _action_matches(sa, want):
-                            for sr in stmt_resources:
-                                if sr == '*' or _resource_matches(sr, target_resource):
-                                    allowed.setdefault(pname, []).append({'action': sa, 'resource': sr, 'matched_for': want})
+                p = json.loads(policy_obj)
             except Exception:
-                log.debug('Error parsing statement in {}'.format(pname), exc_info=True)
+                # treat string as raw
+                p = policy_obj
+        else:
+            p = policy_obj
+        s = json.dumps(p, default=str)
+    except Exception:
+        s = str(policy_obj)
 
-    return allowed
+    found_role = role_arn in s
+    found_resource = target_resource in s
+    found_permission = 'aoss:CreateIndex' in s
+    return {"found_role": found_role, "found_resource": found_resource, "found_permission": found_permission, "policy_snippet": s[:4000]}
+
+
+def fetch_and_check_policies_by_name(policy_names: list, role_arn: str, collection_name: str, final_index: str, region: Optional[str]) -> dict:
+    """For each policy name try to fetch the access policy and run checks; return mapping name -> results."""
+    results = {}
+    try:
+        kwargs = {}
+        if region:
+            kwargs['region_name'] = region
+        osc = boto3.client('opensearchserverless', **kwargs)
+    except Exception:
+        log.debug('Could not create opensearchserverless client for fetch_and_check_policies_by_name', exc_info=True)
+        for name in policy_names:
+            results[name] = {"error": "client_init_failed"}
+        return results
+
+    target_resource = 'index/{}/{}'.format(collection_name, final_index)
+
+    for name in policy_names:
+        try:
+            # prefer explicit get_access_policy API if present
+            if hasattr(osc, 'get_access_policy'):
+                try:
+                    pol = getattr(osc, 'get_access_policy')(type='data', name=name)
+                    # API may return {'policy': '<json string>'} or full object
+                    policy_field = pol.get('policy') if isinstance(pol, dict) else pol
+                    if policy_field is None:
+                        policy_field = pol
+                    res = check_policy_object_for_requirements(policy_field, role_arn, target_resource)
+                    results[name] = res
+                    continue
+                except Exception:
+                    # try fallback listing
+                    log.debug('get_access_policy failed for %s, falling back to list_access_policies', exc_info=True)
+
+            # Fallback: list_access_policies and find by name
+            if hasattr(osc, 'list_access_policies'):
+                lst = getattr(osc, 'list_access_policies')()
+                s = json.dumps(lst, default=str)
+                # look for policy entry with matching name
+                # try to find item where .name == name or .policyName == name
+                found = False
+                for key in ('accessPolicies', 'items', 'policies', 'AccessPolicies', 'Items'):
+                    if isinstance(lst, dict) and key in lst:
+                        items = lst.get(key) or []
+                        for it in items:
+                            # various shapes: {'name':..., 'policy':...} or {'policyName':...}
+                            if (isinstance(it, dict) and (it.get('name') == name or it.get('policyName') == name or it.get('PolicyName') == name)):
+                                policy_field = it.get('policy') or it
+                                res = check_policy_object_for_requirements(policy_field, role_arn, target_resource)
+                                results[name] = res
+                                found = True
+                                break
+                        if found:
+                            break
+                if found:
+                    continue
+
+            # If we reach here we couldn't fetch the named policy via API; mark as missing
+            results[name] = {"error": "policy_not_found_or_unavailable"}
+        except Exception:
+            log.debug('Fetching/checking policy %s failed', name, exc_info=True)
+            results[name] = {"error": "exception"}
+
+    return results
 
 
 def main() -> int:
@@ -403,6 +476,8 @@ def main() -> int:
     WORKSPACE = env("WORKSPACE") or ""
     AWS_REGION = env("AWS_REGION") or env("AWS_DEFAULT_REGION")
     AWS_SERVICE = env("AWS_SERVICE") or "aoss"
+    # derived role ARN will be set later when we call STS
+    role_arn = None
 
     if not OPEN_SEARCH_DOMAIN:
         fail("OPEN_SEARCH_DOMAIN not set", 2)
@@ -505,6 +580,18 @@ def main() -> int:
             log.info('Derived role ARN not available to scan collection policies')
     except Exception:
         log.debug('Collection policy scan failed', exc_info=True)
+
+    # Fetch and check named access policies provided in this repo (user-specified)
+    try:
+        policy_names = ['create-index', 'dev-opensearch-dap']
+        if 'role_arn' in locals() and role_arn:
+            pol_results = fetch_and_check_policies_by_name(policy_names, role_arn, COLL_NAME, FINAL_INDEX, AWS_REGION)
+            for pname, pres in pol_results.items():
+                log.info('Policy check for %s => %s' % (pname, json.dumps(pres if isinstance(pres, dict) else {"result": str(pres)})[:2000]))
+        else:
+            log.info('Skipping fetch_and_check_policies_by_name because derived role ARN is unavailable')
+    except Exception:
+        log.debug('fetch_and_check_policies_by_name failed', exc_info=True)
 
     payload = {
         "mappings": {
