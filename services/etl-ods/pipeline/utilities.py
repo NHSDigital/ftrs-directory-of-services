@@ -142,7 +142,13 @@ def build_headers(options: dict) -> dict:
 
     api_key = _get_api_key_for_url(url)
     if api_key:
-        headers["apikey"] = api_key
+        # Check if we're in test mode with a mock API Gateway
+        # Mock API Gateways use AWS standard x-api-key header instead of custom apikey
+        use_aws_api_key_header = os.environ.get("TEST_MODE_USE_AWS_API_KEY_HEADER")
+        if use_aws_api_key_header and use_aws_api_key_header.lower() == "true":
+            headers["x-api-key"] = api_key
+        else:
+            headers["apikey"] = api_key
 
     if jwt_required:
         jwt_auth = get_jwt_authenticator()
