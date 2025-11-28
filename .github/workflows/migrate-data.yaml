@@ -44,6 +44,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
 
       - name: "Run ETL process for data migration"
         id: "trigger_migration"

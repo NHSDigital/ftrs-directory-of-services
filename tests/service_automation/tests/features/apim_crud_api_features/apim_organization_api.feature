@@ -31,5 +31,3 @@ Feature: Organization API Endpoint via APIM
       | type   |
       | active |
 
-
-
