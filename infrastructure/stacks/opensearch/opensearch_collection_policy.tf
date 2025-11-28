@@ -72,6 +72,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
         [
           data.aws_caller_identity.current.arn,
           aws_iam_role.osis_pipelines_role.arn,
+          var.app_github_runner_role_arn,
         ],
         local.env_sso_roles
       )
