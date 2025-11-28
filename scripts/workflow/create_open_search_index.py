@@ -102,8 +102,23 @@ def main() -> int:
             sts_kwargs["region_name"] = AWS_REGION
         sts = boto3.client("sts", **sts_kwargs)
         who = sts.get_caller_identity()
-        log.info("Caller ARN: {}".format(who.get('Arn')))
+        caller_arn = who.get('Arn')
+        log.info("Caller ARN: {}".format(caller_arn))
         log.info("AWS Account: {}".format(who.get('Account')))
+
+        role_arn = None
+        if caller_arn and ':assumed-role/' in caller_arn:
+            try:
+                parts = caller_arn.split(':', 5)
+                # parts[4] is account id, parts[5] is 'assumed-role/RoleName/session'
+                account_id = parts[4]
+                assumed_part = parts[5]
+                # extract role name between assumed-role/ and next '/'
+                role_name = assumed_part.split('/', 2)[1]
+                role_arn = 'arn:aws:iam::{}:role/{}'.format(account_id, role_name)
+                log.info("Derived role ARN for collection policy: {}".format(role_arn))
+            except Exception:
+                log.debug("Failed to derive role ARN from caller ARN", exc_info=True)
     except Exception:
         log.warning("Could not call STS to get caller identity", exc_info=True)
 
