@@ -57,3 +57,9 @@ variable "opensearch_pipeline_s3_dlq_prefix" {
   description = "The DLQ bucket prefix for OpenSearch Ingestion Service Pipeline"
   type        = string
 }
+
+variable "app_github_runner_role_arn" {
+  description = "IAM role ARN for the GitHub runner to include in the collection access policy principal (optional)"
+  type        = string
+  default     = ""
+}
