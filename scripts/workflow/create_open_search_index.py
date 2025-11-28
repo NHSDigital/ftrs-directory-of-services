@@ -76,8 +76,18 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
         raise RuntimeError("No AWS credentials available in the environment")
     frozen = creds.get_frozen_credentials()
 
-    # Use standard Content-Type header only (do not set x-amz-content-sha256)
-    headers = {"Content-Type": "application/json"}
+    # Compute payload SHA256 (hex) and include x-amz-content-sha256 so SigV4 signs the body hash
+    try:
+        import hashlib
+        if payload is None or payload == "":
+            payload_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        else:
+            payload_sha256 = hashlib.sha256(payload.encode('utf-8')).hexdigest()
+    except Exception:
+        payload_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+    # Include the payload hash header so AOSS receives a signed content hash
+    headers = {"Content-Type": "application/json", "x-amz-content-sha256": payload_sha256}
 
     aws_request = AWSRequest(method="PUT", url=url, data=payload, headers=headers)
     SigV4Auth(frozen, service, region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "").add_auth(aws_request)
@@ -97,6 +107,7 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
             log.info('Signed request includes a session token (x-amz-security-token present)')
         if 'x-amz-date' in (k.lower() for k in hdrs.keys()):
             log.info('Signed request X-Amz-Date: {}'.format(hdrs.get('X-Amz-Date') or hdrs.get('x-amz-date')))
+        log.info('Signed request includes payload hash (x-amz-content-sha256 header)')
     except Exception:
         log.debug('Could not introspect signed headers', exc_info=True)
 
