@@ -13,9 +13,7 @@ from utilities.common.data_migration.migration_context_helper import (
     store_migration_result,
     store_sqs_result,
 )
-from utilities.common.data_migration.migration_helper import (
-    MigrationHelper,
-)
+from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.data_migration.migration_metrics_helper import (
     ExpectedMetrics,
     verify_all_metrics,
@@ -23,9 +21,7 @@ from utilities.common.data_migration.migration_metrics_helper import (
 from utilities.common.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
-from utilities.common.data_migration.sqs_helper import (
-    build_sqs_event,
-)
+from utilities.common.data_migration.sqs_helper import build_sqs_event
 from utilities.common.constants import (
     DYNAMODB_CLIENT,
     ENV_ENVIRONMENT,
