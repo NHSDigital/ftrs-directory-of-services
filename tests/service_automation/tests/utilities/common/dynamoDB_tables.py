@@ -30,8 +30,7 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         List of table configuration dictionaries
     """
     resources = ["organisation", "location", "healthcare-service"]
-
-    return [
+    tables = [
         {
             "TableName": get_table_name(resource),
             "KeySchema": [
@@ -46,3 +45,32 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         }
         for resource in resources
     ]
+
+    triage_code_table = {
+        "TableName": get_table_name('triage-code'),
+        "KeySchema": [
+            {"AttributeName": "id", "KeyType": "HASH"},
+            {"AttributeName": "field", "KeyType": "RANGE"}
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "id", "AttributeType": "S"},
+            {"AttributeName": "field", "AttributeType": "S"},
+            {"AttributeName": "codeType", "AttributeType": "S"}
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                'IndexName': 'CodeTypeIndex',
+                'KeySchema': [
+                    {'AttributeName': 'codeType', 'KeyType': 'HASH'},
+                    {'AttributeName': 'id', 'KeyType': 'RANGE'},
+                ],
+                'Projection': {
+                    'ProjectionType': 'ALL'
+                }
+            }
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+    }
+
+
+    return [*tables, triage_code_table]

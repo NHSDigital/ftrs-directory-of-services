@@ -46,3 +46,6 @@ tests/performance/**/*.pfx
 tests/**/.env
 
 scans/*
+
+# vscode settings
+.vscode
