@@ -88,9 +88,22 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
         # fallback to empty-body hash if hashing fails for any reason
         payload_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
-    headers = {"Content-Type": "application/json", "x-amz-content-sha256": payload_sha256}
+    # Use a single lowercase header key so SigV4 includes it in SignedHeaders
+    headers = {
+        "content-type": "application/json",
+        "x-amz-content-sha256": payload_sha256,
+    }
 
     aws_request = AWSRequest(method="PUT", url=url, data=payload, headers=headers)
+    # Log the request headers before signing to ensure the payload hash header is present
+    try:
+        pre_hdrs = dict(aws_request.headers)
+        # redact any sensitive header values
+        pre_hdrs_safe = {k: ('<redacted>' if k.lower() in ['authorization', 'x-amz-security-token'] else v) for k, v in pre_hdrs.items()}
+        log.info('Request headers before signing (sanitized): {}'.format(json.dumps(pre_hdrs_safe)))
+    except Exception:
+        log.debug('Could not log request headers before signing', exc_info=True)
+
     SigV4Auth(frozen, service, region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "").add_auth(aws_request)
 
     # Log redacted signing headers for debugging (do not print secret keys)
@@ -105,7 +118,7 @@ def sign_and_put(url: str, payload: str, region: Optional[str], service: str = "
                 redacted_auth = parts[0] + 'Signature=<redacted>'
             log.info('Signed Authorization header: {}'.format(redacted_auth))
         # Log that x-amz-content-sha256 was set (do not log full value for safety)
-        if 'x-amz-content-sha256' in (k.lower() for k in hdrs.keys()):
+        if any(k.lower() == 'x-amz-content-sha256' for k in hdrs.keys()):
             log.info('Signed request includes x-amz-content-sha256 header')
         if 'x-amz-security-token' in (k.lower() for k in hdrs.keys()):
             log.info('Signed request includes a session token (x-amz-security-token present)')
