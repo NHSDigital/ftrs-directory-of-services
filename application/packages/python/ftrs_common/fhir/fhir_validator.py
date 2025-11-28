@@ -47,7 +47,6 @@ class FhirValidator:
         """
 
         special_characters_pattern = r"[\";\\`<>|#*@$]"
-
         stack = [(resource, "")]
 
         while stack:
@@ -61,9 +60,32 @@ class FhirValidator:
                     new_path = f"{path}[{idx}]"
                     stack.append((item, new_path))
             elif isinstance(current, str):
-                if re.search(special_characters_pattern, current):
+                # Skipping telecom value field validation as it may contain special characters
+                if not (
+                    path.startswith("telecom") and path.endswith("value")
+                ) and re.search(special_characters_pattern, current):
                     msg = f"Field '{path}' contains invalid characters: {current}"
                     FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
+        return resource
+
+    @staticmethod
+    def _check_telecom_types_are_valid(resource: dict, fhir_model: Type[FHIRAbstractModel]
+    ) -> dict:
+        """
+        Validates that the telecom types are valid FHIR ContactPoint.system values.
+        Returns the resource if valid, raises OperationOutcomeException if not.
+        """
+
+        valid_types = {"phone","fax","email","pager","url","sms","other"}
+
+        telecoms = resource.get("telecom", [])
+        for idx, telecom in enumerate(telecoms):
+            system = telecom.get("system")
+            if system and system not in valid_types:
+                path = f"telecom[{idx}].system"
+                msg = f"Field '{path}' contains invalid telecom type: {system}"
+                FhirValidator._log_and_raise(msg, "invalid", fhir_model)
 
         return resource
 

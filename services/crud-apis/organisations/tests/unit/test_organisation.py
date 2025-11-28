@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.enums import TelecomType
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
@@ -25,7 +26,13 @@ def get_organisation() -> dict:
         "identifier_ODS_ODSCode": "ODS12345",
         "active": True,
         "name": "Test Organisation",
-        "telecom": "123456789",
+        "telecom": [
+            {
+                "type": TelecomType.PHONE.value,
+                "value": "0300 311 22 33",
+                "isPublic": True,
+            }
+        ],
         "type": "GP Practice",
         "createdBy": "ROBOT",
         "createdDateTime": "2023-10-01T00:00:00Z",
@@ -248,7 +255,7 @@ def test_update_organisation_success() -> None:
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
