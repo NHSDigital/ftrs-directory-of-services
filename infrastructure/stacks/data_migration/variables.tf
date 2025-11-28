@@ -289,6 +289,31 @@ variable "dms_db_lambda_logs_retention" {
   default     = 14
 }
 
+variable "reference_data_lambda_name" {
+  description = "The name of the reference data lambda function"
+  type        = string
+}
+
+variable "reference_data_lambda_handler" {
+  description = "The handler for the reference data Lambda function"
+  type        = string
+}
+
+variable "reference_data_lambda_timeout" {
+  description = "The timeout for the reference data Lambda function"
+  type        = number
+}
+variable "reference_data_lambda_memory_size" {
+  description = "The memory size for the reference data Lambda function"
+  type        = number
+}
+
+variable "reference_data_lambda_logs_retention" {
+  description = "The number of days to retain CloudWatch logs for the reference data Lambda function"
+  type        = number
+  default     = 14
+}
+
 variable "full_migration_completion_event_queue_name" {
   description = "The name of the SQS queue for full migration completion events"
   type        = string

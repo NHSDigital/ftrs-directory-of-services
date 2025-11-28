@@ -10,7 +10,7 @@ from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.dynamoDB_tables import get_table_name  # noqa: F403
-from pipeline.utils.uuid_utils import generate_uuid
+from common.uuid_utils import generate_uuid
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
