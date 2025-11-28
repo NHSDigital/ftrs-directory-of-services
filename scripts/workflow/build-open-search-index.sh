@@ -124,7 +124,13 @@ if command -v awscurl >/dev/null 2>&1; then
 
   # Use --fail-with-body so non-2xx responses include response body
   set +e
-  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} --fail-with-body -X PUT "${URL}" -H "Content-Type: application/json" -d "$(cat "${TMP_PAYLOAD_FILE}")" >"${AWSCURL_STDOUT}" 2>"${AWSCURL_STDERR}"
+
+  # Log invocation details (do not print secret values)
+  err "Invoking awscurl: service=${AWS_SERVICE} region=${AWS_REGION:-<unset>}"
+  err "AWS env creds present: AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:+yes:-no} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:+yes:-no} AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:+yes:-no}"
+
+  # Call awscurl — the URI must be the final positional argument. Keep payload inline but place URL last.
+  awscurl --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} --fail-with-body -X PUT -H "Content-Type: application/json" -d "$(cat "${TMP_PAYLOAD_FILE}")" "${URL}" >"${AWSCURL_STDOUT}" 2>"${AWSCURL_STDERR}"
   AWSCURL_RC=$?
   set -e
 
