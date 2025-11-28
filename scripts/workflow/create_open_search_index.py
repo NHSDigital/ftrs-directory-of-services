@@ -253,6 +253,7 @@ def inspect_iam_role_permissions(role_arn: str) -> None:
 
 def inspect_opensearch_security_policies(collection_name: str, region: Optional[str]) -> None:
     """Attempt to list security/access policies for OpenSearch Serverless and log any that mention principals or resources of interest."""
+    log.info('Inspecting OpenSearch Serverless security/access policies for collection: {}'.format(collection_name))
     try:
         kwargs = {}
         if region:
@@ -277,7 +278,9 @@ def inspect_opensearch_security_policies(collection_name: str, region: Optional[
 
         # As a fallback, try to fetch policies by known ids/names if available via batch_get (no-op here)
         if not tried:
-            log.debug('No list_* security policy methods available on opensearchserverless client')
+            # Some botocore/boto3 versions or environments may not expose policy listing helpers.
+            # Log at INFO so CI output shows the absence, and hint at fallbacks (Console or AWS CLI).
+            log.info('No opensearchserverless list_* security policy methods available on boto3 client; consider checking the collection Access policy in the AWS Console or using the AWS CLI as a fallback')
     except Exception:
         log.debug('OpenSearch security policy inspection failed', exc_info=True)
 
