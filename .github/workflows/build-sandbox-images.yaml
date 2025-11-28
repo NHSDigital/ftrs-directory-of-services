@@ -1,0 +1,100 @@
+name: Build project workflow
+run-name: Build ${{ inputs.type }} - ${{ inputs.name }}
+
+permissions:
+  id-token: write
+  contents: read
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        description: "The type of project to build (container, service)"
+        required: true
+        type: string
+      name:
+        description: "The name of the package to build"
+        required: true
+        type: string
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+      environment:
+        description: "The deployment environment"
+        required: true
+        type: string
+
+jobs:
+  build-project:
+    name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.application_tag && inputs.application_tag != 'latest' && inputs.application_tag || '' }}
+
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v4.0.0
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v4.0.0
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+
+      - name: "Get directories"
+        id: get-directories
+        run: |
+          if [[ "${{ inputs.build_type }}" == "container" ]]; then
+            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid build type: ${{ inputs.build_type }}"
+            exit 1
+          fi
+
+      - name: "Install docker"
+        run: make install
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+
+      - name: "Build image"
+        run: make build
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+
+      - name: "Run unit tests"
+        run: make unit-test
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+
+      - name: "Publish artefacts to GitHub"
+        uses: actions/upload-artifact@v5
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        with:
+          name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
+          path: ${{ steps.get-directories.outputs.build_directory }}
+          if-no-files-found: error
+
+      - name: "Push image to ECR"
+        run: make publish
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          COMMIT_HASH: ${{ inputs.commit_hash }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
