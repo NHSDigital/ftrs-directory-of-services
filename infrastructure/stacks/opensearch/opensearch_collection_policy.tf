@@ -41,7 +41,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
           # to create indices like "os-index-ftrs-856" without listing them explicitly.
           {
             ResourceType = "index"
-            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/*"]
+            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/organisation*"]
             Permission = [
               "aoss:CreateIndex",
               "aoss:UpdateIndex",

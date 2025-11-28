@@ -14,7 +14,7 @@ inputs:
   index:
     description: "The OpenSearch index name to create"
     required: false
-    default: "os-index"
+    default: "organisation"
   aws_region:
     description: "AWS region to use for AWS CLI calls (optional). If empty, the script will rely on AWS CLI defaults or detect it."
     required: false
