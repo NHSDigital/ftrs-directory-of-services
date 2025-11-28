@@ -43,6 +43,6 @@ runs:
         # Call the Python signer to create the index (uses boto3/botocore SigV4 signing)
         # Ensure Python deps are available (requests, boto3)
         python3 -m pip install --upgrade pip >/dev/null 2>&1 || true
-        python3 -m pip install requests boto3 >/dev/null 2>&1 || true
+        python3 -m pip install requests boto3 requests-aws4auth >/dev/null 2>&1 || true
 
         python3 ./scripts/workflow/create_open_search_index.py
