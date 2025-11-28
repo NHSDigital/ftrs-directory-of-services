@@ -1,7 +1,6 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
+IFS=$'\n'
 
 OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN:-}
 INDEX=${INDEX:-}
@@ -71,7 +70,9 @@ if [[ "$OPEN_SEARCH_DOMAIN" != *.* ]]; then
 fi
 
 OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN#https://}
-if [[ -n "$WORKSPACE" && "${WORKSPACE:0:1}" != "-" ]]; then WORKSPACE="-$WORKSPACE"; fi
+if [[ -n "$WORKSPACE" && "${WORKSPACE:0:1}" != "-" ]]; then
+  WORKSPACE="-$WORKSPACE"
+fi
 FINAL_INDEX="${INDEX}${WORKSPACE}"
 
 PAYLOAD='{
@@ -90,12 +91,18 @@ PAYLOAD='{
 }'
 
 URL="https://${OPEN_SEARCH_DOMAIN}/${FINAL_INDEX}"
-URL=$(echo "${URL}" | tr -d '\n\r')
+URL=$(echo "${URL}" | tr -d '\n')
 err "Final URL: ${URL}"
 
 TMP_PAYLOAD_FILE=$(mktemp /tmp/os-payload-XXXXXX.json)
 printf '%s' "${PAYLOAD}" > "${TMP_PAYLOAD_FILE}"
 err "Payload written to ${TMP_PAYLOAD_FILE}"
+
+if command -v jq >/dev/null 2>&1; then
+  PAYLOAD_INLINE=$(jq -c . "${TMP_PAYLOAD_FILE}")
+else
+  PAYLOAD_INLINE=$(tr -d '\n' < "${TMP_PAYLOAD_FILE}")
+fi
 
 if command -v awscurl >/dev/null 2>&1; then
   err "Using awscurl to create index"
@@ -106,10 +113,10 @@ if command -v awscurl >/dev/null 2>&1; then
   err "Invoking awscurl: service=${AWS_SERVICE} region=${AWS_REGION:-<unset>}"
   err "AWS env creds present: AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:+yes:-no} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:+yes:-no} AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:+yes:-no}"
 
-  # ✅ FIX: Ensure --data-binary flag is present and payload is quoted
+  # Pass payload as a single token to avoid awscurl treating the @file or payload as an extra positional
   awscurl --verbose --service "${AWS_SERVICE}" ${AWS_REGION:+--region "${AWS_REGION}"} \
     --fail-with-body -X PUT -H "Content-Type: application/json" \
-    --data-binary "$(cat "${TMP_PAYLOAD_FILE}")" "${URL}" >"${AWSCURL_STDOUT}" 2>"${AWSCURL_STDERR}"
+    --data-binary "${PAYLOAD_INLINE}" "${URL}" >"${AWSCURL_STDOUT}" 2>"${AWSCURL_STDERR}"
   AWSCURL_RC=$?
   set -e
 
