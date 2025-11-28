@@ -6,6 +6,7 @@ from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
 from utilities.common.context import Context
 from utilities.infra.api_util import make_api_request_with_retries
 from utilities.infra.lambda_util import *
+from utilities.infra.logs_util import get_logs
 from loguru import logger
 import pytest
 from ftrs_data_layer.domain import DBModel
@@ -16,6 +17,7 @@ import time
 import re
 from datetime import datetime, timedelta, timezone
 from playwright.sync_api import APIRequestContext
+from datetime import datetime
 
 # Load feature file
 scenarios(
@@ -105,7 +107,10 @@ def fetch_ods_organizations(
 
         # Check if organization has a valid ODS code
         for identifier in resource.get("identifier", []):
-            if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code":
+            if (
+                identifier.get("system")
+                == "https://fhir.nhs.uk/Id/ods-organization-code"
+            ):
                 ods_code = identifier.get("value")
                 if ods_code:
                     org_resources.append(resource)
@@ -121,9 +126,10 @@ def extract_org_details(org_resources: List[dict]) -> List[Dict[str, Optional[st
                 (
                     identifier.get("value")
                     for identifier in org.get("identifier", [])
-                    if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code"
+                    if identifier.get("system")
+                    == "https://fhir.nhs.uk/Id/ods-organization-code"
                 ),
-                None
+                None,
             ),
             "type": extract_primary_role_display(org),
             "active": org.get("active"),
@@ -142,9 +148,10 @@ def extract_org_details(org_resources: List[dict]) -> List[Dict[str, Optional[st
             (
                 identifier.get("value")
                 for identifier in org.get("identifier", [])
-                if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code"
+                if identifier.get("system")
+                == "https://fhir.nhs.uk/Id/ods-organization-code"
             ),
-            None
+            None,
         )
     ]
 
@@ -190,18 +197,16 @@ def verify_organisation_in_repo(
                 raise
 
 
-def validate_lambda_logs_for_extraction(
-    context: Context, cloudwatch_logs
-):
+def validate_lambda_logs_for_extraction(context: Context, cloudwatch_logs):
     time.sleep(30)  # Central wait_for_logs()
-    extraction_pattern = f'"Fetching outdated organizations for date: {context.extraction_date}."'
+    extraction_pattern = (
+        f'"Fetching outdated organizations for date: {context.extraction_date}."'
+    )
     transformation_pattern = '"Fetching ODS Data returned .* outdated organisations."'
     publishing_pattern = "Succeeded to send"
 
     assert cloudwatch_logs.find_log_message(context.lambda_name, extraction_pattern)
-    assert cloudwatch_logs.find_log_message(
-        context.lambda_name, transformation_pattern
-    )
+    assert cloudwatch_logs.find_log_message(context.lambda_name, transformation_pattern)
     assert cloudwatch_logs.find_log_message(context.lambda_name, publishing_pattern)
 
 
@@ -219,7 +224,7 @@ def shared_ods_data(api_request_context_ods_terminology):
     selector = OdsDateSelector(
         request_context=api_request_context_ods_terminology,
         lookback_days=7,
-        min_codes=10
+        min_codes=10,
     )
     chosen_date, org_resources = selector.find_valid_date()
     organisation_details = extract_org_details(org_resources)
@@ -238,25 +243,26 @@ def invoke_lambda_generic(
     project: str,
     workspace: str,
     env: str,
-    aws_lambda_client,  # type: LambdaWrapper
+    aws_lambda_client,
     date_param: Optional[str] = None,
 ) -> Context:
-    """
-    Invokes the 'etl-ods-processor' lambda with optional date parameter.
-    Stores the response in context.lambda_response and sets context.lambda_name.
-    """
     lambda_name = get_resource_name(
         project, workspace, env, "etl-ods-processor", "lambda"
     )
-
     context.lambda_name = lambda_name
+    context.lambda_invocation_time = datetime.utcnow()
+    context.correlation_id = str(uuid.uuid4())
+    payload = {
+        "headers": {"X-Correlation-ID": context.correlation_id},
+    }
+    if date_param:
+        payload["date"] = date_param
 
-    payload = {"date": date_param} if date_param else {}
     logger.info(
         f"[STEP] Invoking Lambda '{lambda_name}'"
         + (f" with date: {date_param}" if date_param else " without parameters")
+        + f" and correlation_id: {context.correlation_id}"
     )
-
     try:
         response = aws_lambda_client.invoke_function(lambda_name, payload)
         logger.info(f"[INFO] Lambda response received: {response}")
@@ -300,8 +306,15 @@ def load_organisation_info(context):
 def step_invoke_invalid_date(
     context: Context, invalid_date, project, workspace, env, aws_lambda_client
 ):
+    context.lambda_invocation_time = datetime.utcnow()
+
     return invoke_lambda_generic(
-        context, project, workspace, env, aws_lambda_client, date_param=invalid_date
+        context,
+        project,
+        workspace,
+        env,
+        aws_lambda_client,
+        date_param=invalid_date,
     )
 
 
@@ -381,4 +394,35 @@ def assert_lambda_error_message(context: Context, expected_message):
     )
     assert expected_message in actual_message, (
         f"[FAIL] Expected error message '{expected_message}', got '{actual_message}'"
+    )
+
+
+@then(
+    parsers.parse(
+        'the "{lambda_name}" lambda shows field "{field}" with value "{message}"'
+    )
+)
+def generic_lambda_log_check_function(
+    context: Context, lambda_name: str, field: str, message: str
+) -> None:
+    """Assert the lambda log contains the expected message filtered by correlation_id."""
+    field = "message"
+    expected_message = message
+    correlation_id = (
+        context.correlation_id.replace("/", r"\/") if context.correlation_id else ""
+    )
+    start_time = (
+        int(context.lambda_invocation_time.timestamp() * 1000)
+        if context.lambda_invocation_time
+        else None
+    )
+    query = (
+        f"fields {field} | sort @timestamp asc "
+        f'| filter correlation_id="{correlation_id}" '
+        f'| filter {field} like "{expected_message}"'
+    )
+    logs = get_logs(query=query, lambda_name=lambda_name, start_time=start_time)
+    assert message in logs, (
+        f"ERROR!!.. '{lambda_name}' logs did not contain the expected message: '{message}' "
+        f"for correlation_id '{context.correlation_id}'."
     )
