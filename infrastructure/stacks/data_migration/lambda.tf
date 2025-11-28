@@ -31,12 +31,11 @@ module "processor_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "4"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
-    data.aws_iam_policy_document.sqs_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.sqs_access_policy.json
   ]
 
   layers = concat(
@@ -74,7 +73,6 @@ resource "aws_lambda_event_source_mapping" "migration_event_source_mapping" {
   enabled                            = var.dms_event_queue_enabled
   batch_size                         = var.dms_event_queue_batch_size
   maximum_batching_window_in_seconds = var.dms_event_queue_maximum_batching_window_in_seconds
-  function_response_types            = ["ReportBatchItemFailures"]
 
   scaling_config {
     maximum_concurrency = var.dms_event_queue_maximum_concurrency
@@ -101,11 +99,10 @@ module "queue_populator_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
   ]
 
   layers = concat(
@@ -144,17 +141,16 @@ module "rds_event_listener_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.rds_event_listener_sqs_access_policy[0].json,
     data.aws_iam_policy_document.ssm_access_policy[0].json,
-    data.aws_iam_policy_document.lambda_kms_access.json
   ]
 
   environment_variables = {
     "ENVIRONMENT"  = var.environment
     "PROJECT_NAME" = var.project
-    "SQS_SSM_PATH" = "${var.sqs_ssm_path_for_ids}${var.environment}/ftrs-dos-${var.environment}-data-migration-sqs-param"
+    "SQS_SSM_PATH" = "${var.sqs_ssm_path_for_ids}${var.environment}/"
   }
 
   account_id     = data.aws_caller_identity.current.account_id
@@ -206,44 +202,4 @@ module "dms_db_lambda" {
   cloudwatch_logs_retention = var.dms_db_lambda_logs_retention
 
   depends_on = [aws_sqs_queue.dms_event_queue]
-}
-
-module "reference_data_lambda" {
-  source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.reference_data_lambda_name}"
-  description             = "Lambda to handle DoS reference data migration"
-  handler                 = var.reference_data_lambda_handler
-  runtime                 = var.lambda_runtime
-  s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
-  ignore_source_code_hash = false
-  timeout                 = var.reference_data_lambda_timeout
-  memory_size             = var.reference_data_lambda_memory_size
-
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.reference_data_lambda_security_group.id]
-
-  number_of_policy_jsons = "2"
-  policy_jsons = [
-    data.aws_iam_policy_document.secrets_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_access_policy.json,
-  ]
-
-  layers = concat(
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn],
-    var.aws_lambda_layers
-  )
-
-  environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
-  }
-  account_id     = data.aws_caller_identity.current.account_id
-  account_prefix = local.account_prefix
-  aws_region     = var.aws_region
-  vpc_id         = data.aws_vpc.vpc.id
-
-  cloudwatch_logs_retention = var.reference_data_lambda_logs_retention
 }

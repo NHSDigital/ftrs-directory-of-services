@@ -14,8 +14,7 @@ s3_logging_bucket_name = "s3-access-logs"
 dynamodb_table_names = [
   "healthcare-service",
   "location",
-  "organisation",
-  "triage-code",
+  "organisation"
 ]
 
 root_domain_name = "ftrs.cloud.nhs.uk"

@@ -7,7 +7,6 @@ def test_organisation() -> None:
     org = Organisation(
         id=uuid4(),
         identifier_ODS_ODSCode="123456",
-        identifier_oldDoS_uid="test_UUID",
         active=True,
         name="Test Organisation",
         telecom="123456789",
@@ -21,7 +20,6 @@ def test_organisation() -> None:
     assert org.model_dump(mode="json") == {
         "id": str(org.id),
         "identifier_ODS_ODSCode": "123456",
-        "identifier_oldDoS_uid": "test_UUID",
         "active": True,
         "createdBy": "test_user",
         "createdDateTime": "2023-10-01T00:00:00Z",
@@ -31,5 +29,4 @@ def test_organisation() -> None:
         "telecom": "123456789",
         "type": "GP Practice",
         "endpoints": [],
-        "legalDates": None,
     }

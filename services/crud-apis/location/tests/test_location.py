@@ -17,7 +17,6 @@ def get_mock_location() -> dict:
         "id": test_location_id,
         "active": True,
         "managingOrganisation": "123e4567-e89b-12d3-a456-42661417400a",
-        "identifier_oldDoS_uid": "test_UUID",
         "name": None,
         "address": {
             "line1": "1 Test Street",
@@ -194,7 +193,6 @@ def test_update_location_success(mock_repository: MockerFixture) -> None:
     update_payload = {
         "id": str(test_location_id),
         "active": True,
-        "identifier_oldDoS_uid": "test_UUID",
         "address": {
             "line1": "123 Main St",
             "line2": None,

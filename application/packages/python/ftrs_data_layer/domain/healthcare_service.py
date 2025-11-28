@@ -4,6 +4,7 @@ from uuid import UUID
 from ftrs_data_layer.domain.availability import OpeningTime
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.clinical_code import (
+    Disposition,
     SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.domain.enums import (
@@ -38,6 +39,6 @@ class HealthcareService(DBModel):
     telecom: Telecom | None
     openingTime: list[OpeningTime] | None
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
-    dispositions: list[str]
+    dispositions: list[Disposition]
     migrationNotes: list[str] | None = None
     ageEligibilityCriteria: list[AgeRangeType] | None = None

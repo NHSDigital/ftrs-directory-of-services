@@ -5,7 +5,7 @@ from pytest_bdd import given, parsers, then, when
 
 
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
-from common.uuid_utils import generate_uuid
+from pipeline.utils.uuid_utils import generate_uuid
 from utilities.common.dynamoDB_tables import get_table_name
 
 

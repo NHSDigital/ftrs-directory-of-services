@@ -126,18 +126,6 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
       aws_secretsmanager_secret.api_ca_pk_secret[0].arn
     ]
   }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey"
-    ]
-    resources = [
-      module.secrets_manager_encryption_key.arn
-    ]
-  }
 }
 
 resource "aws_iam_role_policy" "ec2_performance_secrets" {

@@ -59,7 +59,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     assert result[1]["id"] == "XYZ789"
     make_request_mock.assert_called_once_with(
         "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
-        params={"_lastUpdated": date, "_count": 1000},
+        params={"_lastUpdated": date},
     )
 
 
@@ -89,53 +89,6 @@ def test_fetch_outdated_organisations_empty_results(
 
     assert result == []
     assert "No organisations found for the given date" in caplog.text
-
-
-def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> None:
-    """Test fetching organizations with pagination support."""
-    # First page response
-    first_page = {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "total": 3,
-        "status_code": 200,
-        "link": [
-            {
-                "relation": "next",
-                "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_offset=2",
-            }
-        ],
-        "entry": [
-            {"resource": {"resourceType": "Organization", "id": "ABC123"}},
-            {"resource": {"resourceType": "Organization", "id": "DEF456"}},
-        ],
-    }
-
-    # Second page response (no next link)
-    second_page = {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "total": 1,
-        "status_code": 200,
-        "entry": [
-            {"resource": {"resourceType": "Organization", "id": "GHI789"}},
-        ],
-    }
-    EXPECTED_ORGANISATION_COUNT = 3
-    EXPECTED_CALL_COUNT = 2
-
-    make_request_mock = mocker.patch(
-        "pipeline.extract.make_request", side_effect=[first_page, second_page]
-    )
-
-    date = "2025-10-15"
-    result = fetch_outdated_organisations(date)
-
-    assert len(result) == EXPECTED_ORGANISATION_COUNT
-    assert result[0]["id"] == "ABC123"
-    assert result[1]["id"] == "DEF456"
-    assert result[2]["id"] == "GHI789"
-    assert make_request_mock.call_count == EXPECTED_CALL_COUNT
 
 
 def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:

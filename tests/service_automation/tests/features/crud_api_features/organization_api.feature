@@ -58,12 +58,12 @@ Feature: Organization API Endpoint
     And the database reflects "name" with value "<expected_name>"
 
     Examples:
-      | input_name         | expected_name      |
-      | nhs trust hospital | NHS Trust Hospital |
-      | LONDON GP SURGERY  | London GP Surgery  |
-      | the icb board      | The ICB Board      |
-      | local pcn practice | Local PCN Practice |
-      | Mixed Case nhs gp  | Mixed Case NHS GP  |
+      | input_name              | expected_name           |
+      | nhs trust hospital      | NHS Trust Hospital      |
+      | LONDON GP SURGERY       | London GP Surgery       |
+      | the icb board           | The ICB Board           |
+      | local pcn practice      | Local PCN Practice      |
+      | Mixed Case nhs gp       | Mixed Case NHS GP       |
 
   Scenario Outline: Update Organisation with special characters for specific fields
     Given that the stack is "organisation"
@@ -107,11 +107,10 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates "<field>" is missing
 
     Examples:
-      | field      |
-      | name       |
-      | type       |
-      | active     |
-      | identifier |
+      | field  |
+      | name   |
+      | type   |
+      | active |
 
   Scenario: Update Organization with non-existent ID
     When I update the organization with a non-existent ID
@@ -139,6 +138,7 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "unsupported-media-type"
     And the OperationOutcome contains an issue with diagnostics "PUT requests must have Content-Type 'application/fhir+json'"
+
 
   Scenario Outline: Update organization with valid identifier
     Given that the stack is "organisation"
@@ -171,6 +171,7 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
 
+
     Examples:
       | identifier_data                                                                                |
       | [{"value": "M2T8W", "use": "official"}]                                                        |
@@ -180,146 +181,15 @@ Feature: Organization API Endpoint
       | [{"system": "invalid-system", "value": "M2T8W", "use": "official"}]                            |
       | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "", "use": "official"}]   |
 
-  Scenario Outline: Reject Organization update with invalid value in active field
+  Scenario Outline: Update Organization with null active field
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the "<field>" field to "<value>"
+    When I set the active field from the payload to null and update the organization
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-
-    Examples:
-      | field  | value  |
-      | active | ""     |
-      | active | null   |
-      | active | "null" |
-
-
-  Scenario Outline: Update Organization with legal dates
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I update the organization with legal dates start "<legal_start>" and end "<legal_end>"
-    Then I receive a status code "200" in response
-    And the response body contains an "OperationOutcome" resource
-    And the database reflects "legalStartDate" with value "<expected_db_start>"
-    And the database reflects "legalEndDate" with value "<expected_db_end>"
-
-    Examples:
-      | legal_start | legal_end  | expected_db_start | expected_db_end |
-      | 2020-01-15  | 2025-12-31 | 2020-01-15        | 2025-12-31      |
-      | 2020-02-15  | null       | 2020-02-15        | None            |
-      | 2020-01-15  | 2024-12-31 | 2020-01-15        | 2024-12-31      |
-      | 2020-02-29  | 2028-02-29 | 2020-02-29        | 2028-02-29      |
-
-  Scenario Outline: Reject Organization update with invalid extensions for legal date
-    Given that the stack is "organisation"
-    When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-    And I receive the diagnostics "<expected_error>"
-
-    Examples:
-      | invalid_scenario                  | expected_error                                                                                                    |
-      | missing dateType                  | TypedPeriod extension must contain dateType and period                                                            |
-      | missing period                    | TypedPeriod extension must contain dateType and period                                                            |
-      | non-Legal dateType                | dateType must be Legal                                                                                            |
-      | invalid periodType extension url  | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod       |
-      | invalid periodType system         | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'                               |
-      | invalid role extension url        | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
-      | missing role extension url        | Extension URL must be present and cannot be empty or None                                                         |
-      | empty role extension url          | Extension URL must be present and cannot be empty or None                                                         |
-      | missing TypedPeriod extension url | OrganisationRole extension must contain at least one TypedPeriod extension                                        |
-      | empty TypedPeriod extension url   | OrganisationRole extension must contain at least one TypedPeriod extension                                        |
-      | missing start date with end       | Legal period start date is required when TypedPeriod extension is present                                         |
-      | missing both start and end        | Legal period start date is required when TypedPeriod extension is present                                         |
-
-  Scenario Outline: Reject Organization update with invalid date format
-    Given that the stack is "organisation"
-    When I update the organization with invalid date format "<date_field>" value "<invalid_date>"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-
-    Examples:
-      | date_field | invalid_date |
-      | start      | 2020-13-45   |
-      | start      | 20-01-2020   |
-      | start      | 2020/01/15   |
-      | start      | 2020-1-5     |
-      | start      | 15-01-2020   |
-      | start      | invalid      |
-      | end        | 2025-13-45   |
-      | end        | 25-12-2025   |
-      | end        | 2025/12/31   |
-      | end        | 2025-12-1    |
-
-  Scenario Outline: Reject Organization update when start date matches end date
-    Given that the stack is "organisation"
-    When I update the organization with legal dates start "2025-01-01" and end "2025-01-01"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-
-  Scenario Outline: Update Organization update with valid ods-code format
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the "identifier" field to "<value>"
-    Then I receive a status code "200" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome contains an issue with severity "information"
-    And the OperationOutcome contains an issue with code "success"
-    And the OperationOutcome contains an issue with diagnostics "Organisation updated successfully"
-    And the data in the database matches the inserted payload
-
-    Examples:
-      | value        |
-      | 1            |
-      | Z9           |
-      | B76          |
-      | A123         |
-      | ABC123       |
-      | abcDEF       |
-      | abcDEF456    |
-      | XyZ789       |
-      | A1B2C3D4E5F6 |
-      | ABCDEFGHIJKL |
-      | 1234567890   |
-      | TEST123456   |
-      | CODE2025     |
-      | M2T8W        |
-      | 01234        |
-
-  Scenario Outline: Reject Organization update with invalid ods-code format
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the "identifier" field to "<value>"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-
-    Examples:
-      | value         |
-      | ""            |
-      | 1234567890123 |
-      | TOOLONG123456 |
-      | !ABC123       |
-      | ABC123!       |
-      | @#$%^&*       |
-      | ABC_123       |
-      | abc.def       |
-      | ABC 123       |
-      | ABC-123       |
-      | 123_456       |
+    And the diagnostics message indicates the "Active field is required and cannot be null"
 

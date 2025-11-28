@@ -87,11 +87,6 @@ psql -d postgresql://<user>:<password>@<host>:<port>/postgres -f .tmp/dos-01-02-
 
 This will create a new schema named 'pathwaysdos' containing the tables and data.
 
-### Setting up the dynamo tables
-
-The tables creation and reset scripts for dynamo can be found under the README at:
-ftrs-directory-of-services/application/packages/ftrs_aws_local/README.md
-
 ### Running the pipeline locally
 
 The pipeline can be run locally using the `dos-etl` command. Ensure you are in the correct directory and have activated the Poetry environment.

@@ -23,7 +23,6 @@ def get_organisation() -> dict:
     return {
         "id": str(test_org_id),
         "identifier_ODS_ODSCode": "ODS12345",
-        "identifier_oldDoS_uid": "test_UUID",
         "active": True,
         "name": "Test Organisation",
         "telecom": "123456789",
@@ -32,7 +31,6 @@ def get_organisation() -> dict:
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
         "modifiedDateTime": "2023-11-01T00:00:00Z",
-        "legalDates": None,
         "endpoints": [
             {
                 "id": "d5a852ef-12c7-4014-b398-661716a63027",
@@ -155,11 +153,11 @@ def test_get_handle_organisation_requests_by_identifier_success_with_different_c
 
 def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> None:
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization?identifier=odsOrganisationCode|abc!@")
+        client.get("/Organization?identifier=odsOrganisationCode|abc")
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
-        "Invalid identifier value: ODS code 'ABC!@' must follow format ^[A-Za-z0-9]{1,12}$"
+        "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
         in outcome["issue"][0]["diagnostics"]
     )
 
@@ -526,11 +524,11 @@ def test_organization_query_params_invalid_system() -> None:
 
 def test_organization_query_params_invalid_ods_code() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganizationQueryParams(identifier="odsOrganisationCode|abc!@invalid")
+        OrganizationQueryParams(identifier="odsOrganisationCode|abc")
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
-        "Invalid identifier value: ODS code 'ABC!@INVALID' must follow format ^[A-Za-z0-9]{1,12}$"
+        "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
         in outcome["issue"][0]["diagnostics"]
     )
 
@@ -541,7 +539,7 @@ def test_organization_query_params_missing_separator() -> None:
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
-        "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
+        "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{5,12}$"
         in outcome["issue"][0]["diagnostics"]
     )
 
@@ -666,7 +664,7 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
         "identifier": [
             {
                 "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC!@TOOLONG123",  # Too long - should be 1-12 characters
+                "value": "ABC",  # Too short - should be 5-12 characters
             }
         ],
         "name": "Test Organization",
@@ -687,7 +685,7 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
     assert identifier_errors[0]["type"] == "value_error"
     assert (
         identifier_errors[0]["msg"]
-        == "Value error, invalid ODS code format: 'ABC!@TOOLONG123' must follow format ^[A-Za-z0-9]{1,12}$"
+        == "Value error, invalid ODS code format: 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
     )
 
 

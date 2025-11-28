@@ -32,5 +32,5 @@ class Disposition(BaseClinicalCode):
 
 
 class SymptomGroupSymptomDiscriminatorPair(BaseModel):
-    sg: int
-    sd: int
+    sg: SymptomGroup
+    sd: SymptomDiscriminator

@@ -24,27 +24,13 @@ from ftrs_data_layer.domain.legacy import (
     SymptomGroup,
 )
 
-from common.cache import DoSMetadataCache
-from common.config import DatabaseConfig
-from reference_data_load.config import ReferenceDataLoadConfig
-from service_migration.config import DataMigrationConfig
+from pipeline.utils.cache import DoSMetadataCache
+from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
 
 
 @pytest.fixture
 def mock_config() -> DataMigrationConfig:
     return DataMigrationConfig(
-        db_config=DatabaseConfig.from_uri(
-            "postgresql://user:password@localhost:5432/testdb"
-        ),
-        ENVIRONMENT="test",
-        WORKSPACE="test_workspace",
-        ENDPOINT_URL="http://localhost:8000",
-    )
-
-
-@pytest.fixture
-def mock_reference_data_config() -> ReferenceDataLoadConfig:
-    return ReferenceDataLoadConfig(
         db_config=DatabaseConfig.from_uri(
             "postgresql://user:password@localhost:5432/testdb"
         ),
@@ -420,7 +406,7 @@ def mock_metadata_cache(mock_config: DataMigrationConfig) -> DoSMetadataCache:
         ),
     }
 
-    with patch("common.cache.DoSMetadataCache") as mock_cache:
+    with patch("pipeline.utils.cache.DoSMetadataCache") as mock_cache:
         mock_cache.return_value = cache
         yield cache
 

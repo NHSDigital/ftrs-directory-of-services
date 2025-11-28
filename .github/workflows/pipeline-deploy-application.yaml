@@ -87,25 +87,6 @@ jobs:
       type: app
     secrets: inherit
 
-  build-sandbox-containers:
-    name: "Build container ${{ matrix.name }}"
-    needs:
-      - metadata
-      - quality-checks
-    strategy:
-      matrix:
-        include:
-          - name: "sandbox-dos-search"
-    uses: ./.github/workflows/build-sandbox-images.yaml
-    with:
-      name: ${{ matrix.name }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.environment }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-    secrets:
-      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
-
   perform-code-analysis:
     name: "Perform static code analysis"
     needs:
@@ -132,45 +113,33 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
-  deploy-proxy-to-apim:
-    name: "Authenticate and Deploy ${{ matrix.api_name }} API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-    if: needs.metadata.outputs.environment == 'dev' && github.ref != 'refs/heads/main' # TODO: Update condition once further environment work is complete
+  authenticate-with-apim:
+    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
       - deploy-application-infrastructure
-    uses: ./.github/workflows/authenticate-and-deploy-to-apim.yaml
-    strategy:
-      matrix:
-        api_name:
-          - dos-search
-          # Add more API names here as needed
+    uses: ./.github/workflows/authentication-to-apim.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      api_name: ${{ matrix.api_name }}
-      apim_env: "internal-dev"
-    secrets:
-      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
+      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
+    secrets: inherit
 
-  # TODO : FTRS-1899 Re-enable data migration step once ETL process is stable
-  # migrate-data:
-  #   name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
-  #   if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
-  #   concurrency:
-  #     group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
-  #     cancel-in-progress: false
-  #   needs:
-  #     - metadata
-  #     - deploy-application-infrastructure
-  #   uses: ./.github/workflows/migrate-data.yaml
-  #   with:
-  #     environment: ${{ needs.metadata.outputs.environment }}
-  #     function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
-  #     queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
-  #     type: app
-  #   secrets: inherit
+  migrate-data:
+    name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
+    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/migrate-data.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
+      queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
+      type: app
+    secrets: inherit
 
   export-dynamodb-to-s3:
     name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
@@ -180,8 +149,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
-      - deploy-application-infrastructure
-      # - migrate-data
+      - migrate-data
     uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -231,7 +199,6 @@ jobs:
 
   deploy-data-migration-service:
     name: "Deploy data migration service to ${{ needs.metadata.outputs.environment }}"
-    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-data-migration-${{ needs.metadata.outputs.workspace }}"
       cancel-in-progress: false
@@ -310,7 +277,7 @@ jobs:
       - quality-checks
       - build-services
       - deploy-application-infrastructure
-      # - migrate-data
+      - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
       - deploy-frontend-services

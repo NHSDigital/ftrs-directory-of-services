@@ -66,15 +66,6 @@ resource "aws_iam_role_policy" "dms_secrets_access_policy" {
           aws_secretsmanager_secret.source_rds_credentials[0].arn,
           aws_secretsmanager_secret.target_rds_credentials[0].arn
         ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "kms:Decrypt",
-          "kms:DescribeKey",
-          "kms:GenerateDataKey"
-        ]
-        Resource = data.aws_kms_key.secrets_manager_kms_key.arn
       }
     ]
   })

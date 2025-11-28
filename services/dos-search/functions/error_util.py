@@ -32,7 +32,7 @@ def create_resource_internal_server_error() -> OperationOutcome:
     return OperationOutcome.model_validate(
         {
             "issue": [
-                _create_issue("exception", "fatal", diagnostics="Internal server error")
+                _create_issue("structure", "fatal", diagnostics="Internal server error")
             ]
         }
     )
@@ -50,13 +50,6 @@ def _create_issue_from_error(error: ErrorDetails) -> Dict[str, Any]:
     if error.get("type") == "value_error":
         if custom_error := error.get("ctx", {}).get("error"):
             return _handle_custom_error(custom_error)
-        # Unmapped value_error: treat as client invalid input (400)
-        return _create_issue(
-            "invalid",
-            "error",
-            details=INVALID_SEARCH_DATA_CODING,
-            diagnostics="Invalid search parameter value",
-        )
 
     if error.get("type") == "missing":
         return _create_issue(
@@ -66,13 +59,7 @@ def _create_issue_from_error(error: ErrorDetails) -> Dict[str, Any]:
             diagnostics=f"Missing required search parameter '{error.get('loc')[0]}'",
         )
 
-    # Any other pydantic error type: treat as generic client invalid input (400)
-    return _create_issue(
-        "invalid",
-        "error",
-        details=INVALID_SEARCH_DATA_CODING,
-        diagnostics=error.get("msg") or "Invalid request",
-    )
+    return _create_issue("structure", "fatal", diagnostics="Internal server error")
 
 
 def _handle_custom_error(custom_error: ValueError) -> dict:
@@ -83,13 +70,7 @@ def _handle_custom_error(custom_error: ValueError) -> dict:
             details=INVALID_SEARCH_DATA_CODING,
             diagnostics=str(custom_error),
         )
-    # Fallback for unmapped custom ValueError: treat as client invalid input (400)
-    return _create_issue(
-        "invalid",
-        "error",
-        details=INVALID_SEARCH_DATA_CODING,
-        diagnostics=str(custom_error) or "Invalid search parameter value",
-    )
+    return _create_issue("structure", "fatal", diagnostics="Internal server error")
 
 
 def _create_issue(

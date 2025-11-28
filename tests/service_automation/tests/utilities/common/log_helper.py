@@ -274,29 +274,6 @@ def verify_migration_completed_log(
     )
 
 
-
-def verify_error_log_present(
-    mock_logger: MockLogger,
-    error_fragment: str,
-) -> None:
-    """
-    Verify DM_ETL_008 event with its details is present in error level logs
-
-    Args:
-        mock_logger: MockLogger instance
-        error_fragment: Fragment of the error message expected
-
-    Raises:
-        AssertionError: If log not found
-    """
-    assert_log_exists(mock_logger, "DM_ETL_008", level="ERROR")
-    logs = mock_logger.get_log("DM_ETL_008", level="ERROR")
-
-    matched = [log_line for log_line in logs if error_fragment in log_line["detail"].get("error", "")]
-    assert matched, f"Error level log with err containing fragment '{error_fragment}' not found"
-
-
-
 def get_mock_logger_from_context(
     migration_context: Dict[str, Any],
 ) -> MockLogger:

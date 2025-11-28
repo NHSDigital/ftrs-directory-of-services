@@ -164,24 +164,17 @@ class DataMigrationLogBase(LogBase):
         message="No ageEligibilityCriteria created for Service ID {service_id} as no age range found",
     )
 
-    DM_ETL_018 = LogReference(
-        level=WARNING,
-        message="Disposition ID {disposition_id} not found in metadata for Service ID {service_id}, skipping disposition",
-    )
-
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )
 
     DM_QP_000 = LogReference(
-        level=INFO,
-        message="Starting Data Migration Queue Populator for type_ids={type_ids} and status_ids={status_ids}",
+        level=INFO, message="Starting Data Migration Queue Populator"
     )
     DM_QP_001 = LogReference(
         level=INFO,
-        message="Populating SQS queue with {count} total messages in full sync",
+        message="Populating SQS queue with {count} total messages",
     )
-
     DM_QP_002 = LogReference(
         level=DEBUG, message="Sending {count} messages to SQS queue"
     )
@@ -190,10 +183,6 @@ class DataMigrationLogBase(LogBase):
     )
     DM_QP_004 = LogReference(
         level=DEBUG, message="Successfully sent {count} messages to SQS queue"
-    )
-    DM_QP_005 = LogReference(
-        level=INFO,
-        message="Populating SQS queue with 1 message in single service sync for service_id={service_id} and record_id={record_id}",
     )
     DM_QP_999 = LogReference(
         level=INFO, message="Data Migration Queue Populator completed"
@@ -298,7 +287,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_002 = LogReference(
         level=INFO,
-        message="Fetching ODS Data returned {bundle_total} outdated organisations across {total_pages} pages.",
+        message="Fetching ODS Data returned {bundle_total} outdated organisations.",
     )
     ETL_PROCESSOR_003 = LogReference(
         level=INFO, message="Fetching organisation data for code: {ods_code}."
@@ -347,7 +336,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_021 = LogReference(
         level=WARNING,
-        message="Invalid environment variable value '{invalid_value}' provided, using default value.",
+        message="Organisation link is missing in the response.",
     )
     ETL_PROCESSOR_022 = LogReference(
         level=WARNING,
@@ -392,13 +381,6 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_PROCESSOR_033 = LogReference(
         level=INFO,
         message="Checking if organisation is permitted type",
-    )
-    ETL_PROCESSOR_034 = LogReference(
-        level=INFO, message="Processing page {page_num} for date {date}."
-    )
-    ETL_PROCESSOR_035 = LogReference(
-        level=INFO,
-        message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
@@ -558,10 +540,6 @@ class CrudApisLogBase(LogBase):
     ORGANISATION_022 = LogReference(
         level=ERROR,
         message="Error: Active field is required and cannot be null.",
-    )
-    ORGANISATION_023 = LogReference(
-        level=WARNING,
-        message="Received invalid legal dates, legal period start and end dates are equal: {date}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,

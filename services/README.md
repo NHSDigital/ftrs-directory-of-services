@@ -39,7 +39,3 @@ aws osis start-pipeline --region "${AWS_REGION}" --pipeline-name organisation-fd
 ```
 
 - you can check via console or by re-running the list-pipelines command above to check the pipeline is restarting. Note it will take a few minutes to become `ACTIVE`
-
-## Sandbox
-
-The API sandbox serving canned responses for APIM now lives under `services/sandbox-dos-search`. Use the local `Makefile` targets there to build, test, and publish the Docker image that the application pipeline consumes.

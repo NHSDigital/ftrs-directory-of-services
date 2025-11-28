@@ -143,7 +143,7 @@ def api_request_context_ods_terminology(playwright, ods_terminology_api_key: str
 
 
 @pytest.fixture
-def apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+def new_apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
     """Create a new Playwright API request context."""
     apim_headers = nhsd_apim_auth_headers
     apim_request_context = playwright.request.new_context(
@@ -187,11 +187,6 @@ def _get_env_var(varname: str, default: str = None, required: bool = True) -> st
 @pytest.fixture(scope="session")
 def env() -> str:
     return _get_env_var("ENVIRONMENT")
-
-
-@pytest.fixture(scope="module")
-def apigee_token() -> str:
-    return _get_env_var("APIGEE_ACCESS_TOKEN")
 
 
 @pytest.fixture(scope="session", autouse=True)

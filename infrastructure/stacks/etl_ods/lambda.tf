@@ -31,13 +31,12 @@ module "processor_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "5"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
-    data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json
   ]
 
   layers = concat(
@@ -47,12 +46,11 @@ module "processor_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"        = var.environment
-    "WORKSPACE"          = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME"       = var.project
-    "APIM_URL"           = var.apim_url
-    "ODS_URL"            = var.ods_url
-    "ODS_API_PAGE_LIMIT" = tostring(var.ods_api_page_limit)
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME" = var.project
+    "APIM_URL"     = var.apim_url
+    "ODS_URL"      = var.ods_url
   }
 
   account_id     = data.aws_caller_identity.current.account_id
@@ -78,13 +76,12 @@ module "consumer_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
 
-  number_of_policy_jsons = "5"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
-    data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json
   ]
 
   layers = concat(

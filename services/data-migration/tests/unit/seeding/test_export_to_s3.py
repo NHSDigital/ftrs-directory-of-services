@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 
-from seeding.export_to_s3 import (
+from pipeline.seeding.export_to_s3 import (
     decompress_and_parse_files,
     download_exported_files,
     export_table,
@@ -41,7 +41,7 @@ def test_trigger_table_export(mocker: MockerFixture) -> None:
     }
 
     mocker.patch(
-        "seeding.export_to_s3.get_dynamodb_client",
+        "pipeline.seeding.export_to_s3.get_dynamodb_client",
         return_value=mock_ddb_client,
     )
     mocker.patch(
@@ -70,7 +70,7 @@ def test_is_export_complete_in_progress(mocker: MockerFixture) -> None:
     }
 
     mocker.patch(
-        "seeding.export_to_s3.get_dynamodb_client",
+        "pipeline.seeding.export_to_s3.get_dynamodb_client",
         return_value=mock_ddb_client,
     )
 
@@ -94,7 +94,7 @@ def test_is_export_complete_queued(mocker: MockerFixture) -> None:
     }
 
     mocker.patch(
-        "seeding.export_to_s3.get_dynamodb_client",
+        "pipeline.seeding.export_to_s3.get_dynamodb_client",
         return_value=mock_ddb_client,
     )
 
@@ -118,7 +118,7 @@ def test_is_export_complete_completed(mocker: MockerFixture) -> None:
     }
 
     mocker.patch(
-        "seeding.export_to_s3.get_dynamodb_client",
+        "pipeline.seeding.export_to_s3.get_dynamodb_client",
         return_value=mock_ddb_client,
     )
 
@@ -142,7 +142,7 @@ def test_is_export_complete_unrecognised(mocker: MockerFixture) -> None:
     }
 
     mocker.patch(
-        "seeding.export_to_s3.get_dynamodb_client",
+        "pipeline.seeding.export_to_s3.get_dynamodb_client",
         return_value=mock_ddb_client,
     )
 
@@ -156,13 +156,15 @@ def test_is_export_complete_unrecognised(mocker: MockerFixture) -> None:
 
 @pytest.mark.asyncio
 async def test_export_table(mocker: MockerFixture) -> None:
-    mock_trigger = mocker.patch("seeding.export_to_s3.trigger_table_export")
+    mock_trigger = mocker.patch("pipeline.seeding.export_to_s3.trigger_table_export")
     mock_trigger.return_value = {
         "ExportArn": "arn:aws:dynamodb:region:account-id:table/test_table/export",
         "S3Bucket": "test_s3_bucket_name",
     }
 
-    mock_is_export_complete = mocker.patch("seeding.export_to_s3.is_export_complete")
+    mock_is_export_complete = mocker.patch(
+        "pipeline.seeding.export_to_s3.is_export_complete"
+    )
     mock_is_export_complete.side_effect = [False, True]
 
     mock_ddb_client = mocker.MagicMock()
@@ -173,11 +175,11 @@ async def test_export_table(mocker: MockerFixture) -> None:
         }
     }
     mocker.patch(
-        "seeding.export_to_s3.get_dynamodb_client",
+        "pipeline.seeding.export_to_s3.get_dynamodb_client",
         return_value=mock_ddb_client,
     )
 
-    mock_sleep = mocker.patch("seeding.export_to_s3.asyncio.sleep")
+    mock_sleep = mocker.patch("pipeline.seeding.export_to_s3.asyncio.sleep")
     mock_sleep.return_value = None
 
     response = await export_table("organisation", "local", "test-workspace")
@@ -198,10 +200,14 @@ async def test_export_table(mocker: MockerFixture) -> None:
 
 @pytest.mark.asyncio
 async def test_process_export(mocker: MockerFixture) -> None:
-    get_file_list_mock = mocker.patch("seeding.export_to_s3.get_export_file_list")
+    get_file_list_mock = mocker.patch(
+        "pipeline.seeding.export_to_s3.get_export_file_list"
+    )
     get_file_list_mock.return_value = ["file1", "file2"]
 
-    download_files_mock = mocker.patch("seeding.export_to_s3.download_exported_files")
+    download_files_mock = mocker.patch(
+        "pipeline.seeding.export_to_s3.download_exported_files"
+    )
     download_files_mock.return_value = [
         gzip.compress(b'{"Item": {"id": 1}}'),
         gzip.compress(b'{"Item": {"id": 2}}'),
@@ -220,7 +226,7 @@ async def test_process_export(mocker: MockerFixture) -> None:
 
 
 def test_get_export_file_list(mocker: MockerFixture) -> None:
-    get_object_mock = mocker.patch("seeding.export_to_s3.S3_CLIENT.get_object")
+    get_object_mock = mocker.patch("pipeline.seeding.export_to_s3.S3_CLIENT.get_object")
     get_object_mock.side_effect = [
         {"Body": BytesIO(b'{"manifestFilesS3Key": "manifestFilesKey"}')},
         {
@@ -251,7 +257,7 @@ def test_get_export_file_list(mocker: MockerFixture) -> None:
 
 
 def test_download_exported_files(mocker: MockerFixture) -> None:
-    get_object_mock = mocker.patch("seeding.export_to_s3.S3_CLIENT.get_object")
+    get_object_mock = mocker.patch("pipeline.seeding.export_to_s3.S3_CLIENT.get_object")
     get_object_mock.side_effect = [
         {"Body": BytesIO(b'{"Item": {"id": 1}}')},
         {"Body": BytesIO(b'{"Item": {"id": 2}}')},
@@ -313,10 +319,10 @@ def test_decompress_and_parse_files() -> None:
 
 @pytest.mark.asyncio
 async def test_run_s3_export(mocker: MockerFixture) -> None:
-    export_task_mock = mocker.patch("seeding.export_to_s3.export_table")
-    process_export_mock = mocker.patch("seeding.export_to_s3.process_export")
-    to_parquet_mock = mocker.patch("seeding.export_to_s3.wr.s3.to_parquet")
-    mock_set_parameter = mocker.patch("seeding.export_to_s3.set_parameter")
+    export_task_mock = mocker.patch("pipeline.seeding.export_to_s3.export_table")
+    process_export_mock = mocker.patch("pipeline.seeding.export_to_s3.process_export")
+    to_parquet_mock = mocker.patch("pipeline.seeding.export_to_s3.wr.s3.to_parquet")
+    mock_set_parameter = mocker.patch("pipeline.seeding.export_to_s3.set_parameter")
 
     export_task_mock.side_effect = [
         {
@@ -327,16 +333,8 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
             "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_2",
             "S3Bucket": "test_s3_bucket_name",
         },
-        {
-            "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_3",
-            "S3Bucket": "test_s3_bucket_name",
-        },
     ]
-    mock_processed_exports = [
-        mocker.Mock(shape=[1]),
-        mocker.Mock(shape=[1]),
-        mocker.Mock(shape=[1]),
-    ]
+    mock_processed_exports = [mocker.Mock(shape=[1]), mocker.Mock(shape=[1])]
     process_export_mock.side_effect = mock_processed_exports
 
     await run_s3_export("local", "workspace")
@@ -345,7 +343,6 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
         [
             mocker.call("location", "local", "workspace"),
             mocker.call("organisation", "local", "workspace"),
-            mocker.call("data-migration-state", "local", "workspace"),
         ]
     )
 
@@ -360,12 +357,6 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
             mocker.call(
                 {
                     "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_2",
-                    "S3Bucket": "test_s3_bucket_name",
-                }
-            ),
-            mocker.call(
-                {
-                    "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_3",
                     "S3Bucket": "test_s3_bucket_name",
                 }
             ),
@@ -385,11 +376,6 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
                 path="s3://test_s3_bucket_name/backups/test_table_2.parquet",
                 dataset=False,
             ),
-            mocker.call(
-                df=mock_processed_exports[2],
-                path="s3://test_s3_bucket_name/backups/test_table_3.parquet",
-                dataset=False,
-            ),
         ]
     )
 
@@ -399,7 +385,6 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
             {
                 "test_table_1": "s3://test_s3_bucket_name/backups/test_table_1.parquet",
                 "test_table_2": "s3://test_s3_bucket_name/backups/test_table_2.parquet",
-                "test_table_3": "s3://test_s3_bucket_name/backups/test_table_3.parquet",
             }
         ),
         overwrite=True,

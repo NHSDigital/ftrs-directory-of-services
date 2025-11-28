@@ -5,7 +5,6 @@ import boto3
 from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
-from ftrs_data_layer.domain.data_migration_state import DataMigrationState
 from ftrs_data_layer.domain.triage_code import TriageCode
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from ftrs_data_layer.repository.dynamodb import (
@@ -25,7 +24,6 @@ class ClearableEntityTypes(StrEnum):
     healthcare_service = "healthcare-service"
     location = "location"
     triage_code = "triage-code"
-    state = "data-migration-state"
 
 
 class RepositoryTypes(StrEnum):
@@ -38,7 +36,6 @@ DEFAULT_CLEARABLE_ENTITY_TYPES = [
     ClearableEntityTypes.healthcare_service,
     ClearableEntityTypes.location,
     ClearableEntityTypes.triage_code,
-    ClearableEntityTypes.state,
 ]
 
 
@@ -55,8 +52,6 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             return Location
         case ClearableEntityTypes.triage_code:
             return TriageCode
-        case ClearableEntityTypes.state:
-            return DataMigrationState
         case _:
             reset_logger.log(
                 DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
@@ -294,15 +289,6 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
                 }
             ],
         },
-        "data-migration-state": {
-            "key_schema": [
-                {"AttributeName": "source_record_id", "KeyType": "HASH"},
-            ],
-            "attribute_definitions": [
-                {"AttributeName": "source_record_id", "AttributeType": "S"}
-            ],
-            "global_secondary_indexes": None,
-        },
         "default": {
             "key_schema": [
                 {"AttributeName": "id", "KeyType": "HASH"},
@@ -314,6 +300,5 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
             ],
             "global_secondary_indexes": None,
         },
-
     }
     return table_entity.get(entity_name, table_entity["default"])

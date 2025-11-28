@@ -104,24 +104,3 @@ variable "api_gateway_throttling_burst_limit" {
   description = "Throttling burst limit for the API Gateway"
   type        = number
 }
-
-# FHIR error response header mapping (Content-Type)
-variable "fhir_content_type_header" {
-  description = "API Gateway response header mappings for FHIR responses"
-  type        = map(string)
-  default = {
-    "gatewayresponse.header.Content-Type" = "'application/fhir+json'"
-  }
-}
-
-# Gateway response definitions for API Gateway
-variable "gateway_responses" {
-  description = "Map of API Gateway gateway_responses with response_type, status_code, and FHIR template"
-  type = map(object({
-    response_type = string
-    status_code   = string
-    template      = string
-  }))
-  # Use null default so we can compute from locals (file() not allowed in var defaults)
-  default = null
-}

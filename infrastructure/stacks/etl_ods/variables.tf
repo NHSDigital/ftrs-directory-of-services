@@ -76,6 +76,10 @@ variable "receive_wait_time_seconds" {
   description = "Time period that a request could wait for a message to become available in the sqs queue"
 }
 
+variable "sqs_managed_sse_enabled" {
+  description = "Enables Server-Side Encryption for messages stored in the queue"
+}
+
 variable "max_receive_count" {
   description = "The maximum number of times a message can be received before being sent to the dead letter queue"
 }
@@ -102,10 +106,4 @@ variable "consumer_lambda_logs_retention" {
   description = "The number of days to retain logs for the consumer lambda"
   type        = number
   default     = 14
-}
-
-variable "ods_api_page_limit" {
-  description = "The maximum number of organisations to retrieve per page from the ODS API"
-  type        = number
-  default     = 1000
 }
