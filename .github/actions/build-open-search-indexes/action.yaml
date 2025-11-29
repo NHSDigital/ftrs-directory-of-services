@@ -11,17 +11,20 @@ inputs:
     required: true
   domain:
     description: 'The name of the collection to target (defaults to ftrs-dos-dev-osc)'
-    required: false
+    required: true
     default: 'ftrs-dos-dev-osc'
   index:
     description: 'The OpenSearch index name to create'
-    required: false
+    required: true
     default: 'organisation'
   aws_region:
     description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
-    required: false
+    required: true
     default: ''
-
+  table:
+    description: 'The DynamoDB table name to use'
+    required: true
+    default: 'ftrs-dos-dev-database-healthcare-service'
 runs:
   using: 'composite'
   steps:
@@ -34,10 +37,11 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         ENVIRONMENT: ${{ inputs.environment }}
         AWS_REGION: ${{ inputs.aws_region }}
+        DYNAMODB_TABLE: ${{ inputs.table }}
       run: |
         set -euo pipefail
 
-        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} INDEX=${INDEX} WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>}"
+        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} INDEX=${INDEX} WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>} DYNAMODB_TABLE=${DYNAMODB_TABLE}"
 
         python3 -m pip install --upgrade pip setuptools wheel
 
@@ -48,3 +52,5 @@ runs:
         fi
 
         python3 ./scripts/workflow/create_open_search_index.py
+
+        python3 ./scripts/workflow/populate_open_search_index.py

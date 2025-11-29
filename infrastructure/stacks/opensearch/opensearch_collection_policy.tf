@@ -13,7 +13,6 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
           Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
           ResourceType = "dashboard"
         },
-        # Allow public network access to the collection endpoint itself so the endpoint is reachable from the internet
         {
           Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
           ResourceType = "collection"
@@ -42,8 +41,6 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
               "aoss:DeleteCollectionItems"
             ]
           },
-          # Allow actions on any index under this collection (wildcard). This enables CI/runners
-          # to create indices like "os-index-ftrs-856" without listing them explicitly.
           {
             ResourceType = "index"
             Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/organisation*"]
@@ -77,7 +74,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
         [
           data.aws_caller_identity.current.arn,
           aws_iam_role.osis_pipelines_role.arn,
-          var.app_github_runner_role_arn,
+          local.github_runner_arn
         ],
         local.env_sso_roles
       )
