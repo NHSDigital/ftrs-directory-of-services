@@ -69,7 +69,7 @@ build:
 
 	tar --exclude="build" --exclude=".git" --exclude=".venv" --exclude="venv" --exclude="node_modules" -czf "$(BUILD_OUTPUT_DIR)/source.tar.gz" -C "${DOCKER_CONTEXT}" . || true
 
-unit-test: build
+unit-test:
 	docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true
 	docker run -d --rm -p 9000:9000 --name ${CONTAINER_NAME} ${FULL_IMAGE}
 	@trap 'docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true' EXIT TERM INT; \
@@ -104,6 +104,3 @@ publish:
 	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
 	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
 	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
-
-lint:
-	@echo "No lint step for sandbox service"
