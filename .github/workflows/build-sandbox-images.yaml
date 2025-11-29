@@ -23,10 +23,18 @@ on:
         description: "The deployment environment"
         required: true
         type: string
+      application_tag:
+        description: "Optional application tag to check out (leave empty for default/latest)"
+        required: false
+        type: string
+      type:
+        description: "Optional type passed to credential/config steps (defaults to 'app')"
+        required: false
+        type: string
 
 jobs:
   build-project:
-    name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
+    name: "Build ${{ inputs.type || inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -57,7 +65,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          type: ${{ inputs.type }}
+          type: ${{ inputs.type || 'app' }}
 
       - name: "Get directories"
         id: get-directories
