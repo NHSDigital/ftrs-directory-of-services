@@ -87,6 +87,25 @@ jobs:
       type: app
     secrets: inherit
 
+  build-container:
+    name: "Build container ${{ matrix.name }}"
+    needs:
+      - metadata
+      - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "sandbox-dos-search"
+            build_type: "container"
+    uses: ./.github/workflows/build-sandbox-images.yaml
+    with:
+      name: ${{ matrix.name }}
+      build_type: ${{ matrix.build_type }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      type: app
+    secrets: inherit
+
   perform-code-analysis:
     name: "Perform static code analysis"
     needs:
