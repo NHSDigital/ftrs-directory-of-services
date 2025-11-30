@@ -21,10 +21,13 @@ inputs:
     description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
     required: true
     default: ''
-  table:
-    description: 'The DynamoDB table name to use'
-    required: true
-    default: 'ftrs-dos-dev-database-healthcare-service'
+outputs:
+  endpoint:
+    description: 'Resolved OpenSearch collection endpoint'
+    value: '${{ steps.create_index.outputs.endpoint }}'
+  final_index:
+    description: 'Final index name created'
+    value: '${{ steps.create_index.outputs.final_index }}'
 runs:
   using: 'composite'
   steps:
@@ -37,20 +40,13 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         ENVIRONMENT: ${{ inputs.environment }}
         AWS_REGION: ${{ inputs.aws_region }}
-        DYNAMODB_TABLE: ${{ inputs.table }}
       run: |
         set -euo pipefail
 
-        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} INDEX=${INDEX} WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>} DYNAMODB_TABLE=${DYNAMODB_TABLE}"
+        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} INDEX=${INDEX} WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>}"
 
         python3 -m pip install --upgrade pip setuptools wheel
 
-        if [ -f "./scripts/workflow/requirements.txt" ]; then
-          python3 -m pip install -r ./scripts/workflow/requirements.txt
-        else
-          python3 -m pip install boto3 requests
-        fi
+        python3 -m pip install boto3 requests
 
         python3 ./scripts/workflow/create_open_search_index.py
-
-        python3 ./scripts/workflow/populate_open_search_index.py

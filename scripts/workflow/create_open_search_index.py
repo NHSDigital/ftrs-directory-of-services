@@ -6,6 +6,7 @@ import json
 import logging
 from typing import Optional, Tuple, Dict
 import hashlib
+import argparse
 
 import boto3
 import botocore.session
@@ -37,17 +38,16 @@ def get_env(name: str, default: Optional[str] = None) -> Optional[str]:
 
 def find_collection_id_by_name(client, collection_name: str) -> Optional[str]:
     resp = client.list_collections()
-    for cs in resp.get("collectionSummaries", []):
-        if cs.get("name") == collection_name:
-            return cs.get("id")
-    return None
+    return next((cs.get("id") for cs in resp.get("collectionSummaries", []) if cs.get("name") == collection_name), None)
+
 
 def get_collection_endpoint_by_id(client, collection_id: str) -> Optional[str]:
     resp = client.batch_get_collection(ids=[collection_id])
     details = resp.get("collectionDetails", [])
     if not details:
         return None
-    return details[0].get("collectionEndpoint") or details[0].get("endpoint")
+    return next((d.get("collectionEndpoint") or d.get("endpoint") for d in details if d), None)
+
 
 def resolve_collection_endpoint(collection_name: str, region: Optional[str]) -> Optional[str]:
     try:
@@ -76,15 +76,6 @@ def build_index_name(index: str, workspace: Optional[str]) -> str:
 
 def prepare_payload() -> str:
     return json.dumps(MAPPINGS_PAYLOAD)
-
-def get_index_url(open_search_domain: str, index: str, workspace: str, aws_region: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
-    resolved = open_search_domain if '.' in open_search_domain else resolve_collection_endpoint(open_search_domain, aws_region)
-    if not resolved:
-        return None, None
-    endpoint = build_endpoint(resolved)
-    final_index = build_index_name(index, workspace)
-    url = endpoint + '/' + final_index
-    return url, final_index
 
 def get_aws_signing_credentials():
     session = botocore.session.get_session()
@@ -134,6 +125,11 @@ def log_response_headers(resp: requests.Response) -> None:
 
 def sign_request_and_put(url: str, body: str, region: Optional[str], service: str = "aoss") -> requests.Response:
     credentials = get_aws_signing_credentials()
+    try:
+        caller_info = boto3.client('sts').get_caller_identity()
+        log.info('Caller ARN: %s', caller_info.get('Arn'))
+    except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as exc:
+        log.debug('Could not get caller identity via STS: %s', exc, exc_info=True)
     payload_hash = compute_payload_hash(body)
     aws_req = build_aws_request("PUT", url, body, payload_hash)
     sign_aws_request(aws_req, credentials, service, region)
@@ -160,38 +156,80 @@ def handle_response(resp: requests.Response, final_index: str) -> int:
     if resp.status_code in (200, 201):
         log.info('Index %s created or already exists', final_index)
         return 0
-    if resp.status_code in (400, 409) and ("already exists" in body_text or "resource_already_exists_exception" in body_text):
+    if resp.status_code in (400, 409) and (
+        "already exists" in body_text or "resource_already_exists_exception" in body_text):
         log.info('Index %s already exists; continuing', final_index)
         return 0
+    if resp.status_code == 403:
+        log.error(
+            'Index creation failed with status 403 Forbidden: ensure collection access policy allows the IAM role ARN and resource')
+        return 4
     log.error('Index creation failed with status %s', resp.status_code)
     return 4
 
-def get_inputs() -> Tuple[str, str, str, Optional[str]]:
-    open_search_domain = get_env("OPEN_SEARCH_DOMAIN")
-    index = get_env("INDEX")
-    workspace = get_env("WORKSPACE") or ""
-    aws_region = get_env("AWS_REGION")
+def get_inputs_from_args(args: argparse.Namespace) -> Tuple[Optional[str], Optional[str], str, Optional[str]]:
+    open_search_domain = args.open_search_domain or get_env("OPEN_SEARCH_DOMAIN")
+    index = args.index or get_env("INDEX")
+    workspace = args.workspace or get_env("WORKSPACE") or ""
+    aws_region = args.aws_region or get_env("AWS_REGION")
     return open_search_domain, index, workspace, aws_region
 
-def resolve_endpoint_if_needed(open_search_domain: str, aws_region: Optional[str]) -> Optional[str]:
-    if '.' in open_search_domain:
-        return open_search_domain
-    return resolve_collection_endpoint(open_search_domain, aws_region)
+def write_github_output(mapping: Dict[str, str]) -> None:
+    gh_out = os.environ.get('GITHUB_OUTPUT')
+    if not gh_out:
+        return
+    try:
+        with open(gh_out, 'a') as f:
+            for k, v in mapping.items():
+                f.write("{}={}\n".format(k, v))
+    except Exception as exc:
+        log.debug('Failed to write outputs to GITHUB_OUTPUT: %s', exc, exc_info=True)
+
+class IndexCreator:
+
+    def __init__(self, open_search_domain: str, index: str, workspace: Optional[str], aws_region: Optional[str]):
+        self.open_search_domain = open_search_domain
+        self.index = index
+        self.workspace = workspace or ""
+        self.aws_region = aws_region
+
+    def create_index(self) -> int:
+        resolved = self.open_search_domain if '.' in self.open_search_domain else resolve_collection_endpoint(self.open_search_domain, self.aws_region)
+        if not resolved:
+            log.error('Could not resolve collection %s', self.open_search_domain)
+            return 3
+        endpoint = build_endpoint(resolved)
+        final_index = build_index_name(self.index, self.workspace)
+        url = endpoint.rstrip('/') + '/' + final_index
+
+        payload = prepare_payload()
+        log.info('Creating index using URL: %s', url)
+        resp = sign_request_and_put(url, payload, self.aws_region, 'aoss')
+        result_code = handle_response(resp, final_index)
+        if result_code == 0:
+            write_github_output({"endpoint": endpoint, "final_index": final_index})
+        return result_code
 
 def create_index(open_search_domain: str, index: str, workspace: str, aws_region: Optional[str]) -> int:
-    url, final_index = get_index_url(open_search_domain, index, workspace, aws_region)
-    if not url:
-        log.error('Could not resolve collection %s', open_search_domain)
-        return 3
-    payload = prepare_payload()
-    log.info('Creating index using URL: %s', url)
-    resp = sign_request_and_put(url, payload, aws_region, 'aoss')
-    return handle_response(resp, final_index)
+    creator = IndexCreator(open_search_domain, index, workspace, aws_region)
+    return creator.create_index()
 
-def main() -> int:
-    open_search_domain, index, workspace, aws_region = get_inputs()
+def parse_args(argv=None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description='Create OpenSearch Serverless index')
+    p.add_argument('--open-search-domain', help='OpenSearch collection name or full endpoint URL')
+    p.add_argument('--index', help='Index name (base) to create')
+    p.add_argument('--workspace', help='Workspace suffix to append to index')
+    p.add_argument('--aws-region', help='AWS region to use')
+    p.add_argument('--debug', action='store_true', help='Enable debug logging')
+    return p.parse_args(argv)
+
+def main(argv=None) -> int:
+    args = parse_args(argv)
+    if args.debug:
+        log.setLevel(logging.DEBUG)
+    open_search_domain, index, workspace, aws_region = get_inputs_from_args(args)
     if not open_search_domain or not index:
-        log.error('OPEN_SEARCH_DOMAIN and INDEX must be set')
+        log.error('OPEN_SEARCH_DOMAIN and INDEX must be set (via args or env)')
         return 2
     try:
         return create_index(open_search_domain, index, workspace, aws_region)

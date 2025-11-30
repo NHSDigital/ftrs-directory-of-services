@@ -45,3 +45,13 @@ jobs:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
           aws_region: ${{ inputs.aws_region }}
+
+      - name: Populate OpenSearch index
+        id: populate-index
+        uses: ./.github/actions/populate-open-search-indexes
+        with:
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          aws_region: ${{ inputs.aws_region }}
+          endpoint: ${{ steps.create-index.outputs.endpoint }}
+          final_index: ${{ steps.create-index.outputs.final_index }}
