@@ -1,6 +1,8 @@
 import json
 import os
+from copy import deepcopy
 from dataclasses import dataclass
+from unittest.mock import call, patch
 
 import pytest
 from aws_lambda_powertools.event_handler import Response
@@ -23,12 +25,12 @@ def lambda_context() -> LambdaContext:
 
 
 @pytest.fixture
-def create_assert_mandatory_fields_present(log_data):
-    def assert_mandatory_fields_present(current_keys) -> None:
+def assert_mandatory_fields_present(log_data):
+    def assert_mandatory_fields_are_present(current_keys) -> None:
         for key in log_data.keys():
             assert key in current_keys, f"Missing mandatory log field: {key}"
 
-    return assert_mandatory_fields_present
+    return assert_mandatory_fields_are_present
 
 
 service = "test_logger"
@@ -39,12 +41,39 @@ def dos_logger():
     return DosLogger.get(service=service)
 
 
+@pytest.fixture
+def mock_base_powertools_logger():
+    with patch(
+        "tests.unit.functions.logging.setup_dummy_lambda.dos_logger._logger"
+    ) as mock:
+        yield mock
+
+
 class TestDosLogger:
+    # Extract method tests
     def test_extract(self, dos_logger, event, log_data):
         # Arrange
         extract = dict(log_data)
         # Act
         result = dos_logger.extract(event)
+        # Assert
+        assert result == extract
+
+    def test_extract_with_missing_headers(self, dos_logger, event, log_data):
+        # Arrange
+        modified_event = deepcopy(event)
+        modified_event["headers"].pop("NHSD-Correlation-ID")
+        modified_event["headers"].pop("NHSD-Request-ID")
+        modified_event["headers"].pop("NHSD-Message-Id")
+
+        extract = dict(log_data)
+        extract["dos_nhsd_correlation_id"] = dos_logger.placeholder
+        extract["dos_nhsd_request_id"] = dos_logger.placeholder
+        extract["dos_message_id"] = dos_logger.placeholder
+
+        # Act
+        result = dos_logger.extract(modified_event)
+
         # Assert
         assert result == extract
 
@@ -58,104 +87,89 @@ class TestDosLogger:
 
         # Assert
         assert result == details
+        # Cleanup environment variables
+        os.environ.pop("ENVIRONMENT", None)
+        os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
 
-    def test_keys_clear_across_runs(self, caplog, ods_code, dos_logger, lambda_context):
+    def test_extract_one_time_with_missing_headers(self, dos_logger, event, details):
         # Arrange
-        def create_call_handler(message) -> Response:
-            def call_handler() -> Response:
-                dos_logger.info(message)
-                capture = dos_logger.get_keys()
-                return {
-                    "capture": capture,
-                    "response": Response(
-                        status_code=123,
-                        content_type="application/fhir+json",
-                        body=json.dumps(dict()),
-                    ),
-                }
+        placeholder = dos_logger.placeholder
 
-            return call_handler
+        modified_event = deepcopy(event)
+        modified_event["headers"].pop("NHSD-Api-Version")
+        modified_event["headers"].pop("NHSD-End-User-Role")
+        modified_event["headers"].pop("NHSD-Client-Id")
+        modified_event["headers"].pop("NHSD-Connecting-Party-App-Name")
+        modified_event["queryStringParameters"] = {}
+        modified_event["pathParameters"] = None
+        modified_event["requestContext"] = {}
 
-        # Arrange - First run
-        first_event = {
-            "headers": {
-                # Mandatory log field headers
-                "NHSD-Correlation-ID": "correlation_id",
-                "NHSD-Request-ID": "request_id",
-                "Message-Id": "message_id",
-                # One-time log field headers
-                "NHSD-Api-Version": "v0.0.0",
-                "NHSD-End-User-Role": "Clinician",
-                "NHSD-Client-Id": "client_id",
-                "NHSD-Connecting-Party-App-Name": "111-online",
-            },
-            "path": "/Organization",
-            "httpMethod": "GET",
-            "queryStringParameters": {
-                "identifier": "odsOrganisationCode|123",
-                "_revinclude": "Endpoint:organization",
-            },
-            "requestContext": {
-                "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
-            },
-            "body": None,
-        }
-        first_run_message = "test_1"
-        first_run_handler = create_call_handler(first_run_message)
+        placeholder_details = dict(details)
+        placeholder_details["opt_dos_api_version"] = placeholder
+        placeholder_details["opt_dos_end_user_role"] = placeholder
+        placeholder_details["opt_dos_client_id"] = placeholder
+        placeholder_details["opt_dos_application_name"] = placeholder
+        for key in placeholder_details["opt_dos_request_params"]:
+            placeholder_details["opt_dos_request_params"][key] = {}
+        placeholder_details["opt_dos_environment"] = placeholder
+        placeholder_details["opt_dos_lambda_version"] = placeholder
 
-        # Act - First run
-        response = lambda_handler(first_event, lambda_context, first_run_handler)
-        first_capture = json.loads(
-            json.dumps(response["capture"])
-        )  # deep copy of capture dict due to mutability later in test case
-        print("easy search", first_capture)
-
-        # Arrange - Second run
-        intermediate_capture = json.loads(json.dumps(dos_logger.get_keys()))
-        print(
-            "intermediate search",
-            intermediate_capture,
-            "<========================================================",
-        )
-        second_event = {
-            "headers": {
-                # Mandatory log field headers
-                "NHSD-Correlation-ID": "correlation_id_2",
-                "NHSD-Request-ID": "request_id",
-                "Message-Id": "message_id",
-                # One-time log field headers
-                "NHSD-Api-Version": "v0.0.0",
-                "NHSD-End-User-Role": "Clinician",
-                "NHSD-Client-Id": "client_id",
-                "NHSD-Connecting-Party-App-Name": "111-online",
-            },
-            "path": "/Organization",
-            "httpMethod": "GET",
-            "queryStringParameters": {
-                "identifier": "odsOrganisationCode|123",
-                "_revinclude": "Endpoint:organization",
-            },
-            "requestContext": {
-                "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
-            },
-            "body": None,
-        }
-        second_run_message = "test_2"
-        second_run_handler = create_call_handler(second_run_message)
-
-        # caplog_var = caplog.records
-        # print("test search", caplog_var, "type", type(caplog_var))
-
-        # Act - Second run
-        response = lambda_handler(second_event, lambda_context, second_run_handler)
-        second_capture = response["capture"]
+        # Act
+        result = dos_logger.extract_one_time(modified_event)
 
         # Assert
-        # print("test search", first_capture)
-        assert first_capture.get("dos_nhsd_correlation_id") == "correlation_id"
-        # assert intermediate_capture == dict({"foo": "bar"})  # from first run
-        assert second_capture.get("dos_nhsd_correlation_id") == "correlation_id_2"
-        assert first_capture != second_capture
+        assert result == placeholder_details
+
+    # Utility method tests
+    def test_get_header_with_valid_header(self, dos_logger, event):
+        # Arrange
+        dos_logger.headers = event.get("headers")
+
+        # Act
+        result = dos_logger._get_header("NHSD-Request-ID")
+
+        # Assert
+        assert result == "request_id"
+
+    def test_get_header_with_invalid_header(self, dos_logger, event):
+        # Arrange
+        dos_logger.headers = event.get("headers")
+
+        # Act
+        result = dos_logger._get_header("Bogus-ID")
+
+        # Assert
+        assert result is None
+
+    # Logging method tests
+    def test_debug_call(
+        self,
+        caplog,
+        event,
+        dos_logger,
+        lambda_context,
+        assert_mandatory_fields_present,
+    ):
+        caplog.set_level(10)  # DEBUG
+        dos_logger._logger.setLevel(10)  # DEBUG
+        # Arrange
+        debug_message = "test_debug_call: testing debug call"
+
+        def call_debug() -> Response:
+            dos_logger.debug(debug_message)
+            return Response(
+                status_code=123,
+                content_type="application/fhir+json",
+                body=json.dumps(dict()),
+            )
+
+        # Act
+        lambda_handler(event, lambda_context, call_debug)
+        capture = dos_logger.get_keys()
+
+        # Assert
+        assert_mandatory_fields_present(capture)
+        assert "test_debug_call: testing debug call" in caplog.messages
 
     def test_info_call(
         self,
@@ -163,7 +177,7 @@ class TestDosLogger:
         event,
         dos_logger,
         lambda_context,
-        create_assert_mandatory_fields_present,
+        assert_mandatory_fields_present,
     ):
         # Arrange
         info_message = "test_info_call: testing info call"
@@ -181,7 +195,7 @@ class TestDosLogger:
         capture = dos_logger.get_keys()
 
         # Assert
-        create_assert_mandatory_fields_present(capture)
+        assert_mandatory_fields_present(capture)
         assert "test_info_call: testing info call" in caplog.messages
 
     def test_warning_call(
@@ -190,7 +204,7 @@ class TestDosLogger:
         event,
         dos_logger,
         lambda_context,
-        create_assert_mandatory_fields_present,
+        assert_mandatory_fields_present,
     ):
         # Arrange
         warning_message = "test_warning_call: testing warning call"
@@ -208,7 +222,7 @@ class TestDosLogger:
         capture = dos_logger.get_keys()
 
         # Assert
-        create_assert_mandatory_fields_present(capture)
+        assert_mandatory_fields_present(capture)
         assert "test_warning_call: testing warning call" in caplog.messages
 
     def test_error_call(
@@ -217,7 +231,7 @@ class TestDosLogger:
         event,
         dos_logger,
         lambda_context,
-        create_assert_mandatory_fields_present,
+        assert_mandatory_fields_present,
     ):
         # Arrange
         error_message = "test_error_call: testing error call"
@@ -235,7 +249,7 @@ class TestDosLogger:
         capture = dos_logger.get_keys()
 
         # Assert
-        create_assert_mandatory_fields_present(capture)
+        assert_mandatory_fields_present(capture)
         assert "test_error_call: testing error call" in caplog.messages
 
     def test_exception_call(
@@ -244,7 +258,7 @@ class TestDosLogger:
         event,
         dos_logger,
         lambda_context,
-        create_assert_mandatory_fields_present,
+        assert_mandatory_fields_present,
     ):
         # Arrange
         exception_message = "test_exception_call: testing exception call"
@@ -262,5 +276,98 @@ class TestDosLogger:
         capture = dos_logger.get_keys()
 
         # Assert
-        create_assert_mandatory_fields_present(capture)
+        assert_mandatory_fields_present(capture)
         assert "test_exception_call: testing exception call" in caplog.messages
+
+    def test_powertools_log_calls(
+        self, event, dos_logger, lambda_context, mock_base_powertools_logger
+    ):
+        # Arrange
+        def call_powertools() -> Response:
+            dos_logger.debug("debug message")
+            dos_logger.info("info message")
+            dos_logger.warning("warning message")
+            dos_logger.error("error message")
+            dos_logger.exception("exception message")
+            dos_logger._log_with_level("bogus", "bogus level message")
+            return Response(
+                status_code=123,
+                content_type="application/fhir+json",
+                body=json.dumps(dict()),
+            )
+
+        # Act
+        lambda_handler(event, lambda_context, call_powertools, run_init=False)
+
+        # Assert
+        mock_base_powertools_logger.assert_has_calls(
+            [
+                call.debug("debug message", extra={}),
+                call.info("info message", extra={}),
+                call.warning("warning message", extra={}),
+                call.error("error message", extra={}),
+                call.exception("exception message", extra={}),
+                call.info("bogus level message", extra={}),  # default to info
+            ]
+        )
+
+    def test_powertools_append_call(
+        self, event, dos_logger, lambda_context, mock_base_powertools_logger
+    ):
+        # Arrange
+        extra_keys = {
+            "dos_extra_key_1": "extra_value_1",
+            "dos_extra_key_2": "extra_value_2",
+        }
+
+        def call_append() -> Response:
+            dos_logger.append_keys(extra_keys)
+            return Response(
+                status_code=123,
+                content_type="application/fhir+json",
+                body=json.dumps(dict()),
+            )
+
+        # Act
+        lambda_handler(event, lambda_context, call_append, run_init=False)
+
+        # Assert
+        mock_base_powertools_logger.append_keys.assert_called_once_with(**extra_keys)
+
+    def test_powertools_set_level_call(
+        self, event, dos_logger, lambda_context, mock_base_powertools_logger
+    ):
+        # Arrange
+        level = 40
+
+        def call_set_level() -> Response:
+            dos_logger.set_level(level)
+            return Response(
+                status_code=123,
+                content_type="application/fhir+json",
+                body=json.dumps(dict()),
+            )
+
+        # Act
+        lambda_handler(event, lambda_context, call_set_level, run_init=True)
+
+        # Assert
+        mock_base_powertools_logger.set_level.assert_called_once_with(level)
+
+    def test_powertools_clear_state_call(
+        self, event, dos_logger, lambda_context, mock_base_powertools_logger
+    ):
+        # Arrange
+        def call_clear_state() -> Response:
+            dos_logger.clear_state()
+            return Response(
+                status_code=123,
+                content_type="application/fhir+json",
+                body=json.dumps(dict()),
+            )
+
+        # Act
+        lambda_handler(event, lambda_context, call_clear_state, run_init=True)
+
+        # Assert
+        mock_base_powertools_logger.clear_state.assert_called_once()
