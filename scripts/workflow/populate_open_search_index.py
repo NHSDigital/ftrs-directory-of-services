@@ -187,10 +187,14 @@ def build_doc_path(index_name: str, doc_id: str) -> str:
     return '/' + urlquote(index_name) + '/_doc/' + urlquote(doc_id)
 
 def build_name_with_workspace(name: str, workspace: Optional[str]) -> str:
-    ws = (workspace or "")
-    if ws and not ws.startswith('-'):
-        ws = "-" + ws
-    return name + ws
+    ws_raw = (workspace or "").strip()
+    if not ws_raw:
+        return name
+    ws_normalized = ws_raw.lstrip('-')
+    suffix = "-" + ws_normalized if ws_normalized else ""
+    if suffix and name.endswith(suffix):
+        return name
+    return name + suffix
 
 def build_bulk_payload(index_name: str, records: List[Dict]) -> str:
     lines = [line for record in records for line in (json.dumps({"index": {"_index": index_name, "_id": build_doc_id(record)}}), json.dumps(record))]
