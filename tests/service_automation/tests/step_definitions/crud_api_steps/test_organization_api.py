@@ -51,7 +51,11 @@ def update_telecom(payload: dict, value: str):
     payload["telecom"][0]["value"] = value
 
 
-FIELD_UPDATERS = {"name": update_name, "type": update_type, "telecom": update_telecom}
+FIELD_UPDATERS = {
+    "name": update_name,
+    "type": update_type,
+    "telecom": update_telecom,
+}
 
 
 def update_payload_field(field: str, value: str) -> dict:
@@ -488,3 +492,100 @@ def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     )
 
     logger.info(f"Diagnostics correctly contains: {expected_message}")
+
+@when(
+    parsers.parse(
+        'I set the role extentions to contain "{primary_role_code}" and "{non_primary_role_codes}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_set_role_extensions(
+    api_request_context_mtls_crud: object,
+    primary_role_code: str,
+    non_primary_role_codes: str,
+) -> object:
+    """Set role extensions with primary and non-primary role codes and update organization."""
+    payload = _load_default_payload()
+
+    role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    payload["extension"] = []
+
+
+    primary_ext = {
+        "url": role_url,
+        "extension": [
+            {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                    "coding": [{
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": primary_role_code,
+                    }]
+                }
+            },
+            {
+                "url": "primaryRole",
+                "valueBoolean": True
+            }
+        ]
+    }
+    payload["extension"].append(primary_ext)
+
+    if non_primary_role_codes and non_primary_role_codes.lower() != "none":
+        role_codes = [code.strip() for code in non_primary_role_codes.split(",")]
+
+        for code in role_codes:
+            non_primary_ext = {
+                "url": role_url,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [{
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": code,
+                            }]
+                        }
+                    },
+                    {
+                        "url": "primaryRole",
+                        "valueBoolean": False
+                    }
+                ]
+            }
+            payload["extension"].append(non_primary_ext)
+
+    logger.info(f"Extension count: {len(payload.get('extension', []))}")
+
+
+    organisation_id = payload.get("id")
+    url = get_url("crud") + f"/Organization/{organisation_id}"
+
+    logger.info(f"Updating organization {organisation_id} with role extensions")
+    logger.debug(f"Payload: {json.dumps(payload, indent=2)}")
+
+    response = api_request_context_mtls_crud.put(
+        url,
+        data=json.dumps(payload),
+        headers={
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+        },
+    )
+
+    if response.status == 422:
+        try:
+            error_body = response.json()
+            logger.error(f"422 Error Response: {json.dumps(error_body, indent=2)}")
+            if "issue" in error_body:
+                for issue in error_body["issue"]:
+                    logger.error(f"Issue: {issue.get('diagnostics', 'No diagnostics')}")
+        except Exception as e:
+            logger.error(f"Could not parse error response: {e}")
+            logger.error(f"Raw response: {response.text()}")
+
+    logger.info(f"Response status: {response.status}")
+    logger.debug(f"Response body: {response.text()}")
+
+    return response
+

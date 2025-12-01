@@ -99,54 +99,35 @@ Feature: Organization API Endpoint
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the "type" field to "<primary_type>" with non-primary roles "<non_primary_roles>"
+    When I set the role extentions to contain "<primary_role_code>" and "<non_primary_role_codes>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with code "success"
-    And the database reflects "type" with value "<primary_type>"
-    And the database reflects "non_primary_roles" with values "<non_primary_roles>"
+    And the database reflects "primary_role_code" with value "<primary_role_code>"
+    And the database reflects "non_primary_role_codes" with values "<non_primary_role_codes>"
 
     Examples:
-      | primary_type                    | non_primary_roles                                      |
-      | Prescribing Cost Centre         | GP Practice                                            |
-      | Prescribing Cost Centre         | Out of Hours Cost Centre                               |
-      | Prescribing Cost Centre         | Walk-In Centre                                         |
-      | Prescribing Cost Centre         | GP Practice,Out of Hours Cost Centre                   |
-      | Prescribing Cost Centre         | GP Practice,Out of Hours Cost Centre,Walk-In Centre    |
-      | Pharmacy                        |                                                        |
+      | primary_role_code  | non_primary_role_codes|
+      | RO177         | RO76             |
+      | RO177         | RO80             |
+      | RO177         | RO87             |
+      | RO177         | RO76,RO80        |
+      | RO177         | RO76,RO80,RO87   |
+      | RO182         | None               |
 
-
-  Scenario Outline: Reject Organisation with invalid primary type
-    When I set the "type" field to "<invalid_type>" with non-primary roles ""
+  Scenario Outline: Reject Organisation with invalid role combinations
+    When I set the role extentions to contain "<primary_role_code>" and "<non_primary_role_codes>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates invalid primary type "<invalid_type>"
+    And the diagnostics message indicates the "expected_error_message"
 
     Examples:
-      | invalid_type                    |
-      | GP Practice                     |
-      | Out of Hours Cost Centre        |
-      | Walk-In Centre                  |
-      | Hospital Trust                  |
-      | Invalid Type                    |
-
-
-  Scenario Outline: Reject Organisation with invalid non-primary roles
-    When I set the "type" field to "Prescribing Cost Centre" with non-primary roles "<invalid_roles>"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates invalid non-primary role combination
-
-    Examples:
-      | invalid_roles                  |
-      | Pharmacy                       |
-      | Invalid Role Type              |
-      | Hospital Trust                 |
-
+      | primary_role_code  | non_primary_role_codes| expected_error_message |
+      | RO177          | RO80, RO80             |Duplicate non-primary roles are not allowed |
+      | RO177          |             | must have at least one non-primary role |
+      | None         | RO76             | Primary role code must be provided |
 
 
 

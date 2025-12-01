@@ -18,14 +18,14 @@ class OrganisationTypeValidator:
     @classmethod
     def validate_type_combination(
         cls,
-        primary_type_code: OrganisationTypeCode,
+        primary_role_code: OrganisationTypeCode,
         non_primary_role_codes: list[OrganisationTypeCode],
     ) -> tuple[bool, str | None]:
         """
         Validate that a primary type and non-primary roles combination is permitted.
 
         Args:
-            primary_type_code: The primary organization role code
+            primary_role_code: The primary organization role code
             non_primary_role_codes: List of non-primary organization role codes
 
         Returns:
@@ -35,22 +35,26 @@ class OrganisationTypeValidator:
         """
         error_message = None
 
+        if primary_role_code is None:
+            error_message = "Primary role code must be provided."
+            return (False, error_message)
+
+        if primary_role_code not in VALID_PRIMARY_TYPE_CODES:
+            error_message = f"Invalid primary role code: '{primary_role_code.value}'. "
+            return (False, error_message)
         # Handle Pharmacy - must be standalone
-        if (
-            primary_type_code == OrganisationTypeCode.PHARMACY_ROLE_CODE
+        elif (
+            primary_role_code == OrganisationTypeCode.PHARMACY_ROLE_CODE
             and non_primary_role_codes
         ):
-            error_message = (
-                f"{primary_type_code.value} cannot have non-primary roles. "
-                f"Found: {[role.value for role in non_primary_role_codes]}"
-            )
+            error_message = f"{primary_role_code.value} cannot have non-primary roles. "
 
         # Handle Prescribing Cost Centre
-        elif primary_type_code == OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE:
+        elif primary_role_code == OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE:
             # Must have at least one non-primary role
             if not non_primary_role_codes:
                 error_message = (
-                    f"{primary_type_code.value} must have at least one non-primary role"
+                    f"{primary_role_code.value} must have at least one non-primary role"
                 )
 
             # Check for duplicate roles
@@ -68,7 +72,6 @@ class OrganisationTypeValidator:
                 if invalid_roles:
                     error_message = (
                         f"Non-primary role '{invalid_roles[0].value}' is not permitted for "
-                        f"primary type '{primary_type_code.value}'."
+                        f"primary type '{primary_role_code.value}'."
                     )
-
         return (error_message is None, error_message)

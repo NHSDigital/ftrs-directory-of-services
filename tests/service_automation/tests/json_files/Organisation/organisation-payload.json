@@ -2,6 +2,29 @@
     "resourceType": "Organization",
     "id": "36fce427-0f31-4a4e-903f-74dcf9e63cfd",
     "meta": {"profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]},
+    "extension": [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO182",
+                                "display": "Pharmacy"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
     "identifier": [{"use": "official", "system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081046"}],
     "active": true,
     "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice", "display": "GP Practice"}], "text": "GP Practice"}],
