@@ -191,10 +191,12 @@ def build_name_with_workspace(name: str, workspace: Optional[str]) -> str:
     if not ws_raw:
         return name
     ws_normalized = ws_raw.lstrip('-')
-    suffix = "-" + ws_normalized if ws_normalized else ""
-    if suffix and name.endswith(suffix):
-        return name
-    return name + suffix
+    suffix = f"-{ws_normalized}" if ws_normalized else ""
+    if suffix:
+        if name.endswith(suffix):
+            return name
+        return name + suffix
+    return name + ws_raw
 
 def build_bulk_payload(index_name: str, records: List[Dict]) -> str:
     lines = [line for record in records for line in (json.dumps({"index": {"_index": index_name, "_id": build_doc_id(record)}}), json.dumps(record))]
