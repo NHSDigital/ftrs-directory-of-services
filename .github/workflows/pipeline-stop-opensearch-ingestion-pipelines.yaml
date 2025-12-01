@@ -35,13 +35,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: app
+          environment: ${{ needs.metadata.outputs.environment }}
       - name: "Stop active opensearch ingestion pipelines"
         uses: ./.github/actions/stop-opensearch-ingestion-pipelines
 

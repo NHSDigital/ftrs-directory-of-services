@@ -56,12 +56,12 @@ jobs:
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
 
       - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v4.0.0
+        uses: asdf-vm/actions/setup@v4.0.1
         with:
           asdf_branch: v0.15.0
 
@@ -74,7 +74,7 @@ jobs:
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4.0.0
+        uses: asdf-vm/actions/install@v4.0.1
 
       - name: "Cache Poetry dependencies"
         uses: actions/cache@v4
@@ -94,6 +94,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
 
       - name: "Install project"
         run: make install
@@ -119,3 +120,21 @@ jobs:
           name: allure-report
           path: tests/service_automation/allure-reports/index.html
           retention-days: ${{ inputs.allure_report_retention }}
+
+      - name: Configure AWS Credentials (mgmt artefacts)
+        if: always()
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: "mgmt"
+
+      - name: Upload allure report to S3
+        if: always()
+        env:
+          ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
+          WORKSPACE: ${{ inputs.workspace }}
+          COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
+        run: |
+          ./scripts/workflow/upload-allure-report.sh

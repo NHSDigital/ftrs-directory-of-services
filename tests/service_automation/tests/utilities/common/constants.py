@@ -1,3 +1,5 @@
+from typing import List
+
 ODS_TERMINOLOGY_INT_API_URL = (
     "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
 )
@@ -7,7 +9,7 @@ ENDPOINTS = {
     "organization": "/Organization",
 }
 
-"""Constants for BDD test data manipulation."""
+"""Constants and configuration for data migration tests."""
 
 # Fields that should always remain as strings even if they look like numbers
 STRING_FIELDS = frozenset({
@@ -36,3 +38,34 @@ BOOLEAN_FIELDS = frozenset({
     "active",
     "isactive",
 })
+
+# DynamoDB Configuration
+DYNAMODB_CLIENT = "client"
+DYNAMODB_RESOURCE = "resource"
+DYNAMODB_ENDPOINT = "endpoint_url"
+
+# Environment Variables
+ENV_PROJECT_NAME = "PROJECT_NAME"
+ENV_ENVIRONMENT = "ENVIRONMENT"
+ENV_WORKSPACE = "WORKSPACE"
+ENV_SOURCE_DB_HOST = "SOURCE_DB_HOST"
+ENV_SOURCE_DB_PORT = "SOURCE_DB_PORT"
+ENV_SOURCE_DB_NAME = "SOURCE_DB_NAME"
+ENV_SOURCE_DB_USER = "SOURCE_DB_USER"
+ENV_SOURCE_DB_PASSWORD = "SOURCE_DB_PASSWORD"
+ENV_ENVIRONMENT = "ENVIRONMENT"
+ENV_WORKSPACE = "WORKSPACE"
+
+# Database Configuration
+PATHWAYSDOS_SCHEMA = "pathwaysdos"
+SERVICES_TABLE = f"{PATHWAYSDOS_SCHEMA}.services"
+
+# Validation
+REQUIRED_SERVICE_FIELDS: List[str] = ["id", "typeid", "statusid"]
+
+# DynamoDB Resources
+EXPECTED_DYNAMODB_RESOURCES: List[str] = [
+    "organisation",
+    "location",
+    "healthcare-service",
+]

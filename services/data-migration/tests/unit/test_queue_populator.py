@@ -134,6 +134,8 @@ def test_get_dms_event_batches(
                 "Id": str(record_id),
                 "MessageBody": '{"type":"dms_event","record_id":'
                 + str(record_id)
+                + ',"service_id":'
+                + str(record_id)
                 + ',"table_name":"services","method":"insert"}',
             }
             for record_id in range(1, 11)
@@ -145,6 +147,8 @@ def test_get_dms_event_batches(
             {
                 "Id": str(record_id),
                 "MessageBody": '{"type":"dms_event","record_id":'
+                + str(record_id)
+                + ',"service_id":'
                 + str(record_id)
                 + ',"table_name":"services","method":"insert"}',
             }
@@ -173,11 +177,11 @@ def test_send_message_batch(mocker: MockerFixture, mock_logger: MockLogger) -> N
         "Entries": [
             {
                 "Id": "1",
-                "MessageBody": '{"type":"dms_event","record_id":1,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"type":"dms_event","record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "2",
-                "MessageBody": '{"type":"dms_event","record_id":2,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"type":"dms_event","record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
             },
         ],
     }
@@ -225,11 +229,11 @@ def test_send_message_batch_with_failed_messages(
         "Entries": [
             {
                 "Id": "1",
-                "MessageBody": '{"type":"dms_event","record_id":1,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"type":"dms_event","record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "2",
-                "MessageBody": '{"type":"dms_event","record_id":2,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"type":"dms_event","record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
             },
         ],
     }
@@ -280,15 +284,15 @@ def test_send_message_batch_mixed_results(
         "Entries": [
             {
                 "Id": "1",
-                "MessageBody": '{"type":"dms_event","record_id":1,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"type":"dms_event","record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "2",
-                "MessageBody": '{"type":"dms_event","record_id":2,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"type":"dms_event","record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "3",
-                "MessageBody": '{"type":"dms_event","record_id":3,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"type":"dms_event","record_id":3,"service_id":3,"table_name":"services","method":"insert"}',
             },
         ],
     }

@@ -40,7 +40,7 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_iam_role" "app_github_runner_iam_role" {
-  name = "${var.repo_name}-${var.app_github_runner_role_name}"
+  name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 }
 
 data "aws_iam_policy_document" "secrets_access_policy" {
@@ -86,6 +86,21 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
         "${table.arn}/index/*"
       ]
     ])
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query"
+    ]
+    resources = [
+      module.state_table.dynamodb_table_arn,
+      "${module.state_table.dynamodb_table_arn}/index/*"
+    ]
   }
 }
 
@@ -168,4 +183,8 @@ data "aws_iam_policy_document" "rds_connect_policy" {
 
 data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
+}
+
+data "aws_security_group" "dms_replication_security_group" {
+  name = "${var.project}-${var.environment}-account-wide-etl-replication-sg"
 }

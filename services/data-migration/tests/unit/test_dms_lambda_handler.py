@@ -88,10 +88,23 @@ def test_lambda_handler_successfully_creates_user_and_trigger(
     mock_dms_config = setup_all_mocks["dms_config"]
     mock_create_dms_user = setup_all_mocks["create_dms_user"]
     mock_create_rds_trigger = setup_all_mocks["create_rds_trigger"]
+    trigger_count = 2
 
     mock_create_dms_user.assert_called_once_with(mock_engine, "dms_user", "password123")
-    mock_create_rds_trigger.assert_called_once_with(
-        mock_engine, "dms_user", mock_dms_config.trigger_lambda_arn, "eu-west-2"
+    assert mock_create_rds_trigger.call_count == trigger_count
+    mock_create_rds_trigger.assert_any_call(
+        mock_engine,
+        "dms_user",
+        mock_dms_config.trigger_lambda_arn,
+        "eu-west-2",
+        "pathwaysdos.services",
+    )
+    mock_create_rds_trigger.assert_any_call(
+        mock_engine,
+        "dms_user",
+        mock_dms_config.trigger_lambda_arn,
+        "eu-west-2",
+        "pathwaysdos.serviceendpoints",
     )
     mock_engine.dispose.assert_called_once()
 
@@ -151,6 +164,7 @@ def test_lambda_handler_handles_exception_during_trigger_creation(
     lambda_handler(event, context)
 
     mock_create_dms_user.assert_called_once()
+    # Should only be called once since it fails on the first trigger creation
     mock_create_rds_trigger.assert_called_once()
     mock_engine.dispose.assert_called_once()
 
@@ -174,9 +188,9 @@ def test_lambda_handler_disposes_engine_even_if_exception_occurs(
 def test_lambda_handler_works_with_various_event_inputs(
     setup_all_mocks: dict,
 ) -> NoReturn:
-    """Test that the lambda handler works with various event inputs."""
     mock_create_dms_user = setup_all_mocks["create_dms_user"]
     mock_create_rds_trigger = setup_all_mocks["create_rds_trigger"]
+    trigger_time = 2
 
     complex_event = {
         "source": "aws.events",
@@ -189,4 +203,4 @@ def test_lambda_handler_works_with_various_event_inputs(
     lambda_handler(complex_event, context)
 
     mock_create_dms_user.assert_called_once()
-    mock_create_rds_trigger.assert_called_once()
+    assert mock_create_rds_trigger.call_count == trigger_time

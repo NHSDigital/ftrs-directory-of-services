@@ -49,7 +49,7 @@ on:
       workflow_timeout:
         description: "Timeout duration in minutes"
         required: false
-        default: 5
+        default: 30
         type: number
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
@@ -78,7 +78,7 @@ jobs:
       plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
 
@@ -88,6 +88,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
 
       - name: "Download Terraform Plan Artifact"
         uses: actions/download-artifact@v6

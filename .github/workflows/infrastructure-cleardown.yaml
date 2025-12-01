@@ -73,7 +73,7 @@ jobs:
     steps:
       - name: "Checkout code"
         if: ${{ matrix.stack == 'opensearch' }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
 
@@ -84,6 +84,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
 
       - name: "Check and delete OpenSearch network policies"
         id: cleanup_osis
@@ -105,7 +106,7 @@ jobs:
       - destroy-application-infrastructure
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
 
@@ -115,6 +116,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
 
       - name: "Delete terraform state file"
         id: delete_tf_state
@@ -134,7 +136,7 @@ jobs:
       - delete-tf-state
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
 
@@ -144,6 +146,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
 
       - name: "Check terraform state file"
         id: check_tf_state

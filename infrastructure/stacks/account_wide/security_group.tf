@@ -6,7 +6,7 @@ resource "aws_security_group" "vpce_rds_security_group" {
 
 resource "aws_vpc_security_group_ingress_rule" "vpce_allow_all_ingress" {
   security_group_id            = aws_security_group.vpce_rds_security_group.id
-  referenced_security_group_id = data.aws_security_group.dms_replication_security_group.id
+  referenced_security_group_id = aws_security_group.dms_replication_security_group.id
   description                  = "Allow ingress from DMS replication instance"
   ip_protocol                  = "tcp"
   from_port                    = var.rds_port
@@ -65,4 +65,25 @@ resource "aws_vpc_security_group_egress_rule" "performance_egress_ntp_udp" {
   ip_protocol       = "udp"
   from_port         = 123
   to_port           = 123
+}
+
+
+# HTTP egress for software installation, AWS APIs, and performance tests
+# Note: 0.0.0.0/0 here still egresses via a NAT Gateway from private subnets; no inbound exposure.
+# trivy:ignore:aws-vpc-no-public-egress-sgr : FDOS-511 Required HTTPS egress to the internet for installs and AWS APIs; SG egress is least-privilege and NACLs restrict UDP
+resource "aws_vpc_security_group_egress_rule" "performance_egress_http" {
+  security_group_id = aws_security_group.performance_ec2_sg.id
+  description       = "Allow HTTP egress (tcp/80) to the internet for installs"
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 80
+}
+
+resource "aws_security_group" "dms_replication_security_group" {
+  # checkov:skip=CKV2_AWS_5:Works locally in the checkov checks. Also is used in the file above
+  name        = "${local.resource_prefix}-etl-replication-sg"
+  description = "Security group for DMS ETL replication instance"
+  vpc_id      = module.vpc.vpc_id
+  depends_on  = [module.vpc]
 }

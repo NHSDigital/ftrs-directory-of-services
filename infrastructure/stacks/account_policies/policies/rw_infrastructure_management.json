@@ -127,5 +127,24 @@
             ],
             "Resource": "*"
         }
+        ,
+        {
+            "Sid": "IAMAccessAnalyzerFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "access-analyzer:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "access-analyzer.amazonaws.com"
+                }
+            }
+        }
     ]
 }
