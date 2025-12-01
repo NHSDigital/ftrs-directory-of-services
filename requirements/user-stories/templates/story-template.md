@@ -27,7 +27,6 @@ For each referenced NFR:
 - PERF-001: Include latency assertion in performance test harness.
 
 ## INVEST Checklist
-
 - Independent: Yes/No
 - Negotiable: Items needing refinement
 - Valuable: Stakeholder value described
