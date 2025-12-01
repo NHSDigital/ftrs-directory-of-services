@@ -23,6 +23,8 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
+    capture = dos_logger.get_keys()
+    print(capture)
     dos_logger.init(app.current_event)
     try:
         query_params = app.current_event.query_string_parameters or {}
