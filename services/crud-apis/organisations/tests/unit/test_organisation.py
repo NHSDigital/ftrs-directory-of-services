@@ -9,6 +9,7 @@ from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.enums import TelecomType
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
+from pydantic_core import PydanticSerializationUnexpectedValue
 
 from organisations.app.models.organisation import OrganizationQueryParams
 from organisations.app.router.organisation import _get_organization_query_params, router
@@ -345,7 +346,7 @@ def test_update_organisation_missing_required_field() -> None:
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
         ],
         "name": "ABC",
-        "telecom": [{"system": "phone", "value": "0123456789"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
 
@@ -373,14 +374,38 @@ def test_update_organisation_missing_required_field() -> None:
                         }
                     ],
                     "name": "ABC",
-                    "telecom": [{"system": "phone", "value": "0123456789"}],
+                    "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
                     "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
                 },
             }
         ]
     }
 
-
+def test_update_organisation_pydantic_serialization_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    mock_organisation_service.process_organisation_update.side_effect = PydanticSerializationUnexpectedValue(
+        "Expected `Telecom` - serialized value may not be as expected [field_name='telecom', input_value={'type': <TelecomType.PHO...2 34', 'isPublic': True}, input_type=dict]"
+    )
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [{"system": "phone", "value": "01234"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+    }
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert "Validation failed for resource." in exc_info.value.outcome["issue"][0]["diagnostics"]
 def test_update_organisation_unexpected_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:

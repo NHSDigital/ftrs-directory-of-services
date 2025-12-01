@@ -12,6 +12,7 @@ from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
+from pydantic_core import PydanticSerializationUnexpectedValue
 
 from organisations.app.models.organisation import OrganizationQueryParams
 from organisations.app.services.organisation_service import OrganisationService
@@ -165,7 +166,16 @@ def update_organisation(
             media_type=FHIR_MEDIA_TYPE,
         )
     except Exception as e:
-        if not isinstance(e, OperationOutcomeException):
+        if isinstance(e, PydanticSerializationUnexpectedValue):
+            crud_organisation_logger.log(
+                CrudApisLogBase.ORGANISATION_019,
+                organisation_id=organisation_id,
+                status_code=422,
+                error_message=str(e),
+            )
+            outcome = OperationOutcomeHandler.from_validation_error(e)
+            raise OperationOutcomeException(outcome) from e
+        elif not isinstance(e, OperationOutcomeException):
             crud_organisation_logger.log(
                 CrudApisLogBase.ORGANISATION_019,
                 organisation_id=organisation_id,

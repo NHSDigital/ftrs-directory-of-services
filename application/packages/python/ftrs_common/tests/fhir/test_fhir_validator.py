@@ -136,7 +136,7 @@ def test_validate_wrong_resource_type(
         (
             {"resourceType": "DummyResource", "foo": 123},
             DummyModel,
-        ),
+        )
     ],
 )
 def test_validate_fhir_validation_error(

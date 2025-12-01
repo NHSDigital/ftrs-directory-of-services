@@ -8,6 +8,7 @@ from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_data_layer.domain import Organisation, Telecom
 from ftrs_data_layer.domain.enums import TelecomType
+from pydantic import ValidationError
 
 
 def make_fhir_org(
@@ -551,6 +552,17 @@ def test__get_org_telecom_with_no_phone() -> None:
     )
     assert mapper._get_org_telecom(org) == []
 
+def test_get_org_telecom_with_invalid_phone() -> None:
+    OrganizationMapper()
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        telecom=[ContactPoint(system="phone", value="1337")],
+        )
+
+    with pytest.raises(ValidationError) as exc_info:
+        mapper._get_org_telecom(org)
+
+    assert "value is not a valid phone number" in str(exc_info.value)
 
 def test__get_role_code_from_extension_england_structure() -> None:
     """Test extracting role code from England structure."""
