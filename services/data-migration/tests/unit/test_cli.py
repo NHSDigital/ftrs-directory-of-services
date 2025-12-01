@@ -212,6 +212,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
         "non_primary_role_codes": [],
         "primary_role_code": None,
         "telecom": None,
+        "type": None,
     }
     assert loc_content == {
         "id": str(mock_output.location[0].id),
