@@ -1,23 +1,20 @@
 import os
+from functools import cache
 from typing import Any, Dict, Optional
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 
 
 class DosLogger:
-    """Service-local wrapper that adds DOS structured fields to powertools logs.
+    """Service-local wrapper that adds DOS structured fields to powertools logs while mirroring the underlying Logger implementation and behaviour.
 
     Usage:
-        f = DosLogger(service='dos-search')
-        f.info('message', event=my_event)
+        f = DosLogger.get(service='dos-search')
+        f.info('message', extra_fields=my_extra_fields)
 
     Behavior:
-    - Takes in a log_data field alongside any other extra fields
+    - Takes in a log message alongside any other extra fields
     - Calls powertools Logger with `extra=...` so powertools merges it into its JSON output
-    - Optionally prints a debug preview when debug=True
-    - Placeholder for missing values is configurable via ENV `DOS_LOG_PLACEHOLDER` (default 'TBC').
-        If set to 'NULL' the wrapper will emit Python None (JSON null) for missing values.
-    TODO: Add logic to persist last logged fields for future calls if log_data is not provided
     """
 
     def __init__(self, service: str = "dos", debug: bool = False) -> None:
@@ -25,29 +22,41 @@ class DosLogger:
         self.placeholder = "DOS_LOG_PLACEHOLDER"
         self.headers = dict()
 
+    # Initialise method handles processing of event details - this should be called at the start of Lambda execution
+    def init(self, event: Dict[str, Any]) -> None:
+        # Extract of common mandatory fields
+        log_data = self.extract(event)
+        # Extract of one-time fields for logging below
+        details = self.extract_one_time(event)
+
+        # Appends common fields to all subsequent logs
+        self._logger.append_keys(**log_data)
+        # Log one-time fields from event
+        self.info(
+            "Logging one-time fields from Request",
+            **details,
+            dos_message_category="REQUEST",
+        )
+
+    @classmethod
+    @cache
+    def get(cls, service: str = "dos") -> "DosLogger":
+        return cls(service=service)
+
     # --- helper utilities -------------------------------------------------
     def _get_header(self, *names: str) -> str:
-        hdr_lower = {k.lower(): v for k, v in self.headers.items()}
         # try original casing keys first, then lowercased mapping
         for n in names:
             val = self.headers.get(n)
-            if val not in (None, ""):
-                return val
-        # fallback to lowercased lookup of provided names
-        for n in names:
-            val = hdr_lower.get(n.lower())
             if val not in (None, ""):
                 return val
         return self.placeholder
 
     # --- extract methods -------------------------------------------------
     def extract(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-        """Extract APIM headers and common event fields into the structured 'extra' dict.
+        """Extract APIM headers mandatorily appended to all logs into the structured 'mandatory' dict.
 
         All mandatory fields are present; missing values use the configured placeholder.
-        Optional one-time fields are prefixed with 'Opt_'.
-
-        Extracts are handled here as passing the entire event object to the handler presents issues for the pytest library mocks.
         """
 
         self.headers = event.get("headers") or {}
@@ -58,11 +67,15 @@ class DosLogger:
 
         # Mandatory/default DOS fields
         # NHSD correlation id
-        corr = self._get_header("NHSD-Correlation-ID")
+        corr = self._get_header(
+            "NHSD-Correlation-ID",
+        )
         mandatory["dos_nhsd_correlation_id"] = corr
 
         # NHSD request id
-        reqid = self._get_header("NHSD-Request-ID")
+        reqid = self._get_header(
+            "NHSD-Request-ID",
+        )
         mandatory["dos_nhsd_request_id"] = reqid
 
         # APIM message id
@@ -77,6 +90,10 @@ class DosLogger:
         return mandatory
 
     def extract_one_time(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Extract APIM headers and common event fields into the structured 'extra' dict.
+
+        Optional one-time fields are prefixed with 'Opt_' and are always present, using a placeholder value if not found on the event.
+        """
         self.headers = event.get("headers") or {}
         placeholder = self.placeholder
 
@@ -118,7 +135,7 @@ class DosLogger:
         details["opt_dos_environment"] = os.environ.get("ENVIRONMENT") or placeholder
 
         details["opt_dos_api_version"] = (
-            self._get_header("x-api-version", "api-version") or placeholder
+            self._get_header("NHSD-Api-Version") or placeholder
         )
 
         details["opt_dos_lambda_version"] = (
@@ -132,6 +149,9 @@ class DosLogger:
     # --- powertools context -----------------------------------------------
     def append_keys(self, extra: Dict[str, Any]) -> None:
         self._logger.append_keys(**extra)
+
+    def get_keys(self) -> Dict[str, Any]:
+        return self._logger.get_current_keys()
 
     # Manual method to clear ALL appended keys. Not used as setting `clear_state=True` in the Lambda handler should suffice for current logging behaviour
     def clear_state(self) -> None:
@@ -182,8 +202,3 @@ class DosLogger:
 
     def exception(self, message: str, **detail: object) -> Dict[str, Any]:
         self._log_with_level("exception", message, **detail)
-
-
-# Instantiate logger here to allow import to sub-directories
-service = "dos-search"
-dos_logger = DosLogger(service=service)
