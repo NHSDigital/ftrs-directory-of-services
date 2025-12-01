@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from functions import error_util
 from functions.ftrs_service.ftrs_service import FtrsService
-from functions.logging.dos_logger import DosLogger
+from functions.logger.dos_logger import DosLogger
 from functions.organization_query_params import OrganizationQueryParams
 
 service = "dos-search"
