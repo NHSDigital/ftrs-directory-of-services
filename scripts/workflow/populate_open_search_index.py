@@ -8,6 +8,7 @@ import os
 import sys
 from typing import Dict, List, Optional, Tuple, Any
 from decimal import Decimal
+from pathlib import Path
 
 from urllib.parse import quote as urlquote
 
@@ -21,14 +22,53 @@ from botocore.credentials import ReadOnlyCredentials
 from boto3.dynamodb.types import TypeDeserializer
 import requests
 
+try:
+    from scripts.workflow.create_open_search_index import MAPPINGS_PAYLOAD
+except ModuleNotFoundError:
+    REPO_ROOT = Path(__file__).resolve().parents[2]
+    if str(REPO_ROOT) not in sys.path:
+        sys.path.append(str(REPO_ROOT))
+    from scripts.workflow.create_open_search_index import MAPPINGS_PAYLOAD
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 log = logging.getLogger("populate_open_search_index")
 
 _DESERIALIZER = TypeDeserializer()
-
 EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 DEFAULT_DDB_TABLE = "ftrs-dos-local-database-healthcare-service"
 INDEXING_TIMEOUT_SECONDS = 60
+INDEX_PROPERTIES = MAPPINGS_PAYLOAD.get('mappings', {}).get('properties', {})
+PRIMARY_KEY_NAME = 'primary_key' if 'primary_key' in INDEX_PROPERTIES else None
+NESTED_COLLECTION_FIELD = next((name for name, spec in INDEX_PROPERTIES.items() if spec.get('type') == 'nested'), 'sgsds')
+TOP_LEVEL_OUTPUT_FIELDS = [name for name in INDEX_PROPERTIES.keys() if name not in {NESTED_COLLECTION_FIELD, PRIMARY_KEY_NAME}]
+FIELD_KEY_ALIASES: Dict[str, Tuple[str, ...]] = {
+    'id': ('id', 'Id'),
+    'field': ('field', 'Field'),
+}
+DOC_ID_FIELDS: List[str] = ['id', 'field']
+PRIMARY_KEY_TEMPLATE = "{id}|{field}"
+
+DEFAULT_SCHEMA_CONFIG: Dict[str, Any] = {
+    "primary_key_template": PRIMARY_KEY_TEMPLATE,
+    "doc_id_fields": DOC_ID_FIELDS,
+    "top_level": {
+        "id": list(FIELD_KEY_ALIASES['id']),
+        "field": list(FIELD_KEY_ALIASES['field'])
+    },
+    "nested": {
+        NESTED_COLLECTION_FIELD: {
+            "source_attributes": [
+                "symptomGroupSymptomDiscriminators",
+                "symptomGroupSymptomDiscriminator",
+                "symptomGroup_symptomDiscriminators"
+            ],
+            "items": {
+                "sg": "sg",
+                "sd": "sd"
+            }
+        }
+    }
+}
 
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Populate an OpenSearch Serverless index from a DynamoDB table")
@@ -39,6 +79,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--dynamodb-table", dest="ddb_table", default=os.environ.get('DYNAMODB_TABLE', DEFAULT_DDB_TABLE), help="DynamoDB table name")
     parser.add_argument("--batch-size", dest="batch_size", type=int, default=1, help="Number of records to send in one bulk request (1 = per-document PUT)")
     parser.add_argument("--log-level", dest="log_level", default=os.environ.get('LOG_LEVEL', 'INFO'))
+    parser.add_argument("--schema-config", dest="schema_config", help="Path to JSON schema config that maps DynamoDB attributes to OpenSearch fields")
     return parser.parse_args(argv)
 
 def validate_inputs(open_search_domain: Optional[str], index: Optional[str]) -> None:
@@ -76,12 +117,11 @@ class SignedRequestsSession:
         self.service = service
         self.session = requests.Session()
         self.credentials = get_aws_signing_credentials()
-        self._signer = lambda aws_req: sign_aws_request(aws_req, self.credentials, self.service, self.aws_region)
 
     def request(self, method: str, url: str, body: Optional[str]) -> requests.Response:
         payload_hash = compute_payload_hash(body)
         aws_req = build_aws_request(method, url, body, payload_hash)
-        self._signer(aws_req)
+        sign_aws_request(aws_req, self.credentials, self.service, self.aws_region)
         prepared = requests.Request(method=aws_req.method, url=aws_req.url, data=aws_req.body, headers=dict(aws_req.headers)).prepare()
         return self.session.send(prepared, timeout=INDEXING_TIMEOUT_SECONDS)
 
@@ -110,27 +150,29 @@ def parse_dynamo_string(attr: Dict) -> Optional[str]:
         return str(attr['N'])
     return None
 
-def convert_dynamodb_format(items: List[Dict]) -> List[Dict[str, Any]]:
-
-    def _deserialize(attr: Any) -> Any:
-        if isinstance(attr, dict) and len(attr) == 1 and next(iter(attr.keys())) in {"S", "N", "M", "L", "BOOL", "NULL", "SS", "NS", "BS"}:
-            try:
-                return _DESERIALIZER.deserialize(attr)
-            except Exception:
-                return attr
+def _deserialize_attr(attr: Any) -> Any:
+    if not isinstance(attr, dict):
         return attr
+    if len(attr) == 1 and next(iter(attr.keys())) in {"S", "N", "M", "L", "BOOL", "NULL", "SS", "NS", "BS"}:
+        try:
+            return _DESERIALIZER.deserialize(attr)
+        except (TypeError, ValueError) as exc:
+            log.debug('TypeDeserializer failed for %s: %s', attr, exc)
+            return attr
+    return attr
 
-    def _normalize(value: Any) -> Any:
-        if isinstance(value, Decimal):
-            return int(value) if value % 1 == 0 else float(value)
-        if isinstance(value, dict):
-            return {k: _normalize(v) for k, v in value.items()}
-        if isinstance(value, list):
-            return [_normalize(v) for v in value]
-        return value
+def _normalize(value: Any) -> Any:
+    if isinstance(value, Decimal):
+        return int(value) if value % 1 == 0 else float(value)
+    if isinstance(value, dict):
+        return {k: _normalize(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_normalize(v) for v in value]
+    return value
 
+def convert_dynamodb_format(items: List[Dict]) -> List[Dict[str, Any]]:
     def _parse(entry: Any) -> Optional[Dict[str, Any]]:
-        deserialized = _normalize(_deserialize(entry))
+        deserialized = _normalize(_deserialize_attr(entry))
         if not isinstance(deserialized, dict):
             return None
         sg = deserialized.get('sg')
@@ -143,50 +185,67 @@ def convert_dynamodb_format(items: List[Dict]) -> List[Dict[str, Any]]:
         return []
     return [parsed for parsed in (_parse(item) for item in items) if parsed]
 
-def transform_records(raw_items: List[Dict]) -> List[Dict]:
-    def _extract_field(record: Dict, *keys: str) -> Optional[str]:
+def transform_records(raw_items: List[Dict], schema_config: Optional[Dict[str, Any]] = None) -> List[Dict]:
+    config = schema_config or DEFAULT_SCHEMA_CONFIG
+
+    def _extract_field(record: Dict, aliases: Tuple[str, ...]) -> Optional[str]:
         def _try_key(k: str) -> Optional[str]:
             v = record.get(k)
             if v is None:
                 return None
             return parse_dynamo_string(v) or (str(v) if not isinstance(v, dict) else None)
 
-        return next((res for res in (_try_key(k) for k in keys) if res is not None), None)
+        return next((res for res in (_try_key(k) for k in aliases) if res is not None), None)
 
-    def _extract_sgsds(record: Dict) -> List[Dict]:
-        candidates = (
-            record.get('symptomGroupSymptomDiscriminators'),
-            record.get('symptomGroupSymptomDiscriminator'),
-            record.get('symptomGroup_symptomDiscriminators')
-        )
-
-        def _try_convert(cand):
-            if isinstance(cand, dict) and 'L' in cand and isinstance(cand['L'], list):
-                return convert_dynamodb_format(cand['L'])
-            if isinstance(cand, list):
-                return convert_dynamodb_format(cand)
-            return None
-
-        return next((res for res in (_try_convert(c) for c in candidates) if res is not None), [])
+    def _extract_nested(record: Dict) -> List[Dict]:
+        nested_cfg = _get_nested_config(config)
+        for attr_name in nested_cfg.get('source_attributes', []):
+            value = record.get(attr_name)
+            items = convert_nested_items(value, nested_cfg)
+            if items:
+                return items
+        return []
 
     if not isinstance(raw_items, list):
         return []
 
     def _parse_item(record: Dict) -> Optional[Dict]:
         try:
-            rid = _extract_field(record, 'id', 'Id')
-            field = _extract_field(record, 'field', 'Field')
-            if not rid or not field:
-                return None
-            sgsds = _extract_sgsds(record)
-            return {'id': rid, 'field': field, 'sgsds': sgsds}
+            doc: Dict[str, Any] = {}
+            for field_name in TOP_LEVEL_OUTPUT_FIELDS:
+                aliases = _get_aliases(field_name, config)
+                value = _extract_field(record, aliases)
+                if value is None:
+                    return None
+                doc[field_name] = value
+            doc[NESTED_COLLECTION_FIELD] = _extract_nested(record)
+            if not doc[NESTED_COLLECTION_FIELD]:
+                log.debug('Record %s missing %s data', doc.get('id'), NESTED_COLLECTION_FIELD)
+            if PRIMARY_KEY_NAME:
+                try:
+                    template = config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
+                    doc_id = template.format(**{k: doc.get(k, '') for k in config.get('doc_id_fields', DOC_ID_FIELDS)})
+                    doc[PRIMARY_KEY_NAME] = doc_id
+                except KeyError:
+                    log.debug('Failed to build primary key for record=%s', doc)
+            return doc
         except (TypeError, ValueError, KeyError):
             return None
 
     return [r for r in map(_parse_item, raw_items) if r]
 
-def build_doc_id(record: Dict) -> str:
-    return f"{record['id']}|{record['field']}"
+def build_doc_id(record: Dict, schema_config: Optional[Dict[str, Any]] = None) -> str:
+    config = schema_config or DEFAULT_SCHEMA_CONFIG
+    fields = config.get('doc_id_fields', DOC_ID_FIELDS)
+    try:
+        parts = [str(record[f]) for f in fields]
+    except KeyError as exc:
+        missing = exc.args[0]
+        raise KeyError(f"Missing field {missing} required for document ID") from exc
+    separator = config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
+    if '{' in separator:
+        return separator.format(**record)
+    return "|".join(parts)
 
 def build_doc_path(index_name: str, doc_id: str) -> str:
     return '/' + urlquote(index_name) + '/_doc/' + urlquote(doc_id)
@@ -288,6 +347,72 @@ def index_records(session: SignedRequestsSession, endpoint: str, index_name: str
         total += sum(r[1] for r in results)
     return success_count, total
 
+def load_schema_config(path: Optional[str]) -> Dict[str, Any]:
+    if not path:
+        return DEFAULT_SCHEMA_CONFIG.copy()
+    try:
+        with open(path, 'r', encoding='utf-8') as fh:
+            loaded = json.load(fh)
+    except OSError as exc:
+        log.error('Failed to read schema config %s: %s; falling back to defaults', path, exc)
+        return DEFAULT_SCHEMA_CONFIG.copy()
+    return loaded
+
+def _get_aliases(field_name: str, schema_config: Dict[str, Any]) -> Tuple[str, ...]:
+    configured = schema_config.get('top_level', {}).get(field_name, [])
+    generated = (
+        field_name,
+        field_name.capitalize(),
+        field_name.lower(),
+        field_name.upper(),
+        field_name.replace('-', ''),
+        field_name.replace('_', ''),
+        field_name.title()
+    )
+    aliases: List[str] = []
+    for candidate in list(configured) + list(FIELD_KEY_ALIASES.get(field_name, ())) + list(generated):
+        if candidate and candidate not in aliases:
+            aliases.append(candidate)
+    return tuple(aliases)
+
+def _get_nested_config(schema_config: Dict[str, Any]) -> Dict[str, Any]:
+    nested = schema_config.get('nested', {})
+    return nested.get(NESTED_COLLECTION_FIELD, {})
+
+def _resolve_attr_path(data: Any, path: str) -> Any:
+    if not path:
+        return data
+    current = data
+    for part in path.split('.'):
+        if isinstance(current, dict):
+            current = current.get(part)
+        else:
+            return None
+    return current
+
+def convert_nested_items(attr: Any, nested_config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if not attr:
+        return []
+    if isinstance(attr, dict) and 'L' in attr:
+        items = attr['L']
+    elif isinstance(attr, list):
+        items = attr
+    else:
+        return []
+    results: List[Dict[str, Any]] = []
+    for entry in items:
+        deserialized = _normalize(_deserialize_attr(entry))
+        if not isinstance(deserialized, dict):
+            continue
+        mapped: Dict[str, Any] = {}
+        for target_field, source_path in nested_config.get('items', {}).items():
+            value = _resolve_attr_path(deserialized, source_path)
+            if value is not None:
+                mapped[target_field] = value
+        if mapped:
+            results.append(mapped)
+    return results
+
 def main(argv: Optional[List[str]] = None) -> int:
     args = parse_args(argv)
     log.setLevel(getattr(logging, args.log_level.upper(), logging.INFO))
@@ -317,13 +442,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     log.info('  DynamoDB table: %s', final_table)
     log.info('  Workspace: %s', workspace)
 
+    schema_config = load_schema_config(args.schema_config)
     session = SignedRequestsSession(aws_region)
 
     try:
         log.info('Scanning DynamoDB table...')
         raw_items = scan_dynamodb_table(prepare_dynamodb_client(aws_region), final_table, ['id', 'field', 'symptomGroupSymptomDiscriminators', 'symptomGroupSymptomDiscriminator', 'symptomGroup_symptomDiscriminators'])
         log.info('Transforming records...')
-        transformed = transform_records(raw_items)
+        transformed = transform_records(raw_items, schema_config)
+        if transformed:
+            log.debug('Sample transformed record: %s', json.dumps(transformed[0], default=str))
         log.info('Indexing records...')
         success, total = index_records(session, endpoint, final_index, transformed, args.batch_size)
         log.info('Indexing complete: %d successful, %d total records', success, total)

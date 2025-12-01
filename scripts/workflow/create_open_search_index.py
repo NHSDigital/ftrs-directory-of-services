@@ -30,11 +30,42 @@ MAPPINGS_PAYLOAD = {
     "mappings": {
         "properties": {
             "primary_key": {"type": "keyword"},
-            "sgsd": {
+            "id": {"type": "keyword"},
+            "field": {"type": "keyword"},
+            "sgsds": {
                 "type": "nested",
                 "properties": {
-                    "sg": {"type": "integer"},
-                    "sd": {"type": "integer"}
+                    "sg": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "keyword"},
+                            "codeID": {"type": "integer"},
+                            "codeType": {"type": "keyword"},
+                            "codeValue": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                }
+                            },
+                            "source": {"type": "keyword"}
+                        }
+                    },
+                    "sd": {
+                        "type": "object",
+                        "properties": {
+                            "id": {"type": "keyword"},
+                            "codeID": {"type": "integer"},
+                            "codeType": {"type": "keyword"},
+                            "codeValue": {
+                                "type": "text",
+                                "fields": {
+                                    "keyword": {"type": "keyword", "ignore_above": 256}
+                                }
+                            },
+                            "source": {"type": "keyword"},
+                            "synonyms": {"type": "keyword"}
+                        }
+                    }
                 }
             }
         }
