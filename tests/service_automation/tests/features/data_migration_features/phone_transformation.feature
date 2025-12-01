@@ -6,7 +6,7 @@ Feature: Phone Transformation
         And the DoS database has test data
         And DynamoDB tables are ready
 
-    Scenario: Valid phone numbers are transformed correctly (positive case)
+    Scenario: Valid phone numbers are transformed correctly
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                |
             | id                                  | 2001001                                              |
@@ -69,7 +69,7 @@ Feature: Phone Transformation
             """
 
 
-    Scenario: Invalid public phone number triggers migration note (negative case)
+    Scenario: Invalid public phone number triggers migration note
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                |
             | id                                  | 2002001                                              |
@@ -133,7 +133,7 @@ Feature: Phone Transformation
             }
             """
 
-    Scenario: Invalid private phone number triggers migration note (negative case)
+    Scenario: Invalid private phone number triggers migration note
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                  |
             | id                                  | 2003001                                                |
@@ -198,7 +198,7 @@ Feature: Phone Transformation
             """
 
 
-    Scenario: Empty phone numbers are handled correctly (negative case)
+    Scenario: Empty phone numbers are handled correctly
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                              |
             | id                                  | 2004001                                            |
@@ -264,7 +264,7 @@ Feature: Phone Transformation
             """
 
 
-    Scenario: Phone number with special characters is transformed (negative case)
+    Scenario: Phone number with special characters is transformed
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                     |
             | id                                  | 2005001                                                   |
@@ -329,7 +329,7 @@ Feature: Phone Transformation
             """
 
 
-    Scenario: UK mobile number (07xxx) with only public phone (positive case)
+    Scenario: UK mobile number (07xxx) with only public phone
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                     |
             | id                                  | 2006001                                                   |
@@ -394,7 +394,7 @@ Feature: Phone Transformation
             """
 
 
-    Scenario: International format (+44) with only private phone (positive case)
+    Scenario: International format (+44) with only private phone
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                     |
             | id                                  | 2007001                                                   |
@@ -459,7 +459,7 @@ Feature: Phone Transformation
             """
 
 
-    Scenario: Both phones too short are rejected (negative case)
+    Scenario: Both phones too short are rejected
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                     |
             | id                                  | 2008001                                                   |
@@ -525,7 +525,7 @@ Feature: Phone Transformation
             """
 
 
-    Scenario: Private phone too long is rejected, public phone valid (mixed case)
+    Scenario: Private phone too long is rejected, public phone valid
         Given a "Service" exists in DoS with attributes
             | key                                 | value                                                     |
             | id                                  | 2009001                                                   |
