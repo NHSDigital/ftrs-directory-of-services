@@ -3,7 +3,7 @@ from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
-from functions.logging.dos_logger import DosLogger
+from functions.logger.dos_logger import DosLogger
 
 dos_logger = DosLogger.get(service="dos-search")
 

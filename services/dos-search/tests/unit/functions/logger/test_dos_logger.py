@@ -7,8 +7,8 @@ from unittest.mock import call, patch
 import pytest
 from aws_lambda_powertools.event_handler import Response
 
-from functions.logging.dos_logger import DosLogger
-from tests.unit.functions.logging.setup_dummy_lambda import lambda_handler
+from functions.logger.dos_logger import DosLogger
+from tests.unit.functions.logger.setup_dummy_lambda import lambda_handler
 
 
 @dataclass
@@ -44,7 +44,7 @@ def dos_logger():
 @pytest.fixture
 def mock_base_powertools_logger():
     with patch(
-        "tests.unit.functions.logging.setup_dummy_lambda.dos_logger._logger"
+        "tests.unit.functions.logger.setup_dummy_lambda.dos_logger._logger"
     ) as mock:
         yield mock
 
