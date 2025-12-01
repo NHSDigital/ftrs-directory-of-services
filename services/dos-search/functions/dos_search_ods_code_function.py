@@ -9,9 +9,11 @@ from pydantic import ValidationError
 
 from functions import error_util
 from functions.ftrs_service.ftrs_service import FtrsService
-from functions.logging.dos_logger import dos_logger
+from functions.logging.dos_logger import DosLogger
 from functions.organization_query_params import OrganizationQueryParams
 
+service = "dos-search"
+dos_logger = DosLogger.get(service=service)
 logger = Logger()
 tracer = Tracer()
 app = APIGatewayRestResolver()
@@ -21,17 +23,7 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    log_data = dos_logger.extract(app.current_event)
-    details = dos_logger.extract_one_time(
-        app.current_event
-    )  # Extract of one-time fields for logging below
-
-    dos_logger.append_keys(log_data)  # Appends common fields to all subsequent logs
-    dos_logger.info(
-        "Logging one-time fields from Request",
-        **details,
-        dos_message_category="REQUEST",
-    )
+    dos_logger.init(app.current_event)
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)

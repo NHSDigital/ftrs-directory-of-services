@@ -88,14 +88,7 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_logger.assert_has_calls(
             [
-                call.extract(ANY),
-                call.extract_one_time(ANY),
-                call.append_keys(log_data),
-                call.info(
-                    "Logging one-time fields from Request",
-                    **details,
-                    dos_message_category="REQUEST",
-                ),
+                call.init(ANY),
                 call.info(
                     "Received request for odsCode",
                     ods_code=ods_code,
@@ -139,11 +132,7 @@ class TestLambdaHandler:
 
         mock_logger.assert_has_calls(
             [
-                call.info(
-                    "Logging one-time fields from Request",
-                    **details,
-                    dos_message_category="REQUEST",
-                ),
+                call.init(ANY),
                 call.warning(
                     "Validation error occurred",
                     validation_errors=validation_error.errors(),
@@ -185,14 +174,7 @@ class TestLambdaHandler:
         # print("test easily search", details)
         mock_logger.assert_has_calls(
             [
-                call.extract(ANY),
-                call.extract_one_time(ANY),
-                call.append_keys(log_data),
-                call.info(
-                    "Logging one-time fields from Request",
-                    **details,
-                    dos_message_category="REQUEST",
-                ),
+                call.init(ANY),
                 call.info(
                     "Received request for odsCode",
                     ods_code=ods_code,
