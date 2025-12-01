@@ -12,9 +12,7 @@ dos_logger = DosLogger.get(service="dos-search")
 
 class FtrsService:
     def __init__(self) -> None:
-        self.repository = get_service_repository(
-            Organisation, "organisation", dos_logger
-        )
+        self.repository = get_service_repository(Organisation, "organisation")
         self.mapper = BundleMapper()
 
     def endpoints_by_ods(self, ods_code: str) -> Bundle:
