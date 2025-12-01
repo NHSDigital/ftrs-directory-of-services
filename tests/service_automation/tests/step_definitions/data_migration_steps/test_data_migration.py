@@ -42,6 +42,7 @@ scenarios(
     "../features/data_migration_features/position_gcs_transformation.feature",
     "../features/data_migration_features/triage_code_migration.feature",
     "../features/data_migration_features/phone_transformation.feature",
+    "../features/data_migration_features/email_transformation.feature",
 )
 
 
