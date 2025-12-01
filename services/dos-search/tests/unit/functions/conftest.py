@@ -20,7 +20,17 @@ def ods_code():
 @pytest.fixture
 def event(ods_code):
     return {
-        "headers": {"NHSD-Correlation-ID": "correlation_id"},
+        "headers": {
+            # Mandatory log field headers
+            "NHSD-Correlation-ID": "correlation_id",
+            "NHSD-Request-ID": "request_id",
+            "Message-Id": "message_id",
+            # One-time log field headers
+            "NHSD-Api-Version": "v0.0.0",
+            "NHSD-End-User-Role": "Clinician",
+            "NHSD-Client-Id": "client_id",
+            "NHSD-Connecting-Party-App-Name": "111-online",
+        },
         "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
@@ -39,8 +49,8 @@ def log_data():
     return {
         "logger": "dos_logger",
         "dos_nhsd_correlation_id": "correlation_id",
-        "dos_nhsd_request_id": "DOS_LOG_PLACEHOLDER",
-        "dos_message_id": "DOS_LOG_PLACEHOLDER",
+        "dos_nhsd_request_id": "request_id",
+        "dos_message_id": "message_id",
         "dos_message_category": "LOGGING",
     }
 
@@ -48,14 +58,14 @@ def log_data():
 @pytest.fixture
 def details(event):
     return {
-        "opt_dos_environment": "DOS_LOG_PLACEHOLDER",
-        "opt_dos_api_version": "DOS_LOG_PLACEHOLDER",
-        "opt_dos_lambda_version": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_environment": "Development",
+        "opt_dos_api_version": "v0.0.0",
+        "opt_dos_lambda_version": "0.0.1",
         "opt_dos_response_time": "DOS_LOG_PLACEHOLDER",
         "opt_dos_response_size": "DOS_LOG_PLACEHOLDER",
-        "opt_dos_end_user_role": "DOS_LOG_PLACEHOLDER",
-        "opt_dos_client_id": "DOS_LOG_PLACEHOLDER",
-        "opt_dos_application_name": "DOS_LOG_PLACEHOLDER",
+        "opt_dos_end_user_role": "Clinician",
+        "opt_dos_client_id": "client_id",
+        "opt_dos_application_name": "111-online",
         "opt_dos_request_params": {
             "query_params": event.get("queryStringParameters") or {},
             "path_params": event.get("pathParams") or {},
