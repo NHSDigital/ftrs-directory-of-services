@@ -226,7 +226,9 @@ def test_check_telecom_types_are_valid(resource: dict) -> None:
         ),
     ],
 )
-def test_check_telecom_types_are_invalid(resource: dict, expected_type_error: str) -> None:
+def test_check_telecom_types_are_invalid(
+    resource: dict, expected_type_error: str
+) -> None:
     """
     Test that a web telecom type or invalid_type raise an OperationOutcomeException.
     Web is not a valid FHIR ContactPoint.system value, should be url at this stage.
