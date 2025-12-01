@@ -8,26 +8,37 @@ from step_definitions.common_steps.api_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
 
-INVALID_SEARCH_DATA_CODING = {
-    "coding": [
-        {
-            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
-            "version": "1.0.0",
-            "code": "INVALID_SEARCH_DATA",
-            "display": "Invalid search data",
-        }
-    ]
-}
-
-INVALID_AUTH_CODING = {
-    "coding": [
-        {
-            "system": "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode",
-            "version": "1",
-            "code": "UNAUTHORIZED",
-            "display": "Unauthorized"
-        }
-    ]
+CODING_MAP = {
+    "INVALID_SEARCH_DATA": {
+        "coding": [
+            {
+                "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+                "version": "1.0.0",
+                "code": "INVALID_SEARCH_DATA",
+                "display": "Invalid search data",
+            }
+        ]
+    },
+    "INVALID_AUTH_CODING": {
+        "coding": [
+            {
+                "system": "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode",
+                "version": "1",
+                "code": "UNAUTHORIZED",
+                "display": "Unauthorized"
+            }
+        ]
+    },
+    "UNSUPPORTED_SERVICE": {
+        "coding": [
+            {
+                "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+                "version": "1.0.0",
+                "code": "UNSUPPORTED_SERVICE",
+                "display": "Unsupported service"
+            }
+        ]
+    }
 }
 
 # Load feature file
@@ -96,19 +107,11 @@ def send_to_apim(api_request_context, new_apim_request_context, resource_name, p
     logger.info(f"response: {response.text}")
     return response
 
-@then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding'))
-def api_check_operation_outcome_any_issue_details_invalid_search_data(fresponse):
-    api_check_operation_outcome_any_issue_diagnostics(
+@then(parsers.re(r'the OperationOutcome contains an issue with details for (?P<coding_type>\w+) coding'))
+def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type):
+    api_check_operation_outcome_any_issue_by_key_value(
         fresponse,
         key="details",
-        value=INVALID_SEARCH_DATA_CODING
-    )
-
-@then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding'))
-def api_check_operation_outcome_any_issue_details_invalid_auth_coding(fresponse):
-    api_check_operation_outcome_any_issue_diagnostics(
-        fresponse,
-        key="details",
-        value=INVALID_AUTH_CODING
+        value=CODING_MAP[coding_type],
     )
 
