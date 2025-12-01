@@ -233,7 +233,7 @@ class OrganisationService:
 
     def _validate_non_primary_roles_type(self, roles: list) -> None:
         """Validate that all non-primary roles are OrganisationTypeCode enums."""
-        for idx, role in enumerate(roles or []):
+        for role in roles or []:
             if not isinstance(role, OrganisationTypeCode):
                 _raise_validation_error(
                     "non_primary_role_codes must be an OrganisationTypeCode enum"

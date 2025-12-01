@@ -8,8 +8,8 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
-from ftrs_data_layer.domain.enums import OrganisationType
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain.enums import OrganisationType
 from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 from validators.organisation_type_validator import OrganisationTypeValidator
