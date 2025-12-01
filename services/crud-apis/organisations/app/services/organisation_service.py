@@ -270,7 +270,7 @@ class OrganisationService:
     ) -> None:
         """Log and raise exception for invalid role combinations."""
         self.logger.log(
-            CrudApisLogBase.ORGANISATION_022,
+            CrudApisLogBase.ORGANISATION_023,
             organisation_id=organisation_id,
             error_message=error_message,
         )

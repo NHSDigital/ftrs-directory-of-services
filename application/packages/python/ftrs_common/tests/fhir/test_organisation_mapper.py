@@ -390,7 +390,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
             }
         },
     }
-    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
     assert isinstance(result, FhirOrganisation)
     assert result.id == "C88037"
     assert result.name == "Test Org"
@@ -398,7 +398,6 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     assert result.identifier[0].value == "C88037"
     assert result.telecom[0].system == "phone"
     assert result.telecom[0].value == "01234"
-    assert result.type[0].coding[0].display == "GP Practice"
 
 
 def test_to_fhir_bundle_single_org() -> None:
@@ -733,7 +732,6 @@ def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
             },
         ],
     }
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
     assert result is not None
     assert result.identifier[0].value == "ODS123"
-    assert result.type[0].text == "GP Practice"

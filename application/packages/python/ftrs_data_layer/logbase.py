@@ -539,6 +539,10 @@ class CrudApisLogBase(LogBase):
     )
     ORGANISATION_022 = LogReference(
         level=ERROR,
+        message="Error: Active field is required and cannot be null.",
+    )
+    ORGANISATION_023 = LogReference(
+        level=ERROR,
         message="Invalid organization role combination for organisation {organisation_id}: {error_message}.",
     )
     HEALTHCARESERVICE_001 = LogReference(

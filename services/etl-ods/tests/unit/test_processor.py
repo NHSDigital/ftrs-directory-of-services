@@ -182,18 +182,6 @@ def test_processor_processing_organisations_successful(
                     ]
                 },
                 "active": True,
-                "type": [
-                    {
-                        "coding": [
-                            {
-                                "system": "TO-DO",
-                                "code": "GP Practice",
-                                "display": "GP Practice",
-                            }
-                        ],
-                        "text": "GP Practice",
-                    }
-                ],
                 "name": "Test Organisation ABC123 ODS",
                 "identifier": [
                     {
@@ -203,6 +191,25 @@ def test_processor_processing_organisations_successful(
                     }
                 ],
                 "telecom": [],
+                "extension": [
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                        "extension": [
+                            {
+                                "url": "roleCode",
+                                "valueCodeableConcept": {
+                                    "coding": [
+                                        {
+                                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                            "code": "RO177",
+                                            "display": "PRESCRIBING COST CENTRE",
+                                        }
+                                    ]
+                                },
+                            },
+                        ],
+                    },
+                ],
             },
             "correlation_id": TEST_CORRELATION_ID,
             "request_id": TEST_REQUEST_ID,
@@ -524,47 +531,3 @@ def test_process_organisation_uuid_not_found(
     assert result is None
     assert "Organisation UUID not found in internal system" in caplog.text
     assert "ABC123" in caplog.text
-
-
-def test_process_organisation_not_permitted_skips_transformation(
-    mocker: MockerFixture,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    org_not_permitted = {
-        "resourceType": "Organization",
-        "id": "NOTGP",
-        "name": "Not a GP Practice",
-        "active": True,
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "NOTGP",
-            }
-        ],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "code": "RO99",
-                                    "display": "Other Service",
-                                }
-                            ]
-                        },
-                    }
-                ],
-            }
-        ],
-    }
-
-    mock_fetch_uuid = mocker.patch("pipeline.processor.fetch_organisation_uuid")
-
-    result = processor.__globals__["_process_organisation"](org_not_permitted)
-
-    assert result is None
-    mock_fetch_uuid.assert_not_called()
-    assert "not a permitted type" in caplog.text.lower()

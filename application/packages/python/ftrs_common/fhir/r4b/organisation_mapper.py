@@ -81,7 +81,8 @@ class OrganizationMapper(FhirMapper):
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
         """Convert FHIR Organization resource to Organisation domain object."""
-        role_codes = self.get_all_role_codes(fhir_resource)
+        fhir_dict = fhir_resource.model_dump()
+        role_codes = self.get_all_role_codes(fhir_dict)
         primary_code, non_primary_codes = self.get_primary_and_non_primary_role_codes(
             role_codes
         )
