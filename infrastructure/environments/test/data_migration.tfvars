@@ -1,0 +1,1 @@
+reference_data_lambda_logs_retention = 14
