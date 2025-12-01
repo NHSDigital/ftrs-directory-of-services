@@ -7,13 +7,17 @@ business_value: Frees engineering capacity for strategic work
 nfr_refs: [NFR-SOFT-OUTSOURCE-BOTTOM-UP-01]
 nfr_tags: [software-management, sourcing]
 acceptance_criteria:
-  - GIVEN capability inventory WHEN updated THEN classification (core/commodity) maintained
-  - GIVEN commodity capability WHEN candidate THEN outsourcing decision includes cost-benefit and exit plan
-  - GIVEN review cycle WHEN quarterly THEN at least one candidate assessed for potential outsourcing
-out_of_scope:
-  - Vendor contract negotiation details
-notes: |
+
+- GIVEN capability inventory WHEN updated THEN classification (core/commodity) maintained
+- GIVEN commodity capability WHEN candidate THEN outsourcing decision includes cost-benefit and exit plan
+- GIVEN review cycle WHEN quarterly THEN at least one candidate assessed for potential outsourcing
+  out_of_scope:
+- Vendor contract negotiation details
+  notes: |
   Evidence: inventory, decision record, quarterly review summary.
+
 ---
+
 # Summary
+
 Structured evaluation and outsourcing of commodity capabilities.
