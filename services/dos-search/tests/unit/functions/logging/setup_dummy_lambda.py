@@ -16,6 +16,9 @@ def lambda_handler(
     event: dict,
     context: LambdaContext,
     function: Any,
+    *,
+    run_init: bool = True,
 ) -> any:
-    dos_logger.init(event)
+    if run_init:
+        dos_logger.init(event)
     return function()

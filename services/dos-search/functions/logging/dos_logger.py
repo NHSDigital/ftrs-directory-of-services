@@ -1,6 +1,6 @@
 import os
 from functools import cache
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 
@@ -45,12 +45,12 @@ class DosLogger:
 
     # --- helper utilities -------------------------------------------------
     def _get_header(self, *names: str) -> str:
-        # try original casing keys first, then lowercased mapping
+        # Loops over a list of header keys, returning the first non-empty value found
         for n in names:
             val = self.headers.get(n)
             if val not in (None, ""):
                 return val
-        return self.placeholder
+        return None
 
     # --- extract methods -------------------------------------------------
     def extract(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -67,20 +67,29 @@ class DosLogger:
 
         # Mandatory/default DOS fields
         # NHSD correlation id
-        corr = self._get_header(
-            "NHSD-Correlation-ID",
+        corr = (
+            self._get_header(
+                "NHSD-Correlation-ID",
+            )
+            or self.placeholder
         )
         mandatory["dos_nhsd_correlation_id"] = corr
 
         # NHSD request id
-        reqid = self._get_header(
-            "NHSD-Request-ID",
+        reqid = (
+            self._get_header(
+                "NHSD-Request-ID",
+            )
+            or self.placeholder
         )
         mandatory["dos_nhsd_request_id"] = reqid
 
         # APIM message id
-        msgid = self._get_header(
-            "Message-Id",
+        msgid = (
+            self._get_header(
+                "NHSD-Message-Id",
+            )
+            or self.placeholder
         )
         mandatory["dos_message_id"] = msgid
 
@@ -100,49 +109,34 @@ class DosLogger:
         # One-time fields added to "details" to separate
         details = {}
 
-        end_user_role = self._get_header("NHSD-End-User-Role")
+        api_version = self._get_header("NHSD-Api-Version") or placeholder
+        details["opt_dos_api_version"] = api_version
+
+        end_user_role = self._get_header("NHSD-End-User-Role") or placeholder
         details["opt_dos_end_user_role"] = end_user_role
 
-        client_id = self._get_header("NHSD-Client-Id")
+        client_id = self._get_header("NHSD-Client-Id") or placeholder
         details["opt_dos_client_id"] = client_id
 
-        app_name = self._get_header("NHSD-Connecting-Party-App-Name")
+        app_name = self._get_header("NHSD-Connecting-Party-App-Name") or placeholder
         details["opt_dos_application_name"] = app_name
 
-        # Request params (queryStringParameters + pathParameters)
+        # Request params
         req_params: Dict[str, Any] = {}
-        query_params = (
-            event.get("queryStringParameters")
-            # or event.get("query_string_parameters")
-            or {}
-        )
-        path_params = (
-            event.get("pathParameters")
-            # or event.get("path_parameters")
-            or {}
-        )
-        request_context = (
-            event.get("requestContext") or event.get("request_context") or {}
-        )
+        query_params = event.get("queryStringParameters") or {}
+        path_params = event.get("pathParameters") or {}
+        request_context = event.get("requestContext") or {}
         req_params["query_params"] = query_params
         req_params["path_params"] = path_params
         req_params["request_context"] = request_context
 
         details["opt_dos_request_params"] = req_params or {}
 
-        details["opt_dos_response_time"] = placeholder
-
         details["opt_dos_environment"] = os.environ.get("ENVIRONMENT") or placeholder
-
-        details["opt_dos_api_version"] = (
-            self._get_header("NHSD-Api-Version") or placeholder
-        )
 
         details["opt_dos_lambda_version"] = (
             os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
         )
-
-        details["opt_dos_response_size"] = placeholder
 
         return details
 
@@ -152,6 +146,9 @@ class DosLogger:
 
     def get_keys(self) -> Dict[str, Any]:
         return self._logger.get_current_keys()
+
+    def set_level(self, level: Literal[10, 20, 30, 40, 50]) -> None:
+        self._logger.set_level(level)
 
     # Manual method to clear ALL appended keys. Not used as setting `clear_state=True` in the Lambda handler should suffice for current logging behaviour
     def clear_state(self) -> None:
@@ -180,7 +177,9 @@ class DosLogger:
             log_data["detail"] = detail_map
 
         # call powertools
-        if level == "info":
+        if level == "debug":
+            self._logger.debug(message, extra=log_data)
+        elif level == "info":
             self._logger.info(message, extra=log_data)
         elif level == "warning":
             self._logger.warning(message, extra=log_data)
@@ -190,6 +189,9 @@ class DosLogger:
             self._logger.exception(message, extra=log_data)
         else:
             self._logger.info(message, extra=log_data)
+
+    def debug(self, message: str, **detail: object) -> Dict[str, Any]:
+        self._log_with_level("debug", message, **detail)
 
     def info(self, message: str, **detail: object) -> Dict[str, Any]:
         self._log_with_level("info", message, **detail)

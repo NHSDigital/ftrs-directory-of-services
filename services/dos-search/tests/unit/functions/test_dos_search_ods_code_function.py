@@ -103,6 +103,7 @@ class TestLambdaHandler:
                 call.info(
                     "Creating response",
                     status_code=200,
+                    body=ANY,
                     dos_message_category="RESPONSE",
                 ),
             ]
@@ -140,6 +141,7 @@ class TestLambdaHandler:
                 call.info(
                     "Creating response",
                     status_code=400,
+                    body=ANY,
                     dos_message_category="RESPONSE",
                 ),
             ]
@@ -171,7 +173,6 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_error_util.create_resource_internal_server_error.assert_called_once()
-        # print("test easily search", details)
         mock_logger.assert_has_calls(
             [
                 call.init(ANY),
@@ -184,6 +185,7 @@ class TestLambdaHandler:
                 call.info(
                     "Creating response",
                     status_code=500,
+                    body=ANY,
                     dos_message_category="RESPONSE",
                 ),
             ]

@@ -24,7 +24,7 @@ def event(ods_code):
             # Mandatory log field headers
             "NHSD-Correlation-ID": "correlation_id",
             "NHSD-Request-ID": "request_id",
-            "Message-Id": "message_id",
+            "NHSD-Message-Id": "message_id",
             # One-time log field headers
             "NHSD-Api-Version": "v0.0.0",
             "NHSD-End-User-Role": "Clinician",
@@ -37,6 +37,7 @@ def event(ods_code):
             "identifier": f"odsOrganisationCode|{ods_code}",
             "_revinclude": "Endpoint:organization",
         },
+        "pathParameters": None,
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
         },
@@ -61,14 +62,12 @@ def details(event):
         "opt_dos_environment": "Development",
         "opt_dos_api_version": "v0.0.0",
         "opt_dos_lambda_version": "0.0.1",
-        "opt_dos_response_time": "DOS_LOG_PLACEHOLDER",
-        "opt_dos_response_size": "DOS_LOG_PLACEHOLDER",
         "opt_dos_end_user_role": "Clinician",
         "opt_dos_client_id": "client_id",
         "opt_dos_application_name": "111-online",
         "opt_dos_request_params": {
             "query_params": event.get("queryStringParameters") or {},
-            "path_params": event.get("pathParams") or {},
+            "path_params": event.get("pathParameters") or {},
             "request_context": event.get("requestContext") or {},
         },
     }
