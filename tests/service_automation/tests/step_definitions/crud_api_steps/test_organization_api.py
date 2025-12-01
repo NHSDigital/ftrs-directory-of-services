@@ -835,38 +835,18 @@ def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
     payload = set_field_to_null(_load_default_payload(), "active")
     return update_organisation(payload, api_request_context_mtls_crud)
 
-
-@then(
-    parsers.parse('the diagnostics message indicates the "{expected_message}"')
-)
+@then(parsers.parse('the diagnostics message indicates the "{expected_message}"'))
 def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     """Verify that the diagnostics message contains the expected text."""
-    diagnostic = get_diagnostics_list(fresponse)[0]
-    assert diagnostic.get("type") == "extra_forbidden"
-    loc = diagnostic.get("loc", [])
-    assert field in loc or field == loc
-    assert diagnostic.get("msg") == "Extra inputs are not permitted"
-    assert diagnostic.get("input") == value
-
-@then(parsers.parse('the diagnostics message contains "{expected_error}"'))
-def step_diagnostics_contains(fresponse: object, expected_error: str) -> None:
-    """Check that the diagnostics message contains the expected error text."""
     body = fresponse.json()
-    assert body.get("resourceType") == "OperationOutcome", (
-        f"Unexpected response: {body}"
-    )
+    assert (
+        body.get("resourceType") == "OperationOutcome"
+    ), f"Unexpected response: {body}"
 
     diagnostics = body["issue"][0].get("diagnostics", "")
 
-    assert expected_message in diagnostics, (
-        f"Expected diagnostics to contain '{expected_message}', got: {diagnostics}"
-    )
+    assert (
+        expected_message in diagnostics
+    ), f"Expected diagnostics to contain '{expected_message}', got: {diagnostics}"
 
     logger.info(f"Diagnostics correctly contains: {expected_message}")
-    issues = body.get("issue", [])
-    assert len(issues) > 0, "No issues found in OperationOutcome"
-
-    diagnostics = issues[0].get("diagnostics", "")
-    assert expected_error in diagnostics, (
-        f"Expected error '{expected_error}' not found in diagnostics: '{diagnostics}'"
-    )
