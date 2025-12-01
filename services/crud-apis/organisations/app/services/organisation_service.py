@@ -53,7 +53,6 @@ class OrganisationService:
                 organisation_id=organisation_id,
             )
             return False
-
         self._apply_updates(stored_organisation, outdated_fields)
         self.org_repository.update(organisation_id, stored_organisation)
         self.logger.log(
@@ -172,11 +171,12 @@ class OrganisationService:
         Compare two Organisation objects and return a dict of fields that are outdated.
         Containing which fields can be updated for now will dedpend on business validation definitions.
         """
+        serialized_organisation = organisation.model_dump()
         allowed_fields = {"name", "type", "active", "identifier_ODS_ODSCode", "telecom"}
         outdated_fields = {
             field: value
             for field, value in payload.model_dump().items()
-            if (field in allowed_fields and getattr(organisation, field, None) != value)
+            if (field in allowed_fields and serialized_organisation[field] != value)
         }
         if outdated_fields:
             self.logger.log(

@@ -47,8 +47,26 @@ def update_type(payload: dict, value: str):
     payload["type"][0]["text"] = value
 
 
-def update_telecom(payload: dict, value: str):
-    payload["telecom"][0]["value"] = value
+def update_telecom(payload: dict, system: str, value: str):
+    if "telecom" not in payload:
+        payload["telecom"] = []
+
+    # Check if telecom entry for this system exists, update it or append new one
+    existing_telecom = next(
+        (item for item in payload["telecom"] if item["system"] == system), None
+    )
+    if existing_telecom:
+        # Update the value of the existing telecom entry
+        existing_telecom["value"] = value
+    else:
+        # Append a new telecom entry
+        payload["telecom"].append(
+            {
+                "system": system,
+                "value": value,
+                "use": "work",
+            }
+        )
 
 
 FIELD_UPDATERS = {"name": update_name, "type": update_type, "telecom": update_telecom}
@@ -57,13 +75,15 @@ FIELD_UPDATERS = {"name": update_name, "type": update_type, "telecom": update_te
 def update_payload_field(field: str, value: str) -> dict:
     """Update a single field in the default organisation payload."""
     payload = _load_default_payload()
-    updater = FIELD_UPDATERS.get(field)
-    if not updater:
-        raise ValueError(f"Unknown field: {field}")
-    updater(payload, value)
-    logger.info(
-        f"Updated field '{field}' with '{value}':\n{json.dumps(payload, indent=2)}"
-    )
+    # Handle  cases for phone, email, and url
+    if field in ["phone", "email", "url"]:
+        system = field  # 'phone', 'email', or 'url'
+        update_telecom(payload, system, value)
+    else:
+        updater = FIELD_UPDATERS.get(field)
+        if updater is None:
+            raise ValueError(f"Unknown field: {field}")
+        updater(payload, value)
     return payload
 
 
@@ -82,6 +102,13 @@ def add_extra_field(payload: dict, field: str, value: str) -> dict:
 def set_nonexistent_id(payload: dict) -> dict:
     payload["id"] = str(uuid4())
     logger.info(f"Set non-existent ID:\n{json.dumps(payload, indent=2)}")
+    return payload
+
+
+def modify_telecom_type(payload, actual_type, update_type):
+    for entry in payload["telecom"]:
+        if entry["system"] == actual_type:
+            entry["system"] = update_type
     return payload
 
 
@@ -235,6 +262,88 @@ def step_given_valid_payload_with_identifier(identifier_data):
     return payload
 
 
+def validate_db_entry_against_payload(item, payload):
+    """
+    Validates that the database entry matches the inserted payload.
+
+    Args:
+        item: The database item to compare against.
+        payload: The payload that was inserted into the database.
+
+    Raises:
+        AssertionError: If any mismatch is found between the database item and the payload.
+    """
+
+    # Define the expected fields to validate
+    expected_fields = [
+        ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
+        ("name", payload["name"]),
+        ("type", payload["type"][0]["text"]),
+        ("active", payload["active"]),
+        ("modifiedBy", "ODS_ETL_PIPELINE"),
+    ]
+    # General validation of fields against the database entry
+    for attr, expected_value in expected_fields:
+        actual_value = getattr(item, attr, None)
+        logger.info(
+            f"Validating {attr}: expected={expected_value}, actual={actual_value}"
+        )
+        assert actual_value == expected_value, (
+            f"Field '{attr}' mismatch: expected={expected_value}, actual={actual_value}"
+        )
+    # Validate telecom field if present in the payload
+    validate_telecom_field(item, payload)
+
+
+def validate_telecom_field(item, payload):
+    """
+    Validates the telecom field of the database entry against the payload.
+
+    Args:
+        item: The database item to compare against.
+        payload: The payload containing the telecom details.
+
+    Raises:
+        AssertionError: If any mismatch is found in the telecom field.
+    """
+    payload_telecom = payload.get("telecom", [])
+    db_telecom = getattr(item, "telecom", [])
+
+    # Ensure telecom entries count in payload matches the database
+    if payload_telecom:
+        assert len(payload_telecom) == len(db_telecom), "Telecom entries count mismatch"
+
+        for idx, payload_entry in enumerate(payload_telecom):
+            db_entry = db_telecom[idx]
+            logger.info(f"Validating telecom entry at index {idx}: {db_entry}")
+
+            # handling for 'url' system in payload, mapping it to 'web' in db
+            if payload_entry["system"] == "url":
+                expected_system = "web"
+                db_system = (
+                    db_entry.type.value
+                    if hasattr(db_entry.type, "value")
+                    else db_entry.type
+                )
+                assert db_system == expected_system, (
+                    f"Telecom system mismatch at index {idx}: expected='web' (for URL), got={db_system}"
+                )
+            else:
+                assert payload_entry["system"].lower() == db_entry.type.value.lower(), (
+                    f"Telecom system mismatch at index {idx}: expected={payload_entry['system']}, got={db_entry.type.value}"
+                )
+            assert payload_entry["value"] == db_entry.value, (
+                f"Telecom value mismatch at index {idx}: expected={payload_entry['value']}, got={db_entry.value}"
+            )
+            # Validate that the isPublic field is set to True
+            assert db_entry.isPublic is True, (
+                f"Telecom isPublic mismatch at index {idx}: expected=True, got={db_entry.isPublic}"
+            )
+            logger.info(
+                f"Telecom entry {idx}: system={payload_entry['system']} - value={payload_entry['value']} - isPublic={db_entry.isPublic}"
+            )
+
+
 @when(
     "I update the organization details for ODS Code via APIM",
     target_fixture="fresponse",
@@ -253,17 +362,6 @@ def step_update_apim(new_apim_request_context, nhsd_apim_proxy_url):
 )
 def step_update_crud(api_request_context_mtls_crud):
     payload = _load_default_payload()
-    return update_organisation(payload, api_request_context_mtls_crud)
-
-
-@when(
-    "I update the organization details for ODS Code with mandatory fields only",
-    target_fixture="fresponse",
-)
-def step_update_mandatory(api_request_context_mtls_crud):
-    payload = _load_default_payload()
-    payload.pop("telecom", None)
-    logger.info(f"Payload with mandatory fields only:\n{json.dumps(payload, indent=2)}")
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -339,8 +437,25 @@ def step_send_invalid_content_type(api_request_context_mtls_crud):
     return response
 
 
-@when(
-    parsers.parse("I update the organization details with the identifier"),
+@when(parsers.parse(
+        'I attempt to update the "{actual_type}" in telecom with "{update_type}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_update_telecom_type(
+    actual_type: str, update_type: str, api_request_context_mtls_crud
+):
+    payload = _load_default_payload()
+    org_id = payload.get("id")
+    url = f"{get_url('crud').rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
+    modified_payload = modify_telecom_type(payload, actual_type, update_type)
+    response = api_request_context_mtls_crud.put(url, data=json.dumps(modified_payload))
+    logger.info(
+        f"Updating organisation at {url}\nPayload:\n{json.dumps(payload, indent=2)}"
+    )
+
+
+@when(parsers.parse("I update the organization details with the identifier"),
     target_fixture="fresponse",
 )
 def step_update_with_identifier(payload, api_request_context_mtls_crud):
@@ -360,20 +475,58 @@ def step_check_operation_outcome_code(fresponse, code):
     )
 
 
+@when(
+    parsers.parse(
+        'I update the organization with an invalid telecom field "{invalid_scenario}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_update_invalid_telecom_field(
+    invalid_scenario: str, api_request_context_mtls_crud
+):
+    payload = _load_default_payload()
+    if invalid_scenario == "missing_type":
+        payload["telecom"] = [{"value": "12345", "use": "work"}]
+    elif invalid_scenario == "missing_value":
+        payload["telecom"] = [{"system": "phone", "use": "work"}]
+    elif invalid_scenario == "empty_type":
+        payload["telecom"] = [{"system": "", "value": "12345", "use": "work"}]
+    elif invalid_scenario == "empty_value":
+        payload["telecom"] = [{"system": "phone", "value": "", "use": "work"}]
+    elif invalid_scenario == "additional_field":
+        payload["telecom"] = [
+            {
+                "system": "phone",
+                "value": "12345",
+                "use": "work",
+                "extra_field": "unexpected",
+            }
+        ]  # Extra field
+    elif invalid_scenario == "mixed_valid_invalid":
+        payload["telecom"] = [
+            {"system": "phone", "value": "12345", "use": "work"},
+            {
+                "system": "email",
+                "value": "invalidemail",
+                "use": "work",
+            },  # Invalid email
+            {"system": "url", "value": "http://validurl.com", "use": "work"},
+        ]
+    else:
+        raise ValueError(f"Unknown invalid_scenario: {invalid_scenario}")
+    logger.info(
+        f"Payload with invalid telecom field for scenario {invalid_scenario}:\n{json.dumps(payload, indent=2)}"
+    )
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
 @then("the data in the database matches the inserted payload")
 def step_validate_db(model_repo, fresponse):
     payload = fresponse.request_body
+    logger.info("Validating database entry against payload", payload)
     item = get_db_item(model_repo, payload)
-    assert_item_matches_payload(item, payload)
-
-
-@then("the data in the database matches the inserted payload with telecom null")
-def step_validate_db_mandatory(model_repo, fresponse):
-    payload = fresponse.request_body
-    item = get_db_item(model_repo, payload)
-    assert_item_matches_payload(item, payload, mandatory_only=True)
-    actual_telecom = getattr(item, "telecom", None)
-    assert actual_telecom is None, f"telecom expected to be null, got: {actual_telecom}"
+    logger.info("Validating database entry from DB", item)
+    validate_db_entry_against_payload(item, payload)
 
 
 @then(
@@ -397,9 +550,10 @@ def step_save_modified(fresponse, model_repo):
 @then("the database matches the inserted payload with the same modifiedBy timestamp")
 def step_validate_modified_unchanged(saved_data, model_repo):
     payload = saved_data["payload"]
-    item = get_db_item(model_repo, payload)
-    assert_item_matches_payload(item, payload)
     saved_dt = saved_data["modifiedDateTime"]
+    item = get_db_item(model_repo, payload)
+    validate_db_entry_against_payload(item, payload)
+    # Compare the saved and current modifiedDateTime
     current_dt = getattr(item, "modifiedDateTime")
     logger.info(f"Comparing modifiedDateTime: saved={saved_dt}, current={current_dt}")
     assert current_dt == saved_dt, (
@@ -411,12 +565,21 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
-    actual = (
-        getattr(item, field, None)
-        if field != "telecom"
-        else getattr(item, "telecom", None)
-    )
-    assert actual == value, f"{field} mismatch: expected {value}, got {actual}"
+    if field == "phone":
+        db_telecom = getattr(item, "telecom", [])
+        db_entry = db_telecom[0]
+        actual_telecom_value = db_entry.value
+        assert actual_telecom_value == value, (
+            f"Telecom mismatch: expected={value}, got={actual_telecom_value}"
+        )
+        logger.info(
+            f"Telecom entry: {db_entry.type} - {actual_telecom_value} - isPublic={db_entry.isPublic}"
+        )
+    else:
+        actual_value = getattr(item, field, None)
+        assert actual_value == value, (
+            f"{field} mismatch: expected={value}, got={actual_value}"
+        )
 
 
 @then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
