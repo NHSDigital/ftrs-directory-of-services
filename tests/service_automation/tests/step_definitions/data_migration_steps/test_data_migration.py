@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 import re
 
@@ -10,6 +9,7 @@ from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.dynamoDB_tables import get_table_name  # noqa: F403
+from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from pipeline.utils.uuid_utils import generate_uuid
 
 class DecimalEncoder(json.JSONEncoder):
@@ -24,25 +24,24 @@ META_TIME_FIELDS = [
     'modifiedDateTime'
 ]
 
-NESTED_PATHS = [
+NESTED_PATHS_WITH_META_FIELDS = [
     "endpoints"
 ]
 
 IGNORED_PATHS = [
     "field",
     *META_TIME_FIELDS,
-    *[re.compile(r"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS for field in META_TIME_FIELDS],
+    *[re.compile(r"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS_WITH_META_FIELDS for field in META_TIME_FIELDS],
 ]
 
 scenarios(
     "../features/data_migration_features/gp_practice_migration_happy_path.feature",
     "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
-    "../features/data_migration_features/age_range_tranformation.feature",
+    "../features/data_migration_features/age_range_transformation.feature",
+    "../features/data_migration_features/sgsd_transformation.feature",
+    "../features/data_migration_features/position_gcs_transformation.feature",
+    "../features/data_migration_features/triage_code_migration.feature",
 )
-
-@given("the data migration system is ready")
-def data_migration_system_ready():
-    pass
 
 
 @given(parsers.parse("record for '{table_name}' from '{source_file_path}' is loaded"))
@@ -85,34 +84,54 @@ def check_expected_table_counts(org_count_expected: int, location_count_expected
 def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
     namespace = table_name.replace("-", "_")
     generated_uuid = str(generate_uuid(service_id, namespace))
+    _check_by_id_and_sort_key(table_name, generated_uuid, docstring, dynamodb)
 
+
+@then(parsers.re(r"field '(?P<field_name>[\w-]*)' on table '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' has content:"))
+def check_field_on_a_table_by_id(field_name, table_name, primary_id, docstring, dynamodb):
+    _check_by_id_and_sort_key(table_name, primary_id, docstring, dynamodb, filtered_by_field=field_name)
+
+
+@then(parsers.re(r"field '(?P<field_name>[\w-]*)' on table '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' and field sort key '(?P<field_sort_key>[\w-]+)' has content:"))
+def check_field_on_a_table_by_id_and_sort_key(field_name, table_name, primary_id, docstring, dynamodb, field_sort_key):
+    _check_by_id_and_sort_key(
+        table_name, primary_id, docstring, dynamodb, field_sort_key = field_sort_key, filtered_by_field=field_name
+    )
+
+
+@then(parsers.re(r"the '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' has content:"))
+def check_row_on_table_by_id(table_name, primary_id, docstring, dynamodb):
+    _check_by_id_and_sort_key(table_name, primary_id, docstring, dynamodb)
+
+
+@then(parsers.re(r"the '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' and field sort key '(?P<field_sort_key>[\w-]+)' has content:"))
+def check_row_on_table_by_id_and_sort_key(table_name, primary_id, docstring, field_sort_key, dynamodb):
+    _check_by_id_and_sort_key(table_name, primary_id, docstring, dynamodb, field_sort_key)
+
+
+def _check_by_id_and_sort_key(
+    table_name,
+    primary_id,
+    docstring,
+    dynamodb,
+    field_sort_key='document',
+    filtered_by_field=None
+):
     retrieved_item = json.loads(
         json.dumps(
-            get_by_id(dynamodb, table_name, generated_uuid),
+            get_by_id_and_sort_key(dynamodb, table_name, primary_id, field_sort_key_value=field_sort_key),
             cls=DecimalEncoder
         )
     )
     expected = json.loads(docstring)
+    actual = {k: v for k, v in retrieved_item.items() if k == filtered_by_field} if filtered_by_field else retrieved_item
+    validate_diff(expected, actual)
 
-    validated_diff(expected, retrieved_item)
-    #validate_dynamic_fields(retrieved_item) #TODO: Temporarily disabled due to some nested fields not containing datetime metadata
-
-
-@then(parsers.parse("The '{table_name}' for service UUID '{service_id}' has content:"))
-def check_table_content_by_uuid(table_name, service_id, docstring, dynamodb):
-    retrieved_item = json.loads(
-        json.dumps(
-            get_by_id(dynamodb, table_name, service_id),
-            cls=DecimalEncoder
-        )
-    )
-    expected = json.loads(docstring)
-
-    validated_diff(expected, retrieved_item)
-    #validate_dynamic_fields(retrieved_item) #TODO: Temporarily disabled due to some nested fields not containing datetime metadata
+    if not filtered_by_field:
+        validate_dynamic_fields(actual)
 
 
-def validated_diff(expected, retrieved_item):
+def validate_diff(expected, retrieved_item):
     diff = DeepDiff(expected, retrieved_item, ignore_order=True, exclude_regex_paths=IGNORED_PATHS)
 
     assert diff == {}, f"Differences found: {pprint(diff, indent=2)}"
@@ -124,7 +143,8 @@ def validate_dynamic_fields(retrieved_item):
             assert field in obj, f"Expected field '{field}' not found in item"
             validate_timestamp_format(f"{root_path}.{field}", obj[field])
 
-        for key, value in obj.items():
+        relevant_fields = {k: v for k, v in obj.items() if k in NESTED_PATHS_WITH_META_FIELDS}
+        for key, value in relevant_fields.items():
             if isinstance(value, dict):
                 validate_metas(value, f"{root_path}.{key}")
             elif isinstance(value, list):
@@ -148,6 +168,17 @@ def get_by_id(dynamodb, table_name, service_id):
     response = target_table.get_item(Key={ 'id': service_id, 'field': 'document'})
 
     assert 'Item' in response, f"No item found under {service_id}"
+    item = response['Item']
+
+    return item
+
+
+def get_by_id_and_sort_key(dynamodb, table_name, id_value, field_sort_key_value = 'document'):
+    dynamodb_resource = dynamodb["resource"]
+    target_table = dynamodb_resource.Table(get_table_name(table_name))
+    response = target_table.get_item(Key={ 'id': id_value, 'field': field_sort_key_value})
+
+    assert 'Item' in response, f"No item found under id: {id_value}, field sort key: {field_sort_key_value}"
     item = response['Item']
 
     return item

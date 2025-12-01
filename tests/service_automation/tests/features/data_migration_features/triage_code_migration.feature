@@ -151,7 +151,7 @@ Feature: Data Migration
         "codeType": "Symptom Group and Symptom Discriminator Pair (SG-SD)",
         "synonyms": [],
         "createdDateTime": "2025-11-24T20:48:36.304817Z",
-        "source": "pathways",
+        "source": null,
         "codeValue": null,
         "codeID": null,
         "combinations": [
