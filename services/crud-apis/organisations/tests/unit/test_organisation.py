@@ -7,9 +7,9 @@ from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.enums import TelecomType
+from pydantic_core import PydanticSerializationUnexpectedValue
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
-from pydantic_core import PydanticSerializationUnexpectedValue
 
 from organisations.app.models.organisation import OrganizationQueryParams
 from organisations.app.router.organisation import _get_organization_query_params, router
@@ -381,6 +381,7 @@ def test_update_organisation_missing_required_field() -> None:
         ]
     }
 
+
 def test_update_organisation_pydantic_serialization_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
@@ -405,7 +406,12 @@ def test_update_organisation_pydantic_serialization_exception(
         client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
-    assert "Validation failed for resource." in exc_info.value.outcome["issue"][0]["diagnostics"]
+    assert (
+        "Validation failed for resource."
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
 def test_update_organisation_unexpected_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
