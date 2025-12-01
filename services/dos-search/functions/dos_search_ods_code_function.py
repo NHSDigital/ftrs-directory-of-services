@@ -1,6 +1,6 @@
 import time
 
-from aws_lambda_powertools import Logger, Tracer
+from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -14,7 +14,7 @@ from functions.organization_query_params import OrganizationQueryParams
 
 service = "dos-search"
 dos_logger = DosLogger.get(service=service)
-logger = Logger()
+logger = dos_logger._logger
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
