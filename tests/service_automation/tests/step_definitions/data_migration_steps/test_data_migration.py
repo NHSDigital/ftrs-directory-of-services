@@ -37,10 +37,10 @@ IGNORED_PATHS = [
 scenarios(
     "../features/data_migration_features/gp_practice_migration_happy_path.feature",
     "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
-    "../features/data_migration_features/age_range_tranformation.feature",
+    "../features/data_migration_features/age_range_transformation.feature",
     "../features/data_migration_features/sgsd_transformation.feature",
     "../features/data_migration_features/position_gcs_transformation.feature",
-    "../features/data_migration_features/traige_code_migration.feature",
+    "../features/data_migration_features/triage_code_migration.feature",
     "../features/data_migration_features/endpoints_transformation.feature",
 )
 
