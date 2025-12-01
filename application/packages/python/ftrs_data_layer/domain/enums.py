@@ -23,6 +23,7 @@ class OrganisationType(str, Enum):
     COMMUNITY_PHARMACY = "Community Pharmacy"
     DISTANCE_SELLING_PHARMACY = "Distance Selling Pharmacy"
 
+
 class OrganisationTypeCode(str, Enum):
     PRESCRIBING_COST_CENTRE_CODE = "RO177"
     GP_PRACTICE_ROLE_CODE = "RO76"
