@@ -76,6 +76,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: account
+          environment: ${{ matrix.environment }}
 
       - name: Create, Update or Rotate CIS2 Public and Private Key Pair
         if: steps.should-run.outputs.should_run == 'true'

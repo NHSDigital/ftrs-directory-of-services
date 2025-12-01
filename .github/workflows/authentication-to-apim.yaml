@@ -37,6 +37,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: app
+          environment: ${{ inputs.environment }}
 
 
       - name: Get APIM Access Token
