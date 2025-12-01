@@ -73,10 +73,10 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     return response
 
 @when(
-    parsers.re(r'I request data from the "(?P<api_name>.*?)" APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
+    parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
     target_fixture="fresponse",
 )
-def send_to_apim_get_with_params(new_apim_request_context, nhsd_apim_proxy_url, api_name, params, resource_name):
+def send_to_apim_get_with_params(new_apim_request_context, nhsd_apim_proxy_url, params, resource_name):
     url = nhsd_apim_proxy_url + "/" + resource_name
     # Handle None or empty params
     if params is None or not params.strip():
@@ -91,14 +91,10 @@ def send_to_apim_get_with_params(new_apim_request_context, nhsd_apim_proxy_url, 
     return response
 
 @when(
-    parsers.re(r'I request data from the APIM "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with "(?P<param_type>.*?)" query params and "(?P<token_type>.*?)" access token'),
+    parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" and "(?P<token_type>.*?)" access token'),
     target_fixture="fresponse",
 )
-def send_to_apim_secure(api_request_context, new_apim_status_request_context, new_apim_request_context, resource_name, param_type, nhsd_apim_proxy_url, token_type):
-    if param_type == "valid":
-        params = "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
-    else:
-        params = ""
+def send_to_apim_secure(api_request_context, new_apim_status_request_context, resource_name, params, nhsd_apim_proxy_url, token_type):
     url = nhsd_apim_proxy_url + "/" + resource_name
     # Handle None or empty params
     if params is None or not params.strip():
@@ -106,22 +102,19 @@ def send_to_apim_secure(api_request_context, new_apim_status_request_context, ne
     else:
         # Parse the params string into a dictionary
         param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
-    if token_type in ("missing", "no"):
+
+    if token_type == "missing":
         response = api_request_context.get(
                 url,  params=param_dict
             )
     elif token_type == "invalid":
-        response = new_apim_request_context.get(
+        response = api_request_context.get(
             url,  params=param_dict, headers={"Authorization": "Bearer invalid_token"}
         )
     elif token_type == "_status":
         response = new_apim_status_request_context.get(
             url,  params=param_dict
     )
-    elif token_type == "valid":
-        response = new_apim_request_context.get(
-            url,  params=param_dict
-        )
     else:
         raise ValueError(f"Unknown token_type: {token_type}")
     logger.info(f"response: {response.text}")

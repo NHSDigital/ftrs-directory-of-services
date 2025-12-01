@@ -9,7 +9,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario: I search for GP Endpoint by ODS Code via APIM with valid query parameters
-    When I request data from the "dos-search" APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -17,7 +17,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario Outline: I search for GP Endpoint via APIM with invalid ODS code
-    When I request data from the "dos-search" APIM endpoint "Organization" with query params "<params>"
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -34,7 +34,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario Outline: I search for GP Endpoint with via APIM invalid _revinclude value
-    When I request data from the "dos-search" APIM endpoint "Organization" with query params "<params>"
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -50,7 +50,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario Outline: I search for GP Endpoint with via APIM invalid identifier system
-    When I request data from the "dos-search" APIM endpoint "Organization" with query params "<params>"
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -66,7 +66,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario Outline: I search for GP Endpoint via APIM with 1 missing parameter
-    When I request data from the "dos-search" APIM endpoint "Organization" with query params "<params>"
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -81,7 +81,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario: I search for GP Endpoint via APIM with 2 missing parameters
-    When I request data from the "dos-search" APIM endpoint "Organization" with query params ""
+    When I request data from the APIM endpoint "Organization" with query params ""
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "2" issues
