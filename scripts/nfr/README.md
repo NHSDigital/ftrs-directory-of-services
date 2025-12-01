@@ -13,6 +13,8 @@ This folder contains utilities for Non-Functional Requirements documentation and
 ```
 python3 scripts/nfr/refresh_simplified_nfr_page.py
 ```
+### Refresh simplified NFR page
+
 Outputs a Confluence-ready Markdown file summarising:
 - All NFR codes grouped by domain from `requirements/nfrs/cross-references/nfr-matrix.md`
 - Performance Expectations Registry Summary (per-operation targets)
@@ -23,9 +25,13 @@ The script auto-detects registries: if a file `requirements/nfrs/<domain>/expect
 ### Authoring registries
 See `requirements/README.md` for the common schema and locations. When editing YAML:
 - Quote values that contain comparison operators (e.g., `">= 95%"`).
+### Authoring registries
+
 - Keep mapping keys aligned (consistent indentation).
 - Prefer lists for `environments` and `services`.
 
 ### Notes
 - Timestamp uses timezone-aware UTC via `datetime.now(timezone.utc)`.
+### Notes
+
 - Do not hand-edit `docs/developer-guides/nfr-all-simplified.md`; always regenerate via the script.

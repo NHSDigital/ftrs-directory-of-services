@@ -48,3 +48,4 @@ This position is based on the work of the cloud backups working group:
 
 - This position was discussed at TRG on 04/09/2024 during review of SDO-2720 NHS Backup as a Service (BaaS) in which it was agreed that BaaS will be appropriate for other contexts (e.g. corporate ICT) but not to teams in Products & Platforms
 - Classification of cloud-native backup services as “mainstream” was agreed at the Engineering Board in September 2024
+

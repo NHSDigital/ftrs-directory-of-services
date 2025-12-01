@@ -1,6 +1,6 @@
----
 code: STORY-SOFT-004
 as_a: Solution_Architect
+
 i_want: architect_services_for_team_flow_and_minimal_dependencies
 so_that: delivery_speed_and_autonomy_improve
 business_value: Accelerates throughput by reducing coordination overhead

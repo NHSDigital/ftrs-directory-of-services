@@ -1,6 +1,6 @@
----
 code: STORY-SOFT-008
 as_a: Operations_Lead
+
 i_want: provide_operational_insight_dashboard
 so_that: stakeholders_understand_service_health_and_trends
 business_value: Improves transparency and targeted improvements

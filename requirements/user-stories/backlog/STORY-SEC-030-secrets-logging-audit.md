@@ -9,6 +9,7 @@ status: draft
 ---
 
 ## Acceptance Criteria
+
 1. Static scan detects any credential prints; CI fails on match.
 2. Runtime sampled logs show no secrets; only metadata.
 3. Weekly audit report archived; 0 findings required for prod.

@@ -1,6 +1,6 @@
----
 code: STORY-SOFT-002
 as_a: Architecture_Lead
+
 i_want: evaluate_and_outsource_non_differentiating_capabilities_bottom_up
 so_that: teams_focus_on_core_value
 business_value: Frees engineering capacity for strategic work

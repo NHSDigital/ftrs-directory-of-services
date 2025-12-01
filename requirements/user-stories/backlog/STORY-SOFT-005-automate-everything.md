@@ -1,6 +1,6 @@
----
 code: STORY-SOFT-005
 as_a: Platform_Engineer
+
 i_want: automate_repetitive_operational_tasks
 so_that: human_error_and_lead_time_are_reduced
 business_value: Frees capacity and increases reliability

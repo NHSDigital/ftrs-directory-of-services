@@ -1,6 +1,6 @@
----
 code: STORY-SOFT-006
 as_a: Platform_Engineer
+
 i_want: maintain_inventory_and_decommission_unused_resources
 so_that: cost_and_security_surface_are_minimized
 business_value: Reduces waste and potential attack vectors

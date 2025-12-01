@@ -1,6 +1,6 @@
----
 code: STORY-SOFT-003
 as_a: Platform_Engineer
+
 i_want: apply_deployment_principles_for_resilience_and_traceability
 so_that: releases_are_safe_and_auditable
 business_value: Reduces downtime and improves recovery speed

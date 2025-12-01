@@ -1,6 +1,6 @@
----
 code: STORY-SOFT-001
 as_a: Product_Owner
+
 i_want: identify_and_reduce_overproduction_in_features
 so_that: we_focus_on_high_value_functionality
 business_value: Lowers waste and operational overhead
