@@ -183,3 +183,38 @@
 | COST-007 | Cost | (none) | Quarterly cost review minutes & tracked actions |
 
 > Add new rows as NFRs are formalised. Keep codes immutable.
+
+## Red Lines Derived NFR/Control Mapping
+
+| NFR/Control Code | Domain | Related User Stories | Acceptance Criteria Anchor |
+|------------------|--------|----------------------|----------------------------|
+| NFR-CLOUD-GOV-01 | Cloud | STORY-CLOUD-001 | Cloud accounts governed; internet-first enforced; DR & autoscale metrics captured |
+| CTRL-NET-INTERNET-FIRST-01 | Cloud | STORY-CLOUD-002 | Default ingress/egress via internet; legacy HSCN exceptions tracked |
+| NFR-CAPACITY-UTIL-01 | Cloud | STORY-CLOUD-003 | Off-peak autoscale ≥40% reduction; utilisation dashboard published |
+| CTRL-DEPLOY-BLUEGREEN-01 | Cloud | STORY-CLOUD-004 | Blue/green prod deploy shows zero failed requests & rollback path |
+| NFR-DR-RESTORE-TEST-01 | Cloud | STORY-CLOUD-005 | Full restore test executed within 24‑month window; RPO/RTO evidenced |
+| NFR-BACKUP-IMMUTABLE-01 | Cloud | STORY-CLOUD-006 | AWS blueprint modules in use; Vault/Object Lock; ≥30d retention; KMS/IAM controls; annual restore drill |
+| NFR-OPERATIONS-ACTIVE-PASSIVE-01 | Cloud | STORY-CLOUD-007 | Scheduled region/site swap completed; SLOs unchanged post‑cutover |
+| NFR-OBSERVABILITY-BASELINE-01 | Cloud | STORY-CLOUD-008 | Metrics/logs/traces/alerts baseline applied to new services |
+| CTRL-COMMS-NOTIFY-01 | Shared | STORY-REUSE-005 | Transactional messages sent via Notify with delivery metrics |
+| CTRL-AUTH-NHSLOGIN-01 | Shared | STORY-REUSE-003 | NHS Login OAuth flow enforced; assurance claims persisted |
+| CTRL-COHORTING-CAAS-01 | Shared | STORY-REUSE-006 | Cohort definitions versioned; targeting runs within SLA |
+| CTRL-UX-DESIGN-SYSTEM-01 | Shared | STORY-REUSE-002 | Design System components adopted; exceptions logged with expiry |
+| NFR-REUSE-SHARED-SERVICES-REG-01 | Shared | STORY-REUSE-001 | All shared service dependencies registered with owner & SLA |
+| CTRL-IDENTITY-ASSURANCE-01 | Shared | STORY-REUSE-007 | Sensitive features enforce required identity assurance level |
+| NFR-SDLC-SBOM-01 | SDLC | STORY-SDLC-001 | Build emits SBOM; missing SBOM fails pipeline |
+| NFR-SDLC-VULN-MGMT-01 | SDLC | STORY-SDLC-002 | Critical vulnerabilities ticketed <1h; SLA breach escalated |
+| NFR-SDLC-CODE-QUALITY-GATES-01 | SDLC | STORY-SDLC-003 | PR merge blocked on failing quality gate thresholds |
+| NFR-SDLC-TECH-RADAR-01 | SDLC | STORY-SDLC-004 | New components logged with Tech Radar status; HOLD exceptions filed |
+| NFR-SDLC-AUTOMATE-FLOW-01 | SDLC | STORY-SDLC-005 | Merge triggers automated pipeline to staging; failures notified |
+| NFR-SDLC-LITTLE-OFTEN-01 | SDLC | STORY-SDLC-006 | Release cadence >4 / month; large changes decomposed |
+| NFR-SOFT-OVERPRODUCTION-01 | Mgmt | STORY-SOFT-001 | Low-usage features flagged; decisions & deprecation tracked |
+| NFR-SOFT-OUTSOURCE-BOTTOM-UP-01 | Mgmt | STORY-SOFT-002 | Commodity capability outsourcing decisions logged with exit plan |
+| NFR-SOFT-DEPLOYMENT-PRINCIPLES-01 | Mgmt | STORY-SOFT-003 | Deployment metadata traceable; rollback <10 minutes |
+| NFR-SOFT-ARCHITECT-FOR-FLOW-01 | Mgmt | STORY-SOFT-004 | Bounded contexts defined; dependency contracts versioned |
+| NFR-SOFT-AUTOMATE-EVERYTHING-01 | Mgmt | STORY-SOFT-005 | Repetitive tasks automated; manual path deprecated |
+| NFR-SOFT-INVENTORY-DECOMMISSION-01 | Mgmt | STORY-SOFT-006 | Orphaned resources decommissioned ≤30 days; savings tracked |
+| NFR-SOFT-STANDARDS-ALIGNMENT-01 | Mgmt | STORY-SOFT-007 | Standards checklist maintained; exceptions with remediation dates |
+| NFR-SOFT-OPERATIONAL-INSIGHT-01 | Mgmt | STORY-SOFT-008 | Dashboard shows core health metrics with ≤1h freshness |
+
+> Remaining Proposed NFR/Control codes without stories will be added as they are implemented.

@@ -1,17 +1,19 @@
 views {
 
-  view of ftrs.searchByOdsCode {
-    title "FTRS Search by ODS Code Endpoint"
+  view of ftrs.searchByTriageCode {
+    title "FTRS Search by Triage Code Endpoint"
     description '
       APIs for search operations on the Organizations table
     '
-    // include *
+    include *
     include ftrs.openSearch
     include ftrs.db
 
     include ftrs
     include apim.dosSearchProxy
+    include ftrs.db.orgTable
     include ftrs.db.locationTable
+    include ftrs.db.healthCareServiceTable
     exclude ftrs.gpSearchApi
     autoLayout LeftRight 70 77
   }

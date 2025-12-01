@@ -3,10 +3,10 @@
 
 Reads docs/developer-guides/nfr-traceability-slides.md and converts sections delimited by '---' into slides.
 Simple heuristics:
- - First non-empty line starting with '# ' => title (strip leading '#')
- - Else first non-empty line => title
- - Lines beginning with '-' or '*' become bullet points (stripped of leading marker)
- - Other non-empty lines become bullet points (to keep slides concise)
+    - First non-empty line starting with '# ' => title (strip leading '#')
+    - Else first non-empty line => title
+    - Lines beginning with '-' or '*' become bullet points (stripped of leading marker)
+    - Other non-empty lines become bullet points (to keep slides concise)
 
 Output: docs/developer-guides/nfr-traceability-deck.pptx
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Stub validator for performance expectations.
-- Loads requirements/nfrs/performance/expectations.yaml
-- Generates synthetic latency samples per operation (or simulates breach via CLI)
-- Computes p50/p95 and compares to targets
-- Exits 0 on PASS, 1 on any violation
+    - Loads requirements/nfrs/performance/expectations.yaml
+    - Generates synthetic latency samples per operation (or simulates breach via CLI)
+    - Computes p50/p95 and compares to targets
+    - Exits 0 on PASS, 1 on any violation
 
 Usage:
   python3 scripts/perf/validate_perf_expectations.py --simulate

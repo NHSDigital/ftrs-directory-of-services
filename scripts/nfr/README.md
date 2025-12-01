@@ -3,6 +3,7 @@
 This folder contains utilities for Non-Functional Requirements documentation and validation.
 
 ## Files
+
 - `refresh_simplified_nfr_page.py` — Generates `docs/developer-guides/nfr-all-simplified.md` from the cross-reference matrix and any per-domain expectations registries found under `requirements/nfrs/**/expectations.yaml`.
 - `validate_nfr_refs.py` — Validates that story front-matter `nfr_refs` codes exist in the cross-reference registry.
 

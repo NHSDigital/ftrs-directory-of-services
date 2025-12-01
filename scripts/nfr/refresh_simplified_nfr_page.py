@@ -5,11 +5,11 @@ Reads the NFR cross reference matrix (requirements/nfrs/cross-references/nfr-mat
 and produces docs/developer-guides/nfr-all-simplified.md with per-domain sections.
 
 Simplification rules:
- - Use table rows from the matrix.
- - For each row, treat the "Acceptance Criteria Anchor" column as the short requirement line.
- - Group by Domain.
- - Sort codes within a domain numerically (by the number after the prefix).
- - Include related story IDs comma-separated.
+    - Use table rows from the matrix.
+    - For each row, treat the "Acceptance Criteria Anchor" column as the short requirement line.
+    - Group by Domain.
+    - Sort codes within a domain numerically (by the number after the prefix).
+    - Include related story IDs comma-separated.
 
 Idempotent: running again overwrites the file.
 """

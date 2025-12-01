@@ -117,6 +117,7 @@ If thresholds not yet accepted (status: draft), mark criterion as "subject to re
 
 ---
 ## 9. Guardrails Copilot Must Enforce
+
 1. No invented IDs (story, NFR, operation, control).
 2. Threshold proposals must include rationale (source: telemetry, benchmark, regulation, SLA).
 3. Explanations ≤ 40 words; differentiate from acceptance anchor.
@@ -254,6 +255,7 @@ Generate a new functional story for Directory Editor to update DoS entry opening
 
 ---
 ## 19. Final Reminders for Copilot
+
 - Never silently add or alter registry thresholds.
 - Always surface rationale for any numeric target.
 - Prefer conservative initial values; optimisation stories can tighten later.
