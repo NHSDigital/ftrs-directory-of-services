@@ -14,7 +14,8 @@ from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from validators.organisation_type_validator import OrganisationTypeValidator
+
+from organisations.app.services.validators import validate_type_combination
 
 
 class OrganisationService:
@@ -251,7 +252,7 @@ class OrganisationService:
             "non_primary_role_codes", organisation.non_primary_role_codes or []
         )
 
-        is_valid, error_message = OrganisationTypeValidator.validate_type_combination(
+        is_valid, error_message = validate_type_combination(
             primary_role, non_primary_roles
         )
 
