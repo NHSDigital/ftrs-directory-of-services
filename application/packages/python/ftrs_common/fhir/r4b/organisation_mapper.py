@@ -7,8 +7,12 @@ from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.utils.title_case_sanitization import sanitize_string_field
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 
-from validators.organisation_type_validator import VALID_PRIMARY_TYPE_CODES
+VALID_PRIMARY_TYPE_CODES = {
+    OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
+    OrganisationTypeCode.PHARMACY_ROLE_CODE,
+}
 
 ROLE_URL = (
     "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
