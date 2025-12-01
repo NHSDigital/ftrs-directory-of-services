@@ -1,13 +1,11 @@
 from typing import Any
 
-from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from functions.logging.dos_logger import DosLogger
 
-logger = Logger()
-
 dos_logger = DosLogger.get(service="test_logger")
+logger = dos_logger._logger
 
 
 @logger.inject_lambda_context(
