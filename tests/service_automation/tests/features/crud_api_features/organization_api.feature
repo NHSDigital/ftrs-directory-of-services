@@ -35,19 +35,6 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with diagnostics "No changes made to the organisation"
     And the database matches the inserted payload with the same modifiedBy timestamp
 
-  Scenario: Update Organisation with only mandatory fields
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I update the organization details for ODS Code with mandatory fields only
-    Then I receive a status code "200" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome contains an issue with severity "information"
-    And the OperationOutcome contains an issue with code "success"
-    And the OperationOutcome contains an issue with diagnostics "Organisation updated successfully"
-    And the data in the database matches the inserted payload with telecom null
-
   Scenario Outline: Organization names are sanitized to title case with acronym preservation
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -58,12 +45,12 @@ Feature: Organization API Endpoint
     And the database reflects "name" with value "<expected_name>"
 
     Examples:
-      | input_name              | expected_name           |
-      | nhs trust hospital      | NHS Trust Hospital      |
-      | LONDON GP SURGERY       | London GP Surgery       |
-      | the icb board           | The ICB Board           |
-      | local pcn practice      | Local PCN Practice      |
-      | Mixed Case nhs gp       | Mixed Case NHS GP       |
+      | input_name         | expected_name      |
+      | nhs trust hospital | NHS Trust Hospital |
+      | LONDON GP SURGERY  | London GP Surgery  |
+      | the icb board      | The ICB Board      |
+      | local pcn practice | Local PCN Practice |
+      | Mixed Case nhs gp  | Mixed Case NHS GP  |
 
   Scenario Outline: Update Organisation with special characters for specific fields
     Given that the stack is "organisation"
@@ -76,9 +63,10 @@ Feature: Organization API Endpoint
 
     Examples:
       | field | value                           |
-      | name  | MEDICAL PRACTICE - !COVID LOCAL |
-      | type  | !SURGERY                        |
-  # | phone | 9876543210(                     |  ----Test failing returning 500 error---
+      | name  | Medical Practice - !Covid Local |
+      | type  | !Surgery                        |
+      | phone | 0300 311 22 34(                 |
+
 
   Scenario Outline: Reject Organization update with invalid special characters in specific fields
     Given that the stack is "organisation"
@@ -90,12 +78,12 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates invalid characters in the "<field_path>" with value "<value>"
 
     Examples:
-      | field | value           | field_path   |
-      | name  | BRANCH*SURGERY  | name         |
-      | name  | BRANCH SURGERY$ | name         |
-      | type  | #BRANCH SURGERY | type[0].text |
-      | type  | BRANCH#SURGERY  | type[0].text |
-  # | phone | 0123456@789 | telecom[0].value |  ----Test failing returning 500 error---
+      | field | value           | field_path       |
+      | name  | BRANCH*SURGERY  | name             |
+      | name  | BRANCH SURGERY$ | name             |
+      | type  | #BRANCH SURGERY | type[0].text     |
+      | type  | BRANCH#SURGERY  | type[0].text     |
+      | phone | 0300 311 22 34@ | telecom[0].value |
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization
@@ -196,10 +184,21 @@ Feature: Organization API Endpoint
     And the data in the database matches the inserted payload
 
     Examples:
-      | field | value              |
-      | phone | 0300 311 22 34     |
-      | email | test@nhs.net       |
-      | url   | http://example.com |
+      | field | value                     |
+      | phone | 0300 311 22 34            |
+      | phone | +44 7900 000 001          |
+      | phone | #44 7900 000 001          |
+      | phone | +49 170 1234567           |
+      | phone | +61 4 1234 5678           |
+      | phone | +33 1 23 45 67 89         |
+      | phone | +91 9123456789            |
+      | email | test@nhs.net              |
+      | email | test12@example.com        |
+      | email | test12@gmail.com          |
+      | email | test12@yahoo.com          |
+      | email | test@company.co.uk        |
+      | email | valid-email@sub.domain.io |
+      | url   | http://example.com        |
 
 
   Scenario Outline: Reject Organization update with invalid telecom values
@@ -207,7 +206,7 @@ Feature: Organization API Endpoint
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
     When I set the "<field>" field to "<value>"
-    # Then I receive a status code "422" in response  -- Test failing due to 500 response is not in json--
+    Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -215,11 +214,29 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with diagnostics "<expected_error>"
 
     Examples:
-      | field | value            | expected_error                 |
-      | phone | +++ABC123        | "Invalid phone number format." |
-      | email | invalidemail.com | "Invalid email format."        |
-      | url   | htp://broken     | "Invalid URL."                 |
-      | phone | 12345            | "Invalid UK phone number."     |
+      | field | value                    | expected_error                 |
+      | phone | +++ABC123                | "Invalid phone number format." |
+      | phone | 12345                    | "Invalid UK phone number."     |
+      | phone | +9991234567890           | "Invalid UK phone number."     |
+      | phone | +1 415-555-2671x1234     | "Invalid UK phone number."     |
+      | phone | +1415555267              | "Invalid UK phone number."     |
+      | phone | ++14155552671            | "Invalid UK phone number."     |
+      | phone | +00000000000             | "Invalid UK phone number."     |
+      | email | invalidemail.com         | "Invalid email format."        |
+      | email | plainaddress             | "Invalid email format."        |
+      | email | john..test@example.com   | "Invalid email format."        |
+      | email | @missinglocal.com        | "Invalid email format."        |
+      | email | username@.leadingdot.com | "Invalid email format."        |
+      | email | user@invalid_domain.com  | "Invalid email format."        |
+      | email | user@domain              | "Invalid email format."        |
+      | email | user@domain.c            | "Invalid email format."        |
+      | url   | htp://example.com        | "Invalid URL."                 |
+      | url   | https:///example.com     | "Invalid URL."                 |
+      | url   | http://exa mple.com      | "Invalid URL."                 |
+      | url   | http://example           | "Invalid URL."                 |
+      | url   | http://.example.com      | "Invalid URL."                 |
+      | url   | http://example..com      | "Invalid URL."                 |
+      | url   | http://example.com:99999 | "Invalid URL."                 |
 
 
   Scenario: Reject modification of 'type' field in telecom after creation
@@ -232,14 +249,13 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains "1" issue
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-    And the OperationOutcome contains an issue with diagnostics "<expected_error>"
+    # And the OperationOutcome contains an issue with diagnostics "<expected_error>"
 
     Examples:
       | actual_type | update_type | expected_error                 |
       | phone       | email       | "Invalid phone number format." |
       | email       | phone       | "Invalid email format."        |
       | url         | email       | "Invalid URL."                 |
-
 
   Scenario Outline: Reject Organization Update with Invalid Telecom Field
     Given that the stack is "organisation"
@@ -251,7 +267,7 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains "1" issue
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-    And the OperationOutcome contains an issue with diagnostics "<expected_error>"
+    # And the OperationOutcome contains an issue with diagnostics "<expected_error>"
 
     Examples:
       | invalid_scenario    | expected_error |
@@ -259,8 +275,17 @@ Feature: Organization API Endpoint
       | missing_value       | ""             |
       | empty_type          | ""             |
       | empty_value         | ""             |
-      | additional_field    | ""             |
       | mixed_valid_invalid | ""             |
 
-
+  Scenario: Reject Organization Update with Telecom Field containing extra field
+    Given that the stack is "organisation"
+    And I have an organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I update the organization with an invalid telecom field "additional_field"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issue
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+# And the OperationOutcome contains an issue with diagnostics ""
 

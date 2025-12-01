@@ -50,13 +50,10 @@ def update_type(payload: dict, value: str):
 def update_telecom(payload: dict, system: str, value: str):
     if "telecom" not in payload:
         payload["telecom"] = []
-
-    # Check if telecom entry for this system exists, update it or append new one
     existing_telecom = next(
         (item for item in payload["telecom"] if item["system"] == system), None
     )
     if existing_telecom:
-        # Update the value of the existing telecom entry
         existing_telecom["value"] = value
     else:
         # Append a new telecom entry
@@ -75,9 +72,8 @@ FIELD_UPDATERS = {"name": update_name, "type": update_type, "telecom": update_te
 def update_payload_field(field: str, value: str) -> dict:
     """Update a single field in the default organisation payload."""
     payload = _load_default_payload()
-    # Handle  cases for phone, email, and url
     if field in ["phone", "email", "url"]:
-        system = field  # 'phone', 'email', or 'url'
+        system = field
         update_telecom(payload, system, value)
     else:
         updater = FIELD_UPDATERS.get(field)
@@ -165,23 +161,6 @@ def get_db_item(model_repo, payload: dict):
     item = get_from_repo(model_repo, ods_code)
     assert item, f"No data found for ODS code {ods_code}"
     return item
-
-
-def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = False):
-    expected = {
-        "identifier_ODS_ODSCode": payload["identifier"][0]["value"],
-        "name": payload["name"].title(),
-        "type": payload["type"][0]["text"].title(),
-        "active": payload["active"],
-        "modifiedBy": "ODS_ETL_PIPELINE",
-    }
-    if not mandatory_only:
-        expected["telecom"] = payload.get("telecom", [{}])[0].get("value")
-
-    for attr, exp in expected.items():
-        actual = getattr(item, attr, None)
-        logger.info(f"Validating {attr}: expected={exp}, actual={actual}")
-        assert actual == exp, f"{attr} mismatch: {actual} != {exp}"
 
 
 def get_diagnostics_list(fresponse):
@@ -274,15 +253,14 @@ def validate_db_entry_against_payload(item, payload):
         AssertionError: If any mismatch is found between the database item and the payload.
     """
 
-    # Define the expected fields to validate
     expected_fields = [
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
-        ("name", payload["name"]),
-        ("type", payload["type"][0]["text"]),
+        ("name", payload["name"].title()),
+        ("type", payload["type"][0]["text"].title()),
         ("active", payload["active"]),
         ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
-    # General validation of fields against the database entry
+
     for attr, expected_value in expected_fields:
         actual_value = getattr(item, attr, None)
         logger.info(
@@ -308,16 +286,11 @@ def validate_telecom_field(item, payload):
     """
     payload_telecom = payload.get("telecom", [])
     db_telecom = getattr(item, "telecom", [])
-
-    # Ensure telecom entries count in payload matches the database
     if payload_telecom:
         assert len(payload_telecom) == len(db_telecom), "Telecom entries count mismatch"
-
         for idx, payload_entry in enumerate(payload_telecom):
             db_entry = db_telecom[idx]
             logger.info(f"Validating telecom entry at index {idx}: {db_entry}")
-
-            # handling for 'url' system in payload, mapping it to 'web' in db
             if payload_entry["system"] == "url":
                 expected_system = "web"
                 db_system = (
@@ -437,7 +410,8 @@ def step_send_invalid_content_type(api_request_context_mtls_crud):
     return response
 
 
-@when(parsers.parse(
+@when(
+    parsers.parse(
         'I attempt to update the "{actual_type}" in telecom with "{update_type}"'
     ),
     target_fixture="fresponse",
@@ -455,7 +429,8 @@ def step_update_telecom_type(
     )
 
 
-@when(parsers.parse("I update the organization details with the identifier"),
+@when(
+    parsers.parse("I update the organization details with the identifier"),
     target_fixture="fresponse",
 )
 def step_update_with_identifier(payload, api_request_context_mtls_crud):
@@ -486,30 +461,30 @@ def step_update_invalid_telecom_field(
 ):
     payload = _load_default_payload()
     if invalid_scenario == "missing_type":
-        payload["telecom"] = [{"value": "12345", "use": "work"}]
+        payload["telecom"] = [{"value": "0300 311 22 34", "use": "work"}]
     elif invalid_scenario == "missing_value":
         payload["telecom"] = [{"system": "phone", "use": "work"}]
     elif invalid_scenario == "empty_type":
-        payload["telecom"] = [{"system": "", "value": "12345", "use": "work"}]
+        payload["telecom"] = [{"system": "", "value": "0300 311 22 34", "use": "work"}]
     elif invalid_scenario == "empty_value":
         payload["telecom"] = [{"system": "phone", "value": "", "use": "work"}]
     elif invalid_scenario == "additional_field":
         payload["telecom"] = [
             {
                 "system": "phone",
-                "value": "12345",
+                "value": "0300 311 22 34",
                 "use": "work",
                 "extra_field": "unexpected",
             }
-        ]  # Extra field
+        ]
     elif invalid_scenario == "mixed_valid_invalid":
         payload["telecom"] = [
-            {"system": "phone", "value": "12345", "use": "work"},
+            {"system": "phone", "value": "0300 311 22 34", "use": "work"},
             {
                 "system": "email",
                 "value": "invalidemail",
                 "use": "work",
-            },  # Invalid email
+            },
             {"system": "url", "value": "http://validurl.com", "use": "work"},
         ]
     else:
@@ -618,11 +593,13 @@ def step_diagnostics_extra_field(fresponse, field, value):
         value=value,
     )
 
+
 def set_field_to_null(payload: dict, field: str) -> dict:
     """Set a specific field to null in the payload."""
     payload[field] = None
     logger.info(f"Set field '{field}' to null:\n{json.dumps(payload, indent=2)}")
     return payload
+
 
 @when(
     "I set the active field from the payload to null and update the organization",
@@ -634,9 +611,7 @@ def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
-@then(
-    parsers.parse('the diagnostics message indicates the "{expected_message}"')
-)
+@then(parsers.parse('the diagnostics message indicates the "{expected_message}"'))
 def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     """Verify that the diagnostics message contains the expected text."""
     body = fresponse.json()
