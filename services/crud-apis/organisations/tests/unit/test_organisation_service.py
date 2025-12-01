@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from freezegun import freeze_time
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.services.organisation_service import OrganisationService
@@ -42,6 +43,8 @@ def test_get_outdated_fields_no_changes() -> None:
         modifiedBy="ROBOT",
         modifiedDateTime=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
+        primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
+        non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
     )
     payload = MagicMock(
         model_dump=lambda: {
@@ -111,6 +114,8 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         telecom="67890",
         type="Pharmacy",
         modifiedBy="ETL_ODS_PIPELINE",
+        primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
+        non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
     )
     service = make_service()
     with caplog.at_level("INFO"):
@@ -123,9 +128,11 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "type": "Pharmacy",
             "modified_by": "ETL_ODS_PIPELINE",
             "modifiedDateTime": FIXED_MODIFIED_TIME,
+            "primary_role_code": OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
+            "non_primary_role_codes": [OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         }
         assert (
-            "Computed outdated fields: ['identifier_ODS_ODSCode', 'active', 'name', 'telecom', 'type'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
+            "Computed outdated fields: ['identifier_ODS_ODSCode', 'active', 'name', 'telecom', 'type', 'primary_role_code', 'non_primary_role_codes'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
             in caplog.text
         )
 

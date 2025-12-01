@@ -190,8 +190,9 @@ class OrganisationService:
 
         if outdated_fields:
             self._validate_role_fields_if_changed(organisation, outdated_fields)
-            self._add_audit_fields(outdated_fields, payload)
             self._log_outdated_fields(outdated_fields, organisation.id)
+            outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
+            outdated_fields["modifiedDateTime"] = datetime.now(UTC)
 
         return outdated_fields
 
@@ -211,12 +212,12 @@ class OrganisationService:
             existing_value = getattr(organisation, field, None)
 
             if field == "primary_role_code":
-                self._validate_primary_role_type(value)
+                self._validate_role_type(value)
                 if existing_value != value:
                     outdated_fields[field] = value
             elif field == "non_primary_role_codes":
-                self._validate_non_primary_roles_type(value)
-                # Compare as sets for order-independent comparison
+                for role in value or []:
+                    self._validate_role_type(role)
                 if set(existing_value or []) != set(value or []):
                     outdated_fields[field] = value
             elif existing_value != value:
@@ -224,20 +225,12 @@ class OrganisationService:
 
         return outdated_fields
 
-    def _validate_primary_role_type(self, value: any) -> None:
-        """Validate that primary role is an OrganisationTypeCode enum."""
-        if not isinstance(value, OrganisationTypeCode):
+    def _validate_role_type(self, value: any) -> None:
+        """Validate that role is an OrganisationTypeCode enum."""
+        if not isinstance(value, OrganisationTypeCode) and value is not None:
             _raise_validation_error(
-                "primary_role_code must be an OrganisationTypeCode enum"
+                f"role: {value} is not a valid OrganisationTypeCode enum"
             )
-
-    def _validate_non_primary_roles_type(self, roles: list) -> None:
-        """Validate that all non-primary roles are OrganisationTypeCode enums."""
-        for role in roles or []:
-            if not isinstance(role, OrganisationTypeCode):
-                _raise_validation_error(
-                    "non_primary_role_codes must be an OrganisationTypeCode enum"
-                )
 
     def _validate_role_fields_if_changed(
         self, organisation: Organisation, outdated_fields: dict
@@ -280,11 +273,6 @@ class OrganisationService:
             severity="error",
         )
         raise OperationOutcomeException(outcome)
-
-    def _add_audit_fields(self, outdated_fields: dict, payload: Organisation) -> None:
-        """Add audit fields to outdated fields dictionary."""
-        outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
-        outdated_fields["modifiedDateTime"] = datetime.now(UTC)
 
     def _log_outdated_fields(self, outdated_fields: dict, organisation_id: str) -> None:
         """Log the fields that will be updated."""
