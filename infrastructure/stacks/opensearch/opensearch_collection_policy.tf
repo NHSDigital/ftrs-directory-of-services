@@ -43,7 +43,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
           },
           {
             ResourceType = "index"
-            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/organisation*"]
+            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/healthcare-service*"]
             Permission = [
               "aoss:CreateIndex",
               "aoss:UpdateIndex",
