@@ -6,7 +6,8 @@ import json
 import logging
 import os
 import sys
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
+from decimal import Decimal
 
 from urllib.parse import quote as urlquote
 
@@ -17,10 +18,13 @@ from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.client import BaseClient
 from botocore.credentials import ReadOnlyCredentials
+from boto3.dynamodb.types import TypeDeserializer
 import requests
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 log = logging.getLogger("populate_open_search_index")
+
+_DESERIALIZER = TypeDeserializer()
 
 EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 DEFAULT_DDB_TABLE = "ftrs-dos-local-database-healthcare-service"
@@ -106,37 +110,38 @@ def parse_dynamo_string(attr: Dict) -> Optional[str]:
         return str(attr['N'])
     return None
 
-def convert_dynamodb_format(items: List[Dict]) -> List[Dict]:
+def convert_dynamodb_format(items: List[Dict]) -> List[Dict[str, Any]]:
 
-    def _to_int(value) -> Optional[int]:
-        if value is None:
-            return None
-        if isinstance(value, dict):
-            n = value.get('N')
-            if n is None:
-                return None
+    def _deserialize(attr: Any) -> Any:
+        if isinstance(attr, dict) and len(attr) == 1 and next(iter(attr.keys())) in {"S", "N", "M", "L", "BOOL", "NULL", "SS", "NS", "BS"}:
             try:
-                return int(n)
-            except (TypeError, ValueError):
-                return None
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return None
+                return _DESERIALIZER.deserialize(attr)
+            except Exception:
+                return attr
+        return attr
 
-    def _parse(elem: Dict) -> Optional[Dict]:
-        if not isinstance(elem, dict):
+    def _normalize(value: Any) -> Any:
+        if isinstance(value, Decimal):
+            return int(value) if value % 1 == 0 else float(value)
+        if isinstance(value, dict):
+            return {k: _normalize(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [_normalize(v) for v in value]
+        return value
+
+    def _parse(entry: Any) -> Optional[Dict[str, Any]]:
+        deserialized = _normalize(_deserialize(entry))
+        if not isinstance(deserialized, dict):
             return None
-        m = elem.get('M')
-        if isinstance(m, dict):
-            return {'sg': _to_int(m.get('sg')), 'sd': _to_int(m.get('sd'))}
-        if 'sg' in elem and 'sd' in elem:
-            return {'sg': _to_int(elem.get('sg')), 'sd': _to_int(elem.get('sd'))}
+        sg = deserialized.get('sg')
+        sd = deserialized.get('sd')
+        if isinstance(sg, dict) or isinstance(sd, dict):
+            return {'sg': sg, 'sd': sd}
         return None
 
     if not isinstance(items, list):
         return []
-    return [r for r in (_parse(e) for e in items) if r is not None]
+    return [parsed for parsed in (_parse(item) for item in items) if parsed]
 
 def transform_records(raw_items: List[Dict]) -> List[Dict]:
     def _extract_field(record: Dict, *keys: str) -> Optional[str]:
