@@ -957,14 +957,39 @@ def test_missing_organisation_role_extension_url() -> None:
     """Test validation fails when OrganisationRole extension is missing the URL field."""
     payload = _build_base_payload()
     payload["extension"] = [
-        {
-            # "url" is missing here
-            "extension": [{"url": "instanceID", "valueInteger": 12345}]
-        }
+        {"url": "Invalid", "extension": [{"url": "instanceID", "valueInteger": 12345}]}
     ]
     with pytest.raises(OperationOutcomeException) as e:
         OrganisationUpdatePayload(**payload)
     assert "Invalid extension URL" in str(e.value)
+
+
+def test_empty_organisation_role_extension_url() -> None:
+    """Test validation fails when OrganisationRole extension has empty string URL field."""
+    payload = _build_base_payload()
+    payload["extension"] = [
+        {
+            "url": "",  # Empty string URL
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12345},
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO76",
+                                "display": "GP PRACTICE",
+                            }
+                        ]
+                    },
+                },
+            ],
+        }
+    ]
+    with pytest.raises(OperationOutcomeException) as e:
+        OrganisationUpdatePayload(**payload)
+    assert "Extension URL cannot be empty or None" in str(e.value)
 
 
 def test_invalid_typed_period_extension_url_in_organisation_role() -> None:

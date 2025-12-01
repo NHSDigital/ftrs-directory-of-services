@@ -229,6 +229,7 @@ Feature: Organization API Endpoint
         | invalid periodType system        | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'        |
         | invalid role extension url       | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
         | missing role extension url       | Invalid extension URL: None                            |
+        | empty role extension url         | Extension URL cannot be empty or None                  |
 
   Scenario Outline: Reject Organization update with invalid date format
       Given that the stack is "organisation"

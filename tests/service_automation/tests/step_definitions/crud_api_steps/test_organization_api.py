@@ -591,6 +591,28 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                 }
             ]
         }
+    elif invalid_scenario == "empty role extension url":
+        return {
+            "url": "",  # Empty string URL
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO76",
+                                "display": "GP PRACTICE"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
     else:
         raise ValueError(f"Unknown role extension invalid_scenario: {invalid_scenario}")
 
@@ -630,7 +652,7 @@ def step_update_with_invalid_extension(invalid_scenario: str, api_request_contex
     payload = _load_default_payload()
 
     # Handle role-level validation scenarios
-    if invalid_scenario in ("invalid role extension url", "missing role extension url"):
+    if invalid_scenario in ("invalid role extension url", "missing role extension url", "empty role extension url"):
         invalid_role_extension = _build_invalid_role_extension(invalid_scenario)
         payload["extension"] = [invalid_role_extension]
     else:
