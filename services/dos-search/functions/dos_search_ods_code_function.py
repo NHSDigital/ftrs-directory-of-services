@@ -23,8 +23,6 @@ app = APIGatewayRestResolver()
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    capture = dos_logger.get_keys()
-    print(capture)
     dos_logger.init(app.current_event)
     try:
         query_params = app.current_event.query_string_parameters or {}
@@ -76,13 +74,17 @@ def get_organization() -> Response:
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
+    body = fhir_resource.model_dump_json()
     dos_logger.info(
-        "Creating response", status_code=status_code, dos_message_category="RESPONSE"
+        "Creating response",
+        status_code=status_code,
+        body=body,
+        dos_message_category="RESPONSE",
     )
     return Response(
         status_code=status_code,
         content_type="application/fhir+json",
-        body=fhir_resource.model_dump_json(),
+        body=body,
     )
 
 
