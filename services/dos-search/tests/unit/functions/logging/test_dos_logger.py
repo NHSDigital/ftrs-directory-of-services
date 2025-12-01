@@ -31,11 +31,6 @@ def create_assert_mandatory_fields_present(log_data):
     return assert_mandatory_fields_present
 
 
-# @pytest.fixture
-# def mock_dos_logger():
-#     with patch("functions.logging.dos_logger.dos_logger") as mock:
-#         yield mock
-
 service = "test_logger"
 
 
@@ -146,14 +141,15 @@ class TestDosLogger:
         # print("test search", caplog_var, "type", type(caplog_var))
 
         # Act - Second run
-        # intermediate_capture = json.loads(json.dumps(dos_logger.get_keys()))
+        intermediate_capture = json.loads(json.dumps(dos_logger.get_keys()))
+        print("test search", intermediate_capture)
         response = lambda_handler(second_event, lambda_context, second_run_handler)
         second_capture = response["capture"]
 
         # Assert
         print("test search", first_capture)
         assert first_capture.get("dos_nhsd_correlation_id") == "correlation_id"
-        # assert intermediate_capture == dict({"foo": "bar"})  # from first run
+        assert intermediate_capture == dict({"foo": "bar"})  # from first run
         assert second_capture.get("dos_nhsd_correlation_id") == "correlation_id_2"
         assert first_capture != second_capture
 
