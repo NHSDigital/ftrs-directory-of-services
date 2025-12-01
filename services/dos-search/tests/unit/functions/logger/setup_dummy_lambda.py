@@ -2,7 +2,7 @@ from typing import Any
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from functions.logging.dos_logger import DosLogger
+from functions.logger.dos_logger import DosLogger
 
 dos_logger = DosLogger.get(service="test_logger")
 logger = dos_logger._logger
