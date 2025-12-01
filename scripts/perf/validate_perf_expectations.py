@@ -7,8 +7,8 @@ Stub validator for performance expectations.
     - Exits 0 on PASS, 1 on any violation
 
 Usage:
-  python3 scripts/perf/validate_perf_expectations.py --simulate
-  python3 scripts/perf/validate_perf_expectations.py --simulate --breach triage-search
+    python3 scripts/perf/validate_perf_expectations.py --simulate
+    python3 scripts/perf/validate_perf_expectations.py --simulate --breach triage-search
 
 This is a stub; replace fetch_samples() with real metric ingestion when ready.
 """

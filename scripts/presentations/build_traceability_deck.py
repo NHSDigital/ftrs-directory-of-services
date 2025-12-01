@@ -101,8 +101,8 @@ def main():
     args = sys.argv[1:]
     if args and args[0] in {'-h', '--help'}:
         print("Usage: build_traceability_deck.py [input_markdown] [output_pptx]\n" \
-              "Defaults: input='docs/developer-guides/nfr-traceability-slides.md' output='docs/developer-guides/nfr-traceability-deck.pptx'\n" \
-              "Example condensed: build_traceability_deck.py docs/developer-guides/nfr-traceability-slides-condensed.md docs/developer-guides/nfr-traceability-deck-condensed.pptx")
+            "Defaults: input='docs/developer-guides/nfr-traceability-slides.md' output='docs/developer-guides/nfr-traceability-deck.pptx'\n" \
+            "Example condensed: build_traceability_deck.py docs/developer-guides/nfr-traceability-slides-condensed.md docs/developer-guides/nfr-traceability-deck-condensed.pptx")
         return 0
 
     if len(args) >= 1:
