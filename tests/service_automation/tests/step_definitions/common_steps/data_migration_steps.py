@@ -129,6 +129,10 @@ def create_service_with_attributes(
 # Migration Execution Steps (When)
 # ============================================================
 
+@when("triage code full migration is executed")
+def triage_code_full_migration(migration_helper: MigrationHelper, dynamodb):
+    migration_helper.run_triage_code_migration_only()
+
 
 @when("the data migration process is run")
 def full_service_migration(
