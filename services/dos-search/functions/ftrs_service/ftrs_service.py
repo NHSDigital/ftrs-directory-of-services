@@ -3,8 +3,6 @@ from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
-
-# Import instantiated logger from dos_search_ods_code_function to persist log context from beginning of Lambda execution
 from functions.logging.dos_logger import DosLogger
 
 dos_logger = DosLogger.get(service="dos-search")
@@ -12,9 +10,7 @@ dos_logger = DosLogger.get(service="dos-search")
 
 class FtrsService:
     def __init__(self) -> None:
-        self.repository = get_service_repository(
-            Organisation, "organisation", dos_logger._logger
-        )
+        self.repository = get_service_repository(Organisation, "organisation")
         self.mapper = BundleMapper()
 
     def endpoints_by_ods(self, ods_code: str) -> Bundle:
