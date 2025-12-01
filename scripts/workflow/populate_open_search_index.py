@@ -15,6 +15,8 @@ import botocore.exceptions
 import botocore.session
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
+from botocore.client import BaseClient
+from botocore.credentials import ReadOnlyCredentials
 import requests
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
@@ -45,7 +47,7 @@ def build_endpoint(raw: str) -> str:
         return raw.rstrip('/')
     return "https://" + raw.rstrip('/')
 
-def get_aws_signing_credentials():
+def get_aws_signing_credentials() -> ReadOnlyCredentials:
     session = botocore.session.get_session()
     creds = session.get_credentials()
     if creds is None:
@@ -61,7 +63,7 @@ def build_aws_request(method: str, url: str, body: Optional[str], payload_hash: 
     headers = {"Content-Type": "application/json", "x-amz-content-sha256": payload_hash}
     return AWSRequest(method=method, url=url, data=body or "", headers=headers)
 
-def sign_aws_request(aws_req: AWSRequest, credentials, service: str, region: Optional[str]) -> None:
+def sign_aws_request(aws_req: AWSRequest, credentials: ReadOnlyCredentials, service: str, region: Optional[str]) -> None:
     SigV4Auth(credentials, service, region or os.environ.get("AWS_REGION") or "").add_auth(aws_req)
 
 class SignedRequestsSession:
@@ -79,10 +81,10 @@ class SignedRequestsSession:
         prepared = requests.Request(method=aws_req.method, url=aws_req.url, data=aws_req.body, headers=dict(aws_req.headers)).prepare()
         return self.session.send(prepared, timeout=INDEXING_TIMEOUT_SECONDS)
 
-def prepare_dynamodb_client(region: Optional[str]):
+def prepare_dynamodb_client(region: Optional[str]) -> BaseClient:
     return boto3.client('dynamodb', region_name=region) if region else boto3.client('dynamodb')
 
-def scan_dynamodb_table(dynamodb_client, table_name: str, attributes: List[str]) -> List[Dict]:
+def scan_dynamodb_table(dynamodb_client: BaseClient, table_name: str, attributes: List[str]) -> List[Dict]:
     paginator = dynamodb_client.get_paginator('scan')
     projection = ",".join(attributes) if attributes else None
     scan_kwargs = {}
@@ -295,21 +297,30 @@ def main(argv: Optional[List[str]] = None) -> int:
     workspace = args.workspace or os.environ.get('WORKSPACE', '')
 
     final_table = build_name_with_workspace(ddb_table, workspace) if ddb_table else ddb_table
+    final_index = build_name_with_workspace(final_index, workspace) if final_index else final_index
 
-    if not endpoint or not final_index:
-        log.error('Endpoint or final index not found; ensure create action outputs are provided (OS_ENDPOINT/OS_FINAL_INDEX) or pass --endpoint/--final-index')
-        return 2
-
-    dynamodb_client = prepare_dynamodb_client(aws_region)
-    raw_items = scan_dynamodb_table(dynamodb_client, final_table, ['id', 'field', 'symptomGroupSymptomDiscriminators'])
-    records = transform_records(raw_items)
+    log.info('Using configuration:')
+    log.info('  Endpoint: %s', endpoint)
+    log.info('  Final index: %s', final_index)
+    log.info('  AWS region: %s', aws_region)
+    log.info('  DynamoDB table: %s', final_table)
+    log.info('  Workspace: %s', workspace)
 
     session = SignedRequestsSession(aws_region)
-    success_count, total = index_records(session, endpoint, final_index, records, batch_size=args.batch_size)
 
-    log.info('Indexed %d/%d records', success_count, total)
+    try:
+        log.info('Scanning DynamoDB table...')
+        raw_items = scan_dynamodb_table(prepare_dynamodb_client(aws_region), final_table, ['id', 'field', 'symptomGroupSymptomDiscriminators', 'symptomGroupSymptomDiscriminator', 'symptomGroup_symptomDiscriminators'])
+        log.info('Transforming records...')
+        transformed = transform_records(raw_items)
+        log.info('Indexing records...')
+        success, total = index_records(session, endpoint, final_index, transformed, args.batch_size)
+        log.info('Indexing complete: %d successful, %d total records', success, total)
+    except Exception as exc:
+        log.error('Unexpected error: %s', exc)
+        return 1
+
     return 0
 
-if __name__ == '__main__':
-    rc = main()
-    sys.exit(rc)
+if __name__ == "__main__":
+    sys.exit(main())

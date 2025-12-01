@@ -4,7 +4,7 @@ import os
 import sys
 import json
 import logging
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, Protocol, Any, List
 import hashlib
 import argparse
 
@@ -13,10 +13,18 @@ import botocore.session
 import botocore.exceptions
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
+from botocore.credentials import ReadOnlyCredentials
 import requests
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 log = logging.getLogger("create_open_search_index")
+
+class OpenSearchServerlessClient(Protocol):
+    def list_collections(self) -> Dict[str, Any]:
+        ...
+
+    def batch_get_collection(self, *, ids: List[str]) -> Dict[str, Any]:
+        ...
 
 MAPPINGS_PAYLOAD = {
     "mappings": {
@@ -36,12 +44,12 @@ MAPPINGS_PAYLOAD = {
 def get_env(name: str, default: Optional[str] = None) -> Optional[str]:
     return os.environ.get(name, default)
 
-def find_collection_id_by_name(client, collection_name: str) -> Optional[str]:
+def find_collection_id_by_name(client: OpenSearchServerlessClient, collection_name: str) -> Optional[str]:
     resp = client.list_collections()
     return next((cs.get("id") for cs in resp.get("collectionSummaries", []) if cs.get("name") == collection_name), None)
 
 
-def get_collection_endpoint_by_id(client, collection_id: str) -> Optional[str]:
+def get_collection_endpoint_by_id(client: OpenSearchServerlessClient, collection_id: str) -> Optional[str]:
     resp = client.batch_get_collection(ids=[collection_id])
     details = resp.get("collectionDetails", [])
     if not details:
@@ -77,7 +85,7 @@ def build_index_name(index: str, workspace: Optional[str]) -> str:
 def prepare_payload() -> str:
     return json.dumps(MAPPINGS_PAYLOAD)
 
-def get_aws_signing_credentials():
+def get_aws_signing_credentials() -> ReadOnlyCredentials:
     session = botocore.session.get_session()
     creds = session.get_credentials()
     if creds is None:
@@ -93,7 +101,7 @@ def build_aws_request(method: str, url: str, body: str, payload_hash: str) -> AW
     headers = {"Content-Type": "application/json", "x-amz-content-sha256": payload_hash}
     return AWSRequest(method=method, url=url, data=body, headers=headers)
 
-def sign_aws_request(aws_req: AWSRequest, credentials, service: str, region: Optional[str]) -> None:
+def sign_aws_request(aws_req: AWSRequest, credentials: ReadOnlyCredentials, service: str, region: Optional[str]) -> None:
     SigV4Auth(credentials, service, region or get_env("AWS_REGION") or "").add_auth(aws_req)
 
 def redact_auth_header(headers: Dict[str, str]) -> str:
