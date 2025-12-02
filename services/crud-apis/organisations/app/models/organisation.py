@@ -3,13 +3,14 @@ from typing import Literal
 
 from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
 from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
 from ftrs_common.logger import Logger
-from ftrs_data_layer.domain.enums import OrganisationType
+from ftrs_data_layer.domain.enums import OrganisationType, OrganisationTypeCode
 from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
@@ -25,6 +26,10 @@ ERROR_IDENTIFIER_INVALID_FORMAT = (
     "invalid ODS code format: '{ods_code}' must follow format {ODS_REGEX}"
 )
 ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
+
+ORGANISATION_ROLE_URL = (
+    "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+)
 
 
 class OrganizationQueryParams(BaseModel):
@@ -98,6 +103,7 @@ class OrganisationUpdatePayload(BaseModel):
     active: bool = Field(..., example=True)
     type: list[Type] = Field(..., description="Organization type")
     telecom: list[ContactPoint] | None = None
+    extension: list[Extension] | None = None
 
     model_config = {"extra": "forbid"}
 
@@ -152,6 +158,13 @@ class OrganisationUpdatePayload(BaseModel):
                 raise ValueError(ERROR_MESSAGE_TYPE)
         return self
 
+    @model_validator(mode="after")
+    def validate_extensions(self) -> "OrganisationUpdatePayload":
+        if self.extension:
+            for ext in self.extension:
+                _validate_organisation_extension(ext)
+        return self
+
 
 class OrganisationCreatePayload(Organisation):
     id: str = Field(
@@ -180,3 +193,70 @@ def _extract_identifier_value(identifier: str) -> str:
         if IDENTIFIER_SEPARATOR in identifier
         else ""
     )
+
+
+def _raise_validation_error(message: str) -> None:
+    """Helper to raise validation errors with consistent OperationOutcome formatting."""
+    outcome = OperationOutcomeHandler.build(
+        diagnostics=message,
+        code="invalid",
+        severity="error",
+    )
+    raise OperationOutcomeException(outcome)
+
+
+def _validate_organisation_extension(ext: Extension) -> None:
+    if not ext.url or ext.url.strip() == "":
+        _raise_validation_error("Extension URL cannot be empty or None")
+    elif ext.url == ORGANISATION_ROLE_URL:
+        _validate_organisation_role_extension(ext)
+    else:
+        _raise_validation_error(f"Invalid extension URL: {ext.url}")
+
+
+def _validate_organisation_role_extension(ext: Extension) -> None:
+    """Validate OrganisationRole extension containing the first Legal TypedPeriod extension."""
+    if not ext.extension or len(ext.extension) == 0:
+        _raise_validation_error(
+            f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
+        )
+
+    for nested_ext in ext.extension:
+        if "OrganisationRole" in nested_ext.url:
+            _validate_role_code_extension(nested_ext)
+
+
+def _validate_role_code_extension(ext: Extension) -> None:
+    if ext.url != ORGANISATION_ROLE_URL:
+        _raise_validation_error(f"Invalid extension URL: {ext.url}")
+
+    if not ext.extension or len(ext.extension) == 0:
+        _raise_validation_error(
+            f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
+        )
+
+    role_code_ext = next((e for e in ext.extension if e.url == "roleCode"), None)
+
+    if not role_code_ext:
+        _raise_validation_error("OrganisationRole extension must contain roleCode")
+
+    if not role_code_ext.valueCoding:
+        _raise_validation_error("roleCode must have a valueCoding")
+
+    if not role_code_ext.valueCoding.code:
+        _raise_validation_error(
+            "roleCode valueCodeableConcept must contain at least one coding"
+        )
+
+    role_code = role_code_ext.valueCoding.code[0].code
+
+    if not role_code:
+        _raise_validation_error("roleCode coding must have a code value")
+
+    # Check if the role code is a valid OrganisationTypeCode enum
+    try:
+        OrganisationTypeCode(role_code)
+    except ValueError:
+        _raise_validation_error(
+            f"Invalid role code: '{role_code}'. Incorrect enum value"
+        )
