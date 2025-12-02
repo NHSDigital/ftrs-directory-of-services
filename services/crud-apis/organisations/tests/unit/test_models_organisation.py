@@ -991,7 +991,7 @@ def test_empty_organisation_role_extension_url() -> None:
     ]
     with pytest.raises(OperationOutcomeException) as e:
         OrganisationUpdatePayload(**payload)
-    assert "Extension URL cannot be empty or None" in str(e.value)
+    assert "Extension URL must be present and cannot be empty or None" in str(e.value)
 
 
 def test_invalid_typed_period_extension_url_in_organisation_role() -> None:

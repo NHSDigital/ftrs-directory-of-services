@@ -567,7 +567,7 @@ def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
                 },
                 {
                     "url": "period",
-                    "valuePeriod": {"middle": "2020-10-10"}  # Missing both start and end dates
+                    "valuePeriod": {}  # Missing both start and end dates
                 }
             ]
         }

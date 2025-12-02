@@ -213,7 +213,9 @@ def _raise_validation_error(message: str) -> None:
 def _validate_organisation_extension(ext: Extension) -> None:
     """Validate OrganisationRole extensions containing TypedPeriod extensions."""
     if not ext.url or ext.url.strip() == "":
-        _raise_validation_error("Extension URL cannot be empty or None")
+        _raise_validation_error(
+            "Extension URL must be present and cannot be empty or None"
+        )
     elif ext.url == ORGANISATION_ROLE_URL:
         # Validate OrganisationRole extension structure
         _validate_organisation_role_extension(ext)

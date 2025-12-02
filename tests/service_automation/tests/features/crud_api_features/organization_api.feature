@@ -225,8 +225,8 @@ Feature: Organization API Endpoint
         | invalid periodType extension url | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod |
         | invalid periodType system        | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'        |
         | invalid role extension url       | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
-        | missing role extension url       | Invalid extension URL: None                            |
-        | empty role extension url         | Extension URL cannot be empty or None                  |
+        | missing role extension url       | Extension URL must be present and cannot be empty or None                           |
+        | empty role extension url         | Extension URL must be present and cannot be empty or None                  |
         | missing start date with end      | Legal period start date is required when TypedPeriod extension is present |
         | missing both start and end       | Legal period start date is required when TypedPeriod extension is present |
 
