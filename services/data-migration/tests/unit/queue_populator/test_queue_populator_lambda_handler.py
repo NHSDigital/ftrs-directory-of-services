@@ -26,10 +26,6 @@ def mock_config() -> QueuePopulatorConfig:
         SQS_QUEUE_URL="http://localhost:4566/000000000000/test-queue",
         type_ids=None,
         status_ids=None,
-        service_id=None,
-        record_id=None,
-        full_sync=True,
-        table_name="services",
     )
 
 
@@ -362,7 +358,7 @@ def test_populate_sqs_queue(
                 "type_ids": None,
                 "status_ids": None,
             },
-            "msg": "Starting Data Migration Queue Populator for type_ids=None and status_ids=None",
+            "msg": "Starting Data Migration Queue Populator",
             "reference": "DM_QP_000",
         }
     ]
@@ -386,10 +382,6 @@ def test_lambda_handler(
     mocker.patch("os.environ", {"SQS_QUEUE_URL": mock_config.sqs_queue_url})
 
     event = {
-        "table_name": "services",
-        "service_id": None,
-        "record_id": None,
-        "full_sync": True,
         "type_ids": [1, 2, 3],
         "status_ids": [4, 5, 6],
     }
@@ -399,65 +391,7 @@ def test_lambda_handler(
     mock_populate.assert_called_once_with(
         config=QueuePopulatorConfig(
             db_config=mock_config.db_config,
-            SQS_QUEUE_URL=mock_config.sqs_queue_url,
             type_ids=[1, 2, 3],
             status_ids=[4, 5, 6],
-            service_id=None,
-            record_id=None,
-            full_sync=True,
-            table_name="services",
         )
     )
-
-
-def test_populate_sqs_queue_single_service(
-    mocker: MockerFixture,
-    mock_config: QueuePopulatorConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test populate_sqs_queue sends a single message when full_sync is False."""
-    # Configure for a single service
-    mock_config.full_sync = False
-    mock_config.service_id = 123
-    mock_config.record_id = 456
-
-    mocker.patch("queue_populator.lambda_handler.LOGGER", mock_logger)
-
-    expected_batch_count = 1  # 1000 records / 10 per batch
-
-    mock_send_message_batch = mocker.MagicMock()
-    mocker.patch(
-        "queue_populator.lambda_handler.send_message_batch", mock_send_message_batch
-    )
-
-    populate_sqs_queue(mock_config)
-
-    assert mock_send_message_batch.call_count == expected_batch_count
-
-    # Verify logging
-    assert mock_logger.get_log("DM_QP_000") == [
-        {
-            "detail": {
-                "type_ids": None,
-                "status_ids": None,
-            },
-            "msg": "Starting Data Migration Queue Populator for type_ids=None and status_ids=None",
-            "reference": "DM_QP_000",
-        }
-    ]
-    assert mock_logger.get_log("DM_QP_005") == [
-        {
-            "detail": {
-                "service_id": 123,
-                "record_id": 456,
-            },
-            "msg": "Populating SQS queue with 1 message in single service sync for service_id=123 and record_id=456",
-            "reference": "DM_QP_005",
-        }
-    ]
-    assert mock_logger.get_log("DM_QP_999") == [
-        {
-            "msg": "Data Migration Queue Populator completed",
-            "reference": "DM_QP_999",
-        }
-    ]

@@ -206,18 +206,15 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     assert org_content == {
         "id": str(mock_output.organisation[0].id),
         "identifier_ODS_ODSCode": "TEST123",
-        "identifier_oldDoS_uid": None,
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
         "modifiedBy": "SYSTEM",
         "modifiedDateTime": "2025-07-15T12:00:00Z",
         "endpoints": [],
         "telecom": None,
-        "legalDates": None,
     }
     assert loc_content == {
         "id": str(mock_output.location[0].id),
-        "identifier_oldDoS_uid": None,
         "name": None,
         "partOf": None,
         "positionGCS": None,
@@ -286,10 +283,6 @@ def test_populate_queue_handler(
             SQS_QUEUE_URL="https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
             type_ids=[1, 2],
             status_ids=[3, 4],
-            service_id=None,
-            record_id=None,
-            full_sync=True,
-            table_name="services",
         )
     )
 
@@ -327,10 +320,6 @@ def test_populate_queue_handler_no_ids(
             SQS_QUEUE_URL="https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
             type_ids=None,
             status_ids=None,
-            service_id=None,
-            record_id=None,
-            full_sync=True,
-            table_name="services",
         )
     )
 

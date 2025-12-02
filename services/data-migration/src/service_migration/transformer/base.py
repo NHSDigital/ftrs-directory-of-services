@@ -24,7 +24,10 @@ from ftrs_data_layer.domain import (
 )
 from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.domain.clinical_code import (
+    ClinicalCodeSource,
     Disposition,
+    SymptomDiscriminator,
+    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.domain.enums import TimeUnit
@@ -117,7 +120,6 @@ class ServiceTransformer(ABC):
 
         return Organisation(
             id=organisation_id,
-            identifier_oldDoS_uid=service.uid,
             identifier_ODS_ODSCode=service.odscode,
             active=True,
             name=service.name,
@@ -205,7 +207,6 @@ class ServiceTransformer(ABC):
 
         return Location(
             id=generate_uuid(service.id, "location"),
-            identifier_oldDoS_uid=service.uid,
             active=True,
             managingOrganisation=organisation_id,
             address=formatted_address,
@@ -339,38 +340,49 @@ class ServiceTransformer(ABC):
         """
         Build a single SymptomGroupSymptomDiscriminatorPair from a ServiceSGSD code.
         """
+        sg = self.metadata.symptom_groups.get(code.sgid)
+        sd = self.metadata.symptom_discriminators.get(code.sdid)
+
+        source = (
+            ClinicalCodeSource.SERVICE_FINDER
+            if sg.zcodeexists is True
+            else ClinicalCodeSource.PATHWAYS
+        )
+
         return SymptomGroupSymptomDiscriminatorPair(
-            sg=code.sgid,
-            sd=code.sdid,
+            sg=SymptomGroup(
+                id=generate_uuid(sg.id, "symptomgroup"),
+                codeID=code.sgid,
+                codeValue=sg.name,
+                source=source,
+            ),
+            sd=SymptomDiscriminator(
+                id=generate_uuid(sd.id, "symptomdiscriminator"),
+                codeID=code.sdid,
+                codeValue=sd.description,
+                source=source,
+                synonyms=[syn.name for syn in sd.synonyms],
+            ),
         )
 
     def build_dispositions(self, service: legacy_model.Service) -> list[Disposition]:
         """
         Build dispositions from the service's dispositions.
         """
-        dispositions = []
-        for code in service.dispositions:
-            disposition = self.build_disposition(code, service.id)
-            if disposition is not None:
-                dispositions.append(disposition)
-        return dispositions
+        return [self.build_disposition(code) for code in service.dispositions]
 
-    def build_disposition(
-        self, code: legacy_model.ServiceDisposition, service_id: int
-    ) -> str | None:
+    def build_disposition(self, code: legacy_model.ServiceDisposition) -> Disposition:
         """
         Build a single Disposition from a ServiceDisposition code.
-        Returns None if the disposition is not found in metadata.
         """
         disposition = self.metadata.dispositions.get(code.dispositionid)
-        if disposition is None:
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_018,
-                service_id=service_id,
-                disposition_id=code.dispositionid,
-            )
-            return None
-        return disposition.dxcode
+        return Disposition(
+            id=generate_uuid(code.id, "pathways:disposition"),
+            codeID=code.dispositionid,
+            codeValue=disposition.name,
+            source=ClinicalCodeSource.PATHWAYS,
+            time=disposition.dispositiontime,
+        )
 
     def build_age_eligibility_criteria(
         self, service: legacy_model.Service

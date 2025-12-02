@@ -10,12 +10,15 @@ from ftrs_data_layer.domain import (
     AvailableTime,
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
+    Disposition,
     Endpoint,
     HealthcareService,
     Location,
     NotAvailable,
     Organisation,
     PositionGCS,
+    SymptomDiscriminator,
+    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
     Telecom,
 )
@@ -90,7 +93,6 @@ def test_service_transformer_build_organisation(
     assert isinstance(result, Organisation)
     assert result == Organisation(
         id="4539600c-e04e-5b35-a582-9fb36858d0e0",
-        identifier_oldDoS_uid="test-uid",
         name="Test Service",
         type="GP Practice",
         active=True,
@@ -259,7 +261,6 @@ def test_build_location(
     assert isinstance(result, Location)
     assert result == Location(
         id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
-        identifier_oldDoS_uid="test-uid",
         active=True,
         managingOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         address=Address(
@@ -307,7 +308,6 @@ def test_build_location_no_position(
     assert result == Location(
         id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         active=True,
-        identifier_oldDoS_uid="test-uid",
         managingOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         address=Address(
             line1="123 Main St",
@@ -423,15 +423,58 @@ def test_build_healthcare_service(
         ],
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
-                sg=1035,
-                sd=4003,
+                sg=SymptomGroup(
+                    id="2b52f7e2-c0ab-5e00-8d7d-75ede400fe7c",
+                    source="pathways",
+                    codeType="Symptom Group (SG)",
+                    codeID=1035,
+                    codeValue="Breathing Problems, Breathlessness or Wheeze, Pregnant",
+                ),
+                sd=SymptomDiscriminator(
+                    id="300af504-ba5d-5973-a877-a0789c6863ab",
+                    source="pathways",
+                    codeType="Symptom Discriminator (SD)",
+                    codeID=4003,
+                    codeValue="PC full Primary Care assessment and prescribing capability",
+                    synonyms=[],
+                ),
             ),
             SymptomGroupSymptomDiscriminatorPair(
-                sg=360,
-                sd=14023,
+                sg=SymptomGroup(
+                    id="39ce1220-2586-5b2e-a35d-3021b2e0337c",
+                    source="servicefinder",
+                    codeType="Symptom Group (SG)",
+                    codeID=360,
+                    codeValue="z2.0 - Service Types",
+                ),
+                sd=SymptomDiscriminator(
+                    id="6ce70d41-9337-578d-a662-d9fe25016d40",
+                    source="servicefinder",
+                    codeType="Symptom Discriminator (SD)",
+                    codeID=14023,
+                    codeValue="GP Practice",
+                    synonyms=["General Practice"],
+                ),
             ),
         ],
-        dispositions=["DX115", "DX12"],
+        dispositions=[
+            Disposition(
+                id="4443b15a-26a3-517f-8a93-eb7c2539d4fc",
+                source="pathways",
+                codeType="Disposition (Dx)",
+                codeID=126,
+                codeValue="Contact Own GP Practice next working day for appointment",
+                time=7200,
+            ),
+            Disposition(
+                id="ae7a129f-cda2-51f6-aff6-88a94f7f36de",
+                source="pathways",
+                codeType="Disposition (Dx)",
+                codeID=10,
+                codeValue="Speak to a Primary Care Service within 2 hours",
+                time=120,
+            ),
+        ],
     )
 
 
@@ -700,12 +743,38 @@ def test_build_sgsds(
     assert isinstance(result, list)
     assert result == [
         SymptomGroupSymptomDiscriminatorPair(
-            sg=1035,
-            sd=4003,
+            sg=SymptomGroup(
+                id="2b52f7e2-c0ab-5e00-8d7d-75ede400fe7c",
+                source="pathways",
+                codeType="Symptom Group (SG)",
+                codeID=1035,
+                codeValue="Breathing Problems, Breathlessness or Wheeze, Pregnant",
+            ),
+            sd=SymptomDiscriminator(
+                id="300af504-ba5d-5973-a877-a0789c6863ab",
+                source="pathways",
+                codeType="Symptom Discriminator (SD)",
+                codeID=4003,
+                codeValue="PC full Primary Care assessment and prescribing capability",
+                synonyms=[],
+            ),
         ),
         SymptomGroupSymptomDiscriminatorPair(
-            sg=360,
-            sd=14023,
+            sg=SymptomGroup(
+                id="39ce1220-2586-5b2e-a35d-3021b2e0337c",
+                source="servicefinder",
+                codeType="Symptom Group (SG)",
+                codeID=360,
+                codeValue="z2.0 - Service Types",
+            ),
+            sd=SymptomDiscriminator(
+                id="6ce70d41-9337-578d-a662-d9fe25016d40",
+                source="servicefinder",
+                codeType="Symptom Discriminator (SD)",
+                codeID=14023,
+                codeValue="GP Practice",
+                synonyms=["General Practice"],
+            ),
         ),
     ]
 
@@ -722,7 +791,24 @@ def test_build_dispositions(
     result = transformer.build_dispositions(mock_legacy_service)
 
     assert isinstance(result, list)
-    assert result == ["DX115", "DX12"]
+    assert result == [
+        Disposition(
+            id="4443b15a-26a3-517f-8a93-eb7c2539d4fc",
+            source="pathways",
+            codeType="Disposition (Dx)",
+            codeID=126,
+            codeValue="Contact Own GP Practice next working day for appointment",
+            time=7200,
+        ),
+        Disposition(
+            id="ae7a129f-cda2-51f6-aff6-88a94f7f36de",
+            source="pathways",
+            codeType="Disposition (Dx)",
+            codeID=10,
+            codeValue="Speak to a Primary Care Service within 2 hours",
+            time=120,
+        ),
+    ]
 
 
 def test_build_age_eligibility_criteria_empty(

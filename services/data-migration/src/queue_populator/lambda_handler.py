@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from itertools import batched
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Iterable
 
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -20,15 +20,11 @@ SQS_CLIENT = boto3.client("sqs")
 
 
 class QueuePopulatorEvent(BaseModel):
-    table_name: str = "services"
-    service_id: Optional[int] = None
-    record_id: Optional[int] = None
-    full_sync: bool = True
-    type_ids: Optional[List[int]] = None
-    status_ids: Optional[List[int]] = None
+    type_ids: list[int] | None = None
+    status_ids: list[int] | None = None
 
 
-def get_record_ids(config: QueuePopulatorConfig) -> List[int]:
+def get_record_ids(config: QueuePopulatorConfig) -> Iterable[int]:
     """
     Retrieve record IDs based on the provided type and status IDs.
     """
@@ -42,11 +38,10 @@ def get_record_ids(config: QueuePopulatorConfig) -> List[int]:
         if config.status_ids is not None:
             stmt = stmt.where(Service.statusid.in_(config.status_ids))
 
-        result = session.exec(stmt).all()
-        return [int(r) for r in result]
+        return session.exec(stmt).all()
 
 
-def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[Dict[str, Any]]:
+def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[list[dict]]:
     """
     Populate the queue with legacy services based on type and status IDs.
     """
@@ -76,7 +71,7 @@ def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[Dict[str, An
         yield {"QueueUrl": config.sqs_queue_url, "Entries": sqs_messages}
 
 
-def send_message_batch(batch: Dict[str, Any]) -> None:
+def send_message_batch(batch: dict) -> None:
     """
     Send a batch of messages to the SQS queue.
     """
@@ -91,8 +86,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
         Entries=batch["Entries"],
     )
 
-    failed = response.get("Failed")
-    if failed:
+    if failed := response.get("Failed"):
         LOGGER.log(
             DataMigrationLogBase.DM_QP_003,
             count=len(failed),
@@ -100,8 +94,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
             failed=failed,
         )
 
-    successful = response.get("Successful")
-    if successful:
+    if successful := response.get("Successful"):
         LOGGER.log(
             DataMigrationLogBase.DM_QP_004,
             count=len(successful),
@@ -119,49 +112,26 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
         type_ids=config.type_ids,
         status_ids=config.status_ids,
     )
-    if config.full_sync is True and config.record_id is None:
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            executor.map(
-                send_message_batch,
-                get_dms_event_batches(config),
-            )
-    else:
-        LOGGER.log(
-            DataMigrationLogBase.DM_QP_005,
-            service_id=config.service_id,
-            record_id=config.record_id,
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(
+            send_message_batch,
+            get_dms_event_batches(config),
         )
-        record_or_service_id = (
-            config.record_id if config.record_id is not None else config.service_id
-        )
-        message = {
-            "Id": str(record_or_service_id),
-            "MessageBody": DMSEvent(
-                type="dms_event",
-                record_id=record_or_service_id if record_or_service_id else 0,
-                service_id=record_or_service_id if record_or_service_id else 0,
-                table_name=config.table_name,
-                method="insert",
-            ).model_dump_json(),
-        }
-        send_message_batch({"QueueUrl": config.sqs_queue_url, "Entries": [message]})
 
     LOGGER.log(DataMigrationLogBase.DM_QP_999)
 
 
 @LOGGER.inject_lambda_context
-def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> None:
+def lambda_handler(event: dict, context: LambdaContext) -> None:
     """
     AWS Lambda entrypoint for populating the queue with legacy services.
     """
     parsed_event = QueuePopulatorEvent(**event)
-    config = QueuePopulatorConfig(
-        db_config=DatabaseConfig.from_secretsmanager(),
-        type_ids=parsed_event.type_ids,
-        status_ids=parsed_event.status_ids,
-        service_id=parsed_event.service_id,
-        record_id=parsed_event.record_id,
-        full_sync=parsed_event.full_sync,
-        table_name=parsed_event.table_name,
+    populate_sqs_queue(
+        config=QueuePopulatorConfig(
+            db_config=DatabaseConfig.from_secretsmanager(),
+            type_ids=parsed_event.type_ids,
+            status_ids=parsed_event.status_ids,
+        )
     )
-    populate_sqs_queue(config=config)
