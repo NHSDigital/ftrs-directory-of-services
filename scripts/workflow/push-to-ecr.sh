@@ -34,82 +34,46 @@ init(){
   [ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
 }
 
-validate_or_decode_token(){
-  local raw="$1" decoded kv_json
-  log "validate_or_decode_token input: ${raw:-<empty>}"
-  if [ -z "$raw" ]; then
-    return 1
-  fi
-  log "DOCKER_TOKEN (base64): $raw"
-  if printf '%s' "$raw" | jq empty >/dev/null 2>&1; then
-    log "DOCKER_TOKEN detected as raw JSON"
-    printf '%s' "$raw"
-    return 0
-  fi
-  decoded=$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)
-  if [ -n "$decoded" ] && printf '%s' "$decoded" | jq empty >/dev/null 2>&1; then
-    log "DOCKER_TOKEN (decoded json): $decoded"
-    printf '%s' "$decoded"
-    return 0
-  fi
-  kv_json=""
-  local stripped="$raw"
-  stripped="${stripped#\{}"
-  stripped="${stripped%\}}"
-  local saved_ifs="$IFS"
-  IFS=',' read -ra pairs <<< "$stripped"
-  IFS="$saved_ifs"
-  if ((${#pairs[@]})); then
-    local json_parts=()
-    local valid=1
-    for pair in "${pairs[@]}"; do
-      pair=${pair//$'\n'/}
-      pair=${pair//$'\r'/}
-      local key=${pair%%:*}
-      local value=${pair#*:}
-      if [ -z "$key" ] || [ "$value" = "$key" ]; then
-        valid=0
-        break
-      fi
-      key=$(printf '%s' "$key" | sed -e 's/^ *//' -e 's/ *$//')
-      value=$(printf '%s' "$value" | sed -e 's/^ *//' -e 's/ *$//')
-      key=${key#"}
-      key=${key%"}
-      value=${value#"}
-      value=${value%"}
-      key=${key//\\/\\\\}
-      key=${key//"/\\"}
-      value=${value//\\/\\\\}
-      value=${value//"/\\"}
-      json_parts+=("\"$key\":\"$value\"")
-    done
-    if [ "$valid" -eq 1 ] && [ ${#json_parts[@]} -gt 0 ]; then
-      local joined
-      IFS=','
-      joined="${json_parts[*]}"
-      IFS="$saved_ifs"
-      kv_json="{$joined}"
-    fi
-  fi
-  if [ -n "$kv_json" ]; then
-    log "DOCKER_TOKEN (kv json): $kv_json"
-    printf '%s' "$kv_json"
-    return 0
-  fi
-  return 1
-}
-
 fetch_proxygen_registry_credentials(){
   log "fetch_proxygen_registry_credentials DOCKER_TOKEN: ${DOCKER_TOKEN:-<empty>}"
-  local token_json
-  if ! token_json=$(validate_or_decode_token "$DOCKER_TOKEN"); then
-    die "DOCKER_TOKEN is not valid JSON or base64-encoded JSON"
-  fi
-  USER=$(printf '%s' "$token_json" | jq -r '.user // empty')
-  PASSWORD=$(printf '%s' "$token_json" | jq -r '.password // empty')
-  REGISTRY=$(printf '%s' "$token_json" | jq -r '.registry // empty')
+
+  token="${token//$'\n'/}"
+  token="${token//$'\r'/}"
+  token="${token#\{}"
+  token="${token%\}}"
+
+  local saved_ifs="$IFS"
+  IFS=',' read -ra parts <<< "$token"
+  IFS="$saved_ifs"
+
+  local user="" password="" registry=""
+  for part in "${parts[@]}"; do
+    part=$(printf '%s' "$part" | sed -e 's/^ *//' -e 's/ *$//')
+    local key=${part%%:*}
+    local value=${part#*:}
+    if [ -z "$key" ] || [ "$value" = "$key" ]; then
+      continue
+    fi
+    key=$(printf '%s' "$key" | sed -e 's/^ *//' -e 's/ *$//')
+    value=$(printf '%s' "$value" | sed -e 's/^ *//' -e 's/ *$//')
+    value=${value#"}
+    value=${value%"}
+    case "$key" in
+      user) user="$value" ;;
+      password) password="$value" ;;
+      registry) registry="$value" ;;
+    esac
+  done
+
+  [ -n "$user" ] || die "Failed to parse user from DOCKER_TOKEN"
+  [ -n "$password" ] || die "Failed to parse password from DOCKER_TOKEN"
+  [ -n "$registry" ] || die "Failed to parse registry from DOCKER_TOKEN"
+
+  USER="$user"
+  PASSWORD="$password"
+  REGISTRY="$registry"
   log "Parsed credentials user=$USER registry=$REGISTRY password_prefix=${PASSWORD:0:12}"
-  [ -n "$REGISTRY" ] || die "Malformed DOCKER_TOKEN: missing registry"
+
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
   REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
   REGISTRY_REGION=$(printf '%s' "$REGISTRY_HOST" | awk -F'.' '{for(i=1;i<=NF;i++){ if($i=="ecr"){print $(i+1); exit}}}')
