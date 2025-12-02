@@ -283,7 +283,7 @@ resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_inte
 
 resource "aws_security_group" "reference_data_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  name        = "${local.resource_prefix}-${var.reference_data_lambda_name}-sg"
+  name        = "${local.resource_prefix}-${var.reference_data_lambda_name}${local.workspace_suffix}-sg"
   description = "Security group for reference data lambda"
 
   vpc_id = data.aws_vpc.vpc.id
