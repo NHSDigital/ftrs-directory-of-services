@@ -1,0 +1,45 @@
+name: 'Proxygen Docker Token Auth'
+description: 'Request Docker registry credentials from Proxygen using an APIM access token'
+
+inputs:
+  api_name:
+    description: 'Name of the API to access via Proxygen'
+    required: true
+  access_token:
+    description: 'Access token for Proxygen API'
+    required: true
+
+outputs:
+  docker_token:
+    description: 'JSON response from Proxygen containing Docker registry credentials'
+    value: ${{ steps.authenticate.outputs.docker_token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Fetch Docker token
+      id: authenticate
+      shell: bash
+      run: |
+        API_NAME=${{ inputs.api_name }}
+        ACCESS_TOKEN=${{ inputs.access_token }}
+
+        if [ -z "$ACCESS_TOKEN" ]; then
+          echo "ACCESS_TOKEN input is required" >&2
+          exit 1
+        fi
+
+        BASE_URL=${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}
+        BASE_URL=${BASE_URL%/}
+        TOKEN_ENDPOINT="${BASE_URL}/apis/${API_NAME}/docker-token"
+
+        DOCKER_TOKEN=$(curl -fsS --request GET --url "$TOKEN_ENDPOINT" --header "Authorization: Bearer ${ACCESS_TOKEN}") || {
+          echo "Failed to reach Proxygen API at $TOKEN_ENDPOINT" >&2
+          exit 1
+        }
+
+        echo "::add-mask::$ACCESS_TOKEN"
+        echo "::add-mask::$DOCKER_TOKEN"
+
+        printf 'docker_token=%s\n' "$DOCKER_TOKEN" >> "$GITHUB_OUTPUT"
+        echo "✓ Docker token retrieved successfully"
