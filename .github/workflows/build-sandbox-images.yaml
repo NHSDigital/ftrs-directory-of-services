@@ -83,7 +83,7 @@ jobs:
         env:
           ENVIRONMENT: ${{ inputs.environment }}
         with:
-          name: ${{ inputs.name }-artefacts
+          name: ${{ inputs.name }}-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
 
