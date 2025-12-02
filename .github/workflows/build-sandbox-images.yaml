@@ -29,6 +29,12 @@ jobs:
     name: "${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    env:
+      API_NAME: ${{ inputs.name }}
+      ENVIRONMENT: ${{ inputs.environment }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
+      APPLICATION_TAG: ${{ inputs.application_tag || '' }}
 
     steps:
       - name: "Checkout code"
@@ -99,8 +105,4 @@ jobs:
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
-          API_NAME: ${{ inputs.name }}
-          ENVIRONMENT: ${{ inputs.environment }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
           ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
