@@ -540,21 +540,7 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
-    if field == "phone":
-        db_telecom = getattr(item, "telecom", [])
-        db_entry = db_telecom[0]
-        actual_telecom_value = db_entry.value
-        assert actual_telecom_value == value, (
-            f"Telecom mismatch: expected={value}, got={actual_telecom_value}"
-        )
-        logger.info(
-            f"Telecom entry: {db_entry.type} - {actual_telecom_value} - isPublic={db_entry.isPublic}"
-        )
-    else:
-        actual_value = getattr(item, field, None)
-        assert actual_value == value, (
-            f"{field} mismatch: expected={value}, got={actual_value}"
-        )
+    validate_db_entry_against_payload(item, payload)
 
 
 @then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
