@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Callable
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
@@ -15,7 +15,7 @@ logger = dos_logger._logger
 def lambda_handler(
     event: dict,
     context: LambdaContext,
-    function: Any,
+    function: Callable[[Any], Any],
     *,
     run_init: bool = True,
 ) -> any:
