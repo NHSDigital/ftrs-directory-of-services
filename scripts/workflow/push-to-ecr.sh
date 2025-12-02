@@ -36,10 +36,32 @@ init(){
   [ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
 }
 
+validate_or_decode_token(){
+  local raw="$1" decoded
+  if printf '%s' "$raw" | jq empty >/dev/null 2>&1; then
+    printf '%s' "$raw"
+    return 0
+  fi
+  decoded=$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)
+  if [ -n "$decoded" ] && printf '%s' "$decoded" | jq empty >/dev/null 2>&1; then
+    printf '%s' "$decoded"
+    return 0
+  fi
+  die "DOCKER_TOKEN must be JSON or base64-encoded JSON"
+}
+
 fetch_proxygen_registry_credentials(){
-  USER=$(printf '%s' "$DOCKER_TOKEN" | jq -r '.user // empty')
-  PASSWORD=$(printf '%s' "$DOCKER_TOKEN" | jq -r '.password // empty')
-  REGISTRY=$(printf '%s' "$DOCKER_TOKEN" | jq -r '.registry // empty')
+  BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
+  if [ -z "${DOCKER_TOKEN:-}" ]; then
+    DOCKER_TOKEN=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
+  else
+    log "Using DOCKER_TOKEN provided via environment"
+  fi
+  local token_json
+  token_json=$(validate_or_decode_token "$DOCKER_TOKEN")
+  USER=$(printf '%s' "$token_json" | jq -r '.user // empty')
+  PASSWORD=$(printf '%s' "$token_json" | jq -r '.password // empty')
+  REGISTRY=$(printf '%s' "$token_json" | jq -r '.registry // empty')
   [ -n "$REGISTRY" ] || die "Malformed response from Proxygen: missing registry"
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
   REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
