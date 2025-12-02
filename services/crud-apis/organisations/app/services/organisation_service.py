@@ -11,7 +11,6 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
-from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
@@ -213,25 +212,15 @@ class OrganisationService:
             existing_value = getattr(organisation, field, None)
 
             if field == "primary_role_code":
-                self._validate_role_type(value)
                 if existing_value != value:
                     outdated_fields[field] = value
             elif field == "non_primary_role_codes":
-                for role in value or []:
-                    self._validate_role_type(role)
                 if set(existing_value or []) != set(value or []):
                     outdated_fields[field] = value
             elif existing_value != value:
                 outdated_fields[field] = value
 
         return outdated_fields
-
-    def _validate_role_type(self, value: any) -> None:
-        """Validate that role is an OrganisationTypeCode enum."""
-        if not isinstance(value, OrganisationTypeCode) and value is not None:
-            _raise_validation_error(
-                f"role: {value} is not a valid OrganisationTypeCode enum"
-            )
 
     def _validate_role_fields_if_changed(
         self, organisation: Organisation, outdated_fields: dict
