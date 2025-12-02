@@ -73,22 +73,29 @@ def send_to_apim_get_with_params(new_apim_request_context, nhsd_apim_proxy_url, 
     return _send_api_request(new_apim_request_context, url, params)
 
 @when(
-    parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" and "(?P<token_type>.*?)" access token'),
+    parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" without authentication'),
     target_fixture="fresponse",
 )
-def send_to_apim_secure(api_request_context, status_endpoint_auth_headers, resource_name, params, nhsd_apim_proxy_url, token_type):
+def send_to_apim_no_auth(api_request_context, nhsd_apim_proxy_url, params, resource_name):
     url = nhsd_apim_proxy_url + "/" + resource_name
+    return _send_api_request(api_request_context, url, params)
 
-    headers_by_token_type = {
-        "missing": None,
-        "invalid": {"Authorization": "Bearer invalid_token"},
-        "_status": status_endpoint_auth_headers
-    }
+@when(
+    parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" with invalid token'),
+    target_fixture="fresponse",
+)
+def send_to_apim_invalid_token(api_request_context, nhsd_apim_proxy_url, params, resource_name):
+    url = nhsd_apim_proxy_url + "/" + resource_name
+    headers = {"Authorization": "Bearer invalid_token"}
+    return _send_api_request(api_request_context, url, params, headers)
 
-    if token_type not in headers_by_token_type:
-        raise ValueError(f"Unknown token_type: {token_type}")
-
-    return _send_api_request(api_request_context, url, params, headers=headers_by_token_type[token_type])
+@when(
+    parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" with status token'),
+    target_fixture="fresponse",
+)
+def send_to_apim_status_token(api_request_context, status_endpoint_auth_headers, nhsd_apim_proxy_url, params, resource_name):
+    url = nhsd_apim_proxy_url + "/" + resource_name
+    return _send_api_request(api_request_context, url, params, status_endpoint_auth_headers)
 
 
 def _send_api_request(request_context, url, params: str=None, headers=None):
