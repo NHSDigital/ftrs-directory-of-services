@@ -99,35 +99,38 @@ Feature: Organization API Endpoint
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the role extentions to contain "<primary_role_code>" and "<non_primary_role_codes>"
+    When I set the role extensions to contain "<primary_role_code>" and "<non_primary_role_codes>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with code "success"
     And the database reflects "primary_role_code" with value "<primary_role_code>"
-    And the database reflects "non_primary_role_codes" with values "<non_primary_role_codes>"
+    And the database reflects "non_primary_role_codes" with value "<non_primary_role_codes>"
 
     Examples:
       | primary_role_code  | non_primary_role_codes|
-      | RO177         | RO76             |
-      | RO177         | RO80             |
-      | RO177         | RO87             |
-      | RO177         | RO76,RO80        |
-      | RO177         | RO76,RO80,RO87   |
-      | RO182         | None               |
+      | RO177         | [RO76]             |
+      | RO177         | [RO80]             |
+      | RO177         | [RO87]             |
+      | RO177         | [RO76, RO80]        |
+      | RO177         | [RO76, RO80, RO87]   |
+      | RO182         |  []           |
 
   Scenario Outline: Reject Organisation with invalid role combinations
-    When I set the role extentions to contain "<primary_role_code>" and "<non_primary_role_codes>"
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I set the role extensions to contain "<primary_role_code>" and "<non_primary_role_codes>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates the "expected_error_message"
+    And the diagnostics message indicates the "<expected_error_message>"
 
     Examples:
       | primary_role_code  | non_primary_role_codes| expected_error_message |
-      | RO177          | RO80, RO80             |Duplicate non-primary roles are not allowed |
-      | RO177          |             | must have at least one non-primary role |
-      | None         | RO76             | Primary role code must be provided |
+      | RO177          | [RO80, RO80]             |Duplicate non-primary roles are not allowed |
+      | RO177          |  []           | must have at least one non-primary role |
+      | None         | [RO80]             | Primary role code must be provided |
 
 
 

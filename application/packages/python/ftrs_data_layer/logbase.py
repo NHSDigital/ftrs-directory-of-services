@@ -543,7 +543,7 @@ class CrudApisLogBase(LogBase):
     )
     ORGANISATION_023 = LogReference(
         level=ERROR,
-        message="Invalid organization role combination for organisation {organisation_id}: {error_message}.",
+        message="Error when validating roles for organisation {organisation_id}: {error_message}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,

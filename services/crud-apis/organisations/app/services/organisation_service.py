@@ -248,7 +248,7 @@ class OrganisationService:
                 outdated_fields["primary_role_code"] = primary_role
             except ValueError:
                 error_message = f"Invalid primary role code: '{primary_role}'. "
-                self._handle_invalid_role_combination(organisation.id, error_message)
+                self._handle_role_error(organisation.id, error_message)
 
         # Convert non-primary roles if they are strings
         if non_primary_roles and isinstance(non_primary_roles[0], str):
@@ -260,7 +260,7 @@ class OrganisationService:
                 non_primary_roles = converted_non_primary_roles
             except ValueError as e:
                 error_message = f"Invalid non-primary role code: {str(e)}. "
-                self._handle_invalid_role_combination(organisation.id, error_message)
+                self._handle_role_error(organisation.id, error_message)
 
         # Now validate the combination with enum values
         is_valid, error_message = validate_type_combination(
@@ -268,12 +268,10 @@ class OrganisationService:
         )
 
         if not is_valid:
-            self._handle_invalid_role_combination(organisation.id, error_message)
+            self._handle_role_error(organisation.id, error_message)
 
-    def _handle_invalid_role_combination(
-        self, organisation_id: str, error_message: str
-    ) -> None:
-        """Log and raise exception for invalid role combinations."""
+    def _handle_role_error(self, organisation_id: str, error_message: str) -> None:
+        """Log and raise exception for role related errors."""
         self.logger.log(
             CrudApisLogBase.ORGANISATION_023,
             organisation_id=organisation_id,

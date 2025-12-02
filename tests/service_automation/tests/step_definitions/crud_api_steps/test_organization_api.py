@@ -415,12 +415,24 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
-    actual = (
-        getattr(item, field, None)
-        if field != "telecom"
-        else getattr(item, "telecom", None)
-    )
-    assert actual == value, f"{field} mismatch: expected {value}, got {actual}"
+    actual = getattr(item, field, None)
+
+    if field == "non_primary_role_codes":
+        if value.strip() == "[]":
+            expected = []
+        else:
+            # Remove brackets and split by comma
+            cleaned = value.strip().strip("[]")
+            expected = [code.strip() for code in cleaned.split(",")] if cleaned else []
+
+        actual_codes = [str(code) if hasattr(code, 'value') else code for code in (actual or [])]
+
+        logger.info(f"Validating {field}: expected={expected}, actual={actual_codes}")
+        assert actual_codes == expected, f"{field} mismatch: expected {expected}, got {actual_codes}"
+    else:
+        # For other fields, use the original logic
+        logger.info(f"Validating {field}: expected={value}, actual={actual}")
+        assert str(actual) == value, f"{field} mismatch: {actual} != {value}"
 
 
 @then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
@@ -495,7 +507,7 @@ def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
 
 @when(
     parsers.parse(
-        'I set the role extentions to contain "{primary_role_code}" and "{non_primary_role_codes}"'
+        'I set the role extensions to contain "{primary_role_code}" and "{non_primary_role_codes}"'
     ),
     target_fixture="fresponse",
 )
@@ -510,53 +522,64 @@ def step_set_role_extensions(
     role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
     payload["extension"] = []
 
+    # Handle None primary role code
+    if primary_role_code.lower() == "none":
+        primary_role_code = None
 
-    primary_ext = {
-        "url": role_url,
-        "extension": [
-            {
-                "url": "roleCode",
-                "valueCodeableConcept": {
-                    "coding": [{
-                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                        "code": primary_role_code,
-                    }]
-                }
-            },
-            {
-                "url": "primaryRole",
-                "valueBoolean": True
-            }
-        ]
-    }
-    payload["extension"].append(primary_ext)
-
-    if non_primary_role_codes and non_primary_role_codes.lower() != "none":
-        role_codes = [code.strip() for code in non_primary_role_codes.split(",")]
-
-        for code in role_codes:
-            non_primary_ext = {
-                "url": role_url,
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [{
-                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                "code": code,
-                            }]
-                        }
-                    },
-                    {
-                        "url": "primaryRole",
-                        "valueBoolean": False
+    # Build primary role extension if primary code exists
+    if primary_role_code:
+        primary_ext = {
+            "url": role_url,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": primary_role_code,
+                        }]
                     }
-                ]
-            }
-            payload["extension"].append(non_primary_ext)
+                },
+                {
+                    "url": "primaryRole",
+                    "valueBoolean": True
+                }
+            ]
+        }
+        payload["extension"].append(primary_ext)
+
+    role_codes_list = []
+    if non_primary_role_codes and non_primary_role_codes.strip():
+        cleaned = non_primary_role_codes.strip().strip("[]")
+        if cleaned and cleaned.lower() != "none":
+            role_codes_list = [code.strip() for code in cleaned.split(",")]
+
+    # Build non-primary role extensions
+    for code in role_codes_list:
+        if code.lower() == "none":
+            continue
+
+        non_primary_ext = {
+            "url": role_url,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": code,
+                        }]
+                    }
+                },
+                {
+                    "url": "primaryRole",
+                    "valueBoolean": False
+                }
+            ]
+        }
+        payload["extension"].append(non_primary_ext)
 
     logger.info(f"Extension count: {len(payload.get('extension', []))}")
-
 
     organisation_id = payload.get("id")
     url = get_url("crud") + f"/Organization/{organisation_id}"
@@ -573,16 +596,7 @@ def step_set_role_extensions(
         },
     )
 
-    if response.status == 422:
-        try:
-            error_body = response.json()
-            logger.error(f"422 Error Response: {json.dumps(error_body, indent=2)}")
-            if "issue" in error_body:
-                for issue in error_body["issue"]:
-                    logger.error(f"Issue: {issue.get('diagnostics', 'No diagnostics')}")
-        except Exception as e:
-            logger.error(f"Could not parse error response: {e}")
-            logger.error(f"Raw response: {response.text()}")
+    response.request_body = payload
 
     logger.info(f"Response status: {response.status}")
     logger.debug(f"Response body: {response.text()}")
