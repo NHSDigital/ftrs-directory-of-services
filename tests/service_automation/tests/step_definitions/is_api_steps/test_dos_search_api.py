@@ -60,17 +60,8 @@ def dns_resolvable(api_name, env, workspace):
 )
 def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
     url = get_url(api_name) + "/" + resource_name
-    # Handle None or empty params
-    if params is None or not params.strip():
-        param_dict = {}
-    else:
-        # Parse the params string into a dictionary
-        param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
 
-    response = api_request_context_mtls.get(
-            url,  params=param_dict
-        )
-    return response
+    return _send_api_request(api_request_context_mtls, url, params)
 
 @when(
     parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
@@ -78,51 +69,50 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
 )
 def send_to_apim_get_with_params(new_apim_request_context, nhsd_apim_proxy_url, params, resource_name):
     url = nhsd_apim_proxy_url + "/" + resource_name
-    # Handle None or empty params
-    if params is None or not params.strip():
-        param_dict = {}
-    else:
-        # Parse the params string into a dictionary
-        param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
 
-    response = new_apim_request_context.get(
-            url,  params=param_dict
-        )
-    return response
+    return _send_api_request(new_apim_request_context, url, params)
 
 @when(
     parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" and "(?P<token_type>.*?)" access token'),
     target_fixture="fresponse",
 )
-def send_to_apim_secure(api_request_context, new_apim_status_request_context, resource_name, params, nhsd_apim_proxy_url, token_type):
+def send_to_apim_secure(api_request_context, status_endpoint_auth_headers, resource_name, params, nhsd_apim_proxy_url, token_type):
     url = nhsd_apim_proxy_url + "/" + resource_name
-    # Handle None or empty params
-    if params is None or not params.strip():
-        param_dict = {}
-    else:
-        # Parse the params string into a dictionary
-        param_dict = dict(param.split('=', 1) for param in params.split('&') if '=' in param)
 
-    if token_type == "missing":
-        response = api_request_context.get(
-                url,  params=param_dict
-            )
-    elif token_type == "invalid":
-        response = api_request_context.get(
-            url,  params=param_dict, headers={"Authorization": "Bearer invalid_token"}
-        )
-    elif token_type == "_status":
-        response = new_apim_status_request_context.get(
-            url,  params=param_dict
-    )
-    else:
+    headers_by_token_type = {
+        "missing": None,
+        "invalid": {"Authorization": "Bearer invalid_token"},
+        "_status": status_endpoint_auth_headers
+    }
+
+    if token_type not in headers_by_token_type:
         raise ValueError(f"Unknown token_type: {token_type}")
+
+    return _send_api_request(api_request_context, url, params, headers=headers_by_token_type[token_type])
+
+
+def _send_api_request(request_context, url, params: str=None, headers=None):
+    param_dict = _convert_params_str_to_dict(params)
+
+    response = request_context.get(
+        url,
+        params=param_dict,
+        headers=headers,
+    )
+
     logger.info(f"response: {response.text}")
+
     return response
 
-@then(parsers.re(r'the OperationOutcome contains an issue with details for (?P<coding_type>\w+) coding'))
-def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type):
-    api_check_operation_outcome_any_issue_by_key_value(
+def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
+    if not params:
+        return {}
+
+    return dict(param.split('=', 1) for param in params.split('&') if '=' in param)
+
+@then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding'))
+def api_check_operation_outcome_any_issue_details_invalid_search_data(fresponse):
+    api_check_operation_outcome_any_issue_diagnostics(
         fresponse,
         key="details",
         value=CODING_MAP[coding_type],
