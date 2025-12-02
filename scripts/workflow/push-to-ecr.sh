@@ -56,6 +56,7 @@ validate_or_decode_token(){
 }
 
 fetch_proxygen_registry_credentials(){
+  log "fetch_proxygen_registry_credentials DOCKER_TOKEN: ${DOCKER_TOKEN:-<empty>}"
   local token_json
   if ! token_json=$(validate_or_decode_token "$DOCKER_TOKEN"); then
     die "DOCKER_TOKEN is not valid JSON or base64-encoded JSON"
