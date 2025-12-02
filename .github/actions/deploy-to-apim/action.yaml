@@ -17,6 +17,9 @@ inputs:
   access_token:
     description: 'Access Token for the Proxygen API'
     required: true
+  proxygen_url:
+    description: 'Proxygen API URL'
+    required: true
 
 outputs:
   deployment_status:
@@ -69,6 +72,7 @@ runs:
         export PROXY_ENV="${{ inputs.apim_env }}"
         export ACCESS_TOKEN="${{ inputs.access_token }}"
         export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
+        export PROXYGEN_URL="${{ inputs.proxygen_url }}"
 
         chmod +x ./scripts/workflow/deploy-to-apim.sh
         RESPONSE=$(./scripts/workflow/deploy-to-apim.sh)

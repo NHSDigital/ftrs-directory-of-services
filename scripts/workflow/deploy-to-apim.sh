@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to deploy API spec to Proxygen APIM
-# Required environment variables: WORKSPACE, API_NAME, PROXY_ENV, ACCESS_TOKEN, MODIFIED_SPEC_PATH
+# Required environment variables: WORKSPACE, API_NAME, PROXY_ENV, ACCESS_TOKEN, MODIFIED_SPEC_PATH, PROXYGEN_URL
 
 set -e
 
@@ -31,13 +31,15 @@ if [ -z "$MODIFIED_SPEC_PATH" ]; then
     exit 1
 fi
 
+if [ -z "$PROXYGEN_URL" ]; then
+    echo "Error: PROXYGEN_URL environment variable is required" >&2
+    exit 1
+fi
+
 if [ ! -f "$MODIFIED_SPEC_PATH" ]; then
     echo "Error: Modified spec file not found at $MODIFIED_SPEC_PATH" >&2
     exit 1
 fi
-
-# Set Proxygen API URL
-PROXYGEN_URL="https://proxygen.prod.api.platform.nhs.uk"
 
 # Set instance name based on environment
 if [ "$PROXY_ENV" = "internal-dev" ]; then
@@ -46,7 +48,7 @@ if [ "$PROXY_ENV" = "internal-dev" ]; then
     INSTANCE_NAME="${API_NAME}-${WORKSPACE}_FHIR_R4"
 else
     # For other environments, use just the API_NAME
-    INSTANCE_NAME="${API_NAME}"
+    INSTANCE_NAME="${API_NAME}_FHIR_R4"
 fi
 
 # Deploy to Proxygen using the environment/instance endpoint
