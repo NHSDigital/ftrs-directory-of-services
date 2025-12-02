@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
-      API_NAME: ${{ inputs.name }}
+      API_NAME: ${{ replace(inputs.name, 'sandbox-', '') }}
       ENVIRONMENT: ${{ inputs.environment }}
       AWS_REGION: ${{ vars.AWS_REGION }}
       COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
@@ -97,7 +97,7 @@ jobs:
         id: get-token
         uses: ./.github/actions/authenticate-apim
         with:
-          api_name: ${{ inputs.name }}
+          api_name: ${{ env.API_NAME }}
           environment: ${{ inputs.environment }}
           aws_region: ${{ vars.AWS_REGION }}
 
