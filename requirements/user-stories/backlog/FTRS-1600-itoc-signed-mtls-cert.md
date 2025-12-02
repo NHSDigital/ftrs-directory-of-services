@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 All designated internal service-to-service communications MUST use mutual TLS where the presented client/server certificates are issued by an ITOC-approved intermediate CA and validate up to the ITOC root. This story delivers certificate issuance, validation (chain + revocation), rotation, monitoring, and testing to prove enforcement and operational safety.
 
 ## Acceptance Criteria
+
 1. 100% of covered service-to-service calls (crud-apis ↔ dos-search ↔ etl-ods ↔ dos-ingestion-api ↔ read-only-viewer) negotiate mTLS using certificates signed by ITOC-approved CA.
 2. Certificate chain validation confirms: leaf -> intermediate (ITOC-approved) -> ITOC root; failure triggers structured security log with `chain_invalid` flag.
 3. Handshake with an expired certificate is rejected and logs event containing: `cert_subject`, `issuer`, `expiry_ts`, `environment`, `correlation_id`.
@@ -25,6 +27,7 @@ All designated internal service-to-service communications MUST use mutual TLS wh
 10. Monitoring dashboard exposes success %, latency p95, failure breakdown (expired, revoked, chain_invalid, weak_cipher) with success rate ≥99.9%.
 
 ## Non-Functional Acceptance
+
 - Control ID: `mtls-service-handshake`
 - Chain Requirement: Leaf & intermediate signed by ITOC-approved CA; root = ITOC
 - Latency Threshold: mTLS handshake adds <20ms p95 overhead
@@ -33,42 +36,49 @@ All designated internal service-to-service communications MUST use mutual TLS wh
 - Observability: Metrics emitted: `mtls_handshake_success_total`, `mtls_handshake_failure_total` (labels: reason, service_pair), `mtls_handshake_latency_ms` histogram
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Integration | CI pipeline (pytest + custom TLS harness) | Handshake scenarios & chain validity |
-| Performance | k6 / Locust | Latency overhead p95 & failure impact |
-| Security | Automated cert validation scripts | Chain, revocation, cipher policy compliance |
-| Monitoring | Synthetic probes | Continuous handshake success rate & alerting |
+
+| Test Type   | Tooling                                   | Focus                                        |
+| ----------- | ----------------------------------------- | -------------------------------------------- |
+| Integration | CI pipeline (pytest + custom TLS harness) | Handshake scenarios & chain validity         |
+| Performance | k6 / Locust                               | Latency overhead p95 & failure impact        |
+| Security    | Automated cert validation scripts         | Chain, revocation, cipher policy compliance  |
+| Monitoring  | Synthetic probes                          | Continuous handshake success rate & alerting |
 
 ## Out of Scope
+
 - External (public internet) TLS termination policies (covered elsewhere).
 - Non-mTLS service-to-public endpoints.
 
 ## Implementation Notes
+
 - Use existing certificate management pipeline extended to request ITOC intermediate-signed certs.
 - Add OCSP/CRL validation step in gateway / sidecar.
 - Introduce structured logging fields: `mtls_reason`, `cert_subject`, `issuer`, `correlation_id`.
 - Provide rotation runbook referencing SEC-015 alert flow.
 
 ## Monitoring & Metrics
+
 - `mtls_handshake_success_total`
 - `mtls_handshake_failure_total` (reason labels: expired, revoked, chain_invalid, weak_cipher, untrusted_issuer)
 - `mtls_handshake_latency_ms` (histogram)
 - Alert: success rate <99.9% over 5m or any `chain_invalid` spike >10 in 5m.
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Revocation latency | Window of exposure | Frequent CRL/OCSP polling (≤5m) |
-| Misconfigured cipher list | Handshake failures | Pre-deploy validation + integration tests |
-| Rotation misfire | Downtime | Staged dual-cert deployment + live probes |
-| Logging omissions | Limited auditability | Enforced structured log schema + tests |
+
+| Risk                      | Impact               | Mitigation                                |
+| ------------------------- | -------------------- | ----------------------------------------- |
+| Revocation latency        | Window of exposure   | Frequent CRL/OCSP polling (≤5m)           |
+| Misconfigured cipher list | Handshake failures   | Pre-deploy validation + integration tests |
+| Rotation misfire          | Downtime             | Staged dual-cert deployment + live probes |
+| Logging omissions         | Limited auditability | Enforced structured log schema + tests    |
 
 ## Traceability
+
 - NFR: SEC-014 (mTLS service handshake), SEC-001 (cipher policy), SEC-011 (latency), SEC-015 (cert expiry alert)
 - Expectations Registry: `security/expectations.yaml` control `mtls-service-handshake`
 
 ## Open Questions
+
 1. Confirm exact ITOC intermediate CA naming convention to validate issuer DN.
 2. Determine OCSP vs CRL precedence if both available.
 3. Define rotation cadence (e.g., 180 days vs 365) per platform policy.

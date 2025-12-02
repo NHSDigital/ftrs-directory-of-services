@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: policy doc, feature classification matrix, audit log excerpt.
 ---
+
 # Summary
+
 Identity assurance enforcement aligned to classification and policy.
 
 ## Detail
+
 Implements enforcement of identity assurance based on feature sensitivity, requiring higher IAL for critical operations and blocking access when assurance is insufficient. Provides auditable mapping from feature classification to required assurance level.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-IDENTITY-ASSURANCE-LEVELS-01: Sensitive features require IAL2+; downgrade blocks access; audit trace links decision to policy.
 
 ## INVEST Checklist
+
 - Independent: Separate from NHS Login integration specifics.
 - Negotiable: Classification matrix granularity.
 - Valuable: Reduces fraud risk and misuse of sensitive features.

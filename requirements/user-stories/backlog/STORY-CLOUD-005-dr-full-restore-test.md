@@ -17,16 +17,21 @@ notes: |
   Checklist: requirements/user-stories/checklists/aws-dr-restore-checklist.md
   Position: requirements/red-lines/cloud-backups.md
 ---
+
 # Summary
+
 Periodic full restore testing ensuring recoverability.
 
 ## Detail
+
 Executes a full isolated recovery from production backups in a non-connected account/environment to validate disaster recovery readiness, data integrity, and confirm RPO/RTO objectives. Failures produce remediation tickets ensuring continuous improvement.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-DR-RESTORE-TEST-01: Full restore execution within mandated window; integrity verification; ticketing of failures.
 
 ## INVEST Checklist
+
 - Independent: Separate from autoscaling or blue/green stories.
 - Negotiable: Specific tooling for integrity validation.
 - Valuable: Demonstrates recoverability and reduces DR uncertainty.

@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: Unhealthy node auto-replaced; workload continues.
 
 ## Acceptance Criteria
+
 1. Auto-replacement within policy; no user-visible downtime
 2. Tooling: Autoscaling group events + workload health operational
 3. Cadence: Continuous monitoring + quarterly drill validated
@@ -20,36 +22,44 @@ Implement automated validation for: Unhealthy node auto-replaced; workload conti
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `unhealthy-node-auto-replace`\n- Threshold: Auto-replacement within policy; no user-visible downtime\n- Tooling: Autoscaling group events + workload health\n- Cadence: Continuous monitoring + quarterly drill\n- Environments: int, ref, prod
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Maintains reliability during node failures
 - Cadence: Continuous monitoring + quarterly drill
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `unhealthy_node_auto_replace_compliance_status` gauge
 - `unhealthy_node_auto_replace_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: REL-011
 - Registry: reliability/expectations.yaml v1.0
 
 ## Open Questions
+
 None

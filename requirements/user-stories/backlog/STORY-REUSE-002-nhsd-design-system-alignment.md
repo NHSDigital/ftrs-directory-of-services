@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: component inventory, accessibility audit report, exception log.
 ---
+
 # Summary
+
 Adopt NHS Design System components and manage exceptions.
 
 ## Detail
+
 Ensures UI implementation aligns with centrally governed NHS Design System improving accessibility and consistency. Exceptions are time-bound with rationale and expiry to prevent divergence from shared patterns. Accessibility audits validate no custom component introduces WCAG AA issues.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-DESIGN-SYSTEM-ALIGN-01: Each acceptance criterion maps to conformance (component usage, audit result, managed exception) and provides evidence through inventory, audit, exception register.
 
 ## INVEST Checklist
+
 - Independent: Can be delivered separate from backend changes.
 - Negotiable: Specific exception lifecycle tooling details.
 - Valuable: Reduces maintenance overhead and improves accessibility compliance.

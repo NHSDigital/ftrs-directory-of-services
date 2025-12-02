@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Blue/green pipeline modifications; evidence: deployment logs, monitoring comparison report.
 ---
+
 # Summary
+
 Introduce enforced blue/green deployment pattern.
 
 ## Detail
+
 Applies blue/green deployment strategy to gold/platinum classified services to eliminate user impact during releases. Ensures health verification on the new (green) environment before switch, evidence of traffic cutover, and immediate rollback path with documented timestamp.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - CTRL-DEPLOY-BLUEGREEN-01: Health checks prior to switch; compare latency & error rate pre/post; verify rollback procedure recorded.
 
 ## INVEST Checklist
+
 - Independent: Only depends on existing CI/CD system.
 - Negotiable: Depth of health checks and baseline window length.
 - Valuable: Minimizes deployment risk and preserves user trust.

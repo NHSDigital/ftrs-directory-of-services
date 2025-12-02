@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: MFA (CIS2) succeeds across supported platforms.
 
 ## Acceptance Criteria
+
 1. MFA journeys pass across supported platforms
 2. Tooling: Cross-platform test suite + identity provider logs operational
 3. Cadence: Release cycle validated
@@ -20,36 +22,44 @@ Implement automated validation for: MFA (CIS2) succeeds across supported platfor
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `mfa-platforms`\n- Threshold: MFA journeys pass across supported platforms\n- Tooling: Cross-platform test suite + identity provider logs\n- Cadence: Release cycle\n- Environments: int, ref, prod
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Ensures authentication compatibility
 - Cadence: Release cycle
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `mfa_platforms_compliance_status` gauge
 - `mfa_platforms_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: COMP-002
 - Registry: compatibility/expectations.yaml v1.0
 
 ## Open Questions
+
 None

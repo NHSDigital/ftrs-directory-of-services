@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: Monthly Cost Explorer review & anomaly log.
 
 ## Acceptance Criteria
+
 1. Review completed; anomalies logged with actions
 2. Tooling: Cost Explorer + anomaly detection operational
 3. Cadence: Monthly validated
@@ -20,36 +22,44 @@ Implement automated validation for: Monthly Cost Explorer review & anomaly log.
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `monthly-cost-review`\n- Threshold: Review completed; anomalies logged with actions\n- Tooling: Cost Explorer + anomaly detection\n- Cadence: Monthly\n- Environments: prod
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Ensures proactive cost management
 - Cadence: Monthly
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `monthly_cost_review_compliance_status` gauge
 - `monthly_cost_review_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: COST-002
 - Registry: cost/expectations.yaml v1.0
 
 ## Open Questions
+
 None

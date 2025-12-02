@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: GDPR compliance assessment signed by IG.
 
 ## Acceptance Criteria
+
 1. Assessment signed; actions tracked
 2. Tooling: IG workflow + evidence repository operational
 3. Cadence: Pre-live + annual validated
@@ -20,6 +22,7 @@ Implement automated validation for: GDPR compliance assessment signed by IG.
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `gdpr-assessment-signed`
 - Threshold: Assessment signed; actions tracked
 - Tooling: IG workflow + evidence repository
@@ -27,33 +30,40 @@ Implement automated validation for: GDPR compliance assessment signed by IG.
 - Environments: prod
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Ensures data protection compliance
 - Cadence: Pre-live + annual
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `gdpr_assessment_signed_compliance_status` gauge
 - `gdpr_assessment_signed_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: GOV-005
 - Registry: governance/expectations.yaml v1.0
 
 ## Open Questions
+
 None

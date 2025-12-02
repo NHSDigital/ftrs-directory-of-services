@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: Blue/green deployment produces 0 failed requests.
 
 ## Acceptance Criteria
+
 1. 0 failed requests during blue/green switch
 2. Tooling: Deployment controller + canary telemetry operational
 3. Cadence: Per deployment validated
@@ -20,36 +22,44 @@ Implement automated validation for: Blue/green deployment produces 0 failed requ
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `blue-green-zero-failures`\n- Threshold: 0 failed requests during blue/green switch\n- Tooling: Deployment controller + canary telemetry\n- Cadence: Per deployment\n- Environments: int, ref, prod
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Ensures safe deployments without user impact
 - Cadence: Per deployment
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `blue_green_zero_failures_compliance_status` gauge
 - `blue_green_zero_failures_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: AVAIL-010
 - Registry: availability/expectations.yaml v1.0
 
 ## Open Questions
+
 None

@@ -9,6 +9,7 @@ status: draft
 ---
 
 ## Acceptance Criteria
+
 1. Metrics: `dm_record_transform_latency_seconds` (histogram), `dm_full_sync_duration_seconds`.
 2. Baseline: p95 < 0.25s per record; full run < 30m.
 3. Alert on >20% regression vs baseline.

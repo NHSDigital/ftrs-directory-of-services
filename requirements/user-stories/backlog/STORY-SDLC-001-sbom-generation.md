@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: pipeline logs, SBOM file sample, failing build example.
 ---
+
 # Summary
+
 Automated SBOM generation integrated into build pipeline.
 
 ## Detail
+
 Adds automated SBOM (SPDX or CycloneDX) generation to build pipeline, failing builds without SBOM presence and enabling rapid correlation during vulnerability scans. Ensures traceability of components for risk assessment.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-SDLC-SBOM-01: SBOM produced for each artifact; used in vulnerability correlation; missing SBOM fails build.
 
 ## INVEST Checklist
+
 - Independent: Does not depend on quality gate enforcement.
 - Negotiable: Chosen SBOM format specifics.
 - Valuable: Speeds vulnerability impact evaluation.

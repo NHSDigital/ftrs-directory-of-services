@@ -16,16 +16,21 @@ notes: |
   Evidence: runbook, monitoring screenshots pre/post swap, drift report.
   Checklist: requirements/user-stories/checklists/active-passive-swap-checklist.md
 ---
+
 # Summary
+
 Quarterly active-passive regional swap to exercise failover path.
 
 ## Detail
+
 Executes scheduled cutover from active to passive region/site to validate failover readiness, uncover configuration drift, and ensure resilience targets remain stable. Drift findings are captured for remediation planning.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-OPERATIONS-ACTIVE-PASSIVE-01: Periodic swap execution; unchanged SLOs; drift detection and ticketing.
 
 ## INVEST Checklist
+
 - Independent: Only requires existing passive environment readiness.
 - Negotiable: Exact swap frequency (quarterly vs semiannual).
 - Valuable: Confirms true operability of DR path & config parity.

@@ -23,13 +23,17 @@ notes: |
   Blueprint: https://github.com/NHSDigital/terraform-aws-backup/tree/v1.1.0
   Position: requirements/red-lines/cloud-backups.md
 ---
+
 # Summary
+
 Immutable backups with enforced retention safeguards.
 
 ## Detail
+
 Consume the NHS AWS cloud backups blueprint (v1.1) as Terraform modules to provision immutable backups with a locked archive in a dedicated recovery account. Use AWS Backup with Vault Lock (and S3 Object Lock where applicable), enforce least‑privilege IAM and robust KMS key policies. Retain daily backups for at least 30 days unless a product-specific retention is agreed. Back up essential service data required to restore service, plus non‑data artifacts (configuration, production build, secrets, certificates). Contribute any required enhancements (e.g., alerting options) upstream to the blueprint. Validate annually that a locked archive restores successfully.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-BACKUP-IMMUTABLE-01:
   - Module consumption proves blueprint alignment and upgradeability.
   - Vault/Object Lock enforce write-once; cross-account copy provides isolation.
@@ -38,6 +42,7 @@ Consume the NHS AWS cloud backups blueprint (v1.1) as Terraform modules to provi
   - Annual restore drill evidences end-to-end recoverability of locked archives.
 
 ## INVEST Checklist
+
 - Independent: Can proceed without DR restore scheduling.
 - Negotiable: Specific storage class technology.
 - Valuable: Protects backups from ransomware/tampering.

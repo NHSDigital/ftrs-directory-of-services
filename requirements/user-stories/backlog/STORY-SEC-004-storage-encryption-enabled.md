@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation ensuring all platform storage services (databases, object stores, block volumes, search indices, queues) have encryption at rest enabled using approved KMS keys. Provide continuous compliance reporting and remediation pathways.
 
 ## Acceptance Criteria
+
 1. Inventory lists every storage resource with encryption status and KMS key reference.
 2. 100% storage resources show encryption enabled (no exceptions in prod).
 3. AWS Config / policy as code rules detect and flag non-encrypted resources within 5 minutes.
@@ -25,6 +27,7 @@ Implement automated validation ensuring all platform storage services (databases
 10. Evidence pack export (CSV/JSON) available for audit containing resource id, env, encryption flag, key id.
 
 ## Non-Functional Acceptance
+
 - Control ID: `storage-encryption-enabled`
 - Threshold: 100% encrypted in prod; auto-remediation triggers <100%.
 - Tooling: AWS Config, Terraform policy checks, compliance dashboard, remediation script.
@@ -32,37 +35,43 @@ Implement automated validation ensuring all platform storage services (databases
 - Environments: dev, int, ref, prod (all monitored; stricter alerting in prod).
 
 ## Test Strategy
-| Test Type | Focus | Tooling |
-|-----------|-------|---------|
-| Policy Unit | Detect unencrypted definitions | Terraform compliance tests |
-| Integration | AWS Config rule firing | Simulated unencrypted resource |
-| Remediation | Auto-enable encryption | Script dry-run & apply tests |
-| Reporting | Accuracy of weekly export | Snapshot comparison |
-| Alerting | Threshold breach triggers | Metrics injection in staging |
+
+| Test Type   | Focus                          | Tooling                        |
+| ----------- | ------------------------------ | ------------------------------ |
+| Policy Unit | Detect unencrypted definitions | Terraform compliance tests     |
+| Integration | AWS Config rule firing         | Simulated unencrypted resource |
+| Remediation | Auto-enable encryption         | Script dry-run & apply tests   |
+| Reporting   | Accuracy of weekly export      | Snapshot comparison            |
+| Alerting    | Threshold breach triggers      | Metrics injection in staging   |
 
 ## Monitoring & Metrics
+
 - `storage_encryption_enabled_compliance_ratio{env}` gauge
 - `storage_encryption_enabled_violations_total{env}` counter
 - Alert: compliance_ratio <1.0 (prod) sustained >10m.
 
 ## Implementation Notes
+
 - Use tagging or resource graph queries to build inventory.
 - Map KMS key ARNs; verify rotation policy separately (other control).
 - Provide CLI `scripts/nfr/storage_encryption_check.py` for local & CI use.
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Unsupported legacy resource | Partial coverage | Document exceptions & plan migration |
-| False positives | Noise | Rule tuning & allowlist with expiration |
-| Auto-remediation failure | Non-compliance | Fallback manual runbook & alerting |
+
+| Risk                        | Impact           | Mitigation                              |
+| --------------------------- | ---------------- | --------------------------------------- |
+| Unsupported legacy resource | Partial coverage | Document exceptions & plan migration    |
+| False positives             | Noise            | Rule tuning & allowlist with expiration |
+| Auto-remediation failure    | Non-compliance   | Fallback manual runbook & alerting      |
 
 ## Traceability
+
 - NFR: SEC-004
 - Expectations Registry: `security/expectations.yaml` (encryption-at-rest related control)
 
 ## Open Questions
-| Topic | Question | Next Step |
-|-------|----------|-----------|
-| Key rotation linkage | Separate story or same? | Split to distinct rotation control story |
-| Cross-account keys | Standardize approach? | Define pattern in platform security guide |
+
+| Topic                | Question                | Next Step                                 |
+| -------------------- | ----------------------- | ----------------------------------------- |
+| Key rotation linkage | Separate story or same? | Split to distinct rotation control story  |
+| Cross-account keys   | Standardize approach?   | Define pattern in platform security guide |

@@ -15,5 +15,7 @@ out_of_scope:
 notes: |
   Evidence: pipeline definition, execution logs, failure notification sample.
 ---
+
 # Summary
+
 Automated CI/CD flow from merge to staging with controlled production promotion.

@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: onboarding ticket, metadata record, approval audit trail.
 ---
+
 # Summary
+
 Integrate with Digital Onboarding Service to standardize governance.
 
 ## Detail
+
 Automates initiation of Digital Onboarding Service (DOS) workflow for each new service, capturing mandatory metadata and governance artifacts centrally. Provides consistent approval tracking, accelerates readiness evaluation, and reduces manual variance.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-REUSE-DOS-ONBOARD-01: Workflow start with required metadata; governance artifacts stored; completion status update & stakeholder notifications.
 
 ## INVEST Checklist
+
 - Independent: Does not depend on NHS Login integration.
 - Negotiable: Notification channels specifics.
 - Valuable: Speeds compliance and onboarding consistency.

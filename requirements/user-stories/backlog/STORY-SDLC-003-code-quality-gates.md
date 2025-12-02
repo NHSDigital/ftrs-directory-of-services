@@ -15,5 +15,7 @@ out_of_scope:
 notes: |
   Evidence: gate configuration, failed PR example, approval record.
 ---
+
 # Summary
+
 CI integrated quality gates blocking non-compliant code merges.

@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement controls and automation ensuring that all TLS/mTLS certificates (leaf + intermediates where stored) and private key material are managed exclusively through approved encrypted secret storage services (e.g. AWS Secrets Manager / KMS). No certificate or private key data may appear in source repositories, build logs, container image layers, configuration files committed to VCS, or unsecured runtime paths. Continuous scanning must detect and block any inadvertent plaintext introduction.
 
 ## Acceptance Criteria
+
 1. Inventory of all certificate & private key usage (service, purpose, rotation cadence) documented and versioned.
 2. 100% certificate issuance, renewal, and rotation workflows retrieve material from approved secret store APIs (never hard-coded or manually pasted).
 3. Secret scanner (git history + diffs) configured to fail CI build on detection of private key patterns (e.g. `BEGIN ... KEY`) or certificate blocks outside approved encrypted storage manifests.
@@ -28,6 +30,7 @@ Implement controls and automation ensuring that all TLS/mTLS certificates (leaf 
 13. Documentation includes examples of valid secret references vs invalid plaintext embedding.
 
 ## Non-Functional Acceptance
+
 - Control ID: `cert-secure-storage`
 - Threshold: 0 plaintext occurrences across scans; 100% workflows secret-managed
 - Tooling: Secret scanning (git history + diff), container layer scanner, compliance inventory validator, IAM Access Analyzer
@@ -35,46 +38,53 @@ Implement controls and automation ensuring that all TLS/mTLS certificates (leaf 
 - Environments: dev, int, ref, prod
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Static scan | Secret scanner (git + diff) | Prevent plaintext commits |
-| Image scan | Layer scanner | Absence from built images |
-| Integration | Rotation dry-run | Zero downtime + secret retrieval |
-| Compliance | Inventory validator | ARN/ID mapping completeness |
-| Access review | IAM Access Analyzer | Least privilege on secret access |
+
+| Test Type     | Tooling                     | Focus                            |
+| ------------- | --------------------------- | -------------------------------- |
+| Static scan   | Secret scanner (git + diff) | Prevent plaintext commits        |
+| Image scan    | Layer scanner               | Absence from built images        |
+| Integration   | Rotation dry-run            | Zero downtime + secret retrieval |
+| Compliance    | Inventory validator         | ARN/ID mapping completeness      |
+| Access review | IAM Access Analyzer         | Least privilege on secret access |
 
 ## Out of Scope
+
 - Certificate authority issuance policy (covered by mTLS chain story FTRS-1600)
 - Runtime ephemeral filesystem encryption specifics (separate infra hardening)
 
 ## Implementation Notes
+
 - Extend existing secret scanning configuration with explicit private key regex + entropy heuristics.
 - Utilize build step to mount certificates from Secrets Manager at runtime-only path; unmount post-start or keep in memory.
 - Introduce structured log field `cert_inventory_mismatch` for compliance script findings.
 - Provide remediation guide for accidental key commit (history rewrite + revocation + rotation steps).
 
 ## Monitoring & Metrics
+
 - `cert_secure_storage_scan_total`
 - `cert_secure_storage_detected_total`
 - `cert_secure_storage_last_success_timestamp` (gauge)
 - Alert: Missing weekly scan or detected_total >0 (critical severity)
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| False positive scan blocks | Developer friction | Tuned regex + allowlist with audit |
-| Missed historical secret | Potential exposure | Periodic full history rescans |
-| Over-permissive secret access | Privilege escalation | IAM Access Analyzer enforcement |
-| Rotation script misconfiguration | Downtime | Staged dual-cert deployment & dry-run |
-| Logging omissions | Limited auditability | Enforced structured log schema + tests |
+
+| Risk                             | Impact               | Mitigation                             |
+| -------------------------------- | -------------------- | -------------------------------------- |
+| False positive scan blocks       | Developer friction   | Tuned regex + allowlist with audit     |
+| Missed historical secret         | Potential exposure   | Periodic full history rescans          |
+| Over-permissive secret access    | Privilege escalation | IAM Access Analyzer enforcement        |
+| Rotation script misconfiguration | Downtime             | Staged dual-cert deployment & dry-run  |
+| Logging omissions                | Limited auditability | Enforced structured log schema + tests |
 
 ## Traceability
+
 - NFR: SEC-030 (cert secure storage), SEC-001 (cipher policy), SEC-015 (cert expiry alert)
 - Expectations Registry: `security/expectations.yaml` control `cert-secure-storage`
 
 ## Open Questions
-| Topic | Question | Next Step |
-|-------|----------|-----------|
-| Secret naming convention | Use hierarchical path (service/env)? | Define naming standard in platform ops doc |
-| Entropy threshold tuning | What size triggers false positives? | Experiment with sample commits |
-| Inventory format | YAML vs JSON for ARNs? | Decide based on existing tooling compatibility |
+
+| Topic                    | Question                             | Next Step                                      |
+| ------------------------ | ------------------------------------ | ---------------------------------------------- |
+| Secret naming convention | Use hierarchical path (service/env)? | Define naming standard in platform ops doc     |
+| Entropy threshold tuning | What size triggers false positives?  | Experiment with sample commits                 |
+| Inventory format         | YAML vs JSON for ARNs?               | Decide based on existing tooling compatibility |

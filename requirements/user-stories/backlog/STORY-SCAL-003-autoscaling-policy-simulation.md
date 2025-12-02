@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: Autoscaling policy simulation triggers controlled scale.
 
 ## Acceptance Criteria
+
 1. Policy simulates expected scale events; no flapping
 2. Tooling: Policy simulator + metrics operational
 3. Cadence: Quarterly validated
@@ -20,36 +22,44 @@ Implement automated validation for: Autoscaling policy simulation triggers contr
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `autoscaling-policy-simulation`\n- Threshold: Policy simulates expected scale events; no flapping\n- Tooling: Policy simulator + metrics\n- Cadence: Quarterly\n- Environments: int, ref
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Confirms autoscaling tuning
 - Cadence: Quarterly
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `autoscaling_policy_simulation_compliance_status` gauge
 - `autoscaling_policy_simulation_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: SCAL-005
 - Registry: scalability/expectations.yaml v1.0
 
 ## Open Questions
+
 None

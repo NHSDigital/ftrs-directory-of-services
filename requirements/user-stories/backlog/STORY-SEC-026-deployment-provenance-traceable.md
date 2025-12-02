@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: Deployment provenance shows unique traceable accounts.
 
 ## Acceptance Criteria
+
 1. All deployments traceable to unique accounts
 2. Tooling: CI/CD audit trails + commit signing operational
 3. Cadence: Continuous validated
@@ -20,36 +22,44 @@ Implement automated validation for: Deployment provenance shows unique traceable
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `deployment-provenance-traceable`\n- Threshold: All deployments traceable to unique accounts\n- Tooling: CI/CD audit trails + commit signing\n- Cadence: Continuous\n- Environments: dev, int, ref, prod
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Ensures accountability and traceability for all deployments
 - Cadence: Continuous
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `deployment_provenance_traceable_compliance_status` gauge
 - `deployment_provenance_traceable_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: SEC-023
 - Registry: security/expectations.yaml v1.0
 
 ## Open Questions
+
 None

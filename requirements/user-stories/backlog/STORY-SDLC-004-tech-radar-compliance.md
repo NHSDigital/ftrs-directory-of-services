@@ -15,5 +15,7 @@ out_of_scope:
 notes: |
   Evidence: review log, exception record, quarterly report.
 ---
+
 # Summary
+
 Tech Radar compliance validation for new and existing components.

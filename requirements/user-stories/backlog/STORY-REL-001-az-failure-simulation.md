@@ -10,9 +10,11 @@ status: draft
 ---
 
 ## Description
+
 Implement automated validation for: AZ failure simulation maintains service.
 
 ## Acceptance Criteria
+
 1. Successful failover with sustained service availability; no data loss
 2. Tooling: Chaos simulation + health checks operational
 3. Cadence: Quarterly exercise validated
@@ -20,36 +22,44 @@ Implement automated validation for: AZ failure simulation maintains service.
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
+
 - Control ID: `az-failure-simulation`\n- Threshold: Successful failover with sustained service availability; no data loss\n- Tooling: Chaos simulation + health checks\n- Cadence: Quarterly exercise\n- Environments: int, ref
 
 ## Test Strategy
-| Test Type | Tooling | Focus |
-|-----------|---------|-------|
-| Compliance | Automated tooling | Policy enforcement |
-| Integration | CI pipeline | Continuous validation |
-| Audit | Manual review | Compliance assessment |
+
+| Test Type   | Tooling           | Focus                 |
+| ----------- | ----------------- | --------------------- |
+| Compliance  | Automated tooling | Policy enforcement    |
+| Integration | CI pipeline       | Continuous validation |
+| Audit       | Manual review     | Compliance assessment |
 
 ## Out of Scope
+
 Implementation details to be refined during sprint planning
 
 ## Implementation Notes
+
 - Validates resilience to Availability Zone failures
 - Cadence: Quarterly exercise
 - Status: draft
 
 ## Monitoring & Metrics
+
 - `az_failure_simulation_compliance_status` gauge
 - `az_failure_simulation_violations_total` counter
 
 ## Risks & Mitigation
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Configuration drift | Non-compliance | Automated remediation |
-| Tool failures | Missed violations | Redundant checks |
+
+| Risk                | Impact            | Mitigation            |
+| ------------------- | ----------------- | --------------------- |
+| Configuration drift | Non-compliance    | Automated remediation |
+| Tool failures       | Missed violations | Redundant checks      |
 
 ## Traceability
+
 - NFR: REL-002
 - Registry: reliability/expectations.yaml v1.0
 
 ## Open Questions
+
 None

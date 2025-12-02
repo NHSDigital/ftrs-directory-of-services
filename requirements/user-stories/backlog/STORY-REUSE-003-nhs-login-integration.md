@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: sequence diagram, configuration, successful test tokens redacted.
 ---
+
 # Summary
+
 NHS Login integration for secure authentication at required assurance level.
 
 ## Detail
+
 Integrates NHS Login OAuth/OpenID Connect flow for user authentication, capturing only minimal required identity assertions and adapting flows based on required identity assurance level (IAL) for sensitive features. Enhances trust while reducing credential management overhead.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-IDENTITY-NHS-LOGIN-01: Redirect through NHS Login, store assertions with PII minimisation, enforce elevated IAL where specified.
 
 ## INVEST Checklist
+
 - Independent: Can be delivered separate from cohorting integration.
 - Negotiable: Exact session attribute storage format.
 - Valuable: Improves security and reduces auth maintenance.

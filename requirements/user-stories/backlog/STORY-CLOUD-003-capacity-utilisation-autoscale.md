@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Supports NFR-CAPACITY-UTIL-01. Evidence: cost explorer export, utilisation monitoring dashboard snapshots.
 ---
+
 # Summary
+
 Visibility and enforcement of utilisation and mandated scale-down threshold.
 
 ## Detail
+
 Ensures horizontal/vertical autoscaling policies reduce off-peak capacity footprint while maintaining performance SLOs. Establishes utilisation dashboard surfacing peak vs off-peak trends and validates scaling events achieve targeted cost reduction. Acceptance verifiable via cost metrics and utilisation telemetry.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-CAPACITY-UTIL-01: Criteria map to cost reduction percentage, utilisation >60% at peak, and dashboard visibility for trend over selected period.
 
 ## INVEST Checklist
+
 - Independent: Only depends on metrics export availability.
 - Negotiable: Exact % targets and dashboard fields.
 - Valuable: Direct cloud spend reduction & efficiency insight.

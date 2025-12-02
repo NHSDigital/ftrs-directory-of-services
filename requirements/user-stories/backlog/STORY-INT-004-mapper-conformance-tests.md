@@ -9,6 +9,7 @@ status: draft
 ---
 
 ## Acceptance Criteria
+
 1. Contract tests cover required fields and mapping rules.
 2. Round-trip stub validates stable output (future).
 3. Failures produce actionable logs with field names.

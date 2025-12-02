@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: API configuration, delivery metrics dashboard, audit log sample.
 ---
+
 # Summary
+
 Adopt NHS Notify for governed transactional messaging.
 
 ## Detail
+
 Integrates NHS Notify API for all transactional email/SMS, standardising template usage, delivery reliability, and audit logging. Implements retry and delivery metrics to ensure communication effectiveness and governance compliance.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-REUSE-NOTIFY-01: Template-based dispatch; retry and failure metrics; auditable log with minimal PII.
 
 ## INVEST Checklist
+
 - Independent: Separate from cohorting or design system stories.
 - Negotiable: Retry policy parameters.
 - Valuable: Improves reliability and governance of messaging.

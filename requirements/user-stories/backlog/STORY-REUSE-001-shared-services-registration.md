@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: catalog entry, audit report, incident timeline showing lookup.
 ---
+
 # Summary
+
 Catalog registration for all shared service dependencies.
 
 ## Detail
+
 Establishes mandatory catalog registration for each external or shared service dependency, capturing owner, SLA, and contact data to improve support responsiveness and reduce hidden coupling. Monthly audits surface stale or unused dependencies for remediation or removal.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-REUSE-SHARED-SERVICES-REG-01: Ensures dependency entries exist with ownership & SLA; audit identifies stale items; incident response time benefit validated.
 
 ## INVEST Checklist
+
 - Independent: Does not require design system alignment work.
 - Negotiable: Audit tooling approach.
 - Valuable: Speeds incident triage and governance insight.

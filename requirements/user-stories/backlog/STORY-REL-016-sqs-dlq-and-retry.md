@@ -9,6 +9,7 @@ status: draft
 ---
 
 ## Acceptance Criteria
+
 1. Failed batches routed to DLQ with payload and reason.
 2. Retry policy drains DLQ; success rate ≥99% post-retry.
 3. No message loss proven via reconciliation count.

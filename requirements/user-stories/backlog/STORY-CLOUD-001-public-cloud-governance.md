@@ -19,13 +19,17 @@ out_of_scope:
 notes: |
   Aligns to NFR-CLOUD-GOV-01. Evidence sources: Org account registry, landing zone config, deployment pipeline logs, DR test runbook, cost explorer reports.
 ---
+
 # Summary
+
 Public cloud governance enforcing account separation, landing zone placement, internet-first, scaling and DR testing.
 
 ## Detail
+
 Covers structural guardrails ensuring consistent placement inside enterprise landing zones and subscription MG hierarchy. Enforces blue/green for high-tier services and periodic DR validation.
 
 ## INVEST Checklist
+
 - Independent: Yes
 - Negotiable: Autoscale % threshold tooling details
 - Valuable: Reduces compliance exceptions

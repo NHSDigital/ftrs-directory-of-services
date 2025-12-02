@@ -1,3 +1,4 @@
+---
 code: STORY-SOFT-002
 as_a: Architecture_Lead
 

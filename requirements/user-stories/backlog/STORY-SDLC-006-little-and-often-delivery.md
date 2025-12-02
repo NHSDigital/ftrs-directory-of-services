@@ -15,5 +15,7 @@ out_of_scope:
 notes: |
   Evidence: deployment dashboard, decomposition examples, retro summary.
 ---
+
 # Summary
+
 Principle of frequent small releases tracked and reinforced.

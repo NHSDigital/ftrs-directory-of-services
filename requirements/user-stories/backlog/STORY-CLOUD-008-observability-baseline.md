@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: baseline document, template repository, alert configuration snapshot.
 ---
+
 # Summary
+
 Establish consistent observability (metrics, logs, traces, alerts) baseline.
 
 ## Detail
+
 Defines mandatory telemetry set (key service metrics, structured logs, distributed traces, baseline alerts) applied upon onboarding every service. Ensures rapid health assessment and uniform incident response data across estate.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-OBSERVABILITY-BASELINE-01: Template-driven generation of dashboards/alerts; error threshold alerting; gap review producing backlog items.
 
 ## INVEST Checklist
+
 - Independent: Does not rely on other DR or deployment stories.
 - Negotiable: Specific metric list granularity.
 - Valuable: Faster mean time to detect & uniform visibility.

@@ -15,16 +15,21 @@ out_of_scope:
 notes: |
   Evidence: API calls, version history sample, SLA metrics.
 ---
+
 # Summary
+
 Cohorting Service integration for versioned segment targeting.
 
 ## Detail
+
 Adds integration with Cohorting As A Service to define, version, and execute targeting of specific user/provider segments. Supports auditability by preserving historical versions and logging execution results against SLAs.
 
 ## Deriving Acceptance Criteria from NFRs
+
 - NFR-REUSE-COHORTING-01: Cohort versioning, SLA-bound execution logging, and audit trail for changes.
 
 ## INVEST Checklist
+
 - Independent: Does not rely on Notify integration.
 - Negotiable: Version metadata detail level.
 - Valuable: Enables targeted interventions efficiently.
