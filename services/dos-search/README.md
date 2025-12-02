@@ -98,7 +98,7 @@ The service uses:
 │   │   ├── config.py                   # Configuration handling
 │   │   └── ftrs_service.py             # Main service logic
 │   ├── dos_search_ods_code_function.py # Lambda handler entry point
-|   └── logging/                        # Shared logger directory for API endpoints
+|   └── logger/                        # Shared logger directory for API endpoints
 |       └── test_dos_logger.py          # Logger definition
 ├── tests/                              # Test suite
 │   ├── unit/                           # Unit tests

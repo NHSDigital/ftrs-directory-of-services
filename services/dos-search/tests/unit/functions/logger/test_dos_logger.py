@@ -352,7 +352,7 @@ class TestDosLogger:
         lambda_handler(event, lambda_context, call_set_level, run_init=True)
 
         # Assert
-        mock_base_powertools_logger.set_level.assert_called_once_with(level)
+        mock_base_powertools_logger.setLevel.assert_called_once_with(level)
 
     def test_powertools_clear_state_call(
         self, event, dos_logger, lambda_context, mock_base_powertools_logger
