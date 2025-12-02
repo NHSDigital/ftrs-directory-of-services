@@ -33,13 +33,13 @@ runs:
         BASE_URL=${BASE_URL%/}
         TOKEN_ENDPOINT="${BASE_URL}/apis/${API_NAME}/docker-token"
 
-        DOCKER_TOKEN_RESPONSE=$(curl -fsS --request GET --url "$TOKEN_ENDPOINT" --header "Authorization: Bearer ${ACCESS_TOKEN}") || {
+        DOCKER_TOKEN=$(curl -fsS --request GET --url "$TOKEN_ENDPOINT" --header "Authorization: Bearer ${ACCESS_TOKEN}") || {
           echo "Failed to reach Proxygen API at $TOKEN_ENDPOINT" >&2
           exit 1
         }
 
         echo "::add-mask::$ACCESS_TOKEN"
-        echo "::add-mask::$DOCKER_TOKEN_RESPONSE"
+        echo "::add-mask::$DOCKER_TOKEN"
 
-        printf 'docker_token=%s\n' "$DOCKER_TOKEN_RESPONSE" >> "$GITHUB_OUTPUT"
+        printf 'docker_token=%s\n' "$DOCKER_TOKEN" >> "$GITHUB_OUTPUT"
         echo "✓ Docker token retrieved successfully"
