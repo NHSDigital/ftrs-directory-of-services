@@ -1,5 +1,5 @@
-name: Build project workflow
-run-name: Build ${{ inputs.type }} - ${{ inputs.name }}
+name: Build sandbox images workflow
+run-name: Build ${{ inputs.name }}
 
 permissions:
   id-token: write
@@ -7,10 +7,6 @@ permissions:
 on:
   workflow_call:
     inputs:
-      build_type:
-        description: "The type of project to build (container, service)"
-        required: true
-        type: string
       name:
         description: "The name of the package to build"
         required: true
@@ -27,14 +23,10 @@ on:
         description: "Optional application tag to check out (leave empty for default/latest)"
         required: false
         type: string
-      type:
-        description: "Optional type passed to credential/config steps (defaults to 'app')"
-        required: false
-        type: string
 
 jobs:
-  build-project:
-    name: "Build ${{ inputs.type || inputs.build_type }} - ${{ inputs.name }}"
+  build-sandbox-images:
+    name: "${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -100,10 +92,20 @@ jobs:
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
 
+      - name: Get APIM Access Token
+        id: get-token
+        uses: ./.github/actions/authenticate-apim
+        with:
+          api_name: ${{ inputs.name }}
+          environment: ${{ inputs.environment }}
+          aws_region: ${{ vars.AWS_REGION }}
+
       - name: "Push image to ECR"
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
+          API_NAME: ${{ inputs.name }}
           ENVIRONMENT: ${{ inputs.environment }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+          COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
+          ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}

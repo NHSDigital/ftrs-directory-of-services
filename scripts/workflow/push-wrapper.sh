@@ -9,53 +9,43 @@ usage() {
   cat <<'EOF' >&2
 Usage: push-wrapper.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
 
-Captures an APIM token (in-memory) and invokes push-to-ecr.sh with ACCESS_TOKEN exported.
+Reads ACCESS_TOKEN from the environment and invokes push-to-ecr.sh with the
+provided metadata.
 
 Environment (optional):
-  ENVIRONMENT    (read from environment if set)
-  AWS_REGION     (read from environment if set)
+  API_NAME       (used if the first positional argument is omitted)
+  LOCAL_IMAGE    (used if the second positional argument is omitted)
+  REMOTE_NAME    (used if the third positional argument is omitted)
+  REMOTE_TAG     (used if the fourth positional argument is omitted)
+  ENVIRONMENT    (must be set)
+  AWS_REGION     (must be set)
+  ACCESS_TOKEN   (must be set)
 
 EOF
   exit 2
 }
 
-API_NAME="${1:-}"
-LOCAL_IMAGE="${2:-}"
-REMOTE_NAME="${3:-}"
-REMOTE_TAG="${4:-}"
+API_NAME="${1:-${API_NAME:-}}"
+LOCAL_IMAGE="${2:-${LOCAL_IMAGE:-}}"
+REMOTE_NAME="${3:-${REMOTE_NAME:-}}"
+REMOTE_TAG="${4:-${REMOTE_TAG:-}}"
 ENVIRONMENT="${ENVIRONMENT:-}"
 AWS_REGION="${AWS_REGION:-}"
+ACCESS_TOKEN="${ACCESS_TOKEN:-}"
 
 if [ -z "$API_NAME" ] || [ -z "$LOCAL_IMAGE" ] || [ -z "$REMOTE_NAME" ] || [ -z "$REMOTE_TAG" ]; then
   usage
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-GET_APIM_TOKEN_SCRIPT="$SCRIPT_DIR/get-apim-token.sh"
 PUSH_SCRIPT="$SCRIPT_DIR/push-to-ecr.sh"
 
-if [ ! -f "$GET_APIM_TOKEN_SCRIPT" ]; then
-  err "token script not found: $GET_APIM_TOKEN_SCRIPT"
-  exit 1
-fi
-if [ ! -x "$GET_APIM_TOKEN_SCRIPT" ]; then
-  chmod +x "$GET_APIM_TOKEN_SCRIPT" >/dev/null 2>&1 || true
-fi
 if [ ! -f "$PUSH_SCRIPT" ]; then
   err "push script not found: $PUSH_SCRIPT"
   exit 1
 fi
 if [ ! -x "$PUSH_SCRIPT" ]; then
   chmod +x "$PUSH_SCRIPT" >/dev/null 2>&1 || true
-fi
-
-log "Requesting APIM token for API: $API_NAME"
-TOKEN_OUTPUT=$(API_NAME="$API_NAME" ENV="$ENVIRONMENT" AWS_REGION="$AWS_REGION" /bin/bash "$GET_APIM_TOKEN_SCRIPT" 2>/dev/null || true)
-ACCESS_TOKEN=$(printf '%s' "$TOKEN_OUTPUT" | tr -d '\r\n')
-
-if [ -z "$ACCESS_TOKEN" ]; then
-  err "Failed to obtain ACCESS_TOKEN from get-apim-token.sh stdout"
-  exit 1
 fi
 
 export ACCESS_TOKEN

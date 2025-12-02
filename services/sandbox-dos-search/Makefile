@@ -12,13 +12,12 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL := build
 
-.PHONY: install build unit-test publish lint
+.PHONY: install build unit-test publish
 
-API_NAME ?= dos-search
 PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
-GET_APIM_TOKEN_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/get-apim-token.sh
 PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-wrapper.sh
 
+API_NAME ?=
 ENVIRONMENT ?=
 AWS_REGION ?=
 
@@ -95,12 +94,16 @@ publish:
 		echo "Push script not found: ${PUSH_SCRIPT}"; \
 		exit 1; \
 	fi
-	python -m pip install --upgrade pip >/dev/null 2>&1 || true; \
-	python -m pip install pyjwt cryptography >/dev/null 2>&1 || true; \
-	if [ ! -f "$(GET_APIM_TOKEN_SCRIPT)" ]; then \
-		echo "get-apim-token script not found: $(GET_APIM_TOKEN_SCRIPT)"; \
+	if [ -z "${ACCESS_TOKEN}" ]; then \
+		echo "ACCESS_TOKEN is required"; \
 		exit 1; \
 	fi; \
-	chmod +x "$(GET_APIM_TOKEN_SCRIPT)" >/dev/null 2>&1 || true; \
 	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
-	ENVIRONMENT="${ENVIRONMENT}" AWS_REGION="${AWS_REGION}" "$(PUSH_WRAPPER)" "${API_NAME}" "${FULL_IMAGE}" "${API_NAME}" "${IMAGE_TAG}"
+	API_NAME="${API_NAME}" \
+	LOCAL_IMAGE="${FULL_IMAGE}" \
+	REMOTE_NAME="${API_NAME}" \
+	REMOTE_TAG="${IMAGE_TAG}" \
+	ENVIRONMENT="${ENVIRONMENT}" \
+	AWS_REGION="${AWS_REGION}" \
+	ACCESS_TOKEN="${ACCESS_TOKEN}" \
+	"$(PUSH_WRAPPER)"

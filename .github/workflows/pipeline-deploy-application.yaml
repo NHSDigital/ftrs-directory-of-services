@@ -87,19 +87,17 @@ jobs:
       type: app
     secrets: inherit
 
-  build-container:
+  build-sandbox-containers:
     name: "Build container sandbox-dos-search"
     needs:
       - metadata
       - quality-checks
     uses: ./.github/workflows/build-sandbox-images.yaml
     with:
-      name: "sandbox-dos-search"
-      build_type: "container"
+      name: "dos-search"
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
-      type: app
     secrets: inherit
 
   perform-code-analysis:
