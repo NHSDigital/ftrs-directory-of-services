@@ -37,11 +37,9 @@ runs:
           echo "Failed to reach Proxygen API at $TOKEN_ENDPOINT" >&2
           exit 1
         }
-        DOCKER_TOKEN_BASE64=$(printf '%s' "$DOCKER_TOKEN" | base64 | tr -d '\n')
 
         echo "::add-mask::$ACCESS_TOKEN"
         echo "::add-mask::$DOCKER_TOKEN"
-        echo "::add-mask::$DOCKER_TOKEN_BASE64"
 
-        printf 'docker_token=%s\n' "$DOCKER_TOKEN_BASE64" >> "$GITHUB_OUTPUT"
+        printf 'docker_token=%s\n' "$DOCKER_TOKEN" >> "$GITHUB_OUTPUT"
         echo "✓ Docker token retrieved successfully"
