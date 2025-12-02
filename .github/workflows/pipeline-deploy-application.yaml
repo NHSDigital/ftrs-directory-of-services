@@ -102,6 +102,7 @@ jobs:
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
+      type: app
     secrets: inherit
 
   perform-code-analysis:
