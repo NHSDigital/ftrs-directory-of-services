@@ -36,6 +36,7 @@ init(){
 
 validate_or_decode_token(){
   local raw="$1" decoded
+  log "validate_or_decode_token input: ${raw:-<empty>}"
   if [ -z "$raw" ]; then
     return 1
   fi
