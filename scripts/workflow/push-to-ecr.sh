@@ -36,11 +36,14 @@ init(){
 
 fetch_proxygen_registry_credentials(){
   log "fetch_proxygen_registry_credentials DOCKER_TOKEN: ${DOCKER_TOKEN:-<empty>}"
+  local token="${DOCKER_TOKEN:-}"
+  [ -n "$token" ] || die "DOCKER_TOKEN not provided"
 
-  token="${token//$'\n'/}"
-  token="${token//$'\r'/}"
-  token="${token#\{}"
-  token="${token%\}}"
+  token=$(printf '%s' "$token" | tr -d '\r\n')
+  token=${token#\{}
+  token=${token%\}}
+  token=${token#\"}
+  token=${token%\"}
 
   local saved_ifs="$IFS"
   IFS=',' read -ra parts <<< "$token"
@@ -56,8 +59,10 @@ fetch_proxygen_registry_credentials(){
     fi
     key=$(printf '%s' "$key" | sed -e 's/^ *//' -e 's/ *$//')
     value=$(printf '%s' "$value" | sed -e 's/^ *//' -e 's/ *$//')
-    value=${value#"}
-    value=${value%"}
+    key=${key#\"}
+    key=${key%\"}
+    value=${value#\"}
+    value=${value%\"}
     case "$key" in
       user) user="$value" ;;
       password) password="$value" ;;
