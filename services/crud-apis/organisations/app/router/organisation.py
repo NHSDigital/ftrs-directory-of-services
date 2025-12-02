@@ -173,9 +173,30 @@ def update_organisation(
                 status_code=422,
                 error_message=str(e),
             )
-            outcome = OperationOutcomeHandler.from_validation_error(e)
+            diagnostics = []
+            for error in e.errors():
+                if isinstance(error["input"], dict) and "type" in error["input"].keys():
+                    if "phone" in error["input"]["type"]:
+                        diagnostics.append(
+                            f"Telecom value field contains an invalid phone number: {error['input']['value']}"
+                        )
+                    elif "email" in error["input"]["type"]:
+                        diagnostics.append(
+                            f"Telecom value field contains an invalid email address: {error['input']['value']}"
+                        )
+                elif "url" in error["type"]:
+                    diagnostics.append(
+                        f"Telecom value field contains an invalid url: {error['input']}"
+                    )
+                else:
+                    diagnostics.append(f"Unexpected validation error: {error['msg']}")
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Validation failed for the following resources: {'; '.join(diagnostics)}",
+                code="invalid",
+                severity="error",
+            )
             raise OperationOutcomeException(outcome) from e
-        elif not isinstance(e, OperationOutcomeException):
+        if not isinstance(e, OperationOutcomeException):
             crud_organisation_logger.log(
                 CrudApisLogBase.ORGANISATION_019,
                 organisation_id=organisation_id,

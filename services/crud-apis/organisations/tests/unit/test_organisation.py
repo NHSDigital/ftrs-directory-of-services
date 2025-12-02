@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -7,11 +8,14 @@ from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.enums import TelecomType
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from pydantic import ValidationError
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
 from organisations.app.models.organisation import OrganizationQueryParams
 from organisations.app.router.organisation import _get_organization_query_params, router
+from organisations.app.services.organisation_service import OrganisationService
 
 test_app = FastAPI()
 test_app.include_router(router)
@@ -381,34 +385,106 @@ def test_update_organisation_missing_required_field() -> None:
     }
 
 
-# def test_update_organisation_validation_error_exception(
-#     mock_organisation_service: MockerFixture,
-# ) -> None:
-#     mock_organisation_service.process_organisation_update.side_effect = ValidationError(
-#         "Expected `Telecom` - serialized value may not be as expected [field_name='telecom', input_value={'type': <TelecomType.PHO...2 34', 'isPublic': True}, input_type=dict]"
-#     )
-#     update_payload = {
-#         "resourceType": "Organization",
-#         "id": str(test_org_id),
-#         "meta": {
-#             "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-#         },
-#         "identifier": [
-#             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
-#         ],
-#         "name": "Test Organisation",
-#         "active": False,
-#         "telecom": [{"system": "phone", "value": "01234"}],
-#         "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
-#     }
-#     with pytest.raises(OperationOutcomeException) as exc_info:
-#         client.put(f"/Organization/{test_org_id}", json=update_payload)
-#     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
-#     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
-#     assert (
-#         "Validation failed for resource."
-#         in exc_info.value.outcome["issue"][0]["diagnostics"]
-#     )
+def test_update_organisation_telecom_phone_validation_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [
+            {"system": "phone", "value": "01234"},
+            {"system": "email", "value": "mailnhs.net"},
+        ],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except ValidationError as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Telecom value field contains an invalid phone number: 01234"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_update_organisation_telecom_email_validation_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [{"system": "email", "value": "mailnhs.net"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except ValidationError as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Telecom value field contains an invalid email address: mailnhs.net"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_update_organisation_telecom_url_validation_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [{"system": "url", "value": "nhs.net"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except ValidationError as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Telecom value field contains an invalid url: nhs.net"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
 
 
 def test_update_organisation_unexpected_exception(

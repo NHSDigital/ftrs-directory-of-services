@@ -10,6 +10,7 @@ from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation, Telecom
 from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from pydantic import ValidationError
 
 from organisations.app.services.organisation_service import OrganisationService
 
@@ -380,6 +381,55 @@ def test_process_organisation_update_invalid_fhir_structure() -> None:
     assert exc_info.value.outcome["issue"][0]["code"] == "structure"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
     assert "resourceType" in exc_info.value.outcome["issue"][0]["diagnostics"]
+
+
+def test_process_organisation_update_with_invalid_phone_number(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    fhir_org = {
+        "resourceType": "Organization",
+        "id": organisation_id,
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Changed Name",
+        "type": [
+            {
+                "coding": [
+                    {"system": "TO-DO", "code": "GP Practice", "display": "GP Practice"}
+                ],
+                "text": "GP Practice",
+            }
+        ],
+        "telecom": [{"system": "phone", "value": "0300", "use": "work"}],
+    }
+    stored_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Test Org",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
+        type="GP Practice",
+        endpoints=[],
+        id=organisation_id,
+        createdBy="test",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="test",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
+    )
+    org_repository.get.return_value = stored_organisation
+    with caplog.at_level("ERROR"):
+        with pytest.raises(ValidationError) as exc_info:
+            service.process_organisation_update(organisation_id, fhir_org)
+
+        assert "is not a valid phone number" in str(exc_info.value.errors()[0]["msg"])
+        assert "0300" in str(exc_info.value.errors()[0]["input"])
 
 
 def test_get_by_ods_code_success() -> None:

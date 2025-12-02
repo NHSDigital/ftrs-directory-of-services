@@ -30,6 +30,14 @@ def test_telecom() -> None:
     ]
 
 
+def test_telecom_string_representation() -> None:
+    """
+    Test the string representation of the Telecom class.
+    """
+    telecom = Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+    assert str(telecom) == "Telecom(type=phone,value=0300 311 22 33,isPublic=True)"
+
+
 def test_telecom_invalid_email() -> None:
     """
     Tel-024 & Tel-025 data standard requirement proof

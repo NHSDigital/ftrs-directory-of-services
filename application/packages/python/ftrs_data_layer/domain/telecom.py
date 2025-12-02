@@ -10,6 +10,9 @@ class Telecom(BaseModel):
     value: str
     isPublic: bool
 
+    def __str__(self) -> str:
+        return f"Telecom(type={self.type.value},value={self.value},isPublic={self.isPublic})"
+
     @model_validator(mode="after")
     def check_valid_email(self) -> Self:
         if self.type == TelecomType.EMAIL:
