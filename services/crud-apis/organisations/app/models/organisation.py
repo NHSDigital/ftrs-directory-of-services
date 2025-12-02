@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field, computed_field, field_validator, model_va
 
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
 IDENTIFIER_SEPARATOR = "|"
-ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
+ODS_REGEX = r"^[A-Za-z0-9]{1,12}$"
 
 ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
 ERROR_IDENTIFIER_EMPTY = "at least one identifier must be provided"
