@@ -13,10 +13,9 @@ resource "aws_kms_key" "encryption_key" {
         },
         "Action" : "kms:*",
         "Resource" : "*"
-      }
-      ,
+      },
       {
-        "Sid" : "AllowSQSInAccountUseOfKmsKey",
+        "Sid" : "AllowInAccountUseOfKmsKey",
         "Effect" : "Allow",
         "Principal" : {
           "Service" : "${var.aws_service_name}"
@@ -26,7 +25,9 @@ resource "aws_kms_key" "encryption_key" {
           "kms:Decrypt",
           "kms:ReEncrypt*",
           "kms:GenerateDataKey*",
-          "kms:DescribeKey"
+          "kms:DescribeKey",
+          "kms:ListAliases",
+          "kms:ListKeys"
         ],
         "Resource" : "*",
         "Condition" : {

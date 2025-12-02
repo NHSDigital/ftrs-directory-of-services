@@ -32,5 +32,4 @@ variable "enable_key_rotation" {
   description = "Whether to enable key rotation for the KMS key."
   type        = bool
   default     = true
-
 }
