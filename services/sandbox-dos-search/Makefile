@@ -94,8 +94,8 @@ publish:
 		echo "Push script not found: ${PUSH_SCRIPT}"; \
 		exit 1; \
 	fi
-	if [ -z "${ACCESS_TOKEN}" ]; then \
-		echo "ACCESS_TOKEN is required"; \
+	if [ -z "${DOCKER_TOKEN}" ]; then \
+		echo "DOCKER_TOKEN is required"; \
 		exit 1; \
 	fi; \
 	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
@@ -105,5 +105,5 @@ publish:
 	REMOTE_TAG="${IMAGE_TAG}" \
 	ENVIRONMENT="${ENVIRONMENT}" \
 	AWS_REGION="${AWS_REGION}" \
-	ACCESS_TOKEN="${ACCESS_TOKEN}" \
+	DOCKER_TOKEN="${DOCKER_TOKEN}" \
 	"$(PUSH_WRAPPER)"

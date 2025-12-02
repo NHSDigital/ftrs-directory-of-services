@@ -8,8 +8,8 @@ die(){ printf '[push-to-ecr] ERROR: %s\n' "$1" >&2; exit 1; }
 usage(){ cat >&2 <<'EOF'
 Usage: push-to-ecr.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
 
-Example:
-  ACCESS_TOKEN=eyJ... ./scripts/workflow/push-to-ecr.sh dos-search dos-search:local dos-search 123456
+Examples:
+  DOCKER_TOKEN='{"user":"example","password":"secret","registry":"https://1234567890.dkr.ecr.eu-west-2.amazonaws.com"}' ./scripts/workflow/push-to-ecr.sh dos-search dos-search:local dos-search 123456
 EOF
   exit 1
 }
@@ -30,16 +30,16 @@ init(){
   REMOTE_IMAGE_NAME="${3:-}"
   REMOTE_IMAGE_TAG="${4:-}"
   PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
-  [ -n "${ACCESS_TOKEN:-}" ] || die "ACCESS_TOKEN not provided"
+  if [ -z "${DOCKER_TOKEN:-}" ] && [ -z "${ACCESS_TOKEN:-}" ]; then
+    die "ACCESS_TOKEN or DOCKER_TOKEN required"
+  fi
   [ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
 }
 
 fetch_proxygen_registry_credentials(){
-  BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
-  TOKEN_RESPONSE=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
-  USER=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.user // empty')
-  PASSWORD=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.password // empty')
-  REGISTRY=$(printf '%s' "$TOKEN_RESPONSE" | jq -r '.registry // empty')
+  USER=$(printf '%s' "$DOCKER_TOKEN" | jq -r '.user // empty')
+  PASSWORD=$(printf '%s' "$DOCKER_TOKEN" | jq -r '.password // empty')
+  REGISTRY=$(printf '%s' "$DOCKER_TOKEN" | jq -r '.registry // empty')
   [ -n "$REGISTRY" ] || die "Malformed response from Proxygen: missing registry"
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
   REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
