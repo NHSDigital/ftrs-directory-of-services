@@ -95,13 +95,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: "dos-search"
+          - name: "sandbox-dos-search"
     uses: ./.github/workflows/build-sandbox-images.yaml
     with:
       name: ${{ matrix.name }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       application_tag: ${{ inputs.application_tag || 'latest' }}
+      type: app
     secrets: inherit
 
   perform-code-analysis:
