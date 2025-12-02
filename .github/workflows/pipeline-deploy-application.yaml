@@ -133,6 +133,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   migrate-data:
     name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
