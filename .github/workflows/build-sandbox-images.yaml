@@ -99,6 +99,7 @@ jobs:
           if-no-files-found: error
 
       - name: Get APIM Access Token
+        id: get-token
         uses: ./.github/actions/authenticate-apim
         with:
           api_name: ${{ env.API_NAME }}
@@ -106,13 +107,14 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
 
       - name: Get APIM Docker Token
+        id: get-docker-token
         uses: ./.github/actions/authenticate-apim-docker
         with:
-          access_token:  ${{ steps.get-token.outputs.access_token }}
+          access_token: ${{ steps.get-token.outputs.access_token }}
           api_name: ${{ env.API_NAME }}
 
       - name: "Push image to ECR"
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
-          DOCKER_TOKEN: ${{ steps.authenticate.outputs.docker_token }}
+          DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}
