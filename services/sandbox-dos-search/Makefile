@@ -18,7 +18,6 @@ PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
 PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-wrapper.sh
 
 API_NAME ?=
-API_NAME := $(patsubst sandbox-%,%,$(API_NAME))
 ENVIRONMENT ?=
 AWS_REGION ?=
 

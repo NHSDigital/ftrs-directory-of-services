@@ -30,13 +30,18 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
-      API_NAME: ${{ replace(inputs.name, 'sandbox-', '') }}
       ENVIRONMENT: ${{ inputs.environment }}
       AWS_REGION: ${{ vars.AWS_REGION }}
       COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
       APPLICATION_TAG: ${{ inputs.application_tag || '' }}
 
     steps:
+      - name: "Normalize API name"
+        run: |
+          CLEAN_NAME="${{ inputs.name }}"
+          CLEAN_NAME="${CLEAN_NAME#sandbox-}"
+          echo "API_NAME=$CLEAN_NAME" >> "$GITHUB_ENV"
+
       - name: "Checkout code"
         uses: actions/checkout@v5
         with:
