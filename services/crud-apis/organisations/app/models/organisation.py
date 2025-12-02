@@ -234,9 +234,17 @@ def _validate_organisation_role_extension(ext: Extension) -> None:
         )
 
     for nested_ext in ext.extension:
-        if "TypedPeriod" in nested_ext.url:
+        if (
+            hasattr(nested_ext, "url")
+            and nested_ext.url
+            and "TypedPeriod" in nested_ext.url
+        ):
             _validate_typed_period_extension(nested_ext)
-            break  # Only validate the first TypedPeriod-like extension
+            return  # Found and validated TypedPeriod extension, exit successfully
+
+    _raise_validation_error(
+        "OrganisationRole extension must contain at least one TypedPeriod extension"
+    )
 
 
 def _validate_typed_period_extension(ext: Extension) -> None:

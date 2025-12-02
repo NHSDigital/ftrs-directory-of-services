@@ -571,6 +571,42 @@ def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
                 }
             ]
         }
+    elif invalid_scenario == "empty TypedPeriod extension url":
+        return {
+            "url": "",  # Empty string URL
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "missing TypedPeriod extension url":
+        return {
+            # "url" is missing here
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
     else:
         raise ValueError(f"Unknown TypedPeriod invalid_scenario: {invalid_scenario}")
 

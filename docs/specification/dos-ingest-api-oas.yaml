@@ -455,9 +455,11 @@ paths:
 
         **Validation rules**:
         - OrganisationRole extension must contain `roleCode` sub-extensions
+        - OrganisationRole extension must contain at least one TypedPeriod extension
         - If TypedPeriod is included, it must contain both `dateType` and `period` sub-extensions
         - The `dateType` must be "Legal" with correct system URL
         - **The `period` must contain a `start` date (required) and may optionally contain an `end` date**
+        - **TypedPeriod extension must have a valid URL - missing or empty URLs will be rejected**
         - Dates must be in YYYY-MM-DD format
         - Start and end dates must not be equal if both are provided
         - Extension URLs must exactly match the expected NHS England structure definitions
@@ -700,6 +702,30 @@ paths:
                       - severity: error
                         code: invalid
                         diagnostics: "Legal period start and end dates must not be equal"
+                missing-typed-period-extension:
+                  summary: OrganisationRole extension without required TypedPeriod
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
+                empty-typed-period-extension-url:
+                  summary: TypedPeriod extension with empty URL
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
+                missing-typed-period-extension-url:
+                  summary: TypedPeriod extension with missing URL field
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
 components:
   parameters:
     AcceptFHIR:
