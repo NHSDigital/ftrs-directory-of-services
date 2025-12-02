@@ -88,6 +88,7 @@ jobs:
     secrets: inherit
 
   build-sandbox-containers:
+    if: ${{ matrix.name == 'dos-search' }}
     name: "Build container ${{ matrix.name }}"
     needs:
       - metadata

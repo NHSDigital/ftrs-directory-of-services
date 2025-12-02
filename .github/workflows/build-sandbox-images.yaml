@@ -26,7 +26,6 @@ on:
 
 jobs:
   build-sandbox-images:
-    if: ${{ inputs.name == 'dos-search' }}
     name: "${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
