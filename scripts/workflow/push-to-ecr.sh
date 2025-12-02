@@ -85,7 +85,8 @@ validate_or_decode_token(){
     done
     if [ "$valid" -eq 1 ] && [ ${#json_parts[@]} -gt 0 ]; then
       local joined
-      IFS=',' read -r joined <<< "${json_parts[*]}"
+      IFS=','
+      joined="${json_parts[*]}"
       IFS="$saved_ifs"
       kv_json="{$joined}"
     fi
@@ -107,6 +108,7 @@ fetch_proxygen_registry_credentials(){
   USER=$(printf '%s' "$token_json" | jq -r '.user // empty')
   PASSWORD=$(printf '%s' "$token_json" | jq -r '.password // empty')
   REGISTRY=$(printf '%s' "$token_json" | jq -r '.registry // empty')
+  log "Parsed credentials user=$USER registry=$REGISTRY password_prefix=${PASSWORD:0:12}"
   [ -n "$REGISTRY" ] || die "Malformed DOCKER_TOKEN: missing registry"
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
   REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
