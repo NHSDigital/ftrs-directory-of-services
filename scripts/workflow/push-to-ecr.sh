@@ -21,13 +21,15 @@ trim_ws(){
   s="${s%${s##*[![:space:]]}}"
   printf '%s' "$s"
 }
+
 strip_quotes(){
   local s="$1"
   s="${s#\"}"
   s="${s%\"}"
   printf '%s' "$s"
 }
-normalize_token(){
+
+normalise_token(){
   local token="$1"
   token=$(printf '%s' "$token" | tr -d '\r\n')
   token="${token#\{}"
@@ -61,7 +63,7 @@ fetch_proxygen_registry_credentials(){
   [ -n "$raw_token" ] || die "DOCKER_TOKEN not provided"
 
   local token
-  token=$(normalize_token "$raw_token")
+  token=$(normalise_token "$raw_token")
 
   local user="" password="" registry=""
   while IFS= read -r segment; do
