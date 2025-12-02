@@ -15,6 +15,28 @@ EOF
   exit 1
 }
 
+trim_ws(){
+  local s="$1"
+  s="${s#${s%%[![:space:]]*}}"
+  s="${s%${s##*[![:space:]]}}"
+  printf '%s' "$s"
+}
+strip_quotes(){
+  local s="$1"
+  s="${s#\"}"
+  s="${s%\"}"
+  printf '%s' "$s"
+}
+normalize_token(){
+  local token="$1"
+  token=$(printf '%s' "$token" | tr -d '\r\n')
+  token="${token#\{}"
+  token="${token%\}}"
+  token="${token#\"}"
+  token="${token%\"}"
+  printf '%s' "$token"
+}
+
 retry_push(){
   local tag="$1" attempt=1 retries=$(( ${PUSH_RETRIES:-3} ))
   until docker push "$tag"; do
@@ -35,40 +57,24 @@ init(){
 }
 
 fetch_proxygen_registry_credentials(){
-  log "fetch_proxygen_registry_credentials DOCKER_TOKEN: ${DOCKER_TOKEN:-<empty>}"
-  local token="${DOCKER_TOKEN:-}"
-  [ -n "$token" ] || die "DOCKER_TOKEN not provided"
+  local raw_token="${DOCKER_TOKEN:-}"
+  [ -n "$raw_token" ] || die "DOCKER_TOKEN not provided"
 
-  token=$(printf '%s' "$token" | tr -d '\r\n')
-  token=${token#\{}
-  token=${token%\}}
-  token=${token#\"}
-  token=${token%\"}
-
-  local saved_ifs="$IFS"
-  IFS=',' read -ra parts <<< "$token"
-  IFS="$saved_ifs"
+  local token
+  token=$(normalize_token "$raw_token")
 
   local user="" password="" registry=""
-  for part in "${parts[@]}"; do
-    part=$(printf '%s' "$part" | sed -e 's/^ *//' -e 's/ *$//')
-    local key=${part%%:*}
-    local value=${part#*:}
-    if [ -z "$key" ] || [ "$value" = "$key" ]; then
-      continue
-    fi
-    key=$(printf '%s' "$key" | sed -e 's/^ *//' -e 's/ *$//')
-    value=$(printf '%s' "$value" | sed -e 's/^ *//' -e 's/ *$//')
-    key=${key#\"}
-    key=${key%\"}
-    value=${value#\"}
-    value=${value%\"}
+  while IFS= read -r segment; do
+    segment=$(trim_ws "$segment")
+    [ -n "$segment" ] || continue
+    local key=$(strip_quotes "$(trim_ws "${segment%%:*}")")
+    local value=$(strip_quotes "$(trim_ws "${segment#*:}")")
     case "$key" in
       user) user="$value" ;;
       password) password="$value" ;;
       registry) registry="$value" ;;
     esac
-  done
+  done <<< "$(printf '%s' "$token" | tr ',' '\n')"
 
   [ -n "$user" ] || die "Failed to parse user from DOCKER_TOKEN"
   [ -n "$password" ] || die "Failed to parse password from DOCKER_TOKEN"
@@ -77,11 +83,7 @@ fetch_proxygen_registry_credentials(){
   USER="$user"
   PASSWORD="$password"
   REGISTRY="$registry"
-  log "Parsed credentials user=$USER registry=$REGISTRY password_prefix=${PASSWORD:0:12}"
-
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
-  REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
-  REGISTRY_REGION=$(printf '%s' "$REGISTRY_HOST" | awk -F'.' '{for(i=1;i<=NF;i++){ if($i=="ecr"){print $(i+1); exit}}}')
 }
 
 docker_login(){
