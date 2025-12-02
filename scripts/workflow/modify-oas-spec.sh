@@ -23,7 +23,7 @@ if [ -z "$PROXY_ENV" ]; then
 fi
 
 # Set the spec file path (relative to repository root)
-SPEC_FILE="docs/specification/dos-search.yaml"
+SPEC_FILE="docs/specification/${API_NAME}.yaml"
 
 if [ ! -f "$SPEC_FILE" ]; then
     echo "Error: Spec file not found at $SPEC_FILE" >&2

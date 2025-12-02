@@ -30,6 +30,9 @@ on:
       AWS_REGION:
         description: 'AWS Region'
         required: true
+      PROXYGEN_URL:
+        description: 'Proxygen API URL'
+        required: true
 
 jobs:
   authenticate-and-deploy:
@@ -65,6 +68,7 @@ jobs:
           environment: ${{ inputs.environment }}
           apim_env: ${{ inputs.apim_env }}
           access_token: ${{ steps.get-token.outputs.access_token }}
+          proxygen_url: ${{ secrets.PROXYGEN_URL }}
 
       - name: Deployment Summary
         run: |

@@ -119,7 +119,7 @@ jobs:
     needs:
       - metadata
       - deploy-application-infrastructure
-    uses: ./.github/workflows/authenticate-and-deploy-to-proxygen.yaml
+    uses: ./.github/workflows/authenticate-and-deploy-to-apim.yaml
     strategy:
       matrix:
         api_name:
