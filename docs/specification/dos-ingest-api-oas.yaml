@@ -457,8 +457,9 @@ paths:
         - OrganisationRole extension must contain `roleCode` sub-extensions
         - If TypedPeriod is included, it must contain both `dateType` and `period` sub-extensions
         - The `dateType` must be "Legal" with correct system URL
-        - The `period` must contain at least a `start` or `end` date
+        - **The `period` must contain a `start` date (required) and may optionally contain an `end` date**
         - Dates must be in YYYY-MM-DD format
+        - Start and end dates must not be equal if both are provided
         - Extension URLs must exactly match the expected NHS England structure definitions
 
         **Example**:
@@ -682,7 +683,23 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
-                        diagnostics: "period must contain at least start or end date"
+                        diagnostics: "Legal period start date is required when TypedPeriod extension is present"
+                invalid-typed-period-missing-start-date:
+                  summary: TypedPeriod extension with missing start date
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Legal period start date is required when TypedPeriod extension is present"
+                invalid-typed-period-equal-dates:
+                  summary: TypedPeriod extension with equal start and end dates
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Legal period start and end dates must not be equal"
 components:
   parameters:
     AcceptFHIR:
@@ -833,17 +850,19 @@ components:
                                 example: Legal
                           valuePeriod:
                             type: object
-                            description: Used for period sub-extension containing start and/or end dates (required when url is 'period', must contain at least one date)
+                            description: Used for period sub-extension containing start and/or end dates (required when url is 'period', start date is required)
+                            required:
+                              - start
                             properties:
                               start:
                                 type: string
                                 format: date
-                                description: Legal start date in YYYY-MM-DD format
+                                description: Legal start date in YYYY-MM-DD format (required when TypedPeriod extension is present)
                                 example: "2020-01-15"
                               end:
                                 type: string
                                 format: date
-                                description: Legal end date in YYYY-MM-DD format
+                                description: Legal end date in YYYY-MM-DD format (optional)
                                 example: "2025-12-31"
           example:
             - url: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole

@@ -205,8 +205,6 @@ Feature: Organization API Endpoint
       | legal_start | legal_end  | expected_db_start | expected_db_end |
       | 2020-01-15  | 2025-12-31 | 2020-01-15        | 2025-12-31      |
       | 2020-02-15  | null       | 2020-02-15        | None            |
-      | null        | 2025-12-31 | None              | 2025-12-31      |
-      | null        | null       | None              | None            |
       | 2020-01-15  | 2024-12-31 | 2020-01-15        | 2024-12-31      |
       | 2020-02-29  | 2028-02-29 | 2020-02-29        | 2028-02-29      |
 
@@ -224,12 +222,13 @@ Feature: Organization API Endpoint
         | missing dateType                 | TypedPeriod extension must contain dateType and period |
         | missing period                   | TypedPeriod extension must contain dateType and period |
         | non-Legal dateType               | dateType must be Legal                                 |
-        | empty period                     | period must contain at least start or end date         |
         | invalid periodType extension url | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod |
         | invalid periodType system        | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'        |
         | invalid role extension url       | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
         | missing role extension url       | Invalid extension URL: None                            |
         | empty role extension url         | Extension URL cannot be empty or None                  |
+        | missing start date with end      | Legal period start date is required when TypedPeriod extension is present |
+        | missing both start and end       | Legal period start date is required when TypedPeriod extension is present |
 
   Scenario Outline: Reject Organization update with invalid date format
       Given that the stack is "organisation"

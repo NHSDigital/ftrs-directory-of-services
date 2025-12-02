@@ -264,13 +264,15 @@ def _validate_typed_period_extension(ext: Extension) -> None:
     if date_type_ext.valueCoding.code != LEGAL_PERIOD_CODE:
         _raise_validation_error("dateType must be Legal")
 
-    if not period_ext.valuePeriod or (
-        not period_ext.valuePeriod.start and not period_ext.valuePeriod.end
-    ):
-        _raise_validation_error("period must contain at least start or end date")
-
     start = getattr(period_ext.valuePeriod, "start", None)
     end = getattr(period_ext.valuePeriod, "end", None)
+
+    # If extension and period type are present, start date is required
+    if not start:
+        _raise_validation_error(
+            "Legal period start date is required when TypedPeriod extension is present"
+        )
+
     if start and end and start == end:
         logger = Logger.get(service="crud_organisation_logger")
         logger.log(

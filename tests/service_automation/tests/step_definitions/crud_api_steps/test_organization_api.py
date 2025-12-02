@@ -499,24 +499,6 @@ def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
         }
     elif invalid_scenario == "non-Legal dateType":
         return build_typed_period_extension("2020-01-15", "2025-12-31", "Operational")
-    elif invalid_scenario == "empty period":
-        return {
-            "url": typed_period_url,
-            "extension": [
-                {
-                    "url": "dateType",
-                    "valueCoding": {
-                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                        "code": "Legal",
-                        "display": "Legal"
-                    }
-                },
-                {
-                    "url": "period",
-                    "valuePeriod": {}
-                }
-            ]
-        }
     elif invalid_scenario == "invalid periodType extension url":
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod",
@@ -550,6 +532,42 @@ def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
                 {
                     "url": "period",
                     "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "missing start date with end":
+        return {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"end": "2025-12-31"}  # Missing start date
+                }
+            ]
+        }
+    elif invalid_scenario == "missing both start and end":
+        return {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"middle": "2020-10-10"}  # Missing both start and end dates
                 }
             ]
         }
