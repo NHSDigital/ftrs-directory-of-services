@@ -96,7 +96,6 @@ jobs:
       matrix:
         include:
           - name: "dos-search"
-          - name: "dos-ingest"
     uses: ./.github/workflows/build-sandbox-images.yaml
     with:
       name: ${{ matrix.name }}
