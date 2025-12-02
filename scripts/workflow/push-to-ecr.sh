@@ -42,11 +42,13 @@ validate_or_decode_token(){
     return 1
   fi
   if printf '%s' "$raw" | jq empty >/dev/null 2>&1; then
+    log "DOCKER_TOKEN (json): $raw"
     printf '%s' "$raw"
     return 0
   fi
   decoded=$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)
   if [ -n "$decoded" ] && printf '%s' "$decoded" | jq empty >/dev/null 2>&1; then
+    log "DOCKER_TOKEN (decoded json): $decoded"
     printf '%s' "$decoded"
     return 0
   fi
