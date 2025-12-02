@@ -35,7 +35,7 @@ init(){
 }
 
 validate_or_decode_token(){
-  local raw="$1" decoded
+  local raw="$1" decoded kv_json
   log "validate_or_decode_token input: ${raw:-<empty>}"
   if [ -z "$raw" ]; then
     return 1
@@ -50,6 +50,49 @@ validate_or_decode_token(){
   if [ -n "$decoded" ] && printf '%s' "$decoded" | jq empty >/dev/null 2>&1; then
     log "DOCKER_TOKEN (decoded json): $decoded"
     printf '%s' "$decoded"
+    return 0
+  fi
+  kv_json=""
+  local stripped="$raw"
+  stripped="${stripped#\{}"
+  stripped="${stripped%\}}"
+  local saved_ifs="$IFS"
+  IFS=',' read -ra pairs <<< "$stripped"
+  IFS="$saved_ifs"
+  if ((${#pairs[@]})); then
+    local json_parts=()
+    local valid=1
+    for pair in "${pairs[@]}"; do
+      pair=${pair//$'\n'/}
+      pair=${pair//$'\r'/}
+      local key=${pair%%:*}
+      local value=${pair#*:}
+      if [ -z "$key" ] || [ "$value" = "$key" ]; then
+        valid=0
+        break
+      fi
+      key=$(printf '%s' "$key" | sed -e 's/^ *//' -e 's/ *$//')
+      value=$(printf '%s' "$value" | sed -e 's/^ *//' -e 's/ *$//')
+      key=${key#"}
+      key=${key%"}
+      value=${value#"}
+      value=${value%"}
+      key=${key//\\/\\\\}
+      key=${key//"/\\"}
+      value=${value//\\/\\\\}
+      value=${value//"/\\"}
+      json_parts+=("\"$key\":\"$value\"")
+    done
+    if [ "$valid" -eq 1 ] && [ ${#json_parts[@]} -gt 0 ]; then
+      local joined
+      IFS=',' read -r joined <<< "${json_parts[*]}"
+      IFS="$saved_ifs"
+      kv_json="{$joined}"
+    fi
+  fi
+  if [ -n "$kv_json" ]; then
+    log "DOCKER_TOKEN (kv json): $kv_json"
+    printf '%s' "$kv_json"
     return 0
   fi
   return 1
