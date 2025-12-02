@@ -9,7 +9,8 @@ usage(){ cat >&2 <<'EOF'
 Usage: push-to-ecr.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
 
 Examples:
-  DOCKER_TOKEN='{"user":"example","password":"secret","registry":"https://1234567890.dkr.ecr.eu-west-2.amazonaws.com"}' ./scripts/workflow/push-to-ecr.sh dos-search dos-search:local dos-search 123456
+  DOCKER_TOKEN=$(printf '%s' '{"user":"example","password":"secret","registry":"https://1234567890.dkr.ecr.eu-west-2.amazonaws.com"}' | base64) \
+    ./scripts/workflow/push-to-ecr.sh dos-search dos-search:local dos-search 123456
 EOF
   exit 1
 }
@@ -30,9 +31,6 @@ init(){
   REMOTE_IMAGE_NAME="${3:-}"
   REMOTE_IMAGE_TAG="${4:-}"
   PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
-  if [ -z "${DOCKER_TOKEN:-}" ] && [ -z "${ACCESS_TOKEN:-}" ]; then
-    die "ACCESS_TOKEN or DOCKER_TOKEN required"
-  fi
   [ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
 }
 
@@ -41,8 +39,9 @@ validate_or_decode_token(){
   if [ -z "$raw" ]; then
     return 1
   fi
+  log "DOCKER_TOKEN (base64): $raw"
   if printf '%s' "$raw" | jq empty >/dev/null 2>&1; then
-    log "DOCKER_TOKEN (json): $raw"
+    log "DOCKER_TOKEN detected as raw JSON"
     printf '%s' "$raw"
     return 0
   fi
