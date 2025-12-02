@@ -148,7 +148,7 @@ class DosLogger:
         return self._logger.get_current_keys()
 
     def set_level(self, level: Literal[10, 20, 30, 40, 50]) -> None:
-        self._logger.set_level(level)
+        self._logger.setLevel(level)
 
     # Manual method to clear ALL appended keys. Not used as setting `clear_state=True` in the Lambda handler should suffice for current logging behaviour
     def clear_state(self) -> None:
