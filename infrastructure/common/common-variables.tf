@@ -70,6 +70,12 @@ variable "app_github_runner_role_name" {
   default     = "app-github-runner"
 }
 
+variable "app_github_runner_role_arn" {
+  description = "IAM role ARN for the GitHub runner to include in policies (optional override)"
+  type        = string
+  default     = ""
+}
+
 variable "stack_name" {
   description = "The hyphenated version of the stack name used in names of resources defined in that stack"
   type        = string

@@ -12,6 +12,10 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
         {
           Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
           ResourceType = "dashboard"
+        },
+        {
+          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
+          ResourceType = "collection"
         }
       ]
     }
@@ -36,6 +40,18 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
               "aoss:DescribeCollectionItems",
               "aoss:DeleteCollectionItems"
             ]
+          },
+          {
+            ResourceType = "index"
+            Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/healthcare-service*"]
+            Permission = [
+              "aoss:CreateIndex",
+              "aoss:UpdateIndex",
+              "aoss:DescribeIndex",
+              "aoss:DeleteIndex",
+              "aoss:ReadDocument",
+              "aoss:WriteDocument"
+            ]
           }
         ],
         [
@@ -58,6 +74,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
         [
           data.aws_caller_identity.current.arn,
           aws_iam_role.osis_pipelines_role.arn,
+          local.github_runner_arn
         ],
         local.env_sso_roles
       )
