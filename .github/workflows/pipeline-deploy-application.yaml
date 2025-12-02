@@ -88,13 +88,18 @@ jobs:
     secrets: inherit
 
   build-sandbox-containers:
-    name: "Build container sandbox-dos-search"
+    name: "Build container ${{ matrix.name }}"
     needs:
       - metadata
       - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "dos-search"
+          - name: "dos-ingest"
     uses: ./.github/workflows/build-sandbox-images.yaml
     with:
-      name: "dos-search"
+      name: ${{ matrix.name }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       application_tag: ${{ inputs.application_tag || 'latest' }}

@@ -26,6 +26,7 @@ on:
 
 jobs:
   build-sandbox-images:
+    if: ${{ inputs.name == 'dos-search' }}
     name: "${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -63,13 +64,8 @@ jobs:
       - name: "Get directories"
         id: get-directories
         run: |
-          if [[ "${{ inputs.build_type }}" == "container" ]]; then
-            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          else
-            echo "Invalid build type: ${{ inputs.build_type }}"
-            exit 1
-          fi
+          echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
 
       - name: "Install docker"
         run: make install
@@ -88,7 +84,7 @@ jobs:
         env:
           ENVIRONMENT: ${{ inputs.environment }}
         with:
-          name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
+          name: ${{ inputs.name }-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
 
