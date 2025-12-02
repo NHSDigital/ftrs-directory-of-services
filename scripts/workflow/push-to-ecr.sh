@@ -54,23 +54,14 @@ validate_or_decode_token(){
 }
 
 fetch_proxygen_registry_credentials(){
-  BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
-  local token_json=""
-  if [ -n "${DOCKER_TOKEN:-}" ] && token_json=$(validate_or_decode_token "$DOCKER_TOKEN"); then
-    log "Using DOCKER_TOKEN provided via environment"
-  else
-    if [ -n "${DOCKER_TOKEN:-}" ] && [ -n "${ACCESS_TOKEN:-}" ]; then
-      log "Provided DOCKER_TOKEN unusable; fetching a fresh token via ACCESS_TOKEN"
-    elif [ -n "${DOCKER_TOKEN:-}" ]; then
-      die "DOCKER_TOKEN unusable and ACCESS_TOKEN not provided"
-    fi
-    DOCKER_TOKEN=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
-    token_json=$(validate_or_decode_token "$DOCKER_TOKEN") || die "Malformed response from Proxygen: not valid JSON"
+  local token_json
+  if ! token_json=$(validate_or_decode_token "$DOCKER_TOKEN"); then
+    die "DOCKER_TOKEN is not valid JSON or base64-encoded JSON"
   fi
   USER=$(printf '%s' "$token_json" | jq -r '.user // empty')
   PASSWORD=$(printf '%s' "$token_json" | jq -r '.password // empty')
   REGISTRY=$(printf '%s' "$token_json" | jq -r '.registry // empty')
-  [ -n "$REGISTRY" ] || die "Malformed response from Proxygen: missing registry"
+  [ -n "$REGISTRY" ] || die "Malformed DOCKER_TOKEN: missing registry"
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
   REGISTRY_ACCOUNT=$(printf '%s' "$REGISTRY_HOST" | cut -d'.' -f1)
   REGISTRY_REGION=$(printf '%s' "$REGISTRY_HOST" | awk -F'.' '{for(i=1;i<=NF;i++){ if($i=="ecr"){print $(i+1); exit}}}')
