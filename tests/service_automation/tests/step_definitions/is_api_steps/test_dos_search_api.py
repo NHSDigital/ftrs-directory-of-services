@@ -111,15 +111,17 @@ def _send_api_request(request_context, url, params: str=None, headers=None):
 
     return response
 
+
 def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
     if not params:
         return {}
 
     return dict(param.split('=', 1) for param in params.split('&') if '=' in param)
 
-@then(parsers.parse('the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding'))
-def api_check_operation_outcome_any_issue_details_invalid_search_data(fresponse):
-    api_check_operation_outcome_any_issue_diagnostics(
+
+@then(parsers.re(r'the OperationOutcome contains an issue with details for (?P<coding_type>\w+) coding'))
+def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type):
+    api_check_operation_outcome_any_issue_by_key_value(
         fresponse,
         key="details",
         value=CODING_MAP[coding_type],
