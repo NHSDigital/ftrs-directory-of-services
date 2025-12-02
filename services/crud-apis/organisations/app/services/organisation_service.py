@@ -11,6 +11,7 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
@@ -241,6 +242,27 @@ class OrganisationService:
             "non_primary_role_codes", organisation.non_primary_role_codes or []
         )
 
+        if isinstance(primary_role, str):
+            try:
+                primary_role = OrganisationTypeCode(primary_role)
+                outdated_fields["primary_role_code"] = primary_role
+            except ValueError:
+                error_message = f"Invalid primary role code: '{primary_role}'. "
+                self._handle_invalid_role_combination(organisation.id, error_message)
+
+        # Convert non-primary roles if they are strings
+        if non_primary_roles and isinstance(non_primary_roles[0], str):
+            try:
+                converted_non_primary_roles = [
+                    OrganisationTypeCode(role) for role in non_primary_roles
+                ]
+                outdated_fields["non_primary_role_codes"] = converted_non_primary_roles
+                non_primary_roles = converted_non_primary_roles
+            except ValueError as e:
+                error_message = f"Invalid non-primary role code: {str(e)}. "
+                self._handle_invalid_role_combination(organisation.id, error_message)
+
+        # Now validate the combination with enum values
         is_valid, error_message = validate_type_combination(
             primary_role, non_primary_roles
         )

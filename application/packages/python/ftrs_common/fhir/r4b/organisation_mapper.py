@@ -212,7 +212,7 @@ class OrganizationMapper(FhirMapper):
 
     def get_primary_and_non_primary_role_codes(
         self, role_codes: list[str]
-    ) -> tuple[str | None, list[str]]:
+    ) -> tuple[str | None, list[str] | None]:
         """
         Extract primary and non-primary organization role codes from role codes.
 
@@ -226,6 +226,9 @@ class OrganizationMapper(FhirMapper):
         Returns:
             Tuple of (primary_role_code, non_primary_role_codes)
         """
+
+        if len(role_codes) == 0:
+            return None, []
 
         primary_code = None
         non_primary_codes = []
