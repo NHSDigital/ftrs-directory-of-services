@@ -55,12 +55,13 @@ def get_organization() -> Response:
     else:
         # success path: measure and log response metrics
         duration_ms = int((time.time() - start) * 1000)
-        # attempt to approximate response size (bytes)
         try:
+            # attempt to approximate response size (bytes)
             body = fhir_resource.model_dump_json()
             response_size = len(body.encode("utf-8"))
         except Exception:
             response_size = None
+            dos_logger.exception("Failed to calculate response size")
 
         dos_logger.info(
             "Successfully processed: Logging response time & size",
