@@ -38,6 +38,9 @@ init(){
 
 validate_or_decode_token(){
   local raw="$1" decoded
+  if [ -z "$raw" ]; then
+    return 1
+  fi
   if printf '%s' "$raw" | jq empty >/dev/null 2>&1; then
     printf '%s' "$raw"
     return 0
@@ -47,18 +50,23 @@ validate_or_decode_token(){
     printf '%s' "$decoded"
     return 0
   fi
-  die "DOCKER_TOKEN must be JSON or base64-encoded JSON"
+  return 1
 }
 
 fetch_proxygen_registry_credentials(){
   BASE_URL="${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}"
-  if [ -z "${DOCKER_TOKEN:-}" ]; then
-    DOCKER_TOKEN=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
-  else
+  local token_json=""
+  if [ -n "${DOCKER_TOKEN:-}" ] && token_json=$(validate_or_decode_token "$DOCKER_TOKEN"); then
     log "Using DOCKER_TOKEN provided via environment"
+  else
+    if [ -n "${DOCKER_TOKEN:-}" ] && [ -n "${ACCESS_TOKEN:-}" ]; then
+      log "Provided DOCKER_TOKEN unusable; fetching a fresh token via ACCESS_TOKEN"
+    elif [ -n "${DOCKER_TOKEN:-}" ]; then
+      die "DOCKER_TOKEN unusable and ACCESS_TOKEN not provided"
+    fi
+    DOCKER_TOKEN=$(curl -fsS --request GET --url "${BASE_URL}/apis/${API_NAME}/docker-token" --header "Authorization: Bearer ${ACCESS_TOKEN}") || die "Failed to reach Proxygen API"
+    token_json=$(validate_or_decode_token "$DOCKER_TOKEN") || die "Malformed response from Proxygen: not valid JSON"
   fi
-  local token_json
-  token_json=$(validate_or_decode_token "$DOCKER_TOKEN")
   USER=$(printf '%s' "$token_json" | jq -r '.user // empty')
   PASSWORD=$(printf '%s' "$token_json" | jq -r '.password // empty')
   REGISTRY=$(printf '%s' "$token_json" | jq -r '.registry // empty')
