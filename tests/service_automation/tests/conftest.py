@@ -143,7 +143,7 @@ def api_request_context_ods_terminology(playwright, ods_terminology_api_key: str
 
 
 @pytest.fixture
-def new_apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
+def apim_request_context(playwright, nhsd_apim_proxy_url, nhsd_apim_auth_headers):
     """Create a new Playwright API request context."""
     apim_headers = nhsd_apim_auth_headers
     apim_request_context = playwright.request.new_context(

@@ -67,10 +67,10 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'),
     target_fixture="fresponse",
 )
-def send_to_apim_get_with_params(new_apim_request_context, nhsd_apim_proxy_url, params, resource_name):
+def send_to_apim_get_with_params(apim_request_context, nhsd_apim_proxy_url, params, resource_name):
     url = nhsd_apim_proxy_url + "/" + resource_name
 
-    return _send_api_request(new_apim_request_context, url, params)
+    return _send_api_request(apim_request_context, url, params)
 
 @when(
     parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" without authentication'),
@@ -84,18 +84,18 @@ def send_to_apim_no_auth(api_request_context, nhsd_apim_proxy_url, params, resou
     parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" with invalid token'),
     target_fixture="fresponse",
 )
-def send_to_apim_invalid_token(api_request_context, nhsd_apim_proxy_url, params, resource_name):
+def send_to_apim_invalid_token(apim_request_context, nhsd_apim_proxy_url, params, resource_name):
     url = nhsd_apim_proxy_url + "/" + resource_name
     headers = {"Authorization": "Bearer invalid_token"}
-    return _send_api_request(api_request_context, url, params, headers)
+    return _send_api_request(apim_request_context, url, params, headers)
 
 @when(
     parsers.re(r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" with status token'),
     target_fixture="fresponse",
 )
-def send_to_apim_status_token(api_request_context, status_endpoint_auth_headers, nhsd_apim_proxy_url, params, resource_name):
+def send_to_apim_status_token(apim_request_context, status_endpoint_auth_headers, nhsd_apim_proxy_url, params, resource_name):
     url = nhsd_apim_proxy_url + "/" + resource_name
-    return _send_api_request(api_request_context, url, params, status_endpoint_auth_headers)
+    return _send_api_request(apim_request_context, url, params, status_endpoint_auth_headers)
 
 
 def _send_api_request(request_context, url, params: str=None, headers=None):
