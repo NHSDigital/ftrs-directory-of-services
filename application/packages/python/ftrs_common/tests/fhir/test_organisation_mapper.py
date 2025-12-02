@@ -3,6 +3,7 @@ import uuid
 import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
@@ -41,8 +42,11 @@ def test_to_fhir_maps_fields_correctly() -> None:
         telecom="01234",
         type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
+        primary_role_code="abc123",
+        non_primary_role_codes=["bcd123"],
     )
     fhir_org = mapper.to_fhir(org)
+    EXPECTED_EXTENTION_LENGTH = 2
     assert isinstance(fhir_org, FhirOrganisation)
     assert fhir_org.id == "123e4567-e89b-12d3-a456-42661417400a"
     assert fhir_org.name == "Test Org"
@@ -56,6 +60,8 @@ def test_to_fhir_maps_fields_correctly() -> None:
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
     )
     assert fhir_org.type[0].coding[0].display == "GP Practice"
+    assert fhir_org.extension is not None
+    assert len(fhir_org.extension) == EXPECTED_EXTENTION_LENGTH
 
 
 def test_to_fhir_handles_missing_telecom() -> None:
@@ -735,3 +741,379 @@ def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
     result = mapper.from_ods_fhir_to_fhir(ods_org)
     assert result is not None
     assert result.identifier[0].value == "ODS123"
+
+
+def test_from_fhir_with_primary_and_non_primary_role_codes() -> None:
+    """Test from_fhir correctly extracts primary and non-primary role codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code == "RO177"
+    assert result.non_primary_role_codes == ["RO76"]
+
+
+def test_from_fhir_with_multiple_non_primary_role_codes() -> None:
+    """Test from_fhir correctly extracts multiple non-primary role codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO80",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code == "RO177"
+    assert result.non_primary_role_codes == ["RO76", "RO80"]
+
+
+def test_from_fhir_with_no_role_codes() -> None:
+    """Test from_fhir handles organization with no role codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org = FhirOrganisation(
+        id=valid_uuid,
+        identifier=[
+            Identifier(
+                system="https://fhir.nhs.uk/Id/ods-organization-code",
+                value=valid_uuid,
+            )
+        ],
+        name="Test Organization",
+        active=True,
+        type=[CodeableConcept(text="GP Practice")],
+    )
+
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code is None
+    assert result.non_primary_role_codes == []
+
+
+def test_from_fhir_with_only_primary_role_code() -> None:
+    """Test from_fhir with only primary role code and no non-primary codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "Pharmacy"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO182",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code == "RO182"
+    assert result.non_primary_role_codes == []
+
+
+def test_from_fhir_with_only_non_primary_role_codes() -> None:
+    """Test from_fhir with only non-primary role codes (no primary)."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "type": [{"text": "GP Practice"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code is None
+    assert result.non_primary_role_codes == ["RO76"]
+
+
+def test__build_role_extension_with_valid_code() -> None:
+    """Test building role extension with a valid role code."""
+    mapper = OrganizationMapper()
+
+    result = mapper._build_role_extension("RO177")
+
+    assert isinstance(result, Extension)
+    assert (
+        result.url
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )
+    assert len(result.extension) == 1
+    assert result.extension[0].url == "roleCode"
+    assert result.extension[0].valueCoding.code == "RO177"
+    assert result.extension[0].valueCoding.display == "RO177"
+
+
+def test_from_ods_fhir_to_fhir_with_primary_role_only() -> None:
+    """Test from_ods_fhir_to_fhir correctly includes only primary role extension."""
+    mapper = OrganizationMapper()
+    ods_fhir_organisation = {
+        "resourceType": "Organization",
+        "id": "C88037",
+        "active": True,
+        "name": "Test Org",
+        "telecom": [{"system": "phone", "value": "01234"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO182",
+                                    "display": "PHARMACY",
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
+        ],
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "C88037",
+            }
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
+
+    assert isinstance(result, FhirOrganisation)
+    assert result.id == "C88037"
+    assert result.name == "Test Org"
+    assert result.active is True
+    assert result.extension is not None
+    assert len(result.extension) == 1
+    assert (
+        result.extension[0].url
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )
+
+
+def test_from_ods_fhir_to_fhir_with_multiple_role_extensions() -> None:
+    """Test from_ods_fhir_to_fhir correctly includes multiple role extensions."""
+    mapper = OrganizationMapper()
+    ods_fhir_organisation = {
+        "resourceType": "Organization",
+        "id": "C88037",
+        "active": True,
+        "name": "Test Org",
+        "telecom": [{"system": "phone", "value": "01234"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                    "display": "PRESCRIBING COST CENTRE",
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
+        ],
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "C88037",
+            }
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
+
+    assert isinstance(result, FhirOrganisation)
+    assert result.extension is not None
+    assert len(result.extension) == 1
+    assert (
+        result.extension[0].url
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )

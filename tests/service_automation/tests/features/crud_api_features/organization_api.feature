@@ -93,6 +93,8 @@ Feature: Organization API Endpoint
       | field   | value           | field_path       | invalid_value   |
       | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
       | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
+      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH SURGERY |
+      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#SURGERY  |
       | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
 
   Scenario Outline: Update Organisation with valid non-primary roles
@@ -108,13 +110,12 @@ Feature: Organization API Endpoint
 
     Examples:
       | primary_role_code  | non_primary_role_codes|
-      | RO177         | [RO76]             |
-      | RO177         | [RO80]             |
-      | RO177         | [RO87]             |
-      | RO177         | [RO76, RO80]        |
-      | RO177         | [RO76, RO80, RO87]   |
-      | RO182         |  []           |
-
+      | RO177              | [RO76]                |
+      | RO177              | [RO80]                |
+      | RO177              | [RO87]                |
+      | RO177              | [RO76, RO80]          |
+      | RO177              | [RO76, RO80, RO87]    |
+      | RO182              | []                    |
   Scenario Outline: Reject Organisation with invalid role combinations
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -127,10 +128,10 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates the "<expected_error_message>"
 
     Examples:
-      | primary_role_code  | non_primary_role_codes| expected_error_message |
-      | RO177          | [RO80, RO80]             |Duplicate non-primary roles are not allowed |
-      | RO177          |  []           | must have at least one non-primary role |
-      | None         | [RO80]             | Primary role code must be provided |
+      | primary_role_code  | non_primary_role_codes| expected_error_message                     |
+      | RO177          | [RO80, RO80]              |Duplicate non-primary roles are not allowed |
+      | RO177          |  []                       | must have at least one non-primary role    |
+      | None           | [RO80]                    | Primary role code must be provided         |
 
 
 

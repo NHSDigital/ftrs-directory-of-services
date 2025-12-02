@@ -73,13 +73,20 @@ class OrganizationMapper(FhirMapper):
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
             "telecom": self._build_telecom(organisation.telecom),
         }
+        extensions = []
         if organisation.primary_role_code:
-            org_dict["extension"] = [
-                self._build_role_extension(organisation.primary_role_code)
-            ]
+            primary_ext = self._build_role_extension(organisation.primary_role_code)
+            if primary_ext:
+                extensions.append(primary_ext)
+
         if organisation.non_primary_role_codes:
-            for code in organisation.non_primary_role_codes:
-                org_dict["extension"] = [self._build_role_extension(code)]
+            for role_code in organisation.non_primary_role_codes:
+                non_primary_ext = self._build_role_extension(role_code)
+                if non_primary_ext:
+                    extensions.append(non_primary_ext)
+
+        if extensions:
+            org_dict["extension"] = extensions
 
         return FhirOrganisation.model_validate(org_dict)
 
