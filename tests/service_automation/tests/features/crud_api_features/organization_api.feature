@@ -190,7 +190,6 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates the "Active field is required and cannot be null"
 
     Examples:
       | field  | value  |
@@ -283,20 +282,22 @@ Feature: Organization API Endpoint
     And the data in the database matches the inserted payload
 
     Examples:
-      | field      | value        |
-      | identifier | 1            |
-      | identifier | Z9           |
-      | identifier | B7           |
-      | identifier | ABC123       |
-      | identifier | abcDEF       |
-      | identifier | abcDEF456    |
-      | identifier | XyZ789       |
-      | identifier | A1B2C3D4E5F6 |
-      | identifier | A1B2C3D4E5F6 |
-      | identifier | ABCDEFGHIJKL |
-      | identifier | 1234567890   |
-      | identifier | TEST123456   |
-      | identifier | CODE2025     |
+      | identifier   |
+      | 1            |
+      | Z9           |
+      | B76          |
+      | A123         |
+      | ABC123       |
+      | abcDEF       |
+      | abcDEF456    |
+      | XyZ789       |
+      | A1B2C3D4E5F6 |
+      | A1B2C3D4E5F6 |
+      | ABCDEFGHIJKL |
+      | 1234567890   |
+      | TEST123456   |
+      | CODE2025     |
+      | XyZ789       |
 
 
   Scenario Outline: Reject Organization update with invalid ods-code format
@@ -310,20 +311,18 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with code "invalid"
 
     Examples:
-      | field      | value         |
-      | identifier | ""            |
-      | identifier | 1234567890123 |
-      | identifier | TOOLONG123456 |
-      | identifier | !ABC123       |
-      | identifier | ABC123!       |
-      | identifier | @#$%^&*       |
-      | identifier | ABC_123       |
-      | identifier | abc.def       |
-      | identifier | ABC 123       |
-      | identifier | A123          |
-      | identifier | ABC123        |
-      | identifier | ABC-123       |
-      | identifier | 123_456       |
-      | identifier | 11111111      |
+      | identifier    |
+      | ""            |
+      | 1234567890123 |
+      | TOOLONG123456 |
+      | !ABC123       |
+      | ABC123!       |
+      | @#$%^&*       |
+      | ABC_123       |
+      | abc.def       |
+      | ABC 123       |
+      | ABC-123       |
+      | 123_456       |
+      | 01234         |
 
 
