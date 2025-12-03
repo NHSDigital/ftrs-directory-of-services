@@ -541,6 +541,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Error: Active field is required and cannot be null.",
     )
+    ORGANISATION_023 = LogReference(
+        level=WARNING,
+        message="Received invalid legal dates, legal period start and end dates are equal: {date}.",
+    )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
         message="Received request to create healthcare service with name: {name} and type: {type}.",

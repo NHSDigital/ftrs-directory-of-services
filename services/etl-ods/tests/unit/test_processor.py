@@ -54,6 +54,10 @@ def _helper_create_organization_resource(ods_code: str) -> dict:
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
                     {
+                        "url": "instanceID",
+                        "valueInteger": 78491,
+                    },
+                    {
                         "url": "roleCode",
                         "valueCodeableConcept": {
                             "coding": [
@@ -64,12 +68,58 @@ def _helper_create_organization_resource(ods_code: str) -> dict:
                                 }
                             ]
                         },
-                    }
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "1974-04-01",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Operational",
+                                    "display": "Operational",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "1974-04-01",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "url": "active",
+                        "valueBoolean": True,
+                    },
                 ],
             },
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
+                    {
+                        "url": "instanceID",
+                        "valueInteger": 195368,
+                    },
                     {
                         "url": "roleCode",
                         "valueCodeableConcept": {
@@ -81,7 +131,49 @@ def _helper_create_organization_resource(ods_code: str) -> dict:
                                 }
                             ]
                         },
-                    }
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "2014-04-15",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Operational",
+                                    "display": "Operational",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {
+                                    "start": "2014-04-15",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "url": "active",
+                        "valueBoolean": True,
+                    },
                 ],
             },
         ],
@@ -203,6 +295,71 @@ def test_processor_processing_organisations_successful(
                     }
                 ],
                 "telecom": [],
+                "extension": [
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                        "extension": [
+                            {
+                                "url": "instanceID",
+                                "valueInteger": 78491,
+                            },
+                            {
+                                "url": "roleCode",
+                                "valueCodeableConcept": {
+                                    "coding": [
+                                        {
+                                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                            "code": "RO177",
+                                            "display": "PRESCRIBING COST CENTRE",
+                                        }
+                                    ]
+                                },
+                            },
+                            {
+                                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                                "extension": [
+                                    {
+                                        "url": "dateType",
+                                        "valueCoding": {
+                                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                            "code": "Legal",
+                                            "display": "Legal",
+                                        },
+                                    },
+                                    {
+                                        "url": "period",
+                                        "valuePeriod": {
+                                            "start": "1974-04-01",
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                                "extension": [
+                                    {
+                                        "url": "dateType",
+                                        "valueCoding": {
+                                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                            "code": "Operational",
+                                            "display": "Operational",
+                                        },
+                                    },
+                                    {
+                                        "url": "period",
+                                        "valuePeriod": {
+                                            "start": "1974-04-01",
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "url": "active",
+                                "valueBoolean": True,
+                            },
+                        ],
+                    }
+                ],
             },
             "correlation_id": TEST_CORRELATION_ID,
             "request_id": TEST_REQUEST_ID,
@@ -237,7 +394,9 @@ def test_processor_continue_on_validation_failure(
         "http://test-apim-api/Organization?identifier=odsOrganisationCode|EFG456",
         json=apim_bundle_efg456,
     )
-    expected_call_count = 3  # ODS Terminology + 2 UUID lookups
+    expected_call_count = (
+        3  # ODS Terminology API + 2 APIM UUID lookups (ABC123 fails, EFG456 succeeds)
+    )
 
     date = datetime.now().strftime("%Y-%m-%d")
 

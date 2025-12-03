@@ -141,20 +141,83 @@ def get_db_item(model_repo, payload: dict):
 
 
 def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = False):
-    expected = {
-        "identifier_ODS_ODSCode": payload["identifier"][0]["value"],
-        "name": payload["name"].title(),
-        "type": payload["type"][0]["text"].title(),
-        "active": payload["active"],
-        "modifiedBy": "ODS_ETL_PIPELINE",
-    }
+    """
+    Assert that the database item matches the payload.
+    """
+    fields = [
+        ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
+        ("name", payload["name"].title()),
+        ("type", payload["type"][0]["text"].title()),
+        ("active", payload["active"]),
+        ("modifiedBy", "ODS_ETL_PIPELINE"),
+    ]
     if not mandatory_only:
-        expected["telecom"] = payload.get("telecom", [{}])[0].get("value")
+        fields.append(("telecom", payload.get("telecom", [{}])[0].get("value")))
 
-    for attr, exp in expected.items():
+    for attr, expected in fields:
         actual = getattr(item, attr, None)
-        logger.info(f"Validating {attr}: expected={exp}, actual={actual}")
-        assert actual == exp, f"{attr} mismatch: {actual} != {exp}"
+        logger.info(f"Validating {attr}: expected={expected}, actual={actual}")
+        assert actual == expected, f"{attr} mismatch: {actual} != {expected}"
+
+    # Check legal dates from OrganisationRole extension
+    legal_start, legal_end = extract_legal_dates_from_payload(payload)
+    if legal_start or legal_end:
+        # Check legal start date
+        actual_start = getattr(item.legalDates, "start", None) if item.legalDates else None
+        if actual_start and hasattr(actual_start, "isoformat"):
+            actual_start = actual_start.isoformat()
+        logger.info(f"Validating legal start: expected={legal_start}, actual={actual_start}")
+        assert actual_start == legal_start, f"Legal start date mismatch: {actual_start} != {legal_start}"
+
+        # Check legal end date
+        actual_end = getattr(item.legalDates, "end", None) if item.legalDates else None
+        if actual_end and hasattr(actual_end, "isoformat"):
+            actual_end = actual_end.isoformat()
+        logger.info(f"Validating legal end: expected={legal_end}, actual={actual_end}")
+        assert actual_end == legal_end, f"Legal end date mismatch: {actual_end} != {legal_end}"
+
+
+def extract_legal_dates_from_payload(payload: dict) -> tuple[str | None, str | None]:
+    """Extract legal start and end dates from OrganisationRole extension in payload."""
+    extensions = payload.get("extension", [])
+
+    for ext in extensions:
+        if ext.get("url") != "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole":
+            continue
+
+        role_extensions = ext.get("extension", [])
+        typed_period = _find_typed_period_in_role(role_extensions)
+        if typed_period:
+            return _extract_legal_period_dates(typed_period)
+
+    return None, None
+
+
+def _find_typed_period_in_role(role_extensions: list) -> dict | None:
+    """Find the Legal TypedPeriod extension in role extensions."""
+    for role_ext in role_extensions:
+        if role_ext.get("url") == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod":
+            if _is_legal_typed_period(role_ext):
+                return role_ext
+    return None
+
+
+def _is_legal_typed_period(typed_period_ext: dict) -> bool:
+    """Check if a TypedPeriod extension has dateType 'Legal'."""
+    for tp_ext in typed_period_ext.get("extension", []):
+        if tp_ext.get("url") == "dateType":
+            coding = tp_ext.get("valueCoding", {})
+            return coding.get("code") == "Legal"
+    return False
+
+
+def _extract_legal_period_dates(typed_period_ext: dict) -> tuple[str | None, str | None]:
+    """Extract start and end dates from a Legal TypedPeriod extension."""
+    for tp_ext in typed_period_ext.get("extension", []):
+        if tp_ext.get("url") == "period":
+            period = tp_ext.get("valuePeriod", {})
+            return period.get("start"), period.get("end")
+    return None, None
 
 
 def get_diagnostics_list(fresponse):
@@ -234,6 +297,63 @@ def step_given_valid_payload_with_identifier(identifier_data):
     logger.info(f"Prepared payload with identifier: {json.dumps(payload, indent=2)}")
     return payload
 
+
+def build_typed_period_extension(start_date: str = None, end_date: str = None, date_type_code: str = "Legal") -> dict:
+    period = {}
+    if start_date:
+        period["start"] = start_date
+    if end_date:
+        period["end"] = end_date
+
+    return {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+        "extension": [
+            {
+                "url": "dateType",
+                "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                    "code": date_type_code,
+                    "display": date_type_code
+                }
+            },
+            {
+                "url": "period",
+                "valuePeriod": period
+            }
+        ]
+    }
+
+
+def build_organisation_role_extension_with_typed_period(start_date: str = None, end_date: str = None, date_type_code: str = "Legal") -> dict:
+    """Create an OrganisationRole extension containing a TypedPeriod extension."""
+    typed_period = build_typed_period_extension(start_date, end_date, date_type_code)
+
+    return {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+        "extension": [
+            {
+                "url": "instanceID",
+                "valueInteger": 12345
+            },
+            {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": "RO76",
+                            "display": "GP PRACTICE"
+                        }
+                    ]
+                }
+            },
+            typed_period,
+            {
+                "url": "active",
+                "valueBoolean": True
+            }
+        ]
+    }
 
 @when(
     "I update the organization details for ODS Code via APIM",
@@ -349,6 +469,294 @@ def step_update_with_identifier(payload, api_request_context_mtls_crud):
     return response
 
 
+def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
+    """Build invalid TypedPeriod extensions for different test scenarios."""
+    typed_period_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+
+    if invalid_scenario == "missing dateType":
+        return {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "missing period":
+        return {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                }
+            ]
+        }
+    elif invalid_scenario == "non-Legal dateType":
+        return build_typed_period_extension("2020-01-15", "2025-12-31", "Operational")
+    elif invalid_scenario == "invalid periodType extension url":
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod",
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "invalid periodType system":
+        return {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-InvalidPeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "missing start date with end":
+        return {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"end": "2025-12-31"}  # Missing start date
+                }
+            ]
+        }
+    elif invalid_scenario == "missing both start and end":
+        return {
+            "url": typed_period_url,
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {}  # Missing both start and end dates
+                }
+            ]
+        }
+    elif invalid_scenario == "empty TypedPeriod extension url":
+        return {
+            "url": "",  # Empty string URL
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    elif invalid_scenario == "missing TypedPeriod extension url":
+        return {
+            # "url" is missing here
+            "extension": [
+                {
+                    "url": "dateType",
+                    "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                    }
+                },
+                {
+                    "url": "period",
+                    "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+                }
+            ]
+        }
+    else:
+        raise ValueError(f"Unknown TypedPeriod invalid_scenario: {invalid_scenario}")
+
+
+def _build_invalid_role_extension(invalid_scenario: str) -> dict:
+    """Build invalid OrganisationRole extensions for different test scenarios."""
+    if invalid_scenario == "invalid role extension url":
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO76",
+                                "display": "GP PRACTICE"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    elif invalid_scenario == "missing role extension url":
+        return {
+            # "url" is missing here
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                }
+            ]
+        }
+    elif invalid_scenario == "empty role extension url":
+        return {
+            "url": "",  # Empty string URL
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO76",
+                                "display": "GP PRACTICE"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    else:
+        raise ValueError(f"Unknown role extension invalid_scenario: {invalid_scenario}")
+
+
+def _build_role_extension_with_invalid_typed_period(invalid_typed_period: dict) -> dict:
+    """Wrap an invalid TypedPeriod extension in a valid OrganisationRole extension."""
+    return {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+        "extension": [
+            {
+                "url": "instanceID",
+                "valueInteger": 12345
+            },
+            {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": "RO76",
+                            "display": "GP PRACTICE"
+                        }
+                    ]
+                }
+            },
+            invalid_typed_period,
+        ]
+    }
+
+
+@when(
+    parsers.parse('I update the organization with an invalid TypedPeriod extension "{invalid_scenario}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_invalid_extension(invalid_scenario: str, api_request_context_mtls_crud):
+    """Update organization with various invalid extension scenarios."""
+    payload = _load_default_payload()
+
+    # Handle role-level validation scenarios
+    if invalid_scenario in ("invalid role extension url", "missing role extension url", "empty role extension url"):
+        invalid_role_extension = _build_invalid_role_extension(invalid_scenario)
+        payload["extension"] = [invalid_role_extension]
+    else:
+        # Handle TypedPeriod-level validation scenarios
+        invalid_typed_period = _build_invalid_typed_period_extension(invalid_scenario)
+        organisation_role_extension = _build_role_extension_with_invalid_typed_period(invalid_typed_period)
+        payload["extension"] = [organisation_role_extension]
+
+    logger.info(f"Payload with invalid extension ({invalid_scenario}):\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse('I update the organization with legal dates start "{legal_start}" and end "{legal_end}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_legal_dates(legal_start: str, legal_end: str, api_request_context_mtls_crud):
+    """Update organization with legal start and end dates in YYYY-MM-DD format."""
+    payload = _load_default_payload()
+
+    # Convert "null" string to None
+    start = None if legal_start == "null" else legal_start
+    end = None if legal_end == "null" else legal_end
+
+    if start or end:
+        payload["extension"] = [build_organisation_role_extension_with_typed_period(start, end)]
+    else:
+        payload.pop("extension", None)
+
+    logger.info(f"Payload with legal dates:\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse('I update the organization with invalid date format "{date_field}" value "{invalid_date}"'),
+    target_fixture="fresponse",
+)
+def step_update_with_invalid_date_format(date_field: str, invalid_date: str, api_request_context_mtls_crud):
+    """Update organization with invalid date format to test validation."""
+    payload = _load_default_payload()
+
+    start = invalid_date if date_field == "start" else "2020-01-15"
+    end = invalid_date if date_field == "end" else "2025-12-31"
+
+    payload["extension"] = [build_organisation_role_extension_with_typed_period(start, end)]
+
+    logger.info(f"Payload with invalid {date_field} date '{invalid_date}':\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
 @then(parsers.parse('the OperationOutcome contains an issue with code "{code}"'))
 def step_check_operation_outcome_code(fresponse, code):
     body = fresponse.json()
@@ -411,12 +819,23 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
-    actual = (
-        getattr(item, field, None)
-        if field != "telecom"
-        else getattr(item, "telecom", None)
-    )
-    assert actual == value, f"{field} mismatch: expected {value}, got {actual}"
+
+    # Convert string "None" to Python None for comparison
+    expected = None if value == "None" else value
+    # Handle legalDates structure - convert legalStartDate/legalEndDate to legalDates.start/end
+    if field == "legalStartDate":
+        actual = getattr(item.legalDates, "start", None) if item.legalDates else None
+    elif field == "legalEndDate":
+        actual = getattr(item.legalDates, "end", None) if item.legalDates else None
+    elif field == "telecom":
+        actual = getattr(item, "telecom", None)
+    else:
+        actual = getattr(item, field, None)
+
+    if field in ("legalStartDate", "legalEndDate") and actual is not None:
+        if hasattr(actual, "isoformat"):
+            actual = actual.isoformat()
+    assert actual == expected, f"{field} mismatch: expected {expected}, got {actual}"
 
 
 @then(parsers.parse('the diagnostics message indicates "{field}" is missing'))
@@ -470,21 +889,18 @@ def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
     payload = set_field_to_null(_load_default_payload(), "active")
     return update_organisation(payload, api_request_context_mtls_crud)
 
-
-@then(
-    parsers.parse('the diagnostics message indicates the "{expected_message}"')
-)
+@then(parsers.parse('the diagnostics message indicates the "{expected_message}"'))
 def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     """Verify that the diagnostics message contains the expected text."""
     body = fresponse.json()
-    assert body.get("resourceType") == "OperationOutcome", (
-        f"Unexpected response: {body}"
-    )
+    assert (
+        body.get("resourceType") == "OperationOutcome"
+    ), f"Unexpected response: {body}"
 
     diagnostics = body["issue"][0].get("diagnostics", "")
 
-    assert expected_message in diagnostics, (
-        f"Expected diagnostics to contain '{expected_message}', got: {diagnostics}"
-    )
+    assert (
+        expected_message in diagnostics
+    ), f"Expected diagnostics to contain '{expected_message}', got: {diagnostics}"
 
     logger.info(f"Diagnostics correctly contains: {expected_message}")

@@ -33,4 +33,6 @@ locals {
   env_sso_roles = [
     for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
   ]
+
+  sqs_kms_key_alias = "alias/${var.project}-${var.environment}-sqs-kms"
 }
