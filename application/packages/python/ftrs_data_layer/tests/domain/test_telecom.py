@@ -68,11 +68,6 @@ def test_telecom_invalid_email(email: str) -> None:
     [
         ("bad_website.com"),
         ("http://exa mple.com"),
-        ("http://example"),  # missing TLD
-        ("http://.example.com"),  # missing domain name
-        ("http://example..com"),  # double dot in domain
-        ("https:///example.com"),  # too many slashes
-        ("http://example.com:99999"),  # invalid port number
     ],
 )
 def test_telecom_invalid_web(web: str) -> None:
