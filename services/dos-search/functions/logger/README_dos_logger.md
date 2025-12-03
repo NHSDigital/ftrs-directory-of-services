@@ -76,8 +76,8 @@ These optional fields are extracted from the API Gateway Event and/or Lambda Exe
 | `opt_dos_client_id`        | `NHSD-Client-Id` header                 | `DOS_LOG_PLACEHOLDER` |
 | `opt_dos_application_name` | `NHSD-Connecting-Party-App-Name` header | `DOS_LOG_PLACEHOLDER` |
 | `opt_dos_request_params`   | Query, path, and request context        | `{}`                  |
-| `opt_dos_environment`      | `ENVIRONMENT` env var                   | `DOS_LOG_PLACEHOLDER` |
-| `opt_dos_lambda_version`   | `AWS_LAMBDA_FUNCTION_VERSION` env var   | `DOS_LOG_PLACEHOLDER` |
+| `opt_dos_environment`      | `ENVIRONMENT` environment var                   | `DOS_LOG_PLACEHOLDER` |
+| `opt_dos_lambda_version`   | `AWS_LAMBDA_FUNCTION_VERSION` environment var   | `DOS_LOG_PLACEHOLDER` |
 
 ### Custom Message Categories
 
@@ -209,7 +209,7 @@ Log an error-level message with optional structured fields.
 
 #### `exception(message: str, **detail: object) -> None`
 
-Log an exception-level message with optional structured fields (includes traceback).
+Log an exception-level message with optional structured fields (includes trace of call stack).
 
 ### Powertools Wrapper Methods
 
