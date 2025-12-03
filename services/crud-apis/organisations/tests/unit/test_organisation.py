@@ -33,6 +33,7 @@ def get_organisation() -> dict:
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
         "modifiedDateTime": "2023-11-01T00:00:00Z",
+        "legalDates": None,
         "endpoints": [
             {
                 "id": "d5a852ef-12c7-4014-b398-661716a63027",

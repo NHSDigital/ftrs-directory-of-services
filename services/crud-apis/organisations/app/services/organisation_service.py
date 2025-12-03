@@ -12,9 +12,11 @@ from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.enums import OrganisationTypeCode
+from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
+from organisations.app.models.organisation import LegalDateField
 from organisations.app.services.validators import validate_type_combination
 
 
@@ -173,37 +175,18 @@ class OrganisationService:
     ) -> dict:
         """
         Compare two Organisation objects and return a dict of fields that are outdated.
-        Containing which fields can be updated for now will depend on business validation definitions.
+        Containing which fields can be updated for now will dedpend on business validation definitions.
         """
         allowed_fields = {
             "name",
             "type",
             "active",
-            "identifier_ODS_ODSCode",
             "telecom",
+            "legalDates",
+            "identifier_ODS_ODSCode",
             "primary_role_code",
             "non_primary_role_codes",
         }
-
-        outdated_fields = self._compute_outdated_fields(
-            organisation, payload, allowed_fields
-        )
-
-        if outdated_fields:
-            self._validate_role_fields_if_changed(organisation, outdated_fields)
-            self._log_outdated_fields(outdated_fields, organisation.id)
-            outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
-            outdated_fields["modifiedDateTime"] = datetime.now(UTC)
-
-        return outdated_fields
-
-    def _compute_outdated_fields(
-        self,
-        organisation: Organisation,
-        payload: Organisation,
-        allowed_fields: set[str],
-    ) -> dict:
-        """Extract fields that have changed between stored and payload organisations."""
         outdated_fields = {}
 
         for field, value in payload.model_dump().items():
@@ -212,7 +195,11 @@ class OrganisationService:
 
             existing_value = getattr(organisation, field, None)
 
-            if field == "primary_role_code":
+            # Special handling for legalDates to compare start and end values
+            if field == "legalDates":
+                if self._legal_dates_differ(existing_value, value):
+                    outdated_fields[field] = value
+            elif field == "primary_role_code":
                 if existing_value != value:
                     outdated_fields[field] = value
             elif field == "non_primary_role_codes":
@@ -221,7 +208,43 @@ class OrganisationService:
             elif existing_value != value:
                 outdated_fields[field] = value
 
+        if outdated_fields:
+            self._validate_role_fields_if_changed(organisation, outdated_fields)
+            self.logger.log(
+                CrudApisLogBase.ORGANISATION_006,
+                outdated_fields=list(outdated_fields.keys()),
+                organisation_id=getattr(organisation, "id", None),
+            )
+            outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
+            outdated_fields["modifiedDateTime"] = datetime.now(UTC)
         return outdated_fields
+
+    def _legal_dates_differ(self, existing: LegalDates, new: LegalDates) -> bool:
+        """Compare two legalDates to check if they differ."""
+        if existing is None and new is None:
+            return False
+        if existing is None or new is None:
+            return True
+
+        existing_start = self._extract_date_field(existing, LegalDateField.START)
+        existing_end = self._extract_date_field(existing, LegalDateField.END)
+        new_start = self._extract_date_field(new, LegalDateField.START)
+        new_end = self._extract_date_field(new, LegalDateField.END)
+
+        return existing_start != new_start or existing_end != new_end
+
+    def _extract_date_field(
+        self, legal_dates: LegalDates, field: LegalDateField
+    ) -> any:
+        if not isinstance(field, LegalDateField):
+            err_msg = "field must be a LegalDateField Enum value"
+            raise TypeError(err_msg)
+        key = field.value
+        if hasattr(legal_dates, key):
+            return getattr(legal_dates, key)
+        if isinstance(legal_dates, dict):
+            return legal_dates.get(key)
+        return None
 
     def _validate_role_fields_if_changed(
         self, organisation: Organisation, outdated_fields: dict
@@ -283,21 +306,3 @@ class OrganisationService:
             severity="error",
         )
         raise OperationOutcomeException(outcome)
-
-    def _log_outdated_fields(self, outdated_fields: dict, organisation_id: str) -> None:
-        """Log the fields that will be updated."""
-        self.logger.log(
-            CrudApisLogBase.ORGANISATION_006,
-            outdated_fields=list(outdated_fields.keys()),
-            organisation_id=organisation_id,
-        )
-
-
-def _raise_validation_error(message: str) -> None:
-    """Helper to raise validation errors with consistent OperationOutcome formatting."""
-    outcome = OperationOutcomeHandler.build(
-        diagnostics=message,
-        code="invalid",
-        severity="error",
-    )
-    raise OperationOutcomeException(outcome)
