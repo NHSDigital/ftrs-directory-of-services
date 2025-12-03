@@ -32,9 +32,3 @@ variable "enable_key_rotation" {
   type        = bool
   default     = true
 }
-
-variable "additional_policy_statements" {
-  type        = list(any)
-  default     = []
-  description = "Additional statements to add to the KMS key policy"
-}
