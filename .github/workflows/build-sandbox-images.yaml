@@ -23,6 +23,13 @@ on:
         description: "Optional application tag to check out (leave empty for default/latest)"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS Account ID"
+        required: true
+      PROXYGEN_URL:
+        description: "Proxygen API base URL"
+        required: false
 
 jobs:
   build-sandbox-images:
@@ -68,7 +75,7 @@ jobs:
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
-          type: ${{ inputs.type || 'app' }}
+          type: app
           environment: ${{ inputs.environment }}
 
       - name: "Get directories"
@@ -109,6 +116,8 @@ jobs:
       - name: Get APIM Docker Token
         id: get-docker-token
         uses: ./.github/actions/authenticate-apim-docker
+        env:
+          PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
         with:
           access_token: ${{ steps.get-token.outputs.access_token }}
           api_name: ${{ env.API_NAME }}
