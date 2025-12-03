@@ -298,7 +298,7 @@ Feature: Organization API Endpoint
       | TEST123456   |
       | CODE2025     |
       | XyZ789       |
-
+      | M2T8W        |
 
   Scenario Outline: Reject Organization update with invalid ods-code format
     Given that the stack is "organisation"
@@ -324,5 +324,4 @@ Feature: Organization API Endpoint
       | ABC-123       |
       | 123_456       |
       | 01234         |
-
 
