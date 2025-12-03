@@ -273,7 +273,7 @@ Feature: Organization API Endpoint
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the "<field>" field to "<value>"
+    When I set the "identifier" field to "<value>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -283,47 +283,47 @@ Feature: Organization API Endpoint
     And the data in the database matches the inserted payload
 
     Examples:
-      | identifier   |
-      | 1            |
-      | Z9           |
-      | B7           |
-      | ABC123       |
-      | abcDEF       |
-      | abcDEF456    |
-      | XyZ789       |
-      | A1B2C3D4E5F6 |
-      | A1B2C3D4E5F6 |
-      | ABCDEFGHIJKL |
-      | 1234567890   |
-      | TEST123456   |
-      | CODE2025     |
+      | field      | value        |
+      | identifier | 1            |
+      | identifier | Z9           |
+      | identifier | B7           |
+      | identifier | ABC123       |
+      | identifier | abcDEF       |
+      | identifier | abcDEF456    |
+      | identifier | XyZ789       |
+      | identifier | A1B2C3D4E5F6 |
+      | identifier | A1B2C3D4E5F6 |
+      | identifier | ABCDEFGHIJKL |
+      | identifier | 1234567890   |
+      | identifier | TEST123456   |
+      | identifier | CODE2025     |
 
 
   Scenario Outline: Reject Organization update with invalid ods-code format
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the "<field>" field to "<value>"
+    When I set the "identifier" field to "<value>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
 
     Examples:
-      | identifier    |
-      | ""            |
-      | 1234567890123 |
-      | TOOLONG123456 |
-      | !ABC123       |
-      | ABC123!       |
-      | @#$%^&*       |
-      | ABC_123       |
-      | abc.def       |
-      | ABC 123       |
-      | A123          |
-      | ABC123        |
-      | ABC-123       |
-      | 123_456       |
-      | 11111111      |
+      | field      | value         |
+      | identifier | ""            |
+      | identifier | 1234567890123 |
+      | identifier | TOOLONG123456 |
+      | identifier | !ABC123       |
+      | identifier | ABC123!       |
+      | identifier | @#$%^&*       |
+      | identifier | ABC_123       |
+      | identifier | abc.def       |
+      | identifier | ABC 123       |
+      | identifier | A123          |
+      | identifier | ABC123        |
+      | identifier | ABC-123       |
+      | identifier | 123_456       |
+      | identifier | 11111111      |
 
 
