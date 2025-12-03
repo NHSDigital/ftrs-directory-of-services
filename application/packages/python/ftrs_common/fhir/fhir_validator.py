@@ -70,6 +70,27 @@ class FhirValidator:
         return resource
 
     @staticmethod
+    def _check_telecom_phone_special_characters(
+        resource: dict, fhir_model: Type[FHIRAbstractModel]
+    ) -> dict:
+        """
+        Validates that the telecom value fields do not contain special characters.
+        Returns the resource if valid, raises OperationOutcomeException if not.
+        """
+
+        special_phone_characters_pattern = r"[\";\\`<>|@$]"
+        telecoms = resource.get("telecom", [])
+        for idx, telecom in enumerate(telecoms):
+            value = telecom.get("value", "")
+            system = telecom.get("system", "")
+            if system == "phone" and re.search(special_phone_characters_pattern, value):
+                path = f"telecom[{idx}].value"
+                msg = f"Field '{path}' contains invalid characters: {value}"
+                FhirValidator._log_and_raise(msg, "invalid", fhir_model)
+
+        return resource
+
+    @staticmethod
     def _check_telecom_types_are_valid(
         resource: dict, fhir_model: Type[FHIRAbstractModel]
     ) -> dict:
@@ -118,6 +139,11 @@ class FhirValidator:
         """
         resource = FhirValidator._validate_resource_structure(resource, fhir_model)
         resource = FhirValidator._check_for_special_characters(resource, fhir_model)
+        resource = FhirValidator._check_telecom_phone_special_characters(
+            resource, fhir_model
+        )
+        resource = FhirValidator._check_telecom_types_are_valid(resource, fhir_model)
+
         try:
             return fhir_model.model_validate(resource)
         except ValidationError as e:

@@ -1,4 +1,5 @@
 import typing
+from builtins import str
 
 import pytest
 from fhir.resources.R4B.organization import Organization
@@ -137,6 +138,13 @@ def test_validate_wrong_resource_type(
             {"resourceType": "DummyResource", "foo": 123},
             DummyModel,
         ),
+        (
+            {
+                "resourceType": "DummyResource",
+                "telecom": [{"system": "phone", "value": "123456@"}],
+            },
+            DummyModel,
+        ),
     ],
 )
 def test_validate_fhir_validation_error(
@@ -152,7 +160,10 @@ def test_validate_fhir_validation_error(
     [
         {"resourceType": "DummyResource", "name": "Valid Name"},
         {"resourceType": "DummyResource", "modifiedBy": "ValidUser"},
-        {"resourceType": "DummyResource", "telecom": [{"value": "123456"}]},
+        {
+            "resourceType": "DummyResource",
+            "telecom": [{"system": "phone", "value": "123456"}],
+        },
         {"resourceType": "DummyResource", "type": [{"text": "Type1"}]},
     ],
 )
@@ -167,7 +178,10 @@ def test_check_for_special_characters_valid(resource: dict) -> None:
         ({"resourceType": "DummyResource", "name": "Invalid@Name"}, "name"),
         ({"resourceType": "DummyResource", "modifiedBy": "Invalid#User"}, "modifiedBy"),
         (
-            {"resourceType": "DummyResource", "telecom": [{"system": "123;456"}]},
+            {
+                "resourceType": "DummyResource",
+                "telecom": [{"system": ";phone", "value": "123456"}],
+            },
             "telecom[0].system",
         ),
         (
@@ -182,6 +196,43 @@ def test_check_for_special_characters_invalid(
     model = DummyModel
     with pytest.raises(OperationOutcomeException) as exc_info:
         FhirValidator._check_for_special_characters(resource, model)
+    assert f"Field '{expected_error_field}' contains invalid characters" in str(
+        exc_info.value
+    )
+
+
+@pytest.mark.parametrize(
+    "resource,expected_error_field",
+    [
+        (
+            {
+                "resourceType": "DummyResource",
+                "telecom": [{"system": "phone", "value": "123;456"}],
+            },
+            "telecom[0].value",
+        ),
+        (
+            {
+                "resourceType": "DummyResource",
+                "telecom": [{"system": "phone", "value": "@123456"}],
+            },
+            "telecom[0].value",
+        ),
+        (
+            {
+                "resourceType": "DummyResource",
+                "telecom": [{"system": "phone", "value": "<123456"}],
+            },
+            "telecom[0].value",
+        ),
+    ],
+)
+def test_check_telecom_phone_special_characters_invalid(
+    resource: dict, expected_error_field: str
+) -> None:
+    model = DummyModel
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        FhirValidator._check_telecom_phone_special_characters(resource, model)
     assert f"Field '{expected_error_field}' contains invalid characters" in str(
         exc_info.value
     )
