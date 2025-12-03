@@ -1,0 +1,94 @@
+-- Trigger function specific to services table to notify AWS Lambda on INSERT/UPDATE/DELETE
+create or replace function pathwaysdos.services_change_notify()
+returns trigger
+language plpgsql
+as $function$
+declare
+  rec_id int4;
+  payload json;
+begin
+  if TG_OP = 'INSERT' then
+    for rec_id in select id from new_rows loop
+      payload := json_build_object(
+        'table_name', TG_TABLE_NAME,
+        'method', 'INSERT',
+        'service_id', COALESCE(rec_id::text, '0'),
+        'record_id', COALESCE(rec_id::text, '0')
+      );
+
+      perform aws_lambda.invoke(
+        '{{ lambda_arn }}',
+        payload,
+        '{{ aws_region }}',
+        'Event'
+      );
+
+    end loop;
+
+  elsif TG_OP = 'DELETE' then
+    for rec_id in select id from old_rows loop
+      payload := json_build_object(
+        'table_name', TG_TABLE_NAME,
+        'method', 'DELETE',
+        'service_id', COALESCE(rec_id::text, '0'),
+        'record_id', COALESCE(rec_id::text, '0')
+      );
+
+      perform aws_lambda.invoke(
+        '{{ lambda_arn }}',
+        payload,
+        '{{ aws_region }}',
+        'Event'
+      );
+    end loop;
+
+  elsif TG_OP = 'UPDATE' then
+    for rec_id in
+      select n.id
+      from new_rows n
+      join old_rows o using (id)
+      where n is distinct from o
+    loop
+      payload := json_build_object(
+        'table_name', TG_TABLE_NAME,
+        'method', 'UPDATE',
+        'service_id', COALESCE(rec_id::text, '0'),
+        'record_id', COALESCE(rec_id::text, '0')
+      );
+
+      perform aws_lambda.invoke(
+        '{{ lambda_arn }}',
+        payload,
+        '{{ aws_region }}',
+        'Event'
+      );
+
+    end loop;
+  end if;
+
+  return null;
+end;
+$function$;
+
+DROP TRIGGER IF EXISTS services_lambda_notify ON services;
+
+-- Trigger on the services table to invoke Lambda on INSERT
+CREATE OR REPLACE TRIGGER services_lambda_notify_insert
+AFTER INSERT ON pathwaysdos.services
+REFERENCING NEW TABLE AS new_rows
+FOR EACH STATEMENT
+EXECUTE FUNCTION pathwaysdos.services_change_notify();
+
+-- Trigger on the services table to invoke Lambda on UPDATE
+CREATE OR REPLACE TRIGGER services_lambda_notify_update
+AFTER UPDATE ON pathwaysdos.services
+REFERENCING NEW TABLE AS new_rows OLD TABLE AS old_rows
+FOR EACH STATEMENT
+EXECUTE FUNCTION pathwaysdos.services_change_notify();
+
+-- Trigger on the services table to invoke Lambda on DELETE
+CREATE OR REPLACE TRIGGER services_lambda_notify_delete
+AFTER DELETE ON pathwaysdos.services
+REFERENCING OLD TABLE AS old_rows
+FOR EACH STATEMENT
+EXECUTE FUNCTION pathwaysdos.services_change_notify();

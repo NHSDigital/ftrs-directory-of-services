@@ -1,0 +1,16 @@
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT FROM pg_catalog.pg_roles WHERE rolname = '{{ rds_username }}'
+  ) THEN
+    CREATE ROLE {{ rds_username }} LOGIN PASSWORD '{{ rds_password }}';
+    GRANT rds_replication TO {{ rds_username }};
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO {{ rds_username }};
+  END IF;
+END $$;
+
+-- Enable the aws_lambda extension if not already present
+CREATE EXTENSION IF NOT EXISTS aws_lambda CASCADE;
+
+-- Grant access to the aws_lambda schema and functions to a specific user
+GRANT USAGE ON SCHEMA aws_lambda TO {{ rds_username }};
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA aws_lambda TO {{ rds_username }};

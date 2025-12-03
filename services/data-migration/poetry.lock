@@ -725,6 +725,18 @@ files = [
 ]
 
 [[package]]
+name = "chevron"
+version = "0.14.0"
+description = "Mustache templating language renderer"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "chevron-0.14.0-py3-none-any.whl", hash = "sha256:fbf996a709f8da2e745ef763f482ce2d311aa817d287593a5b990d6d6e4f0443"},
+    {file = "chevron-0.14.0.tar.gz", hash = "sha256:87613aafdf6d77b6a90ff073165a61ae5086e21ad49057aa0e53681601800ebf"},
+]
+
+[[package]]
 name = "click"
 version = "8.3.0"
 description = "Composable command line interface toolkit"
@@ -2162,4 +2174,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0.0"
-content-hash = "4392a4bece6f0751e66fbc13adbeffe2af880b1e50cce6d28d4beb2309071351"
+content-hash = "f04850329382dffc1e60234b4bef9882a590e4f5cd238ee20a1115eac5d51a6d"
