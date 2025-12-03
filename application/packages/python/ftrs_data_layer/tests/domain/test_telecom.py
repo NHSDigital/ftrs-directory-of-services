@@ -38,7 +38,20 @@ def test_telecom_string_representation() -> None:
     assert str(telecom) == "Telecom(type=phone,value=0300 311 22 33,isPublic=True)"
 
 
-def test_telecom_invalid_email() -> None:
+@pytest.mark.parametrize(
+    "email",
+    [
+        ("invalidemail.com"),
+        ("plainaddress"),
+        ("john..test@example.com "),
+        ("@missinglocal.com"),
+        ("username@.leadingdot.com"),
+        ("user@invalid_domain.com"),
+        ("user@domain"),
+        ("user@domain.c"),
+    ],
+)
+def test_telecom_invalid_email(email: str) -> None:
     """
     Tel-024 & Tel-025 data standard requirement proof
     This check that a given email address is flagged invalid if it isn't a valid str email address
@@ -50,22 +63,46 @@ def test_telecom_invalid_email() -> None:
         Telecom(type=TelecomType.EMAIL, value="bad@email", isPublic=True)
 
 
-def test_telecom_invalid_web() -> None:
+@pytest.mark.parametrize(
+    "web",
+    [
+        ("bad_website.com"),
+        ("http://exa mple.com"),
+        ("http://example"),  # missing TLD
+        ("http://.example.com"),  # missing domain name
+        ("http://example..com"),  # double dot in domain
+        ("https:///example.com"),  # too many slashes
+        ("http://example.com:99999"),  # invalid port number
+    ],
+)
+def test_telecom_invalid_web(web: str) -> None:
     """
     Tel-026 data standard requirement proof
     This check that a given web url is flagged invalid if it isn't a valid urn
     """
     with pytest.raises(ValidationError):
-        Telecom(type=TelecomType.WEB, value="bad_website.com", isPublic=True)
+        Telecom(type=TelecomType.WEB, value=web, isPublic=True)
 
 
-def test_telecom_invalid_phone() -> None:
+@pytest.mark.parametrize(
+    "phone",
+    [
+        ("+++ABC123"),  # invalid characters
+        ("12345"),  # too short
+        ("+9991234567890"),  # invalid country code
+        ("+1 415-555-2671x1234"),  # extension not allowed
+        ("+1415555267"),  # valid US number but invalid for GB region
+        ("++14155552671"),  # malformed plus signs
+        ("+00000000000"),  # non-existent number
+    ],
+)
+def test_telecom_invalid_phone(phone: str) -> None:
     """
     Tel-022 and Tel-023 data standard requirement proof
     This check that a number not on the list of ofcom valid numbers is flagged as invalid
     """
     with pytest.raises(ValidationError):
-        Telecom(type=TelecomType.PHONE, value="123", isPublic=True)
+        Telecom(type=TelecomType.PHONE, value=phone, isPublic=True)
 
 
 def test_telecom_type_cannot_be_changed() -> None:
