@@ -10,7 +10,7 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeHandler,
 )
 from ftrs_common.logger import Logger
-from ftrs_data_layer.domain.enums import OrganisationType, OrganisationTypeCode
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
@@ -79,12 +79,7 @@ class Organisation(BaseModel):
     name: str = Field(..., example="GP Practice Name")
     active: bool = Field(..., example=True)
     telecom: str | None = Field(default=None, example="01234 567890")
-    type: OrganisationType = Field(
-        default=OrganisationType.GP_PRACTICE, example="GP Practice"
-    )
-    non_primary_roles: list[OrganisationType] = Field(
-        default_factory=list, example=["Walk-In Centre"]
-    )
+    type: str = Field(default="GP Practice", example="GP Practice")
 
 
 class OrganisationUpdatePayload(BaseModel):
@@ -215,21 +210,6 @@ def _validate_organisation_extension(ext: Extension) -> None:
 
 
 def _validate_organisation_role_extension(ext: Extension) -> None:
-    """Validate OrganisationRole extension containing the first Legal TypedPeriod extension."""
-    if not ext.extension or len(ext.extension) == 0:
-        _raise_validation_error(
-            f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
-        )
-
-    for nested_ext in ext.extension:
-        if "OrganisationRole" in nested_ext.url:
-            _validate_role_code_extension(nested_ext)
-
-
-def _validate_role_code_extension(ext: Extension) -> None:
-    if ext.url != ORGANISATION_ROLE_URL:
-        _raise_validation_error(f"Invalid extension URL: {ext.url}")
-
     if not ext.extension or len(ext.extension) == 0:
         _raise_validation_error(
             f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
@@ -240,15 +220,15 @@ def _validate_role_code_extension(ext: Extension) -> None:
     if not role_code_ext:
         _raise_validation_error("OrganisationRole extension must contain roleCode")
 
-    if not role_code_ext.valueCoding:
-        _raise_validation_error("roleCode must have a valueCoding")
+    if not role_code_ext.valueCodeableConcept:
+        _raise_validation_error("roleCode must have a valueCodeableConcept")
 
-    if not role_code_ext.valueCoding.code:
+    if not role_code_ext.valueCodeableConcept.coding:
         _raise_validation_error(
             "roleCode valueCodeableConcept must contain at least one coding"
         )
 
-    role_code = role_code_ext.valueCoding.code[0].code
+    role_code = role_code_ext.valueCodeableConcept.coding[0].code
 
     if not role_code:
         _raise_validation_error("roleCode coding must have a code value")
