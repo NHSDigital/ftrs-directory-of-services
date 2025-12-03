@@ -45,6 +45,7 @@ scenarios(
     "../features/data_migration_features/dispositions_transformation.feature",
     "../features/data_migration_features/opening_times_transformation.feature",
     "../features/data_migration_features/phone_transformation.feature",
+    "../features/data_migration_features/email_transformation.feature",
 )
 
 
