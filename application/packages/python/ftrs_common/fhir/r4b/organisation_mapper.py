@@ -8,13 +8,13 @@ from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.utils.title_case_sanitization import sanitize_string_field
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.enums import OrganisationTypeCode
+from ftrs_data_layer.domain.organisation import LegalDates
 
 VALID_PRIMARY_TYPE_CODES = {
     OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
     OrganisationTypeCode.PHARMACY_ROLE_CODE,
 }
 
-from ftrs_data_layer.domain.organisation import LegalDates
 
 TYPED_PERIOD_URL = (
     "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
@@ -190,7 +190,7 @@ class OrganizationMapper(FhirMapper):
         extensions = [
             Extension.model_validate(ext_dict) for ext_dict in extensions_dict
         ]
-        role_ext = next((e for e in extensions if e.get("url") == ORGANISATION_ROLE_URL), None)
+        role_ext = next((e for e in extensions if e.url == ORGANISATION_ROLE_URL), None)
         if role_ext:
             required_fields["extension"] = [role_ext]
 
@@ -371,6 +371,7 @@ class OrganizationMapper(FhirMapper):
             }
         )
         return ext
+
     def _get_typed_period_extension(
         self, extensions: list[Extension] | None
     ) -> Extension | None:

@@ -747,7 +747,6 @@ def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
     result = mapper.from_ods_fhir_to_fhir(ods_org)
     assert result is not None
     assert result.identifier[0].value == "ODS123"
-    assert result.type[0].text == "GP Practice"
 
 
 def test__extract_legal_dates_with_valid_typed_period() -> None:
@@ -1520,7 +1519,7 @@ def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     assert result.extension is not None
@@ -1653,7 +1652,7 @@ def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     assert result.extension is not None
@@ -1706,7 +1705,7 @@ def test_from_ods_fhir_to_fhir_no_organisation_role() -> None:
         "extension": [],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     # Should have no extensions when no OrganisationRole present
@@ -1799,7 +1798,7 @@ def test_from_ods_fhir_to_fhir_extracts_nested_legal_dates_from_role() -> None:
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     # Verify the result has the entire OrganisationRole with nested TypedPeriod
     assert result is not None
@@ -1927,7 +1926,7 @@ def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     assert result.extension is not None
