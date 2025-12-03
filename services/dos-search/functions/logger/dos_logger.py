@@ -160,7 +160,7 @@ class DosLogger:
         level: str,
         message: str,
         **detail: object,
-    ) -> Dict[str, Any]:
+    ) -> None:
         # Handles deliberately passed None values
         log_data = {}
         # convert detail (kwargs) to dict for manipulation
@@ -190,17 +190,17 @@ class DosLogger:
         else:
             self._logger.info(message, extra=log_data)
 
-    def debug(self, message: str, **detail: object) -> Dict[str, Any]:
+    def debug(self, message: str, **detail: object) -> None:
         self._log_with_level("debug", message, **detail)
 
-    def info(self, message: str, **detail: object) -> Dict[str, Any]:
+    def info(self, message: str, **detail: object) -> None:
         self._log_with_level("info", message, **detail)
 
-    def warning(self, message: str, **detail: object) -> Dict[str, Any]:
+    def warning(self, message: str, **detail: object) -> None:
         self._log_with_level("warning", message, **detail)
 
-    def error(self, message: str, **detail: object) -> Dict[str, Any]:
+    def error(self, message: str, **detail: object) -> None:
         self._log_with_level("error", message, **detail)
 
-    def exception(self, message: str, **detail: object) -> Dict[str, Any]:
+    def exception(self, message: str, **detail: object) -> None:
         self._log_with_level("exception", message, **detail)
