@@ -29,8 +29,12 @@ runs:
           exit 1
         fi
 
-        BASE_URL=${PROXYGEN_BASE_URL:-https://proxygen.prod.api.platform.nhs.uk}
-        BASE_URL=${BASE_URL%/}
+        if [ -z "${PROXYGEN_BASE_URL:-}" ]; then
+          echo "PROXYGEN_BASE_URL environment variable is required" >&2
+          exit 1
+        fi
+
+        BASE_URL=${PROXYGEN_BASE_URL%/}
         TOKEN_ENDPOINT="${BASE_URL}/apis/${API_NAME}/docker-token"
 
         DOCKER_TOKEN=$(curl -fsS --request GET --url "$TOKEN_ENDPOINT" --header "Authorization: Bearer ${ACCESS_TOKEN}") || {
