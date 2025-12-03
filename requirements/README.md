@@ -9,16 +9,17 @@ This workspace holds product User Stories and Non-Functional Requirements (NFRs)
 ## Structure
 
 Key requirement artefacts:
-* `nfrs/` domain folders each with `expectations.yaml`
-* `nfrs/cross-references/nfr-matrix.md` – NFR code → story ID mapping
-* `nfrs/cross-references/nfr-explanations.yaml` – plain-language descriptions
-* `user-stories/` – story markdown files with `nfr_refs:` arrays
-* `scripts/nfr/refresh_simplified_nfr_page.py` – generates consolidated view
 
+- `nfrs/` domain folders each with `expectations.yaml`
+- `nfrs/cross-references/nfr-matrix.md` – NFR code → story ID mapping
+- `nfrs/cross-references/nfr-explanations.yaml` – plain-language descriptions
+- `user-stories/` – story markdown files with `nfr_refs:` arrays
+- `scripts/nfr/refresh_simplified_nfr_page.py` – generates consolidated view
 
 ## Role-Based Step-by-Step Guides
 
 ### 1. Add a New Atomic NFR (Business Analyst / Tech Lead)
+
 1. Identify the domain (e.g. Performance, Security).
 2. Pick next unused numeric code (e.g. if PERF-013 exists, new is PERF-014). Do NOT reuse codes.
 3. Create draft acceptance anchor line (succinct, testable) – one sentence, no conjunctions.
@@ -29,6 +30,7 @@ Key requirement artefacts:
 8. Commit (`feat(requirements): Add PERF-014 <JIRA-ID>`).
 
 ### 2. Create / Refine a Story Referencing NFRs (Business Analyst)
+
 1. Copy a template from `user-stories/templates/` into `user-stories/backlog/` (rename with `STORY-###-slug.md`).
 2. Fill `as_a`, `i_want`, `so_that`, and `business_value` fields.
 3. Add `nfr_refs: [PERF-001, SEC-003]` referencing codes actually impacted.
@@ -38,6 +40,7 @@ Key requirement artefacts:
 7. Move story to `in-progress/` when work starts; later to `done/` when accepted.
 
 ### 3. Add a Performance Operation Entry (Tech Lead)
+
 1. Open `performance/expectations.yaml`.
 2. Duplicate an existing operation block as a starting template.
 3. Set `service`, unique `operation_id` (kebab-case, stable), and `performer_class` (FAST/STANDARD/SLOW).
@@ -50,23 +53,26 @@ Key requirement artefacts:
 10. Commit (`feat(performance): Add gp-list operation targets <JIRA-ID>`).
 
 ### 4. Add or Update a Domain Control (Tech Lead)
+
 1. Open relevant domain `expectations.yaml` (e.g. `security/expectations.yaml`).
 2. Add new object under `controls:` with unique `control_id` (kebab-case).
 3. Map `nfr_code` (ensure it exists in the matrix).
 4. Define `measure` (what is checked) and `threshold` (quantified target).
 5. Set `tooling` (scanner, test, policy engine) and `cadence` (CI, daily, monthly, per release).
 6. List `environments` and restrict `services` if not universal.
-# Requirements Workspace
+
+## Requirements Workspace (AI assistants overview)
 
 This workspace holds product User Stories and Non-Functional Requirements (NFRs) in source control so AI assistants and automation can:
 
-* Suggest acceptance criteria based on tagged NFRs
-* Generate story scaffolds and traceability links
-* Surface governance gaps (draft / exception) before release
+- Suggest acceptance criteria based on tagged NFRs
+- Generate story scaffolds and traceability links
+- Surface governance gaps (draft / exception) before release
 
 ---
 ## 1. Structure Overview
-```
+
+```text
 requirements/
   README.md                     (this guide)
   nfrs/                         Domain expectation registries
@@ -90,15 +96,20 @@ scripts/
 ```
 Generated summary: `docs/developer-guides/nfr-all-simplified.md`.
 
+
 ---
 ## 2. Traceability Flow (Lifecycle)
+
 `NFR code → capability spec → atomic stories → operational/acceptance registries → telemetry & tests → evidence (dashboards, scans)`
+
 
 Each artefact references upstream IDs (stories list `nfr_refs`; tests include `operation_id` or `control_id`).
 
 ---
 ## 3. Adding Atomic NFRs (Business Analyst / Tech Lead)
+
 1. Pick domain (Performance, Security, etc.).
+
 2. Determine next unused code (e.g. PERF-014). Do not recycle.
 3. Draft anchor sentence (succinct, testable, single outcome).
 4. Add row to `nfrs/cross-references/nfr-matrix.md` (use `(placeholder)` for story IDs if none yet).
@@ -107,12 +118,14 @@ Each artefact references upstream IDs (stories list `nfr_refs`; tests include `o
 7. Commit: `feat(requirements): Add PERF-014 <JIRA-ID>`.
 
 ### Explanation Guidelines
-* ≤ 40 words, plain language
-* Describe stakeholder value, not implementation
-* Avoid repeating anchor verbatim
+
+- ≤ 40 words, plain language
+- Describe stakeholder value, not implementation
+- Avoid repeating anchor verbatim
 
 ---
 ## 4. User Stories Referencing NFRs
+
 1. Copy template from `user-stories/templates/` into `user-stories/backlog/` (`STORY-###-slug.md`).
 2. Populate front matter: `as_a`, `i_want`, `so_that`, `business_value`.
 3. Add `nfr_refs: [PERF-001, SEC-003]` (only directly impacted codes).
@@ -120,7 +133,8 @@ Each artefact references upstream IDs (stories list `nfr_refs`; tests include `o
 5. Move to `in-progress/` when work starts; `done/` when accepted.
 
 Story front matter expected keys:
-```
+
+```yaml
 as_a: <role>
 i_want: <capability>
 so_that: <value>
@@ -136,7 +150,9 @@ notes:
 
 ---
 ## 5. Performance Operation Entries (Tech Lead)
+
 File: `performance/expectations.yaml` (operation-centric schema).
+
 1. Duplicate an existing operation block.
 2. Set `service`, unique `operation_id` (kebab-case), `performer_class` (FAST|STANDARD|SLOW).
 3. Define `p50_target_ms`, `p95_target_ms`, `absolute_max_ms`.
@@ -148,7 +164,8 @@ File: `performance/expectations.yaml` (operation-centric schema).
 9. Commit: `feat(performance): Add gp-list operation targets <JIRA-ID>`.
 
 Operation schema:
-```
+
+```yaml
 version: <semver>
 operations:
   - service: <name>
@@ -178,7 +195,8 @@ Non-performance domains use control-centric schema (`expectations.yaml`).
 9. Commit: `feat(security): Add build CVE gate control <JIRA-ID>`.
 
 Control schema:
-```
+
+```yaml
 version: <semver>
 controls:
   - control_id: <kebab-case>
@@ -234,14 +252,17 @@ PY
 ---
 ## 9. Governance Review Packet
 Inputs: refreshed simplified page + registries.
+
 Include:
-* Domain status counts (draft / accepted / exception)
-* Notable changes since last review (version bumps)
-* Exceptions with review dates
-* Upcoming remediation stories
+
+- Domain status counts (draft / accepted / exception)
+- Notable changes since last review (version bumps)
+- Exceptions with review dates
+- Upcoming remediation stories
 
 Summary prompt skeleton:
-```
+
+```text
 Produce governance summary: accepted=<A> draft=<D> exception=<E>. Two paragraphs: Overview + Recommended actions. <= 180 words.
 ```
 
@@ -249,12 +270,13 @@ Produce governance summary: accepted=<A> draft=<D> exception=<E>. Two paragraphs
 ## 10. AI Assistance (Prompt Patterns & Guardrails)
 
 ### Core Guardrails
-* Never invent NFR codes – reserve manually first.
-* AI proposals require human threshold validation.
-* Reject changes lacking rationale.
-* Keep explanation ≤ 40 words, stakeholder-focused.
-* Rerun generator after edits to catch omissions.
-* Parse YAML for any registry modifications.
+
+- Never invent NFR codes – reserve manually first.
+- AI proposals require human threshold validation.
+- Reject changes lacking rationale.
+- Keep explanation ≤ 40 words, stakeholder-focused.
+- Rerun generator after edits to catch omissions.
+- Parse YAML for any registry modifications.
 
 ### Prompt Skeleton Table
 | Scenario | Prompt Skeleton |
@@ -344,6 +366,7 @@ Extend pattern for other domains as needed.
 
 ---
 ## 17. Getting Started Checklist
+
 1. Read this README once end-to-end.
 2. Add first domain NFR (e.g. PERF-001) + explanation.
 3. Create initial story referencing it.
@@ -353,11 +376,13 @@ Extend pattern for other domains as needed.
 
 ---
 ## 18. Anti-Regressions
+
 Before merging any README rewrite ensure:
-* Schemas remain accurate.
-* Traceability flow ordering intact.
-* AI guardrails section present.
-* Commit guidance table retained.
+
+- Schemas remain accurate.
+- Traceability flow ordering intact.
+- AI guardrails section present.
+- Commit guidance table retained.
 
 ---
 End of README.

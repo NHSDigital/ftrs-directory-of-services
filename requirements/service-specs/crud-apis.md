@@ -170,14 +170,14 @@ Below are distilled handler patterns; copy and adapt rather than rewriting from 
 ```python
 @router.get("/Organization", response_class=JSONResponse)
 async def list_or_single_org(request: Request, qp: OrganizationQueryParams = Depends(_get_organization_query_params)):
-	organisation_service.check_organisation_params(request.query_params)  # validation (Story-208)
-	if qp and qp.identifier:
-		ods_code = qp.ods_code  # already normalised
-		orgs = [organisation_service.get_by_ods_code(ods_code)]
-	else:
-		orgs = organisation_service.get_all_organisations()
-	bundle = organisation_mapper.to_fhir_bundle(orgs)
-	return JSONResponse(content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE)
+    organisation_service.check_organisation_params(request.query_params)  # validation (Story-208)
+    if qp and qp.identifier:
+        ods_code = qp.ods_code  # already normalised
+        orgs = [organisation_service.get_by_ods_code(ods_code)]
+    else:
+        orgs = organisation_service.get_all_organisations()
+    bundle = organisation_mapper.to_fhir_bundle(orgs)
+    return JSONResponse(content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE)
 ```
 
 Tests to add:
@@ -202,14 +202,14 @@ Add explicit unit tests for: change applied, no change, exception path.
 ```python
 @router.delete("/{location_id}")
 async def delete_location(location_id: UUID):
-	location_service_logger.log(CrudApisLogBase.LOCATION_008, location_id=location_id)
-	location = location_repository.get(location_id)
-	if not location:
-		location_service_logger.log(CrudApisLogBase.LOCATION_E001, location_id=location_id)
-		raise HTTPException(status_code=404, detail="Location not found")
-	location_repository.delete(location_id)
-	location_service_logger.log(CrudApisLogBase.LOCATION_009, location_id=location_id)
-	return Response(status_code=204)
+    location_service_logger.log(CrudApisLogBase.LOCATION_008, location_id=location_id)
+    location = location_repository.get(location_id)
+    if not location:
+        location_service_logger.log(CrudApisLogBase.LOCATION_E001, location_id=location_id)
+        raise HTTPException(status_code=404, detail="Location not found")
+    location_repository.delete(location_id)
+    location_service_logger.log(CrudApisLogBase.LOCATION_009, location_id=location_id)
+    return Response(status_code=204)
 ```
 
 Enhancement (optional): wrap 500 errors for consistency (decision in Story-214).
@@ -226,7 +226,7 @@ Enhancement (optional): wrap 500 errors for consistency (decision in Story-214).
 
 ### 14.5 Suggested Test File Layout
 
-```
+```text
 tests/unit/
   story_208/test_identifier_normalisation.py
   story_209/test_operation_outcome_update.py

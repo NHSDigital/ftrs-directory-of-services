@@ -8,7 +8,7 @@ nfr_refs: [GOV-002]
 status: draft
 ---
 
-## Acceptance Criteria
+## Acceptance Criteria (Initial)
 
 1. WAR completed; findings documented.
 2. Actions assigned and closed; evidence stored.
@@ -31,7 +31,7 @@ status: draft
 
 Implement automated validation for: Well-Architected review completed & actions closed.
 
-## Acceptance Criteria
+## Acceptance Criteria (Automation)
 
 1. Review complete; actions closed or exceptioned
 2. Tooling: WAR tool + issue tracker operational

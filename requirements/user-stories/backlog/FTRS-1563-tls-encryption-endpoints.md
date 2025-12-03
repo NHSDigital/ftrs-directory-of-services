@@ -8,7 +8,6 @@ value: Prevents interception and tampering; aligns with NHS security policy
 nfr_refs: [SEC-003]
 status: draft
 ---
-
 ## Description
 
 Implement automated validation for TLS encryption in transit between all components (internal and external).

@@ -1,15 +1,13 @@
+# Red Lines → NFR / Control Mapping
+
 source: requirements/red-lines/overview.md
 created_at: 2025-11-27
 purpose: Map Red Lines to internal NFRs/controls (regenerated from updated overview)
 status: draft
 
----
-
-# Red Lines → NFR / Control Mapping
-
 This scaffold links each Red Line reference to internal non-functional requirements (NFRs) or governance controls. Use it to track coverage and ownership.
 
-### Mapping Table (regenerated)
+## Mapping Table (regenerated)
 
 | Ref     | Category | Summary                                                                                                      | Proposed NFR/Control             | Status   | Owner | Evidence | ReviewDate | Notes                                              |
 | ------- | -------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------- | -------- | ----- | -------- | ---------- | -------------------------------------------------- |

@@ -8,7 +8,6 @@ value: Enables rapid detection of client misuse and server instability
 nfr_refs: [OBS-032]
 status: draft
 ---
-
 ## Description
 
 Implement per-endpoint instrumentation and alerting for HTTP status class outcomes (2xx, 3xx, 4xx, 5xx). Distinguish between client error (4xx) and server error (5xx) rates to support reliability, performance protection, and proactive remediation. Complements existing latency and TPS metrics.

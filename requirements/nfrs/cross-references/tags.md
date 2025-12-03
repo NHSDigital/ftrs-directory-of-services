@@ -11,7 +11,7 @@ Use tags to enrich NFRs and support automated suggestion of acceptance criteria.
 
 ## Example
 
-```
+```yaml
 code: PERF-001
 tags:
   impact: patient-safety
@@ -24,6 +24,6 @@ tags:
 
 Add `nfr_tags:` array for Copilot enrichment.
 
-```
+```yaml
 nfr_tags: [performance, api, patient-safety]
 ```

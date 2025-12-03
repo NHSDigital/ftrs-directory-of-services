@@ -37,6 +37,4 @@ Implements network design principle that all new services expose and consume cap
 - Small: Limited to configuration + exception register.
 - Testable: Config diff, exception ticket, audit output.
 
-## Detail
-
 Services default to public internet connectivity; any legacy network dependency requires a time-bound exception record.

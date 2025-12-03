@@ -17,7 +17,7 @@ The DoS Search service (renamed from former "GP Search" on 2025-11-24) provides 
 In-scope:
 
 - Retrieval of Organisation and Endpoint records from the FtRS data layer via DynamoDB repository abstraction.
-- Validation and transformation of request query parameters to internal model.
+- Validation and transformation of request query parameters to internal model.§
 - Mapping domain models to FHIR R4 resources.
 - Emission of structured logs and distributed traces.
 - Graceful error responses using `OperationOutcome`.
