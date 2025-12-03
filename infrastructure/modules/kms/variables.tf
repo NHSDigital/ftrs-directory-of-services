@@ -24,8 +24,7 @@ variable "account_id" {
 
 variable "aws_service_name" {
   description = "The AWS service name that will be allowed to use the KMS key."
-  type        = string
-  default     = ""
+  type        = list(string)
 }
 
 variable "enable_key_rotation" {
