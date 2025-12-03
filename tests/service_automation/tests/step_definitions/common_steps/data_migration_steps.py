@@ -32,6 +32,7 @@ from utilities.common.constants import (
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
     verify_migration_completed_log,
+    verify_error_log_present,
     verify_service_not_migrated_log,
     verify_service_skipped_log,
     verify_transformation_log,
@@ -370,4 +371,18 @@ def verify_service_skipped(
         mock_logger=mock_logger,
         service_id=service_id,
         expected_reason=expected_reason,
+    )
+
+
+@then(parsers.parse("error log containing message: '{error_message_fragment}' was found"))
+def verify_error_level_log(
+    migration_context: Dict[str, Any],
+    error_message_fragment: str,
+) -> None:
+    """Verify that error message with content was logged"""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    verify_error_log_present(
+        mock_logger=mock_logger,
+        error_fragment=error_message_fragment,
     )

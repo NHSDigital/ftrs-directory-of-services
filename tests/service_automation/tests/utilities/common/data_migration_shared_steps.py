@@ -33,6 +33,7 @@ from utilities.common.data_migration.sqs_helper import build_sqs_event
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
     verify_migration_completed_log,
+    verify_error_log_present,
     verify_service_not_migrated_log,
     verify_service_skipped_log,
     verify_transformation_log,
