@@ -26,7 +26,7 @@ from functions.logger.dos_logger import DosLogger
 ```python
 # Initialize the logger (singleton pattern)
 dos_logger = DosLogger.get(service="dos-search")
-logger = dos_logger._logger  # Access to underlying powertools logger
+logger = dos_logger.logger  # Access to underlying powertools logger
 
 # Log at the start of your Lambda handler
 @logger.inject_lambda_context
@@ -37,7 +37,7 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
 ```
 
 Access to the underlying Powertools logger allows the use of Powertools-specific utilities, such as the `@logger.inject_lambda_context` decorator, while minimising complexity.
-Referencing the logger from the DosLogger class instance via `dos_logger._logger` ensures any references to either the DosLogger or the Powertools remain consistent. While it is possible to achieve the same behaviour via referencing the PowerTools Logger as `Logger(service=`SERVICE`)`, reusing the reference via class attribute makes the relationship explicit and minimises risk of misconfiguration.
+Referencing the logger from the DosLogger class instance via `dos_logger.logger` ensures any references to either the DosLogger or the Powertools remain consistent. While it is possible to achieve the same behaviour via referencing the PowerTools Logger as `Logger(service=`SERVICE`)`, reusing the reference via class attribute makes the relationship explicit and minimises risk of misconfiguration.
 
 ### Logging Methods
 
@@ -121,7 +121,7 @@ from functions.logger.dos_logger import DosLogger
 
 service = "dos-search"
 dos_logger = DosLogger.get(service=service)
-logger = dos_logger._logger
+logger = dos_logger.logger
 
 @app.get("/Organization")
 @tracer.capture_method
