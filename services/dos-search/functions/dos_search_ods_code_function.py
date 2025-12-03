@@ -14,7 +14,7 @@ from functions.organization_query_params import OrganizationQueryParams
 
 service = "dos-search"
 dos_logger = DosLogger.get(service=service)
-logger = dos_logger._logger
+logger = dos_logger.logger
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
