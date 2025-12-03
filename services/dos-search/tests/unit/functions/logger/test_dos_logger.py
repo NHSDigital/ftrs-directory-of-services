@@ -49,6 +49,19 @@ def mock_base_powertools_logger():
         yield mock
 
 
+@pytest.fixture(autouse=True)
+def setup_env_vars():
+    # Arrange
+    os.environ["ENVIRONMENT"] = "Development"
+    os.environ["AWS_LAMBDA_FUNCTION_VERSION"] = "0.0.1"
+
+    # Act & Assert
+    yield
+    # Cleanup environment variables
+    os.environ.pop("ENVIRONMENT", None)
+    os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
+
+
 class TestDosLogger:
     # Extract method tests
     def test_extract(self, dos_logger, event, log_data):
@@ -79,23 +92,19 @@ class TestDosLogger:
 
     def test_extract_one_time(self, dos_logger, event, details):
         # Arrange
-        os.environ["ENVIRONMENT"] = "Development"
-        os.environ["AWS_LAMBDA_FUNCTION_VERSION"] = "0.0.1"
 
         # Act
         result = dos_logger.extract_one_time(event)
 
         # Assert
         assert result == details
-        # Cleanup environment variables
-        os.environ.pop("ENVIRONMENT", None)
-        os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
 
     def test_extract_one_time_with_missing_headers(self, dos_logger, event, details):
         # Arrange
         placeholder = dos_logger.placeholder
 
         modified_event = deepcopy(event)
+
         modified_event["headers"].pop("NHSD-Api-Version")
         modified_event["headers"].pop("NHSD-End-User-Role")
         modified_event["headers"].pop("NHSD-Client-Id")
@@ -105,6 +114,12 @@ class TestDosLogger:
         modified_event["requestContext"] = {}
 
         placeholder_details = dict(details)
+
+        os.environ.pop(
+            "ENVIRONMENT", None
+        )  # Remove env_vars populated by autouse fixture setup_env_vars
+        os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
+
         placeholder_details["opt_dos_api_version"] = placeholder
         placeholder_details["opt_dos_end_user_role"] = placeholder
         placeholder_details["opt_dos_client_id"] = placeholder
@@ -142,6 +157,37 @@ class TestDosLogger:
         assert result is None
 
     # Logging method tests
+    def test_init(
+        self,
+        event,
+        log_data,
+        details,
+        lambda_context,
+        mock_base_powertools_logger,
+    ):
+        # Arrange
+        def call_init() -> Response:
+            # lambda_handler automatically calls init unless run_init=False is set
+            return Response(
+                status_code=123,
+                content_type="application/fhir+json",
+                body=json.dumps(dict()),
+            )
+
+        # Act
+        lambda_handler(event, lambda_context, call_init)
+
+        # Assert
+        mock_base_powertools_logger.assert_has_calls(
+            [
+                call.append_keys(**log_data),
+                call.info(
+                    "Logging one-time fields from Request",
+                    extra={"detail": details, "dos_message_category": "REQUEST"},
+                ),
+            ]
+        )
+
     def test_debug_call(
         self,
         caplog,
