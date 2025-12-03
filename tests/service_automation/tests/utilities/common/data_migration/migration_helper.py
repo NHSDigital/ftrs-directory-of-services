@@ -1,18 +1,24 @@
 """Helper utilities for running data migration in tests."""
+from datetime import datetime
 import os
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
-from unittest.mock import patch
+from typing import Any, Callable, Dict, Generator, Optional
+from unittest.mock import MagicMock, patch
 from urllib.parse import unquote, urlparse
 
-from aws_lambda_powertools.utilities.data_classes import SQSEvent
+from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 
-from pipeline.application import DataMigrationApplication, DMSEvent
-from pipeline.processor import DataMigrationMetrics
-from pipeline.utils.config import DatabaseConfig, DataMigrationConfig
+from service_migration.application import DataMigrationApplication, DMSEvent
+from service_migration.config import DataMigrationConfig
+from service_migration.processor import DataMigrationMetrics
+from common.config import DatabaseConfig
+
+# Constants
+TEST_AWS_REGION = "eu-west-2"
+TEST_SQS_QUEUE_NAME = "test-queue"
 
 # Type aliases
 DbParams = Dict[str, str]
@@ -72,59 +78,46 @@ class MigrationHelper:
         }
 
     @contextmanager
-    def _localstack_credentials(self):
+    def _localstack_credentials(self) -> Generator[None, None, None]:
         """
-        Context manager for setting and restoring AWS credentials.
+        Context manager for setting and restoring AWS credentials and region.
 
         Yields:
             None
-
-        Example:
-            with self._localstack_credentials():
-                # Use LocalStack with dummy credentials
-                pass
-            # Original credentials restored automatically
         """
-        # Store original values
         original_access_key = os.environ.get("AWS_ACCESS_KEY_ID")
         original_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
         original_session_token = os.environ.get("AWS_SESSION_TOKEN")
+        original_region = os.environ.get("AWS_DEFAULT_REGION")
 
         try:
-            # Set dummy credentials for LocalStack
             os.environ["AWS_ACCESS_KEY_ID"] = "test"
             os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
+            os.environ["AWS_DEFAULT_REGION"] = TEST_AWS_REGION
 
-            # Remove session token if present
             if "AWS_SESSION_TOKEN" in os.environ:
                 del os.environ["AWS_SESSION_TOKEN"]
 
-            logger.debug("Set dummy AWS credentials for LocalStack")
+            logger.debug("Set dummy AWS credentials and region for LocalStack")
             yield
 
         finally:
-            # Restore original credentials
-            if original_access_key:
-                os.environ["AWS_ACCESS_KEY_ID"] = original_access_key
-            elif "AWS_ACCESS_KEY_ID" in os.environ:
-                del os.environ["AWS_ACCESS_KEY_ID"]
+            for key, original_value in [
+                ("AWS_ACCESS_KEY_ID", original_access_key),
+                ("AWS_SECRET_ACCESS_KEY", original_secret_key),
+                ("AWS_SESSION_TOKEN", original_session_token),
+                ("AWS_DEFAULT_REGION", original_region),
+            ]:
+                if original_value:
+                    os.environ[key] = original_value
+                elif key in os.environ:
+                    del os.environ[key]
 
-            if original_secret_key:
-                os.environ["AWS_SECRET_ACCESS_KEY"] = original_secret_key
-            elif "AWS_SECRET_ACCESS_KEY" in os.environ:
-                del os.environ["AWS_SECRET_ACCESS_KEY"]
-
-            if original_session_token:
-                os.environ["AWS_SESSION_TOKEN"] = original_session_token
-
-            logger.debug("Restored original AWS credentials")
+            logger.debug("Restored original AWS credentials and region")
 
     def create_migration_config(self) -> DataMigrationConfig:
         """
         Create a DataMigrationConfig for testing.
-
-        Uses model_construct to bypass Pydantic's environment variable loading,
-        allowing explicit configuration values for testing.
 
         Returns:
             DataMigrationConfig instance configured for testing
@@ -176,9 +169,67 @@ class MigrationHelper:
 
         if log_count > 0:
             references = list(
-                set([log.get("reference") for log in mock_logger.get_logs()])
+                set(
+                    [
+                        log.get("reference")
+                        for log in mock_logger.get_logs()
+                        if log.get("reference")
+                    ]
+                )
             )
-            logger.debug(f"Log references: {references}")
+            if references:
+                logger.debug(f"Log references: {references}")
+
+    def _create_sqs_record_from_dms_event(self, dms_event: DMSEvent) -> SQSRecord:
+        """
+        Create a mock SQSRecord containing a DMSEvent.
+
+        Matches the format expected by handle_sqs_record.
+
+        Args:
+            dms_event: The DMSEvent to wrap in an SQS record
+
+        Returns:
+            SQSRecord containing the DMSEvent in its body
+        """
+        timestamp_ms = str(int(datetime.now().timestamp() * 1000))
+
+        return SQSRecord(
+            data={
+                "messageId": f"test-service-{dms_event.service_id}",
+                "body": dms_event.model_dump_json(),
+                "receiptHandle": f"test-receipt-handle-{dms_event.record_id}",
+                "attributes": {
+                    "ApproximateReceiveCount": "1",
+                    "SentTimestamp": timestamp_ms,
+                    "SenderId": "test-sender",
+                    "ApproximateFirstReceiveTimestamp": timestamp_ms,
+                },
+                "messageAttributes": {},
+                "md5OfBody": f"test-md5-{dms_event.record_id}",
+                "eventSource": "aws:sqs",
+                "awsRegion": TEST_AWS_REGION,
+            }
+        )
+
+    def _create_mock_lambda_context(self) -> MagicMock:
+        """
+        Create a mock Lambda context for testing.
+
+        Returns:
+            MagicMock object configured with Lambda context attributes
+        """
+        current_date = datetime.now().strftime("%Y/%m/%d")
+
+        mock_context = MagicMock()
+        mock_context.function_name = "test-migration-function"
+        mock_context.memory_limit_in_mb = 512
+        mock_context.aws_request_id = "test-request-id"
+        mock_context.log_group_name = "/aws/lambda/test-migration-function"
+        mock_context.log_stream_name = f"{current_date}/[$LATEST]test-request-id"
+        mock_context.get_remaining_time_in_millis = lambda: 300000
+
+        return mock_context
 
     def _execute_migration(
         self,
@@ -194,12 +245,6 @@ class MigrationHelper:
 
         Returns:
             MigrationRunResult with success status, metrics, and mock_logger
-
-        Example:
-            result = self._execute_migration(
-                lambda app: app.handle_dms_event(event),
-                "single service"
-            )
         """
         mock_logger = MockLogger(service="data-migration")
         app = None
@@ -212,10 +257,7 @@ class MigrationHelper:
                     app = DataMigrationApplication(config=config)
                     migration_fn(app)
 
-            # Get metrics
             metrics = self._get_metrics_from_app(app)
-
-            # Log statistics
             self._log_mock_logger_stats(mock_logger)
 
             return MigrationRunResult(
@@ -254,15 +296,18 @@ class MigrationHelper:
         """
 
         def execute(app: DataMigrationApplication) -> None:
-            event = DMSEvent(
+            dms_event = DMSEvent(
                 type="dms_event",
                 record_id=service_id,
                 service_id=service_id,
                 table_name="services",
                 method="insert",
             )
+
+            sqs_record = self._create_sqs_record_from_dms_event(dms_event)
+
             logger.info(f"Running single service migration for service ID: {service_id}")
-            app.handle_dms_event(event)
+            app.handle_sqs_record(sqs_record)
 
         return self._execute_migration(execute, f"single service (ID: {service_id})")
 
@@ -300,7 +345,7 @@ class MigrationHelper:
         Run migration with an SQS event.
 
         Args:
-            sqs_event: SQS event dictionary
+            sqs_event: SQS event dictionary (raw dict format matching AWS Lambda)
 
         Returns:
             MigrationRunResult with success status, error, and metrics
@@ -309,7 +354,8 @@ class MigrationHelper:
         def execute(app: DataMigrationApplication) -> None:
             record_count = len(sqs_event.get("Records", []))
             logger.info(f"Running SQS event migration with {record_count} record(s)")
-            sqs_event_obj = SQSEvent(sqs_event)
-            app.handle_sqs_event(sqs_event_obj)
+
+            mock_context = self._create_mock_lambda_context()
+            app.handle_sqs_event(sqs_event, mock_context)
 
         return self._execute_migration(execute, "SQS event")
