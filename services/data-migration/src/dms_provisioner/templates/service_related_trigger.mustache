@@ -1,42 +1,50 @@
--- Trigger function specific to services table to notify AWS Lambda on INSERT/UPDATE/DELETE
+
+-- Drop old triggers first
+DROP TRIGGER IF EXISTS serviceendpoints_lambda_notify ON pathwaysdos.serviceendpoints;
+DROP TRIGGER IF EXISTS {{ table_name }}_lambda_notify_insert ON pathwaysdos.{{ table_name }};
+DROP TRIGGER IF EXISTS {{ table_name }}_lambda_notify_update ON pathwaysdos.{{ table_name }};
+DROP TRIGGER IF EXISTS {{ table_name }}_lambda_notify_delete ON pathwaysdos.{{ table_name }};
+-- Drop function with CASCADE to handle any remaining dependencies
+DROP FUNCTION IF EXISTS pathwaysdos.serviceendpoints_change_notify() CASCADE;
+DROP FUNCTION IF EXISTS pathwaysdos.related_service_change_notify() CASCADE;
+
+-- trigger function to notify AWS Lambda on INSERT/UPDATE/DELETE
 create or replace function pathwaysdos.related_service_change_notify()
 returns trigger
 language plpgsql
 as $function$
 declare
   rec_id int4;
-  payload json;
+  service_id int4;
 begin
+  -- Process all affected rows based on operation type
   if TG_OP = 'INSERT' then
-    for rec_id, service_id in select id, serviceid from new_rows loop
-      payload := json_build_object(
-        'table_name', TG_TABLE_NAME,
-        'method', 'INSERT',
-        'service_id', COALESCE(service_id::text, '0'),
-        'record_id', COALESCE(rec_id::text, '0')
-      );
-
+    for rec_id, service_id in select id, serviceid from new_rows
+    loop
       perform aws_lambda.invoke(
         '{{ lambda_arn }}',
-        payload,
+        json_build_object(
+          'table_name', TG_TABLE_NAME,
+          'method', TG_OP,
+          'service_id', COALESCE(service_id::text, '0'),
+          'record_id', COALESCE(rec_id::text, '0')
+        ),
         '{{ aws_region }}',
         'Event'
       );
-
     end loop;
 
   elsif TG_OP = 'DELETE' then
-    for rec_id, service_id in select id, serviceid from old_rows loop
-      payload := json_build_object(
-        'table_name', TG_TABLE_NAME,
-        'method', 'DELETE',
-        'service_id', COALESCE(service_id::text, '0'),
-        'record_id', COALESCE(rec_id::text, '0')
-      );
-
+    for rec_id, service_id in select id, serviceid from old_rows
+    loop
       perform aws_lambda.invoke(
         '{{ lambda_arn }}',
-        payload,
+        json_build_object(
+          'table_name', TG_TABLE_NAME,
+          'method', TG_OP,
+          'service_id', COALESCE(service_id::text, '0'),
+          'record_id', COALESCE(rec_id::text, '0')
+        ),
         '{{ aws_region }}',
         'Event'
       );
@@ -49,28 +57,23 @@ begin
       join old_rows o using (id)
       where n is distinct from o
     loop
-      payload := json_build_object(
-        'table_name', TG_TABLE_NAME,
-        'method', 'UPDATE',
-        'service_id', COALESCE(service_id::text, '0'),
-        'record_id', COALESCE(rec_id::text, '0')
-      );
-
       perform aws_lambda.invoke(
         '{{ lambda_arn }}',
-        payload,
+        json_build_object(
+          'table_name', TG_TABLE_NAME,
+          'method', TG_OP,
+          'service_id', COALESCE(service_id::text, '0'),
+          'record_id', COALESCE(rec_id::text, '0')
+        ),
         '{{ aws_region }}',
         'Event'
       );
-
     end loop;
   end if;
 
   return null;
 end;
 $function$;
-
-DROP TRIGGER IF EXISTS services_lambda_notify ON services;
 
 -- Trigger on the {{ table_name }} table to invoke Lambda on INSERT
 CREATE OR REPLACE TRIGGER {{ table_name }}_lambda_notify_insert

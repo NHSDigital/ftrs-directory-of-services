@@ -11,7 +11,7 @@ RELATED_TABLES = ["serviceendpoints"]
 
 def create_dms_user(engine: Engine, rds_username: str, rds_password: str) -> None:
     """
-    Create DMS user in the target RDS instance
+    Create a DMS user in the target RDS instance
     """
     dms_user_template = (TEMPLATE_DIR / "create_dms_user.mustache").read_text()
 

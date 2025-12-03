@@ -32,26 +32,23 @@ def mock_workspaces() -> Generator[MagicMock, None, None]:
     with patch(
         "record_change_trigger.lambda_handler.get_dms_workspaces"
     ) as mock_get_workspaces:
-        mock_get_workspaces.return_value = ["queue-url-1", "queue-url-2"]
+        mock_get_workspaces.return_value = [
+            "https://sqs.us-east-1.amazonaws.com/123456789012/test-queue"
+        ]
         yield mock_get_workspaces
 
 
-def test_lambda_handler_sends_message_to_all_workspaces(
+def test_lambda_handler_sends_message_to_workspace(
     mock_sqs_client: MagicMock, mock_workspaces: MagicMock
 ) -> None:
     event = {"detail": {"eventName": "INSERT"}}
     context = {}
 
     lambda_handler(event, context)
-    send_call_count = 2
 
-    assert mock_sqs_client.send_message.call_count == send_call_count
-    mock_sqs_client.send_message.assert_any_call(
-        QueueUrl="queue-url-1",
-        MessageBody=json.dumps(event),
-    )
-    mock_sqs_client.send_message.assert_any_call(
-        QueueUrl="queue-url-2",
+    assert mock_sqs_client.send_message.call_count == 1
+    mock_sqs_client.send_message.assert_called_once_with(
+        QueueUrl="https://sqs.us-east-1.amazonaws.com/123456789012/test-queue",
         MessageBody=json.dumps(event),
     )
 
@@ -61,15 +58,12 @@ def test_lambda_handler_handles_sqs_exception(
 ) -> None:
     event = {"detail": {"eventName": "INSERT"}}
     context = {}
-    send_call_count = 2
-    mock_sqs_client.send_message.side_effect = [
-        {"MessageId": "test-message-id"},
-        Exception("SQS error"),
-    ]
+    mock_sqs_client.send_message.side_effect = Exception("SQS error")
 
+    # Should not raise exception, just log it
     lambda_handler(event, context)
 
-    assert mock_sqs_client.send_message.call_count == send_call_count
+    assert mock_sqs_client.send_message.call_count == 1
 
 
 def test_lambda_handler_handles_complex_event_structure(
@@ -99,29 +93,30 @@ def test_lambda_handler_handles_complex_event_structure(
 
     expected_message = json.dumps(complex_event)
 
-    mock_sqs_client.send_message.assert_called_with(
-        QueueUrl="queue-url-2", MessageBody=expected_message
+    mock_sqs_client.send_message.assert_called_once_with(
+        QueueUrl="https://sqs.us-east-1.amazonaws.com/123456789012/test-queue",
+        MessageBody=expected_message,
     )
 
 
 @patch("record_change_trigger.lambda_handler.os.environ.get")
-@patch("record_change_trigger.lambda_handler.get_parameters")
-def test_returns_list_of_workspaces_when_ssm_path_exists(
-    mock_get_multiple: MagicMock, mock_environ_get: MagicMock
+@patch("record_change_trigger.lambda_handler.get_parameter")
+def test_returns_list_with_workspace_url_when_ssm_path_exists(
+    mock_get_param: MagicMock, mock_environ_get: MagicMock
 ) -> None:
     # Arrange
     mock_environ_get.return_value = "/path/to/ssm"
-    mock_get_multiple.return_value = {"param1": "workspace1", "param2": "workspace2"}
+    mock_get_param.return_value = (
+        "https://sqs.us-east-1.amazonaws.com/123456789012/queue-name"
+    )
 
     # Act
     result = get_dms_workspaces()
 
     # Assert
-    assert result == ["workspace1", "workspace2"]
+    assert result == ["https://sqs.us-east-1.amazonaws.com/123456789012/queue-name"]
     mock_environ_get.assert_called_once_with("SQS_SSM_PATH")
-    mock_get_multiple.assert_called_once_with(
-        "/path/to/ssm", recursive=True, decrypt=True, max_age=300
-    )
+    mock_get_param.assert_called_once_with("/path/to/ssm", decrypt=True, max_age=300)
 
 
 @patch("record_change_trigger.lambda_handler.os.environ.get")
@@ -135,20 +130,3 @@ def test_raises_value_error_when_ssm_path_missing(mock_environ_get: MagicMock) -
     ):
         get_dms_workspaces()
     mock_environ_get.assert_called_once_with("SQS_SSM_PATH")
-
-
-@patch("record_change_trigger.lambda_handler.os.environ.get")
-@patch("record_change_trigger.lambda_handler.get_parameters")
-def test_returns_empty_list_when_no_parameters_found(
-    mock_get_multiple: MagicMock, mock_environ_get: MagicMock
-) -> None:
-    # Arrange
-    mock_environ_get.return_value = "/path/to/ssm"
-    mock_get_multiple.return_value = {}
-
-    # Act
-    result = get_dms_workspaces()
-
-    # Assert
-    assert result == []
-    mock_get_multiple.assert_called_once()
