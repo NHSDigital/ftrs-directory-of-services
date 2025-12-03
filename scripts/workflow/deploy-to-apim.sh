@@ -55,15 +55,37 @@ fi
 echo "Deploying to Proxygen API..." >&2
 echo "Endpoint: PUT ${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" >&2
 
-RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
-    "${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d @"$MODIFIED_SPEC_PATH")
+# Retry configuration
+MAX_RETRIES=3
+RETRY_DELAY=2
 
-# Extract HTTP status code and response body
-HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-BODY=$(echo "$RESPONSE" | head -n-1)
+# Attempt deployment with retries
+for attempt in $(seq 1 $MAX_RETRIES); do
+    if [ $attempt -gt 1 ]; then
+        echo "Retry attempt $attempt of $MAX_RETRIES..." >&2
+        sleep $RETRY_DELAY
+        RETRY_DELAY=$((RETRY_DELAY * 2))  # Exponential backoff
+    fi
+
+    RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
+        "${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d @"$MODIFIED_SPEC_PATH")
+
+    # Extract HTTP status code and response body
+    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    BODY=$(echo "$RESPONSE" | head -n-1)
+
+    # Check if successful
+    if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ] || [ "$HTTP_CODE" -eq 204 ]; then
+        break
+    fi
+
+    if [ $attempt -lt $MAX_RETRIES ]; then
+        echo "Request failed with HTTP $HTTP_CODE, retrying..." >&2
+    fi
+done
 
 # Clean up temporary spec file
 rm -f "$MODIFIED_SPEC_PATH"

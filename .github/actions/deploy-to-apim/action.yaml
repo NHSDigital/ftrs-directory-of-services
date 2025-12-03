@@ -75,7 +75,7 @@ runs:
         export PROXYGEN_URL="${{ inputs.proxygen_url }}"
 
         chmod +x ./scripts/workflow/deploy-to-apim.sh
-        RESPONSE=$(./scripts/workflow/deploy-to-apim.sh)
+        ./scripts/workflow/deploy-to-apim.sh
 
         if [ $? -eq 0 ]; then
           echo "status=success" >> $GITHUB_OUTPUT
