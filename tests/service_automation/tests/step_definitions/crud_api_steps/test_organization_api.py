@@ -55,7 +55,17 @@ def update_identifier(payload: dict, value: str):
     payload["identifier"][0]["value"] = value
 
 
-FIELD_UPDATERS = {"name": update_name, "type": update_type, "telecom": update_telecom}
+def update_active(payload: dict, value: str):
+    payload["active"] = value
+
+
+FIELD_UPDATERS = {
+    "name": update_name,
+    "type": update_type,
+    "telecom": update_telecom,
+    "identifier": update_identifier,
+    "active": update_active,
+}
 
 
 def update_payload_field(field: str, value: str) -> dict:

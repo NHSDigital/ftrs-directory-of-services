@@ -193,9 +193,11 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates the "Active field is required and cannot be null"
 
     Examples:
-      | field  | value |
-      | active | ""    |
-      | active | null  |
+      | field  | value  |
+      | active | ""     |
+      | active | null   |
+      | active | "null" |
+
 
   Scenario Outline: Update Organization with legal dates
     Given that the stack is "organisation"
