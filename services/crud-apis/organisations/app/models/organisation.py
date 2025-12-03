@@ -15,18 +15,13 @@ from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
+# Constants
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
 IDENTIFIER_SEPARATOR = "|"
 ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
+ODS_SYSTEM_URL = "https://fhir.nhs.uk/Id/ods-organization-code"
 
-ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
-ERROR_IDENTIFIER_EMPTY = "at least one identifier must be provided"
-ERROR_IDENTIFIER_NO_ODS_SYSTEM = "at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
-ERROR_IDENTIFIER_EMPTY_VALUE = "ODS identifier must have a non-empty value"
-ERROR_IDENTIFIER_INVALID_FORMAT = (
-    "invalid ODS code format: '{ods_code}' must follow format {ODS_REGEX}"
-)
-ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
+# FHIR Extension URLs
 TYPED_PERIOD_URL = (
     "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
 )
@@ -35,6 +30,18 @@ ORGANISATION_ROLE_URL = (
 )
 PERIOD_TYPE_SYSTEM = "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
 LEGAL_PERIOD_CODE = "Legal"
+
+# Error Messages
+ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
+ERROR_IDENTIFIER_EMPTY = "at least one identifier must be provided"
+ERROR_IDENTIFIER_NO_ODS_SYSTEM = (
+    f"at least one identifier must have system '{ODS_SYSTEM_URL}'"
+)
+ERROR_IDENTIFIER_EMPTY_VALUE = "ODS identifier must have a non-empty value"
+ERROR_IDENTIFIER_INVALID_FORMAT = (
+    "invalid ODS code format: '{ods_code}' must follow format {ODS_REGEX}"
+)
+ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
 
 
 class LegalDateField(Enum):
@@ -301,22 +308,22 @@ def _validate_typed_period_extension(ext: Extension) -> None:
     if date_type_ext.valueCoding.system != PERIOD_TYPE_SYSTEM:
         _raise_validation_error(f"dateType system must be '{PERIOD_TYPE_SYSTEM}'")
 
-    if date_type_ext.valueCoding.code != LEGAL_PERIOD_CODE:
-        _raise_validation_error("dateType must be Legal")
+    # Only validate Legal periods - accept but don't validate operational periods
+    if date_type_ext.valueCoding.code == LEGAL_PERIOD_CODE:
+        start = getattr(period_ext.valuePeriod, "start", None)
+        end = getattr(period_ext.valuePeriod, "end", None)
 
-    start = getattr(period_ext.valuePeriod, "start", None)
-    end = getattr(period_ext.valuePeriod, "end", None)
+        if not start:
+            _raise_validation_error(
+                "Legal period start date is required when TypedPeriod extension is present"
+            )
 
-    # If extension and period type are present, start date is required
-    if not start:
-        _raise_validation_error(
-            "Legal period start date is required when TypedPeriod extension is present"
-        )
-
-    if start and end and start == end:
-        logger = Logger.get(service="crud_organisation_logger")
-        logger.log(
-            CrudApisLogBase.ORGANISATION_023,
-            date=start,
-        )
-        _raise_validation_error("Legal period start and end dates must not be equal")
+        if start and end and start == end:
+            logger = Logger.get(service="crud_organisation_logger")
+            logger.log(
+                CrudApisLogBase.ORGANISATION_023,
+                date=start,
+            )
+            _raise_validation_error(
+                "Legal period start and end dates must not be equal"
+            )

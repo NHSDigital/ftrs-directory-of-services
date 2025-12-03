@@ -206,7 +206,7 @@ def test_valid_typed_period_extension_with_start_only() -> None:
 
 
 def test_invalid_typed_period_extension_with_end_only() -> None:
-    """Test that TypedPeriod extension with only end date within OrganisationRole fails validation."""
+    """Test that TypedPeriod extension with only end date within OrganisationRole fails validation for Legal periods but passes for Operational."""
     payload = _build_base_payload()
     payload["extension"] = [
         {
@@ -250,6 +250,12 @@ def test_invalid_typed_period_extension_with_end_only() -> None:
         "Legal period start date is required when TypedPeriod extension is present"
         in str(e.value)
     )
+
+    payload["extension"][0]["extension"][2]["extension"][0]["valueCoding"]["code"] = (
+        "Operational"
+    )
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.extension is not None
 
 
 def test_invalid_typed_period_extension_with_no_dates() -> None:
@@ -297,6 +303,66 @@ def test_invalid_typed_period_extension_with_no_dates() -> None:
         "Legal period start date is required when TypedPeriod extension is present"
         in str(e.value)
     )
+
+    payload["extension"][0]["extension"][2]["extension"][0]["valueCoding"]["code"] = (
+        "Operational"
+    )
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.extension is not None
+
+
+def test_typed_period_equal_dates_legal_vs_operational() -> None:
+    """Test that Legal periods with equal start/end dates fail but Operational periods with equal dates pass."""
+    payload = _build_base_payload()
+    payload["extension"] = [
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12345},
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO76",
+                                "display": "GP PRACTICE",
+                            }
+                        ]
+                    },
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                            },
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2022-01-01",
+                                "end": "2022-01-01",  # Equal dates
+                            },
+                        },
+                    ],
+                },
+            ],
+        }
+    ]
+    with pytest.raises(OperationOutcomeException) as e:
+        OrganisationUpdatePayload(**payload)
+    assert "Legal period start and end dates must not be equal" in str(e.value)
+
+    # Test Operational period with equal dates passes (no validation)
+    payload["extension"][0]["extension"][2]["extension"][0]["valueCoding"]["code"] = (
+        "Operational"
+    )
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.extension is not None
 
 
 def test_invalid_sub_extension() -> None:
@@ -536,34 +602,6 @@ def test_valid_date_formats_accepted() -> None:
         )
 
 
-def test_invalid_legal_period_start_equals_end() -> None:
-    payload = _build_base_payload()
-    payload["extension"] = [
-        {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
-            "extension": [
-                {
-                    "url": "dateType",
-                    "valueCoding": {
-                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                        "code": "Legal",
-                    },
-                },
-                {
-                    "url": "period",
-                    "valuePeriod": {
-                        "start": "2022-01-01",
-                        "end": "2022-01-01",
-                    },
-                },
-            ],
-        }
-    ]
-    with pytest.raises(OperationOutcomeException) as e:
-        OrganisationUpdatePayload(**payload)
-    assert "Legal period start and end dates must not be equal" in str(e.value)
-
-
 def test_valid_organisation_role_extension_with_typed_period() -> None:
     """Test valid OrganisationRole extension containing a TypedPeriod extension."""
     payload = _build_base_payload()
@@ -634,7 +672,7 @@ def test_valid_organisation_role_extension_with_typed_period() -> None:
 
 
 def test_valid_organisation_role_extension_with_multiple_typed_periods() -> None:
-    """Test valid OrganisationRole extension containing multiple TypedPeriod extensions - only first is validated."""
+    """Test valid OrganisationRole extension containing multiple TypedPeriod extensions - validates Legal but accepts Operational."""
     payload = _build_base_payload()
     payload["extension"] = [
         {
@@ -677,20 +715,20 @@ def test_valid_organisation_role_extension_with_multiple_typed_periods() -> None
                             "url": "dateType",
                             "valueCoding": {
                                 "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                                "code": "NotLegal",  # This would fail validation if checked, but it's the second one
-                                "display": "Not Legal",
+                                "code": "Operational",
+                                "display": "Operational",
                             },
                         },
                         {
                             "url": "period",
-                            "valuePeriod": {"start": "2023-01-01", "end": "2025-12-31"},
+                            "valuePeriod": {"end": "2025-12-31"},
                         },
                     ],
                 },
             ],
         }
     ]
-    # Should pass because only the first TypedPeriod extension is validated
+    # Should pass because Legal period is valid and Operational period is not validated
     organisation = OrganisationUpdatePayload(**payload)
     role_ext = organisation.extension[0]
 
@@ -712,56 +750,6 @@ def test_valid_organisation_role_extension_with_multiple_typed_periods() -> None
     assert "period" in sub_exts
     assert sub_exts["dateType"].valueCoding.code == "Legal"  # First one should be Legal
     assert sub_exts["period"].valuePeriod.start == "2020-01-15"
-
-
-def test_invalid_first_typed_period_fails_validation() -> None:
-    """Test that invalid first TypedPeriod extension fails validation even if later ones are valid."""
-    payload = _build_base_payload()
-    payload["extension"] = [
-        {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-            "extension": [
-                {"url": "instanceID", "valueInteger": 12345},
-                {
-                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
-                    "extension": [
-                        {
-                            "url": "dateType",
-                            "valueCoding": {
-                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                                "code": "NotLegal",  # This is invalid and is the first one
-                                "display": "Not Legal",
-                            },
-                        },
-                        {
-                            "url": "period",
-                            "valuePeriod": {"start": "2020-01-15"},
-                        },
-                    ],
-                },
-                {
-                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
-                    "extension": [
-                        {
-                            "url": "dateType",
-                            "valueCoding": {
-                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                                "code": "Legal",  # This is valid but is the second one
-                                "display": "Legal",
-                            },
-                        },
-                        {
-                            "url": "period",
-                            "valuePeriod": {"start": "2023-01-01"},
-                        },
-                    ],
-                },
-            ],
-        }
-    ]
-    with pytest.raises(OperationOutcomeException) as e:
-        OrganisationUpdatePayload(**payload)
-    assert "dateType must be Legal" in str(e.value)
 
 
 def test_invalid_organisation_role_extension_empty_extension_array() -> None:
@@ -802,6 +790,18 @@ def test_invalid_typed_period_in_organisation_role_missing_date_type() -> None:
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
                 {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO76",
+                                "display": "GP PRACTICE",
+                            }
+                        ]
+                    },
+                },
+                {
                     "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
                     "extension": [
                         {
@@ -809,45 +809,13 @@ def test_invalid_typed_period_in_organisation_role_missing_date_type() -> None:
                             "valuePeriod": {"start": "2020-01-15"},
                         },
                     ],
-                }
+                },
             ],
         }
     ]
     with pytest.raises(OperationOutcomeException) as e:
         OrganisationUpdatePayload(**payload)
     assert "TypedPeriod extension must contain dateType and period" in str(e.value)
-
-
-def test_invalid_typed_period_in_organisation_role_invalid_date_type() -> None:
-    """Test TypedPeriod extension within OrganisationRole with invalid dateType fails."""
-    payload = _build_base_payload()
-    payload["extension"] = [
-        {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-            "extension": [
-                {
-                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
-                    "extension": [
-                        {
-                            "url": "dateType",
-                            "valueCoding": {
-                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                                "code": "NotLegal",
-                                "display": "Not Legal",
-                            },
-                        },
-                        {
-                            "url": "period",
-                            "valuePeriod": {"start": "2020-01-15"},
-                        },
-                    ],
-                }
-            ],
-        }
-    ]
-    with pytest.raises(OperationOutcomeException) as e:
-        OrganisationUpdatePayload(**payload)
-    assert "dateType must be Legal" in str(e.value)
 
 
 def test_invalid_typed_period_in_organisation_role_invalid_system() -> None:
