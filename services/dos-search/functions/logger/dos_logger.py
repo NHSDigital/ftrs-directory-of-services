@@ -18,7 +18,7 @@ class DosLogger:
     """
 
     def __init__(self, service: str = "dos", debug: bool = False) -> None:
-        self._logger = PowertoolsLogger(service=service)
+        self.logger = PowertoolsLogger(service=service)
         self.placeholder = "DOS_LOG_PLACEHOLDER"
         self.headers = dict()
 
@@ -30,7 +30,7 @@ class DosLogger:
         details = self.extract_one_time(event)
 
         # Appends common fields to all subsequent logs
-        self._logger.append_keys(**log_data)
+        self.logger.append_keys(**log_data)
         # Log one-time fields from event
         self.info(
             "Logging one-time fields from Request",
@@ -101,7 +101,7 @@ class DosLogger:
     def extract_one_time(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """Extract APIM headers and common event fields into the structured 'extra' dict.
 
-        Optional one-time fields are prefixed with 'Opt_' and are always present, using a placeholder value if not found on the event.
+        Optional one-time fields are prefixed with 'opt_' and are always present, using a placeholder value if not found on the event.
         """
         self.headers = event.get("headers") or {}
         placeholder = self.placeholder
@@ -142,17 +142,17 @@ class DosLogger:
 
     # --- powertools context -----------------------------------------------
     def append_keys(self, extra: Dict[str, Any]) -> None:
-        self._logger.append_keys(**extra)
+        self.logger.append_keys(**extra)
 
     def get_keys(self) -> Dict[str, Any]:
-        return self._logger.get_current_keys()
+        return self.logger.get_current_keys()
 
     def set_level(self, level: Literal[10, 20, 30, 40, 50]) -> None:
-        self._logger.setLevel(level)
+        self.logger.setLevel(level)
 
     # Manual method to clear ALL appended keys. Not used as setting `clear_state=True` in the Lambda handler should suffice for current logging behaviour
     def clear_state(self) -> None:
-        self._logger.clear_state()
+        self.logger.clear_state()
 
     # --- logging methods -----------------------------------------------
     def _log_with_level(
@@ -178,17 +178,17 @@ class DosLogger:
 
         # call powertools
         if level == "debug":
-            self._logger.debug(message, extra=log_data)
+            self.logger.debug(message, extra=log_data)
         elif level == "info":
-            self._logger.info(message, extra=log_data)
+            self.logger.info(message, extra=log_data)
         elif level == "warning":
-            self._logger.warning(message, extra=log_data)
+            self.logger.warning(message, extra=log_data)
         elif level == "error":
-            self._logger.error(message, extra=log_data)
+            self.logger.error(message, extra=log_data)
         elif level == "exception":
-            self._logger.exception(message, extra=log_data)
+            self.logger.exception(message, extra=log_data)
         else:
-            self._logger.info(message, extra=log_data)
+            self.logger.info(message, extra=log_data)
 
     def debug(self, message: str, **detail: object) -> None:
         self._log_with_level("debug", message, **detail)

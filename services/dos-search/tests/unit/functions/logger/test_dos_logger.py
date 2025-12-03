@@ -44,7 +44,7 @@ def dos_logger():
 @pytest.fixture
 def mock_base_powertools_logger():
     with patch(
-        "tests.unit.functions.logger.setup_dummy_lambda.dos_logger._logger"
+        "tests.unit.functions.logger.setup_dummy_lambda.dos_logger.logger"
     ) as mock:
         yield mock
 
@@ -197,7 +197,7 @@ class TestDosLogger:
         assert_mandatory_fields_present,
     ):
         caplog.set_level(10)  # DEBUG
-        dos_logger._logger.setLevel(10)  # DEBUG
+        dos_logger.logger.setLevel(10)  # DEBUG
         # Arrange
         debug_message = "test_debug_call: testing debug call"
 
@@ -325,25 +325,14 @@ class TestDosLogger:
         assert_mandatory_fields_present(capture)
         assert "test_exception_call: testing exception call" in caplog.messages
 
-    def test_powertools_log_calls(
-        self, event, dos_logger, lambda_context, mock_base_powertools_logger
-    ):
-        # Arrange
-        def call_powertools() -> Response:
-            dos_logger.debug("debug message")
-            dos_logger.info("info message")
-            dos_logger.warning("warning message")
-            dos_logger.error("error message")
-            dos_logger.exception("exception message")
-            dos_logger._log_with_level("bogus", "bogus level message")
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
+    def test_powertools_log_calls(self, dos_logger, mock_base_powertools_logger):
         # Act
-        lambda_handler(event, lambda_context, call_powertools, run_init=False)
+        dos_logger.debug("debug message")
+        dos_logger.info("info message")
+        dos_logger.warning("warning message")
+        dos_logger.error("error message")
+        dos_logger.exception("exception message")
+        dos_logger._log_with_level("bogus", "bogus level message")
 
         # Assert
         mock_base_powertools_logger.assert_has_calls(
@@ -357,63 +346,32 @@ class TestDosLogger:
             ]
         )
 
-    def test_powertools_append_call(
-        self, event, dos_logger, lambda_context, mock_base_powertools_logger
-    ):
+    def test_powertools_append_call(self, dos_logger, mock_base_powertools_logger):
         # Arrange
         extra_keys = {
             "dos_extra_key_1": "extra_value_1",
             "dos_extra_key_2": "extra_value_2",
         }
 
-        def call_append() -> Response:
-            dos_logger.append_keys(extra_keys)
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
         # Act
-        lambda_handler(event, lambda_context, call_append, run_init=False)
+        dos_logger.append_keys(extra_keys)
 
         # Assert
         mock_base_powertools_logger.append_keys.assert_called_once_with(**extra_keys)
 
-    def test_powertools_set_level_call(
-        self, event, dos_logger, lambda_context, mock_base_powertools_logger
-    ):
+    def test_powertools_set_level_call(self, dos_logger, mock_base_powertools_logger):
         # Arrange
         level = 40
 
-        def call_set_level() -> Response:
-            dos_logger.set_level(level)
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
         # Act
-        lambda_handler(event, lambda_context, call_set_level, run_init=True)
+        dos_logger.set_level(level)
 
         # Assert
         mock_base_powertools_logger.setLevel.assert_called_once_with(level)
 
-    def test_powertools_clear_state_call(
-        self, event, dos_logger, lambda_context, mock_base_powertools_logger
-    ):
-        # Arrange
-        def call_clear_state() -> Response:
-            dos_logger.clear_state()
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
+    def test_powertools_clear_state_call(self, dos_logger, mock_base_powertools_logger):
         # Act
-        lambda_handler(event, lambda_context, call_clear_state, run_init=True)
+        dos_logger.clear_state()
 
         # Assert
         mock_base_powertools_logger.clear_state.assert_called_once()
