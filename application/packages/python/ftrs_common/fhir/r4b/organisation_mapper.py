@@ -122,15 +122,15 @@ class OrganizationMapper(FhirMapper):
                 if non_primary_ext:
                     extensions.append(non_primary_ext)
 
-        if extensions:
-            org_dict["extension"] = extensions
-
         legal_start_str, legal_end_str = self._get_legal_dates(organisation)
         legal_date_ext = self._build_legal_date_extension(
             legal_start_str, legal_end_str
         )
         if legal_date_ext:
-            org_dict["extension"] = [legal_date_ext]
+            extensions.append(legal_date_ext)
+
+        if extensions:
+            org_dict["extension"] = extensions
         return FhirOrganisation.model_validate(org_dict)
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:

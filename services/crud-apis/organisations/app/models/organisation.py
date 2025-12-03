@@ -42,11 +42,6 @@ class LegalDateField(Enum):
     END = "end"
 
 
-ORGANISATION_ROLE_URL = (
-    "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
-)
-
-
 class OrganizationQueryParams(BaseModel):
     identifier: str = Field(
         ...,
@@ -222,9 +217,6 @@ def _validate_organisation_extension(ext: Extension) -> None:
         _raise_validation_error("Extension URL cannot be empty or None")
     elif ext.url == ORGANISATION_ROLE_URL:
         _validate_organisation_role_extension(ext)
-    elif ext.url == TYPED_PERIOD_URL:
-        # Handle legacy direct TypedPeriod extensions (if still allowed)
-        _validate_typed_period_extension(ext)
     else:
         _raise_validation_error(f"Invalid extension URL: {ext.url}")
 
@@ -234,24 +226,34 @@ def _validate_organisation_role_extension(ext: Extension) -> None:
         _raise_validation_error(
             f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
         )
+    has_typed = False
+    has_role = False
     for nested_ext in ext.extension:
-        if hasattr(nested_ext, "url") and nested_ext.url and "role" in nested_ext.url:
-            _validate_role_code_extension(nested_ext)
-
         if (
+            hasattr(nested_ext, "url")
+            and nested_ext.url
+            and "roleCode" in nested_ext.url
+        ):
+            _validate_role_code(nested_ext)
+            has_role = True
+        elif (
             hasattr(nested_ext, "url")
             and nested_ext.url
             and "TypedPeriod" in nested_ext.url
         ):
             _validate_typed_period_extension(nested_ext)
-            return  # Found and validated TypedPeriod extension, exit successfully
+            has_typed = True
+    if not has_role:
+        _raise_validation_error(
+            "OrganisationRole extension must contain at least one roleCode extension"
+        )
+    if not has_typed:
+        _raise_validation_error(
+            "OrganisationRole extension must contain at least one TypedPeriod extension"
+        )
 
-    _raise_validation_error(
-        "OrganisationRole extension must contain at least one TypedPeriod extension"
-    )
 
-
-def _validate_role_code_extension(ext: Extension) -> None:
+def _validate_role_code(ext: Extension) -> None:
     """Validate roleCode extension contains valid OrganisationTypeCode."""
     if not ext.valueCodeableConcept:
         _raise_validation_error("roleCode must have a valueCodeableConcept")
