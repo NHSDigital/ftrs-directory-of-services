@@ -990,7 +990,7 @@ def test_empty_organisation_role_extension_url() -> None:
     ]
     with pytest.raises(OperationOutcomeException) as e:
         OrganisationUpdatePayload(**payload)
-    assert "Extension URL must be present and cannot be empty or None" in str(e.value)
+    assert "Extension URL cannot be empty or None" in str(e.value)
 
 
 def test_invalid_typed_period_extension_url_in_organisation_role() -> None:
@@ -1127,300 +1127,12 @@ def test_empty_typed_period_extension_url_in_organisation_role() -> None:
             ],
         }
     ]
-    with pytest.raises(OperationOutcomeException) as e:
+    with pytest.raises(OperationOutcomeException) as exc_info:
         OrganisationUpdatePayload(**payload)
     assert (
         "OrganisationRole extension must contain at least one TypedPeriod extension"
-        in str(e.value)
+        in str(exc_info.value)
     )
-
-
-def test_valid_payload_with_primary_role_code() -> None:
-    """Test payload with primary role code extension."""
-    payload = {
-        "id": "123",
-        "resourceType": "Organization",
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-        "name": "Test Organisation",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO177",
-                                }
-                            ]
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": True},
-                ],
-            }
-        ],
-    }
-    organisation = OrganisationUpdatePayload(**payload)
-    assert organisation.name == "Test Organisation"
-    assert organisation.extension is not None
-    assert len(organisation.extension) == 1
-
-
-def test_valid_payload_with_primary_and_non_primary_role_codes() -> None:
-    """Test payload with both primary and non-primary role codes."""
-    payload = {
-        "id": "123",
-        "resourceType": "Organization",
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-        "name": "Test Organisation",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO177",
-                                }
-                            ]
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": True},
-                ],
-            },
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO76",
-                                }
-                            ]
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": False},
-                ],
-            },
-        ],
-    }
-    organisation = OrganisationUpdatePayload(**payload)
-    EXPECTED = 2
-    assert organisation.name == "Test Organisation"
-    assert organisation.extension is not None
-    assert len(organisation.extension) == EXPECTED
-
-
-def test_valid_payload_with_multiple_non_primary_role_codes() -> None:
-    """Test payload with multiple non-primary role codes."""
-    payload = {
-        "id": "123",
-        "resourceType": "Organization",
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-        "name": "Test Organisation",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO177",
-                                }
-                            ]
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": True},
-                ],
-            },
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO76",
-                                }
-                            ]
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": False},
-                ],
-            },
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO80",
-                                }
-                            ]
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": False},
-                ],
-            },
-        ],
-    }
-    EXPECTED = 3
-    organisation = OrganisationUpdatePayload(**payload)
-    assert organisation.name == "Test Organisation"
-    assert organisation.extension is not None
-    assert len(organisation.extension) == EXPECTED
-
-
-def test_valid_payload_with_no_role_codes() -> None:
-    """Test payload without any role code extensions."""
-    payload = {
-        "id": "123",
-        "resourceType": "Organization",
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-        "name": "Test Organisation",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
-    }
-    organisation = OrganisationUpdatePayload(**payload)
-    assert organisation.name == "Test Organisation"
-    assert organisation.extension is None
-
-
-def test_invalid_role_code_not_in_enum() -> None:
-    """Test payload with role code that is not a valid OrganisationTypeCode enum value."""
-    payload = {
-        "id": "123",
-        "resourceType": "Organization",
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-        "name": "Test Organisation",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "INVALID_CODE",
-                                }
-                            ]
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": True},
-                ],
-            }
-        ],
-    }
-
-    with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganisationUpdatePayload(**payload)
-
-    assert "Invalid role code: 'INVALID_CODE'" in str(exc_info.value)
-
-
-def test_missing_role_code_extension() -> None:
-    """Test payload with organisation role extension but missing roleCode."""
-    payload = {
-        "id": "123",
-        "resourceType": "Organization",
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "ABC123",
-            }
-        ],
-        "name": "Test Organisation",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {"url": "primaryRole", "valueBoolean": True},
-                ],
-            }
-        ],
-    }
-
-    with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganisationUpdatePayload(**payload)
-
-    assert "OrganisationRole extension must contain roleCode" in str(exc_info.value)
 
 
 def test_empty_extension_array() -> None:
@@ -1490,3 +1202,369 @@ def test_role_code_missing_value_codeable_concept() -> None:
         OrganisationUpdatePayload(**payload)
 
     assert "roleCode must have a valueCodeableConcept" in str(exc_info.value)
+
+
+def test_valid_payload_with_primary_role_code() -> None:
+    """Test payload with primary role code extension."""
+    payload = {
+        "id": "123",
+        "resourceType": "Organization",
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
+        "name": "Test Organisation",
+        "active": True,
+        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2020-01-15"},
+                            },
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.name == "Test Organisation"
+    assert organisation.extension is not None
+    assert len(organisation.extension) == 1
+
+
+def test_valid_payload_with_primary_and_non_primary_role_codes() -> None:
+    """Test payload with both primary and non-primary role codes."""
+    payload = {
+        "id": "123",
+        "resourceType": "Organization",
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
+        "name": "Test Organisation",
+        "active": True,
+        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2020-01-15"},
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2014-04-15"},
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    EXPECTED = 2
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.name == "Test Organisation"
+    assert organisation.extension is not None
+    assert len(organisation.extension) == EXPECTED
+
+
+def test_valid_payload_with_multiple_non_primary_role_codes() -> None:
+    """Test payload with multiple non-primary role codes."""
+    payload = {
+        "id": "123",
+        "resourceType": "Organization",
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
+        "name": "Test Organisation",
+        "active": True,
+        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2020-01-15"},
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2014-04-15"},
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO80",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2015-05-20"},
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    EXPECTED = 3
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.name == "Test Organisation"
+    assert organisation.extension is not None
+    assert len(organisation.extension) == EXPECTED
+
+
+def test_invalid_role_code_not_in_enum() -> None:
+    """Test payload with role code that is not a valid OrganisationTypeCode enum value."""
+    payload = {
+        "id": "123",
+        "resourceType": "Organization",
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
+        "name": "Test Organisation",
+        "active": True,
+        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "INVALID_CODE",
+                                }
+                            ]
+                        },
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                },
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2020-01-15"},
+                            },
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganisationUpdatePayload(**payload)
+
+    assert "Invalid role code: 'INVALID_CODE'" in str(exc_info.value)
+
+
+def test_valid_payload_with_no_role_codes() -> None:
+    """Test payload without any role code extensions."""
+    payload = {
+        "id": "123",
+        "resourceType": "Organization",
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
+        "name": "Test Organisation",
+        "active": True,
+        "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
+        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
+    }
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.name == "Test Organisation"
+    assert organisation.extension is None
