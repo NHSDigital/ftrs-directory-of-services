@@ -188,3 +188,18 @@ data "aws_prefix_list" "dynamodb" {
 data "aws_security_group" "dms_replication_security_group" {
   name = "${var.project}-${var.environment}-account-wide-etl-replication-sg"
 }
+
+data "aws_kms_key" "sqs_kms_alias" {
+  key_id = local.sqs_kms_key_alias
+}
+
+data "aws_iam_policy_document" "lambda_kms_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*"
+    ]
+    resources = data.aws_kms_key.sqs_kms_alias.arn
+  }
+}

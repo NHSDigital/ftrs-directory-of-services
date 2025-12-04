@@ -344,3 +344,8 @@ variable "dns_port" {
   type        = number
   default     = 53
 }
+
+variable "sqs_managed_sse_enabled" {
+  description = "Enables Server-Side Encryption for messages stored in the queue"
+  type        = bool
+}
