@@ -24,7 +24,7 @@ All resources have mandatory cost tags for allocation and reporting.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | AWS Config rules + tag audit automation | Continuous + monthly report | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Enables cost visibility and accountability |
+| mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | AWS Configuration rules + tag audit automation | Continuous + monthly report | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Enables cost visibility and accountability |
 
 ### COST-002
 

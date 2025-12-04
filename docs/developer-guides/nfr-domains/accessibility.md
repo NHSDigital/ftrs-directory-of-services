@@ -21,7 +21,7 @@ This page is auto-generated; do not hand-edit.
 | ACC-011 | Screen reader ARIA role announcements verified | Screen reader announces ARIA roles and states correctly. | (none) |
 | ACC-012 | Accessibility results documented with feature tests | Accessibility results are documented alongside feature tests. | (none) |
 | ACC-013 | Central issue log maintained & current | Centralised accessibility issue log is maintained and current. | (none) |
-| ACC-014 | Accessibility champion/workgroup active | Active champion or workgroup drives accessibility practice. | (none) |
+| ACC-014 | Accessibility champion/working group active | Active champion or working group drives accessibility practice. | (none) |
 | ACC-015 | Monthly accessibility report published | Monthly accessibility report is published for stakeholders. | (none) |
 | ACC-016 | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
 | ACC-017 | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
@@ -38,7 +38,7 @@ This page is auto-generated; do not hand-edit.
 Product passes WCAG 2.2 AA via automated and manual audits.
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| wcag-aa-pass | WCAG 2.2 AA scan & manual audit pass | Automated AA scan passes; manual audit issues triaged and resolved | Accessibility scanner + manual audit checklist | Quarterly + pre-release | int,ref | read-only-viewer | draft | Ensures accessibility conformance for UI surfaces |
+| wcag-aa-pass | WCAG 2.2 AA scan & manual audit pass | Automated AA scan passes; manual audit issues prioritized and resolved | Accessibility scanner + manual audit checklist | Quarterly + pre-release | int,ref | read-only-viewer | draft | Ensures accessibility conformance for UI surfaces |
 
 ### ACC-002
 

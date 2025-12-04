@@ -4,7 +4,7 @@ These instructions define the workflow Copilot follows when a Jira ticket key (e
 
 ## Principles
 
-- `story_id` in repo is immutable and remains the primary traceability anchor.
+- `story_id` in repository is immutable and remains the primary traceability anchor.
 - Jira key augments; it never replaces `story_id` in matrix or registries.
 - File rename to `<JIRA-KEY>-<kebab-summary>.md` is optional (discoverability), not mandatory.
 - Acceptance criteria and `nfr_refs` must not change unless the user explicitly requests refinement.
@@ -45,7 +45,7 @@ These instructions define the workflow Copilot follows when a Jira ticket key (e
 ## FAQ
 
 **Q: Should matrix replace story IDs with Jira keys?** No. Keep `story_id` and optionally append the Jira key.
-**Q: What if Jira criteria differ from repo?** Reconcile by updating the repo version; repo remains source of truth.
+**Q: What if Jira criteria differ from repository?** Reconcile by updating the repository version; repository remains source of truth.
 **Q: Can I rename without adding `jira_key`?** Discouraged. Add the key first to avoid ambiguity.
 
 ## Example Front Matter After Sync

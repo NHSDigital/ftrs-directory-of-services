@@ -14,7 +14,7 @@ This page is auto-generated; do not hand-edit.
 | AVAIL-004 | Monthly maintenance minutes ≤150; single ≤60 | Maintenance windows stay within monthly and per-event minute limits. | STORY-AVAIL-004 |
 | AVAIL-005 | Tuesday window executed; smoke tests pass | Scheduled maintenance executes successfully with passing smoke tests afterward. | (none) |
 | AVAIL-006 | DR exercise restores service <2h | DR exercise restores service within target recovery time (< defined hours). | (none) |
-| AVAIL-007 | Replication lag ≤60s; failover data delta minimal | Data replication lag remains under target ensuring minimal failover delta. | (none) |
+| AVAIL-007 | Replication lag ≤60s; fail-over data delta minimal | Data replication lag remains under target ensuring minimal fail-over delta. | (none) |
 | AVAIL-008 | API uptime aligns with core service | API uptime aligns with overall service availability target. | (none) |
 | AVAIL-009 | Non-UK access attempts blocked & logged | Access from non-approved geographic regions is blocked and logged. | (none) |
 | AVAIL-010 | Blue/green deployment produces 0 failed requests | Blue/green deployments complete with zero failed user requests. | (none) |

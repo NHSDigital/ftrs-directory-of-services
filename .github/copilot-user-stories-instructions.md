@@ -16,9 +16,9 @@ Copilot assistance should accelerate drafting while preserving:
 
 - Traceability: Story ↔ NFR codes ↔ Registries ↔ Tests / Telemetry
 - Consistency: Naming, front matter schema, commit messages
-- Auditability: No invented codes; rationale present for target changes
+- auditability: No invented codes; rationale present for target changes
 
-Copilot outputs must never introduce unvalidated targets or fabricate IDs.
+Copilot outputs must never introduce not validated targets or fabricate IDs.
 
 ---
 
@@ -134,7 +134,7 @@ If thresholds not yet accepted (status: draft), mark criterion as "subject to re
 | Scenario                       | Skeleton                                                                                                                                |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | New functional story           | "Draft story for <role> needing <capability> to achieve <value>; propose 4 acceptance criteria and relevant NFR codes (list: <codes>)." |
-| Refine latency criteria        | "Given current gp-list p95=910ms and target 850ms, refine acceptance criteria ensuring progressive rollout and monitoring steps."       |
+| Refine latency criteria        | "Given current gp-list p95=910ms and target 850ms, refine acceptance criteria ensuring progressive deployment and monitoring steps."       |
 | Add security control           | "Suggest control entry for build-time dependency scanning referencing SEC-003 with measurable threshold & rationale."                   |
 | Generate explanation           | "Plain-language (≤40 words) explanation for NFR REL-005 emphasising user impact if unmet."                                              |
 | Threshold adjustment rationale | "Provide concise rationale for tightening gp-nearby p95 from 950ms to 900ms referencing user behavioural impact."                       |
@@ -192,7 +192,7 @@ Summary:
 - Optional rename `<JIRA-KEY>-<kebab-summary>.md`.
 - Annotate matrix row: `STORY-XYZ (JIRA-1234)`.
 - Regenerate pages only if registries/controls changed.
-- Never delete story files post-sync (repo is source of truth).
+- Never delete story files post-sync (repository is source of truth).
   See dedicated doc for guardrails, examples, and commit patterns.
 
 ---

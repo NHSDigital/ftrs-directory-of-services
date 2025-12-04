@@ -58,7 +58,7 @@ Example control row:
 
 | Control ID | NFR Code | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|----------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| crypto-cipher-policy | SEC-001 | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | TLS scanner + configuration policy checks | CI per change + monthly scan | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Enforces modern TLS standards; automated scans detect drift |
+| crypto-cipher-policy | SEC-001 | cryptography algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | TLS scanner + configuration policy checks | CI per change + monthly scan | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Enforces modern TLS standards; automated scans detect drift |
 
 Meaning of columns:
 
