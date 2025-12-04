@@ -1,50 +1,36 @@
 import boto3
-from botocore.exceptions import ClientError
 from ftrs_common.logger import Logger
-from ftrs_data_layer.domain import legacy
 
 from common.sql_utils import get_sqlalchemy_engine_from_config
 from dms_provisioner.config import DmsDatabaseConfig
-from dms_provisioner.dms_service import create_dms_user, create_rds_trigger_replica_db
+from dms_provisioner.dms_service import create_dms_user, create_rds_triggers
 
 LOGGER = Logger.get(service="DMS-Lambda-handler")
 
 
+@LOGGER.inject_lambda_context
 def lambda_handler(event: dict, context: dict) -> None:
-    try:
-        # Execute PostgreSQL trigger
-        aws_region = boto3.session.Session().region_name
+    LOGGER.info("Starting DMS provisioning process.")
 
-        # Use the optimized DatabaseConfig object
-        dms_config = DmsDatabaseConfig()
-        target_db_config = dms_config.get_target_rds_config()
-        rds_username, rds_password = dms_config.get_dms_user_details()
+    # Execute PostgreSQL trigger
+    aws_region = boto3.session.Session().region_name
 
-        # Connect to the RDS instance using the optimized engine creation
-        engine = get_sqlalchemy_engine_from_config(target_db_config)
+    # Use the optimized DatabaseConfig object
+    dms_config = DmsDatabaseConfig()
+    target_db_config = dms_config.get_target_rds_config()
+    rds_username, rds_password = dms_config.get_dms_user_details()
 
-        # create a user if not exists
-        create_dms_user(engine, rds_username, rds_password)
+    # Connect to the RDS instance using the optimized engine creation
+    engine = get_sqlalchemy_engine_from_config(target_db_config)
 
-        tables = [
-            "pathwaysdos." + legacy.Service.__tablename__,
-            "pathwaysdos." + legacy.ServiceEndpoint.__tablename__,
-        ]
+    # Create a user if not exists
+    create_dms_user(engine, rds_username, rds_password)
 
-        for table_name in tables:
-            LOGGER.info("Creating trigger for table: %s", table_name)
-            create_rds_trigger_replica_db(
-                engine,
-                rds_username,
-                dms_config.trigger_lambda_arn,
-                aws_region,
-                table_name,
-            )
+    # Create triggers for services and related tables
+    create_rds_triggers(
+        engine,
+        lambda_arn=dms_config.trigger_lambda_arn,
+        aws_region=aws_region,
+    )
 
-    except ClientError:
-        LOGGER.exception("Error fetching secret for target RDS details or DMS user")
-    except Exception:
-        LOGGER.exception("Error something went wrong in the lambda handler")
-    finally:
-        if "engine" in locals():
-            engine.dispose()
+    LOGGER.info("DMS provisioning completed successfully.")
