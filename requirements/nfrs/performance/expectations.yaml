@@ -1,0 +1,176 @@
+version: 1.7
+generated: 2025-11-14
+# Registry notes:
+# - PERF-001: quantitative thresholds enforced per operation (p50/p95 + optional absolute_max_ms)
+# - PERF-003: this file is the versioned specification; increment 'version' + append changelog on any target change
+# - PERF-008: stability variance assessed against these targets; SLOW ops must list exception_story + review_cycle
+# - PERF-009: regression alerts reference operation_id & version; breaches > target +10% sustained open tickets
+# - PERF-010: percentile methodology documented separately; changes to methodology that alter computed percentiles require a new version here
+# Each operation's specific refinement or exception rationale is captured in linked stories (test_ref / exception_story).
+operations:
+  - service: dos-search
+    operation_id: dos-search
+    path: /dos-search?query={q}
+    method: GET
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    concurrency_profile: burst-80 steady-20
+    burst_tps_target: 150
+    sustained_tps_target: 150
+    max_request_payload_bytes: 1048576
+    rationale: Primary user-facing query; critical perceived responsiveness
+    test_ref: STORY-PERF-001
+    last_validated: 2025-11-14
+    status: draft
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    path: /dos-search/ods/{code}
+    method: GET
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    concurrency_profile: burst-60 steady-15
+    burst_tps_target: 150
+    sustained_tps_target: 150
+    max_request_payload_bytes: 1048576
+    rationale: Direct ODS code lookup; largely cacheable
+    test_ref: STORY-PERF-002
+    last_validated: 2025-11-14
+    status: draft
+  - service: dos-search
+    operation_id: dos-nearby
+    path: /dos-search/nearby?lat={lat}&lon={lon}&radius={r}
+    method: GET
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    concurrency_profile: burst-50 steady-15
+    burst_tps_target: 150
+    sustained_tps_target: 150
+    max_request_payload_bytes: 1048576
+    rationale: Geo filtering + limited enrichment
+    test_ref: STORY-PERF-003
+    last_validated: 2025-11-14
+    status: draft
+  # CRUD APIs service operations
+  - service: crud-apis
+    operation_id: org-get
+    path: /Organization/{id}
+    method: GET
+    p50_target_ms: 40
+    p95_target_ms: 100
+    absolute_max_ms: 300
+    concurrency_profile: burst-70 steady-25
+    rationale: Simple primary key lookup; cached storage path
+    test_ref: STORY-210
+    last_validated: 2025-11-14
+    status: draft
+  - service: crud-apis
+    operation_id: org-update
+    path: /Organization/{id}
+    method: PUT
+    p50_target_ms: 70
+    p95_target_ms: 150
+    absolute_max_ms: 400
+    concurrency_profile: burst-40 steady-15
+    rationale: Validation + persistence + OperationOutcome classification
+    test_ref: STORY-209
+    last_validated: 2025-11-14
+    status: draft
+  - service: crud-apis
+    operation_id: healthcare-service-get
+    path: /HealthcareService/{id}
+    method: GET
+    p50_target_ms: 50
+    p95_target_ms: 120
+    absolute_max_ms: 350
+    concurrency_profile: burst-60 steady-20
+    rationale: Direct read + lightweight mapping
+    test_ref: STORY-214
+    last_validated: 2025-11-14
+    status: draft
+  - service: crud-apis
+    operation_id: org-search-ods
+    path: /Organization?identifier=odsOrganisationCode|{code}
+    method: GET
+    p50_target_ms: 60
+    p95_target_ms: 140
+    absolute_max_ms: 400
+    concurrency_profile: burst-50 steady-15
+    rationale: ODS code normalization + single index scan
+    test_ref: STORY-208
+    last_validated: 2025-11-14
+    status: draft
+  # ETL ODS pipeline operations (non-HTTP steps treated as operations for tracking)
+  - service: etl-ods
+    operation_id: ods-daily-sync
+    path: eventbridge:daily-sync
+    method: OPERATION
+    p50_target_ms: 500
+    p95_target_ms: 1500
+    absolute_max_ms: 3000
+    concurrency_profile: single-run
+    rationale: External ORD call + list parsing; acceptable longer latency
+    exception_story: STORY-217
+    review_cycle: quarterly
+    last_validated: 2025-11-14
+    status: exception
+  - service: etl-ods
+    operation_id: ods-batch-transform
+    path: processor:batch-transform
+    method: OPERATION
+    p50_target_ms: 200
+    p95_target_ms: 600
+    absolute_max_ms: 1200
+    concurrency_profile: batch-serial
+    rationale: Mapping + normalization + extension filtering
+    test_ref: STORY-220
+    last_validated: 2025-11-14
+    status: draft
+  - service: etl-ods
+    operation_id: ods-sqs-batch-send
+    path: processor:sqs-batch-send
+    method: OPERATION
+    p50_target_ms: 30
+    p95_target_ms: 80
+    absolute_max_ms: 200
+    concurrency_profile: batch-serial
+    rationale: Single AWS API batch request with lightweight payload
+    test_ref: STORY-221
+    last_validated: 2025-11-14
+    status: draft
+  # Data Migration pipeline performance baselines
+  - service: data-migration
+    operation_id: dm-record-transform
+    path: processor:record-transform
+    method: OPERATION
+    p50_target_ms: 120
+    p95_target_ms: 250
+    absolute_max_ms: 800
+    concurrency_profile: batch-serial
+    rationale: Single legacy record validation + transform + upsert
+    test_ref: STORY-PERF-001
+    last_validated: 2025-11-26
+    status: draft
+  - service: data-migration
+    operation_id: dm-full-sync
+    path: cli:full-sync
+    method: OPERATION
+    p50_target_ms: 1_200_000  # 20 minutes
+    p95_target_ms: 1_800_000  # 30 minutes
+    absolute_max_ms: 2_700_000  # 45 minutes
+    concurrency_profile: single-run
+    rationale: End-to-end duration baseline including transform and upserts
+    test_ref: STORY-PERF-001
+    review_cycle: monthly
+    last_validated: 2025-11-26
+    status: draft
+changelog:
+  - v1.1 (2025-11-14): Added gp-search operations (gp-search, gp-lookup-ods, gp-nearby) initial draft targets.
+  - v1.2 (2025-11-14): Removed triage-search operations (de-scoped from NFR set).
+  - v1.3 (2025-11-14): Added crud-apis (org-get, org-update, healthcare-service-get, org-search-ods) and etl-ods (ods-daily-sync, ods-batch-transform, ods-sqs-batch-send) operations.
+  - v1.4 (2025-11-14): Added throughput (burst_tps_target, sustained_tps_target) and payload (max_request_payload_bytes) fields for gp-search endpoints to support PERF-011..PERF-013.
+  - v1.5 (2025-11-24): Renamed gp-search service to dos-search and updated operation_ids and paths (gp-search -> dos-search, gp-lookup-ods -> dos-lookup-ods, gp-nearby -> dos-nearby). Updated test_ref links to STORY-PERF-001..003.
+  - v1.6 (2025-11-25): Removed performer_class field from all operations; governance now based solely on explicit latency & throughput targets.
+  - v1.7 (2025-11-26): Added data-migration performance baselines (dm-record-transform, dm-full-sync) linked to STORY-PERF-001.
