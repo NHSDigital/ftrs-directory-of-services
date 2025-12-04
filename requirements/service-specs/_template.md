@@ -1,8 +1,13 @@
----
 # Service Specification Template
-# Copy this file to a new spec: requirements/service-specs/<feature-name>.md
-# Keep sections even if initially empty; mark unknowns under Open Questions.
+
 ---
+title: Template
+status: draft
+version: 0.0.1
+---
+
+Copy this file to a new spec: `requirements/service-specs/<feature-name>.md`.
+Keep sections even if initially empty; mark unknowns under Open Questions.
 ## 1. Overview
 
 Purpose, target users/actors, primary value proposition, business outcomes.
@@ -60,7 +65,7 @@ Standards adhered to (FHIR versions, NHS guidelines), policy checks, review cade
 
 ## 14. Deployment & Migration
 
-Config parameters, feature flags, rollout strategy, backfill/migration steps.
+Config parameters, feature flags, rollout strategy, backfill or migration steps.
 
 ## 15. Risks & Mitigations
 
