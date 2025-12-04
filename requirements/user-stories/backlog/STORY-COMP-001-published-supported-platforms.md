@@ -16,14 +16,14 @@ Implement automated validation for: Published OS/browser list matches warranted 
 ## Acceptance Criteria
 
 1. Supported platform list published and current
-2. Tooling: Documentation repo + review checklist operational
+2. Tooling: Documentation repository + review checklist operational
 3. Cadence: Quarterly validated
 4. Environments: prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `published-supported-platforms`\n- Threshold: Supported platform list published and current\n- Tooling: Documentation repo + review checklist\n- Cadence: Quarterly\n- Environments: prod
+- Control ID: `published-supported-platforms`\n- Threshold: Supported platform list published and current\n- Tooling: Documentation repository + review checklist\n- Cadence: Quarterly\n- Environments: prod
 
 ## Test Strategy
 

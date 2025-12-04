@@ -15,7 +15,7 @@ Implement automated validation for TLS encryption in transit between all compone
 ## Acceptance Criteria
 
 1. 100% endpoints using TLS 1.3 (TLS 1.2 with permission); no TLS 1.0/1.1
-2. Tooling: AWS Config rules + Terraform policy checks + automated endpoint scan operational
+2. Tooling: AWS Configuration rules + Terraform policy checks + automated endpoint scan operational
 3. Cadence: Continuous (real-time) with CI enforcement on change validated
 4. Environments: dev, int, ref, prod covered
 5. Monitoring configured and alerting tested
@@ -25,7 +25,7 @@ Implement automated validation for TLS encryption in transit between all compone
 
 - Control ID: `tls-encryption-endpoints`
 - Threshold: 100% endpoints TLS 1.3+ (if permission granted 1.2); 0 endpoints TLS 1.0/1.1
-- Tooling: AWS Config rules + Terraform policy checks + TLS scanner
+- Tooling: AWS Configuration rules + Terraform policy checks + TLS scanner
 - Cadence: Continuous (real-time) with CI enforcement on change
 - Environments: dev, int, ref, prod
 
@@ -43,7 +43,7 @@ Implementation details to be refined during sprint planning
 
 ## Implementation Notes
 
-- Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift
+- Aligns with NHS policy; Configuration provides continuous guardrails; CI blocks drift
 - Cadence: Continuous (real-time) with CI enforcement on change
 - Status: draft
 

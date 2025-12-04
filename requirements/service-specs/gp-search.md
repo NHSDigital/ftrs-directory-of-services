@@ -59,7 +59,7 @@ Key use cases:
 | Status | Condition               | Payload                                                                        | Notes                                                            |
 | ------ | ----------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
 | 200    | Valid request processed | `Bundle` (type=`searchset`) containing 0..1 `Organization` and 0..N `Endpoint` | Empty Bundle if no organisation/endpoints found.                 |
-| 400    | Validation failure      | `OperationOutcome`                                                             | Includes issue entries with UKCore error coding and diagnostics. |
+| 400    | Validation failure      | `OperationOutcome`                                                             | Includes issue entries with UK Core error coding and diagnostics. |
 | 500    | Unhandled exception     | `OperationOutcome`                                                             | Generic fatal structure issue for internal failure.              |
 
 ### 4.4 Headers
@@ -73,7 +73,7 @@ Key use cases:
 | ------------------------ | --------------------------------------------------------------------------- | ----- |
 | `severity`               | error                                                                       | fatal |
 | `code`                   | `value` / `code-invalid` / `required` / `structure`                         |
-| `details.coding[0].code` | UKCore SpineErrorOrWarningCode (e.g. `INVALID_SEARCH_DATA`)                 |
+| `details.coding[0].code` | UK Core SpineErrorOrWarningCode (e.g. `INVALID_SEARCH_DATA`)                 |
 | `diagnostics`            | Human-readable explanation (e.g. invalid identifier system, missing param). |
 
 ## 5. Data Flow
@@ -136,7 +136,7 @@ Contains connection details (address, payloadType, status). Associated to Organi
 | Authentication | Will endpoint require user-level auth vs system integration key? | Confirm with security architecture (SEC-012 alignment).    |
 | Caching        | Should frequent ODS lookups employ in-memory or CDN caching?     | Evaluate latency benefit vs consistency needs.             |
 | PID Data       | Potential future inclusion of patient-facing endpoints?          | Re-assess SEC-025/SEC-026 implications.                    |
-| FHIR Profiles  | Need to constrain to UKCore profiles?                            | Align with standards group & add validation layer.         |
+| FHIR Profiles  | Need to constrain to UK Core profiles?                            | Align with standards group & add validation layer.         |
 | Rate Limiting  | Per-ODS request throttling for abuse prevention?                 | Integrate WAF / API Gateway usage plans (REL-004 synergy). |
 
 ## 11. Glossary

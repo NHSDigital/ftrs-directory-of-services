@@ -17,7 +17,7 @@ acceptance_criteria:
 out_of_scope:
   - Detailed network CIDR planning
 notes: |
-  Aligns to NFR-CLOUD-GOV-01. Evidence sources: Org account registry, landing zone config, deployment pipeline logs, DR test runbook, cost explorer reports.
+  Aligns to NFR-CLOUD-GOV-01. Evidence sources: Org account registry, landing zone configuration, deployment pipeline logs, DR test run book, cost explorer reports.
 ---
 
 # Summary

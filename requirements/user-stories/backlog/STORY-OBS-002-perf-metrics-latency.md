@@ -23,7 +23,7 @@ Implement automated validation for: Performance metrics latency ≤60s.
 
 ## Non-Functional Acceptance
 
-- Control ID: `perf-metrics-latency`\n- Threshold: Metrics pipeline delivers data within 60s latency\n- Tooling: Metrics agent + ingestion SLA alerting\n- Cadence: Continuous monitoring\n- Environments: int, ref, prod
+- Control ID: `performance-metrics-latency`\n- Threshold: Metrics pipeline delivers data within 60s latency\n- Tooling: Metrics agent + ingestion SLA alerting\n- Cadence: Continuous monitoring\n- Environments: int, ref, prod
 
 ## Test Strategy
 

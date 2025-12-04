@@ -15,7 +15,7 @@ acceptance_criteria:
   out_of_scope:
 - Fully autonomous remediation without human oversight
   notes: |
-  Evidence: candidate list, automation scripts repo, metrics dashboard.
+  Evidence: candidate list, automation scripts repository, metrics dashboard.
 
 ---
 

@@ -16,14 +16,14 @@ Implement automated validation for: SG rules audited; attempt broad ingress deni
 ## Acceptance Criteria
 
 1. 0 broad (0.0.0.0/0) ingress on restricted ports
-2. Tooling: AWS Config + IaC linter operational
+2. Tooling: AWS Configuration + IaC linter operational
 3. Cadence: CI per change + monthly audit validated
 4. Environments: dev, int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `sg-broad-ingress-denied`\n- Threshold: 0 broad (0.0.0.0/0) ingress on restricted ports\n- Tooling: AWS Config + IaC linter\n- Cadence: CI per change + monthly audit\n- Environments: dev, int, ref, prod
+- Control ID: `sg-broad-ingress-denied`\n- Threshold: 0 broad (0.0.0.0/0) ingress on restricted ports\n- Tooling: AWS Configuration + IaC linter\n- Cadence: CI per change + monthly audit\n- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

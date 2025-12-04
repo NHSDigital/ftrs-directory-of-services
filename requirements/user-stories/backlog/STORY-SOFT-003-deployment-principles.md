@@ -15,7 +15,7 @@ acceptance_criteria:
   out_of_scope:
 - Multi-cloud active-active deployment redesign
   notes: |
-  Evidence: deployment metadata record, rollback runbook, exception log.
+  Evidence: deployment metadata record, rollback run book, exception log.
 
 ---
 

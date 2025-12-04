@@ -16,14 +16,14 @@ Implement automated validation for: Perimeter scan shows no broad whitelist & se
 ## Acceptance Criteria
 
 1. No broad whitelists; only secure channels reported
-2. Tooling: External perimeter scanner + config validation operational
+2. Tooling: External perimeter scanner + configuration validation operational
 3. Cadence: Monthly + on change validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `perimeter-scan`\n- Threshold: No broad whitelists; only secure channels reported\n- Tooling: External perimeter scanner + config validation\n- Cadence: Monthly + on change\n- Environments: int, ref, prod
+- Control ID: `perimeter-scan`\n- Threshold: No broad whitelists; only secure channels reported\n- Tooling: External perimeter scanner + configuration validation\n- Cadence: Monthly + on change\n- Environments: int, ref, prod
 
 ## Test Strategy
 

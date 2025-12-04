@@ -11,9 +11,9 @@ acceptance_criteria:
   - GIVEN restore execution WHEN completed THEN report includes RPO/RTO metrics and data integrity verification summary
   - GIVEN failures WHEN encountered THEN remediation tickets created and tracked to closure
 out_of_scope:
-  - Multi-region failover orchestration
+  - Multi-region fail-over orchestration
 notes: |
-  Evidence: runbook, test execution logs, integrity validation outputs.
+  Evidence: run book, test execution logs, integrity validation outputs.
   Checklist: requirements/user-stories/checklists/aws-dr-restore-checklist.md
   Position: requirements/red-lines/cloud-backups.md
 ---

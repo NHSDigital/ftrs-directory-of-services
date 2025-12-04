@@ -15,15 +15,15 @@ Implement automated validation for: Correlation IDs preserved across calls.
 
 ## Acceptance Criteria
 
-1. 100% requests preserve transaction_id/correlation_id in logs and headers
-2. Tooling: Middleware + log correlation tests operational
+1. 100% requests preserve transaction_id/correlation ID in logs and headers
+2. Tooling: middleware + log correlation tests operational
 3. Cadence: CI per build + monthly audit validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `correlation-id-preserved`\n- Threshold: 100% requests preserve transaction_id/correlation_id in logs and headers\n- Tooling: Middleware + log correlation tests\n- Cadence: CI per build + monthly audit\n- Environments: int, ref, prod
+- Control ID: `correlation-id-preserved`\n- Threshold: 100% requests preserve transaction_id/correlation ID in logs and headers\n- Tooling: middleware + log correlation tests\n- Cadence: CI per build + monthly audit\n- Environments: int, ref, prod
 
 ## Test Strategy
 

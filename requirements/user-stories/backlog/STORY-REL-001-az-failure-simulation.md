@@ -15,7 +15,7 @@ Implement automated validation for: AZ failure simulation maintains service.
 
 ## Acceptance Criteria
 
-1. Successful failover with sustained service availability; no data loss
+1. Successful fail-over with sustained service availability; no data loss
 2. Tooling: Chaos simulation + health checks operational
 3. Cadence: Quarterly exercise validated
 4. Environments: int, ref covered
@@ -23,7 +23,7 @@ Implement automated validation for: AZ failure simulation maintains service.
 
 ## Non-Functional Acceptance
 
-- Control ID: `az-failure-simulation`\n- Threshold: Successful failover with sustained service availability; no data loss\n- Tooling: Chaos simulation + health checks\n- Cadence: Quarterly exercise\n- Environments: int, ref
+- Control ID: `az-failure-simulation`\n- Threshold: Successful fail-over with sustained service availability; no data loss\n- Tooling: Chaos simulation + health checks\n- Cadence: Quarterly exercise\n- Environments: int, ref
 
 ## Test Strategy
 

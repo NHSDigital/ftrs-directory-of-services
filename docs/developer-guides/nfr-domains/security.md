@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 | SEC-002 | WAF security pillar checklist completed & gaps tracked | Complete the AWS/WAF security pillar checklist and track remediation actions for any gaps. | (none) |
 | SEC-003 | All endpoints TLS only; storage encryption enabled | All service endpoints enforce TLS and all stored data (databases, buckets) is encrypted at rest. | FTRS-1563 |
 | SEC-004 | Storage services show encryption enabled | Every storage service (S3, RDS, etc.) shows encryption enabled with managed or customer keys. | (none) |
-| SEC-005 | Cross-env data access attempts denied | Strict environment isolation: data access from one environment to another is prevented. | (none) |
+| SEC-005 | Cross-environment data access attempts denied | Strict environment isolation: data access from one environment to another is prevented. | (none) |
 | SEC-006 | No direct prod console queries detected in audit period | No direct production console queries by engineers outside approved, audited break-glass processes. | (none) |
 | SEC-007 | SG rules audited; attempt broad ingress denied | Network security groups allow only narrowly scoped inbound rules; broad ingress is denied. | STORY-SEC-017 |
 | SEC-008 | Perimeter scan shows no broad whitelist & secure channels | Perimeter scans show secure transport, no open broad whitelists, and hardened edge configuration. | (none) |
@@ -32,12 +32,12 @@ This page is auto-generated; do not hand-edit.
 | SEC-022 | Utility program access restricted to approved roles | Access to powerful utility programs is restricted to approved roles. | (none) |
 | SEC-023 | Deployment provenance shows unique traceable accounts | Deployment provenance shows traceable unique accounts per automated pipeline stage. | (none) |
 | SEC-024 | Code/data transfer logs show integrity & secure channels | Transfer of code or data maintains integrity and uses secure channels; events are logged. | (none) |
-| SEC-025 | PID requests enforce mTLS; plaintext blocked | Requests containing identifiable patient data enforce mTLS; plaintext attempts are blocked. | STORY-SEC-003 |
+| SEC-025 | PID requests enforce mTLS; plain text blocked | Requests containing identifiable patient data enforce mTLS; plain text attempts are blocked. | STORY-SEC-003 |
 | SEC-026 | API responses contain no unencrypted PID fields | API responses never include unencrypted patient identifiable data (PID) fields. | (none) |
 | SEC-027 | Build fails on high CVE; report archived | Build pipeline blocks release when critical CVEs exceed threshold; reports archived. | STORY-SEC-002 |
 | SEC-028 | Release pipeline blocks on critical unresolved findings | Releases are halted if critical unresolved security findings remain. | (none) |
 | SEC-029 | All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims) | All API endpoints enforce CIS2 JWT authentication with signature, issuer, audience and required assurance claim validation; invalid or missing tokens are rejected with structured errors. | FTRS-1593 |
-| SEC-030 | Certificates and private keys stored only in approved encrypted secret stores; zero plaintext exposure | Certificates and private keys are stored only in approved encrypted secret stores (e.g., Secrets Manager/KMS) with zero plaintext exposure across repositories, images, logs, or build artifacts; continuous scanning enforces compliance. | FTRS-1602 |
+| SEC-030 | Certificates and private keys stored only in approved encrypted secret stores; zero plain text exposure | Certificates and private keys are stored only in approved encrypted secret stores (e.g., Secrets Manager/KMS) with zero plain text exposure across repositories, images, logs, or build artifacts; continuous scanning enforces compliance. | FTRS-1602 |
 
 ## Controls
 
@@ -62,7 +62,7 @@ All service endpoints enforce TLS and all stored data (databases, buckets) is en
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| tls-encryption-endpoints | All public/private API endpoints enforce TLS; storage services enable encryption at rest | 100% compliant across resources | AWS Config rules + Terraform policy checks | Continuous (real-time) with CI enforcement on change | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift |
+| tls-encryption-endpoints | All public/private API endpoints enforce TLS; storage services enable encryption at rest | 100% compliant across resources | AWS Configuration rules + Terraform policy checks | Continuous (real-time) with CI enforcement on change | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Aligns with NHS policy; Configuration provides continuous guardrails; CI blocks drift |
 
 ### SEC-004
 
@@ -70,7 +70,7 @@ Every storage service (S3, RDS, etc.) shows encryption enabled with managed or c
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | AWS Config rules + Terraform policy checks | Continuous + CI enforcement | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Guardrails ensure encryption at rest across services |
+| storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | AWS Configuration rules + Terraform policy checks | Continuous + CI enforcement | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Guardrails ensure encryption at rest across services |
 
 ### SEC-005
 
@@ -78,7 +78,7 @@ Strict environment isolation: data access from one environment to another is pre
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cross-env-access-denied | Cross-env data access attempts denied and logged | 100% denial; audit logs prove enforcement | IAM policies + SCP guardrails + audit log queries | CI policy checks + monthly audit review | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents accidental or malicious cross-environment data access |
+| cross-environment-access-denied | Cross-environment data access attempts denied and logged | 100% denial; audit logs prove enforcement | IAM policies + SCP guardrails + audit log queries | CI policy checks + monthly audit review | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents accidental or malicious cross-environment data access |
 
 ### SEC-006
 
@@ -94,7 +94,7 @@ Network security groups allow only narrowly scoped inbound rules; broad ingress 
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| sg-broad-ingress-denied | SG rules audited; attempt broad ingress denied | 0 broad (0.0.0.0/0) ingress on restricted ports | AWS Config + IaC linter | CI per change + monthly audit | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents risky network exposure via security groups |
+| sg-broad-ingress-denied | SG rules audited; attempt broad ingress denied | 0 broad (0.0.0.0/0) ingress on restricted ports | AWS Configuration + IaC linter | CI per change + monthly audit | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents risky network exposure via security groups |
 
 ### SEC-008
 
@@ -102,7 +102,7 @@ Perimeter scans show secure transport, no open broad whitelists, and hardened ed
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| perimeter-scan | Perimeter scan shows no broad whitelist & secure channels | No broad whitelists; only secure channels reported | External perimeter scanner + config validation | Monthly + on change | int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Confirms perimeter hygiene and secure external exposure |
+| perimeter-scan | Perimeter scan shows no broad whitelist & secure channels | No broad whitelists; only secure channels reported | External perimeter scanner + configuration validation | Monthly + on change | int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Confirms perimeter hygiene and secure external exposure |
 
 ### SEC-009
 
@@ -198,7 +198,7 @@ Remote connections present valid certificates from trusted authorities.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| authority-cert-validation | Remote connections present valid Authority certs; invalid certs rejected | 100% validation events pass; 0 successful connections with invalid certs | TLS config tests + runtime observation in logs | CI policy validation + runtime checks | int,ref,prod | etl-ods | draft | External data source interactions require strict certificate validation |
+| authority-cert-validation | Remote connections present valid Authority certs; invalid certs rejected | 100% validation events pass; 0 successful connections with invalid certs | TLS configuration tests + runtime observation in logs | CI policy validation + runtime checks | int,ref,prod | etl-ods | draft | External data source interactions require strict certificate validation |
 
 ### SEC-021
 
@@ -234,11 +234,11 @@ Transfer of code or data maintains integrity and uses secure channels; events ar
 
 ### SEC-025
 
-Requests containing identifiable patient data enforce mTLS; plaintext attempts are blocked.
+Requests containing identifiable patient data enforce mTLS; plain text attempts are blocked.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| pid-mtls-enforcement | Requests carrying PID fields require mutual TLS; plaintext requests blocked | 100% enforcement on designated endpoints | API gateway/WAF policy + integration tests | CI policy validation + continuous enforcement | int,ref,prod | crud-apis,dos-search | draft | Ensures transport security for sensitive data; test coverage verifies enforcement |
+| pid-mtls-enforcement | Requests carrying PID fields require mutual TLS; plain text requests blocked | 100% enforcement on designated endpoints | API gateway/WAF policy + integration tests | CI policy validation + continuous enforcement | int,ref,prod | crud-apis,dos-search | draft | Ensures transport security for sensitive data; test coverage verifies enforcement |
 
 ### SEC-026
 
@@ -246,7 +246,7 @@ API responses never include unencrypted patient identifiable data (PID) fields.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| pid-no-plaintext-response | API responses contain no unencrypted PID fields | 0 occurrences of unencrypted PID in responses | Integration tests + response scanners | CI per build + periodic production sampling | int,ref,prod | crud-apis,dos-search | draft | Ensures sensitive data is never returned unencrypted |
+| pid-no-plain text-response | API responses contain no unencrypted PID fields | 0 occurrences of unencrypted PID in responses | Integration tests + response scanners | CI per build + periodic production sampling | int,ref,prod | crud-apis,dos-search | draft | Ensures sensitive data is never returned unencrypted |
 
 ### SEC-027
 
@@ -274,8 +274,8 @@ All API endpoints enforce CIS2 JWT authentication with signature, issuer, audien
 
 ### SEC-030
 
-Certificates and private keys are stored only in approved encrypted secret stores (e.g., Secrets Manager/KMS) with zero plaintext exposure across repositories, images, logs, or build artifacts; continuous scanning enforces compliance.
+Certificates and private keys are stored only in approved encrypted secret stores (e.g., Secrets Manager/KMS) with zero plain text exposure across repositories, images, logs, or build artifacts; continuous scanning enforces compliance.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts | 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repository pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |
+| cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plain text in repos, images, build logs, or artifacts | 0 plain text occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repository pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |

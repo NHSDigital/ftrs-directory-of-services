@@ -16,14 +16,14 @@ Implement automated validation for: Storage services show encryption enabled.
 ## Acceptance Criteria
 
 1. 100% storage resources encrypted at rest
-2. Tooling: AWS Config rules + Terraform policy checks operational
+2. Tooling: AWS Configuration rules + Terraform policy checks operational
 3. Cadence: Continuous + CI enforcement validated
 4. Environments: dev, int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `storage-encryption-enabled`\n- Threshold: 100% storage resources encrypted at rest\n- Tooling: AWS Config rules + Terraform policy checks\n- Cadence: Continuous + CI enforcement\n- Environments: dev, int, ref, prod
+- Control ID: `storage-encryption-enabled`\n- Threshold: 100% storage resources encrypted at rest\n- Tooling: AWS Configuration rules + Terraform policy checks\n- Cadence: Continuous + CI enforcement\n- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

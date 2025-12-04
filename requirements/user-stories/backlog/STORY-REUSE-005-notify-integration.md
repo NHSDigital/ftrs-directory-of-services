@@ -35,4 +35,4 @@ Integrates NHS Notify API for all transactional email/SMS, standardising templat
 - Valuable: Improves reliability and governance of messaging.
 - Estimable: API integration + metrics + logging tasks.
 - Small: Limited to transactional path adoption.
-- Testable: API config, metrics dashboard, audit log sample.
+- Testable: API configuration, metrics dashboard, audit log sample.

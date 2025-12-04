@@ -63,7 +63,7 @@ Standards adhered to (FHIR versions, NHS guidelines), policy checks, review cade
 
 ## 14. Deployment & Migration
 
-Config parameters, feature flags, rollout strategy, backfill or migration steps.
+Configuration parameters, feature flags, rollout strategy, backfill or migration steps.
 
 ## 15. Risks & Mitigations
 

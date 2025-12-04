@@ -34,7 +34,7 @@ Performance covers end-to-end request handling time within FtRS owned architectu
 | PERF-007 | Telemetry overhead thresholds              | Observability instrumentation overhead kept within documented CPU / latency budgets; adjustments tracked via stories                       | Profiling benchmark run; overhead metrics ≤ thresholds; story links for changes        |
 | PERF-008 | 8h window stability ≤10% variance          | Rolling 8h p95 for each operation remains within ±10% of target unless exception story approved                                            | Variance dashboard & validator summary; exception_story field in registry for SLOW ops |
 | PERF-009 | Regression alert >10% p95 increase         | Automatic alert/story creation when p95 exceeds target +10% sustained for configured window                                                | Alert simulation test + ticket referencing operation_id & registry version             |
-| PERF-010 | Percentile methodology documented          | Single authoritative methodology doc and tool config; any change triggers registry version bump if targets recalculated                    | Doc presence + config scan; story referencing methodology and registry version         |
+| PERF-010 | Percentile methodology documented          | Single authoritative methodology doc and tool configuration; any change triggers registry version bump if targets recalculated                    | Doc presence + configuration scan; story referencing methodology and registry version         |
 | PERF-011 | Burst throughput capacity per operation    | Each dos-search endpoint supports ≥150 TPS burst without breaching latency targets                                                         | Load test report (burst phase) vs registry burst_tps_target                            |
 | PERF-012 | Sustained throughput baseline              | Each dos-search endpoint sustains ≥150 TPS steady state for defined window meeting latency targets                                         | Load test steady phase metrics vs sustained_tps_target                                 |
 | PERF-013 | Request payload size constraint            | Maximum inbound request payload ≤1MB; larger payloads rejected early                                                                       | Test suite boundary cases; registry max_request_payload_bytes field                    |
@@ -49,7 +49,7 @@ Performance covers end-to-end request handling time within FtRS owned architectu
 | Telemetry CPU overhead             | ≤3% average               |
 | 8h rolling P95 variance            | ≤10%                      |
 | Regression alert trigger threshold | >10% P95 increase         |
-| Pre-live unresolved perf actions   | 0 critical                |
+| Pre-live unresolved performance actions   | 0 critical                |
 
 ## Workflow
 

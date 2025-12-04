@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-011
 jira_key:
-title: Cross-env data access attempts denied and logged
+title: Cross-environment data access attempts denied and logged
 role: Security Engineer
-goal: Implement and validate: Cross-env data access attempts denied and logged
+goal: Implement and validate: Cross-environment data access attempts denied and logged
 value: Prevents accidental or malicious cross-environment data access
 nfr_refs: [SEC-005]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Cross-env data access attempts denied and logged.
+Implement automated validation for: Cross-environment data access attempts denied and logged.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,7 @@ Implement automated validation for: Cross-env data access attempts denied and lo
 
 ## Non-Functional Acceptance
 
-- Control ID: `cross-env-access-denied`\n- Threshold: 100% denial; audit logs prove enforcement\n- Tooling: IAM policies + SCP guardrails + audit log queries\n- Cadence: CI policy checks + monthly audit review\n- Environments: dev, int, ref, prod
+- Control ID: `cross-environment-access-denied`\n- Threshold: 100% denial; audit logs prove enforcement\n- Tooling: IAM policies + SCP guardrails + audit log queries\n- Cadence: CI policy checks + monthly audit review\n- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

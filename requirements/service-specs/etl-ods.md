@@ -19,7 +19,7 @@ Core aims: accurate daily synchronisation (INT-008), semantic fidelity (INT-004)
 | Fetch FtRS UUID         | `pipeline/extract.fetch_organisation_uuid(ods_code)`          | Queries internal `/Organization?identifier=odsOrganisationCode                | {code}` Bundle to locate existing UUID | UUID or None |
 | Transform               | `pipeline/transform.transform_to_payload(ods_fhir, ods_code)` | Maps ODS FHIR to target R4B FHIR Organisation via `OrganizationMapper`        | FHIR Organization (Pydantic)           |
 | Assemble payload        | `pipeline/processor.process_organisation(ods_code)`           | Combines path (uuid), body (FHIR JSON) & correlation id into JSON string      | JSON string for message body           |
-| Batch & load            | `pipeline/load_data.load_data(transformed_batch)`             | Sends batch (size 10) to SQS queue named by env & workspace                   | SQS send result (success/fail counts)  |
+| Batch & load            | `pipeline/load_data.load_data(transformed_batch)`             | Sends batch (size 10) to SQS queue named by environment & workspace                   | SQS send result (success/fail counts)  |
 | Consume & update        | `pipeline/consumer.process_message_and_send_request(record)`  | Performs `PUT` to internal API, handling OperationOutcome                     | HTTP response code & logs              |
 
 ## 3. Scheduling & Invocation
@@ -40,7 +40,7 @@ Date validation enforces format `YYYY-MM-DD` and maximum age (≤185 days) via `
   "body": {
     /* FHIR Organization JSON */
   },
-  "correlation_id": "<uuid or similar>"
+  "correlation ID": "<uuid or similar>"
 }
 ```
 
@@ -94,7 +94,7 @@ API key retrieved from Secrets Manager using environment + project prefix. Local
 ```bash
 cd services/etl-ods
 poetry install
-eval $(poetry env activate)
+eval $(poetry environment activate)
 export LOCAL_APIM_API_URL=http://localhost:8001
 export LOCAL_API_KEY=changeme
 ```
@@ -130,8 +130,8 @@ tests/unit/story_225/test_latency_dashboard_threshold.py
 Correlation ID propagation example (Story-219):
 
 ```python
-correlation_id = fetch_or_set_correlation_id(event.get("headers", {}).get("X-Correlation-ID"))
-ods_processor_logger.append_keys(correlation_id=correlation_id)
+correlation ID = fetch_or_set_correlation_id(event.get("headers", {}).get("X-Correlation-ID"))
+ods_processor_logger.append_keys(correlation ID=correlation ID)
 ```
 
 Batch failure retry (Story-221) pseudo:
@@ -177,7 +177,7 @@ ods_processor_logger.log(OdsETLPipelineLogBase.ETL_PROCESSOR_XXX, duration=durat
 | STORY-217 | Daily scheduling & latency instrumentation          | INT-008, PERF-003            |
 | STORY-218 | ODS code validation hardening                       | INT-006, INT-017             |
 | STORY-219 | Correlation ID propagation end-to-end               | INT-013, OBS-019             |
-| STORY-220 | FHIR transform fidelity & UKCore alignment          | INT-004, INT-001 (follow-up) |
+| STORY-220 | FHIR transform fidelity & UK Core alignment          | INT-004, INT-001 (follow-up) |
 | STORY-221 | Batch load failure handling & retry                 | REL-016, OBS-014             |
 | STORY-222 | Consumer OperationOutcome & validation semantics    | INT-005, INT-017, REL-016    |
 | STORY-223 | Structured logging & metric field enrichment        | OBS-014, PERF-001            |

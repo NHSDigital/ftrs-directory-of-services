@@ -8,7 +8,7 @@ This page is auto-generated; do not hand-edit.
 
 | Code | Requirement | Explanation | Stories |
 |------|-------------|-------------|---------|
-| INT-001 | Resources validated against UKCore profiles | Resources conform to UK Core profiles ensuring national standard alignment. | (none) |
+| INT-001 | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | (none) |
 | INT-002 | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
 | INT-003 | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
 | INT-004 | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | STORY-INT-004 |
@@ -25,7 +25,7 @@ This page is auto-generated; do not hand-edit.
 | INT-015 | ≥90% interoperability scenario coverage | Test coverage spans ≥90% of defined interoperability scenarios. | (none) |
 | INT-016 | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
 | INT-017 | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | STORY-INT-005, STORY-INT-017 |
-| INT-018 | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test env, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
+| INT-018 | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
 
 ## Controls
 
@@ -59,7 +59,7 @@ Correlation IDs persist across internal and external calls for tracing.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation_id in logs and headers | Middleware + log correlation tests | CI per build + monthly audit | int,ref,prod | crud-apis,dos-search | draft | Enables end-to-end tracing and diagnostics |
+| correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation ID in logs and headers | middleware + log correlation tests | CI per build + monthly audit | int,ref,prod | crud-apis,dos-search | draft | Enables end-to-end tracing and diagnostics |
 
 ### INT-016
 

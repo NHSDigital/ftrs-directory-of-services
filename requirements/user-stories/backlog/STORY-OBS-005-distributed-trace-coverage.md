@@ -16,14 +16,14 @@ Implement automated validation for: Distributed trace spans cover end-to-end req
 ## Acceptance Criteria
 
 1. ≥95% of requests include spans across key tiers
-2. Tooling: Tracing SDKs + sampling config operational
+2. Tooling: Tracing SDKs + sampling configuration operational
 3. Cadence: Continuous + monthly sampling review validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `distributed-trace-coverage`\n- Threshold: ≥95% of requests include spans across key tiers\n- Tooling: Tracing SDKs + sampling config\n- Cadence: Continuous + monthly sampling review\n- Environments: int, ref, prod
+- Control ID: `distributed-trace-coverage`\n- Threshold: ≥95% of requests include spans across key tiers\n- Tooling: Tracing SDKs + sampling configuration\n- Cadence: Continuous + monthly sampling review\n- Environments: int, ref, prod
 
 ## Test Strategy
 

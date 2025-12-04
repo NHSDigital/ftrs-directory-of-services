@@ -23,7 +23,7 @@ Implement automated validation for: API responses contain no unencrypted PID fie
 
 ## Non-Functional Acceptance
 
-- Control ID: `pid-no-plaintext-response`\n- Threshold: 0 occurrences of unencrypted PID in responses\n- Tooling: Integration tests + response scanners\n- Cadence: CI per build + periodic production sampling\n- Environments: int, ref, prod
+- Control ID: `pid-no-plain text-response`\n- Threshold: 0 occurrences of unencrypted PID in responses\n- Tooling: Integration tests + response scanners\n- Cadence: CI per build + periodic production sampling\n- Environments: int, ref, prod
 
 ## Test Strategy
 

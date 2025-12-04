@@ -20,13 +20,13 @@ Legend: Code | Requirement | Rationale | Verification | Tags
 
 | Code      | Requirement                                                                                     | Rationale                                   | Verification                                                   | Tags                                 |
 | --------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------- | ------------------------------------ |
-| AVAIL-001 | Achieve ≥99.90% monthly service availability via multi-AZ deployment in single region           | Meet user demand & SLA                      | Monitoring availability report; multi-AZ config audit          | availability, sla, multi-az          |
-| AVAIL-002 | Scope disaster recovery scenarios at region level with documented DR plan                       | Ensure regional failure preparedness        | DR runbook + region failure simulation results                 | availability, dr, region             |
+| AVAIL-001 | Achieve ≥99.90% monthly service availability via multi-AZ deployment in single region           | Meet user demand & SLA                      | Monitoring availability report; multi-AZ configuration audit          | availability, sla, multi-az          |
+| AVAIL-002 | Scope disaster recovery scenarios at region level with documented DR plan                       | Ensure regional failure preparedness        | DR run book + region failure simulation results                 | availability, dr, region             |
 | AVAIL-003 | Provide 24x7 (24\*7) operational availability excluding scheduled maintenance windows           | Continuous service access                   | Uptime monitoring covering all hours; no unexpected gaps       | availability, 24x7                   |
 | AVAIL-004 | Limit total scheduled maintenance to ≤150 min/month and any single activity ≤60 min             | Minimise planned downtime impact            | Change calendar audit; duration metrics                        | availability, maintenance, limits    |
 | AVAIL-005 | Maintain weekly scheduled maintenance window Tue 09:00-10:00 with minimal functional impairment | Predictable maintenance & user comms        | Calendar entry + user notice; functional smoke tests pass      | availability, maintenance, schedule  |
 | AVAIL-006 | Meet Recovery Time Objective (RTO) ≤2h for Platinum classification                              | Rapid restoration reduces disruption        | DR exercise recovery timing ≤2h                                | availability, rto, dr                |
-| AVAIL-007 | Meet Recovery Point Objective (RPO) ≤60s (target near-zero) via continuous replication          | Minimise permanent data loss                | Replication lag metrics show ≤60s; failover data delta test    | availability, rpo, replication       |
+| AVAIL-007 | Meet Recovery Point Objective (RPO) ≤60s (target near-zero) via continuous replication          | Minimise permanent data loss                | Replication lag metrics show ≤60s; fail-over data delta test    | availability, rpo, replication       |
 | AVAIL-008 | External & internal APIs align with core availability periods (24x7, maintenance constraints)   | Consistent external experience              | API uptime report matches core service uptime                  | availability, api                    |
 | AVAIL-009 | Restrict access to UK registered IP addresses + auth for UI & APIs                              | First-line defence & jurisdiction alignment | Geo-IP access logs; blocked non-UK access test                 | availability, geo, security          |
 | AVAIL-010 | Employ zero-downtime blue/green deployments for planned releases                                | Avoid user-facing deployment interruption   | Deployment audit shows traffic shift with zero failed requests | availability, deployment, blue-green |
@@ -35,7 +35,7 @@ Legend: Code | Requirement | Rationale | Verification | Tags
 
 - Synthetic & real user monitoring for availability percentage.
 - DR simulation (region-level) for RTO timing.
-- Replication lag dashboards & controlled failover for RPO measurement.
+- Replication lag dashboards & controlled fail-over for RPO measurement.
 - Change management calendar parsing for maintenance duration totals.
 - Blue/green deployment logs & canary health checks.
 - Geo-IP filtering tests & audit logs.

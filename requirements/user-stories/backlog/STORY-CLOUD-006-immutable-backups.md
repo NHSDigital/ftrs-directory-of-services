@@ -12,7 +12,7 @@ acceptance_criteria:
   - GIVEN S3 backups WHEN applicable THEN S3 Object Lock in compliance mode enabled for backup buckets
   - GIVEN KMS configuration WHEN reviewed THEN CMK policies prevent disable/delete by non-approved roles; backup/restore IAM roles least-privileged
   - GIVEN retention policy WHEN configured THEN daily immutable backups retained ≥30 days (or product-defined) with lifecycle/retention reports
-  - GIVEN non-data artifacts WHEN enumerated THEN config, production build, secrets, certificates backed immutably with ≥2 copies across window
+  - GIVEN non-data artifacts WHEN enumerated THEN configuration, production build, secrets, certificates backed immutably with ≥2 copies across window
   - GIVEN attempted modification WHEN immutability period active THEN delete/overwrite blocked and alert routed to on-call
   - GIVEN restore validation WHEN annual window THEN locked-archive restore drill executed and evidenced
 out_of_scope:
@@ -46,6 +46,6 @@ Consume the NHS AWS cloud backups blueprint (v1.1) as Terraform modules to provi
 - Independent: Can proceed without DR restore scheduling.
 - Negotiable: Specific storage class technology.
 - Valuable: Protects backups from ransomware/tampering.
-- Estimable: Policy config + test attempt + alert wiring.
+- Estimable: Policy configuration + test attempt + alert wiring.
 - Small: Limited to backup policy and validation steps.
-- Testable: Storage config, lifecycle report, alert log.
+- Testable: Storage configuration, lifecycle report, alert log.

@@ -82,7 +82,7 @@ Alerts delivered with sufficient context to act (multi-channel).
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| migration-variance-alerts | Actionable alerts on data-migration error rate and duration variance | Alert when error_rate >1% over 5m window OR full-sync duration > baseline +20%; include playbook link, correlation_id, impacted counts | Metrics backend, alerting engine, synthetic event injector, dashboard | Continuous evaluation; monthly threshold tuning; weekly report | int,ref,prod | data-migration | draft | Early detection of pipeline health issues to reduce MTTR and prevent silent degradation |
+| migration-variance-alerts | Actionable alerts on data-migration error rate and duration variance | Alert when error rate >1% over 5m window OR full-sync duration > baseline +20%; include playbook link, correlation ID, impacted counts | Metrics backend, alerting engine, synthetic event injector, dashboard | Continuous evaluation; monthly threshold tuning; weekly report | int,ref,prod | data-migration | draft | Early detection of pipeline health issues to reduce MTTR and prevent silent degradation |
 
 ### OBS-030
 
@@ -90,7 +90,7 @@ Distributed tracing spans cover end-to-end request path.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| distributed-trace-coverage | Distributed trace spans cover end-to-end request | ≥95% of requests include spans across key tiers | Tracing SDKs + sampling config | Continuous + monthly sampling review | int,ref,prod | crud-apis,dos-search | draft | Enables end-to-end diagnosis and correlation across layers |
+| distributed-trace-coverage | Distributed trace spans cover end-to-end request | ≥95% of requests include spans across key tiers | Tracing SDKs + sampling configuration | Continuous + monthly sampling review | int,ref,prod | crud-apis,dos-search | draft | Enables end-to-end diagnosis and correlation across layers |
 
 ### OBS-033
 
@@ -98,4 +98,4 @@ Unauthorized API access attempts (failed authentication, forbidden operations, r
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | crud-apis,dos-search,dos-ingestion-api,etl-ods,read-only-viewer | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |
+| unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation ID, source IP, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | crud-apis,dos-search,dos-ingestion-api,etl-ods,read-only-viewer | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |

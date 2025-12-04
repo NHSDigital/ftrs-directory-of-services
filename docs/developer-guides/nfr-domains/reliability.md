@@ -33,7 +33,7 @@ This page is auto-generated; do not hand-edit.
 Simulated AZ failure does not interrupt service delivery.
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| az-failure-simulation | AZ failure simulation maintains service | Successful failover with sustained service availability; no data loss | Chaos simulation + health checks | Quarterly exercise | int,ref | crud-apis,dos-search | draft | Validates resilience to Availability Zone failures |
+| az-failure-simulation | AZ failure simulation maintains service | Successful fail-over with sustained service availability; no data loss | Chaos simulation + health checks | Quarterly exercise | int,ref | crud-apis,dos-search | draft | Validates resilience to Availability Zone failures |
 
 ### REL-007
 

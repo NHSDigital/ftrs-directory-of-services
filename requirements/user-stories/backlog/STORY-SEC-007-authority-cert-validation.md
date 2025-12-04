@@ -16,14 +16,14 @@ Implement automated validation for: Remote connections present valid Authority c
 ## Acceptance Criteria
 
 1. 100% validation events pass; 0 successful connections with invalid certs
-2. Tooling: TLS config tests + runtime observation in logs operational
+2. Tooling: TLS configuration tests + runtime observation in logs operational
 3. Cadence: CI policy validation + runtime checks validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `authority-cert-validation`\n- Threshold: 100% validation events pass; 0 successful connections with invalid certs\n- Tooling: TLS config tests + runtime observation in logs\n- Cadence: CI policy validation + runtime checks\n- Environments: int, ref, prod
+- Control ID: `authority-cert-validation`\n- Threshold: 100% validation events pass; 0 successful connections with invalid certs\n- Tooling: TLS configuration tests + runtime observation in logs\n- Cadence: CI policy validation + runtime checks\n- Environments: int, ref, prod
 
 ## Test Strategy
 

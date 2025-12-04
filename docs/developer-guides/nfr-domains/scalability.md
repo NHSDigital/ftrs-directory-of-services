@@ -34,7 +34,7 @@ Vertical resizing (bigger instance) retains data and operation with no downtime.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| vertical-resize-no-downtime | Vertical resize retains data & function without downtime | Resize completes with zero downtime and no data loss | Resize runbook + health checks | Semi-annual exercise | int,ref | crud-apis,dos-search | draft | Ensures safe vertical scaling |
+| vertical-resize-no-downtime | Vertical resize retains data & function without downtime | Resize completes with zero downtime and no data loss | Resize run book + health checks | Semi-annual exercise | int,ref | crud-apis,dos-search | draft | Ensures safe vertical scaling |
 
 ### SCAL-005
 

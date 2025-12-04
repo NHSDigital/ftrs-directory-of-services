@@ -2,9 +2,9 @@
 
 - Readiness: Passive region/site validated (capacity, configs, data sync)
 - Approval: Scheduled window & change approval recorded
-- Automation: Runbook exists; swap initiated via automated steps
+- Automation: Run book exists; swap initiated via automated steps
 - Monitoring: Pre/post cutover SLOs compared; error rate delta ≤5%
-- Drift detection: Config/state comparisons executed; discrepancies logged
+- Drift detection: Configuration/state comparisons executed; discrepancies logged
 - Rollback: Fallback procedure defined and tested if degradation detected
 - Evidence: Swap logs, monitoring screenshots, drift report stored
 - Remediation: Tickets created for findings; actions tracked

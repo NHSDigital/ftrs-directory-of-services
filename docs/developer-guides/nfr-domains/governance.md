@@ -21,7 +21,7 @@ This page is auto-generated; do not hand-edit.
 | GOV-011 | Information Governance approval recorded | Information Governance approval recorded. | (none) |
 | GOV-012 | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
 | GOV-013 | SIRO sign-off obtained | Senior Information Risk Owner (SIRO) sign-off obtained. | (none) |
-| GOV-014 | Caldicott Principles Guardian approval recorded | Caldicott Principles Guardian approval recorded for data handling. | (none) |
+| GOV-014 | Caldicott Principles Principles Guardian approval recorded | Caldicott Principles Principles Guardian approval recorded for data handling. | (none) |
 | GOV-015 | DUEC Assurance Board acceptance logged | DUEC Assurance Board acceptance logged. | (none) |
 | GOV-016 | Live Services Board go-live approval recorded | Live Services Board go-live approval recorded. | (none) |
 

@@ -33,7 +33,7 @@ Refer to `index.yaml` for detailed definitions COST-001..COST-007.
 
 ## Verification Approach
 
-- Automated tag compliance scan (e.g. via AWS Config / custom Lambda) exporting coverage metric (COST-001).
+- Automated tag compliance scan (e.g. via AWS Configuration / custom Lambda) exporting coverage metric (COST-001).
 - Scheduled monthly Cost Explorer report generation & anomaly diff stored (COST-002).
 - Access roster exported & compared to team registry (COST-003).
 - CloudHealth scheduled reports archived (tag compliance, rightsizing) with action tracking (COST-004).

@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-003
 jira_key:
-title: Requests carrying PID fields require mutual TLS; plaintext requests blocked
+title: Requests carrying PID fields require mutual TLS; plain text requests blocked
 role: Security Engineer
-goal: Implement and validate: Requests carrying PID fields require mutual TLS; plaintext requests blocked
+goal: Implement and validate: Requests carrying PID fields require mutual TLS; plain text requests blocked
 value: Ensures transport security for sensitive data; test coverage verifies enforcement
 nfr_refs: [SEC-025]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Requests carrying PID fields require mutual TLS; plaintext requests blocked.
+Implement automated validation for: Requests carrying PID fields require mutual TLS; plain text requests blocked.
 
 ## Acceptance Criteria
 

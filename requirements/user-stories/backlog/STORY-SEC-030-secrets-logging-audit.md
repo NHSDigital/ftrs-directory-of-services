@@ -13,4 +13,4 @@ status: draft
 1. Static scan detects any credential prints; CI fails on match.
 2. Runtime sampled logs show no secrets; only metadata.
 3. Weekly audit report archived; 0 findings required for prod.
-4. Secret retrieval calls traced; no hard-coded plaintext creds.
+4. Secret retrieval calls traced; no hard-coded plain text creds.

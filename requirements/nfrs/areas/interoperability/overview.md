@@ -6,7 +6,7 @@ Ensure the Find the Right Service (FtRS) platform exchanges data using consisten
 
 ## Goals
 
-- Conform to FHIR R4 & UKCore profiles for resource structures.
+- Conform to FHIR R4 & UK Core profiles for resource structures.
 - Provide predictable versioning and deprecation lifecycle for integrators.
 - Preserve clinical semantics in transformations (lossless or explicitly documented reductions).
 - Maintain identifier and terminology consistency across systems.
@@ -23,7 +23,7 @@ Refer to canonical registry `index.yaml` for INT-001..INT-015 definitions.
 
 | Code    | Theme                      | Summary                                                   |
 | ------- | -------------------------- | --------------------------------------------------------- |
-| INT-001 | Standards Compliance       | Validate resources against UKCore profiles                |
+| INT-001 | Standards Compliance       | Validate resources against UK Core profiles                |
 | INT-002 | Versioning                 | Publish version & deprecation policy                      |
 | INT-003 | Backward Compatibility     | Guarantee non-breaking minor releases for defined window  |
 | INT-004 | Semantic Fidelity          | Round-trip mapping retains clinical meaning               |

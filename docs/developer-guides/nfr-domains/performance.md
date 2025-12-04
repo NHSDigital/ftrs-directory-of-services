@@ -17,7 +17,7 @@ This page is auto-generated; do not hand-edit.
 | PERF-007 | Telemetry overhead within CPU & latency thresholds | Telemetry overhead (CPU, latency) remains within acceptable limits while capturing required data. | (none) |
 | PERF-008 | 8h rolling window p95 variance ≤10% | Rolling window performance variance remains stable within target percentage bounds. | (none) |
 | PERF-009 | Regression alert triggers on >10% p95 increase | Alerting triggers when p95 latency regresses beyond the defined threshold (e.g., >10%). | (none) |
-| PERF-010 | Percentile methodology document & tool config aligned | Documented percentile methodology matches tool configuration (consistent measurement). | (none) |
+| PERF-010 | Percentile methodology document & tool configuration aligned | Documented percentile methodology matches tool configuration (consistent measurement). | (none) |
 | PERF-011 | dos-search endpoints sustain burst ≥150 TPS (registry burst_tps_target) | GP search endpoints handle short burst throughput at or above the target TPS. |  |
 | PERF-012 | dos-search endpoints sustain steady ≥150 TPS (registry sustained_tps_target) | GP search endpoints sustain steady-state throughput at or above the TPS target. |  |
 | PERF-013 | Request payload size per endpoint ≤1MB (max_request_payload_bytes) | Endpoint request payloads remain under the maximum defined size to protect performance. |  |
@@ -34,7 +34,7 @@ Version: 1.7
 | crud-apis | org-update | 70 | 150 | 400 |  |  |  | draft | Validation + persistence + OperationOutcome classification |
 | data-migration | dm-full-sync | 1200000 | 1800000 | 2700000 |  |  |  | draft | End-to-end duration baseline including transform and upserts |
 | data-migration | dm-record-transform | 120 | 250 | 800 |  |  |  | draft | Single legacy record validation + transform + upsert |
-| dos-search | dos-lookup-ods | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Direct ODS code lookup; largely cacheable |
+| dos-search | dos-lookup-ods | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Direct ODS code lookup; largely cache-able |
 | dos-search | dos-nearby | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Geo filtering + limited enrichment |
 | dos-search | dos-search | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Primary user-facing query; critical perceived responsiveness |
 | etl-ods | ods-batch-transform | 200 | 600 | 1200 |  |  |  | draft | Mapping + normalization + extension filtering |

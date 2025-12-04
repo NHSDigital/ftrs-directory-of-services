@@ -17,13 +17,13 @@ Implement automated validation for: Security features enabled latency within SLA
 
 1. Added latency within agreed SLA per endpoint
 2. Tooling: Performance tests with security features enabled operational
-3. Cadence: CI perf checks + monthly regression review validated
+3. Cadence: CI performance checks + monthly regression review validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `security-features-latency-sla`\n- Threshold: Added latency within agreed SLA per endpoint\n- Tooling: Performance tests with security features enabled\n- Cadence: CI perf checks + monthly regression review\n- Environments: int, ref, prod
+- Control ID: `security-features-latency-sla`\n- Threshold: Added latency within agreed SLA per endpoint\n- Tooling: Performance tests with security features enabled\n- Cadence: CI performance checks + monthly regression review\n- Environments: int, ref, prod
 
 ## Test Strategy
 
@@ -40,7 +40,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Ensures security does not breach performance SLAs
-- Cadence: CI perf checks + monthly regression review
+- Cadence: CI performance checks + monthly regression review
 - Status: draft
 
 ## Monitoring & Metrics

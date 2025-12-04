@@ -17,12 +17,12 @@ All designated internal service-to-service communications MUST use mutual TLS wh
 
 1. 100% of covered service-to-service calls (crud-apis ↔ dos-search ↔ etl-ods ↔ dos-ingestion-api ↔ read-only-viewer) negotiate mTLS using certificates signed by ITOC-approved CA.
 2. Certificate chain validation confirms: leaf -> intermediate (ITOC-approved) -> ITOC root; failure triggers structured security log with `chain_invalid` flag.
-3. Handshake with an expired certificate is rejected and logs event containing: `cert_subject`, `issuer`, `expiry_ts`, `environment`, `correlation_id`.
+3. Handshake with an expired certificate is rejected and logs event containing: `cert_subject`, `issuer`, `expiry_ts`, `environment`, `correlation ID`.
 4. Revoked certificate handshake fails within ≤5 minutes of revocation list (CRL) or OCSP status change publication.
 5. Rotation process completes with zero downtime; new cert active before old expiry; alert raised ≥30 days pre-expiry (SEC-015 alignment).
 6. Approved cipher suites only (per SEC-001 policy); attempts with weak/legacy cipher result in handshake failure and audit log entry `weak_cipher_attempt=1`.
-7. p95 additional latency overhead from mTLS handshake < 20ms on int, ref, prod (SEC-011 alignment measured via integration perf tests).
-8. Private key material stored exclusively in secrets manager / secure keystore; repo & artifact scans report 0 occurrences of plaintext key material.
+7. p95 additional latency overhead from mTLS handshake < 20ms on int, ref, prod (SEC-011 alignment measured via integration performance tests).
+8. Private key material stored exclusively in secrets manager / secure keystore; repository & artifact scans report 0 occurrences of plain text key material.
 9. Automated integration tests simulate: valid, expired, revoked, wrong CA, weak cipher; each scenario produces expected pass/fail outcome and log evidence.
 10. Monitoring dashboard exposes success %, latency p95, failure breakdown (expired, revoked, chain_invalid, weak_cipher) with success rate ≥99.9%.
 
@@ -53,8 +53,8 @@ All designated internal service-to-service communications MUST use mutual TLS wh
 
 - Use existing certificate management pipeline extended to request ITOC intermediate-signed certs.
 - Add OCSP/CRL validation step in gateway / sidecar.
-- Introduce structured logging fields: `mtls_reason`, `cert_subject`, `issuer`, `correlation_id`.
-- Provide rotation runbook referencing SEC-015 alert flow.
+- Introduce structured logging fields: `mtls_reason`, `cert_subject`, `issuer`, `correlation ID`.
+- Provide rotation run book referencing SEC-015 alert flow.
 
 ## Monitoring & Metrics
 
