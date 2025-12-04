@@ -21,7 +21,6 @@ def _build_base_payload() -> dict:
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
     }
 
 
@@ -31,7 +30,6 @@ def test_valid_payload() -> None:
     assert organisation.name == "Test Organisation"
     assert organisation.active is False
     assert organisation.telecom[0].value == "0123456789"
-    assert organisation.type[0].coding[0].code == "GP Service"
     assert organisation.identifier[0].value == "ABC123"
 
 
@@ -1120,7 +1118,6 @@ def test_empty_extension_array() -> None:
         "name": "Test Organisation",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -1152,7 +1149,6 @@ def test_role_code_missing_value_codeable_concept() -> None:
         "name": "Test Organisation",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -1189,7 +1185,6 @@ def test_valid_payload_with_primary_role_code() -> None:
         "name": "Test Organisation",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -1249,7 +1244,6 @@ def test_valid_payload_with_primary_and_non_primary_role_codes() -> None:
         "name": "Test Organisation",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -1343,7 +1337,6 @@ def test_valid_payload_with_multiple_non_primary_role_codes() -> None:
         "name": "Test Organisation",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -1470,7 +1463,6 @@ def test_invalid_role_code_not_in_enum() -> None:
         "name": "Test Organisation",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -1531,7 +1523,6 @@ def test_valid_payload_with_no_role_codes() -> None:
         "name": "Test Organisation",
         "active": True,
         "telecom": [{"system": "phone", "value": "0123456789", "use": "work"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Service"}]}],
     }
     organisation = OrganisationUpdatePayload(**payload)
     assert organisation.name == "Test Organisation"

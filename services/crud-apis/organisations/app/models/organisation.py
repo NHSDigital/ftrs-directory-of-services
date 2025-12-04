@@ -2,7 +2,6 @@ import re
 from enum import Enum
 from typing import Literal
 
-from fhir.resources.R4B.codeableconcept import CodeableConcept as Type
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
@@ -32,7 +31,6 @@ PERIOD_TYPE_SYSTEM = "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
 LEGAL_PERIOD_CODE = "Legal"
 
 # Error Messages
-ERROR_MESSAGE_TYPE = "'type' must have either 'coding' or 'text' populated."
 ERROR_IDENTIFIER_EMPTY = "at least one identifier must be provided"
 ERROR_IDENTIFIER_NO_ODS_SYSTEM = (
     f"at least one identifier must have system '{ODS_SYSTEM_URL}'"
@@ -113,7 +111,6 @@ class OrganisationUpdatePayload(BaseModel):
     identifier: list[Identifier] = Field(..., description="Organization identifiers")
     name: str = Field(max_length=100, example="GP Practice Name")
     active: bool = Field(..., example=True)
-    type: list[Type] = Field(..., description="Organization type")
     telecom: list[ContactPoint] | None = None
     extension: list[Extension] | None = None
 
@@ -160,15 +157,6 @@ class OrganisationUpdatePayload(BaseModel):
             )
             raise ValueError(ACTIVE_EMPTY_ERROR)
         return v
-
-    @model_validator(mode="after")
-    def check_type_coding_and_text(self) -> "OrganisationUpdatePayload":
-        for t in self.type:
-            if (not t.coding or len(t.coding) == 0) and (not t.text or t.text == ""):
-                raise ValueError(ERROR_MESSAGE_TYPE)
-            if t.coding and (not t.coding[0].code or t.coding[0].code == ""):
-                raise ValueError(ERROR_MESSAGE_TYPE)
-        return self
 
     @model_validator(mode="after")
     def validate_extensions(self) -> "OrganisationUpdatePayload":
