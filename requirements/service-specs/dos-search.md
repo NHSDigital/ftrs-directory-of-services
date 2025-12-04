@@ -6,7 +6,6 @@ related_component: dos-search
 last_updated: 2025-11-24
 ---
 
-# DoS Search Service Specification
 
 ## 1. Overview
 

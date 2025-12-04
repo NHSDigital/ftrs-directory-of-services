@@ -56,3 +56,4 @@ Blue/green deployments complete with zero failed user requests.
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | blue-green-zero-failures | Blue/green deployment produces 0 failed requests | 0 failed requests during blue/green switch | Deployment controller + canary telemetry | Per deployment | int,ref,prod | crud-apis,dos-search | draft | Ensures safe deployments without user impact |
 
+

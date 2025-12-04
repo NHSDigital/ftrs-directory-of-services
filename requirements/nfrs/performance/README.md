@@ -1,7 +1,9 @@
 # Performance Expectations Model
 
 ## 1. Purpose
+
 Centralise endpoint / operation latency targets outside individual user stories so they remain:
+
 - Traceable (single registry drives tests, dashboards, alerts)
 - Versioned (explicit history of threshold changes)
 - Explicit (each operation lists concrete numeric targets without abstract classes)
@@ -52,11 +54,13 @@ changelog:
 | exception | Approved slower behavior documented | Review per cycle |
 
 ## 4. Example Registry
+
 See `expectations.yaml` for a live example.
 
 ## 5. Refinement Stories
 
 Each story refining a performance target MUST:
+
 1. Reference baseline NFR code(s) (`PERF-001`, `PERF-003`).
 2. Include acceptance criterion linking to a specific row + version ("Registry v1.3 row operation_id=dos-search p95 ≤ 180ms").
 3. Add or update rationale when thresholds change.
@@ -73,6 +77,7 @@ http_request_duration_ms_bucket{operation_id="dos-search",le="0.3"}
 http_request_duration_ms_sum{operation_id="dos-search"}
 http_request_duration_ms_count{operation_id="dos-search"}
 ```
+
 OR custom metrics from AWS/Powertools aggregated into a distribution.
 
 Derived percentiles are computed either by Prometheus or offline by the test harness.
@@ -105,10 +110,13 @@ if violations:
 else:
     print("Performance expectations satisfied")
 ```
+
 Integrate into CI (e.g. `make perf-validate`) and tie failures to `PERF-009` regression alert processes.
 
 ### 6.3 Regression & Drift
+
 A secondary script compares last 7-day rolling p95 against target triggers:
+
 - GREEN ≤ target
 - AMBER ≤ target +10%
 - RED > target +10% → open ticket referencing refining story & PERF-001.
@@ -133,6 +141,7 @@ Annotate dashboards with target overlays by exposing a gauge metric:
 ```text
 dos_search_target_latency_ms{quantile="p95"} 180
 ```
+
 Automations render actual vs target; breaches highlighted automatically.
 
 ## 10. Failure Handling Strategy
@@ -144,6 +153,7 @@ Automations render actual vs target; breaches highlighted automatically.
 ## 11. Rationale Field Guidance
 
 Should answer: "Why is this endpoint's target different?" Acceptable categories:
+
 - User-facing critical path
 - Heavy enrichment or aggregation
 - External dependency latency bound
@@ -152,14 +162,16 @@ Should answer: "Why is this endpoint's target different?" Acceptable categories:
 ## 12. Extensibility
 
 Future fields optionally added:
+
 - p99_target_ms
 - error_rate_target_percent
 - payload_size_avg_bytes
 - cache_hit_rate_target_percent
 - warm_vs_cold_latency_ms
-    - burst_tps_target
-    - sustained_tps_target
-    - max_request_payload_bytes
+
+- burst_tps_target
+- sustained_tps_target
+- max_request_payload_bytes
 
 ## 13. Relationship to Existing NFRs
 
