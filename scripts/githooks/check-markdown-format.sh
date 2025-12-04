@@ -35,7 +35,7 @@ function main() {
 
   cd "$(git rev-parse --show-toplevel)"
 
-  check=${check:-working-tree-changes}
+  check=${check:-staged-changes}
   case $check in
     "all")
       files="$(git ls-files "*.md")"
