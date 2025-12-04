@@ -43,17 +43,12 @@ def update_name(payload: dict, value: str):
     payload["name"] = value
 
 
-def update_type(payload: dict, value: str):
-    payload["type"][0]["text"] = value
-
-
 def update_telecom(payload: dict, value: str):
     payload["telecom"][0]["value"] = value
 
 
 FIELD_UPDATERS = {
     "name": update_name,
-    "type": update_type,
     "telecom": update_telecom,
 }
 
@@ -151,7 +146,6 @@ def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = Fals
     fields = [
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
         ("name", payload["name"].title()),
-        ("type", payload["type"][0]["text"].title()),
         ("active", payload["active"]),
         ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
