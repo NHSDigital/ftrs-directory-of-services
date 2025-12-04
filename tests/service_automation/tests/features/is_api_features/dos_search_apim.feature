@@ -1,4 +1,4 @@
-@is-api @manual @dos-search-ods-code-api
+@is-apim @manual @dos-search-ods-code-api
 @nhsd_apim_authorization(access="application",level="level3")
 Feature: API DoS Service Search APIM
 
@@ -8,36 +8,85 @@ Feature: API DoS Service Search APIM
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
-  Scenario: I can access APIM for the 'ping' Endpoint and no access is required
-    When I request data from the APIM "dos-search" endpoint "_ping" with "" query params and "no" access token
-    Then I receive a status code "200" in response
-
-# Waiting for dosis-1893 to be done
-  # Scenario: I can access APIM for the 'status' Endpoint and access is required
-  #   When I request data from the APIM "dos-search" endpoint "_status" with "" query params and "valid" access token
-  #   Then I receive a status code "200" in response
-
-
-  Scenario: I search APIM for GP Endpoint by ODS Code with valid query parameters and a valid access token
-    When I request data from the APIM "dos-search" endpoint "Organization" with "valid" query params and "valid" access token
+  Scenario: I search for GP Endpoint by ODS Code via APIM with valid query parameters
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
     And the bundle contains "4" "Endpoint" resources
 
 
-  Scenario Outline: I search APIM for GP Endpoint without a valid access token
-    When I request data from the APIM "dos-search" endpoint "Organization" with "valid" query params and "<token_type>" access token
-    Then I receive a status code "401" in response
+  Scenario Outline: I search for GP Endpoint via APIM with invalid ODS code
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "security"
-    And the OperationOutcome contains an issue with diagnostics "Invalid or missing authentication token"
-    And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
+    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with diagnostics "Invalid identifier value: ODS code '<ods_code>' must follow format ^[A-Za-z0-9]{5,12}$"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
-      | token_type |
-      | invalid    |
-      | missing    |
+      | params                                                                          | ods_code      |
+      | identifier=odsOrganisationCode\|&_revinclude=Endpoint:organization              |               |
+      | identifier=odsOrganisationCode\|0123&_revinclude=Endpoint:organization          | 0123          |
+      | identifier=odsOrganisationCode\|0123456789ABC&_revinclude=Endpoint:organization | 0123456789ABC |
+      | identifier=odsOrganisationCode\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
+  Scenario Outline: I search for GP Endpoint with via APIM invalid _revinclude value
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with diagnostics "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | params                                                                      |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude=                      |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude=Invalid:value         |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
+
+
+  Scenario Outline: I search for GP Endpoint with via APIM invalid identifier system
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "code-invalid"
+    And the OperationOutcome contains an issue with diagnostics "Invalid identifier system '<identifier_system>' - expected 'odsOrganisationCode'"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | params                                                                             | identifier_system          |
+      | identifier=\|M00081046&_revinclude=Endpoint:organization                           |                            |
+      | identifier=invalidSystem\|M00081046&_revinclude=Endpoint:organization              | invalidSystem              |
+      | identifier=odsOrganisationCodeInvalid\|M00081046&_revinclude=Endpoint:organization | odsOrganisationCodeInvalid |
+
+
+  Scenario Outline: I search for GP Endpoint via APIM with 1 missing parameter
+    When I request data from the APIM endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "required"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '<missing_param>'"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | params                                    | missing_param |
+      | identifier=odsOrganisationCode\|M00081046 | _revinclude   |
+      | _revinclude=Endpoint:organization         | identifier    |
+
+
+  Scenario: I search for GP Endpoint via APIM with 2 missing parameters
+    When I request data from the APIM endpoint "Organization" with query params ""
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "2" issues
+    And the OperationOutcome has issues all with severity "error"
+    And the OperationOutcome has issues all with code "required"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'identifier'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '_revinclude'"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
