@@ -117,6 +117,6 @@ data "aws_iam_policy_document" "lambda_kms_access" {
       "kms:Decrypt",
       "kms:GenerateDataKey*"
     ]
-    resources = data.aws_kms_key.sqs_kms_alias.arn
+    resources = [data.aws_kms_key.sqs_kms_alias.arn]
   }
 }
