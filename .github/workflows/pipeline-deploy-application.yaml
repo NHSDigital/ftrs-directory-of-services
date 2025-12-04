@@ -115,7 +115,7 @@ jobs:
 
   deploy-proxy-to-apim:
     name: "Authenticate and Deploy ${{ matrix.api_name }} API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-    if: needs.metadata.outputs.environment == 'dev' # TODO: Update condition once further environment work is complete
+    if: needs.metadata.outputs.environment == 'dev' && github.ref != 'refs/heads/main' # TODO: Update condition once further environment work is complete
     needs:
       - metadata
       - deploy-application-infrastructure
