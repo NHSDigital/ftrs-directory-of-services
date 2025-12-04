@@ -255,7 +255,7 @@ Feature: Organization API Endpoint
         | invalid_scenario                  | expected_error                                         |
         | missing dateType                  | TypedPeriod extension must contain dateType and period |
         | missing period                    | TypedPeriod extension must contain dateType and period |
-        | non-Legal dateType                | dateType must be Legal                                 |
+        | non-Legal dateType                | At least one Typed Period extension should have dateType as Legal                                |
         | invalid periodType extension url  | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod |
         | invalid periodType system         | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'        |
         | invalid role extension url        | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |

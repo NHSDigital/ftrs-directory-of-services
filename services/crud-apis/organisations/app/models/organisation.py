@@ -207,47 +207,59 @@ def _raise_validation_error(message: str) -> None:
 
 
 def _validate_organisation_extension(ext: Extension) -> None:
-    """Validate OrganisationRole extensions containing TypedPeriod and roleCode extensions."""
+    """Validate OrganisationRole extension contains required roleCode and TypedPeriod extensions."""
     if not ext.url or ext.url.strip() == "":
         _raise_validation_error(
             "Extension URL must be present and cannot be empty or None"
         )
-    elif ext.url == ORGANISATION_ROLE_URL:
-        _validate_organisation_role_extension(ext)
-    else:
+
+    if ext.url != ORGANISATION_ROLE_URL:
         _raise_validation_error(f"Invalid extension URL: {ext.url}")
 
-
-def _validate_organisation_role_extension(ext: Extension) -> None:
     if not ext.extension or len(ext.extension) == 0:
         _raise_validation_error(
             f"OrganisationRole extension with URL '{ORGANISATION_ROLE_URL}' must include a nested 'extension' array"
         )
-    has_typed = False
-    has_role = False
-    for nested_ext in ext.extension:
-        if (
-            hasattr(nested_ext, "url")
-            and nested_ext.url
-            and "roleCode" in nested_ext.url
-        ):
-            _validate_role_code(nested_ext)
-            has_role = True
-        elif (
-            hasattr(nested_ext, "url")
-            and nested_ext.url
-            and "TypedPeriod" in nested_ext.url
-        ):
-            _validate_typed_period_extension(nested_ext)
-            has_typed = True
-    if not has_role:
+
+    # Get roleCode and TypedPeriod extensions
+    role_code_extensions = [
+        e for e in ext.extension if hasattr(e, "url") and e.url and "roleCode" in e.url
+    ]
+    typed_period_extensions = [
+        e
+        for e in ext.extension
+        if hasattr(e, "url") and e.url and TYPED_PERIOD_URL in e.url
+    ]
+
+    _validate_role_code_extensions_present(role_code_extensions)
+
+    if not typed_period_extensions:
+        _raise_validation_error(
+            "OrganisationRole extension must contain at least one TypedPeriod extension containing legal dates"
+        )
+
+    has_legal = False
+    for typed_period_ext in typed_period_extensions:
+        is_legal = _validate_typed_period_extension(typed_period_ext)
+        if is_legal:
+            has_legal = True
+
+    if not has_legal:
+        _raise_validation_error(
+            "At least one Typed Period extension should have dateType as Legal"
+        )
+
+
+def _validate_role_code_extensions_present(
+    role_code_extensions: list[Extension],
+) -> None:
+    if not role_code_extensions:
         _raise_validation_error(
             "OrganisationRole extension must contain at least one roleCode extension"
         )
-    if not has_typed:
-        _raise_validation_error(
-            "OrganisationRole extension must contain at least one TypedPeriod extension"
-        )
+
+    for ext in role_code_extensions:
+        _validate_role_code(ext)
 
 
 def _validate_role_code(ext: Extension) -> None:
@@ -274,8 +286,10 @@ def _validate_role_code(ext: Extension) -> None:
         )
 
 
-def _validate_typed_period_extension(ext: Extension) -> None:
-    """Validate TypedPeriod extension with Legal dateType."""
+def _validate_typed_period_structure(ext: Extension) -> tuple[Extension, Extension]:
+    """
+    Validate basic TypedPeriod structure and return dateType and period extensions.
+    """
     if ext.url != TYPED_PERIOD_URL:
         _raise_validation_error(f"Invalid extension URL: {ext.url}")
 
@@ -292,14 +306,27 @@ def _validate_typed_period_extension(ext: Extension) -> None:
             "TypedPeriod extension must contain dateType and period"
         )
 
+    return date_type_ext, period_ext
+
+
+def _validate_date_type_coding(date_type_ext: Extension) -> bool:
+    """
+    Validate dateType extension has correct coding system.
+    """
     if not date_type_ext.valueCoding:
         _raise_validation_error("dateType must have a valueCoding")
 
     if date_type_ext.valueCoding.system != PERIOD_TYPE_SYSTEM:
         _raise_validation_error(f"dateType system must be '{PERIOD_TYPE_SYSTEM}'")
 
-    # Only validate Legal periods - accept but don't validate operational periods
-    if date_type_ext.valueCoding.code == LEGAL_PERIOD_CODE:
+    return date_type_ext.valueCoding.code == LEGAL_PERIOD_CODE
+
+
+def _validate_period_dates(period_ext: Extension, is_legal: bool) -> None:
+    if not period_ext.valuePeriod:
+        _raise_validation_error("TypedPeriod extension must have a valuePeriod")
+
+    if is_legal:
         start = getattr(period_ext.valuePeriod, "start", None)
         end = getattr(period_ext.valuePeriod, "end", None)
 
@@ -317,3 +344,13 @@ def _validate_typed_period_extension(ext: Extension) -> None:
             _raise_validation_error(
                 "Legal period start and end dates must not be equal"
             )
+
+
+def _validate_typed_period_extension(ext: Extension) -> bool:
+    """
+    Validate TypedPeriod extension structure and dates.
+    """
+    date_type_ext, period_ext = _validate_typed_period_structure(ext)
+    is_legal = _validate_date_type_coding(date_type_ext)
+    _validate_period_dates(period_ext, is_legal)
+    return is_legal
