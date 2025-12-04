@@ -113,16 +113,27 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
-  authenticate-with-apim:
-    name: "Authenticate with APIM for ${{ needs.metadata.outputs.environment }}"
+  deploy-proxy-to-apim:
+    name: "Authenticate and Deploy ${{ matrix.api_name }} API to Proxygen in ${{ needs.metadata.outputs.environment }}"
+    if: needs.metadata.outputs.environment == 'dev' # TODO: Update condition once further environment work is complete
     needs:
       - metadata
       - deploy-application-infrastructure
-    uses: ./.github/workflows/authentication-to-apim.yaml
+    uses: ./.github/workflows/authenticate-and-deploy-to-apim.yaml
+    strategy:
+      matrix:
+        api_name:
+          - dos-search
+          # Add more API names here as needed
     with:
       environment: ${{ needs.metadata.outputs.environment }}
-      api_name: "dos-search" # to be updated once we have the containing workflow FTRS-729
-    secrets: inherit
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      api_name: ${{ matrix.api_name }}
+      apim_env: "internal-dev"
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   migrate-data:
     name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
