@@ -1,9 +1,9 @@
 import { makeSignedFetch } from "@/utils/authentication";
-import { json } from "@tanstack/react-start";
 import { createFileRoute } from "@tanstack/react-router";
+import { json } from "@tanstack/react-start";
 
 export const Route = createFileRoute(
-  '/api/healthcareService/$healthcareServiceID',
+  "/api/healthcareService/$healthcareServiceID",
 )({
   server: {
     handlers: {
@@ -23,7 +23,8 @@ export const Route = createFileRoute(
           return json(null, {
             status: 404,
             headers: {
-              "X-Correlation-ID": response.headers.get("X-Correlation-ID") || "",
+              "X-Correlation-ID":
+                response.headers.get("X-Correlation-ID") || "",
             },
           });
         }
@@ -34,6 +35,6 @@ export const Route = createFileRoute(
           },
         });
       },
-    }
-  }
+    },
+  },
 });

@@ -1,6 +1,6 @@
 import { makeSignedFetch } from "@/utils/authentication";
-import { json } from "@tanstack/react-start";
 import { createFileRoute } from "@tanstack/react-router";
+import { json } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/api/organisation/")({
   server: {
@@ -21,6 +21,6 @@ export const Route = createFileRoute("/api/organisation/")({
           },
         });
       },
-    }
-  }
+    },
+  },
 });
