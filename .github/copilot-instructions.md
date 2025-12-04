@@ -66,5 +66,5 @@ When generating commit messages, always follow these rules.
 
 When generating or updating test functions, always include explicit type annotations for all function arguments.
 
-```def test_example_function(input_data: dict, expected: int) -> None:```
+`def test_example_function(input_data: dict, expected: int) -> None:`
 This applies to all test files and all test functions, including fixtures and parameterized tests.

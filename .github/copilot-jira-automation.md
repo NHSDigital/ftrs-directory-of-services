@@ -9,7 +9,6 @@ These instructions define the workflow Copilot follows when a Jira ticket key (e
 - File rename to `<JIRA-KEY>-<kebab-summary>.md` is optional (discoverability), not mandatory.
 - Acceptance criteria and `nfr_refs` must not change unless the user explicitly requests refinement.
 
-
 ## Standard Workflow
 
 1. Add or update `jira_key: <KEY>` in story front matter (retain existing `story_id`).
@@ -22,14 +21,12 @@ These instructions define the workflow Copilot follows when a Jira ticket key (e
 8. Batch multiple Jira updates; perform regeneration once.
 9. Summarise changes (renames, matrix update, regeneration) before offering commit command.
 
-
 ## Guardrails
 
 - NEVER overwrite or replace `story_id` with Jira key.
 - NEVER invent Jira keys; only use those explicitly provided by the user.
 - ASK for clarification if proposed filename already exists.
 - REJECT requests to delete the original story after sync (story file stays canonical source).
-
 
 ## Checklist (Post-Update)
 
@@ -39,13 +36,11 @@ These instructions define the workflow Copilot follows when a Jira ticket key (e
 - Old filename removed (if rename chosen).
 - Commit suggestion prepared (not executed unless directed).
 
-
 ## Commit Examples
 
 - `chore(observability): annotate STORY-OBS-006 with Jira FTRS-1607`
 - `chore(security): annotate STORY-SEC-015 with Jira FTRS-1604`
 - `chore(performance): add Jira key FTRS-1610 to STORY-PERF-001`
-
 
 ## FAQ
 
@@ -53,9 +48,9 @@ These instructions define the workflow Copilot follows when a Jira ticket key (e
 **Q: What if Jira criteria differ from repo?** Reconcile by updating the repo version; repo remains source of truth.
 **Q: Can I rename without adding `jira_key`?** Discouraged. Add the key first to avoid ambiguity.
 
-
 ## Example Front Matter After Sync
-```
+
+```yaml
 story_id: STORY-OBS-006
 jira_key: FTRS-1607
 as_a: Platform Observer
@@ -77,6 +72,7 @@ traceability_notes:
 ```
 
 ## Future Automation Placeholder
+
 Planned: script to scan stories lacking `jira_key` and emit a sync checklist. Until implemented, rely on manual review.
 
 End of Jira Automation Instructions.
@@ -86,19 +82,24 @@ End of Jira Automation Instructions.
 When a story (new or refined, with or without Jira key) introduces new measurable constraints for an existing NFR control or performance operation:
 
 1. Identify target registry file:
-  - Domain control: `requirements/nfrs/<domain>/expectations.yaml`
-  - Performance operation: `requirements/nfrs/performance/expectations.yaml`
-2. Locate the matching `control_id` or `operation_id` block.
-3. Update only the changed fields (`measure`, `threshold`, `tooling`, `cadence`, `rationale`) – preserve other keys.
-4. Ensure consistent service naming (e.g. `dos-search`, not legacy names) and unit formatting.
-5. Add rationale if tightening or adding thresholds (reference telemetry, benchmark, regulation, SLA, or user impact).
-6. Batch multiple related edits, then regenerate pages once: `python3 scripts/nfr/refresh_simplified_nfr_page.py`.
-7. Suggest a Conventional Commit referencing both domain and story/Jira key, e.g.:
-  - `feat(security): Expand SEC-014 mTLS control with ITOC CA chain enforcement (FTRS-1600)`
-8. Never delete existing controls without explicit instruction – changes are incremental.
-9. If multiple stories refine same control in one session, aggregate rationale (list story IDs/Jira keys).
+
+- Domain control: `requirements/nfrs/<domain>/expectations.yaml`
+- Performance operation: `requirements/nfrs/performance/expectations.yaml`
+
+1. Locate the matching `control_id` or `operation_id` block.
+2. Update only the changed fields (`measure`, `threshold`, `tooling`, `cadence`, `rationale`) – preserve other keys.
+3. Ensure consistent service naming (e.g. `dos-search`, not legacy names) and unit formatting.
+4. Add rationale if tightening or adding thresholds (reference telemetry, benchmark, regulation, SLA, or user impact).
+5. Batch multiple related edits, then regenerate pages once: `python3 scripts/nfr/refresh_simplified_nfr_page.py`.
+6. Suggest a Conventional Commit referencing both domain and story/Jira key, e.g.:
+
+- `feat(security): Expand SEC-014 mTLS control with ITOC CA chain enforcement (FTRS-1600)`
+
+1. Never delete existing controls without explicit instruction – changes are incremental.
+2. If multiple stories refine same control in one session, aggregate rationale (list story IDs/Jira keys).
 
 Validation Checklist After Edit:
+
 - Control/operation exists and was not duplicated.
 - Threshold format consistent (e.g. `p95 <= 850ms`).
 - Rationale present for numeric changes.
@@ -106,6 +107,7 @@ Validation Checklist After Edit:
 - Proposed commit message prepared (not auto-run).
 
 Guardrails:
+
 - Reject attempts to invent new domain codes or operation IDs without prior reservation.
 - Do not silently tighten thresholds – always surface rationale.
 - If telemetry source absent, mark threshold as `draft` and note verification plan.
