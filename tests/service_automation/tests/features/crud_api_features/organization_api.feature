@@ -282,7 +282,7 @@ Feature: Organization API Endpoint
     And the data in the database matches the inserted payload
 
     Examples:
-      | identifier   |
+      | value        |
       | 1            |
       | Z9           |
       | B76          |
@@ -292,13 +292,12 @@ Feature: Organization API Endpoint
       | abcDEF456    |
       | XyZ789       |
       | A1B2C3D4E5F6 |
-      | A1B2C3D4E5F6 |
       | ABCDEFGHIJKL |
       | 1234567890   |
       | TEST123456   |
       | CODE2025     |
-      | XyZ789       |
       | M2T8W        |
+      | 01234        |
 
   Scenario Outline: Reject Organization update with invalid ods-code format
     Given that the stack is "organisation"
@@ -311,7 +310,7 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with code "invalid"
 
     Examples:
-      | identifier    |
+      | value         |
       | ""            |
       | 1234567890123 |
       | TOOLONG123456 |
@@ -323,5 +322,4 @@ Feature: Organization API Endpoint
       | ABC 123       |
       | ABC-123       |
       | 123_456       |
-      | 01234         |
 
