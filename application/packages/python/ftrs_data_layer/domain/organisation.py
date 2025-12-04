@@ -12,6 +12,7 @@ class LegalDates(BaseModel):
 
 
 class Organisation(DBModel):
+    identifier_oldDoS_uid: str | None = None
     identifier_ODS_ODSCode: str
     active: bool
     name: str

@@ -120,6 +120,7 @@ class ServiceTransformer(ABC):
 
         return Organisation(
             id=organisation_id,
+            identifier_oldDoS_uid=service.uid,
             identifier_ODS_ODSCode=service.odscode,
             active=True,
             name=service.name,
@@ -207,6 +208,7 @@ class ServiceTransformer(ABC):
 
         return Location(
             id=generate_uuid(service.id, "location"),
+            identifier_oldDoS_uid=service.uid,
             active=True,
             managingOrganisation=organisation_id,
             address=formatted_address,
