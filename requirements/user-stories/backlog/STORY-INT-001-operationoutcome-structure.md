@@ -1,9 +1,9 @@
 ---
 story_id: STORY-INT-001
 jira_key:
-title: Standard OperationOutcome error structure enforced
+title: "Standard OperationOutcome error structure enforced"
 role: Integration Engineer
-goal: Implement and validate: Standard OperationOutcome error structure enforced
+goal: "Implement and validate: Standard OperationOutcome error structure enforced"
 value: Ensures consistent error semantics across integrations
 nfr_refs: [INT-005]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Standard OperationOutcome error structure enforced.
+Implement automated validation for Standard OperationOutcome error structure enforced.
 
 ## Acceptance Criteria
 
 1. 100% error responses conform to OperationOutcome spec
-2. Tooling: Contract tests + schema validators operational
-3. Cadence: CI per build + weekly contract audit validated
+2. Tooling: Contract tests and schema validators operational
+3. Cadence: CI per build and weekly contract audit validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `operationoutcome-structure`\n- Threshold: 100% error responses conform to OperationOutcome spec\n- Tooling: Contract tests + schema validators\n- Cadence: CI per build + weekly contract audit\n- Environments: int, ref, prod
+- Control ID: `operationoutcome-structure`
+- Threshold: 100% error responses conform to OperationOutcome spec
+- Tooling: Contract tests and schema validators
+- Cadence: CI per build and weekly contract audit
+- Environments: int, ref, prod
 
 ## Test Strategy
 
@@ -40,7 +44,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Ensures consistent error semantics across integrations
-- Cadence: CI per build + weekly contract audit
+- Cadence: CI per build and weekly contract audit
 - Status: draft
 
 ## Monitoring & Metrics

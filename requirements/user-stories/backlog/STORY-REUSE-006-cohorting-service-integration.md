@@ -33,6 +33,6 @@ Adds integration with Cohorting As A Service to define, version, and execute tar
 - Independent: Does not rely on Notify integration.
 - Negotiable: Version metadata detail level.
 - Valuable: Enables targeted interventions efficiently.
-- Estimable: API calls + version storage + logging tasks.
+- Estimable: API calls and version storage and logging tasks.
 - Small: Single integration and reporting features.
 - Testable: Version history sample, execution log, SLA metrics.

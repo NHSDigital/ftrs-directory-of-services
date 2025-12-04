@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COST-005
 jira_key:
-title: Budgets & alert notifications configured & tested
+title: "Budgets and alert notifications configured and tested"
 role: FinOps Engineer
-goal: Implement and validate: Budgets & alert notifications configured & tested
+goal: "Implement and validate: Budgets and alert notifications configured and tested"
 value: Prevents cost overruns via alerting
 nfr_refs: [COST-005]
 status: draft
@@ -23,7 +23,11 @@ Implement automated validation for: Budgets & alert notifications configured & t
 
 ## Non-Functional Acceptance
 
-- Control ID: `budgets-and-alerts`\n- Threshold: Budgets configured; alerts tested successfully\n- Tooling: AWS Budgets + notifications\n- Cadence: Quarterly + pre-fiscal review\n- Environments: prod
+- Control ID: `budgets-and-alerts`
+- Threshold: Budgets configured; alerts tested successfully
+- Tooling: AWS Budgets and notifications
+- Cadence: Quarterly and pre-fiscal review
+- Environments: prod
 
 ## Test Strategy
 

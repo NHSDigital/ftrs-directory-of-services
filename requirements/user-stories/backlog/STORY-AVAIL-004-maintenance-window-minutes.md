@@ -1,9 +1,9 @@
 ---
 story_id: STORY-AVAIL-004
 jira_key:
-title: Monthly maintenance minutes ≤150; single ≤60
+title: "Monthly maintenance minutes ≤150; single ≤60"
 role: SRE
-goal: Implement and validate: Monthly maintenance minutes ≤150; single ≤60
+goal: "Implement and validate: Monthly maintenance minutes ≤150; single ≤60"
 value: Controls maintenance impact to meet availability objectives
 nfr_refs: [AVAIL-004]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Monthly maintenance minutes ≤150; single ≤60.
+Implement automated validation for monthly maintenance minutes ≤150; single ≤60.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Monthly maintenance minutes ≤150; single �
 
 ## Non-Functional Acceptance
 
-- Control ID: `maintenance-window-minutes`\n- Threshold: Monthly total ≤150 minutes; single window ≤60 minutes\n- Tooling: Maintenance logs + reporting\n- Cadence: Monthly\n- Environments: prod
+- Control ID: `maintenance-window-minutes`
+- Threshold: Monthly total ≤150 minutes; single window ≤60 minutes
+- Tooling: Maintenance logs and reporting
+- Cadence: Monthly
+- Environments: prod
 
 ## Test Strategy
 

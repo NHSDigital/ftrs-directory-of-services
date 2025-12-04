@@ -31,7 +31,7 @@ Implement automated validation ensuring all platform storage services (databases
 - Control ID: `storage-encryption-enabled`
 - Threshold: 100% encrypted in prod; auto-remediation triggers <100%.
 - Tooling: AWS Configuration, Terraform policy checks, compliance dashboard, remediation script.
-- Cadence: Continuous monitoring + per-merge policy evaluation + weekly report.
+- Cadence: Continuous monitoring and per-merge policy evaluation and weekly report.
 - Environments: dev, int, ref, prod (all monitored; stricter alerting in prod).
 
 ## Test Strategy

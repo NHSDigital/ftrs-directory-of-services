@@ -1,9 +1,9 @@
 ---
 story_id: STORY-REL-004
 jira_key:
-title: Tier failure graceful degradation & recovery evidenced
+title: "Tier failure graceful degradation and recovery evidenced"
 role: SRE
-goal: Implement and validate: Tier failure graceful degradation & recovery evidenced
+goal: "Implement and validate: Tier failure graceful degradation and recovery evidenced"
 value: Demonstrates graceful degradation patterns
 nfr_refs: [REL-013]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Tier failure graceful degradation & recovery evidenced.
+Implement automated validation for: Tier failure graceful degradation and recovery evidenced.
 
 ## Acceptance Criteria
 
 1. Documented fallback; recovery time within SLA
-2. Tooling: Chaos experiments + observability evidence operational
+2. Tooling: Chaos experiments and observability evidence operational
 3. Cadence: Quarterly validated
 4. Environments: int, ref covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `tier-failure-graceful-degrade`\n- Threshold: Documented fallback; recovery time within SLA\n- Tooling: Chaos experiments + observability evidence\n- Cadence: Quarterly\n- Environments: int, ref
+- Control ID: `tier-failure-graceful-degrade`
+- Threshold: Documented fallback; recovery time within SLA
+- Tooling: Chaos experiments and observability evidence
+- Cadence: Quarterly
+- Environments: int, ref
 
 ## Test Strategy
 

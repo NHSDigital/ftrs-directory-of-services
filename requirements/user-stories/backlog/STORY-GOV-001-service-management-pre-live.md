@@ -1,9 +1,9 @@
 ---
 story_id: STORY-GOV-001
 jira_key:
-title: Service Management pre-live acceptance signed
+title: "Service Management pre-live acceptance signed"
 role: Governance Lead
-goal: Implement and validate: Service Management pre-live acceptance signed
+goal: "Implement and validate: Service Management pre-live acceptance signed"
 value: Ensures service readiness sign-off
 nfr_refs: [GOV-001]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Service Management pre-live acceptance signed.
+Implement automated validation for Service Management pre-live acceptance signed.
 
 ## Acceptance Criteria
 
 1. Acceptance signed; evidence stored with version control
-2. Tooling: Governance tracker + document repository operational
-3. Cadence: Pre-live (gates prod deployment) validated
+2. Tooling: Governance tracker and document repository operational
+3. Cadence: Pre-live (gates production deployment) validated
 4. Environments: ref (approval required before prod promotion)
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `service-management-pre-live`\n- Threshold: Acceptance signed; evidence stored; approval timestamp recorded\n- Tooling: Governance tracker + document repository\n- Cadence: Pre-live (blocks prod deployment until complete)\n- Environments: ref
+- Control ID: `service-management-pre-live`
+- Threshold: Acceptance signed; evidence stored; approval timestamp recorded
+- Tooling: Governance tracker and document repository
+- Cadence: Pre-live (blocks production deployment until complete)
+- Environments: ref
 
 ## Test Strategy
 

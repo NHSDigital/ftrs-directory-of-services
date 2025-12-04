@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-028
 jira_key:
-title: API responses contain no unencrypted PID fields
+title: "API responses contain no unencrypted PID fields"
 role: Security Engineer
-goal: Implement and validate: API responses contain no unencrypted PID fields
+goal: "Implement and validate: API responses contain no unencrypted PID fields"
 value: Ensures sensitive data is never returned unencrypted
 nfr_refs: [SEC-026]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: API responses contain no unencrypted PID fie
 ## Acceptance Criteria
 
 1. 0 occurrences of unencrypted PID in responses
-2. Tooling: Integration tests + response scanners operational
-3. Cadence: CI per build + periodic production sampling validated
-4. Environments: int, ref, prod covered
+2. Tooling: Integration tests and response scanners operational
+3. Cadence: CI per build and periodic production sampling validated
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `pid-no-plain text-response`\n- Threshold: 0 occurrences of unencrypted PID in responses\n- Tooling: Integration tests + response scanners\n- Cadence: CI per build + periodic production sampling\n- Environments: int, ref, prod
+- Control ID: `pid-no-plaintext-response`
+- Threshold: 0 occurrences of unencrypted PID in responses
+- Tooling: Integration tests and response scanners
+- Cadence: CI per build and periodic production sampling
+- Environments: int, ref, production
 
 ## Test Strategy
 
@@ -40,7 +44,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Ensures sensitive data is never returned unencrypted
-- Cadence: CI per build + periodic production sampling
+- Cadence: CI per build and periodic production sampling
 - Status: draft
 
 ## Monitoring & Metrics

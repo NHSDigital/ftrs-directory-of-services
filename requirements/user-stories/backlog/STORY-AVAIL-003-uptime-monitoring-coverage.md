@@ -1,9 +1,9 @@
 ---
 story_id: STORY-AVAIL-003
 jira_key:
-title: Uptime monitoring confirms 24x7 coverage
+title: "Uptime monitoring confirms 24x7 coverage"
 role: SRE
-goal: Implement and validate: Uptime monitoring confirms 24x7 coverage
+goal: "Implement and validate: Uptime monitoring confirms 24x7 coverage"
 value: Ensures continuous availability monitoring
 nfr_refs: [AVAIL-003]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Uptime monitoring confirms 24x7 coverage.
+Implement automated validation for uptime monitoring confirming 24x7 coverage.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Uptime monitoring confirms 24x7 coverage.
 
 ## Non-Functional Acceptance
 
-- Control ID: `uptime-monitoring-coverage`\n- Threshold: 24x7 coverage; alerts configured for service degradation\n- Tooling: Uptime monitors + alerting system\n- Cadence: Continuous monitoring\n- Environments: prod
+- Control ID: `uptime-monitoring-coverage`
+- Threshold: 24x7 coverage; alerts configured for service degradation
+- Tooling: Uptime monitors and alerting system
+- Cadence: Continuous monitoring
+- Environments: prod
 
 ## Test Strategy
 

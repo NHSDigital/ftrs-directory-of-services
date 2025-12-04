@@ -3,7 +3,7 @@ story_id: STORY-GOV-003
 jira_key:
 title: Solution Assurance approval ticket closed
 role: Governance Lead
-goal: Implement and validate: Solution Assurance approval ticket closed
+goal: "Implement and validate: Solution Assurance approval ticket closed"
 value: Meets governance approval requirements
 nfr_refs: [GOV-009]
 status: draft
@@ -23,7 +23,11 @@ Implement automated validation for: Solution Assurance approval ticket closed.
 
 ## Non-Functional Acceptance
 
-- Control ID: `solution-assurance-approval`\n- Threshold: Approval obtained; ticket closed\n- Tooling: Assurance workflow + evidence repository\n- Cadence: Pre-live\n- Environments: prod
+- Control ID: `solution-assurance-approval`
+- Threshold: Approval obtained; ticket closed
+- Tooling: Assurance workflow and evidence repository
+- Cadence: Pre-live
+- Environments: prod
 
 ## Test Strategy
 

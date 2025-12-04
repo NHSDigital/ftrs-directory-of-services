@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-006
 jira_key:
-title: mTLS handshake succeeds between designated services
+title: "mTLS handshake succeeds between designated services"
 role: Security Engineer
-goal: Implement and validate: mTLS handshake succeeds between designated services
+goal: "Implement and validate: mTLS handshake succeeds between designated services"
 value: Service-to-service trust enforced via mutual TLS; tests validate certificates and chain
 nfr_refs: [SEC-014]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: mTLS handshake succeeds between designated s
 ## Acceptance Criteria
 
 1. 100% handshake success in integration tests
-2. Tooling: Integration tests + gateway cert management operational
-3. Cadence: CI per build + cert rotation checks validated
-4. Environments: int, ref, prod covered
+2. Tooling: Integration tests and gateway certificate management operational
+3. Cadence: CI per build and certificate rotation checks validated
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `mtls-service-handshake`\n- Threshold: 100% handshake success in integration tests\n- Tooling: Integration tests + gateway cert management\n- Cadence: CI per build + cert rotation checks\n- Environments: int, ref, prod
+- Control ID: `mtls-service-handshake`
+- Threshold: 100% handshake success in integration tests
+- Tooling: Integration tests and gateway certificate management
+- Cadence: CI per build and certificate rotation checks
+- Environments: int, ref, production
 
 ## Test Strategy
 

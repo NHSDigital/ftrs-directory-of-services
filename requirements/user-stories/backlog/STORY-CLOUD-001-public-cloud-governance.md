@@ -33,6 +33,6 @@ Covers structural guardrails ensuring consistent placement inside enterprise lan
 - Independent: Yes
 - Negotiable: Autoscale % threshold tooling details
 - Valuable: Reduces compliance exceptions
-- Estimable: Requires infra + cost analysis tasks
+- Estimable: Requires infrastructure and cost analysis tasks
 - Small: Fits sprint with provisioning automation
 - Testable: Each criterion has observable artifact.

@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COST-004
 jira_key:
-title: CloudHealth optimisation & tag compliance reports
+title: "CloudHealth optimisation & tag compliance reports"
 role: FinOps Engineer
-goal: Implement and validate: CloudHealth optimisation & tag compliance reports
+goal: "Implement and validate: CloudHealth optimisation & tag compliance reports"
 value: Drives optimisation and tag hygiene
 nfr_refs: [COST-004]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: CloudHealth optimisation & tag compliance reports.
+Implement automated validation for CloudHealth optimisation and tag compliance reports.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: CloudHealth optimisation & tag compliance re
 
 ## Non-Functional Acceptance
 
-- Control ID: `optimisation-reports`\n- Threshold: Reports generated; tracked actions created\n- Tooling: CloudHealth reporting + tracker\n- Cadence: Monthly\n- Environments: prod
+- Control ID: `optimisation-reports`
+- Threshold: Reports generated; tracked actions created
+- Tooling: CloudHealth reporting and tracker
+- Cadence: Monthly
+- Environments: prod
 
 ## Test Strategy
 

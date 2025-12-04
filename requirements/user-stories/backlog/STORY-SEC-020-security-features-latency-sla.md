@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-020
 jira_key:
-title: Security features enabled latency within SLA
+title: "Security features enabled latency within SLA"
 role: Security Engineer
-goal: Implement and validate: Security features enabled latency within SLA
+goal: "Implement and validate: Security features enabled latency within SLA"
 value: Ensures security does not breach performance SLAs
 nfr_refs: [SEC-011]
 status: draft
@@ -17,13 +17,17 @@ Implement automated validation for: Security features enabled latency within SLA
 
 1. Added latency within agreed SLA per endpoint
 2. Tooling: Performance tests with security features enabled operational
-3. Cadence: CI performance checks + monthly regression review validated
-4. Environments: int, ref, prod covered
+3. Cadence: CI performance checks and monthly regression review validated
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `security-features-latency-sla`\n- Threshold: Added latency within agreed SLA per endpoint\n- Tooling: Performance tests with security features enabled\n- Cadence: CI performance checks + monthly regression review\n- Environments: int, ref, prod
+- Control ID: `security-features-latency-sla`
+- Threshold: Added latency within agreed SLA per endpoint
+- Tooling: Performance tests with security features enabled
+- Cadence: CI performance checks and monthly regression review
+- Environments: int, ref, production
 
 ## Test Strategy
 
@@ -40,7 +44,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Ensures security does not breach performance SLAs
-- Cadence: CI performance checks + monthly regression review
+- Cadence: CI performance checks and monthly regression review
 - Status: draft
 
 ## Monitoring & Metrics

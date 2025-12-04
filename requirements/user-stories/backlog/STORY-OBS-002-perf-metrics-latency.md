@@ -1,9 +1,9 @@
 ---
 story_id: STORY-OBS-002
 jira_key:
-title: Performance metrics latency ≤60s
+title: "Performance metrics latency ≤60s"
 role: SRE
-goal: Implement and validate: Performance metrics latency ≤60s
+goal: "Implement and validate: Performance metrics latency ≤60s"
 value: Fresh metrics are required for accurate operational decisions
 nfr_refs: [OBS-007]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Performance metrics latency ≤60s.
+Implement automated validation for Performance metrics latency ≤60s.
 
 ## Acceptance Criteria
 
 1. Metrics pipeline delivers data within 60s latency
-2. Tooling: Metrics agent + ingestion SLA alerting operational
+2. Tooling: Metrics agent and ingestion SLA alerting operational
 3. Cadence: Continuous monitoring validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `performance-metrics-latency`\n- Threshold: Metrics pipeline delivers data within 60s latency\n- Tooling: Metrics agent + ingestion SLA alerting\n- Cadence: Continuous monitoring\n- Environments: int, ref, prod
+- Control ID: `performance-metrics-latency`
+- Threshold: Metrics pipeline delivers data within 60s latency
+- Tooling: Metrics agent and ingestion SLA alerting
+- Cadence: Continuous monitoring
+- Environments: int, ref, prod
 
 ## Test Strategy
 

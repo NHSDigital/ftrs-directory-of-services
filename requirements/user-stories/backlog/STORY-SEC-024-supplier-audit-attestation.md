@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-024
 jira_key:
-title: Supplier audit attestation stored & verified
+title: "Supplier audit attestation stored and verified"
 role: Security Engineer
-goal: Implement and validate: Supplier audit attestation stored & verified
+goal: "Implement and validate: Supplier audit attestation stored and verified"
 value: Ensures supplier compliance and auditable records
 nfr_refs: [SEC-018]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Supplier audit attestation stored & verified.
+Implement automated validation for: Supplier audit attestation stored and verified.
 
 ## Acceptance Criteria
 
 1. Attestations current; verification completed
-2. Tooling: Supplier management system + evidence repository operational
-3. Cadence: Annual + on contract change validated
-4. Environments: prod covered
+2. Tooling: Supplier management system and evidence repository operational
+3. Cadence: Annual and on contract change validated
+4. Environments: production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `supplier-audit-attestation`\n- Threshold: Attestations current; verification completed\n- Tooling: Supplier management system + evidence repository\n- Cadence: Annual + on contract change\n- Environments: prod
+- Control ID: `supplier-audit-attestation`
+- Threshold: Attestations current; verification completed
+- Tooling: Supplier management system and evidence repository
+- Cadence: Annual and on contract change
+- Environments: production
 
 ## Test Strategy
 
@@ -40,7 +44,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Ensures supplier compliance and auditable records
-- Cadence: Annual + on contract change
+- Cadence: Annual and on contract change
 - Status: draft
 
 ## Monitoring & Metrics

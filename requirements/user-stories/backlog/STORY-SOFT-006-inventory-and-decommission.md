@@ -1,23 +1,30 @@
 ---
-code: STORY-SOFT-006
-as_a: Platform_Engineer
-
-i_want: maintain_inventory_and_decommission_unused_resources
-so_that: cost_and_security_surface_are_minimized
-business_value: Reduces waste and potential attack vectors
+story_id: STORY-SOFT-006
+title: "Inventory and decommission unused resources"
+role: Platform Engineer
+goal: "Maintain inventory and decommission unused resources"
+value: Reduces waste and potential attack vectors
 nfr_refs: [NFR-SOFT-INVENTORY-DECOMMISSION-01]
-nfr_tags: [software-management, ops]
-acceptance_criteria:
-
-- GIVEN resource inventory WHEN monthly scan completes THEN orphaned resources flagged
-- GIVEN orphaned resource WHEN validated THEN decommission plan executed within 30 days
-- GIVEN cost report WHEN reviewed THEN savings from decommission tracked
-  out_of_scope:
-- Real-time asset tracking across all cloud accounts
-  notes: |
-  Evidence: inventory scan output, decommission ticket, cost savings report.
-
+status: draft
 ---
+
+## Description
+
+Inventory management and timely decommissioning of unused resources.
+
+## Acceptance Criteria
+
+1. GIVEN a resource inventory WHEN a monthly scan completes THEN orphaned resources are flagged
+2. GIVEN an orphaned resource WHEN validated THEN the decommission plan is executed within 30 days
+3. GIVEN a cost report WHEN reviewed THEN savings from decommission are tracked
+
+## Out of Scope
+
+- Real-time asset tracking across all cloud accounts
+
+## Implementation Notes
+
+- Evidence: inventory scan output, decommission ticket, cost savings report
 
 # Summary
 

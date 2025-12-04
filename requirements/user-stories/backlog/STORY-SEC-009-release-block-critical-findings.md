@@ -3,7 +3,7 @@ story_id: STORY-SEC-009
 jira_key:
 title: Release pipeline blocks on critical unresolved findings
 role: Security Engineer
-goal: Implement and validate: Release pipeline blocks on critical unresolved findings
+goal: "Implement and validate: Release pipeline blocks on critical unresolved findings"
 value: Enforces remediation before release; gate consolidates multiple scanner outputs
 nfr_refs: [SEC-028]
 status: draft
@@ -23,7 +23,11 @@ Implement automated validation for: Release pipeline blocks on critical unresolv
 
 ## Non-Functional Acceptance
 
-- Control ID: `release-block-critical-findings`\n- Threshold: 0 critical unresolved findings prior to release\n- Tooling: Pipeline gate integrated with SCA, container, IaC scanners\n- Cadence: Per release\n- Environments: dev, int, ref
+- Control ID: `release-block-critical-findings`
+- Threshold: 0 critical unresolved findings prior to release
+- Tooling: Pipeline gate integrated with SCA, container, IaC scanners
+- Cadence: Per release
+- Environments: dev, int, ref
 
 ## Test Strategy
 

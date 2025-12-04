@@ -3,7 +3,7 @@ story_id: STORY-OBS-005
 jira_key:
 title: Distributed trace spans cover end-to-end request
 role: SRE
-goal: Implement and validate: Distributed trace spans cover end-to-end request
+goal: "Implement and validate: Distributed trace spans cover end-to-end request"
 value: Enables end-to-end diagnosis and correlation across layers
 nfr_refs: [OBS-030]
 status: draft
@@ -23,7 +23,11 @@ Implement automated validation for: Distributed trace spans cover end-to-end req
 
 ## Non-Functional Acceptance
 
-- Control ID: `distributed-trace-coverage`\n- Threshold: ≥95% of requests include spans across key tiers\n- Tooling: Tracing SDKs + sampling configuration\n- Cadence: Continuous + monthly sampling review\n- Environments: int, ref, prod
+- Control ID: `distributed-trace-coverage`
+- Threshold: ≥95% of requests include spans across key tiers
+- Tooling: Tracing SDKs and sampling configuration
+- Cadence: Continuous and monthly sampling review
+- Environments: int, ref, prod
 
 ## Test Strategy
 

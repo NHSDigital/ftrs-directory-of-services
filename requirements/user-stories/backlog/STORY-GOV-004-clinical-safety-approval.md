@@ -1,9 +1,9 @@
 ---
 story_id: STORY-GOV-004
 jira_key:
-title: Clinical Safety assurance approval recorded
+title: "Clinical Safety assurance approval recorded"
 role: Governance Lead
-goal: Implement and validate: Clinical Safety assurance approval recorded
+goal: "Implement and validate: Clinical Safety assurance approval recorded"
 value: Complies with clinical safety governance
 nfr_refs: [GOV-010]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Clinical Safety assurance approval recorded.
+Implement automated validation for Clinical Safety assurance approval recorded.
 
 ## Acceptance Criteria
 
 1. Approval recorded; evidence available
-2. Tooling: Clinical safety workflow + repository operational
+2. Tooling: Clinical safety workflow and repository operational
 3. Cadence: Pre-live validated
 4. Environments: prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `clinical-safety-approval`\n- Threshold: Approval recorded; evidence available\n- Tooling: Clinical safety workflow + repository\n- Cadence: Pre-live\n- Environments: prod
+- Control ID: `clinical-safety-approval`
+- Threshold: Approval recorded; evidence available
+- Tooling: Clinical safety workflow and repository
+- Cadence: Pre-live
+- Environments: prod
 
 ## Test Strategy
 

@@ -1,59 +1,63 @@
 ---
 story_id: STORY-SEC-022
 jira_key:
-title: Expiry alert fired in advance; renewal executed seamlessly
+title: "Expiry Alert Fired in Advance; Renewal Executed Seamlessly"
 role: Security Engineer
-goal: Implement and validate: Expiry alert fired in advance; renewal executed seamlessly
-value: Proactive renewal prevents downtime; alerts ensure timely action
+goal: "Implement and validate: Expiry Alert Fired in Advance; Renewal Executed Seamlessly"
+value: Proactive Renewal prevents Downtime; Alerts ensure timely Action
 nfr_refs: [SEC-015]
 status: draft
 ---
 
 ## Description
 
-Implement automated validation for: Expiry alert fired in advance; renewal executed seamlessly.
+Implement automated validation for: Expiry Alert Fired in Advance; Renewal Executed Seamlessly.
 
 ## Acceptance Criteria
 
-1. > = 30 days prior alert; 0 outage during renewal
-2. Tooling: Cert manager alerts + renewal runbooks operational
-3. Cadence: Continuous monitoring validated
-4. Environments: int, ref, prod covered
+1. ≥30 Days prior Alert; 0 Outage during Renewal
+2. Tooling: Certificate Manager Alerts and Renewal Run Books operational
+3. Cadence: Continuous Monitoring validated
+4. Environments: int, ref, Production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `cert-expiry-alert-renewal`\n- Threshold: >= 30 days prior alert; 0 outage during renewal\n- Tooling: Cert manager alerts + renewal runbooks\n- Cadence: Continuous monitoring\n- Environments: int, ref, prod
+- Control ID: `cert-expiry-alert-renewal`
+- Threshold: ≥30 Days prior Alert; 0 Outage during Renewal
+- Tooling: Certificate Manager Alerts and Renewal Run Books
+- Cadence: Continuous Monitoring
+- Environments: int, ref, Production
 
 ## Test Strategy
 
 | Test Type   | Tooling           | Focus                 |
 | ----------- | ----------------- | --------------------- |
-| Compliance  | Automated tooling | Policy enforcement    |
-| Integration | CI pipeline       | Continuous validation |
-| Audit       | Manual review     | Compliance assessment |
+| Compliance  | Automated Tooling | Policy Enforcement    |
+| Integration | CI Pipeline       | Continuous Validation |
+| Audit       | Manual Review     | Compliance Assessment |
 
 ## Out of Scope
 
-Implementation details to be refined during sprint planning
+Implementation details to be refined during Sprint Planning
 
 ## Implementation Notes
 
-- Proactive renewal prevents downtime; alerts ensure timely action
-- Cadence: Continuous monitoring
-- Status: draft
+- Proactive Renewal prevents Downtime; Alerts ensure timely Action
+- Cadence: Continuous Monitoring
+- Status: Draft
 
 ## Monitoring & Metrics
 
-- `cert_expiry_alert_renewal_compliance_status` gauge
-- `cert_expiry_alert_renewal_violations_total` counter
+- `cert_expiry_alert_renewal_compliance_status` Gauge
+- `cert_expiry_alert_renewal_violations_total` Counter
 
 ## Risks & Mitigation
 
 | Risk                | Impact            | Mitigation            |
 | ------------------- | ----------------- | --------------------- |
-| Configuration drift | Non-compliance    | Automated remediation |
-| Tool failures       | Missed violations | Redundant checks      |
+| Configuration Drift | Non-compliance    | Automated Remediation |
+| Tool Failures       | Missed Violations | Redundant Checks      |
 
 ## Traceability
 

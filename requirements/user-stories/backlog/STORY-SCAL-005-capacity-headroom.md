@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SCAL-005
 jira_key:
-title: Capacity report shows ≥30% headroom
+title: "Capacity report shows ≥30% headroom"
 role: Platform Engineer
-goal: Implement and validate: Capacity report shows ≥30% headroom
+goal: "Implement and validate: Capacity report shows ≥30% headroom"
 value: Ensures buffer for demand spikes
 nfr_refs: [SCAL-007]
 status: draft
@@ -15,7 +15,7 @@ Implement automated validation for: Capacity report shows ≥30% headroom.
 
 ## Acceptance Criteria
 
-1. > = 30% capacity headroom maintained
+1. ≥ 30% capacity headroom maintained
 2. Tooling: Capacity planning reports operational
 3. Cadence: Monthly validated
 4. Environments: prod covered
@@ -23,7 +23,11 @@ Implement automated validation for: Capacity report shows ≥30% headroom.
 
 ## Non-Functional Acceptance
 
-- Control ID: `capacity-headroom`\n- Threshold: >= 30% capacity headroom maintained\n- Tooling: Capacity planning reports\n- Cadence: Monthly\n- Environments: prod
+- Control ID: `capacity-headroom`
+- Threshold: ≥ 30% capacity headroom maintained
+- Tooling: Capacity planning reports
+- Cadence: Monthly
+- Environments: production
 
 ## Test Strategy
 

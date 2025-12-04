@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COST-001
 jira_key:
-title: Mandatory tagging set present on 100% resources
+title: "Mandatory tagging set present on 100% resources"
 role: FinOps Engineer
-goal: Implement and validate: Mandatory tagging set present on 100% resources
+goal: "Implement and validate: Mandatory tagging set present on 100% resources"
 value: Enables cost visibility and accountability
 nfr_refs: [COST-001]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Mandatory tagging set present on 100% resources.
+Implement automated validation for mandatory tagging present on 100% of resources.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Mandatory tagging set present on 100% resour
 
 ## Non-Functional Acceptance
 
-- Control ID: `mandatory-tagging`\n- Threshold: 100% resources carry mandatory tags\n- Tooling: AWS Configuration rules + tag audit automation\n- Cadence: Continuous + monthly report\n- Environments: dev, int, ref, prod
+- Control ID: `mandatory-tagging`
+- Threshold: 100% of resources carry mandatory tags
+- Tooling: AWS configuration rules and tag audit automation
+- Cadence: Continuous and monthly report
+- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

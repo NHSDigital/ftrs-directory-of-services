@@ -1,9 +1,9 @@
 ---
 story_id: STORY-AVAIL-005
 jira_key:
-title: Blue/green deployment produces 0 failed requests
+title: "Blue/green deployment produces 0 failed requests"
 role: SRE
-goal: Implement and validate: Blue/green deployment produces 0 failed requests
+goal: "Implement and validate: Blue/green deployment produces 0 failed requests"
 value: Ensures safe deployments without user impact
 nfr_refs: [AVAIL-010]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Blue/green deployment produces 0 failed requests.
+Implement automated validation for blue/green deployments producing zero failed requests.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Blue/green deployment produces 0 failed requ
 
 ## Non-Functional Acceptance
 
-- Control ID: `blue-green-zero-failures`\n- Threshold: 0 failed requests during blue/green switch\n- Tooling: Deployment controller + canary telemetry\n- Cadence: Per deployment\n- Environments: int, ref, prod
+- Control ID: `blue-green-zero-failures`
+- Threshold: 0 failed requests during blue/green switch
+- Tooling: Deployment controller and canary telemetry
+- Cadence: Per deployment
+- Environments: int, ref, prod
 
 ## Test Strategy
 

@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COST-002
 jira_key:
-title: Monthly Cost Explorer review & anomaly log
+title: "Monthly Cost Explorer review & anomaly log"
 role: FinOps Engineer
-goal: Implement and validate: Monthly Cost Explorer review & anomaly log
+goal: "Implement and validate: Monthly Cost Explorer review & anomaly log"
 value: Ensures proactive cost management
 nfr_refs: [COST-002]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Monthly Cost Explorer review & anomaly log.
+Implement automated validation for monthly Cost Explorer review and anomaly logging.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Monthly Cost Explorer review & anomaly log.
 
 ## Non-Functional Acceptance
 
-- Control ID: `monthly-cost-review`\n- Threshold: Review completed; anomalies logged with actions\n- Tooling: Cost Explorer + anomaly detection\n- Cadence: Monthly\n- Environments: prod
+- Control ID: `monthly-cost-review`
+- Threshold: Review completed; anomalies logged with actions
+- Tooling: Cost Explorer and anomaly detection
+- Cadence: Monthly
+- Environments: prod
 
 ## Test Strategy
 

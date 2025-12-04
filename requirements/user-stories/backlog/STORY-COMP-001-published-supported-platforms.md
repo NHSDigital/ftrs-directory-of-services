@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COMP-001
 jira_key:
-title: Published OS/browser list matches warranted spec
+title: "Published OS/browser list matches warranted spec"
 role: QA Engineer
-goal: Implement and validate: Published OS/browser list matches warranted spec
+goal: "Implement and validate: Published OS/browser list matches warranted spec"
 value: Sets clear compatibility expectations for users
 nfr_refs: [COMP-001]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Published OS/browser list matches warranted spec.
+Implement automated validation for published OS and browser lists matching the warranted spec.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Published OS/browser list matches warranted 
 
 ## Non-Functional Acceptance
 
-- Control ID: `published-supported-platforms`\n- Threshold: Supported platform list published and current\n- Tooling: Documentation repository + review checklist\n- Cadence: Quarterly\n- Environments: prod
+- Control ID: `published-supported-platforms`
+- Threshold: Supported platform list published and current
+- Tooling: Documentation repository and review checklist
+- Cadence: Quarterly
+- Environments: prod
 
 ## Test Strategy
 

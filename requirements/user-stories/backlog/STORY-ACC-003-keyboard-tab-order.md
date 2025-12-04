@@ -1,9 +1,9 @@
 ---
 story_id: STORY-ACC-003
 jira_key:
-title: Keyboard tab order regression test passes
+title: "Keyboard tab order regression test passes"
 role: UX Engineer
-goal: Implement and validate: Keyboard tab order regression test passes
+goal: "Implement and validate: Keyboard tab order regression test passes"
 value: Supports keyboard-only navigation
 nfr_refs: [ACC-009]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Keyboard tab order regression test passes.
+Implement automated validation for keyboard tab order regression tests.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Keyboard tab order regression test passes.
 
 ## Non-Functional Acceptance
 
-- Control ID: `keyboard-tab-order`\n- Threshold: Tab order matches expected flow; no focus loss\n- Tooling: Automated tab order tests + manual verification\n- Cadence: CI per build + pre-release\n- Environments: int, ref
+- Control ID: `keyboard-tab-order`
+- Threshold: Tab order matches expected flow; no focus loss
+- Tooling: Automated tab order tests and manual verification
+- Cadence: CI per build and pre-release
+- Environments: int, ref
 
 ## Test Strategy
 

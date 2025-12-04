@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-003
 jira_key:
-title: Requests carrying PID fields require mutual TLS; plain text requests blocked
+title: "Requests carrying PID fields require mutual TLS; plain text requests blocked"
 role: Security Engineer
-goal: Implement and validate: Requests carrying PID fields require mutual TLS; plain text requests blocked
+goal: "Implement and validate: Requests carrying PID fields require mutual TLS; plain text requests blocked"
 value: Ensures transport security for sensitive data; test coverage verifies enforcement
 nfr_refs: [SEC-025]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: Requests carrying PID fields require mutual 
 ## Acceptance Criteria
 
 1. 100% enforcement on designated endpoints
-2. Tooling: API gateway/WAF policy + integration tests operational
-3. Cadence: CI policy validation + continuous enforcement validated
-4. Environments: int, ref, prod covered
+2. Tooling: API gateway/WAF policy and integration tests operational
+3. Cadence: CI policy validation and continuous enforcement validated
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `pid-mtls-enforcement`\n- Threshold: 100% enforcement on designated endpoints\n- Tooling: API gateway/WAF policy + integration tests\n- Cadence: CI policy validation + continuous enforcement\n- Environments: int, ref, prod
+- Control ID: `pid-mtls-enforcement`
+- Threshold: 100% enforcement on designated endpoints
+- Tooling: API gateway/WAF policy and integration tests
+- Cadence: CI policy validation and continuous enforcement
+- Environments: int, ref, production
 
 ## Test Strategy
 

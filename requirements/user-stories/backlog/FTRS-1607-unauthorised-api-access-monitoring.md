@@ -90,4 +90,4 @@ Implement comprehensive monitoring for all unauthorized API access attempts incl
 | ------------------------- | -------------------------- | ---------------------------------------- |
 | Baseline window           | Use 7d or 14d history?     | Evaluate stability vs sensitivity        |
 | Correlation scope         | Include geo/IP reputation? | Assess feasibility & privacy constraints |
-| Dev environment inclusion | Value vs noise?            | Decide after pilot                       |
+| dev environment inclusion | Value vs noise?            | Decide after pilot                       |

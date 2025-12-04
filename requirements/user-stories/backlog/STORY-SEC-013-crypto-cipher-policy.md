@@ -17,15 +17,19 @@ Implement automated validation for NHSE approved cryptographic algorithms (GPG v
 
 1. GPG v4.0 compliance verified for applicable encryption use cases
 2. Cloud provider encryption algorithms align with NHSE approved list
-3. TLS1.2+ only; no weak/legacy ciphers enabled
-4. Tooling: Crypto policy audit scanner + configuration checks operational
-5. Cadence: CI per change + monthly scan validated
+3. TLS1.2 and above only; no weak/legacy ciphers enabled
+4. Tooling: Cryptography policy audit scanner and configuration checks operational
+5. Cadence: CI per change and monthly scan validated
 6. Environments: dev, int, ref, prod covered
 7. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `crypto-cipher-policy`\n- Threshold: 100% GPG v4.0 compliance; cloud algorithms on approved list; TLS1.2+ only\n- Tooling: Crypto policy audit scanner + TLS scanner + configuration checks\n- Cadence: CI per change + monthly scan\n- Environments: dev, int, ref, prod
+- Control ID: `crypto-cipher-policy`
+- Threshold: 100% GPG v4.0 compliance; cloud algorithms on approved list; TLS1.2 and above only
+- Tooling: Cryptography policy audit scanner, TLS scanner, and configuration checks
+- Cadence: CI per change and monthly scan
+- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

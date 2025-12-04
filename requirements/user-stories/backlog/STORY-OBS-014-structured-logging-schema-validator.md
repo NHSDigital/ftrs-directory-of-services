@@ -19,5 +19,5 @@ status: draft
 ## Non-Functional Acceptance
 
 - Control: OBS-014
-- Cadence: CI per commit + nightly sample validation
+- Cadence: CI per commit and nightly sample validation
 - Environments: int, ref, prod

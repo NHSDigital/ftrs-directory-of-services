@@ -1,9 +1,9 @@
 ---
 story_id: STORY-AVAIL-001
 jira_key:
-title: Availability report shows ≥99.90% multi-AZ uptime
+title: "Availability report shows ≥99.90% multi-AZ uptime"
 role: SRE
-goal: Implement and validate: Availability report shows ≥99.90% multi-AZ uptime
+goal: "Implement and validate: Availability report shows ≥99.90% multi-AZ uptime"
 value: Tracks SLA against multi-AZ deployment goals
 nfr_refs: [AVAIL-001]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Availability report shows ≥99.90% multi-AZ uptime.
+Implement automated validation for availability reports showing ≥99.90% multi-AZ uptime.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Availability report shows ≥99.90% multi-AZ
 
 ## Non-Functional Acceptance
 
-- Control ID: `multi-az-uptime-report`\n- Threshold: >= 99.90% monthly uptime across multi-AZ deployment\n- Tooling: Uptime monitoring + monthly report automation\n- Cadence: Monthly\n- Environments: prod
+- Control ID: `multi-az-uptime-report`
+- Threshold: ≥99.90% monthly uptime across multi-AZ deployment
+- Tooling: Uptime monitoring and monthly report automation
+- Cadence: Monthly
+- Environments: prod
 
 ## Test Strategy
 

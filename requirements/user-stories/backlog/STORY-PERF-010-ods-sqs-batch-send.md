@@ -22,7 +22,11 @@ Implement and validate performance for etl-ods operation: ods-sqs-batch-send.
 
 ## Non-Functional Acceptance
 
-- Operation ID: `ods-sqs-batch-send`\n- Service: etl-ods\n- p50: ≤30ms\n- p95: ≤80ms\n- Max: ≤200ms
+- Operation ID: `ods-sqs-batch-send`
+- Service: etl-ods
+- p50: ≤30ms
+- p95: ≤80ms
+- Max: ≤200ms
 
 ## Test Strategy
 

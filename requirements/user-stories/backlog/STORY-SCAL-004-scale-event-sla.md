@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SCAL-004
 jira_key:
-title: Scale event shows no SLA breach in latency/error
+title: "Scale event shows no SLA breach in latency/error"
 role: Platform Engineer
-goal: Implement and validate: Scale event shows no SLA breach in latency/error
+goal: "Implement and validate: Scale event shows no SLA breach in latency/error"
 value: Protects user experience during scaling
 nfr_refs: [SCAL-006]
 status: draft
@@ -17,13 +17,17 @@ Implement automated validation for: Scale event shows no SLA breach in latency/e
 
 1. No breach in latency/error SLAs during scale
 2. Tooling: Metrics/alerts during scale events operational
-3. Cadence: Continuous monitoring + quarterly drill validated
-4. Environments: int, ref, prod covered
+3. Cadence: Continuous monitoring and quarterly drill validated
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `scale-event-sla`\n- Threshold: No breach in latency/error SLAs during scale\n- Tooling: Metrics/alerts during scale events\n- Cadence: Continuous monitoring + quarterly drill\n- Environments: int, ref, prod
+- Control ID: `scale-event-sla`
+- Threshold: No breach in latency/error SLAs during scale
+- Tooling: Metrics/alerts during scale events
+- Cadence: Continuous monitoring and quarterly drill
+- Environments: int, ref, production
 
 ## Test Strategy
 

@@ -1,9 +1,9 @@
 ---
 story_id: STORY-OBS-003
 jira_key:
-title: TPS per endpoint displayed & threshold alert configured
+title: "TPS per endpoint displayed and threshold alert configured"
 role: SRE
-goal: Implement and validate: TPS per endpoint displayed & threshold alert configured
+goal: "Implement and validate: TPS per endpoint displayed and threshold alert configured"
 value: Detects throughput anomalies proactively
 nfr_refs: [OBS-008]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: TPS per endpoint displayed & threshold alert configured.
+Implement automated validation for TPS per endpoint displayed and threshold alert configured.
 
 ## Acceptance Criteria
 
 1. TPS dashboard present; alert rule configured and tested
-2. Tooling: Metrics backend + alerting system operational
-3. Cadence: CI validation + monthly alert fire drill validated
+2. Tooling: Metrics backend and alerting system operational
+3. Cadence: CI validation and monthly alert fire drill validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `tps-threshold-alert`\n- Threshold: TPS dashboard present; alert rule configured and tested\n- Tooling: Metrics backend + alerting system\n- Cadence: CI validation + monthly alert fire drill\n- Environments: int, ref, prod
+- Control ID: `tps-threshold-alert`
+- Threshold: TPS dashboard present; alert rule configured and tested
+- Tooling: Metrics backend and alerting system
+- Cadence: CI validation and monthly alert fire drill
+- Environments: int, ref, prod
 
 ## Test Strategy
 
@@ -40,7 +44,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Detects throughput anomalies proactively
-- Cadence: CI validation + monthly alert fire drill
+- Cadence: CI validation and monthly alert fire drill
 - Status: draft
 
 ## Monitoring & Metrics
