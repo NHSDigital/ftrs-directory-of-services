@@ -22,6 +22,8 @@ TYPED_PERIOD_URL = (
 ORGANISATION_ROLE_URL = (
     "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
 )
+ROLE_CODE_URL = "roleCode"
+ROLE_CODE_SYSTEM_URL = "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
 
 
 class OrganizationMapper(FhirMapper):
@@ -47,7 +49,89 @@ class OrganizationMapper(FhirMapper):
         """Build FHIR telecom list from phone number."""
         return [{"system": "phone", "value": telecom, "use": "work"}] if telecom else []
 
-    def _build_legal_date_extension(
+    def _build_type(self, org_type_value: str) -> list[CodeableConcept]:
+        """Build FHIR organization type CodeableConcept."""
+        return [
+            CodeableConcept.model_validate(
+                {
+                    "coding": [
+                        {
+                            "system": "TO-DO",  # Use correct FHIR when defined
+                            "code": org_type_value,
+                            "display": org_type_value,
+                        }
+                    ],
+                    "text": org_type_value,
+                }
+            )
+        ]
+
+    def _build_organisation_extensions(
+        self, organisation: Organisation
+    ) -> list[Extension]:
+        extensions = []
+        legal_start_str, legal_end_str = self._get_legal_dates(organisation)
+
+        # Add primary role extension with legal dates
+        if organisation.primary_role_code:
+            primary_ext = self._build_organisation_role_extension(
+                organisation.primary_role_code, legal_start_str, legal_end_str
+            )
+            if primary_ext:
+                extensions.append(primary_ext)
+
+        # Add non-primary role extensions without legal dates
+        if organisation.non_primary_role_codes:
+            for role_code in organisation.non_primary_role_codes:
+                non_primary_ext = self._build_organisation_role_extension(role_code)
+                if non_primary_ext:
+                    extensions.append(non_primary_ext)
+
+        return extensions
+
+    def _build_organisation_role_extension(
+        self,
+        role_code: str | None,
+        legal_start_date: str | None = None,
+        legal_end_date: str | None = None,
+    ) -> Extension | None:
+        """
+        Build FHIR OrganisationRole extension with role code and optional legal dates.
+
+        Structure:
+        - OrganisationRole (top level)
+            - roleCode (nested)
+            - TypedPeriod (nested, optional - only if legal dates provided)
+        """
+        extension_list = [
+            {
+                "url": ROLE_CODE_URL,
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": ROLE_CODE_SYSTEM_URL,
+                            "code": role_code,
+                            "display": role_code,
+                        }
+                    ]
+                },
+            }
+        ]
+
+        typed_period_ext = self._build_typed_period_extension(
+            legal_start_date, legal_end_date
+        )
+        if typed_period_ext:
+            extension_list.append(typed_period_ext.model_dump())
+
+        return Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": extension_list,
+            }
+        )
+
+    def _build_typed_period_extension(
         self, legal_start_date: str | None, legal_end_date: str | None
     ) -> Extension | None:
         """Build FHIR TypedPeriod extension for legal dates using Extension model."""
@@ -58,7 +142,7 @@ class OrganizationMapper(FhirMapper):
             period_data["start"] = legal_start_date
         if legal_end_date:
             period_data["end"] = legal_end_date
-        ext = Extension.model_validate(
+        return Extension.model_validate(
             {
                 "url": TYPED_PERIOD_URL,
                 "extension": [
@@ -77,29 +161,23 @@ class OrganizationMapper(FhirMapper):
                 ],
             }
         )
-        return ext
 
-    def _build_type(self, org_type_value: str) -> list[CodeableConcept]:
-        """Build FHIR organization type CodeableConcept."""
-        return [
-            CodeableConcept.model_validate(
-                {
-                    "coding": [
-                        {
-                            "system": "TO-DO",  # Use correct FHIR when defined
-                            "code": org_type_value,
-                            "display": org_type_value,
-                        }
-                    ],
-                    "text": org_type_value,
-                }
-            )
-        ]
+    def _build_legal_dates_from_fhir(
+        self, fhir_resource: FhirOrganisation
+    ) -> LegalDates | None:
+        """
+        Extract and build LegalDates domain object from FHIR resource.
+        Returns None if no legal dates are present.
+        """
+        legal_start_date, legal_end_date = self._extract_legal_dates(fhir_resource)
+
+        if legal_start_date or legal_end_date:
+            return LegalDates(start=legal_start_date, end=legal_end_date)
+
+        return None
 
     # --- Domain <-> FHIR Conversion ---
     def to_fhir(self, organisation: Organisation) -> FhirOrganisation:
-        """Convert Organisation domain object to FHIR Organization resource."""
-
         org_dict = {
             "resourceType": "Organization",
             "id": str(organisation.id),
@@ -110,41 +188,17 @@ class OrganizationMapper(FhirMapper):
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
             "telecom": self._build_telecom(organisation.telecom),
         }
-        extensions = []
-        if organisation.primary_role_code:
-            primary_ext = self._build_role_extension(organisation.primary_role_code)
-            if primary_ext:
-                extensions.append(primary_ext)
-
-        if organisation.non_primary_role_codes:
-            for role_code in organisation.non_primary_role_codes:
-                non_primary_ext = self._build_role_extension(role_code)
-                if non_primary_ext:
-                    extensions.append(non_primary_ext)
-
-        legal_start_str, legal_end_str = self._get_legal_dates(organisation)
-        legal_date_ext = self._build_legal_date_extension(
-            legal_start_str, legal_end_str
-        )
-        if legal_date_ext:
-            extensions.append(legal_date_ext)
-
+        extensions = self._build_organisation_extensions(organisation)
         if extensions:
             org_dict["extension"] = extensions
         return FhirOrganisation.model_validate(org_dict)
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
         """Convert FHIR Organization resource to Organisation domain object."""
-        fhir_dict = fhir_resource.model_dump()
-        role_codes = self.get_all_role_codes(fhir_dict)
-        primary_code, non_primary_codes = self.get_primary_and_non_primary_role_codes(
-            role_codes
+        primary_code, non_primary_codes = self._extract_role_codes_from_fhir(
+            fhir_resource
         )
-        legal_start_date, legal_end_date = self._extract_legal_dates(fhir_resource)
-
-        legal_dates = None
-        if legal_start_date or legal_end_date:
-            legal_dates = LegalDates(start=legal_start_date, end=legal_end_date)
+        legal_dates = self._build_legal_dates_from_fhir(fhir_resource)
 
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
@@ -246,85 +300,32 @@ class OrganizationMapper(FhirMapper):
                 return telecom.value
         return None
 
-    def _get_role_code_from_extension(self, ext: dict) -> str | None:
-        """Extract role code from organization role extension."""
-        for sub_ext in ext.get("extension", []):
-            if sub_ext.get("url") == "roleCode":
-                if value_codeable_concept := sub_ext.get("valueCodeableConcept"):
-                    coding = value_codeable_concept.get("coding", [])
-                    if coding:
-                        return coding[0].get("code")
-        return None
+    def _extract_all_role_codes(self, extensions: list[Extension]) -> list[str]:
+        """Extract all role codes from organization extensions."""
+        role_codes = []
+        for ext in extensions:
+            if getattr(ext, "url", None) == ORGANISATION_ROLE_URL:
+                role_code = self._get_role_code(ext)
+                if role_code:
+                    role_codes.append(role_code)
+        return role_codes
 
     def _is_legal_typed_period(self, ext: Extension) -> bool:
         """
         Check if a TypedPeriod Extension has dateType 'Legal'.
         """
         for sub_ext in ext.extension:
-            if getattr(sub_ext, "url", None) == "dateType" and getattr(
-                sub_ext, "valueCoding", None
+            if (
+                getattr(sub_ext, "url", None) == "dateType"
+                and getattr(sub_ext, "valueCoding", None)
+                and getattr(sub_ext.valueCoding, "code", None) == "Legal"
             ):
-                if getattr(sub_ext.valueCoding, "code", None) == "Legal":
-                    return True
+                return True
         return False
-
-    def _find_legal_typed_period(self, org_role_ext: Extension) -> Extension | None:
-        """
-        Return the Legal TypedPeriod sub-extension from an OrganisationRole Extension.
-        """
-        for sub_ext in org_role_ext.extension:
-            if getattr(
-                sub_ext, "url", None
-            ) == TYPED_PERIOD_URL and self._is_legal_typed_period(sub_ext):
-                return sub_ext
-        return None
-
-    def _extract_first_organisation_role(
-        self, extensions: list[Extension]
-    ) -> dict | None:
-        """
-        Extract the FIRST OrganisationRole extension from ODS extensions (list of Extension).
-        Returns the complete OrganisationRole dict as-is, preserving all TypedPeriods.
-        """
-        for ext in extensions:
-            if getattr(ext, "url", None) == ORGANISATION_ROLE_URL:
-                return ext.model_dump()
-        return None
-
-    def _extract_legal_typed_period_from_ods(
-        self, extensions: list[Extension]
-    ) -> dict | None:
-        """
-        Extract Legal TypedPeriod extension from ODS extensions (list of Extension).
-        Takes the Legal TypedPeriod from the FIRST OrganisationRole in the extension array.
-        Returns the raw dict to be included in the FHIR payload.
-        """
-        for ext in extensions:
-            if getattr(ext, "url", None) != ORGANISATION_ROLE_URL:
-                continue
-            legal_typed_period = self._find_legal_typed_period(ext)
-            if legal_typed_period:
-                return legal_typed_period.model_dump()
-            return None
-        return None
-
-    def get_all_role_codes(self, ods_org: dict) -> list[str]:
-        """
-        Extract all role codes from ODS organization.
-        Public method for use by ETL processes.
-        """
-        role_codes = []
-        for ext in ods_org.get("extension", []):
-            if ext.get("url") != ORGANISATION_ROLE_URL:
-                continue
-            role_code = self._get_role_code_from_extension(ext)
-            if role_code is not None:
-                role_codes.append(role_code)
-        return role_codes
 
     def get_primary_and_non_primary_role_codes(
         self, role_codes: list[str]
-    ) -> tuple[str | None, list[str] | None]:
+    ) -> tuple[str | None, list[str]]:
         """
         Extract primary and non-primary organization role codes from role codes.
 
@@ -353,24 +354,41 @@ class OrganizationMapper(FhirMapper):
 
         return primary_code, non_primary_codes
 
-    def _build_role_extension(self, role_code: str | None) -> Extension | None:
-        """Build FHIR TypedPeriod extension for legal dates using Extension model."""
+    def _get_role_code(self, ext: Extension) -> str | None:
+        """Extract role code from OrganisationRole Extension object."""
+        for sub_ext in getattr(ext, "extension", []):
+            if getattr(sub_ext, "url", None) == ROLE_CODE_URL:
+                value_codeable_concept = getattr(sub_ext, "valueCodeableConcept", None)
+                if value_codeable_concept:
+                    coding = getattr(value_codeable_concept, "coding", None)
+                    if coding:
+                        return getattr(coding[0], "code", None)
+        return None
 
-        ext = Extension.model_validate(
-            {
-                "url": ORGANISATION_ROLE_URL,
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCoding": {
-                            "code": role_code,
-                            "display": role_code,
-                        },
-                    }
-                ],
-            }
-        )
-        return ext
+    def _extract_role_codes_from_fhir(
+        self, fhir_resource: FhirOrganisation
+    ) -> tuple[str | None, list[str]]:
+        """
+        Extract primary and non-primary role codes from FHIR resource.
+
+        Returns:
+            Tuple of (primary_role_code, non_primary_role_codes)
+        """
+        extensions = getattr(fhir_resource, "extension", None)
+        if not extensions:
+            return None, []
+
+        role_codes = self._extract_all_role_codes(extensions)
+        return self.get_primary_and_non_primary_role_codes(role_codes)
+
+    def _find_legal_typed_period_in_role(self, ext: Extension) -> Extension | None:
+        """Find Legal TypedPeriod within an OrganisationRole extension."""
+        for sub_ext in ext.extension:
+            if getattr(
+                sub_ext, "url", None
+            ) == TYPED_PERIOD_URL and self._is_legal_typed_period(sub_ext):
+                return sub_ext
+        return None
 
     def _get_typed_period_extension(
         self, extensions: list[Extension] | None
@@ -382,15 +400,15 @@ class OrganizationMapper(FhirMapper):
         if not extensions:
             return None
         for ext in extensions:
-            if getattr(ext, "url", None) != ORGANISATION_ROLE_URL or not getattr(
-                ext, "extension", None
-            ):
+            if getattr(ext, "url", None) != ORGANISATION_ROLE_URL:
                 continue
-            for sub_ext in ext.extension:
-                if getattr(
-                    sub_ext, "url", None
-                ) == TYPED_PERIOD_URL and self._is_legal_typed_period(sub_ext):
-                    return sub_ext
+            if not getattr(ext, "extension", None):
+                continue
+
+            legal_period = self._find_legal_typed_period_in_role(ext)
+            if legal_period:
+                return legal_period
+
         return None
 
     def _parse_legal_period(
