@@ -11,15 +11,13 @@ const config = defineConfig({
     }),
     tanstackStart(),
     nitro({
-      config: {
-        preset: "aws-lambda",
-        externals: {
-          inline: [
-            '@aws-lambda-powertools/logger',
-            '@aws-lambda-powertools/parameters',
-          ],
-        },
-      }
+      preset: "aws-lambda",
+      externals: {
+        inline: [
+          '@aws-lambda-powertools/logger',
+          '@aws-lambda-powertools/parameters',
+        ],
+      },
     }),
     viteReact(),
   ],

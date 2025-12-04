@@ -16,6 +16,12 @@ import { Route as HealthcareServicesIndexRouteImport } from './routes/healthcare
 import { Route as OrganisationsOrganisationIDIndexRouteImport } from './routes/organisations/$organisationID.index'
 import { Route as LocationsLocationIDIndexRouteImport } from './routes/locations/$locationID.index'
 import { Route as HealthcareServicesHealthcareServiceIDIndexRouteImport } from './routes/healthcare-services/$healthcareServiceID.index'
+import { Route as ApiOrganisationIndexRouteImport } from './routes/api/organisation.index'
+import { Route as ApiLocationIndexRouteImport } from './routes/api/location.index'
+import { Route as ApiHealthcareServiceIndexRouteImport } from './routes/api/healthcareService.index'
+import { Route as ApiOrganisationOrganisationIDRouteImport } from './routes/api/organisation.$organisationID'
+import { Route as ApiLocationLocationIDRouteImport } from './routes/api/location.$locationID'
+import { Route as ApiHealthcareServiceHealthcareServiceIDRouteImport } from './routes/api/healthcareService.$healthcareServiceID'
 import { Route as OrganisationsOrganisationIDEndpointEndpointIDRouteImport } from './routes/organisations/$organisationID.endpoint.$endpointID'
 
 const IndexRoute = IndexRouteImport.update({
@@ -56,6 +62,39 @@ const HealthcareServicesHealthcareServiceIDIndexRoute =
     path: '/healthcare-services/$healthcareServiceID/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiOrganisationIndexRoute = ApiOrganisationIndexRouteImport.update({
+  id: '/api/organisation/',
+  path: '/api/organisation/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLocationIndexRoute = ApiLocationIndexRouteImport.update({
+  id: '/api/location/',
+  path: '/api/location/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthcareServiceIndexRoute =
+  ApiHealthcareServiceIndexRouteImport.update({
+    id: '/api/healthcareService/',
+    path: '/api/healthcareService/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiOrganisationOrganisationIDRoute =
+  ApiOrganisationOrganisationIDRouteImport.update({
+    id: '/api/organisation/$organisationID',
+    path: '/api/organisation/$organisationID',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiLocationLocationIDRoute = ApiLocationLocationIDRouteImport.update({
+  id: '/api/location/$locationID',
+  path: '/api/location/$locationID',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthcareServiceHealthcareServiceIDRoute =
+  ApiHealthcareServiceHealthcareServiceIDRouteImport.update({
+    id: '/api/healthcareService/$healthcareServiceID',
+    path: '/api/healthcareService/$healthcareServiceID',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const OrganisationsOrganisationIDEndpointEndpointIDRoute =
   OrganisationsOrganisationIDEndpointEndpointIDRouteImport.update({
     id: '/organisations/$organisationID/endpoint/$endpointID',
@@ -68,6 +107,12 @@ export interface FileRoutesByFullPath {
   '/healthcare-services': typeof HealthcareServicesIndexRoute
   '/locations': typeof LocationsIndexRoute
   '/organisations': typeof OrganisationsIndexRoute
+  '/api/healthcareService/$healthcareServiceID': typeof ApiHealthcareServiceHealthcareServiceIDRoute
+  '/api/location/$locationID': typeof ApiLocationLocationIDRoute
+  '/api/organisation/$organisationID': typeof ApiOrganisationOrganisationIDRoute
+  '/api/healthcareService': typeof ApiHealthcareServiceIndexRoute
+  '/api/location': typeof ApiLocationIndexRoute
+  '/api/organisation': typeof ApiOrganisationIndexRoute
   '/healthcare-services/$healthcareServiceID': typeof HealthcareServicesHealthcareServiceIDIndexRoute
   '/locations/$locationID': typeof LocationsLocationIDIndexRoute
   '/organisations/$organisationID': typeof OrganisationsOrganisationIDIndexRoute
@@ -78,6 +123,12 @@ export interface FileRoutesByTo {
   '/healthcare-services': typeof HealthcareServicesIndexRoute
   '/locations': typeof LocationsIndexRoute
   '/organisations': typeof OrganisationsIndexRoute
+  '/api/healthcareService/$healthcareServiceID': typeof ApiHealthcareServiceHealthcareServiceIDRoute
+  '/api/location/$locationID': typeof ApiLocationLocationIDRoute
+  '/api/organisation/$organisationID': typeof ApiOrganisationOrganisationIDRoute
+  '/api/healthcareService': typeof ApiHealthcareServiceIndexRoute
+  '/api/location': typeof ApiLocationIndexRoute
+  '/api/organisation': typeof ApiOrganisationIndexRoute
   '/healthcare-services/$healthcareServiceID': typeof HealthcareServicesHealthcareServiceIDIndexRoute
   '/locations/$locationID': typeof LocationsLocationIDIndexRoute
   '/organisations/$organisationID': typeof OrganisationsOrganisationIDIndexRoute
@@ -89,6 +140,12 @@ export interface FileRoutesById {
   '/healthcare-services/': typeof HealthcareServicesIndexRoute
   '/locations/': typeof LocationsIndexRoute
   '/organisations/': typeof OrganisationsIndexRoute
+  '/api/healthcareService/$healthcareServiceID': typeof ApiHealthcareServiceHealthcareServiceIDRoute
+  '/api/location/$locationID': typeof ApiLocationLocationIDRoute
+  '/api/organisation/$organisationID': typeof ApiOrganisationOrganisationIDRoute
+  '/api/healthcareService/': typeof ApiHealthcareServiceIndexRoute
+  '/api/location/': typeof ApiLocationIndexRoute
+  '/api/organisation/': typeof ApiOrganisationIndexRoute
   '/healthcare-services/$healthcareServiceID/': typeof HealthcareServicesHealthcareServiceIDIndexRoute
   '/locations/$locationID/': typeof LocationsLocationIDIndexRoute
   '/organisations/$organisationID/': typeof OrganisationsOrganisationIDIndexRoute
@@ -101,6 +158,12 @@ export interface FileRouteTypes {
     | '/healthcare-services'
     | '/locations'
     | '/organisations'
+    | '/api/healthcareService/$healthcareServiceID'
+    | '/api/location/$locationID'
+    | '/api/organisation/$organisationID'
+    | '/api/healthcareService'
+    | '/api/location'
+    | '/api/organisation'
     | '/healthcare-services/$healthcareServiceID'
     | '/locations/$locationID'
     | '/organisations/$organisationID'
@@ -111,6 +174,12 @@ export interface FileRouteTypes {
     | '/healthcare-services'
     | '/locations'
     | '/organisations'
+    | '/api/healthcareService/$healthcareServiceID'
+    | '/api/location/$locationID'
+    | '/api/organisation/$organisationID'
+    | '/api/healthcareService'
+    | '/api/location'
+    | '/api/organisation'
     | '/healthcare-services/$healthcareServiceID'
     | '/locations/$locationID'
     | '/organisations/$organisationID'
@@ -121,6 +190,12 @@ export interface FileRouteTypes {
     | '/healthcare-services/'
     | '/locations/'
     | '/organisations/'
+    | '/api/healthcareService/$healthcareServiceID'
+    | '/api/location/$locationID'
+    | '/api/organisation/$organisationID'
+    | '/api/healthcareService/'
+    | '/api/location/'
+    | '/api/organisation/'
     | '/healthcare-services/$healthcareServiceID/'
     | '/locations/$locationID/'
     | '/organisations/$organisationID/'
@@ -132,6 +207,12 @@ export interface RootRouteChildren {
   HealthcareServicesIndexRoute: typeof HealthcareServicesIndexRoute
   LocationsIndexRoute: typeof LocationsIndexRoute
   OrganisationsIndexRoute: typeof OrganisationsIndexRoute
+  ApiHealthcareServiceHealthcareServiceIDRoute: typeof ApiHealthcareServiceHealthcareServiceIDRoute
+  ApiLocationLocationIDRoute: typeof ApiLocationLocationIDRoute
+  ApiOrganisationOrganisationIDRoute: typeof ApiOrganisationOrganisationIDRoute
+  ApiHealthcareServiceIndexRoute: typeof ApiHealthcareServiceIndexRoute
+  ApiLocationIndexRoute: typeof ApiLocationIndexRoute
+  ApiOrganisationIndexRoute: typeof ApiOrganisationIndexRoute
   HealthcareServicesHealthcareServiceIDIndexRoute: typeof HealthcareServicesHealthcareServiceIDIndexRoute
   LocationsLocationIDIndexRoute: typeof LocationsLocationIDIndexRoute
   OrganisationsOrganisationIDIndexRoute: typeof OrganisationsOrganisationIDIndexRoute
@@ -189,6 +270,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthcareServicesHealthcareServiceIDIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/organisation/': {
+      id: '/api/organisation/'
+      path: '/api/organisation'
+      fullPath: '/api/organisation'
+      preLoaderRoute: typeof ApiOrganisationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/location/': {
+      id: '/api/location/'
+      path: '/api/location'
+      fullPath: '/api/location'
+      preLoaderRoute: typeof ApiLocationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/healthcareService/': {
+      id: '/api/healthcareService/'
+      path: '/api/healthcareService'
+      fullPath: '/api/healthcareService'
+      preLoaderRoute: typeof ApiHealthcareServiceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/organisation/$organisationID': {
+      id: '/api/organisation/$organisationID'
+      path: '/api/organisation/$organisationID'
+      fullPath: '/api/organisation/$organisationID'
+      preLoaderRoute: typeof ApiOrganisationOrganisationIDRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/location/$locationID': {
+      id: '/api/location/$locationID'
+      path: '/api/location/$locationID'
+      fullPath: '/api/location/$locationID'
+      preLoaderRoute: typeof ApiLocationLocationIDRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/healthcareService/$healthcareServiceID': {
+      id: '/api/healthcareService/$healthcareServiceID'
+      path: '/api/healthcareService/$healthcareServiceID'
+      fullPath: '/api/healthcareService/$healthcareServiceID'
+      preLoaderRoute: typeof ApiHealthcareServiceHealthcareServiceIDRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/organisations/$organisationID/endpoint/$endpointID': {
       id: '/organisations/$organisationID/endpoint/$endpointID'
       path: '/organisations/$organisationID/endpoint/$endpointID'
@@ -204,6 +327,13 @@ const rootRouteChildren: RootRouteChildren = {
   HealthcareServicesIndexRoute: HealthcareServicesIndexRoute,
   LocationsIndexRoute: LocationsIndexRoute,
   OrganisationsIndexRoute: OrganisationsIndexRoute,
+  ApiHealthcareServiceHealthcareServiceIDRoute:
+    ApiHealthcareServiceHealthcareServiceIDRoute,
+  ApiLocationLocationIDRoute: ApiLocationLocationIDRoute,
+  ApiOrganisationOrganisationIDRoute: ApiOrganisationOrganisationIDRoute,
+  ApiHealthcareServiceIndexRoute: ApiHealthcareServiceIndexRoute,
+  ApiLocationIndexRoute: ApiLocationIndexRoute,
+  ApiOrganisationIndexRoute: ApiOrganisationIndexRoute,
   HealthcareServicesHealthcareServiceIDIndexRoute:
     HealthcareServicesHealthcareServiceIDIndexRoute,
   LocationsLocationIDIndexRoute: LocationsLocationIDIndexRoute,
