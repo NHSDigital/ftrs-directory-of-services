@@ -55,6 +55,8 @@ install:
 	docker version
 
 build:
+	docker buildx inspect sandbox-dos-search-builder >/dev/null 2>&1 || docker buildx create --name sandbox-dos-search-builder --driver docker-container --use
+	docker buildx use sandbox-dos-search-builder
 	docker buildx build --platform linux/amd64,linux/arm64 -t ${FULL_IMAGE} ${DOCKER_CONTEXT}
 	echo "Built image ${FULL_IMAGE}"
 
