@@ -126,7 +126,7 @@ Enabling security controls does not push latency beyond defined SLAs.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| security-features-latency-sla | Security features enabled latency within SLA | Added latency within agreed SLA per endpoint | Performance tests with security features enabled | CI perf checks + monthly regression review | int,ref,prod | crud-apis,dos-search | draft | Ensures security does not breach performance SLAs |
+| security-features-latency-sla | Security features enabled latency within SLA | Added latency within agreed SLA per endpoint | Performance tests with security features enabled | CI performance checks + monthly regression review | int,ref,prod | crud-apis,dos-search | draft | Ensures security does not breach performance SLAs |
 
 ### SEC-012
 
@@ -278,4 +278,4 @@ Certificates and private keys are stored only in approved encrypted secret store
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts | 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repo pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |
+| cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts | 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repository pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |

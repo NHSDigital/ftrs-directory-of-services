@@ -20,7 +20,7 @@ Supported OS/browser list matches published specification.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| published-supported-platforms | Published OS/browser list matches warranted spec | Supported platform list published and current | Documentation repo + review checklist | Quarterly | prod | read-only-viewer | draft | Sets clear compatibility expectations for users |
+| published-supported-platforms | Published OS/browser list matches warranted spec | Supported platform list published and current | Documentation repository + review checklist | Quarterly | prod | read-only-viewer | draft | Sets clear compatibility expectations for users |
 
 ### COMP-002
 
