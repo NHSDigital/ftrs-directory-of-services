@@ -11,13 +11,11 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
-from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
 from organisations.app.models.organisation import LegalDateField
-from organisations.app.services.validators import validate_type_combination
 
 
 class OrganisationService:
@@ -203,7 +201,6 @@ class OrganisationService:
                 outdated_fields[field] = value
 
         if outdated_fields:
-            self._validate_role_fields_if_changed(organisation, outdated_fields)
             self.logger.log(
                 CrudApisLogBase.ORGANISATION_006,
                 outdated_fields=list(outdated_fields.keys()),
@@ -239,64 +236,3 @@ class OrganisationService:
         if isinstance(legal_dates, dict):
             return legal_dates.get(key)
         return None
-
-    def _validate_role_fields_if_changed(
-        self, organisation: Organisation, outdated_fields: dict
-    ) -> None:
-        """Validate role combination if role fields have changed."""
-        role_fields_changed = (
-            "primary_role_code" in outdated_fields
-            or "non_primary_role_codes" in outdated_fields
-        )
-
-        if not role_fields_changed:
-            return
-
-        primary_role = outdated_fields.get(
-            "primary_role_code", organisation.primary_role_code
-        )
-        non_primary_roles = outdated_fields.get(
-            "non_primary_role_codes", organisation.non_primary_role_codes or []
-        )
-
-        if isinstance(primary_role, str):
-            try:
-                primary_role = OrganisationTypeCode(primary_role)
-                outdated_fields["primary_role_code"] = primary_role
-            except ValueError:
-                error_message = f"Invalid primary role code: '{primary_role}'. "
-                self._handle_role_error(organisation.id, error_message)
-
-        # Convert non-primary roles if they are strings
-        if non_primary_roles and isinstance(non_primary_roles[0], str):
-            try:
-                converted_non_primary_roles = [
-                    OrganisationTypeCode(role) for role in non_primary_roles
-                ]
-                outdated_fields["non_primary_role_codes"] = converted_non_primary_roles
-                non_primary_roles = converted_non_primary_roles
-            except ValueError as e:
-                error_message = f"Invalid non-primary role code: {str(e)}. "
-                self._handle_role_error(organisation.id, error_message)
-
-        # Now validate the combination with enum values
-        is_valid, error_message = validate_type_combination(
-            primary_role, non_primary_roles
-        )
-
-        if not is_valid:
-            self._handle_role_error(organisation.id, error_message)
-
-    def _handle_role_error(self, organisation_id: str, error_message: str) -> None:
-        """Log and raise exception for role related errors."""
-        self.logger.log(
-            CrudApisLogBase.ORGANISATION_024,
-            organisation_id=organisation_id,
-            error_message=error_message,
-        )
-        outcome = OperationOutcomeHandler.build(
-            diagnostics=error_message,
-            code="invalid",
-            severity="error",
-        )
-        raise OperationOutcomeException(outcome)

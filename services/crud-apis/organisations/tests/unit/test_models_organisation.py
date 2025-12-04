@@ -132,7 +132,7 @@ def _build_role_code_extension(
 
 
 def _build_organisation_role_extension(
-    role_code: str = "RO76",
+    role_code: str = "RO182",
     typed_periods: list[dict] | None = None,
     url: str
     | None = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -141,7 +141,7 @@ def _build_organisation_role_extension(
     """Helper to build an OrganisationRole extension with TypedPeriod(s).
 
     Args:
-        role_code: Role code value (e.g., "RO76")
+        role_code: Role code value, defaults to RO182
         typed_periods: List of TypedPeriod extension dicts (None for default)
         url: URL for OrganisationRole extension (None to omit, "" for empty string)
         primary_role: Boolean value for primaryRole (None to omit)
@@ -309,7 +309,7 @@ def test_invalid_typed_period_extension_with_end_only() -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     with pytest.raises(OperationOutcomeException) as e:
@@ -328,7 +328,7 @@ def test_invalid_typed_period_extension_with_no_dates() -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     with pytest.raises(OperationOutcomeException) as e:
@@ -347,7 +347,7 @@ def test_typed_period_equal_dates_legal() -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     with pytest.raises(OperationOutcomeException) as e:
@@ -364,7 +364,7 @@ def test_invalid_sub_extension() -> None:
     }
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     with pytest.raises(OperationOutcomeException) as e:
@@ -415,7 +415,7 @@ def test_invalid_date_format_in_legal_start_date(invalid_date: str) -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
 
@@ -446,7 +446,7 @@ def test_invalid_date_format_in_legal_end_date(invalid_date: str) -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
 
@@ -475,7 +475,7 @@ def test_valid_date_formats_accepted(start_date: str, end_date: str) -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
 
@@ -493,7 +493,7 @@ def test_valid_organisation_role_extension_with_typed_period() -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     organisation = OrganisationUpdatePayload(**payload)
@@ -536,7 +536,7 @@ def test_valid_organisation_role_extension_with_multiple_typed_periods() -> None
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[legal_period, operational_period]
+            role_code="RO182", typed_periods=[legal_period, operational_period]
         )
     ]
     # Should pass because Legal period is valid and Operational period is not validated
@@ -608,7 +608,7 @@ def test_invalid_typed_period_in_organisation_role_missing_date_type() -> None:
     }
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     with pytest.raises(OperationOutcomeException) as e:
@@ -632,7 +632,7 @@ def test_date_type_missing_value_coding() -> None:
     }
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     with pytest.raises(OperationOutcomeException) as e:
@@ -662,7 +662,7 @@ def test_invalid_typed_period_in_organisation_role_invalid_system() -> None:
     }
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[typed_period]
+            role_code="RO182", typed_periods=[typed_period]
         )
     ]
     with pytest.raises(OperationOutcomeException) as e:
@@ -927,7 +927,7 @@ def test_valid_payload_with_primary_role_code() -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO177", typed_periods=[typed_period], primary_role=True
+            role_code="RO182", typed_periods=[typed_period], primary_role=True
         )
     ]
     organisation = OrganisationUpdatePayload(**payload)
@@ -1051,7 +1051,7 @@ def test_role_with_both_legal_and_operational_typed_periods_passes() -> None:
     )
     payload["extension"] = [
         _build_organisation_role_extension(
-            role_code="RO76", typed_periods=[legal_period, operational_period]
+            role_code="RO182", typed_periods=[legal_period, operational_period]
         )
     ]
     organisation = OrganisationUpdatePayload(**payload)
@@ -1081,10 +1081,126 @@ def test_typed_period_missing_value_period_fails() -> None:
         ],
     }
     role_extension = _build_organisation_role_extension(
-        role_code="RO76", typed_periods=[typed_period]
+        role_code="RO182", typed_periods=[typed_period]
     )
     payload["extension"] = [role_extension]
 
     with pytest.raises(OperationOutcomeException) as e:
         OrganisationUpdatePayload(**payload)
     assert "TypedPeriod extension must have a valuePeriod" in str(e.value)
+
+
+def test_invalid_pharmacy_with_non_primary_roles() -> None:
+    """Test that pharmacy role (RO182) with non-primary roles fails validation."""
+    payload = _build_base_payload()
+
+    primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role = _build_organisation_role_extension(
+        role_code="RO182", typed_periods=[primary_period], primary_role=True
+    )
+
+    non_primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2014-04-15", end=None
+    )
+    non_primary_role = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[non_primary_period], primary_role=False
+    )
+
+    payload["extension"] = [primary_role, non_primary_role]
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganisationUpdatePayload(**payload)
+
+    assert "RO182 cannot have non-primary roles" in str(exc_info.value)
+
+
+def test_invalid_prescribing_cost_centre_with_duplicate_non_primary_roles() -> None:
+    """Test that prescribing cost centre (RO177) with duplicate non-primary roles fails validation."""
+    payload = _build_base_payload()
+
+    primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[primary_period], primary_role=True
+    )
+
+    # First RO76
+    non_primary_period_1 = _build_typed_period_extension(
+        date_type="Legal", start="2014-04-15", end=None
+    )
+    non_primary_role_1 = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[non_primary_period_1], primary_role=False
+    )
+
+    # Duplicate RO76
+    non_primary_period_2 = _build_typed_period_extension(
+        date_type="Legal", start="2015-05-20", end=None
+    )
+    non_primary_role_2 = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[non_primary_period_2], primary_role=False
+    )
+
+    payload["extension"] = [primary_role, non_primary_role_1, non_primary_role_2]
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganisationUpdatePayload(**payload)
+
+    assert "Duplicate non-primary roles are not allowed" in str(exc_info.value)
+
+
+def test_invalid_prescribing_cost_centre_no_non_primary_roles() -> None:
+    """Test that prescribing cost centre (RO177) without non-primary roles fails validation."""
+    payload = _build_base_payload()
+
+    primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[primary_period], primary_role=True
+    )
+
+    payload["extension"] = [primary_role]
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganisationUpdatePayload(**payload)
+
+    assert "RO177 must have at least one non-primary role" in str(exc_info.value)
+
+
+def test_invalid_multiple_primary_roles() -> None:
+    """Test that validation fails when multiple primary roles are provided."""
+    payload = _build_base_payload()
+
+    # First primary role (RO177)
+    primary_period_1 = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role_1 = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[primary_period_1], primary_role=True
+    )
+
+    # Second primary role (RO182) - should fail
+    primary_period_2 = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role_2 = _build_organisation_role_extension(
+        role_code="RO182", typed_periods=[primary_period_2], primary_role=True
+    )
+
+    # Non-primary role
+    non_primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2014-04-15", end=None
+    )
+    non_primary_role = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[non_primary_period], primary_role=False
+    )
+
+    payload["extension"] = [primary_role_1, primary_role_2, non_primary_role]
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganisationUpdatePayload(**payload)
+
+    assert "Only one primary role is allowed per organisation" in str(exc_info.value)

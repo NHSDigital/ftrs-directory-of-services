@@ -41,6 +41,19 @@ ERROR_IDENTIFIER_INVALID_FORMAT = (
 )
 ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
 
+# Valid primary types (only these can be primary)
+VALID_PRIMARY_TYPE_CODES = {
+    OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
+    OrganisationTypeCode.PHARMACY_ROLE_CODE,
+}
+
+# Types that Prescribing Cost Centre can map to as non-primary roles
+PRESCRIBING_COST_CENTRE_ALLOWED_NON_PRIMARY_TYPE_CODES = {
+    OrganisationTypeCode.GP_PRACTICE_ROLE_CODE,
+    OrganisationTypeCode.OUT_OF_HOURS_ROLE_CODE,
+    OrganisationTypeCode.WALK_IN_CENTRE_ROLE_CODE,
+}
+
 
 class LegalDateField(Enum):
     START = "start"
@@ -162,8 +175,15 @@ class OrganisationUpdatePayload(BaseModel):
     def validate_extensions(self) -> "OrganisationUpdatePayload":
         """Validate that extensions follow the required structure for various extensions."""
         if self.extension:
+            role_codes: list[OrganisationTypeCode] = []
+
             for ext in self.extension:
-                _validate_organisation_extension(ext)
+                extracted_codes = _validate_organisation_extension(ext)
+                role_codes.extend(extracted_codes)
+
+            if role_codes:
+                _validate_type_combination(role_codes)
+
         return self
 
 
@@ -206,8 +226,11 @@ def _raise_validation_error(message: str) -> None:
     raise OperationOutcomeException(outcome)
 
 
-def _validate_organisation_extension(ext: Extension) -> None:
-    """Validate OrganisationRole extension contains required roleCode and TypedPeriod extensions."""
+def _validate_organisation_extension(ext: Extension) -> list[OrganisationTypeCode]:
+    """
+    Validate OrganisationRole extension contains required roleCode and TypedPeriod extensions.
+    Returns list of role codes found in this extension.
+    """
     if not ext.url or ext.url.strip() == "":
         _raise_validation_error(
             "Extension URL must be present and cannot be empty or None"
@@ -231,7 +254,7 @@ def _validate_organisation_extension(ext: Extension) -> None:
         if hasattr(e, "url") and e.url and TYPED_PERIOD_URL in e.url
     ]
 
-    _validate_role_code_extensions_present(role_code_extensions)
+    role_codes = _validate_role_code_extensions_present(role_code_extensions)
 
     if not typed_period_extensions:
         _raise_validation_error(
@@ -249,21 +272,33 @@ def _validate_organisation_extension(ext: Extension) -> None:
             "At least one Typed Period extension should have dateType as Legal"
         )
 
+    return role_codes
+
 
 def _validate_role_code_extensions_present(
     role_code_extensions: list[Extension],
-) -> None:
+) -> list[OrganisationTypeCode]:
+    """
+    Validate role code extensions are present and return the validated codes.
+    """
     if not role_code_extensions:
         _raise_validation_error(
             "OrganisationRole extension must contain at least one roleCode extension"
         )
 
+    role_codes: list[OrganisationTypeCode] = []
     for ext in role_code_extensions:
-        _validate_role_code(ext)
+        role_code = _validate_role_code(ext)
+        role_codes.append(role_code)
+
+    return role_codes
 
 
-def _validate_role_code(ext: Extension) -> None:
-    """Validate roleCode extension contains valid OrganisationTypeCode."""
+def _validate_role_code(ext: Extension) -> OrganisationTypeCode:
+    """
+    Validate roleCode extension contains valid OrganisationTypeCode.
+    Returns the validated OrganisationTypeCode.
+    """
     if not ext.valueCodeableConcept:
         _raise_validation_error("roleCode must have a valueCodeableConcept")
 
@@ -277,9 +312,8 @@ def _validate_role_code(ext: Extension) -> None:
     if not role_code:
         _raise_validation_error("roleCode coding must have a code value")
 
-    # Check if the role code is a valid OrganisationTypeCode enum
     try:
-        OrganisationTypeCode(role_code)
+        return OrganisationTypeCode(role_code)
     except ValueError:
         _raise_validation_error(
             f"Invalid role code: '{role_code}'. Incorrect enum value"
@@ -354,3 +388,59 @@ def _validate_typed_period_extension(ext: Extension) -> bool:
     is_legal = _validate_date_type_coding(date_type_ext)
     _validate_period_dates(period_ext, is_legal)
     return is_legal
+
+
+def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
+    """
+    Validate that a primary type and non-primary roles combination is permitted.
+
+    Args:
+        codes: List of all organization role codes to validate
+
+    Raises:
+        OperationOutcomeException if validation fails
+    """
+    non_primary_role_codes: list[OrganisationTypeCode] = []
+    primary_role_code: OrganisationTypeCode | None = None
+
+    for code in codes:
+        if code in VALID_PRIMARY_TYPE_CODES:
+            if primary_role_code is not None:
+                _raise_validation_error(
+                    "Only one primary role is allowed per organisation"
+                )
+            primary_role_code = code
+        else:
+            non_primary_role_codes.append(code)
+
+    if primary_role_code is None:
+        _raise_validation_error("Primary role code must be provided")
+
+    if (
+        primary_role_code == OrganisationTypeCode.PHARMACY_ROLE_CODE
+        and non_primary_role_codes
+    ):
+        _raise_validation_error(
+            f"{primary_role_code.value} cannot have non-primary roles"
+        )
+
+    if primary_role_code == OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE:
+        if not non_primary_role_codes:
+            _raise_validation_error(
+                f"{primary_role_code.value} must have at least one non-primary role"
+            )
+
+        # Check for duplicate roles
+        if len(non_primary_role_codes) != len(set(non_primary_role_codes)):
+            _raise_validation_error("Duplicate non-primary roles are not allowed")
+
+        # Validate each non-primary role is allowed
+        invalid_roles = [
+            role
+            for role in non_primary_role_codes
+            if role not in PRESCRIBING_COST_CENTRE_ALLOWED_NON_PRIMARY_TYPE_CODES
+        ]
+        if invalid_roles:
+            _raise_validation_error(
+                f"Non-primary role '{invalid_roles[0].value}' is not permitted for primary type '{primary_role_code.value}"
+            )
