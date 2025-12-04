@@ -139,6 +139,16 @@
             "Resource": "*"
         },
         {
+            "Sid": "KMSLimitedAccess",
+            "Effect": "Allow",
+            "Action": [
+                "kms:DescribeKey",
+                "kms:ListKeys",
+                "kms:ListAliases"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "IAMPassRoleLimited",
             "Effect": "Allow",
             "Action": "iam:PassRole",
