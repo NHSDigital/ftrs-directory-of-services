@@ -31,11 +31,12 @@ module "processor_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
-    data.aws_iam_policy_document.sqs_access_policy.json
+    data.aws_iam_policy_document.sqs_access_policy.json,
+    data.aws_iam_policy_document.lambda_kms_access.json
   ]
 
   layers = concat(
@@ -100,10 +101,11 @@ module "queue_populator_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
+    data.aws_iam_policy_document.lambda_kms_access.json
   ]
 
   layers = concat(
@@ -142,10 +144,11 @@ module "rds_event_listener_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.rds_event_listener_sqs_access_policy[0].json,
     data.aws_iam_policy_document.ssm_access_policy[0].json,
+    data.aws_iam_policy_document.lambda_kms_access.json
   ]
 
   environment_variables = {
@@ -179,11 +182,12 @@ module "dms_db_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy_for_dms[0].json,
     data.aws_iam_policy_document.lambda_rds_policy[0].json,
     data.aws_iam_policy_document.rds_connect_policy[0].json,
+    data.aws_iam_policy_document.lambda_kms_access.json
   ]
 
   environment_variables = {
