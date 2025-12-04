@@ -55,7 +55,7 @@ install:
 	docker version
 
 build:
-	docker build --platform linux/amd64 -t ${FULL_IMAGE} ${DOCKER_CONTEXT}
+	docker buildx build --platform linux/amd64,linux/arm64 -t ${FULL_IMAGE} ${DOCKER_CONTEXT}
 	echo "Built image ${FULL_IMAGE}"
 
 	mkdir -p "$(BUILD_OUTPUT_DIR)"
