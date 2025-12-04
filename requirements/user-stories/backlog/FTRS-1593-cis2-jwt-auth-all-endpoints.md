@@ -74,7 +74,7 @@ Implement CIS2 (Care Identity Service 2) OpenID Connect / OAuth2 authentication 
 | -------------------------- | ------------------------------ | -------------------------------------------- |
 | JWKS rotation not detected | Acceptance of revoked/old keys | Miss-trigger refresh + scheduled poll        |
 | Latency overhead too high  | User impact                    | Cache parsed keys; optimise claim extraction |
-| Scope misconfiguration     | Over/under exposure            | Startup config validation & CI tests         |
+| Scope misconfiguration     | Over/under exposure            | Startup configuration validation & CI tests         |
 | Replay attacks             | Privilege misuse               | Optional jti tracking & short token TTL      |
 | Logging sensitive data     | Privacy breach                 | Strict redaction & whitelist logging         |
 

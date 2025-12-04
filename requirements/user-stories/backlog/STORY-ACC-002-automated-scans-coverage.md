@@ -1,9 +1,9 @@
 ---
 story_id: STORY-ACC-002
 jira_key:
-title: Automated scans run across critical pages & browsers
+title: "Automated scans run across critical pages & browsers"
 role: UX Engineer
-goal: Implement and validate: Automated scans run across critical pages & browsers
+goal: "Implement and validate: Automated scans run across critical pages & browsers"
 value: Automated checks catch regressions early
 nfr_refs: [ACC-002]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Automated scans run across critical pages & browsers.
+Implement automated validation for automated scans across critical pages and browsers.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Automated scans run across critical pages & 
 
 ## Non-Functional Acceptance
 
-- Control ID: `automated-scans-coverage`\n- Threshold: Critical pages covered across supported browsers\n- Tooling: CI accessibility suite + cross-browser runners\n- Cadence: CI per build\n- Environments: int, ref
+- Control ID: `automated-scans-coverage`
+- Threshold: Critical pages covered across supported browsers
+- Tooling: CI accessibility suite and cross-browser runners
+- Cadence: CI per build
+- Environments: int, ref
 
 ## Test Strategy
 

@@ -1,0 +1,160 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: GOV-001
+  requirement: Service Management pre-live acceptance signed
+  explanation: Service Management pre-live acceptance is signed off before go-live.
+  stories:
+  - STORY-GOV-001
+  controls:
+  - control_id: service-management-pre-live
+    measure: Service Management pre-live acceptance signed
+    threshold: Acceptance signed; evidence stored
+    tooling: Governance tracker + document repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures service readiness sign-off
+- code: GOV-002
+  requirement: Well-Architected review completed & actions closed
+  explanation: Well-Architected review completed; remediation actions closed.
+  stories:
+  - STORY-GOV-002
+  controls:
+  - control_id: well-architected-review
+    measure: Well-Architected review completed & actions closed
+    threshold: Review complete; actions closed or exceptioned
+    tooling: WAR tool + issue tracker
+    cadence: Pre-live + annual
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Maintains architectural quality
+- code: GOV-003
+  requirement: Solution Architecture Framework assessment approved
+  explanation: Solution Architecture Framework assessment is approved.
+  stories:
+  - STORY-GOV-003
+- code: GOV-004
+  requirement: Engineering Red-lines compliance checklist signed
+  explanation: Engineering red-lines compliance checklist is signed.
+  stories:
+  - STORY-GOV-004
+  controls:
+  - control_id: nhs-github-enterprise-repos
+    measure: All FtRS code repositories are hosted in NHS GitHub Enterprise and comply
+      with securing-repositories policy; engineering dashboards show compliance
+    threshold: 100% repositories on NHS GitHub Enterprise; 100% securing-repositories
+      checks passing; exceptions recorded with owner and review date
+    tooling: Enterprise repository policy audit + engineering compliance dashboards
+      + CI checks
+    cadence: Continuous (CI on change) + quarterly governance review
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise
+      and securing repositories; provides traceable evidence and automated verification
+- code: GOV-005
+  requirement: GDPR compliance assessment signed by IG
+  explanation: GDPR compliance assessment signed by Information Governance.
+  stories:
+  - STORY-GOV-005
+  controls:
+  - control_id: gdpr-assessment-signed
+    measure: GDPR compliance assessment signed by IG
+    threshold: Assessment signed; actions tracked
+    tooling: IG workflow + evidence repository
+    cadence: Pre-live + annual
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures data protection compliance
+- code: GOV-006
+  requirement: Medical Device out-of-scope statement recorded
+  explanation: Statement confirming service is out of scope for Medical Device regulation.
+  stories: []
+- code: GOV-007
+  requirement: FtRS Architects review & approval logged
+  explanation: Architecture review and approval logged by FtRS architects.
+  stories: []
+- code: GOV-008
+  requirement: Cloud Expert deployment approval documented
+  explanation: Cloud expert deployment approval documented (infrastructure readiness).
+  stories: []
+- code: GOV-009
+  requirement: Solution Assurance approval ticket closed
+  explanation: Solution Assurance approval ticket is closed.
+  stories: []
+  controls:
+  - control_id: solution-assurance-approval
+    measure: Solution Assurance approval ticket closed
+    threshold: Approval obtained; ticket closed
+    tooling: Assurance workflow + evidence repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Meets governance approval requirements
+- code: GOV-010
+  requirement: Clinical Safety assurance approval recorded
+  explanation: Clinical Safety assurance approval recorded.
+  stories: []
+  controls:
+  - control_id: clinical-safety-approval
+    measure: Clinical Safety assurance approval recorded
+    threshold: Approval recorded; evidence available
+    tooling: Clinical safety workflow + repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Complies with clinical safety governance
+- code: GOV-011
+  requirement: Information Governance approval recorded
+  explanation: Information Governance approval recorded.
+  stories: []
+- code: GOV-012
+  requirement: TRG approval session outcome logged
+  explanation: Technical Review Group (TRG) approval outcome documented.
+  stories: []
+- code: GOV-013
+  requirement: SIRO sign-off obtained
+  explanation: Senior Information Risk Owner (SIRO) sign-off obtained.
+  stories: []
+- code: GOV-014
+  requirement: Caldicott Principles Guardian approval recorded
+  explanation: Caldicott Guardian approval recorded for data handling.
+  stories: []
+- code: GOV-015
+  requirement: DUEC Assurance Board acceptance logged
+  explanation: DUEC Assurance Board acceptance logged.
+  stories: []
+- code: GOV-016
+  requirement: Live Services Board go-live approval recorded
+  explanation: Live Services Board go-live approval recorded.
+  stories: []

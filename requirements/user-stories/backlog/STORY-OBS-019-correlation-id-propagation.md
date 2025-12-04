@@ -10,8 +10,8 @@ status: draft
 
 ## Acceptance Criteria
 
-1. `correlation_id` present in processor start, transform, save logs and final metrics.
-2. Upsert repository calls include correlation_id in contextual logging.
+1. `correlation ID` present in processor start, transform, save logs and final metrics.
+2. Upsert repository calls include correlation ID in contextual logging.
 3. Validation job samples 1% logs and reports zero missing IDs.
 4. Query example reconstructs full chain for a record.
 

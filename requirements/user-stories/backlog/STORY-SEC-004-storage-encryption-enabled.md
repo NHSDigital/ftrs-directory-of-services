@@ -17,21 +17,21 @@ Implement automated validation ensuring all platform storage services (databases
 
 1. Inventory lists every storage resource with encryption status and KMS key reference.
 2. 100% storage resources show encryption enabled (no exceptions in prod).
-3. AWS Config / policy as code rules detect and flag non-encrypted resources within 5 minutes.
+3. AWS Configuration / policy as code rules detect and flag non-encrypted resources within 5 minutes.
 4. CI policy check blocks merges introducing unencrypted storage definitions.
 5. Drift remediation script can auto-enable encryption where supported (non-destructive).
 6. Dashboard shows real-time compliance percentage and list of violations (empty in steady state).
 7. Weekly compliance report archived with timestamp and tooling version.
 8. Alerts raised if compliance <100% for >10 minutes in prod or <95% in any non-prod environment.
-9. Metrics: `storage_encryption_enabled_compliance_ratio{env}` and `storage_encryption_enabled_violations_total{env}`.
-10. Evidence pack export (CSV/JSON) available for audit containing resource id, env, encryption flag, key id.
+9. Metrics: `storage_encryption_enabled_compliance_ratio{environment}` and `storage_encryption_enabled_violations_total{environment}`.
+10. Evidence pack export (CSV/JSON) available for audit containing resource id, environment, encryption flag, key id.
 
 ## Non-Functional Acceptance
 
 - Control ID: `storage-encryption-enabled`
 - Threshold: 100% encrypted in prod; auto-remediation triggers <100%.
-- Tooling: AWS Config, Terraform policy checks, compliance dashboard, remediation script.
-- Cadence: Continuous monitoring + per-merge policy evaluation + weekly report.
+- Tooling: AWS Configuration, Terraform policy checks, compliance dashboard, remediation script.
+- Cadence: Continuous monitoring and per-merge policy evaluation and weekly report.
 - Environments: dev, int, ref, prod (all monitored; stricter alerting in prod).
 
 ## Test Strategy
@@ -39,15 +39,15 @@ Implement automated validation ensuring all platform storage services (databases
 | Test Type   | Focus                          | Tooling                        |
 | ----------- | ------------------------------ | ------------------------------ |
 | Policy Unit | Detect unencrypted definitions | Terraform compliance tests     |
-| Integration | AWS Config rule firing         | Simulated unencrypted resource |
+| Integration | AWS Configuration rule firing         | Simulated unencrypted resource |
 | Remediation | Auto-enable encryption         | Script dry-run & apply tests   |
 | Reporting   | Accuracy of weekly export      | Snapshot comparison            |
 | Alerting    | Threshold breach triggers      | Metrics injection in staging   |
 
 ## Monitoring & Metrics
 
-- `storage_encryption_enabled_compliance_ratio{env}` gauge
-- `storage_encryption_enabled_violations_total{env}` counter
+- `storage_encryption_enabled_compliance_ratio{environment}` gauge
+- `storage_encryption_enabled_violations_total{environment}` counter
 - Alert: compliance_ratio <1.0 (prod) sustained >10m.
 
 ## Implementation Notes
@@ -62,7 +62,7 @@ Implement automated validation ensuring all platform storage services (databases
 | --------------------------- | ---------------- | --------------------------------------- |
 | Unsupported legacy resource | Partial coverage | Document exceptions & plan migration    |
 | False positives             | Noise            | Rule tuning & allowlist with expiration |
-| Auto-remediation failure    | Non-compliance   | Fallback manual runbook & alerting      |
+| Auto-remediation failure    | Non-compliance   | Fallback manual run book & alerting      |
 
 ## Traceability
 

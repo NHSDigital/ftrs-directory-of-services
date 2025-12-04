@@ -17,7 +17,7 @@ python3 scripts/nfr/refresh_simplified_nfr_page.py
 
 Outputs a Confluence-ready Markdown file summarising:
 
-- All NFR codes grouped by domain from `requirements/nfrs/cross-references/nfr-matrix.md`
+- All NFR codes grouped by domain from schema-backed YAML in `requirements/nfrs/<domain>/nfrs.yaml`
 - Performance Expectations Registry Summary (per-operation targets)
 - Domain Expectations Registry Summaries (Security, Observability, Reliability, Availability, Scalability, Interoperability, Accessibility, Cost, Governance, Compatibility)
 

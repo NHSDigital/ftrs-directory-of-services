@@ -42,7 +42,7 @@ Non-essential (for the operation of your service) data should be considered out 
 
 ## What non data do I need to backup?
 
-The scenarios we are planning for will mean that your production build and source code are not accessible, so teams should backup any other files they need to restore production and keep them in an immutable store for at least 30 days. These items needed to restore the service may include: configuration information, the production build, secrets, certificates. System/release files that that change more slowly should have at least 2 copies kept in an immutable backup store for at least 30 days.
+The scenarios we are planning for will mean that your production build and source code are not accessible, so teams should backup any other files they need to restore production and keep them in an immutable store for at least 30 days. These items needed to restore the service may include: configuration information, the production build, secrets, certificates. System/release files that change more slowly should have at least 2 copies kept in an immutable backup store for at least 30 days.
 
 Note: the GitHub admins are providing a shared solution for immutable backups of repositories in <https://github.com/NHSDigital>
 

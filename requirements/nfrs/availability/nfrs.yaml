@@ -1,0 +1,118 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: AVAIL-001
+  requirement: "Availability report shows \u226599.90% multi-AZ uptime"
+  explanation: "Multi-AZ deployment achieves target uptime (e.g., \u226599.90%)."
+  stories:
+  - STORY-AVAIL-001
+  controls:
+  - control_id: multi-az-uptime-report
+    measure: "Availability report shows \u226599.90% multi-AZ uptime"
+    threshold: '>= 99.90% monthly uptime across multi-AZ deployment'
+    tooling: Uptime monitoring + monthly report automation
+    cadence: Monthly
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Tracks SLA against multi-AZ deployment goals
+- code: AVAIL-002
+  requirement: Region DR simulation meets plan objectives
+  explanation: Disaster recovery (DR) simulation meets documented objectives.
+  stories:
+  - STORY-AVAIL-002
+  controls:
+  - control_id: region-dr-simulation
+    measure: Region DR simulation meets plan objectives
+    threshold: DR exercise meets RTO/RPO targets and user impact objectives
+    tooling: DR runbooks + simulation exercises
+    cadence: Semi-annual
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Validates disaster recovery readiness across regions
+- code: AVAIL-003
+  requirement: Uptime monitoring confirms 24x7 coverage
+  explanation: Continuous uptime monitoring covers 24x7 operations.
+  stories:
+  - STORY-AVAIL-003
+  controls:
+  - control_id: uptime-monitoring-coverage
+    measure: Uptime monitoring confirms 24x7 coverage
+    threshold: 24x7 coverage; alerts configured for service degradation
+    tooling: Uptime monitors + alerting system
+    cadence: Continuous monitoring
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures continuous availability monitoring
+- code: AVAIL-004
+  requirement: "Monthly maintenance minutes \u2264150; single \u226460"
+  explanation: Maintenance windows stay within monthly and per-event minute limits.
+  stories:
+  - STORY-AVAIL-004
+  controls:
+  - control_id: maintenance-window-minutes
+    measure: "Monthly maintenance minutes \u2264150; single \u226460"
+    threshold: "Monthly total \u2264150 minutes; single window \u226460 minutes"
+    tooling: Maintenance logs + reporting
+    cadence: Monthly
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Controls maintenance impact to meet availability objectives
+- code: AVAIL-005
+  requirement: Tuesday window executed; smoke tests pass
+  explanation: Scheduled maintenance executes successfully with passing smoke tests
+    afterward.
+  stories: []
+- code: AVAIL-006
+  requirement: DR exercise restores service <2h
+  explanation: DR exercise restores service within target recovery time (< defined
+    hours).
+  stories: []
+- code: AVAIL-007
+  requirement: "Replication lag \u226460s; fail-over data delta minimal"
+  explanation: Data replication lag remains under target ensuring minimal failover
+    delta.
+  stories: []
+- code: AVAIL-008
+  requirement: API uptime aligns with core service
+  explanation: API uptime aligns with overall service availability target.
+  stories: []
+- code: AVAIL-009
+  requirement: Non-UK access attempts blocked & logged
+  explanation: Access from non-approved geographic regions is blocked and logged.
+  stories: []
+- code: AVAIL-010
+  requirement: Blue/green deployment produces 0 failed requests
+  explanation: Blue/green deployments complete with zero failed user requests.
+  stories: []
+  controls:
+  - control_id: blue-green-zero-failures
+    measure: Blue/green deployment produces 0 failed requests
+    threshold: 0 failed requests during blue/green switch
+    tooling: Deployment controller + canary telemetry
+    cadence: Per deployment
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures safe deployments without user impact

@@ -1,9 +1,9 @@
 ---
 story_id: STORY-ACC-004
 jira_key:
-title: Focus trap tests pass for modals/overlays
+title: "Focus trap tests pass for modals/overlays"
 role: UX Engineer
-goal: Implement and validate: Focus trap tests pass for modals/overlays
+goal: "Implement and validate: Focus trap tests pass for modals/overlays"
 value: Ensures accessible modal behaviour
 nfr_refs: [ACC-010]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Focus trap tests pass for modals/overlays.
+Implement automated validation for focus trap tests for modals and overlays.
 
 ## Acceptance Criteria
 
@@ -25,7 +25,11 @@ Implement automated validation for: Focus trap tests pass for modals/overlays.
 
 ## Non-Functional Acceptance
 
-- Control ID: `focus-trap-tests`\n- Threshold: 100% modals trap focus; 100% allow Esc key escape; focus restoration verified\n- Tooling: Automated focus tests + manual checks\n- Cadence: CI per build + pre-release\n- Environments: int, ref
+- Control ID: `focus-trap-tests`
+- Threshold: 100% modals trap focus; 100% allow Esc key escape; focus restoration verified
+- Tooling: Automated focus tests and manual checks
+- Cadence: CI per build and pre-release
+- Environments: int, ref
 
 ## Test Strategy
 

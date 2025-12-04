@@ -3,7 +3,7 @@ story_id: STORY-SEC-016
 jira_key:
 title: No direct prod console queries detected in audit period
 role: Security Engineer
-goal: Implement and validate: No direct prod console queries detected in audit period
+goal: "Implement and validate: No direct prod console queries detected in audit period"
 value: Detects improper direct access to production consoles
 nfr_refs: [SEC-006]
 status: draft
@@ -17,13 +17,17 @@ Implement automated validation for: No direct prod console queries detected in a
 
 1. 0 non-approved console queries in audit period
 2. Tooling: CloudTrail + SIEM audit queries operational
-3. Cadence: Weekly audit + alerting validated
+3. Cadence: Weekly audit and alerting validated
 4. Environments: prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `prod-console-access-audit`\n- Threshold: 0 non-approved console queries in audit period\n- Tooling: CloudTrail + SIEM audit queries\n- Cadence: Weekly audit + alerting\n- Environments: prod
+- Control ID: `prod-console-access-audit`
+- Threshold: 0 non-approved console queries in audit period
+- Tooling: CloudTrail and SIEM audit queries
+- Cadence: Weekly audit and alerting
+- Environments: prod
 
 ## Test Strategy
 

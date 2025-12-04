@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-026
 jira_key:
-title: Deployment provenance shows unique traceable accounts
+title: "Deployment provenance shows unique traceable accounts"
 role: Security Engineer
-goal: Implement and validate: Deployment provenance shows unique traceable accounts
+goal: "Implement and validate: Deployment provenance shows unique traceable accounts"
 value: Ensures accountability and traceability for all deployments
 nfr_refs: [SEC-023]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: Deployment provenance shows unique traceable
 ## Acceptance Criteria
 
 1. All deployments traceable to unique accounts
-2. Tooling: CI/CD audit trails + commit signing operational
+2. Tooling: CI/CD audit trails and commit signing operational
 3. Cadence: Continuous validated
-4. Environments: dev, int, ref, prod covered
+4. Environments: dev, int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `deployment-provenance-traceable`\n- Threshold: All deployments traceable to unique accounts\n- Tooling: CI/CD audit trails + commit signing\n- Cadence: Continuous\n- Environments: dev, int, ref, prod
+- Control ID: `deployment-provenance-traceable`
+- Threshold: All deployments traceable to unique accounts
+- Tooling: CI/CD audit trails and commit signing
+- Cadence: Continuous
+- Environments: dev, int, ref, production
 
 ## Test Strategy
 

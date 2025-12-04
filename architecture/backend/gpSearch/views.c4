@@ -6,7 +6,6 @@ views {
       API for searching GP services
     '
     include *
-    include ftrs.openSearch
     include ftrs.db
 
     include ftrs

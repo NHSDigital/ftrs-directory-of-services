@@ -3,7 +3,7 @@ story_id: STORY-REL-002
 jira_key:
 title: Batch suspend/resume preserves data integrity
 role: SRE
-goal: Implement and validate: Batch suspend/resume preserves data integrity
+goal: "Implement and validate: Batch suspend/resume preserves data integrity"
 value: Ensures reliable batch operations
 nfr_refs: [REL-010]
 status: draft
@@ -23,7 +23,11 @@ Implement automated validation for: Batch suspend/resume preserves data integrit
 
 ## Non-Functional Acceptance
 
-- Control ID: `batch-suspend-resume-integrity`\n- Threshold: 0 data loss; consistent resume and reconciliation\n- Tooling: Batch controller + integrity checks\n- Cadence: Release cycle validation\n- Environments: int, ref
+- Control ID: `batch-suspend-resume-integrity`
+- Threshold: 0 data loss; consistent resume and reconciliation
+- Tooling: Batch controller and integrity checks
+- Cadence: Release cycle validation
+- Environments: int, ref
 
 ## Test Strategy
 

@@ -35,4 +35,4 @@ Defines mandatory telemetry set (key service metrics, structured logs, distribut
 - Valuable: Faster mean time to detect & uniform visibility.
 - Estimable: Template definition + automation + review task.
 - Small: Bounded to baseline creation and onboarding hook.
-- Testable: Template repo, generated dashboard, alert configuration.
+- Testable: Template repository, generated dashboard, alert configuration.

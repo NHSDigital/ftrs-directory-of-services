@@ -4,7 +4,7 @@ jira_key:
 title: crud-apis org-search-ods Performance
 role: API Consumer
 goal: Receive response from org-search-ods within performance targets
-value: ODS code normalization + single index scan
+value: ODS code normalization and single index scan
 nfr_refs: [PERF-001]
 status: draft
 ---
@@ -22,7 +22,11 @@ Implement and validate performance for crud-apis operation: org-search-ods.
 
 ## Non-Functional Acceptance
 
-- Operation ID: `org-search-ods`\n- Service: crud-apis\n- p50: ≤60ms\n- p95: ≤140ms\n- Max: ≤400ms
+- Operation ID: `org-search-ods`
+- Service: crud-apis
+- p50: ≤60ms
+- p95: ≤140ms
+- Max: ≤400ms
 
 ## Test Strategy
 
@@ -38,7 +42,7 @@ Implementation details to be refined during sprint planning
 
 ## Implementation Notes
 
-- ODS code normalization + single index scan
+- ODS code normalization and single index scan
 - Service: crud-apis
 - Path: /Organization?identifier=odsOrganisationCode|{code}
 - Method: GET

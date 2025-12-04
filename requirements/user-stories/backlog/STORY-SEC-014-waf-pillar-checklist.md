@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-014
 jira_key:
-title: WAF security pillar checklist completed & gaps tracked
+title: "WAF security pillar checklist completed and gaps tracked"
 role: Security Engineer
-goal: Implement and validate: WAF security pillar checklist completed & gaps tracked
+goal: "Implement and validate: WAF security pillar checklist completed and gaps tracked"
 value: Formalizes WAF security governance; gaps tracked to closure
 nfr_refs: [SEC-002]
 status: draft
@@ -23,7 +23,11 @@ Implement automated validation for: WAF security pillar checklist completed & ga
 
 ## Non-Functional Acceptance
 
-- Control ID: `waf-pillar-checklist`\n- Threshold: Checklist complete; 100% actions tracked; 0 open critical gaps\n- Tooling: WAF checklist repository + issue tracker gate\n- Cadence: Quarterly + on change\n- Environments: dev, int, ref, prod
+- Control ID: `waf-pillar-checklist`
+- Threshold: Checklist complete; 100% actions tracked; 0 open critical gaps
+- Tooling: WAF checklist repository and issue tracker gate
+- Cadence: Quarterly and on change
+- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

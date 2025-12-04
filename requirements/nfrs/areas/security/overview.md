@@ -24,7 +24,7 @@ legitimate clinical and operational workflows.
 
 | Code    | Requirement                                                                                                         | Rationale                                                       | Verification                                              | Tags                     |
 | ------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------- | ------------------------ |
-| SEC-001 | Use NHSE approved cryptographic algorithms (GPG v4.0) for all encryption features (application + cloud provider).   | Align with organisational policy; prevent weak cipher adoption. | Config inspection; automated crypto policy audit.         | encryption, policy       |
+| SEC-001 | Use NHSE approved cryptographic algorithms (GPG v4.0) for all encryption features (application + cloud provider).   | Align with organisational policy; prevent weak cipher adoption. | Configuration inspection; automated crypto policy audit.         | encryption, policy       |
 | SEC-002 | Align solution design with cloud Well-Architected Framework security pillar guidance (design→delivery→maintenance). | Embed best practice early, reduce rework/security debt.         | Architecture review checklist; periodic WAF gap analysis. | architecture, governance |
 
 ## 2. Data Security
@@ -32,8 +32,8 @@ legitimate clinical and operational workflows.
 | Code    | Requirement                                                                                    | Rationale                                    | Verification                                                     | Tags                   |
 | ------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ---------------------- |
 | SEC-003 | Encrypt data in transit (TLS1.2+, prefer TLS1.3) between all components (internal & external). | Prevent interception / tampering.            | Automated endpoint scan; failed HTTP downgrade tests.            | encryption, transit    |
-| SEC-004 | Encrypt data at rest for all persistence layers.                                               | Mitigate data exposure on media loss.        | Cloud KMS config + storage service encryption flags.             | encryption, at-rest    |
-| SEC-005 | Enforce strict environment data isolation (each env accesses only its own data).               | Contain impact radius; support safe testing. | IAM policy diff; attempted cross-env access negative tests.      | isolation, environment |
+| SEC-004 | Encrypt data at rest for all persistence layers.                                               | Mitigate data exposure on media loss.        | Cloud KMS configuration + storage service encryption flags.             | encryption, at-rest    |
+| SEC-005 | Enforce strict environment data isolation (each environment accesses only its own data).               | Contain impact radius; support safe testing. | IAM policy diff; attempted cross-environment access negative tests.      | isolation, environment |
 | SEC-006 | Disallow direct human access to production data stores (no raw console queries).               | Reduce insider & accidental risk.            | Audit of break-glass approvals; absence of interactive sessions. | least-privilege, ops   |
 
 ## 3. Network Security
@@ -41,7 +41,7 @@ legitimate clinical and operational workflows.
 | Code    | Requirement                                                                                                                       | Rationale                            | Verification                                    | Tags                     |
 | ------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------- | ------------------------ |
 | SEC-007 | Apply least-privilege firewall/security group rules per compute resource; deny by default.                                        | Minimise lateral movement.           | IaC policy lint; security group diff scanning.  | network, least-privilege |
-| SEC-008 | Secure all inbound/outbound connectivity (VPN, public internet) with authentication & encryption; forbid broad subnet whitelists. | Prevent unauthorised ingress/egress. | Pen test; config scan for 0.0.0.0/0 exceptions. | perimeter, vpn           |
+| SEC-008 | Secure all inbound/outbound connectivity (VPN, public internet) with authentication & encryption; forbid broad subnet whitelists. | Prevent unauthorised ingress/egress. | Pen test; configuration scan for 0.0.0.0/0 exceptions. | perimeter, vpn           |
 
 ## 4. Application Security
 
@@ -56,14 +56,14 @@ legitimate clinical and operational workflows.
 
 | Code    | Requirement                                                                                                             | Rationale                                         | Verification                                                          | Tags           |
 | ------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------- | -------------- |
-| SEC-013 | Restrict cryptographic key access (RBAC + least privilege); support secure generation, rotation, archival and deletion. | Prevent key compromise; ensure lifecycle hygiene. | KMS key rotation config; access audit logs; rotation success metrics. | kms, lifecycle |
+| SEC-013 | Restrict cryptographic key access (RBAC + least privilege); support secure generation, rotation, archival and deletion. | Prevent key compromise; ensure lifecycle hygiene. | KMS key rotation configuration; access audit logs; rotation success metrics. | kms, lifecycle |
 
 ## 6. Certificate Management
 
 | Code    | Requirement                                                                 | Rationale                         | Verification                                             | Tags                     |
 | ------- | --------------------------------------------------------------------------- | --------------------------------- | -------------------------------------------------------- | ------------------------ |
 | SEC-014 | Use certificates for mutual authentication between relevant FtRS resources. | Assure endpoint identity.         | mTLS handshake tests; cert validation logs.              | certificates, mTLS       |
-| SEC-015 | Provide proactive certificate expiry alerting and seamless renewal process. | Avoid outage due to expired cert. | Monitoring alert test; renewal runbook execution record. | certificates, operations |
+| SEC-015 | Provide proactive certificate expiry alerting and seamless renewal process. | Avoid outage due to expired cert. | Monitoring alert test; renewal run book execution record. | certificates, operations |
 
 ## 7. Infrastructure Access Management
 
@@ -103,7 +103,7 @@ legitimate clinical and operational workflows.
 | Code    | Requirement                                                                                                                                                                 | Rationale                                                                                      | Verification                                                                                                                            | Tags                           |
 | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
 | SEC-029 | Enforce CIS2 JWT authentication (signature, issuer, audience, assurance claim) on 100% API endpoints; reject invalid/missing tokens with structured errors.                 | Universal strong auth prevents unauthorized access & supports consistent audit.                | JWT validator integration tests (positive/negative); structured 401/403 OperationOutcome responses; runtime metrics for token failures. | authentication, jwt, cis2      |
-| SEC-030 | Store all certificates and private keys only in approved encrypted secret stores (e.g. AWS Secrets Manager/KMS); zero plaintext exposure in repos, images, logs, artifacts. | Eliminates risk of credential/key exfiltration; ensures controlled lifecycle & rapid rotation. | Secret scanning (git history + diffs); container layer scan; artifact/log redaction checks; inventory vs secret ARN compliance script.  | certificates, secrets, storage |
+| SEC-030 | Store all certificates and private keys only in approved encrypted secret stores (e.g. AWS Secrets Manager/KMS); zero plain text exposure in repos, images, logs, artifacts. | Eliminates risk of credential/key exfiltration; ensures controlled lifecycle & rapid rotation. | Secret scanning (git history + diffs); container layer scan; artifact/log redaction checks; inventory vs secret ARN compliance script.  | certificates, secrets, storage |
 
 ## Glossary (Selected)
 

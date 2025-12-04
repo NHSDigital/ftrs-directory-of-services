@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SCAL-003
 jira_key:
-title: Autoscaling policy simulation triggers controlled scale
+title: "Autoscaling policy simulation triggers controlled scale"
 role: Platform Engineer
-goal: Implement and validate: Autoscaling policy simulation triggers controlled scale
+goal: "Implement and validate: Autoscaling policy simulation triggers controlled scale"
 value: Confirms autoscaling tuning
 nfr_refs: [SCAL-005]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: Autoscaling policy simulation triggers contr
 ## Acceptance Criteria
 
 1. Policy simulates expected scale events; no flapping
-2. Tooling: Policy simulator + metrics operational
+2. Tooling: Policy simulator and metrics operational
 3. Cadence: Quarterly validated
 4. Environments: int, ref covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `autoscaling-policy-simulation`\n- Threshold: Policy simulates expected scale events; no flapping\n- Tooling: Policy simulator + metrics\n- Cadence: Quarterly\n- Environments: int, ref
+- Control ID: `autoscaling-policy-simulation`
+- Threshold: Policy simulates expected scale events; no flapping
+- Tooling: Policy simulator and metrics
+- Cadence: Quarterly
+- Environments: int, ref
 
 ## Test Strategy
 

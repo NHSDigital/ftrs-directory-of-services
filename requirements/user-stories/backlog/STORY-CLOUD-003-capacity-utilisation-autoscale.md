@@ -33,6 +33,6 @@ Ensures horizontal/vertical autoscaling policies reduce off-peak capacity footpr
 - Independent: Only depends on metrics export availability.
 - Negotiable: Exact % targets and dashboard fields.
 - Valuable: Direct cloud spend reduction & efficiency insight.
-- Estimable: Scaling policy config + dashboard build.
+- Estimable: Scaling policy configuration + dashboard build.
 - Small: Constrained to metrics + policy tuning.
 - Testable: Cost report, utilisation panel, scaling event logs.

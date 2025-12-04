@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COMP-002
 jira_key:
-title: MFA (CIS2) succeeds across supported platforms
+title: "MFA (CIS2) succeeds across supported platforms"
 role: QA Engineer
-goal: Implement and validate: MFA (CIS2) succeeds across supported platforms
+goal: "Implement and validate: MFA (CIS2) succeeds across supported platforms"
 value: Ensures authentication compatibility
 nfr_refs: [COMP-002]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: MFA (CIS2) succeeds across supported platforms.
+Implement automated validation for MFA (CIS2) success across supported platforms.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: MFA (CIS2) succeeds across supported platfor
 
 ## Non-Functional Acceptance
 
-- Control ID: `mfa-platforms`\n- Threshold: MFA journeys pass across supported platforms\n- Tooling: Cross-platform test suite + identity provider logs\n- Cadence: Release cycle\n- Environments: int, ref, prod
+- Control ID: `mfa-platforms`
+- Threshold: MFA journeys pass across supported platforms
+- Tooling: Cross-platform test suite and identity provider logs
+- Cadence: Release cycle
+- Environments: int, ref, prod
 
 ## Test Strategy
 

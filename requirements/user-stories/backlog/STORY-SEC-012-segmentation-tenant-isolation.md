@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-012
 jira_key:
-title: Segmentation test confirms tenant isolation
+title: "Segmentation test confirms tenant isolation"
 role: Security Engineer
-goal: Implement and validate: Segmentation test confirms tenant isolation
+goal: "Implement and validate: Segmentation test confirms tenant isolation"
 value: Ensures strict isolation between tenants per policy
 nfr_refs: [SEC-019]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: Segmentation test confirms tenant isolation.
 ## Acceptance Criteria
 
 1. 100% isolation; no cross-tenant data access observed
-2. Tooling: Segmentation test suite + log verification operational
+2. Tooling: Segmentation test suite and log verification operational
 3. Cadence: Quarterly validated
-4. Environments: int, ref, prod covered
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `segmentation-tenant-isolation`\n- Threshold: 100% isolation; no cross-tenant data access observed\n- Tooling: Segmentation test suite + log verification\n- Cadence: Quarterly\n- Environments: int, ref, prod
+- Control ID: `segmentation-tenant-isolation`
+- Threshold: 100% isolation; no cross-tenant data access observed
+- Tooling: Segmentation test suite and log verification
+- Cadence: Quarterly
+- Environments: int, ref, production
 
 ## Test Strategy
 

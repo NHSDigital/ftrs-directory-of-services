@@ -4,7 +4,7 @@ jira_key:
 title: etl-ods ods-batch-transform Performance
 role: API Consumer
 goal: Receive response from ods-batch-transform within performance targets
-value: Mapping + normalization + extension filtering
+value: Mapping and normalization and extension filtering
 nfr_refs: [PERF-001]
 status: draft
 ---
@@ -22,7 +22,11 @@ Implement and validate performance for etl-ods operation: ods-batch-transform.
 
 ## Non-Functional Acceptance
 
-- Operation ID: `ods-batch-transform`\n- Service: etl-ods\n- p50: ≤200ms\n- p95: ≤600ms\n- Max: ≤1200ms
+- Operation ID: `ods-batch-transform`
+- Service: etl-ods
+- p50: ≤200ms
+- p95: ≤600ms
+- Max: ≤1200ms
 
 ## Test Strategy
 
@@ -38,7 +42,7 @@ Implementation details to be refined during sprint planning
 
 ## Implementation Notes
 
-- Mapping + normalization + extension filtering
+- Mapping and normalization and extension filtering
 - Service: etl-ods
 - Path: processor:batch-transform
 - Method: OPERATION

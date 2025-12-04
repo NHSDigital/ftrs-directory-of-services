@@ -795,13 +795,13 @@ pip install PyYAML  # if yaml import missing
 - Jira Summary = story title.
 - Jira Description = exported block (trim internal-only notes if undesired).
 - Labels (optional): `spec-derived`, `nfr:<CODE>`.
-- Link EPIC manually; include relative repo path to spec for traceability.
+- Link EPIC manually; include relative repository path to spec for traceability.
 
 ### After Keys Allocated
 
 1. Amend commit messages going forward to include Jira key.
 2. Optionally interactive rebase to retrofit past commits (only if governance demands).
-3. Keep repo artefacts as canonical even after Jira population.
+3. Keep repository artefacts as canonical even after Jira population.
 
 ### Future Enhancements
 

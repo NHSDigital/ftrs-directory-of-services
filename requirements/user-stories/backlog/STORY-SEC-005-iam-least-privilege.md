@@ -3,7 +3,7 @@ story_id: STORY-SEC-005
 jira_key:
 title: IAM policy review confirms least privilege for system roles
 role: Security Engineer
-goal: Implement and validate: IAM policy review confirms least privilege for system roles
+goal: "Implement and validate: IAM policy review confirms least privilege for system roles"
 value: Continuous analysis prevents privilege creep; periodic review catches drift
 nfr_refs: [SEC-012]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: IAM policy review confirms least privilege f
 ## Acceptance Criteria
 
 1. > = 95% policies compliant; no wildcard resource; explicit actions only
-2. Tooling: IAM Access Analyzer + policy linters operational
-3. Cadence: CI per change + quarterly audit validated
+2. Tooling: IAM Access Analyzer and policy linters operational
+3. Cadence: CI per change and quarterly audit validated
 4. Environments: dev, int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `iam-least-privilege`\n- Threshold: >= 95% policies compliant; no wildcard resource; explicit actions only\n- Tooling: IAM Access Analyzer + policy linters\n- Cadence: CI per change + quarterly audit\n- Environments: dev, int, ref, prod
+- Control ID: `iam-least-privilege`
+- Threshold: ≥95% policies compliant; no wildcard resource; explicit actions only
+- Tooling: IAM Access Analyzer and policy linters
+- Cadence: CI per change and quarterly audit
+- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

@@ -1,24 +1,31 @@
 ---
-code: STORY-SOFT-005
-as_a: Platform_Engineer
-
-i_want: automate_repetitive_operational_tasks
-so_that: human_error_and_lead_time_are_reduced
-business_value: Frees capacity and increases reliability
+story_id: STORY-SOFT-005
+title: "Automate repetitive operational tasks"
+role: Platform Engineer
+goal: "Automate repetitive operational tasks"
+value: Frees capacity and increases reliability
 nfr_refs: [NFR-SOFT-AUTOMATE-EVERYTHING-01]
-nfr_tags: [software-management, automation]
-acceptance_criteria:
-
-- GIVEN task classification WHEN repetitive and scriptable THEN automation candidate tracked
-- GIVEN automation implementation WHEN complete THEN manual path deprecated and documented
-- GIVEN quarterly metrics WHEN reviewed THEN % automated tasks trending upward
-  out_of_scope:
-- Fully autonomous remediation without human oversight
-  notes: |
-  Evidence: candidate list, automation scripts repo, metrics dashboard.
-
+status: draft
 ---
 
-# Summary
+## Description
+
+Systematic automation of repetitive operational activities.
+
+## Acceptance Criteria
+
+1. GIVEN task classification WHEN repetitive and scriptable THEN the automation candidate is tracked
+2. GIVEN an automation implementation WHEN complete THEN the manual path is deprecated and documented
+3. GIVEN quarterly metrics WHEN reviewed THEN the percentage of automated tasks trends upward
+
+## Out of Scope
+
+- Fully autonomous remediation without human oversight
+
+## Implementation Notes
+
+- Evidence: candidate list, automation scripts repository, metrics dashboard
+
+## Summary
 
 Systematic automation of repetitive operational activities.

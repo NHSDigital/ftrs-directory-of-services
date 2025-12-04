@@ -1,0 +1,161 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: REL-001
+  requirement: Health checks, multi-AZ deployment documented
+  explanation: Service remains healthy across multiple availability zones with verified
+    health checks.
+  stories: []
+- code: REL-002
+  requirement: AZ failure simulation maintains service
+  explanation: Simulated AZ failure does not interrupt service delivery.
+  stories:
+  - STORY-REL-001
+  controls:
+  - control_id: az-failure-simulation
+    measure: AZ failure simulation maintains service
+    threshold: Successful failover with sustained service availability; no data loss
+    tooling: Chaos simulation + health checks
+    cadence: Quarterly exercise
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Validates resilience to Availability Zone failures
+- code: REL-003
+  requirement: Lifecycle reliability checklist completed
+  explanation: Lifecycle reliability checklist is completed for the service components.
+  stories: []
+- code: REL-004
+  requirement: DoS simulation mitigated; service responsive
+  explanation: Denial-of-service (DoS) simulation shows successful mitigation and
+    continued responsiveness.
+  stories: []
+- code: REL-005
+  requirement: Injection attempt blocked; no code execution
+  explanation: Injection attacks are blocked, preventing arbitrary code execution
+    attempts.
+  stories: []
+- code: REL-006
+  requirement: Placement scan shows no forbidden co-residency
+  explanation: Resource placement scan shows no forbidden co-residency (e.g., sensitive
+    + public workloads).
+  stories: []
+- code: REL-007
+  requirement: Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst
+    capacity; rate limits + alerts)
+  explanation: Brute force or auth anomaly attempts are rate limited and create alerts.
+  stories:
+  - FTRS-1598
+  controls:
+  - control_id: auth-brute-force-protection
+    measure: Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate
+      burst supported)
+    threshold: "Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert\
+      \ \u226430s; \u22641% false positives"
+    tooling: Auth gateway rate limiter + anomaly aggregator + performance harness
+      + alerting
+    cadence: Continuous runtime enforcement + daily compliance script
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    - dos-ingestion-api
+    - etl-ods
+    - read-only-viewer
+    status: draft
+    rationale: Protects availability & integrity under authentication attack patterns
+- code: REL-008
+  requirement: MITM attempt fails; pinned cert validation passes
+  explanation: Man-in-the-middle (MITM) attempts fail due to secure certificate pinning.
+  stories: []
+- code: REL-009
+  requirement: Iframe embed blocked; headers verified
+  explanation: UI prevents iframe embedding (clickjacking) via secure headers.
+  stories: []
+- code: REL-010
+  requirement: Batch suspend/resume preserves data integrity
+  explanation: Pausing and resuming batch jobs does not corrupt or lose data.
+  stories:
+  - STORY-REL-002
+  controls:
+  - control_id: batch-suspend-resume-integrity
+    measure: Batch suspend/resume preserves data integrity
+    threshold: 0 data loss; consistent resume and reconciliation
+    tooling: Batch controller + integrity checks
+    cadence: Release cycle validation
+    environments:
+    - int
+    - ref
+    services:
+    - etl-ods
+    status: draft
+    rationale: Ensures reliable batch operations
+- code: REL-011
+  requirement: Unhealthy node auto-replaced; workload continues
+  explanation: Unhealthy nodes are automatically replaced with workload continuity.
+  stories:
+  - STORY-REL-003
+  controls:
+  - control_id: unhealthy-node-auto-replace
+    measure: Unhealthy node auto-replaced; workload continues
+    threshold: Auto-replacement within policy; no user-visible downtime
+    tooling: Autoscaling group events + workload health
+    cadence: Continuous monitoring + quarterly drill
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Maintains reliability during node failures
+- code: REL-012
+  requirement: Single node removal shows stable performance & zero data loss
+  explanation: Removing a single node yields no data loss and minimal performance
+    impact.
+  stories: []
+- code: REL-013
+  requirement: Tier failure graceful degradation & recovery evidenced
+  explanation: Tier failure triggers graceful degradation and later clean recovery.
+  stories:
+  - STORY-REL-004
+  controls:
+  - control_id: tier-failure-graceful-degrade
+    measure: Tier failure graceful degradation & recovery evidenced
+    threshold: Documented fallback; recovery time within SLA
+    tooling: Chaos experiments + observability evidence
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Demonstrates graceful degradation patterns
+- code: REL-014
+  requirement: External outage shows fallback & user messaging
+  explanation: External dependency outage invokes fallback and clear user messaging.
+  stories: []
+- code: REL-015
+  requirement: LB failure retains sessions & continues routing
+  explanation: Load balancer failure preserves sessions and maintains routing continuity.
+  stories: []
+- code: REL-016
+  requirement: Server error shows logout/message per spec
+  explanation: Server error paths show expected logout or user messaging per specification.
+  stories:
+  - STORY-REL-016
+- code: REL-017
+  requirement: Restore drill meets RPO/RTO & ransomware defenses
+  explanation: Restore drills meet RPO/RTO targets and confirm ransomware defenses.
+  stories: []

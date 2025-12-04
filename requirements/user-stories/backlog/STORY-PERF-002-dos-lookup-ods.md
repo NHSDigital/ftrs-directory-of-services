@@ -4,7 +4,7 @@ jira_key:
 title: dos-search ODS lookup Performance
 role: API Consumer
 goal: Receive response from ODS lookup query within performance targets
-value: Direct ODS code lookup; largely cacheable
+value: Direct ODS code lookup; largely cache-able
 nfr_refs: [PERF-001]
 status: draft
 ---
@@ -44,13 +44,13 @@ Implementation details to be refined during sprint planning
 
 ## Implementation Notes
 
-- Direct ODS code lookup; largely cacheable
+- Direct ODS code lookup; largely cache-able
 - Service: dos-search
 - Path: /dos-search/ods/{code}
 - Method: GET
 - Concurrency profile: burst-60 steady-15
 - Status: draft
-- Rename plan: update expectations.yaml operations in next registry version (perf v1.5)
+- Rename plan: update expectations.yaml operations in next registry version (performance v1.5)
 
 ## Monitoring & Metrics
 

@@ -29,7 +29,7 @@ Implement and validate protections so that brute force or anomalous authenticati
 12. Audit logs record blocked attempts (IP hash, principal hash, reason) without storing raw secrets or passwords.
 13. System supports adaptive escalation: automatically tighten per-IP threshold when global anomaly condition active.
 14. Daily compliance script validates thresholds match documented values and warns on drift.
-15. Documentation updated: attack classes, threshold values, false positive tuning guidance, recovery/runbook.
+15. Documentation updated: attack classes, threshold values, false positive tuning guidance, recovery/run book.
 
 ## Non-Functional Acceptance
 

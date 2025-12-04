@@ -46,7 +46,7 @@ Generated from security/expectations.yaml controls covering:
 
 ### Reliability (REL) - 4 stories
 
-Focus: Resilience, failover, and graceful degradation
+Focus: Resilience, fail-over, and graceful degradation
 
 Generated from reliability/expectations.yaml controls:
 

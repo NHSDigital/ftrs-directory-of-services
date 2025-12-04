@@ -38,7 +38,7 @@ Governance ensures structured decision making, accountability, and adherence to 
 | GOV-011 | Information Governance approval                     | Uphold data governance & privacy        | IG approval ticket & evidences          |
 | GOV-012 | TRG approval                                        | Adhere to technical standards           | TRG session notes & outcome             |
 | GOV-013 | SIRO sign-off                                       | Senior accountability for info risk     | SIRO signed record                      |
-| GOV-014 | Caldicott Guardian approval                         | Ethical handling of confidential data   | Approval statement & minutes            |
+| GOV-014 | Caldicott Principles Guardian approval                         | Ethical handling of confidential data   | Approval statement & minutes            |
 | GOV-015 | DUEC Assurance Board acceptance                     | Satisfy domain-specific criteria        | Board decision log & conditions tracked |
 | GOV-016 | Live Services Board go-live approval                | Authorise production operation          | Board approval record & action closure  |
 

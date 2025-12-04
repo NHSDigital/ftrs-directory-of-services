@@ -23,7 +23,7 @@ Implement end-to-end automation that tracks every TLS/mTLS certificate (public e
 6. Zero expired certificates in dev/int/ref/prod during continuous monitoring period (rolling 90-day window).
 7. Renewal pipeline artifacts omit private key material (only fingerprint, serial, not full PEM) and are retained <30 days.
 8. Post-renewal validation: endpoint handshake shows new cert; CRL/OCSP validity check passes; certificate chain matches approved ITOC CA where mandated (SEC-014 alignment).
-9. Metrics exposed: `cert_expiry_days_remaining{service,env}` gauge per cert; `cert_renewal_success_total{service}` counter; `cert_renewal_failure_total{reason}` counter; `cert_expiry_alerts_total{severity}` counter.
+9. Metrics exposed: `cert_expiry_days_remaining{service,environment}` gauge per cert; `cert_renewal_success_total{service}` counter; `cert_renewal_failure_total{reason}` counter; `cert_expiry_alerts_total{severity}` counter.
 10. Dashboard visualizes: approaching-expiry certificates (<=60 days), renewal status, failures grouped by reason.
 11. Weekly report summarises renewals executed, upcoming escalations, any anomalies; stored with timestamp and tooling version.
 12. Manual certificate entries (non-automated) produce an audit task before escalation threshold; missing completion auto-escalates to critical.
@@ -51,7 +51,7 @@ Implement end-to-end automation that tracks every TLS/mTLS certificate (public e
 
 ## Monitoring & Metrics
 
-- `cert_expiry_days_remaining{service,env}`
+- `cert_expiry_days_remaining{service,environment}`
 - `cert_renewal_success_total{service}` / `cert_renewal_failure_total{reason}`
 - `cert_expiry_alerts_total{severity}`
 - SLO: 100% of certificates renewed before critical threshold (no <=14d without scheduled job)

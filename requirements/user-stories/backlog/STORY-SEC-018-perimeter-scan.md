@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-018
 jira_key:
-title: Perimeter scan shows no broad whitelist & secure channels
+title: "Perimeter scan shows no broad whitelist and secure channels"
 role: Security Engineer
-goal: Implement and validate: Perimeter scan shows no broad whitelist & secure channels
+goal: "Implement and validate: Perimeter scan shows no broad whitelist and secure channels"
 value: Confirms perimeter hygiene and secure external exposure
 nfr_refs: [SEC-008]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Perimeter scan shows no broad whitelist & secure channels.
+Implement automated validation for: Perimeter scan shows no broad whitelist and secure channels.
 
 ## Acceptance Criteria
 
 1. No broad whitelists; only secure channels reported
-2. Tooling: External perimeter scanner + config validation operational
-3. Cadence: Monthly + on change validated
-4. Environments: int, ref, prod covered
+2. Tooling: External perimeter scanner and configuration validation operational
+3. Cadence: Monthly and on change validated
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `perimeter-scan`\n- Threshold: No broad whitelists; only secure channels reported\n- Tooling: External perimeter scanner + config validation\n- Cadence: Monthly + on change\n- Environments: int, ref, prod
+- Control ID: `perimeter-scan`
+- Threshold: No broad whitelists; only secure channels reported
+- Tooling: External perimeter scanner and configuration validation
+- Cadence: Monthly and on change
+- Environments: int, ref, production
 
 ## Test Strategy
 
@@ -40,7 +44,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Confirms perimeter hygiene and secure external exposure
-- Cadence: Monthly + on change
+- Cadence: Monthly and on change
 - Status: draft
 
 ## Monitoring & Metrics

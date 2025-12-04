@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+if [ -x "$ROOT_DIR/.venv/bin/python" ]; then
+  PY_BIN="$ROOT_DIR/.venv/bin/python"
+else
+  PY_BIN="python3"
+fi
+
+echo "Running NFR YAML validator before push..."
+$PY_BIN "$ROOT_DIR/scripts/nfr/validate_nfrs_yaml.py" || {
+  echo "NFR YAML validation failed. Aborting push." >&2
+  exit 1
+}
+echo "NFR YAML validation passed. Proceeding with push."

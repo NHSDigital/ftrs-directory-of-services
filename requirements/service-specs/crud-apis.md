@@ -111,7 +111,7 @@ Inherited platform controls (TLS, authentication boundary) enforced upstream. Pi
 | --------- | ----------------------------------------------- | ---------------- |
 | STORY-208 | ODS identifier normalisation & logging          | INT-006, OBS-019 |
 | STORY-209 | Organisation update OperationOutcome semantics  | INT-005, REL-016 |
-| STORY-210 | FHIR bundle mapping & UKCore validation         | INT-001, INT-004 |
+| STORY-210 | FHIR bundle mapping & UK Core validation         | INT-001, INT-004 |
 | STORY-211 | FHIR content negotiation enforcement            | INT-007          |
 | STORY-212 | Payload input validation (create/update)        | INT-017          |
 | STORY-213 | Structured logging across CRUD operations       | OBS-014, OBS-019 |
@@ -144,9 +144,9 @@ This section translates the higher-level spec into concrete build steps a develo
 
 ### 14.1 Environment & Project Setup
 
-1. From repo root: `cd services/crud-apis/organisations` (or `location`, `healthcare_service`).
+1. From repository root: `cd services/crud-apis/organisations` (or `location`, `healthcare_service`).
 2. Install deps: `poetry install`.
-3. Activate env: `eval $(poetry env activate)`.
+3. Activate environment: `eval $(poetry environment activate)`.
 4. Run unit tests baseline: `pytest -q` (should pass existing tests).
 
 ### 14.2 Common Coding Conventions

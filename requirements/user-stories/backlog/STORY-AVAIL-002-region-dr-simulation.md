@@ -1,9 +1,9 @@
 ---
 story_id: STORY-AVAIL-002
 jira_key:
-title: Region DR simulation meets plan objectives
+title: "Region DR simulation meets plan objectives"
 role: SRE
-goal: Implement and validate: Region DR simulation meets plan objectives
+goal: "Implement and validate: Region DR simulation meets plan objectives"
 value: Validates disaster recovery readiness across regions
 nfr_refs: [AVAIL-002]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Region DR simulation meets plan objectives.
+Implement automated validation for region DR simulations meeting plan objectives.
 
 ## Acceptance Criteria
 
@@ -24,7 +24,11 @@ Implement automated validation for: Region DR simulation meets plan objectives.
 
 ## Non-Functional Acceptance
 
-- Control ID: `region-dr-simulation`\n- Threshold: RTO ≤2h; RPO ≤60s; exercise passes all objectives\n- Tooling: DR runbooks + simulation exercises\n- Cadence: Semi-annual\n- Environments: int, ref
+- Control ID: `region-dr-simulation`
+- Threshold: RTO ≤2h; RPO ≤60s; exercise passes all objectives
+- Tooling: DR run books and simulation exercises
+- Cadence: Semi-annual
+- Environments: int, ref
 
 ## Test Strategy
 

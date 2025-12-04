@@ -1,9 +1,9 @@
 ---
 story_id: STORY-INT-003
 jira_key:
-title: Reference data sync latency ≤24h
+title: "Reference data sync latency ≤24h"
 role: Integration Engineer
-goal: Implement and validate: Reference data sync latency ≤24h
+goal: "Implement and validate: Reference data sync latency ≤24h"
 value: Timely reference data ensures correct behaviour
 nfr_refs: [INT-008]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Reference data sync latency ≤24h.
+Implement automated validation for Reference data sync latency ≤24h.
 
 ## Acceptance Criteria
 
 1. Sync completes within 24 hours
-2. Tooling: ETL scheduler + latency report operational
+2. Tooling: ETL scheduler and latency report operational
 3. Cadence: Daily validated
 4. Environments: prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `reference-data-sync-latency`\n- Threshold: Sync completes within 24 hours\n- Tooling: ETL scheduler + latency report\n- Cadence: Daily\n- Environments: prod
+- Control ID: `reference-data-sync-latency`
+- Threshold: Sync completes within 24 hours
+- Tooling: ETL scheduler and latency report
+- Cadence: Daily
+- Environments: prod
 
 ## Test Strategy
 

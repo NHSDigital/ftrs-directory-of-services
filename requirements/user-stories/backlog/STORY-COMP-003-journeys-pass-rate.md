@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COMP-003
 jira_key:
-title: ≥90% critical journeys test pass per platform
+title: "≥90% critical journeys test pass per platform"
 role: QA Engineer
-goal: Implement and validate: ≥90% critical journeys test pass per platform
+goal: "Implement and validate: ≥90% critical journeys test pass per platform"
 value: Protects user experience across platforms
 nfr_refs: [COMP-003]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: ≥90% critical journeys test pass per platform.
+Implement automated validation for ≥90% critical journey test pass per platform.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: ≥90% critical journeys test pass per platf
 
 ## Non-Functional Acceptance
 
-- Control ID: `journeys-pass-rate`\n- Threshold: >= 90% pass rate for critical journeys on each supported platform\n- Tooling: Cross-platform automated E2E tests\n- Cadence: CI per build + release candidate validation\n- Environments: int, ref
+- Control ID: `journeys-pass-rate`
+- Threshold: ≥90% pass rate for critical journeys on each supported platform
+- Tooling: Cross-platform automated E2E tests
+- Cadence: CI per build and release candidate validation
+- Environments: int, ref
 
 ## Test Strategy
 

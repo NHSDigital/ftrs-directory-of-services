@@ -4,7 +4,7 @@ jira_key:
 title: dos-search nearby query Performance
 role: API Consumer
 goal: Receive response from nearby search query within performance targets
-value: Geo filtering + limited enrichment
+value: Geo filtering and limited enrichment
 nfr_refs: [PERF-001]
 status: draft
 ---
@@ -44,13 +44,13 @@ Implementation details to be refined during sprint planning
 
 ## Implementation Notes
 
-- Geo filtering + limited enrichment
+- Geo filtering and limited enrichment
 - Service: dos-search
 - Path: /dos-search/nearby?lat={lat}&lon={lon}&radius={r}
 - Method: GET
 - Concurrency profile: burst-50 steady-15
 - Status: draft
-- Rename plan: update expectations.yaml operations in next registry version (perf v1.5)
+- Rename plan: update expectations.yaml operations in next registry version (performance v1.5)
 
 ## Monitoring & Metrics
 

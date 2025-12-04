@@ -17,7 +17,7 @@ acceptance_criteria:
 out_of_scope:
   - Detailed network CIDR planning
 notes: |
-  Aligns to NFR-CLOUD-GOV-01. Evidence sources: Org account registry, landing zone config, deployment pipeline logs, DR test runbook, cost explorer reports.
+  Aligns to NFR-CLOUD-GOV-01. Evidence sources: Org account registry, landing zone configuration, deployment pipeline logs, DR test run book, cost explorer reports.
 ---
 
 # Summary
@@ -33,6 +33,6 @@ Covers structural guardrails ensuring consistent placement inside enterprise lan
 - Independent: Yes
 - Negotiable: Autoscale % threshold tooling details
 - Valuable: Reduces compliance exceptions
-- Estimable: Requires infra + cost analysis tasks
+- Estimable: Requires infrastructure and cost analysis tasks
 - Small: Fits sprint with provisioning automation
 - Testable: Each criterion has observable artifact.

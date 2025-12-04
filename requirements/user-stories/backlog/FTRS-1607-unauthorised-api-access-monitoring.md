@@ -15,7 +15,7 @@ Implement comprehensive monitoring for all unauthorized API access attempts incl
 
 ## Acceptance Criteria
 
-1. Structured log emitted for every unauthorized attempt with fields: `timestamp`, `service`, `env`, `endpoint`, `http_method`, `status_code`, `reason_code`, `source_ip`, `user_agent`, `correlation_id`, `token_subject` (if parseable), `failure_count_last_minute`.
+1. Structured log emitted for every unauthorized attempt with fields: `timestamp`, `service`, `environment`, `endpoint`, `http_method`, `status_code`, `reason_code`, `source IP`, `user_agent`, `correlation ID`, `token_subject` (if parseable), `failure_count_last_minute`.
 2. Reason code taxonomy defined (e.g. `auth_invalid_signature`, `auth_expired`, `auth_revoked`, `permissions_denied`, `rate_limit_exceeded`, `suspected_stuffing`).
 3. Metrics exposed: `api_unauth_attempts_total{reason_code,endpoint}`, `api_unauth_principal_failures_total{principal}`, `api_unauth_rate_limited_total{endpoint}`.
 4. Real-time alerts fire when: a) >5 failures per principal in 1 minute, b) >100 total failures across platform in 5 minutes, c) >3x baseline anomaly (rolling 24h average) for any endpoint.
@@ -25,9 +25,9 @@ Implement comprehensive monitoring for all unauthorized API access attempts incl
 8. Weekly review report generated summarising counts, anomalies triggered, actions taken; archived to secure location.
 9. Retention policy ensures logs kept ≥90 days with integrity (hash chain or storage immutability flag) for forensic purposes.
 10. Integration test simulates invalid token burst & permission denial to validate alert triggers and structured log fields.
-11. Alert payload includes correlation_id, aggregated failure counts, and a remediation playbook link.
+11. Alert payload includes correlation ID, aggregated failure counts, and a remediation playbook link.
 12. No missing mandatory fields detected in sampled (1% random) log validation job; non-compliance fails CI quality gate.
-13. Rate limit breach logs correlate with reliability brute-force protection metrics (REL-007) via shared correlation_id.
+13. Rate limit breach logs correlate with reliability brute-force protection metrics (REL-007) via shared correlation ID.
 14. Access attempts with malformed JWT produce distinct reason_code and do not leak token content beyond header summary.
 15. Dashboard latency for showing a new unauthorized event ≤60s from occurrence.
 
@@ -65,7 +65,7 @@ Implement comprehensive monitoring for all unauthorized API access attempts incl
   - Rolling counters (principal & endpoint, 60s window) for threshold checks
   - Baseline anomaly detection stub (p95 \* multiplier) fed by `baseline.sample.json`
 - Auth middleware should call an internal function (future wrapper) instead of emitting directly to stdout; integrate with logging pipeline.
-- Baseline JSON generated daily from aggregated metrics; versioned location to be defined (e.g., S3 or config repo path).
+- Baseline JSON generated daily from aggregated metrics; versioned location to be defined (e.g., S3 or configuration repository path).
 - Correlate with security controls (SEC-029) for JWT validation failure reasons.
 - Future enhancement: push metrics to central backend (Prometheus/OpenTelemetry) rather than stdout summary.
 
@@ -90,4 +90,4 @@ Implement comprehensive monitoring for all unauthorized API access attempts incl
 | ------------------------- | -------------------------- | ---------------------------------------- |
 | Baseline window           | Use 7d or 14d history?     | Evaluate stability vs sensitivity        |
 | Correlation scope         | Include geo/IP reputation? | Assess feasibility & privacy constraints |
-| Dev environment inclusion | Value vs noise?            | Decide after pilot                       |
+| dev environment inclusion | Value vs noise?            | Decide after pilot                       |

@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SEC-027
 jira_key:
-title: Code/data transfer logs show integrity & secure channels
+title: "Code/data transfer logs show integrity and secure channels"
 role: Security Engineer
-goal: Implement and validate: Code/data transfer logs show integrity & secure channels
+goal: "Implement and validate: Code/data transfer logs show integrity and secure channels"
 value: Validates integrity and secure transport for all transfers
 nfr_refs: [SEC-024]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Code/data transfer logs show integrity & secure channels.
+Implement automated validation for: Code/data transfer logs show integrity and secure channels.
 
 ## Acceptance Criteria
 
 1. 100% transfers logged; integrity and secure channel verified
-2. Tooling: Checksums/signatures + TLS enforcement + audit logs operational
-3. Cadence: CI per change + weekly reviews validated
-4. Environments: dev, int, ref, prod covered
+2. Tooling: Checksums/signatures, TLS enforcement, and audit logs operational
+3. Cadence: CI per change and weekly reviews validated
+4. Environments: dev, int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `transfer-integrity-secure`\n- Threshold: 100% transfers logged; integrity and secure channel verified\n- Tooling: Checksums/signatures + TLS enforcement + audit logs\n- Cadence: CI per change + weekly reviews\n- Environments: dev, int, ref, prod
+- Control ID: `transfer-integrity-secure`
+- Threshold: 100% transfers logged; integrity and secure channel verified
+- Tooling: Checksums/signatures, TLS enforcement, and audit logs
+- Cadence: CI per change and weekly reviews
+- Environments: dev, int, ref, production
 
 ## Test Strategy
 
@@ -40,7 +44,7 @@ Implementation details to be refined during sprint planning
 ## Implementation Notes
 
 - Validates integrity and secure transport for all transfers
-- Cadence: CI per change + weekly reviews
+- Cadence: CI per change and weekly reviews
 - Status: draft
 
 ## Monitoring & Metrics

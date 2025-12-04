@@ -3,7 +3,7 @@ story_id: STORY-SEC-017
 jira_key:
 title: SG rules audited; attempt broad ingress denied
 role: Security Engineer
-goal: Implement and validate: SG rules audited; attempt broad ingress denied
+goal: "Implement and validate: SG rules audited; attempt broad ingress denied"
 value: Prevents risky network exposure via security groups
 nfr_refs: [SEC-007]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: SG rules audited; attempt broad ingress deni
 ## Acceptance Criteria
 
 1. 0 broad (0.0.0.0/0) ingress on restricted ports
-2. Tooling: AWS Config + IaC linter operational
-3. Cadence: CI per change + monthly audit validated
+2. Tooling: AWS Configuration + IaC linter operational
+3. Cadence: CI per change and monthly audit validated
 4. Environments: dev, int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `sg-broad-ingress-denied`\n- Threshold: 0 broad (0.0.0.0/0) ingress on restricted ports\n- Tooling: AWS Config + IaC linter\n- Cadence: CI per change + monthly audit\n- Environments: dev, int, ref, prod
+- Control ID: `sg-broad-ingress-denied`
+- Threshold: 0 broad (0.0.0.0/0) ingress on restricted ports
+- Tooling: AWS Configuration and IaC linter
+- Cadence: CI per change and monthly audit
+- Environments: dev, int, ref, prod
 
 ## Test Strategy
 

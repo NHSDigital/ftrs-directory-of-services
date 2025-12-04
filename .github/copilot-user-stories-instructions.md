@@ -26,7 +26,7 @@ Copilot outputs must never introduce not validated targets or fabricate IDs.
 
 | Artefact               | Location                                                   | Purpose                                             |
 | ---------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| NFR matrix             | `requirements/nfrs/cross-references/nfr-matrix.md`         | Canonical list of NFR codes & linked story IDs      |
+| NFR YAML (canonical)   | `requirements/nfrs/<domain>/nfrs.yaml`                     | Canonical list of NFR codes & linked story IDs      |
 | NFR explanations       | `requirements/nfrs/cross-references/nfr-explanations.yaml` | Plain-language code descriptions                    |
 | Performance operations | `requirements/nfrs/performance/expectations.yaml`          | Latency & throughput targets per API/flow           |
 | Domain controls        | `requirements/nfrs/<domain>/expectations.yaml`             | Measurable governance controls mapping to NFR codes |
@@ -108,7 +108,7 @@ Bad: "System should be fast" → Replace with measurable target.
 
 ## 6. Linking NFR Codes
 
-Copilot must verify each proposed NFR code exists in `nfr-matrix.md` before including it. If user signals intent to add a new code:
+Copilot must verify each proposed NFR code exists in the domain `nfrs.yaml` before including it. If user signals intent to add a new code:
 
 1. Reserve code manually first (human action).
 2. Use placeholder `(placeholder)` in matrix until story created.

@@ -50,7 +50,7 @@ Implementation details to be refined during sprint planning
 - Method: GET
 - Concurrency profile: burst-80 steady-20
 - Status: draft
-- Rename plan: update expectations.yaml operations in next registry version (perf v1.5)
+- Rename plan: update expectations.yaml operations in next registry version (performance v1.5)
 
 ## Monitoring & Metrics
 

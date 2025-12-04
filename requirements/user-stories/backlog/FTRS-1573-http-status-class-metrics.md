@@ -20,7 +20,7 @@ Implement per-endpoint instrumentation and alerting for HTTP status class outcom
 4. 4xx surge alert: triggers when 4xx ratio >10% sustained 10m (to detect integration misuse) excluding known benign codes (list documented).
 5. Panels display: current counts, 24h sparkline, top 3 status codes, error ratio, last alert time.
 6. All metrics tagged with `service`, `operation_id`, `environment`, `status_class`.
-7. Dashboard & alert config version-controlled; change log entry recorded.
+7. Dashboard & alert configuration version-controlled; change log entry recorded.
 8. Validation script passes: emits at least one 4xx and 5xx synthetic request and asserts counters increment.
 9. Documentation includes remediation guidance for common 4xx (validation failed) and 5xx (dependency timeout).
 10. No PII in status metrics; labels exclude user identifiers.
@@ -52,7 +52,7 @@ Implement per-endpoint instrumentation and alerting for HTTP status class outcom
 - Recording rules:
   - `sum(rate(http_responses_class_total{status_class="5xx"}[5m])) / sum(rate(http_requests_total[5m]))` => 5xx ratio.
   - `sum(rate(http_responses_class_total{status_class="4xx"}[10m])) / sum(rate(http_requests_total[10m]))` => 4xx ratio.
-- Alert thresholds tuned after initial baseline; include runbook link.
+- Alert thresholds tuned after initial baseline; include run book link.
 
 ## Monitoring & Metrics
 

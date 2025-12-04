@@ -1,9 +1,9 @@
 ---
 story_id: STORY-SCAL-001
 jira_key:
-title: Horizontal scale-out increases TPS linearly within tolerance
+title: "Horizontal scale-out increases TPS linearly within tolerance"
 role: Platform Engineer
-goal: Implement and validate: Horizontal scale-out increases TPS linearly within tolerance
+goal: "Implement and validate: Horizontal scale-out increases TPS linearly within tolerance"
 value: Validates scale-out effectiveness
 nfr_refs: [SCAL-001]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: Horizontal scale-out increases TPS linearly 
 ## Acceptance Criteria
 
 1. TPS increases ~linearly per replica within agreed tolerance
-2. Tooling: Load tests + autoscaling reports operational
+2. Tooling: Load tests and autoscaling reports operational
 3. Cadence: Quarterly simulation validated
 4. Environments: int, ref covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `horizontal-scale-linear`\n- Threshold: TPS increases ~linearly per replica within agreed tolerance\n- Tooling: Load tests + autoscaling reports\n- Cadence: Quarterly simulation\n- Environments: int, ref
+- Control ID: `horizontal-scale-linear`
+- Threshold: TPS increases ~linearly per replica within agreed tolerance
+- Tooling: Load tests and autoscaling reports
+- Cadence: Quarterly simulation
+- Environments: int, ref
 
 ## Test Strategy
 

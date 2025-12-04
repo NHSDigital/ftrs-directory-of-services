@@ -33,8 +33,8 @@ Implements network design principle that all new services expose and consume cap
 - Independent: Can proceed separate from other cloud governance stories.
 - Negotiable: Audit frequency specifics.
 - Valuable: Reduces network complexity & increases accessibility.
-- Estimable: Network config + audit script tasks scoped.
+- Estimable: Network configuration + audit script tasks scoped.
 - Small: Limited to configuration + exception register.
-- Testable: Config diff, exception ticket, audit output.
+- Testable: Configuration diff, exception ticket, audit output.
 
 Services default to public internet connectivity; any legacy network dependency requires a time-bound exception record.

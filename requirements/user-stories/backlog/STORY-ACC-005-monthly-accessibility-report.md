@@ -1,9 +1,9 @@
 ---
 story_id: STORY-ACC-005
 jira_key:
-title: Monthly accessibility report published
+title: "Monthly accessibility report published"
 role: UX Engineer
-goal: Implement and validate: Monthly accessibility report published
+goal: "Implement and validate: Monthly accessibility report published"
 value: Maintains visibility and accountability
 nfr_refs: [ACC-015]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Monthly accessibility report published.
+Implement automated validation for monthly accessibility report publication.
 
 ## Acceptance Criteria
 
@@ -23,7 +23,11 @@ Implement automated validation for: Monthly accessibility report published.
 
 ## Non-Functional Acceptance
 
-- Control ID: `monthly-accessibility-report`\n- Threshold: Report produced and published monthly with tracked actions\n- Tooling: Reporting automation + issue tracker\n- Cadence: Monthly\n- Environments: int, ref
+- Control ID: `monthly-accessibility-report`
+- Threshold: Report produced and published monthly with tracked actions
+- Tooling: Reporting automation and issue tracker
+- Cadence: Monthly
+- Environments: int, ref
 
 ## Test Strategy
 

@@ -1,9 +1,9 @@
 ---
 story_id: STORY-OBS-004
 jira_key:
-title: Endpoint latency histograms with p50/p95/p99
+title: "Endpoint latency histograms with p50/p95/p99"
 role: SRE
-goal: Implement and validate: Endpoint latency histograms with p50/p95/p99
+goal: "Implement and validate: Endpoint latency histograms with p50/p95/p99"
 value: Percentile visibility supports performance governance
 nfr_refs: [OBS-009]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: Endpoint latency histograms with p50/p95/p99
 ## Acceptance Criteria
 
 1. Histograms available per endpoint with p50/p95/p99 series
-2. Tooling: Metrics backend + dashboard operational
+2. Tooling: Metrics backend and dashboard operational
 3. Cadence: Continuous validated
-4. Environments: int, ref, prod covered
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `latency-histograms`\n- Threshold: Histograms available per endpoint with p50/p95/p99 series\n- Tooling: Metrics backend + dashboard\n- Cadence: Continuous\n- Environments: int, ref, prod
+- Control ID: `latency-histograms`
+- Threshold: Histograms available per endpoint with p50/p95/p99 series
+- Tooling: Metrics backend and dashboard
+- Cadence: Continuous
+- Environments: int, ref, production
 
 ## Test Strategy
 

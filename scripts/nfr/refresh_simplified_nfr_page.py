@@ -17,16 +17,27 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from datetime import datetime, timezone
-import yaml
 import json
+try:
+    import yaml
+except ModuleNotFoundError as e:
+    raise SystemExit(
+        "PyYAML is required to generate domain pages.\n"
+        "Install it and re-run:\n\n"
+        "  python3 -m venv .venv\n"
+        "  source .venv/bin/activate\n"
+        "  python3 -m pip install pyyaml\n"
+        "  make nfrs-by-domain\n\n"
+        "Alternatively: /opt/homebrew/bin/python3 -m pip install --user pyyaml"
+    )
 
 BACKLOG_DIR = Path("requirements/user-stories/backlog")
 
-MATRIX = Path("requirements/nfrs/cross-references/nfr-matrix.md")
-OUT = Path("docs/developer-guides/nfr-all-simplified.md")
-# New: domain-specific output directory for split pages
-DOMAIN_OUT_DIR = Path("docs/developer-guides/nfr-domains")
+OUT = Path("docs/nfrs/nfr-by-domain.md")
+# New: domain-specific output directory for split pages under docs/nfrs
+DOMAIN_OUT_DIR = Path("docs/nfrs/nfr-by-domain")
 EXPECTATIONS = Path("requirements/nfrs/performance/expectations.yaml")
+DOMAIN_NFRS_DIR = Path("requirements/nfrs")
 SEC_EXPECTATIONS = Path("requirements/nfrs/security/expectations.yaml")
 OBS_EXPECTATIONS = Path("requirements/nfrs/observability/expectations.yaml")
 REL_EXPECTATIONS = Path("requirements/nfrs/reliability/expectations.yaml")
@@ -40,6 +51,12 @@ COMP_EXPECTATIONS = Path("requirements/nfrs/compatibility/expectations.yaml")
 
 ROW_PATTERN = re.compile(r"^\|\s*([A-Z]+-[0-9]+)\s*\|\s*([A-Za-z]+)\s*\|\s*([^|]*)\|\s*([^|]*)\|")
 EXPLANATIONS_FILE = Path("requirements/nfrs/cross-references/nfr-explanations.yaml")
+
+
+def _append_blank_line(lines: list[str]) -> None:
+    """Append a single blank line only if the previous line isn't already blank."""
+    if not lines or lines[-1] != "":
+        lines.append("")
 
 def parse_rows(text: str):
     rows = []
@@ -93,11 +110,11 @@ def load_controls_registry(path: Path):
 
 def render_controls_section(lines: list[str], title: str, reg: dict):
     lines.append(f"## {title}")
-    lines.append("")
+    _append_blank_line(lines)
     lines.append(f"Version: {reg['version']} Generated: {reg['generated']}")
-    lines.append("")
+    _append_blank_line(lines)
     lines.append("Below is a quick guide to the table columns:")
-    lines.append("")
+    _append_blank_line(lines)
     lines.append("- Control ID: Stable identifier for a governance control or check")
     lines.append("- NFR Code: Mapped domain NFR (e.g., OBS-005, REL-010)")
     lines.append("- Measure: What is being verified (policy/setting/behaviour)")
@@ -108,7 +125,7 @@ def render_controls_section(lines: list[str], title: str, reg: dict):
     lines.append("- Services: Targeted services if not universal (comma-separated); blank implies all")
     lines.append("- Status: Governance state (draft, accepted, exception)")
     lines.append("- Rationale: Why this threshold/tooling was chosen; notes/assumptions")
-    lines.append("")
+    _append_blank_line(lines)
     lines.append("| Control ID | NFR Code | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
     lines.append("|------------|----------|---------|-----------|---------|---------|------|----------|--------|-----------|")
     for c in reg["items"]:
@@ -123,9 +140,9 @@ def render_controls_section(lines: list[str], title: str, reg: dict):
         status = c.get("status", "")
         rationale = c.get("rationale", "").replace("\n"," ").replace("|","/")
         lines.append(f"| {ctrl} | {nfr} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |")
-    lines.append("")
+    _append_blank_line(lines)
     lines.append("(Refer to the domain expectations.yaml for additional metadata including evidence links and exception records.)")
-    lines.append("")
+    _append_blank_line(lines)
 
 def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,str], registries: dict[str, dict]):
     """Generate per-domain pages for improved readability.
@@ -141,53 +158,96 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
     for domain, rows in by_domain.items():
         fname = DOMAIN_OUT_DIR / f"{domain.lower()}.md"
         lines: list[str] = [f"# FtRS NFR – {domain}", "", "Source: requirements/nfrs/cross-references/nfr-matrix.md", "", "This page is auto-generated; do not hand-edit.", ""]
-        # NFR codes table
+        # NFR codes table (prefer domain nfrs.yaml if present)
         lines.append("## NFR Codes")
         lines.append("")
+        # Checklist: Missing metadata in domain nfrs.yaml
+        domain_yaml = DOMAIN_NFRS_DIR / domain.lower() / "nfrs.yaml"
+        missing: list[str] = []
+        if domain_yaml.exists():
+            import yaml
+            data = yaml.safe_load(domain_yaml.read_text(encoding="utf-8")) or {}
+            for n in data.get("nfrs", []) or []:
+                code = n.get("code", "UNKNOWN")
+                expl = (n.get("explanation") or "").strip()
+                stories = n.get("stories") or []
+                if not expl:
+                    missing.append(f"[Explanation] {code}")
+                if not stories:
+                    missing.append(f"[Stories] {code}")
+        if missing:
+            lines.append("### Missing Metadata Checklist")
+            lines.append("")
+            for m in missing:
+                lines.append(f"- {m}")
+            lines.append("")
         lines.append("| Code | Requirement | Explanation | Stories |")
         lines.append("|------|-------------|-------------|---------|")
-        for r in rows:
-            req = r['anchor'].replace('|','/')
-            expl = explanations.get(r['code'], explanations.get('__error__', req)) or req
-            expl = expl.replace('|','/').replace('\n',' ')
-            stories_raw = r['stories']
-            stories_list = [s.strip() for s in stories_raw.split(',') if s.strip() and s.strip() != '(none)']
-            enriched: list[str] = []
-            for s in stories_list:
-                # strip any existing jira parentheses
-                base = s.split('(')[0].strip()
-                jira = story_jira_map.get(base)
-                if jira:
-                    enriched.append(f"{base} ({jira})")
-                else:
-                    enriched.append(base)
-            stories_display = ', '.join(enriched) if enriched else '(none)'
-            lines.append(f"| {r['code']} | {req} | {expl} | {stories_display} |")
+        domain_yaml = DOMAIN_NFRS_DIR / domain.lower() / "nfrs.yaml"
+        if domain_yaml.exists():
+            import yaml
+            data = yaml.safe_load(domain_yaml.read_text(encoding="utf-8")) or {}
+            for n in data.get("nfrs", []):
+                req = str(n.get("requirement","")).replace('|','/')
+                expl = str(n.get("explanation","")) or explanations.get(n.get("code",""), "")
+                expl = expl.replace('|','/').replace('\n',' ')
+                stories_list = n.get("stories", [])
+                stories_display = ', '.join(stories_list) if stories_list else '(none)'
+                lines.append(f"| {n.get('code','')} | {req} | {expl} | {stories_display} |")
+        else:
+            for r in rows:
+                req = r['anchor'].replace('|','/')
+                expl = explanations.get(r['code'], explanations.get('__error__', req)) or req
+                expl = expl.replace('|','/').replace('\n',' ')
+                stories_raw = r['stories']
+                stories_list = [s.strip() for s in stories_raw.split(',') if s.strip() and s.strip() != '(none)']
+                enriched: list[str] = []
+                for s in stories_list:
+                    base = s.split('(')[0].strip()
+                    jira = story_jira_map.get(base)
+                    if jira:
+                        enriched.append(f"{base} ({jira})")
+                    else:
+                        enriched.append(base)
+                stories_display = ', '.join(enriched) if enriched else '(none)'
+                lines.append(f"| {r['code']} | {req} | {expl} | {stories_display} |")
         lines.append("")
+        # Collect gaps for a checklist section
+        gaps: list[str] = []
         # Domain specific expectations
         if domain.lower() == "performance":
-            perf = registries.get("performance")
-            if perf:
-                lines.append("## Operations")
-                lines.append("")
-                # Show only stable version; omit generated date to minimise churn
-                lines.append(f"Version: {perf['version']}")
-                lines.append("")
-                lines.append("| Service | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
-                lines.append("|---------|--------------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|")
-                for svc in sorted(perf['by_service'].keys()):
-                    for op in perf['by_service'][svc]:
-                        op_id = op.get('operation_id')
-                        p50 = op.get('p50_target_ms')
-                        p95 = op.get('p95_target_ms')
-                        mx = op.get('absolute_max_ms')
-                        burst = op.get('burst_tps_target', '')
-                        sustained = op.get('sustained_tps_target', '')
-                        payload = op.get('max_request_payload_bytes', '')
-                        status = op.get('status')
-                        rationale = op.get('rationale','').replace('\n',' ').replace('|','/')
-                        lines.append(f"| {svc} | {op_id} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {rationale} |")
-                lines.append("")
+            lines.append("## Operations")
+            _append_blank_line(lines)
+            # Prefer operations embedded in nfrs.yaml
+            domain_yaml = DOMAIN_NFRS_DIR / domain.lower() / "nfrs.yaml"
+            ops_rows = []
+            if domain_yaml.exists():
+                import yaml
+                data = yaml.safe_load(domain_yaml.read_text(encoding="utf-8")) or {}
+                for n in data.get("nfrs", []):
+                    for op in n.get("operations", []) or []:
+                        ops_rows.append(op)
+            # Fallback to expectations registry
+            if not ops_rows:
+                perf = registries.get("performance")
+                if perf:
+                    for svc in sorted(perf['by_service'].keys()):
+                        ops_rows.extend(perf['by_service'][svc])
+            lines.append("| Service | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
+            lines.append("|---------|--------------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|")
+            for op in ops_rows:
+                svc = op.get('service') or op.get('service', '')
+                op_id = op.get('operation_id')
+                p50 = op.get('p50_target_ms')
+                p95 = op.get('p95_target_ms')
+                mx = op.get('absolute_max_ms')
+                burst = op.get('burst_tps_target', '')
+                sustained = op.get('sustained_tps_target', '')
+                payload = op.get('max_request_payload_bytes', '')
+                status = op.get('status')
+                rationale = str(op.get('rationale','')).replace('\n',' ').replace('|','/')
+                lines.append(f"| {svc} | {op_id} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {rationale} |")
+            _append_blank_line(lines)
         else:
             # control-centric domain
             reg_key = domain.lower()
@@ -199,12 +259,12 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                     code = item.get('nfr_code', 'UNKNOWN')
                     grouped.setdefault(code, []).append(item)
                 lines.append("## Controls")
-                lines.append("")
+                _append_blank_line(lines)
                 for code in sorted(grouped.keys()):
                     lines.append(f"### {code}")
                     if code in explanations:
                         lines.append(explanations[code])
-                    lines.append("")
+                    _append_blank_line(lines)
                     lines.append("| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
                     lines.append("|------------|---------|-----------|---------|---------|------|----------|--------|-----------|")
                     for c in grouped[code]:
@@ -218,19 +278,43 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                         status = c.get('status','')
                         rationale = c.get('rationale','').replace('\n',' ').replace('|','/')
                         lines.append(f"| {ctrl} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |")
-                    lines.append("")
+                    _append_blank_line(lines)
+        # Sanitize trailing artifacts: remove stray code fences and collapse trailing blanks
+        while lines and (lines[-1].strip() == "" or lines[-1].strip() == "```"):
+            lines.pop()
+        lines.append("")
         fname.write_text("\n".join(lines)+"\n", encoding="utf-8")
         print(f"Wrote domain page: {fname}")
+        # Debug: print last 3 lines written for lint diagnostics
+        tail = Path(fname).read_text(encoding="utf-8").splitlines()
+        tail_preview = " | ".join([l for l in tail[-3:]]) if len(tail) >= 3 else " | ".join(tail)
+        print(f"TAIL:{domain}:{tail_preview}")
 
-def build_output(rows):
-    by_domain = {}
-    for r in rows:
-        by_domain.setdefault(r["domain"], []).append(r)
-    for domain_rows in by_domain.values():
-        domain_rows.sort(key=sort_key)
-    domains_sorted = sorted(by_domain.keys())
+def build_output():
+    # Build domains from schema-backed YAML files only
+    domains_sorted: list[str] = []
+    by_domain: dict[str, list[dict]] = {}
+    for domain_yaml in DOMAIN_NFRS_DIR.glob("*/nfrs.yaml"):
+        domain = domain_yaml.parent.name.capitalize()
+        domains_sorted.append(domain)
+        try:
+            import yaml
+            data = yaml.safe_load(domain_yaml.read_text(encoding="utf-8")) or {}
+        except Exception:
+            data = {}
+        rows = []
+        for n in (data.get("nfrs") or []):
+            rows.append({
+                "code": n.get("code",""),
+                "domain": domain,
+                "stories": ", ".join(n.get("stories") or []),
+                "anchor": n.get("requirement",""),
+            })
+        # sort by code numeric
+        rows.sort(key=sort_key)
+        by_domain[domain] = rows
     # Omit volatile timestamp to keep commits clean
-    lines = ["# FtRS Non-Functional Requirements – Simplified", "", "Source: requirements/nfrs/cross-references/nfr-matrix.md", "", "This page is auto-generated; do not hand-edit. Run `python3 scripts/nfr/refresh_simplified_nfr_page.py` to refresh.", ""]
+    lines = ["# FtRS NFR – By Domain", "", "Source: requirements/nfrs/cross-references/nfr-matrix.md", "", "This page is auto-generated; do not hand-edit.", ""]
 
     explanations = {}
     if EXPLANATIONS_FILE.exists():
@@ -282,14 +366,16 @@ def build_output(rows):
                 item_count = sum(len(v) for v in reg['by_service'].values())
             else:
                 item_count = len(reg['items'])
-        page_path = f"nfr-domains/{d.lower()}.md"
+        page_path = f"nfr-by-domain/{d.lower()}.md"
         lines.append(f"| {d} | {code_count} | {item_count} | [{d}]({page_path}) |")
     lines.append("")
 
     # Guard: warn if any codes missing explanations (excluding parse error fallback)
     if '__error__' not in explanations:
-        codes = [r['code'] for r in rows]
-        missing = sorted({c for c in codes if c not in explanations})
+        all_codes: list[str] = []
+        for domain_rows in by_domain.values():
+            all_codes.extend([r['code'] for r in domain_rows])
+        missing = sorted({c for c in all_codes if c not in explanations})
         if missing:
             print(f"WARNING: Missing explanations for {len(missing)} NFR codes: {', '.join(missing)}")
             lines.append("### Explanation Coverage Warning")
@@ -330,8 +416,9 @@ def build_output(rows):
             example_control = items[0]
             break
     lines.append("---")
-    lines.append("## How to Read a Performance Operation Row (Plain English)")
     lines.append("")
+    lines.append("## How to Read a Performance Operation Row (Plain English)")
+    _append_blank_line(lines)
     if example_op:
         svc, op = example_op
         op_row = "| {svc} | {op_id} | {cls} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {rationale} |".format(
@@ -348,12 +435,13 @@ def build_output(rows):
             rationale=op.get('rationale','').replace('\n',' ').replace('|','/')
         )
         lines.append("Example row:")
-        lines.append("")
+        _append_blank_line(lines)
         lines.append("| Service | Operation ID | Class | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
         lines.append("|---------|--------------|-------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|")
         lines.append(op_row)
-        lines.append("")
+        _append_blank_line(lines)
     lines.append("Meaning of columns:")
+    _append_blank_line(lines)
     lines.append("- Service: Subsystem owning the endpoint or job")
     lines.append("- Operation ID: Stable short name used in tests & dashboards")
     lines.append("- Class: Speed category (FAST snappy, STANDARD typical, SLOW heavy/background)")
@@ -365,12 +453,13 @@ def build_output(rows):
     lines.append("- Max Payload (bytes): Largest allowed request size (blank = not constrained yet)")
     lines.append("- Status: draft (proposed), accepted (agreed/enforced), exception (temporarily unmet)")
     lines.append("- Rationale: Reasoning / assumptions behind targets")
-    lines.append("")
+    _append_blank_line(lines)
     lines.append("Multiple tests per operation typically: latency monitor (p50/p95), max latency alert, throughput tests (burst & sustained), payload boundary test.")
     lines.append("")
     lines.append("---")
-    lines.append("## How to Read a Control Row (Plain English)")
     lines.append("")
+    lines.append("## How to Read a Control Row (Plain English)")
+    _append_blank_line(lines)
     if example_control:
         ctrl_row = "| {cid} | {nfr} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |".format(
             cid=example_control.get('control_id',''),
@@ -385,12 +474,13 @@ def build_output(rows):
             rationale=example_control.get('rationale','').replace('\n',' ').replace('|','/')
         )
         lines.append("Example control row:")
-        lines.append("")
+        _append_blank_line(lines)
         lines.append("| Control ID | NFR Code | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
         lines.append("|------------|----------|---------|-----------|---------|---------|------|----------|--------|-----------|")
         lines.append(ctrl_row)
-        lines.append("")
+        _append_blank_line(lines)
     lines.append("Meaning of columns:")
+    _append_blank_line(lines)
     lines.append("- Control ID: Stable name of the automated check")
     lines.append("- NFR Code: Which atomic NFR this control supports")
     lines.append("- Measure: What is examined (setting, scan result, metric)")
@@ -401,18 +491,13 @@ def build_output(rows):
     lines.append("- Services: Scope (blank means all)")
     lines.append("- Status: draft / accepted / exception governance state")
     lines.append("- Rationale: Why the threshold/tool was chosen")
-    lines.append("")
+    _append_blank_line(lines)
     lines.append("Typical validation: tool execution success, threshold met, alert on failure, exception tracked with mitigation & review date.")
     lines.append("")
     return "\n".join(lines) + "\n"
 
 def main():
-    if not MATRIX.exists():
-        raise SystemExit(f"Matrix file not found: {MATRIX}")
-    rows = parse_rows(MATRIX.read_text(encoding="utf-8"))
-    if not rows:
-        raise SystemExit("No rows parsed from matrix.")
-    content = build_output(rows)
+    content = build_output()
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(content, encoding="utf-8")
     print(f"Wrote simplified NFR page: {OUT}")

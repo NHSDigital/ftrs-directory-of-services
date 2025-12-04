@@ -81,10 +81,10 @@ Validation Rules (illustrative):
 CLI (Typer) Commands:
 | Command | Purpose | Key Options |
 |---------|---------|------------|
-| `migrate` | Full or single service sync | `--db-uri`, `--service-id`, `--env`, `--workspace`, `--output-dir` |
+| `migrate` | Full or single service sync | `--db-uri`, `--service-id`, `--environment`, `--workspace`, `--output-dir` |
 | `populate-queue` | Seed SQS with service DMSEvents | `--db-uri`, `--sqs-queue-url`, `--type-id[]`, `--status-id[]` |
-| `export-to-s3` | Dump DynamoDB tables to S3 | `--env`, `--workspace` |
-| `restore-from-s3` | Restore DynamoDB tables from S3 | `--env`, `--workspace` |
+| `export-to-s3` | Dump DynamoDB tables to S3 | `--environment`, `--workspace` |
+| `restore-from-s3` | Restore DynamoDB tables from S3 | `--environment`, `--workspace` |
 
 Lambda Handlers:
 
@@ -108,9 +108,9 @@ Message Contract (DMSEvent JSON): `{ "type": "dms_event", "record_id": <int>, "t
 | REL-016  | Graceful handling of partial failures; skip unsupported records |
 | PERF-001 | Batching & per-record elapsed time metrics                      |
 | OBS-014  | Structured log fields (event, elapsed_time, entity counts)      |
-| OBS-019  | Operational log chain reconstructable by correlation_id         |
+| OBS-019  | Operational log chain reconstructable by correlation ID         |
 | SEC-027  | Dependency scanning & secret retrieval practices                |
-| SEC-030  | Secrets Manager use; no plaintext credentials in logs           |
+| SEC-030  | Secrets Manager use; no plain text credentials in logs           |
 
 ## 8. Performance & Capacity
 
@@ -126,7 +126,7 @@ Credentials sourced via Secrets Manager (`replica-rds-credentials`). No secret v
 
 ## 11. Observability
 
-Logging: Powertools Logger with structured events (DM*ETL*\* codes). Keys: `run_id`, `env`, `workspace`, `record_id`, transformer name, elapsed_time, counts. Metrics: aggregated via final DM_ETL_999 log snapshot (`migrated_records`, `errors`). Tracing: correlation IDs appended; can extend to X-Ray/OTel spans later. Alert rules (future): error rate >1% or duration >threshold.
+Logging: Powertools Logger with structured events (DM*ETL*\* codes). Keys: `run_id`, `environment`, `workspace`, `record_id`, transformer name, elapsed_time, counts. Metrics: aggregated via final DM_ETL_999 log snapshot (`migrated_records`, `errors`). Tracing: correlation IDs appended; can extend to X-Ray/OTel spans later. Alert rules (future): error rate >1% or duration >threshold.
 
 ## 12. Scalability
 
@@ -138,7 +138,7 @@ FHIR transformation aims for R4B alignment (Organisation / HealthcareService map
 
 ## 14. Deployment & Migration
 
-Config via environment variables (.env / Lambda). Rollout strategy: deploy Lambda functions & verify dry-run subset; full sync executed during controlled window. Backfill with `populate-queue` for incremental event seeding. Future migrations: new transformer classes added with gating tests.
+Configuration via environment variables (.environment / Lambda). Rollout strategy: deploy Lambda functions & verify dry-run subset; full sync executed during controlled window. Backfill with `populate-queue` for incremental event seeding. Future migrations: new transformer classes added with gating tests.
 
 ## 15. Risks & Mitigations
 

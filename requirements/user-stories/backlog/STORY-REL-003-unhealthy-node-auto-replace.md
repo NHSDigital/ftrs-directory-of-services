@@ -1,9 +1,9 @@
 ---
 story_id: STORY-REL-003
 jira_key:
-title: Unhealthy node auto-replaced; workload continues
+title: "Unhealthy node auto-replaced; workload continues"
 role: SRE
-goal: Implement and validate: Unhealthy node auto-replaced; workload continues
+goal: "Implement and validate: Unhealthy node auto-replaced; workload continues"
 value: Maintains reliability during node failures
 nfr_refs: [REL-011]
 status: draft
@@ -16,14 +16,18 @@ Implement automated validation for: Unhealthy node auto-replaced; workload conti
 ## Acceptance Criteria
 
 1. Auto-replacement within policy; no user-visible downtime
-2. Tooling: Autoscaling group events + workload health operational
-3. Cadence: Continuous monitoring + quarterly drill validated
-4. Environments: int, ref, prod covered
+2. Tooling: Autoscaling group events and workload health operational
+3. Cadence: Continuous monitoring and quarterly drill validated
+4. Environments: int, ref, production covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `unhealthy-node-auto-replace`\n- Threshold: Auto-replacement within policy; no user-visible downtime\n- Tooling: Autoscaling group events + workload health\n- Cadence: Continuous monitoring + quarterly drill\n- Environments: int, ref, prod
+- Control ID: `unhealthy-node-auto-replace`
+- Threshold: Auto-replacement within policy; no user-visible downtime
+- Tooling: Autoscaling group events and workload health
+- Cadence: Continuous monitoring and quarterly drill
+- Environments: int, ref, production
 
 ## Test Strategy
 

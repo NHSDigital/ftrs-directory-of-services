@@ -1,9 +1,9 @@
 ---
 story_id: STORY-INT-002
 jira_key:
-title: Strict content negotiation implemented
+title: "Strict content negotiation implemented"
 role: Integration Engineer
-goal: Implement and validate: Strict content negotiation implemented
+goal: "Implement and validate: Strict content negotiation implemented"
 value: Prevents ambiguity in accepted formats
 nfr_refs: [INT-007]
 status: draft
@@ -11,19 +11,23 @@ status: draft
 
 ## Description
 
-Implement automated validation for: Strict content negotiation implemented.
+Implement automated validation for Strict content negotiation implemented.
 
 ## Acceptance Criteria
 
 1. Only documented media types accepted; correct response Content-Type
-2. Tooling: API contract tests + gateway policies operational
+2. Tooling: API contract tests and gateway policies operational
 3. Cadence: CI per build validated
 4. Environments: int, ref, prod covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `strict-content-negotiation`\n- Threshold: Only documented media types accepted; correct response Content-Type\n- Tooling: API contract tests + gateway policies\n- Cadence: CI per build\n- Environments: int, ref, prod
+- Control ID: `strict-content-negotiation`
+- Threshold: Only documented media types accepted; correct response Content-Type
+- Tooling: API contract tests and gateway policies
+- Cadence: CI per build
+- Environments: int, ref, prod
 
 ## Test Strategy
 

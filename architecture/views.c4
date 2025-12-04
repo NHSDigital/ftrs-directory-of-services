@@ -65,19 +65,19 @@ views {
 
   // }
 
-  // dynamic view etl-data-flow {
-  //   title 'ETL Data Flow'
+  dynamic view etl-data-flow {
+    title 'ETL Data Flow'
 
-  //   ftrs.liveDosDb -> ftrs.awsMigrationService
-  //   ftrs.awsMigrationService -> ftrs.etlStagingDosDb
-  //   ftrs.etlStagingDosDb -> ftrs.migration "Triggers send updates to"
-  //   ftrs.migration -> ftrs.db "Records any updates in"
-  //   ftrs.db -> ftrs.openSearch "Populates indexes in"
+    ftrs.liveDosDb -> ftrs.awsMigrationService
+    ftrs.awsMigrationService -> ftrs.etlStagingDosDb
+    ftrs.etlStagingDosDb -> ftrs.migration "Triggers send updates to"
+    ftrs.migration -> ftrs.db "Records any updates in"
+    ftrs.db -> ftrs.openSearch "Populates indexes in"
 
-  //   // autoLayout TopBottom 70 77
-  //   autoLayout TopBottom 70 77
+    // autoLayout TopBottom 70 77
+    autoLayout TopBottom 70 77
 
-  // }
+  }
 
 
 }

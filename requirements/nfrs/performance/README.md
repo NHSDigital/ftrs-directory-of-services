@@ -111,7 +111,7 @@ else:
     print("Performance expectations satisfied")
 ```
 
-Integrate into CI (e.g. `make perf-validate`) and tie failures to `PERF-009` regression alert processes.
+Integrate into CI (e.g. `make performance-validate`) and tie failures to `PERF-009` regression alert processes.
 
 ### 6.3 Regression & Drift
 

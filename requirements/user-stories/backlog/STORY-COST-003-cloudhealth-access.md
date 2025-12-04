@@ -1,9 +1,9 @@
 ---
 story_id: STORY-COST-003
 jira_key:
-title: CloudHealth access for each team infra engineer
+title: "CloudHealth access for each team infra engineer"
 role: FinOps Engineer
-goal: Implement and validate: CloudHealth access for each team infra engineer
+goal: "Implement and validate: CloudHealth access for each team infra engineer"
 value: Ensures teams can act on cost insights
 nfr_refs: [COST-003]
 status: draft
@@ -11,7 +11,7 @@ status: draft
 
 ## Description
 
-Implement automated validation for: CloudHealth access for each team infra engineer.
+Implement automated validation for CloudHealth access for each team infrastructure engineer.
 
 ## Acceptance Criteria
 
@@ -24,7 +24,11 @@ Implement automated validation for: CloudHealth access for each team infra engin
 
 ## Non-Functional Acceptance
 
-- Control ID: `cloudhealth-access`\n- Threshold: Access roster matches team registry; 0 unauthorized accounts\n- Tooling: CloudHealth admin + access logs + roster comparison\n- Cadence: Quarterly verification\n- Environments: prod
+- Control ID: `cloudhealth-access`
+- Threshold: Access roster matches team registry; zero unauthorized accounts
+- Tooling: CloudHealth admin, access logs, and roster comparison
+- Cadence: Quarterly verification
+- Environments: prod
 
 ## Test Strategy
 

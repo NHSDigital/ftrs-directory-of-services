@@ -1,0 +1,163 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: ACC-001
+  requirement: WCAG 2.2 AA scan & manual audit pass
+  explanation: Product passes WCAG 2.2 AA via automated and manual audits.
+  stories:
+  - STORY-ACC-001
+  controls:
+  - control_id: wcag-aa-pass
+    measure: WCAG 2.2 AA scan & manual audit pass
+    threshold: Automated AA scan passes; manual audit issues triaged and resolved
+    tooling: Accessibility scanner + manual audit checklist
+    cadence: Quarterly + pre-release
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures accessibility conformance for UI surfaces
+- code: ACC-002
+  requirement: Automated scans run across critical pages & browsers
+  explanation: Automated scans run across critical pages and browser variants.
+  stories:
+  - STORY-ACC-002
+  controls:
+  - control_id: automated-scans-coverage
+    measure: Automated scans run across critical pages & browsers
+    threshold: Critical pages covered across supported browsers
+    tooling: CI accessibility suite + cross-browser runners
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Automated checks catch regressions early
+- code: ACC-003
+  requirement: Manual accessibility test executed per release
+  explanation: Manual accessibility tests are executed for each release cycle.
+  stories:
+  - STORY-ACC-003
+- code: ACC-004
+  requirement: Defects tracked with parity priority & SLA
+  explanation: Accessibility defects tracked with equal priority and defined SLAs.
+  stories:
+  - STORY-ACC-004
+- code: ACC-005
+  requirement: Tooling operational in dev/int/reference envs
+  explanation: Accessibility tooling operates correctly in dev, int, and reference
+    environments.
+  stories:
+  - STORY-ACC-005
+- code: ACC-006
+  requirement: Assistive tech not blocked by headers/CSP
+  explanation: Assistive technologies are not blocked by headers or Content Security
+    Policy (CSP).
+  stories: []
+- code: ACC-007
+  requirement: Test dataset covers tables/forms/status messages
+  explanation: 'Test dataset covers common components: tables, forms, status messages.'
+  stories: []
+- code: ACC-008
+  requirement: CI accessibility stage completes <5min
+  explanation: CI accessibility scan stage completes quickly (under target time).
+  stories: []
+- code: ACC-009
+  requirement: Keyboard tab order regression test passes
+  explanation: Keyboard-only navigation preserves logical tab order without traps.
+  stories: []
+  controls:
+  - control_id: keyboard-tab-order
+    measure: Keyboard tab order regression test passes
+    threshold: Tab order matches expected flow; no focus loss
+    tooling: Automated tab order tests + manual verification
+    cadence: CI per build + pre-release
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Supports keyboard-only navigation
+- code: ACC-010
+  requirement: Focus trap tests pass for modals/overlays
+  explanation: Focus handling works for modals and overlays without trapping user.
+  stories: []
+  controls:
+  - control_id: focus-trap-tests
+    measure: Focus trap tests pass for modals/overlays
+    threshold: No escape from focus trap; correct focus restoration
+    tooling: Automated focus tests + manual checks
+    cadence: CI per build + pre-release
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures accessible modal behaviour
+- code: ACC-011
+  requirement: Screen reader ARIA role announcements verified
+  explanation: Screen reader announces ARIA roles and states correctly.
+  stories: []
+- code: ACC-012
+  requirement: Accessibility results documented with feature tests
+  explanation: Accessibility results are documented alongside feature tests.
+  stories: []
+- code: ACC-013
+  requirement: Central issue log maintained & current
+  explanation: Centralised accessibility issue log is maintained and current.
+  stories: []
+- code: ACC-014
+  requirement: Accessibility champion/workgroup active
+  explanation: Active champion or workgroup drives accessibility practice.
+  stories: []
+- code: ACC-015
+  requirement: Monthly accessibility report published
+  explanation: Monthly accessibility report is published for stakeholders.
+  stories: []
+  controls:
+  - control_id: monthly-accessibility-report
+    measure: Monthly accessibility report published
+    threshold: Report produced and published monthly with tracked actions
+    tooling: Reporting automation + issue tracker
+    cadence: Monthly
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Maintains visibility and accountability
+- code: ACC-016
+  requirement: Exception process documented & used
+  explanation: Exception process for accessibility deviations is documented.
+  stories: []
+- code: ACC-017
+  requirement: Exception record contains required fields
+  explanation: Exception records include required fields (impact, mitigation, expiry).
+  stories: []
+- code: ACC-018
+  requirement: Pre-commit checks complete <30s
+  explanation: Pre-commit accessibility checks finish within target duration.
+  stories: []
+- code: ACC-019
+  requirement: CI accessibility stage completes <5min
+  explanation: CI accessibility stage completes within target time window.
+  stories: []
+- code: ACC-020
+  requirement: Overnight full scan duration <2h
+  explanation: Overnight full scan finishes under defined maximum duration.
+  stories: []
+- code: ACC-021
+  requirement: Accessibility regression triggers alert
+  explanation: Regression in accessibility triggers automated alert.
+  stories: []
+- code: ACC-022
+  requirement: False positive ratio report shows improvement
+  explanation: False positive ratio is measured and trending toward improvement.
+  stories: []

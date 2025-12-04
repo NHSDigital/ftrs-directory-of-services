@@ -25,10 +25,10 @@ Legend: Code | Requirement | Rationale | Verification | Tags
 | REL-009 | Clickjacking prevention (X-Frame-Options / CSP frame-ancestors)                                            | Protect user interactions                 | Header inspection & iframe attempt test          | reliability, security, ux        |
 | REL-010 | Support suspension & resumption of batch processes without data corruption                                 | Safe housekeeping operations              | Batch run interruption test & checksum compare   | reliability, process, batch      |
 | REL-011 | Continuous compute health checks & automatic unhealthy node replacement                                    | Avoid degraded performance from bad nodes | Health probe logs & auto-replacement events      | reliability, compute, healing    |
-| REL-012 | Single node loss tolerance in any functional group without perf/data degradation until replacement         | Maintain SLA under partial failure        | Chaos test removing node; metrics stable         | reliability, fault-tolerance     |
+| REL-012 | Single node loss tolerance in any functional group without performance/data degradation until replacement         | Maintain SLA under partial failure        | Chaos test removing node; metrics stable         | reliability, fault-tolerance     |
 | REL-013 | Tier resilience (presentation/service/data) with graceful degradation & recovery                           | Preserve core functionality               | Simulated tier failures & user experience tests  | reliability, tier, graceful      |
 | REL-014 | External system failure resilience (SSB/CIS2, SDS, ODS, NHS.UK, PDS, SIEM) with fallback or graceful error | Minimise dependency impact                | Stub outage simulations; fallback paths verified | reliability, dependency          |
-| REL-015 | Load balancer resilience (presentation/app tier) – failover without session loss                           | Maintain session continuity               | LB failure simulation; sticky session validation | reliability, networking          |
+| REL-015 | Load balancer resilience (presentation/app tier) – fail-over without session loss                           | Maintain session continuity               | LB failure simulation; sticky session validation | reliability, networking          |
 | REL-016 | Graceful server-side error handling (logout or user message)                                               | Improve UX & security posture             | Error injection tests display appropriate action | reliability, ux, error           |
 | REL-017 | Comprehensive backup & recovery strategy meeting NHS policy & ransomware defenses (RPO/RTO alignment)      | Recover from catastrophic events quickly  | Backup schedule audit; restore drill success     | reliability, backup, ransomware  |
 
@@ -36,7 +36,7 @@ Legend: Code | Requirement | Rationale | Verification | Tags
 
 - Chaos engineering for node/tier/LB failures.
 - Security attack simulations (DoS, injection, auth brute force, MITM attempts).
-- Automated header & config inspections (CSP, X-Frame-Options, TLS).
+- Automated header & configuration inspections (CSP, X-Frame-Options, TLS).
 - Batch job suspend/resume integrity tests (pre/post checksums).
 - Health check and auto-replacement event log correlation.
 - External dependency outage staging via mocks/stubs.

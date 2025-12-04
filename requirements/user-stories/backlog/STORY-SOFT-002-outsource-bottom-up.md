@@ -1,24 +1,27 @@
 ---
-code: STORY-SOFT-002
-as_a: Architecture_Lead
-
-i_want: evaluate_and_outsource_non_differentiating_capabilities_bottom_up
-so_that: teams_focus_on_core_value
-business_value: Frees engineering capacity for strategic work
+story_id: STORY-SOFT-002
+title: "Outsource bottom-up non-differentiating capabilities"
+role: Architecture Lead
+goal: "Evaluate and outsource non-differentiating capabilities bottom-up"
+value: Frees engineering capacity for strategic work
 nfr_refs: [NFR-SOFT-OUTSOURCE-BOTTOM-UP-01]
-nfr_tags: [software-management, sourcing]
-acceptance_criteria:
-
-- GIVEN capability inventory WHEN updated THEN classification (core/commodity) maintained
-- GIVEN commodity capability WHEN candidate THEN outsourcing decision includes cost-benefit and exit plan
-- GIVEN review cycle WHEN quarterly THEN at least one candidate assessed for potential outsourcing
-  out_of_scope:
-- Vendor contract negotiation details
-  notes: |
-  Evidence: inventory, decision record, quarterly review summary.
-
+status: draft
 ---
 
-# Summary
+## Description
 
 Structured evaluation and outsourcing of commodity capabilities.
+
+## Acceptance Criteria
+
+1. GIVEN capability inventory WHEN updated THEN classification (core or commodity) is maintained
+2. GIVEN a commodity capability WHEN a candidate THEN the outsourcing decision includes a cost-benefit analysis and an exit plan
+3. GIVEN a review cycle WHEN quarterly THEN at least one candidate is assessed for potential outsourcing
+
+## Out of Scope
+
+- Vendor contract negotiation details
+
+## Implementation Notes
+
+- Evidence: inventory, decision record, quarterly review summary

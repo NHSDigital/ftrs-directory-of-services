@@ -1,9 +1,9 @@
 ---
 story_id: STORY-ACC-001
 jira_key:
-title: WCAG 2.2 AA scan & manual audit pass
+title: "WCAG 2.2 AA scan & manual audit pass"
 role: UX Engineer
-goal: Implement and validate: WCAG 2.2 AA scan & manual audit pass
+goal: "Implement and validate: WCAG 2.2 AA scan & manual audit pass"
 value: Ensures accessibility conformance for UI surfaces
 nfr_refs: [ACC-001]
 status: draft
@@ -11,11 +11,11 @@ status: draft
 
 ## Description
 
-Implement automated validation for: WCAG 2.2 AA scan & manual audit pass.
+Implement automated validation for: WCAG 2.2 AA scan and manual audit pass.
 
 ## Acceptance Criteria
 
-1. Automated AA scan passes; manual audit issues triaged and resolved
+1. Automated AA scan passes; manual audit issues prioritized and resolved
 2. Tooling: Accessibility scanner + manual audit checklist operational
 3. Cadence: Quarterly + pre-release validated
 4. Environments: int, ref covered
@@ -23,7 +23,11 @@ Implement automated validation for: WCAG 2.2 AA scan & manual audit pass.
 
 ## Non-Functional Acceptance
 
-- Control ID: `wcag-aa-pass`\n- Threshold: Automated AA scan passes; manual audit issues triaged and resolved\n- Tooling: Accessibility scanner + manual audit checklist\n- Cadence: Quarterly + pre-release\n- Environments: int, ref
+- Control ID: `wcag-aa-pass`
+- Threshold: Automated AA scan passes; manual audit issues prioritized and resolved
+- Tooling: Accessibility scanner and manual audit checklist
+- Cadence: Quarterly and pre-release
+- Environments: int, ref
 
 ## Test Strategy
 

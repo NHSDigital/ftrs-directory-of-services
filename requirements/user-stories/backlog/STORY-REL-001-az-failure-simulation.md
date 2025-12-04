@@ -1,9 +1,9 @@
 ---
 story_id: STORY-REL-001
 jira_key:
-title: AZ failure simulation maintains service
+title: "AZ failure simulation maintains service"
 role: SRE
-goal: Implement and validate: AZ failure simulation maintains service
+goal: "Implement and validate: AZ failure simulation maintains service"
 value: Validates resilience to Availability Zone failures
 nfr_refs: [REL-002]
 status: draft
@@ -15,15 +15,19 @@ Implement automated validation for: AZ failure simulation maintains service.
 
 ## Acceptance Criteria
 
-1. Successful failover with sustained service availability; no data loss
-2. Tooling: Chaos simulation + health checks operational
+1. Successful fail-over with sustained service availability; no data loss
+2. Tooling: Chaos simulation and health checks operational
 3. Cadence: Quarterly exercise validated
 4. Environments: int, ref covered
 5. Monitoring configured and alerting tested
 
 ## Non-Functional Acceptance
 
-- Control ID: `az-failure-simulation`\n- Threshold: Successful failover with sustained service availability; no data loss\n- Tooling: Chaos simulation + health checks\n- Cadence: Quarterly exercise\n- Environments: int, ref
+- Control ID: `az-failure-simulation`
+- Threshold: Successful fail-over with sustained service availability; no data loss
+- Tooling: Chaos simulation and health checks
+- Cadence: Quarterly exercise
+- Environments: int, ref
 
 ## Test Strategy
 
