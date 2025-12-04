@@ -290,7 +290,7 @@ class OrganisationService:
     def _handle_role_error(self, organisation_id: str, error_message: str) -> None:
         """Log and raise exception for role related errors."""
         self.logger.log(
-            CrudApisLogBase.ORGANISATION_023,
+            CrudApisLogBase.ORGANISATION_024,
             organisation_id=organisation_id,
             error_message=error_message,
         )
