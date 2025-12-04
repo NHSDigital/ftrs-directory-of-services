@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev --port 3000",
-    "start": "vinxi start --port 3000",
-    "build": "vinxi build",
+    "dev": "vite dev --port 3000",
+    "serve": "vite serve --port 3000",
+    "build": "vite build",
     "build:types": "tsc",
     "test": "vitest run --coverage",
     "format": "biome format",
@@ -18,19 +18,19 @@
     "@aws-sdk/client-ssm": "^3.823.0",
     "@aws-sdk/credential-providers": "^3.823.0",
     "@aws-sdk/signature-v4": "^3.370.0",
-    "@tanstack/react-query": "^5.80.6",
-    "@tanstack/react-query-devtools": "^5.80.6",
-    "@tanstack/react-router": "^1.119.0",
-    "@tanstack/react-router-devtools": "^1.114.3",
-    "@tanstack/react-start": "^1.119.0",
+    "@tanstack/react-query": "^5.90.11",
+    "@tanstack/react-query-devtools": "^5.91.1",
+    "@tanstack/react-router": "^1.139.12",
+    "@tanstack/react-router-devtools": "^1.139.12",
+    "@tanstack/react-start": "^1.139.12",
     "@tanstack/react-table": "^8.21.3",
-    "@tanstack/router-plugin": "^1.114.3",
+    "@tanstack/router-plugin": "^1.139.12",
     "nhsuk-frontend": "^9.4.1",
     "nhsuk-react-components": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sass": "^1.87.0",
-    "vinxi": "^0.5.6",
+    "vite": "^7.2.6",
     "zod": "^3.25.51"
   },
   "devDependencies": {
@@ -45,9 +45,11 @@
     "jest-dom": "^4.0.0",
     "jsdom": "^26.0.0",
     "msw": "^2.9.0",
+    "nitro": "^3.0.1-alpha.1",
     "typescript": "^5.7.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.5",
     "web-vitals": "^4.2.4"
   }
 }
+
