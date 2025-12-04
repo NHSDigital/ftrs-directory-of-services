@@ -345,8 +345,8 @@ def build_organisation_role_extension_with_typed_period(start_date: str = None, 
                     "coding": [
                         {
                             "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                            "code": "RO76",
-                            "display": "GP PRACTICE"
+                            "code": "RO182",
+                            "display": "Pharmacy"
                         }
                     ]
                 }
@@ -829,14 +829,16 @@ def step_validate_db_field(field: str, value: str, model_repo, fresponse):
         if value.strip() == "[]":
             expected = []
         else:
-            # Remove brackets and split by comma
+            # Remove brackets and split by comma, stripping whitespace from each code
             cleaned = value.strip().strip("[]")
             expected = [code.strip() for code in cleaned.split(",")] if cleaned else []
 
-        actual_codes = [str(code) if hasattr(code, 'value') else code for code in (actual or [])]
+        # Convert actual values to strings for comparison if they are enums
+        actual_codes = [str(code.value) if hasattr(code, 'value') else str(code) for code in (actual or [])]
 
         logger.info(f"Validating {field}: expected={expected}, actual={actual_codes}")
         assert actual_codes == expected, f"{field} mismatch: expected {expected}, got {actual_codes}"
+        return
 
     # Convert string "None" to Python None for comparison
     expected = None if value == "None" else value
@@ -961,6 +963,26 @@ def step_set_role_extensions(
                 {
                     "url": "primaryRole",
                     "valueBoolean": True
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                                "display": "Legal"
+                            }
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31"
+                            }
+                        }
+                    ]
                 }
             ]
         }
@@ -992,6 +1014,26 @@ def step_set_role_extensions(
                 {
                     "url": "primaryRole",
                     "valueBoolean": False
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                                "display": "Legal"
+                            }
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31"
+                            }
+                        }
+                    ]
                 }
             ]
         }

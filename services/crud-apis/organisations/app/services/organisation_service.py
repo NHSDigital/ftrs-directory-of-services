@@ -199,12 +199,6 @@ class OrganisationService:
             if field == "legalDates":
                 if self._legal_dates_differ(existing_value, value):
                     outdated_fields[field] = value
-            elif field == "primary_role_code":
-                if existing_value != value:
-                    outdated_fields[field] = value
-            elif field == "non_primary_role_codes":
-                if set(existing_value or []) != set(value or []):
-                    outdated_fields[field] = value
             elif existing_value != value:
                 outdated_fields[field] = value
 
