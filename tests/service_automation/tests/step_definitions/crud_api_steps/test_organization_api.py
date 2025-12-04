@@ -611,6 +611,8 @@ def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
 
 def _build_invalid_role_extension(invalid_scenario: str) -> dict:
     """Build invalid OrganisationRole extensions for different test scenarios."""
+    typed_period = build_typed_period_extension("2020-01-15", "2025-12-31", "Legal")
+
     if invalid_scenario == "invalid role extension url":
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID",
@@ -630,7 +632,8 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                             }
                         ]
                     }
-                }
+                },
+                typed_period
             ]
         }
     elif invalid_scenario == "missing role extension url":
@@ -640,7 +643,8 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                 {
                     "url": "instanceID",
                     "valueInteger": 12345
-                }
+                },
+                typed_period
             ]
         }
     elif invalid_scenario == "empty role extension url":
@@ -662,7 +666,102 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                             }
                         ]
                     }
-                }
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "missing roleCode extension":
+        # OrganisationRole without any roleCode extension
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode missing valueCodeableConcept":
+        # roleCode extension without valueCodeableConcept
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode"
+                    # No valueCodeableConcept
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode missing coding array":
+        # roleCode with valueCodeableConcept but no coding array
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        # No coding array
+                    }
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode empty code value":
+        # roleCode with empty code value
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "",  # Empty code value
+                                "display": "GP PRACTICE"
+                            }
+                        ]
+                    }
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode invalid enum value":
+        # roleCode with invalid enum value
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "INVALID_CODE",  # Not a valid OrganisationTypeCode
+                                "display": "Invalid Code"
+                            }
+                        ]
+                    }
+                },
+                typed_period
             ]
         }
     else:
@@ -703,8 +802,19 @@ def step_update_with_invalid_extension(invalid_scenario: str, api_request_contex
     """Update organization with various invalid extension scenarios."""
     payload = _load_default_payload()
 
-    # Handle role-level validation scenarios
-    if invalid_scenario in ("invalid role extension url", "missing role extension url", "empty role extension url"):
+    # Handle role-level validation scenarios (URL and roleCode structure)
+    role_level_scenarios = (
+        "invalid role extension url",
+        "missing role extension url",
+        "empty role extension url",
+        "missing roleCode extension",
+        "roleCode missing valueCodeableConcept",
+        "roleCode missing coding array",
+        "roleCode empty code value",
+        "roleCode invalid enum value"
+    )
+
+    if invalid_scenario in role_level_scenarios:
         invalid_role_extension = _build_invalid_role_extension(invalid_scenario)
         payload["extension"] = [invalid_role_extension]
     else:
@@ -1057,3 +1167,232 @@ def step_set_role_extensions(
 
     return response
 
+
+@when(
+    parsers.parse(
+        'I set the role extensions with invalid primary role parameter "{invalid_scenario}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_set_invalid_primary_role_parameter(
+    api_request_context_mtls_crud: object,
+    invalid_scenario: str,
+) -> object:
+    """Set role extensions with invalid primary role parameters."""
+    payload = _load_default_payload()
+    role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    typed_period_ext = {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+        "extension": [
+            {
+                "url": "dateType",
+                "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                    "code": "Legal",
+                    "display": "Legal"
+                }
+            },
+            {
+                "url": "period",
+                "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+            }
+        ]
+    }
+
+    payload["extension"] = []
+    if invalid_scenario == "missing primaryRole boolean":
+        # Role without primaryRole parameter
+        role_ext = {
+            "url": role_url,
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12345},
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO177"}]
+                    }
+                },
+                typed_period_ext
+            ]
+        }
+        payload["extension"].append(role_ext)
+
+    elif invalid_scenario == "primaryRole not boolean":
+        # primaryRole with string value instead of boolean
+        role_ext = {
+            "url": role_url,
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12345},
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO177"}]
+                    }
+                },
+                {"url": "primaryRole", "valueString": "true"},  # Wrong type
+                typed_period_ext
+            ]
+        }
+        payload["extension"].append(role_ext)
+
+    elif invalid_scenario == "primaryRole is null":
+        # primaryRole with null value
+        role_ext = {
+            "url": role_url,
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12345},
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO177"}]
+                    }
+                },
+                {"url": "primaryRole", "valueBoolean": None},
+                typed_period_ext
+            ]
+        }
+        payload["extension"].append(role_ext)
+
+    elif invalid_scenario == "multiple primary roles":
+        # Two roles both marked as primary
+        for role_code in ["RO177", "RO182"]:
+            role_ext = {
+                "url": role_url,
+                "extension": [
+                    {"url": "instanceID", "valueInteger": 12345},
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": role_code}]
+                        }
+                    },
+                    {"url": "primaryRole", "valueBoolean": True},
+                    typed_period_ext
+                ]
+            }
+            payload["extension"].append(role_ext)
+
+    elif invalid_scenario == "no primary role marked":
+        # Two roles both marked as non-primary
+        for role_code in ["RO177", "RO76"]:
+            role_ext = {
+                "url": role_url,
+                "extension": [
+                    {"url": "instanceID", "valueInteger": 12345},
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": role_code}]
+                        }
+                    },
+                    {"url": "primaryRole", "valueBoolean": False},
+                    typed_period_ext
+                ]
+            }
+            payload["extension"].append(role_ext)
+
+    logger.info(f"Payload with invalid primary role parameter ({invalid_scenario}):\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
+@when(
+    parsers.parse(
+        'I set the role extensions with invalid non-primary role parameter "{invalid_scenario}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_set_invalid_non_primary_role_parameter(
+    api_request_context_mtls_crud: object,
+    invalid_scenario: str,
+) -> object:
+    """Set role extensions with invalid non-primary role parameters."""
+    payload = _load_default_payload()
+    role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    typed_period_ext = {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+        "extension": [
+            {
+                "url": "dateType",
+                "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                    "code": "Legal",
+                    "display": "Legal"
+                }
+            },
+            {
+                "url": "period",
+                "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"}
+            }
+        ]
+    }
+
+    payload["extension"] = []
+
+    # Add valid primary role
+    primary_role = {
+        "url": role_url,
+        "extension": [
+            {"url": "instanceID", "valueInteger": 12345},
+            {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                    "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO177"}]
+                }
+            },
+            {"url": "primaryRole", "valueBoolean": True},
+            typed_period_ext
+        ]
+    }
+    payload["extension"].append(primary_role)
+
+    if invalid_scenario == "non-primary missing primaryRole":
+        # Non-primary role without primaryRole parameter
+        non_primary_role = {
+            "url": role_url,
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12346},
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO76"}]
+                    }
+                },
+                # Missing primaryRole
+                typed_period_ext
+            ]
+        }
+        payload["extension"].append(non_primary_role)
+
+    elif invalid_scenario == "non-primary primaryRole is true":
+        # Non-primary role with primaryRole set to true
+        non_primary_role = {
+            "url": role_url,
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12346},
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO76"}]
+                    }
+                },
+                {"url": "primaryRole", "valueBoolean": True},  # Should be False
+                typed_period_ext
+            ]
+        }
+        payload["extension"].append(non_primary_role)
+
+    elif invalid_scenario == "non-primary missing roleCode":
+        # Non-primary role without roleCode
+        non_primary_role = {
+            "url": role_url,
+            "extension": [
+                {"url": "instanceID", "valueInteger": 12346},
+                # Missing roleCode
+                {"url": "primaryRole", "valueBoolean": False},
+                typed_period_ext
+            ]
+        }
+        payload["extension"].append(non_primary_role)
+
+    logger.info(f"Payload with invalid non-primary role parameter ({invalid_scenario}):\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
