@@ -29,13 +29,14 @@ This page is auto-generated; do not hand-edit.
 ## Controls
 
 ### REL-002
-Simulated AZ failure does not interrupt service delivery.
 
+Simulated AZ failure does not interrupt service delivery.
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | az-failure-simulation | AZ failure simulation maintains service | Successful failover with sustained service availability; no data loss | Chaos simulation + health checks | Quarterly exercise | int,ref | crud-apis,dos-search | draft | Validates resilience to Availability Zone failures |
 
 ### REL-007
+
 Brute force or auth anomaly attempts are rate limited and create alerts.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -43,6 +44,7 @@ Brute force or auth anomaly attempts are rate limited and create alerts.
 | auth-brute-force-protection | Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate burst supported) | Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s; ≤1% false positives | Auth gateway rate limiter + anomaly aggregator + performance harness + alerting | Continuous runtime enforcement + daily compliance script | dev,int,ref,prod | crud-apis,dos-search,dos-ingestion-api,etl-ods,read-only-viewer | draft | Protects availability & integrity under authentication attack patterns |
 
 ### REL-010
+
 Pausing and resuming batch jobs does not corrupt or lose data.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -50,6 +52,7 @@ Pausing and resuming batch jobs does not corrupt or lose data.
 | batch-suspend-resume-integrity | Batch suspend/resume preserves data integrity | 0 data loss; consistent resume and reconciliation | Batch controller + integrity checks | Release cycle validation | int,ref | etl-ods | draft | Ensures reliable batch operations |
 
 ### REL-011
+
 Unhealthy nodes are automatically replaced with workload continuity.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -57,9 +60,9 @@ Unhealthy nodes are automatically replaced with workload continuity.
 | unhealthy-node-auto-replace | Unhealthy node auto-replaced; workload continues | Auto-replacement within policy; no user-visible downtime | Autoscaling group events + workload health | Continuous monitoring + quarterly drill | int,ref,prod | crud-apis,dos-search | draft | Maintains reliability during node failures |
 
 ### REL-013
+
 Tier failure triggers graceful degradation and later clean recovery.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | tier-failure-graceful-degrade | Tier failure graceful degradation & recovery evidenced | Documented fallback; recovery time within SLA | Chaos experiments + observability evidence | Quarterly | int,ref | crud-apis,dos-search | draft | Demonstrates graceful degradation patterns |
-

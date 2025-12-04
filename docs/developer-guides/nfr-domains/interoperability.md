@@ -30,6 +30,7 @@ This page is auto-generated; do not hand-edit.
 ## Controls
 
 ### INT-005
+
 Error responses follow standard OperationOutcome structure.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -37,6 +38,7 @@ Error responses follow standard OperationOutcome structure.
 | operationoutcome-structure | Standard OperationOutcome error structure enforced | 100% error responses conform to OperationOutcome spec | Contract tests + schema validators | CI per build + weekly contract audit | int,ref,prod | crud-apis,dos-search | draft | Ensures consistent error semantics across integrations |
 
 ### INT-007
+
 Strict content negotiation enforces supported media types only.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -44,6 +46,7 @@ Strict content negotiation enforces supported media types only.
 | strict-content-negotiation | Strict content negotiation implemented | Only documented media types accepted; correct response Content-Type | API contract tests + gateway policies | CI per build | int,ref,prod | crud-apis,dos-search | draft | Prevents ambiguity in accepted formats |
 
 ### INT-008
+
 Reference data synchronises within defined latency (e.g., ≤24h).
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -51,6 +54,7 @@ Reference data synchronises within defined latency (e.g., ≤24h).
 | reference-data-sync-latency | Reference data sync latency ≤24h | Sync completes within 24 hours | ETL scheduler + latency report | Daily | prod | etl-ods | draft | Timely reference data ensures correct behaviour |
 
 ### INT-013
+
 Correlation IDs persist across internal and external calls for tracing.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -58,6 +62,7 @@ Correlation IDs persist across internal and external calls for tracing.
 | correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation_id in logs and headers | Middleware + log correlation tests | CI per build + monthly audit | int,ref,prod | crud-apis,dos-search | draft | Enables end-to-end tracing and diagnostics |
 
 ### INT-016
+
 Operations are stateless and do not rely on sequence order.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -65,6 +70,7 @@ Operations are stateless and do not rely on sequence order.
 | stateless-sequence-independence | Stateless sequence-independent operations | 100% documented operations produce correct outcome independent of prior invocation order | Idempotence + shuffled sequence integration tests | CI per build + quarterly audit | int,ref,prod | crud-apis,dos-search | draft | Enables horizontal scaling and predictable consumer integration |
 
 ### INT-017
+
 Input validation covers every field on every request to prevent malformed data.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -72,9 +78,9 @@ Input validation covers every field on every request to prevent malformed data.
 | field-validation-complete | Complete field-level input validation every request | 100% of inputs validated; rich error responses on failure | Validation layer + contract tests | CI per build | int,ref,prod | crud-apis | draft | Protects system integrity via strict input validation |
 
 ### INT-018
+
 Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | api-documentation-completeness | Comprehensive published OpenAPI documentation | All required catalogue sections present; spec passes lint; updated ≤5 business days after prod change | Spectral lint + spec diff + manual checklist | CI per build + weekly audit | int,ref,prod | crud-apis,dos-search | draft | Reduces integration friction; ensures transparency for consumers |
-

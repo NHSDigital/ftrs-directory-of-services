@@ -25,6 +25,7 @@ This page is auto-generated; do not hand-edit. Run `python3 scripts/nfr/refresh_
 Per-domain pages now contain detailed operations or controls grouped by NFR code. This index intentionally omits those large tables for comprehension.
 
 ---
+
 ## How to Read a Performance Operation Row (Plain English)
 
 Example row:
@@ -34,6 +35,7 @@ Example row:
 | crud-apis | org-search-ods |  | 60 | 140 | 400 |  |  |  | draft | ODS code normalization + single index scan |
 
 Meaning of columns:
+
 - Service: Subsystem owning the endpoint or job
 - Operation ID: Stable short name used in tests & dashboards
 - Class: Speed category (FAST snappy, STANDARD typical, SLOW heavy/background)
@@ -49,6 +51,7 @@ Meaning of columns:
 Multiple tests per operation typically: latency monitor (p50/p95), max latency alert, throughput tests (burst & sustained), payload boundary test.
 
 ---
+
 ## How to Read a Control Row (Plain English)
 
 Example control row:
@@ -58,6 +61,7 @@ Example control row:
 | crypto-cipher-policy | SEC-001 | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | TLS scanner + configuration policy checks | CI per change + monthly scan | dev,int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Enforces modern TLS standards; automated scans detect drift |
 
 Meaning of columns:
+
 - Control ID: Stable name of the automated check
 - NFR Code: Which atomic NFR this control supports
 - Measure: What is examined (setting, scan result, metric)
@@ -70,4 +74,3 @@ Meaning of columns:
 - Rationale: Why the threshold/tool was chosen
 
 Typical validation: tool execution success, threshold met, alert on failure, exception tracked with mitigation & review date.
-

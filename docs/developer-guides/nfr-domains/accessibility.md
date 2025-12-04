@@ -34,13 +34,14 @@ This page is auto-generated; do not hand-edit.
 ## Controls
 
 ### ACC-001
-Product passes WCAG 2.2 AA via automated and manual audits.
 
+Product passes WCAG 2.2 AA via automated and manual audits.
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | wcag-aa-pass | WCAG 2.2 AA scan & manual audit pass | Automated AA scan passes; manual audit issues triaged and resolved | Accessibility scanner + manual audit checklist | Quarterly + pre-release | int,ref | read-only-viewer | draft | Ensures accessibility conformance for UI surfaces |
 
 ### ACC-002
+
 Automated scans run across critical pages and browser variants.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -48,6 +49,7 @@ Automated scans run across critical pages and browser variants.
 | automated-scans-coverage | Automated scans run across critical pages & browsers | Critical pages covered across supported browsers | CI accessibility suite + cross-browser runners | CI per build | int,ref | read-only-viewer | draft | Automated checks catch regressions early |
 
 ### ACC-009
+
 Keyboard-only navigation preserves logical tab order without traps.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -55,6 +57,7 @@ Keyboard-only navigation preserves logical tab order without traps.
 | keyboard-tab-order | Keyboard tab order regression test passes | Tab order matches expected flow; no focus loss | Automated tab order tests + manual verification | CI per build + pre-release | int,ref | read-only-viewer | draft | Supports keyboard-only navigation |
 
 ### ACC-010
+
 Focus handling works for modals and overlays without trapping user.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -62,10 +65,9 @@ Focus handling works for modals and overlays without trapping user.
 | focus-trap-tests | Focus trap tests pass for modals/overlays | No escape from focus trap; correct focus restoration | Automated focus tests + manual checks | CI per build + pre-release | int,ref | read-only-viewer | draft | Ensures accessible modal behaviour |
 
 ### ACC-015
+
 Monthly accessibility report is published for stakeholders.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | monthly-accessibility-report | Monthly accessibility report published | Report produced and published monthly with tracked actions | Reporting automation + issue tracker | Monthly | int,ref | read-only-viewer | draft | Maintains visibility and accountability |
-
-

@@ -28,6 +28,7 @@ This page is auto-generated; do not hand-edit.
 ## Controls
 
 ### GOV-001
+
 Service Management pre-live acceptance is signed off before go-live.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -35,6 +36,7 @@ Service Management pre-live acceptance is signed off before go-live.
 | service-management-pre-live | Service Management pre-live acceptance signed | Acceptance signed; evidence stored | Governance tracker + document repository | Pre-live | prod | crud-apis,dos-search | draft | Ensures service readiness sign-off |
 
 ### GOV-002
+
 Well-Architected review completed; remediation actions closed.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -42,6 +44,7 @@ Well-Architected review completed; remediation actions closed.
 | well-architected-review | Well-Architected review completed & actions closed | Review complete; actions closed or exceptioned | WAR tool + issue tracker | Pre-live + annual | prod | crud-apis,dos-search | draft | Maintains architectural quality |
 
 ### GOV-005
+
 GDPR compliance assessment signed by Information Governance.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -49,6 +52,7 @@ GDPR compliance assessment signed by Information Governance.
 | gdpr-assessment-signed | GDPR compliance assessment signed by IG | Assessment signed; actions tracked | IG workflow + evidence repository | Pre-live + annual | prod | crud-apis,dos-search | draft | Ensures data protection compliance |
 
 ### GOV-009
+
 Solution Assurance approval ticket is closed.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -56,9 +60,9 @@ Solution Assurance approval ticket is closed.
 | solution-assurance-approval | Solution Assurance approval ticket closed | Approval obtained; ticket closed | Assurance workflow + evidence repository | Pre-live | prod | crud-apis,dos-search | draft | Meets governance approval requirements |
 
 ### GOV-010
+
 Clinical Safety assurance approval recorded.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | clinical-safety-approval | Clinical Safety assurance approval recorded | Approval recorded; evidence available | Clinical safety workflow + repository | Pre-live | prod | crud-apis,dos-search | draft | Complies with clinical safety governance |
-

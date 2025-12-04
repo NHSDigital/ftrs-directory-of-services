@@ -45,6 +45,7 @@ This page is auto-generated; do not hand-edit.
 ## Controls
 
 ### OBS-001
+
 Application and infrastructure health panels display green status during normal operation.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -52,6 +53,7 @@ Application and infrastructure health panels display green status during normal 
 | health-panels-green | App & infra health panels show green | All critical panels green; no stale data | Health checks + dashboard status API | Continuous + CI verification on change | int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Ensures at-a-glance service health visibility |
 
 ### OBS-007
+
 Performance metrics latency (ingest to display) stays within defined limit (e.g., ≤60s).
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -59,6 +61,7 @@ Performance metrics latency (ingest to display) stays within defined limit (e.g.
 | perf-metrics-latency | Performance metrics latency ≤60s | Metrics pipeline delivers data within 60s latency | Metrics agent + ingestion SLA alerting | Continuous monitoring | int,ref,prod | crud-apis,dos-ingestion-api,etl-ods,dos-search,read-only-viewer | draft | Fresh metrics are required for accurate operational decisions |
 
 ### OBS-008
+
 Per-endpoint transactions per second (TPS) are displayed with alert thresholds.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -66,6 +69,7 @@ Per-endpoint transactions per second (TPS) are displayed with alert thresholds.
 | tps-threshold-alert | TPS per endpoint displayed & threshold alert configured | TPS dashboard present; alert rule configured and tested | Metrics backend + alerting system | CI validation + monthly alert fire drill | int,ref,prod | crud-apis,dos-search | draft | Detects throughput anomalies proactively |
 
 ### OBS-009
+
 Latency histograms show p50/p95/p99 for each endpoint.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -73,6 +77,7 @@ Latency histograms show p50/p95/p99 for each endpoint.
 | latency-histograms | Endpoint latency histograms with p50/p95/p99 | Histograms available per endpoint with p50/p95/p99 series | Metrics backend + dashboard | Continuous | int,ref,prod | crud-apis,dos-search | draft | Percentile visibility supports performance governance |
 
 ### OBS-025
+
 Alerts delivered with sufficient context to act (multi-channel).
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -80,6 +85,7 @@ Alerts delivered with sufficient context to act (multi-channel).
 | migration-variance-alerts | Actionable alerts on data-migration error rate and duration variance | Alert when error_rate >1% over 5m window OR full-sync duration > baseline +20%; include playbook link, correlation_id, impacted counts | Metrics backend, alerting engine, synthetic event injector, dashboard | Continuous evaluation; monthly threshold tuning; weekly report | int,ref,prod | data-migration | draft | Early detection of pipeline health issues to reduce MTTR and prevent silent degradation |
 
 ### OBS-030
+
 Distributed tracing spans cover end-to-end request path.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
@@ -87,9 +93,9 @@ Distributed tracing spans cover end-to-end request path.
 | distributed-trace-coverage | Distributed trace spans cover end-to-end request | ≥95% of requests include spans across key tiers | Tracing SDKs + sampling config | Continuous + monthly sampling review | int,ref,prod | crud-apis,dos-search | draft | Enables end-to-end diagnosis and correlation across layers |
 
 ### OBS-033
+
 Unauthorized API access attempts (failed authentication, forbidden operations, rate limit breaches, anomalous spikes) are logged with required context and generate timely alerts for early detection of credential misuse or attack patterns.
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | crud-apis,dos-search,dos-ingestion-api,etl-ods,read-only-viewer | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |
-
