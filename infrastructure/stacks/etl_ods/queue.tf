@@ -6,7 +6,7 @@ resource "aws_sqs_queue" "dead_letter_queue" {
   message_retention_seconds  = var.message_retention_seconds
   receive_wait_time_seconds  = var.receive_wait_time_seconds
   sqs_managed_sse_enabled    = var.sqs_managed_sse_enabled
-  kms_master_key_id          = data.aws_kms_key.sqs_kms_alias.arn
+  # kms_master_key_id          = data.aws_kms_key.sqs_kms_alias.arn
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -34,7 +34,7 @@ resource "aws_sqs_queue" "transformed_queue" {
   message_retention_seconds  = var.message_retention_seconds
   receive_wait_time_seconds  = var.receive_wait_time_seconds
   sqs_managed_sse_enabled    = var.sqs_managed_sse_enabled
-  kms_master_key_id          = data.aws_kms_key.sqs_kms_alias.arn
+  # kms_master_key_id          = data.aws_kms_key.sqs_kms_alias.arn
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.dead_letter_queue.arn
     maxReceiveCount     = var.max_receive_count
