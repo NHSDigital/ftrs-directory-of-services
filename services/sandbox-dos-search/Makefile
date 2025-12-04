@@ -21,6 +21,19 @@ API_NAME ?=
 ENVIRONMENT ?=
 AWS_REGION ?=
 
+HOST_ARCH := $(shell uname -m)
+ifeq ($(HOST_ARCH),arm64)
+LOCAL_PLATFORM := linux/arm64
+else ifeq ($(HOST_ARCH),aarch64)
+LOCAL_PLATFORM := linux/arm64
+else ifeq ($(HOST_ARCH),x86_64)
+LOCAL_PLATFORM := linux/amd64
+else ifeq ($(HOST_ARCH),amd64)
+LOCAL_PLATFORM := linux/amd64
+else
+LOCAL_PLATFORM :=
+endif
+
 ifneq ($(strip $(COMMIT_HASH)),)
 COMMIT_SOURCE := $(strip $(COMMIT_HASH))
 else
@@ -55,9 +68,10 @@ install:
 	docker version
 
 build:
-	docker buildx inspect sandbox-dos-search-builder >/dev/null 2>&1 || docker buildx create --name sandbox-dos-search-builder --driver docker-container --use
-	docker buildx use sandbox-dos-search-builder
+	docker buildx inspect builder >/dev/null 2>&1 || docker buildx create --name builder --driver docker-container --use
+	docker buildx use builder
 	docker buildx build --platform linux/amd64,linux/arm64 -t ${FULL_IMAGE} ${DOCKER_CONTEXT}
+	docker buildx build --platform ${LOCAL_PLATFORM} --load -t ${FULL_IMAGE} ${DOCKER_CONTEXT}
 	echo "Built image ${FULL_IMAGE}"
 
 	mkdir -p "$(BUILD_OUTPUT_DIR)"
