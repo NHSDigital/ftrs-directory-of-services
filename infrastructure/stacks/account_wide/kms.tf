@@ -18,7 +18,7 @@ module "secrets_manager_encryption_key" {
       Sid    = "AllowEC2SecretsAccess"
       Effect = "Allow"
       Principal = {
-        AWS = aws_iam_role.ec2_performance_role.arn
+        AWS = [aws_iam_role.ec2_performance_role.arn]
       }
       Action = [
         "kms:Decrypt",
