@@ -36,7 +36,7 @@ locals {
   ]
 
   kms_aliases = {
-    sqs             = "alias/${local.project_prefix}/${local.kms_alias_prefix}-sqs-kms"
-    secrets_manager = "alias/${local.project_prefix}/${local.kms_alias_prefix}-secrets-manager-kms"
+    sqs             = "alias/${local.project_prefix}-sqs-kms"
+    secrets_manager = "alias/${local.project_prefix}-secrets-manager-kms"
   }
 }
