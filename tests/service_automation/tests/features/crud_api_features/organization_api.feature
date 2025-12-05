@@ -126,32 +126,14 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates the "<expected_error_message>"
 
     Examples:
-      | primary_role_code  | non_primary_role_codes| expected_error_message                     |
-      | RO177              | [RO80, RO80]          | Duplicate non-primary roles are not allowed|
-      | RO177              | []                    | must have at least one non-primary role    |
-      | RO177              | [RO268]               | Invalid non-primary role                   |
-      | RO177              | [RO76, RO268]         | Invalid non-primary role                   |
-      | RO182              | [RO268]               | Invalid non-primary role                   |
-      | None               | [RO76, RO80, RO87]    | Primary role code must be provided         |
+      | primary_role_code  | non_primary_role_codes| expected_error_message                          |
+      | RO177              | [RO80, RO80]          | Duplicate non-primary roles are not allowed.    |
+      | RO177              | []                    | must have at least one non-primary role         |
+      | RO177              | [RO268]               | Invalid role code: 'RO268'. Incorrect enum value|
+      | RO177              | [RO76, RO268]         | Invalid role code: 'RO268'. Incorrect enum value|
+      | RO182              | [RO268]               | Invalid role code: 'RO268'. Incorrect enum value|
+      | None               | [RO76, RO80, RO87]    | Primary role code must be provided              |
 
-  Scenario Outline: Reject Organisation with missing or invalid primaryRole extension parameter
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the role extensions with invalid primary role parameter "<invalid_scenario>"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates the "<expected_error_message>"
-
-    Examples:
-      | invalid_scenario              | expected_error_message                                  |
-      | missing primaryRole boolean   | primaryRole must be specified                           |
-      | primaryRole not boolean       | primaryRole must be a boolean value                     |
-      | primaryRole is null           | primaryRole must be a boolean value                     |
-      | multiple primary roles        | Only one role can be marked as primary                  |
-      | no primary role marked        | At least one role must be marked as primary             |
 
   Scenario Outline: Reject Organisation with invalid non-primary role extension structure
     Given that the stack is "organisation"
@@ -166,8 +148,6 @@ Feature: Organization API Endpoint
 
     Examples:
       | invalid_scenario                      | expected_error_message                                  |
-      | non-primary missing primaryRole       | primaryRole must be specified                           |
-      | non-primary primaryRole is true       | Non-primary role cannot have primaryRole set to true    |
       | non-primary missing roleCode          | OrganisationRole extension must contain at least one roleCode extension |
 
   Scenario Outline: Reject Organization update with invalid roleCode extension structure

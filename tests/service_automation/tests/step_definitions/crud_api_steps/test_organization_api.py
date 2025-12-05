@@ -1209,7 +1209,7 @@ def step_set_invalid_primary_role_parameter(
                 {
                     "url": "roleCode",
                     "valueCodeableConcept": {
-                        "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO177"}]
+                        "coding": [{"system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole", "code": "RO182"}]
                     }
                 },
                 typed_period_ext
