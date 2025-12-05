@@ -1,0 +1,78 @@
+{
+  "resourceType": "Bundle",
+  "id": "befa3684-518d-4e67-a83e-978db11a539f",
+  "meta": {
+    "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+  },
+  "type": "searchset",
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+      "resource": {
+        "meta": {
+          "versionId": "5",
+          "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+          "source": "#d1490690d38fb53b",
+          "profile": [
+            "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
+            "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
+          ]
+        },
+        "identifier": [
+          {
+            "use": "official",
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "Y02578",
+            "assigner": {
+              "display": "NHS BUSINESS SERVICES AUTHORITY"
+            }
+          }
+        ],
+        "active": true,
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSRecordUseType",
+                "code": "Full",
+                "display": "Full"
+              }
+            ]
+          },
+          {
+            "coding": [
+              {
+                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSRecordClass",
+                "code": "RC1",
+                "display": "HSCOrg"
+              }
+            ]
+          }
+        ],
+        "telecom": [
+          {
+            "system": "phone",
+            "value": "0000 0013811"
+          }
+        ],
+        "address": [
+          {
+            "line": [
+              "59 BROADMEAD"
+            ],
+            "city": "BRISTOL",
+            "district": "AVON",
+            "postalCode": "BS1 3EA",
+            "country": "ENGLAND"
+          }
+        ]
+      }
+    }
+  ]
+}
