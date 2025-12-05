@@ -66,8 +66,6 @@ Feature: Organization API Endpoint
       | field | value                           |
       | name  | Medical Practice - !Covid Local |
       | type  | !Surgery                        |
-      | phone | 0300 311 22 34(                 |
-
 
   Scenario Outline: Reject Organization update with invalid special characters in specific fields
     Given that the stack is "organisation"
@@ -79,12 +77,12 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates invalid characters in the "<field_path>" with value "<value>"
 
     Examples:
-      | field | value           | field_path       |
-      | name  | BRANCH*SURGERY  | name             |
-      | name  | BRANCH SURGERY$ | name             |
-      | type  | #BRANCH SURGERY | type[0].text     |
-      | type  | BRANCH#SURGERY  | type[0].text     |
-      | phone | 0300 311 22 34@ | telecom[0].value |
+      | field | value           | field_path   |
+      | name  | BRANCH*SURGERY  | name         |
+      | name  | BRANCH SURGERY$ | name         |
+      | type  | #BRANCH SURGERY | type[0].text |
+      | type  | BRANCH#SURGERY  | type[0].text |
+
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization
@@ -186,7 +184,6 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with code "invalid"
     And the diagnostics message indicates the "Active field is required and cannot be null"
 
-  @test
   Scenario Outline: Successfully update organization with valid telecom fields
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -201,17 +198,19 @@ Feature: Organization API Endpoint
     And the data in the database matches the inserted payload
 
     Examples:
-      | field | value              |
-      | phone | 0300 311 22 34     |
-      | phone | +44 7900 000 001   |
-      | phone | #44 7900 000 001   |
-      | phone | 0300-311-22-34     |
-      | phone | 07900 000 001      |
-      | email | test@nhs.net       |
-      | email | test12@gmail.com   |
-      | email | test12@yahoo.com   |
-      | email | test@company.co.uk |
-      | url   | http://example.com |
+      | field | value               |
+      | phone | 0300 311 22 34      |
+      | phone | +44 7900 000 001    |
+      | phone | #44 7900 000 001    |
+      | phone | 0300-311-22-34      |
+      | phone | 07900 000 001       |
+      | phone | +44 (0) 7900 000001 |
+      | email | test@nhs.net        |
+      | email | test12@gmail.com    |
+      | email | test12@yahoo.com    |
+      | email | test@company.co.uk  |
+      | url   | http://example.com  |
+      | url   | https://example.com |
 
   Scenario Outline: Reject Organization update with invalid telecom values
     Given that the stack is "organisation"
@@ -235,6 +234,12 @@ Feature: Organization API Endpoint
       | phone | +1415555267              | Validation failed for the following resources: Telecom value field contains an invalid phone number: +1415555267               |
       | phone | ++14155552671            | Validation failed for the following resources: Telecom value field contains an invalid phone number: ++14155552671             |
       | phone | +00000000000             | Validation failed for the following resources: Telecom value field contains an invalid phone number: +00000000000              |
+      | phone | 0300 311 22 34@          | Field 'telecom[0].value' contains invalid characters: 0300 311 22 34@                                                          |
+      | phone | 07900#000001             | Validation failed for the following resources: Telecom value field contains an invalid phone number: 07900#000001              |
+      | phone | +44/7911/123456          | Validation failed for the following resources: Telecom value field contains an invalid phone number: +44/7911/123456           |
+      | phone | 0300,311,2234            | Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300,311,2234             |
+      | phone | 0300_311_2234            | Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300_311_2234             |
+      | phone | +44~7911^123456          | Validation failed for the following resources: Telecom value field contains an invalid phone number: +44~7911^123456           |
       | email | invalidemail.com         | Validation failed for the following resources: Telecom value field contains an invalid email address: invalidemail.com         |
       | email | plainaddress             | Validation failed for the following resources: Telecom value field contains an invalid email address: plainaddress             |
       | email | john..test@example.com   | Validation failed for the following resources: Telecom value field contains an invalid email address: john..test@example.com   |
