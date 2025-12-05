@@ -15,7 +15,7 @@ resource "aws_api_gateway_method" "organization" {
 
   request_validator_id = aws_api_gateway_request_validator.validator.id
   request_parameters = {
-    method.request.header.X-Header = true
+    "method.request.header.X-Header" = true
   }
 }
 
