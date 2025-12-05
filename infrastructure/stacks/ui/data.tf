@@ -34,10 +34,6 @@ data "aws_ssm_parameter" "dos_aws_account_id_mgmt" {
   name = "/dos/${var.environment}/aws_account_id_mgmt"
 }
 
-data "aws_kms_key" "secrets_manager_kms_key" {
-  key_id = local.kms_aliases.secrets_manager
-}
-
 data "aws_iam_policy_document" "secrets_access_policy" {
   statement {
     effect = "Allow"
