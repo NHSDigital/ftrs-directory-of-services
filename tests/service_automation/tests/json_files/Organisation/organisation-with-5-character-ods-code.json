@@ -7,7 +7,7 @@
   "identifier_ODS_ODSCode": "E8104",
   "active": true,
   "name": "GP - Sundon Medical Centre - 142-144 Sundon Park Road - Luton",
-  "telecom": null,
+  "telecom": [],
   "type": "GP Practice",
   "endpoints": [
     {

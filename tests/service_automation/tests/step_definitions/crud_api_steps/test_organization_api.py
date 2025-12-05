@@ -240,6 +240,7 @@ def step_given_valid_payload_with_identifier(identifier_data):
     logger.info(f"Prepared payload with identifier: {json.dumps(payload, indent=2)}")
     return payload
 
+
 def upper_case_acronyms(name: str):
     """Convert known acronyms in the name to uppercase."""
     acronyms = ["NHS", "GP", "ICB", "PCN"]
@@ -248,6 +249,7 @@ def upper_case_acronyms(name: str):
         word.upper() if word.upper() in acronyms else word for word in words
     ]
     return " ".join(updated_words)
+
 
 def validate_db_entry_against_payload(item, payload):
     """
@@ -431,10 +433,15 @@ def step_update_telecom_type(
     org_id = payload.get("id")
     url = f"{get_url('crud').rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
     modified_payload = modify_telecom_type(payload, actual_type, update_type)
-    response = api_request_context_mtls_crud.put(url, data=json.dumps(modified_payload))
     logger.info(
         f"Updating organisation at {url}\nPayload:\n{json.dumps(payload, indent=2)}"
     )
+    response = api_request_context_mtls_crud.put(url, data=json.dumps(modified_payload))
+    try:
+        logger.info(f"Response [{response.status}]: {response.json()}")
+    except (ValueError, AttributeError):
+        logger.info(f"Response [{response.status}]: {response.text}")
+    return response
 
 
 @when(
