@@ -53,6 +53,7 @@ bdd_features_base_dir = "tests/features/"
 markers = [
   "ui: mark test as UI test",
   "is-api: mark test as IS API test",
+  "is-apim: mark test as IS API test using the APIM proxy",
   "is-infra: mark test as IS infra test",
   "is-lambda: marks test as IS lambda related",
   "is-s3: marks test as IS S3 related",
