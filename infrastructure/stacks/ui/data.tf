@@ -22,12 +22,20 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
+data "aws_kms_key" "secrets_manager_kms_key" {
+  key_id = local.kms_aliases.secrets_manager
+}
+
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 }
 
 data "aws_ssm_parameter" "dos_aws_account_id_mgmt" {
   name = "/dos/${var.environment}/aws_account_id_mgmt"
+}
+
+data "aws_kms_key" "secrets_manager_kms_key" {
+  key_id = local.kms_aliases.secrets_manager
 }
 
 data "aws_iam_policy_document" "secrets_access_policy" {
@@ -42,6 +50,18 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       aws_secretsmanager_secret.session_secret.arn,
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      data.secrets_manager_kms_key.key_id.arn
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "ssm_access_policy" {
@@ -53,7 +73,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "ssm:GetParametersByPath"
     ]
     resources = [
-      "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint",
+      "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${local.project_prefix}-crud-apis${local.workspace_suffix}/endpoint",
       "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.project}/${var.environment}/cis2-client-config"
     ]
   }
@@ -73,7 +93,7 @@ data "aws_iam_policy_document" "execute_api_policy" {
 }
 
 data "aws_wafv2_web_acl" "waf_web_acl" {
-  name     = "${var.project}-${var.environment}-account-wide-${var.waf_name}"
+  name     = "${local.project_prefix}-account-wide-${var.waf_name}"
   scope    = var.waf_scope
   provider = aws.us-east-1
 }
