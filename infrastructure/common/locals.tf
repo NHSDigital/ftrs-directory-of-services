@@ -2,7 +2,7 @@ locals {
   account_id        = data.aws_caller_identity.current.id
   workspace_suffix  = "${terraform.workspace}" == "default" ? "" : "-${terraform.workspace}"
   artefacts_bucket  = "${var.repo_name}-mgmt-${var.artefacts_bucket_name}"
-  project_prefix    = local.project_prefix
+  project_prefix    = "${var.project}-${var.environment}"
   resource_prefix   = "${local.project_prefix}-${var.stack_name}"
   account_prefix    = "${var.repo_name}-${var.environment}"
   root_domain_name  = "${var.environment}.${var.root_domain_name}"
