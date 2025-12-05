@@ -44,16 +44,7 @@ module "secrets_manager_encryption_key" {
       Sid    = "AllowLambdasSecretsAccess"
       Effect = "Allow"
       Principal = {
-        AWS = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-dms-secrets-access*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-reference-data-lambda*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-dms-db-setup*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-queue-populator-lambda*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-processor-lambda*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-etl-ods-processor-lambda*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-etl-ods-consumer-lambda*",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-ui-frontend-lambda*"
-        ]
+        Service = "lambda.amazonaws.com"
       }
       Action = [
         "kms:Decrypt",
