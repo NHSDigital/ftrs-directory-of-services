@@ -46,6 +46,7 @@ scenarios(
     "../features/data_migration_features/opening_times_transformation.feature",
     "../features/data_migration_features/phone_transformation.feature",
     "../features/data_migration_features/email_transformation.feature",
+    "../features/data_migration_features/service_migration_validation_failures.feature",
 )
 
 
@@ -187,3 +188,42 @@ def get_by_id_and_sort_key(dynamodb, table_name, id_value, field_sort_key_value 
     item = response['Item']
 
     return item
+
+
+@then(parsers.parse("no organisation was created for service '{service_id:d}'"))
+def verify_no_organisation_created(service_id: int, dynamodb):
+    """Verify that no organisation was created for the given service."""
+    healthcare_service_uuid = str(generate_uuid(service_id, 'healthcare_service'))
+    organisation_uuid = str(generate_uuid(service_id, 'organisation'))
+
+    dynamodb_resource = dynamodb["resource"]
+    org_table = dynamodb_resource.Table(get_table_name("organisation"))
+
+    # Check both UUIDs to be thorough
+    for uuid_to_check in [healthcare_service_uuid, organisation_uuid]:
+        response = org_table.get_item(Key={'id': uuid_to_check, 'field': 'document'})
+        assert 'Item' not in response, f"Organisation with id {uuid_to_check} should not exist for service {service_id}"
+
+
+@then(parsers.parse("no location was created for service '{service_id:d}'"))
+def verify_no_location_created(service_id: int, dynamodb):
+    """Verify that no location was created for the given service."""
+    location_uuid = str(generate_uuid(service_id, 'location'))
+
+    dynamodb_resource = dynamodb["resource"]
+    location_table = dynamodb_resource.Table(get_table_name("location"))
+
+    response = location_table.get_item(Key={'id': location_uuid, 'field': 'document'})
+    assert 'Item' not in response, f"Location with id {location_uuid} should not exist for service {service_id}"
+
+
+@then(parsers.parse("no healthcare service was created for service '{service_id:d}'"))
+def verify_no_healthcare_service_created(service_id: int, dynamodb):
+    """Verify that no healthcare service was created for the given service."""
+    healthcare_service_uuid = str(generate_uuid(service_id, 'healthcare_service'))
+
+    dynamodb_resource = dynamodb["resource"]
+    service_table = dynamodb_resource.Table(get_table_name("healthcare-service"))
+
+    response = service_table.get_item(Key={'id': healthcare_service_uuid, 'field': 'document'})
+    assert 'Item' not in response, f"Healthcare service with id {healthcare_service_uuid} should not exist for service {service_id}"
