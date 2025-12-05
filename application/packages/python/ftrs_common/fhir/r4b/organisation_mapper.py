@@ -1,5 +1,4 @@
 from fhir.resources.R4B.bundle import Bundle, BundleEntry
-from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
@@ -48,23 +47,6 @@ class OrganizationMapper(FhirMapper):
     def _build_telecom(self, telecom: str | None) -> list[dict]:
         """Build FHIR telecom list from phone number."""
         return [{"system": "phone", "value": telecom, "use": "work"}] if telecom else []
-
-    def _build_type(self, org_type_value: str) -> list[CodeableConcept]:
-        """Build FHIR organization type CodeableConcept."""
-        return [
-            CodeableConcept.model_validate(
-                {
-                    "coding": [
-                        {
-                            "system": "TO-DO",  # Use correct FHIR when defined
-                            "code": org_type_value,
-                            "display": org_type_value,
-                        }
-                    ],
-                    "text": org_type_value,
-                }
-            )
-        ]
 
     def _build_organisation_extensions(
         self, organisation: Organisation
@@ -184,7 +166,6 @@ class OrganizationMapper(FhirMapper):
             "meta": self._build_meta_profile(),
             "active": organisation.active,
             "name": organisation.name,
-            "type": self._build_type(getattr(organisation, "type", None)),
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
             "telecom": self._build_telecom(organisation.telecom),
         }
@@ -206,7 +187,6 @@ class OrganizationMapper(FhirMapper):
             name=sanitize_string_field(fhir_resource.name),
             active=fhir_resource.active,
             telecom=self._get_org_telecom(fhir_resource),
-            type=sanitize_string_field(self._get_org_type(fhir_resource)),
             legalDates=legal_dates,
             modifiedBy="ODS_ETL_PIPELINE",
             primary_role_code=primary_code,
@@ -263,18 +243,6 @@ class OrganizationMapper(FhirMapper):
                 return identifier["value"]
         err_msg = "No ODS code identifier found in organization resource"
         raise ValueError(err_msg)
-
-    def _get_org_type(self, fhir_org: FhirOrganisation) -> str | None:
-        """Extract organization type from FHIR Organization resource
-        If human readable text present use it, else use text in coding."""
-        if not (hasattr(fhir_org, "type") and fhir_org.type):
-            return None
-        type_obj = fhir_org.type[0]
-        if text := getattr(type_obj, "text", None):
-            return text
-        if coding := getattr(type_obj, "coding", None):
-            return coding[0].display
-        return None
 
     def _get_legal_dates(
         self, organisation: Organisation

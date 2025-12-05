@@ -2,7 +2,6 @@ import uuid
 from datetime import date
 
 import pytest
-from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
@@ -47,7 +46,6 @@ def test_to_fhir_maps_fields_correctly() -> None:
         name="Test Org",
         active=True,
         telecom="01234",
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="abc123",
         non_primary_role_codes=["bcd123"],
@@ -66,7 +64,6 @@ def test_to_fhir_maps_fields_correctly() -> None:
         fhir_org.meta.profile[0]
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
     )
-    assert fhir_org.type[0].coding[0].display == "GP Practice"
     assert fhir_org.extension is not None
     assert len(fhir_org.extension) == EXPECTED_EXTENTION_LENGTH
 
@@ -79,7 +76,6 @@ def test_to_fhir_handles_missing_telecom() -> None:
         name="Test Org 2",
         active=False,
         telecom=None,
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
     fhir_org = mapper.to_fhir(org)
@@ -107,7 +103,9 @@ def test__build_identifier() -> None:
     assert identifier[0].value == "ODS1"
     assert identifier[0].use == "official"
 
+
 # _extract_ods_code_from_identifiers tests
+
 
 def test__extract_ods_code_from_identifiers_success() -> None:
     """Test extracting ODS code from a valid identifier list."""
@@ -211,18 +209,8 @@ def test__build_telecom() -> None:
     assert telecom_none == []
 
 
-def test__build_type() -> None:
-    mapper = OrganizationMapper()
-    type_list = mapper._build_type("GP Practice")
-    assert isinstance(type_list, list)
-    assert type_list[0].coding[0].display == "GP Practice"
-    assert type_list[0].coding[0].code == "GP Practice"
-    assert type_list[0].text == "GP Practice"
-
-
 def test_from_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
-    org_type = [CodeableConcept(text="GP Practice")]
     valid_uuid = str(uuid.uuid4())
     org = FhirOrganisation(
         id=valid_uuid,
@@ -233,7 +221,6 @@ def test_from_fhir_maps_fields_correctly() -> None:
         ],
         name="Test Org",
         active=True,
-        type=org_type,
         telecom=[ContactPoint(system="phone", value="01234")],
     )
     internal_organisation = mapper.from_fhir(org)
@@ -242,7 +229,6 @@ def test_from_fhir_maps_fields_correctly() -> None:
     assert internal_organisation.name == "Test Org"
     assert internal_organisation.active is True
     assert internal_organisation.telecom == "01234"
-    assert internal_organisation.type == "GP Practice"
     assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
 
@@ -272,45 +258,11 @@ def test_from_fhir_sanitizes_organization_name(
         ],
         name=fhir_name,
         active=True,
-        type=[CodeableConcept(text="Hospital")],
     )
 
     result = mapper.from_fhir(fhir_org)
 
     assert result.name == expected_name
-
-
-@pytest.mark.parametrize(
-    "fhir_type,expected_type",
-    [
-        ("nhs trust", "NHS Trust"),
-        ("GP PRACTICE", "GP Practice"),
-        ("icb organization", "ICB Organization"),
-        ("pcn network", "PCN Network"),
-    ],
-)
-def test_from_fhir_sanitizes_organization_type(
-    fhir_type: str, expected_type: str
-) -> None:
-    """Test that organization types are sanitized with title case and acronym preservation."""
-    mapper = OrganizationMapper()
-    valid_uuid = str(uuid.uuid4())
-    fhir_org = FhirOrganisation(
-        id=valid_uuid,
-        identifier=[
-            Identifier(
-                system="https://fhir.nhs.uk/Id/ods-organization-code",
-                value=valid_uuid,
-            )
-        ],
-        name="Test Organization",
-        active=True,
-        type=[CodeableConcept(text=fhir_type)],
-    )
-
-    result = mapper.from_fhir(fhir_org)
-
-    assert result.type == expected_type
 
 
 def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
@@ -422,7 +374,6 @@ def test_to_fhir_bundle_single_org() -> None:
         name="Test Org 1",
         active=True,
         telecom="01234",
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_single = mapper.to_fhir_bundle([org1])
@@ -442,9 +393,6 @@ def test_to_fhir_bundle_single_org() -> None:
     assert resource.telecom[0].system == "phone"
     assert resource.telecom[0].value == "01234"
     assert resource.telecom[0].use == "work"
-    assert resource.type[0].coding[0].display == "GP Practice"
-    assert resource.type[0].coding[0].code == "GP Practice"
-    assert resource.type[0].text == "GP Practice"
     assert (
         resource.meta.profile[0]
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
@@ -459,7 +407,6 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         name="Test Org 1",
         active=True,
         telecom="01234",
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
     org2 = Organisation(
@@ -468,7 +415,6 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         name="Test Org 2",
         active=False,
         telecom=None,
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_multi = mapper.to_fhir_bundle([org1, org2])
@@ -480,51 +426,6 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         "00000000-0000-0000-0000-00000000000a",
         "00000000-0000-0000-0000-00000000000b",
     }
-
-
-def test__get_org_type() -> None:
-    mapper = OrganizationMapper()
-    org_type = [CodeableConcept(text="GP Practice")]
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
-    )
-    assert mapper._get_org_type(org) == "GP Practice"
-
-
-def test__get_org_type_invalid_missing_type() -> None:
-    mapper = OrganizationMapper()
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=None
-    )
-    assert mapper._get_org_type(org) is None
-
-
-def test__get_org_type_with_coding_display() -> None:
-    mapper = OrganizationMapper()
-    org_type = [
-        CodeableConcept(
-            coding=[
-                {
-                    "system": "http://example.org/fhir/CodeSystem/org-type",
-                    "code": "GP",
-                    "display": "GP Practice",
-                }
-            ]
-        )
-    ]
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
-    )
-    assert mapper._get_org_type(org) == "GP Practice"
-
-
-def test__get_org_type_with_no_display() -> None:
-    mapper = OrganizationMapper()
-    org_type = [CodeableConcept(id="abc")]
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
-    )
-    assert mapper._get_org_type(org) is None
 
 
 def test__get_org_telecom_with_phone() -> None:
@@ -949,7 +850,6 @@ def test_to_fhir_with_legal_dates() -> None:
         name="Test Org",
         active=True,
         telecom="01234",
-        type="GP Practice",
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="RO182",
@@ -1108,7 +1008,6 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
 
@@ -1136,7 +1035,6 @@ def test_from_fhir_no_legal_dates_when_no_extension() -> None:
         ],
         name="Test Org",
         active=True,
-        type=[CodeableConcept(text="GP Practice")],
     )
 
     org = mapper.from_fhir(fhir_org)
@@ -1183,7 +1081,6 @@ def test_to_fhir_partial_dates_absent_not_null(
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        type="GP Practice",
         legalDates=legal_dates,
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="RO182",
@@ -2093,7 +1990,6 @@ def test_from_fhir_with_no_role_codes() -> None:
         ],
         name="Test Organization",
         active=True,
-        type=[CodeableConcept(text="GP Practice")],
     )
 
     result = mapper.from_fhir(fhir_org)
@@ -2330,6 +2226,7 @@ def test__build_typed_period_extension_with_start_only() -> None:
         not hasattr(period_ext.valuePeriod, "end") or period_ext.valuePeriod.end is None
     )
 
+
 def test__build_typed_period_extension_with_no_dates() -> None:
     """Test building TypedPeriod extension returns None when no dates provided."""
     mapper = OrganizationMapper()
@@ -2337,7 +2234,9 @@ def test__build_typed_period_extension_with_no_dates() -> None:
 
     assert result is None
 
+
 # _build_organisation_role_extension tests
+
 
 def test__build_organisation_role_extension_with_role_code_only() -> None:
     """Test building OrganisationRole extension with only role code."""
@@ -2398,7 +2297,9 @@ def test__build_organisation_role_extension_with_end_date_only() -> None:
     assert isinstance(result, Extension)
     assert str(len(result.extension)) == "2"  # roleCode + TypedPeriod
 
+
 # _build_organisation_extensions tests
+
 
 def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> None:
     """Test building extensions with primary and non-primary role codes."""
@@ -2524,6 +2425,7 @@ def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
 
 
 # _extract_all_role_codes tests
+
 
 def test__extract_all_role_codes_with_single_role() -> None:
     """Test extracting role codes from extensions with single role."""
@@ -2661,7 +2563,9 @@ def test__extract_all_role_codes_skips_role_without_code() -> None:
     # Should return empty list since no valid role code found
     assert result == []
 
+
 # get_primary_and_non_primary_role_codes tests
+
 
 def test_get_primary_and_non_primary_role_codes_empty_list() -> None:
     """Test get_primary_and_non_primary_role_codes with empty list (line 344)."""
@@ -2674,7 +2578,9 @@ def test_get_primary_and_non_primary_role_codes_empty_list() -> None:
     assert result_primary is None
     assert result_non_primary == []
 
+
 # _get_role_code tests
+
 
 def test__get_role_code_no_value_codeable_concept() -> None:
     """Test _get_role_code when valueCodeableConcept is None (line 362)."""
@@ -2838,6 +2744,7 @@ def test__find_legal_typed_period_in_role_with_non_legal_period() -> None:
 
 
 # _build_legal_dates_from_fhir tests
+
 
 def test__build_legal_dates_from_fhir_with_both_dates() -> None:
     """Test building LegalDates from FHIR resource with both dates."""
