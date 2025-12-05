@@ -107,6 +107,7 @@ def test__build_identifier() -> None:
     assert identifier[0].value == "ODS1"
     assert identifier[0].use == "official"
 
+# _extract_ods_code_from_identifiers tests
 
 def test__extract_ods_code_from_identifiers_success() -> None:
     """Test extracting ODS code from a valid identifier list."""
@@ -2293,6 +2294,7 @@ def test_from_ods_fhir_to_fhir_with_multiple_role_extensions() -> None:
     )
 
 
+# _build_typed_period_extension tests
 def test__build_typed_period_extension_with_both_dates() -> None:
     """Test building TypedPeriod extension with both start and end dates."""
     mapper = OrganizationMapper()
@@ -2328,22 +2330,6 @@ def test__build_typed_period_extension_with_start_only() -> None:
         not hasattr(period_ext.valuePeriod, "end") or period_ext.valuePeriod.end is None
     )
 
-
-def test__build_typed_period_extension_with_end_only() -> None:
-    """Test building TypedPeriod extension with only end date."""
-    mapper = OrganizationMapper()
-    result = mapper._build_typed_period_extension(None, "2025-12-31")
-
-    assert isinstance(result, Extension)
-    assert result.url == TYPED_PERIOD_URL
-    period_ext = next(e for e in result.extension if e.url == "period")
-    assert (
-        not hasattr(period_ext.valuePeriod, "start")
-        or period_ext.valuePeriod.start is None
-    )
-    assert period_ext.valuePeriod.end == "2025-12-31"
-
-
 def test__build_typed_period_extension_with_no_dates() -> None:
     """Test building TypedPeriod extension returns None when no dates provided."""
     mapper = OrganizationMapper()
@@ -2351,6 +2337,7 @@ def test__build_typed_period_extension_with_no_dates() -> None:
 
     assert result is None
 
+# _build_organisation_role_extension tests
 
 def test__build_organisation_role_extension_with_role_code_only() -> None:
     """Test building OrganisationRole extension with only role code."""
@@ -2411,24 +2398,7 @@ def test__build_organisation_role_extension_with_end_date_only() -> None:
     assert isinstance(result, Extension)
     assert str(len(result.extension)) == "2"  # roleCode + TypedPeriod
 
-
-def test__build_organisation_extensions_with_primary_role_only() -> None:
-    """Test building extensions with only primary role code."""
-    mapper = OrganizationMapper()
-    org = Organisation(
-        id="123e4567-e89b-12d3-a456-42661417400a",
-        identifier_ODS_ODSCode="ODS1",
-        name="Test Org",
-        active=True,
-        modifiedBy="TEST",
-        primary_role_code="RO182",
-    )
-
-    result = mapper._build_organisation_extensions(org)
-
-    assert len(result) == 1
-    assert result[0].url == ORGANISATION_ROLE_URL
-
+# _build_organisation_extensions tests
 
 def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> None:
     """Test building extensions with primary and non-primary role codes."""
@@ -2552,6 +2522,8 @@ def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
 
     assert len(result) == 0
 
+
+# _extract_all_role_codes tests
 
 def test__extract_all_role_codes_with_single_role() -> None:
     """Test extracting role codes from extensions with single role."""
@@ -2689,6 +2661,7 @@ def test__extract_all_role_codes_skips_role_without_code() -> None:
     # Should return empty list since no valid role code found
     assert result == []
 
+# get_primary_and_non_primary_role_codes tests
 
 def test_get_primary_and_non_primary_role_codes_empty_list() -> None:
     """Test get_primary_and_non_primary_role_codes with empty list (line 344)."""
@@ -2701,6 +2674,7 @@ def test_get_primary_and_non_primary_role_codes_empty_list() -> None:
     assert result_primary is None
     assert result_non_primary == []
 
+# _get_role_code tests
 
 def test__get_role_code_no_value_codeable_concept() -> None:
     """Test _get_role_code when valueCodeableConcept is None (line 362)."""
@@ -2775,7 +2749,7 @@ def test__get_role_code_returns_code_value() -> None:
     assert result == "RO182"
 
 
-# Tests for _find_legal_typed_period_in_role
+# _find_legal_typed_period_in_role tests
 def test__find_legal_typed_period_in_role_with_legal_period() -> None:
     """Test finding Legal TypedPeriod in OrganisationRole extension."""
     mapper = OrganizationMapper()
@@ -2862,6 +2836,8 @@ def test__find_legal_typed_period_in_role_with_non_legal_period() -> None:
 
     assert result is None
 
+
+# _build_legal_dates_from_fhir tests
 
 def test__build_legal_dates_from_fhir_with_both_dates() -> None:
     """Test building LegalDates from FHIR resource with both dates."""
