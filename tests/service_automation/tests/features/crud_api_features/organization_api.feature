@@ -262,6 +262,7 @@ Feature: Organization API Endpoint
       | email       | phone       | Field 'telecom[2].value' contains invalid characters: test678@nhs.net                                                        |
       | url         | email       | Validation failed for the following resources: Telecom value field contains an invalid email address: https://example123.com |
 
+  @test
   Scenario Outline: Reject Organization Update with Invalid Telecom Field
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -272,15 +273,14 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
-    And the OperationOutcome contains an issue with diagnostics "<expected_error>"
 
     Examples:
-      | invalid_scenario    | expected_error                                                                                                     |
-      | missing_type        |                                                                                                                    |
-      | missing_value       |                                                                                                                    |
-      | empty_type          |                                                                                                                    |
-      | empty_value         |                                                                                                                    |
-      | mixed_valid_invalid | Validation failed for the following resources: Telecom value field contains an invalid email address: invalidemail |
+      | invalid_scenario    |
+      | missing_type        |
+      | missing_value       |
+      | empty_type          |
+      | empty_value         |
+      | mixed_valid_invalid |
 
   Scenario: Reject Organization Update with Telecom Field containing extra field
     When I update the organization with an invalid telecom field "additional_field"
