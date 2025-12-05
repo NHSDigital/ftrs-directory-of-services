@@ -107,7 +107,6 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         active=True,
         name="Test Organisation",
         telecom="12345",
-        type="GP Practice",
         endpoints=[],
         createdBy="ROBOT",
         createdDateTime=FIXED_CREATED_TIME,
@@ -121,7 +120,6 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         active=False,
         name="Updated Organisation",
         telecom="67890",
-        type="Pharmacy",
         modifiedBy="ETL_ODS_PIPELINE",
         primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
         non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
@@ -142,14 +140,13 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "active": False,
             "name": "Updated Organisation",
             "telecom": "67890",
-            "type": "Pharmacy",
             "modified_by": "ETL_ODS_PIPELINE",
             "modifiedDateTime": FIXED_MODIFIED_TIME,
             "primary_role_code": OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
             "non_primary_role_codes": [OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         }
         assert (
-            "Computed outdated fields: ['active', 'name', 'telecom', 'type', 'primary_role_code', 'non_primary_role_codes', 'legalDates'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
+            "Computed outdated fields: ['active', 'name', 'telecom', 'primary_role_code', 'non_primary_role_codes', 'legalDates'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
             in caplog.text
         )
 
@@ -251,14 +248,6 @@ def test_process_organisation_update_no_changes(
         ],
         "active": True,
         "name": "Test Org",
-        "type": [
-            {
-                "coding": [
-                    {"system": "TO-DO", "code": "GP Practice", "display": "GP Practice"}
-                ],
-                "text": "GP Practice",
-            }
-        ],
         "telecom": [{"system": "phone", "value": "12345", "use": "work"}],
     }
     stored_organisation = Organisation(
@@ -266,7 +255,6 @@ def test_process_organisation_update_no_changes(
         active=True,
         name="Test Org",
         telecom="12345",
-        type="GP Practice",
         endpoints=[],
         id=organisation_id,
         createdBy="test",
@@ -365,7 +353,6 @@ def test_process_organisation_update_invalid_fhir_structure() -> None:
         ],
         "active": True,
         "name": "Test Org",
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
         "telecom": [{"system": "phone", "value": "12345"}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:

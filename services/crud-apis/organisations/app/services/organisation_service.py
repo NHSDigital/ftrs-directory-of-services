@@ -177,7 +177,6 @@ class OrganisationService:
         """
         allowed_fields = {
             "name",
-            "type",
             "active",
             "telecom",
             "legalDates",
