@@ -18,7 +18,9 @@ module "secrets_manager_encryption_key" {
       Sid    = "AllowEC2SecretsAccess"
       Effect = "Allow"
       Principal = {
-        AWS = [aws_iam_role.ec2_performance_role.arn]
+        AWS = [
+          aws_iam_role.ec2_performance_role.arn
+        ]
       }
       Action = [
         "kms:Decrypt",
@@ -31,7 +33,9 @@ module "secrets_manager_encryption_key" {
       Sid    = "AllowDMSSecretsAccess"
       Effect = "Allow"
       Principal = {
-        AWS = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-dms-secrets-access"]
+        AWS = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-dms-secrets-access"
+        ]
       }
       Action = [
         "kms:Decrypt",
@@ -44,7 +48,9 @@ module "secrets_manager_encryption_key" {
       Sid    = "AllowLambdasSecretsAccess"
       Effect = "Allow"
       Principal = {
-        Service = "lambda.amazonaws.com"
+        AWS = [
+          "lambda.amazonaws.com"
+        ]
       }
       Action = [
         "kms:Decrypt",
