@@ -87,6 +87,25 @@ jobs:
       type: app
     secrets: inherit
 
+  build-sandbox-containers:
+    name: "Build container ${{ matrix.name }}"
+    needs:
+      - metadata
+      - quality-checks
+    strategy:
+      matrix:
+        include:
+          - name: "sandbox-dos-search"
+    uses: ./.github/workflows/build-sandbox-images.yaml
+    with:
+      name: ${{ matrix.name }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
+
   perform-code-analysis:
     name: "Perform static code analysis"
     needs:
@@ -115,7 +134,7 @@ jobs:
 
   deploy-proxy-to-apim:
     name: "Authenticate and Deploy ${{ matrix.api_name }} API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-    if: needs.metadata.outputs.environment == 'dev' # TODO: Update condition once further environment work is complete
+    if: needs.metadata.outputs.environment == 'dev' && github.ref != 'refs/heads/main' # TODO: Update condition once further environment work is complete
     needs:
       - metadata
       - deploy-application-infrastructure
