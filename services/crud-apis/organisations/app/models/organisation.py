@@ -47,12 +47,18 @@ VALID_PRIMARY_TYPE_CODES = {
     OrganisationTypeCode.PHARMACY_ROLE_CODE,
 }
 
-# Types that Prescribing Cost Centre can map to as non-primary roles
-PRESCRIBING_COST_CENTRE_ALLOWED_NON_PRIMARY_TYPE_CODES = {
-    OrganisationTypeCode.GP_PRACTICE_ROLE_CODE,
-    OrganisationTypeCode.OUT_OF_HOURS_ROLE_CODE,
-    OrganisationTypeCode.WALK_IN_CENTRE_ROLE_CODE,
-}
+
+PERMITTED_ROLE_COMBINATIONS = [
+    {
+        "primary": OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
+        "non_primary": [
+            OrganisationTypeCode.GP_PRACTICE_ROLE_CODE,
+            OrganisationTypeCode.OUT_OF_HOURS_ROLE_CODE,
+            OrganisationTypeCode.WALK_IN_CENTRE_ROLE_CODE,
+        ],
+    },
+    {"primary": OrganisationTypeCode.PHARMACY_ROLE_CODE, "non_primary": []},
+]
 
 
 class LegalDateField(Enum):
@@ -400,47 +406,56 @@ def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
     Raises:
         OperationOutcomeException if validation fails
     """
-    non_primary_role_codes: list[OrganisationTypeCode] = []
-    primary_role_code: OrganisationTypeCode | None = None
+    # Separate primary and non-primary roles in a single pass
+    primary_roles = [code for code in codes if code in VALID_PRIMARY_TYPE_CODES]
+    non_primary_role_codes = [
+        code for code in codes if code not in VALID_PRIMARY_TYPE_CODES
+    ]
 
-    for code in codes:
-        if code in VALID_PRIMARY_TYPE_CODES:
-            if primary_role_code is not None:
-                _raise_validation_error(
-                    "Only one primary role is allowed per organisation"
-                )
-            primary_role_code = code
-        else:
-            non_primary_role_codes.append(code)
-
-    if primary_role_code is None:
+    # Validate primary role constraints
+    if not primary_roles:
         _raise_validation_error("Primary role code must be provided")
 
-    if (
-        primary_role_code == OrganisationTypeCode.PHARMACY_ROLE_CODE
-        and non_primary_role_codes
-    ):
+    if len(primary_roles) > 1:
+        _raise_validation_error("Only one primary role is allowed per organisation")
+
+    primary_role_code = primary_roles[0]
+
+    # Check for duplicate non-primary roles using set comparison
+    if len(non_primary_role_codes) != len(set(non_primary_role_codes)):
+        _raise_validation_error("Duplicate non-primary roles are not allowed")
+
+    # Find permitted combination (cached lookup)
+    permitted_combination = next(
+        (
+            combo
+            for combo in PERMITTED_ROLE_COMBINATIONS
+            if combo["primary"] == primary_role_code
+        ),
+        None,
+    )
+
+    if not permitted_combination:
         _raise_validation_error(
-            f"{primary_role_code.value} cannot have non-primary roles"
+            f"Invalid primary role code: '{primary_role_code.value}'"
         )
 
-    if primary_role_code == OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE:
+    allowed_non_primary = set(permitted_combination["non_primary"])
+
+    # Validate non-primary role requirements
+    if allowed_non_primary:
         if not non_primary_role_codes:
             _raise_validation_error(
                 f"{primary_role_code.value} must have at least one non-primary role"
             )
 
-        # Check for duplicate roles
-        if len(non_primary_role_codes) != len(set(non_primary_role_codes)):
-            _raise_validation_error("Duplicate non-primary roles are not allowed")
-
-        # Validate each non-primary role is allowed
-        invalid_roles = [
-            role
-            for role in non_primary_role_codes
-            if role not in PRESCRIBING_COST_CENTRE_ALLOWED_NON_PRIMARY_TYPE_CODES
-        ]
+        # Check for invalid roles using set difference
+        invalid_roles = set(non_primary_role_codes) - allowed_non_primary
         if invalid_roles:
             _raise_validation_error(
-                f"Non-primary role '{invalid_roles[0].value}' is not permitted for primary type '{primary_role_code.value}"
+                f"Non-primary role '{next(iter(invalid_roles)).value}' is not permitted for primary type '{primary_role_code.value}'"
             )
+    elif non_primary_role_codes:
+        _raise_validation_error(
+            f"{primary_role_code.value} cannot have non-primary roles"
+        )
