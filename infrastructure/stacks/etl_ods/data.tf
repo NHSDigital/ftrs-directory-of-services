@@ -102,7 +102,7 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
       "kms:DescribeKey"
     ]
     resources = [
-      module.secrets_manager_encryption_key.arn
+      data.aws_kms_key.secrets_manager_kms_key.arn.arn
     ]
   }
 }
