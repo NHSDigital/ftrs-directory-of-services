@@ -177,11 +177,12 @@ class OrganisationService:
         """
         allowed_fields = {
             "name",
-            "type",
             "active",
             "telecom",
             "legalDates",
             "identifier_ODS_ODSCode",
+            "primary_role_code",
+            "non_primary_role_codes",
         }
         outdated_fields = {}
 

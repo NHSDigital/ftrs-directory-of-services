@@ -24,6 +24,7 @@ def api_error_message(fresponse, error_message):
 @then(parsers.parse('I receive the diagnostics "{diagnostics}"'))
 def api_diagnostics(fresponse, diagnostics):
     response = fresponse.json()
+    print(response)
     assert (response["issue"][0]["diagnostics"]).startswith(diagnostics)
 
 
