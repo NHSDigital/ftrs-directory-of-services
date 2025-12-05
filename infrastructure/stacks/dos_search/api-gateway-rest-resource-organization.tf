@@ -30,6 +30,16 @@ resource "aws_api_gateway_method_response" "organization" {
   resource_id = aws_api_gateway_resource.organization.id
   http_method = aws_api_gateway_method.organization.http_method
   status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Content-Type"                 = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
 }
 
 resource "aws_api_gateway_integration_response" "organization" {
@@ -37,6 +47,12 @@ resource "aws_api_gateway_integration_response" "organization" {
   resource_id = aws_api_gateway_resource.organization.id
   http_method = aws_api_gateway_method.organization.http_method
   status_code = aws_api_gateway_method_response.organization.status_code
+
+  response_parameters = {
+    "method.response.header.Content-Type"                 = "'application/json'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Authorization, Content-Type, X-NHSD-REQUEST-ID, X-NHSD-CORRELATION-ID'"
+  }
 
   depends_on = [
     aws_api_gateway_method.organization,
