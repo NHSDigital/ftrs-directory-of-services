@@ -186,6 +186,7 @@ Feature: Organization API Endpoint
     And the OperationOutcome contains an issue with code "invalid"
     And the diagnostics message indicates the "Active field is required and cannot be null"
 
+  @test
   Scenario Outline: Successfully update organization with valid telecom fields
     Given that the stack is "organisation"
     And I have a organisation repo
@@ -204,6 +205,8 @@ Feature: Organization API Endpoint
       | phone | 0300 311 22 34     |
       | phone | +44 7900 000 001   |
       | phone | #44 7900 000 001   |
+      | phone | 0300-311-22-34     |
+      | phone | 07900 000 001      |
       | email | test@nhs.net       |
       | email | test12@gmail.com   |
       | email | test12@yahoo.com   |
@@ -227,6 +230,7 @@ Feature: Organization API Endpoint
       | phone | +++ABC123                | Validation failed for the following resources: Telecom value field contains an invalid phone number: +++ABC123                 |
       | phone | 12345                    | Validation failed for the following resources: Telecom value field contains an invalid phone number: 12345                     |
       | phone | +9991234567890           | Validation failed for the following resources: Telecom value field contains an invalid phone number: +9991234567890            |
+      | phone | +44 (0) 7911 123456      | Validation failed for the following resources: Telecom value field contains an invalid phone number: +44 (0) 7911 123456       |
       | phone | +1 415-555-2671x1234     | Validation failed for the following resources: Telecom value field contains an invalid phone number: +1 415-555-2671x1234      |
       | phone | +1415555267              | Validation failed for the following resources: Telecom value field contains an invalid phone number: +1415555267               |
       | phone | ++14155552671            | Validation failed for the following resources: Telecom value field contains an invalid phone number: ++14155552671             |
@@ -262,7 +266,6 @@ Feature: Organization API Endpoint
       | email       | phone       | Field 'telecom[2].value' contains invalid characters: test678@nhs.net                                                        |
       | url         | email       | Validation failed for the following resources: Telecom value field contains an invalid email address: https://example123.com |
 
-  @test
   Scenario Outline: Reject Organization Update with Invalid Telecom Field
     Given that the stack is "organisation"
     And I have a organisation repo
