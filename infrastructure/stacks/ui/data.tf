@@ -55,7 +55,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "kms:DescribeKey"
     ]
     resources = [
-      data.aws_kms_key.secrets_manager_kms_key.arn.arn
+      data.aws_kms_key.secrets_manager_kms_key.arn
     ]
   }
 }
