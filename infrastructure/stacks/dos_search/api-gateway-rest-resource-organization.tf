@@ -14,6 +14,9 @@ resource "aws_api_gateway_method" "organization" {
   authorization = "NONE"
 
   request_validator_id = aws_api_gateway_request_validator.validator.id
+  request_parameters = {
+    "method.request.header.X-Header" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "organization" {
@@ -23,6 +26,10 @@ resource "aws_api_gateway_integration" "organization" {
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = module.lambda.lambda_function_invoke_arn
+
+  request_parameters = {
+    "integration.request.header.X-Test-Header" = "method.request.header.X-Header"
+  }
 }
 
 resource "aws_api_gateway_method_response" "organization" {
