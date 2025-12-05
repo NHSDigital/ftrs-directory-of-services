@@ -1,3 +1,5 @@
+from builtins import ValueError
+
 import pytest
 from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.domain.telecom import Telecom
@@ -138,4 +140,22 @@ def test_telecom_not_none_value() -> None:
     This test checks a Telecom object's value cannot be set to none
     """
     with pytest.raises(ValidationError, match=r".*Input should be a valid string.*"):
-        Telecom(type=TelecomType.EMAIL, value=True, isPublic=True)
+        Telecom(type=TelecomType.EMAIL, value=None, isPublic=True)
+
+
+def test_telecom_none_type() -> None:
+    """
+    This test checks a Telecom object's type cannot be set to a null enum value
+    """
+    with pytest.raises(
+        ValidationError, match=r".*Input should be 'phone', 'email' or 'web'.*"
+    ):
+        Telecom(type=None, value="test", isPublic=True)
+
+
+def test_telecom_type_enum_from_fhir_value_unset_type() -> None:
+    """
+    This this checks that passing a unset valid telecom type from FHIR raises a ValueError
+    """
+    with pytest.raises(ValueError, match=r"Telecom type value cannot be None.*"):
+        TelecomType.from_fhir_value(None)

@@ -97,9 +97,12 @@ class TelecomType(str, Enum):
 
     @staticmethod
     def from_fhir_value(value: str) -> "TelecomType":
+        if value is None:
+            msg = "Telecom type value cannot be None"
+            raise ValueError(msg)
         if value == "url":
             return TelecomType.WEB
         for telecom_type in TelecomType:
             if telecom_type.value == value:
                 return telecom_type
-        raise ValueError(value)
+        raise ValueError("Invalid telecom type value: " + value)

@@ -432,6 +432,57 @@ def test_process_organisation_update_with_invalid_phone_number(
         assert "0300" in str(exc_info.value.errors()[0]["input"])
 
 
+def test_process_organisation_update_with_invalid_no_telecom_system(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    fhir_org = {
+        "resourceType": "Organization",
+        "id": organisation_id,
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Changed Name",
+        "type": [
+            {
+                "coding": [
+                    {"system": "TO-DO", "code": "GP Practice", "display": "GP Practice"}
+                ],
+                "text": "GP Practice",
+            }
+        ],
+        "telecom": [{"value": "0300", "use": "work"}],
+    }
+    stored_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Test Org",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
+        type="GP Practice",
+        endpoints=[],
+        id=organisation_id,
+        createdBy="test",
+        createdDateTime=FIXED_CREATED_TIME,
+        modifiedBy="test",
+        modifiedDateTime=FIXED_MODIFIED_TIME,
+    )
+    org_repository.get.return_value = stored_organisation
+    with caplog.at_level("ERROR"):
+        with pytest.raises(OperationOutcomeException) as exc_info:
+            service.process_organisation_update(organisation_id, fhir_org)
+
+        assert (
+            "Field 'telecom[0].system' requires a system, a system is required for a telecom"
+            in str(exc_info.value)
+        )
+
+
 def test_get_by_ods_code_success() -> None:
     org = Organisation(
         identifier_ODS_ODSCode="ODS12345",

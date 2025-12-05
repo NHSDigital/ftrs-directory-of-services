@@ -10,7 +10,7 @@ def test_organisation() -> None:
         id=uuid4(),
         identifier_ODS_ODSCode="123456",
         active=True,
-        name="Test Organisation",
+        name="Test GP Organisation",
         telecom=[
             Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True),
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=False),
@@ -34,7 +34,7 @@ def test_organisation() -> None:
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "test_user",
         "modifiedDateTime": "2023-10-01T00:00:00Z",
-        "name": "Test Organisation",
+        "name": "Test GP Organisation",
         "telecom": [
             {"type": "phone", "value": "020 7972 3272", "isPublic": True},
             {"type": "phone", "value": "0300 311 22 33", "isPublic": False},

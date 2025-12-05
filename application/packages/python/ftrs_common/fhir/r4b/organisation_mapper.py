@@ -150,14 +150,13 @@ class OrganizationMapper(FhirMapper):
 
         telecoms = []
         for telecom in fhir_org.telecom:
-            if telecom.system in [t.to_fhir_value() for t in TelecomType]:
-                telecoms.append(
-                    Telecom(
-                        type=TelecomType.from_fhir_value(telecom.system),
-                        value=telecom.value,
-                        isPublic=True,
-                    )
+            telecoms.append(
+                Telecom(
+                    type=TelecomType.from_fhir_value(telecom.system),
+                    value=telecom.value,
+                    isPublic=True,
                 )
+            )
         return telecoms
 
     def _get_role_code_from_extension(self, ext: dict) -> str | None:

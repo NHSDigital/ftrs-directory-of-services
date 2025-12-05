@@ -223,7 +223,7 @@ def test_from_fhir_maps_fields_correctly() -> None:
                 system="https://fhir.nhs.uk/Id/ods-organization-code", value=valid_uuid
             )
         ],
-        name="Test Org",
+        name="Test GP Org",
         active=True,
         type=org_type,
         telecom=[ContactPoint(system="phone", value="0300 311 22 33")],
@@ -231,7 +231,7 @@ def test_from_fhir_maps_fields_correctly() -> None:
     internal_organisation = mapper.from_fhir(org)
     assert isinstance(internal_organisation, Organisation)
     assert internal_organisation.identifier_ODS_ODSCode == valid_uuid
-    assert internal_organisation.name == "Test Org"
+    assert internal_organisation.name == "Test GP Org"
     assert internal_organisation.active is True
     assert internal_organisation.telecom == [
         Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
@@ -534,6 +534,17 @@ def test__get_org_telecom_with_phone() -> None:
     ]
 
 
+def test__get_org_telecom_with_no_system() -> None:
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        telecom=[ContactPoint(value="020 7972 3272")],
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+    assert "Telecom type value cannot be None" in str(exc_info.value)
+
+
 def test__get_org_telecom_empty_list() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
@@ -550,7 +561,10 @@ def test__get_org_telecom_with_no_phone() -> None:
             ContactPoint(system="fax", value="12345"),
         ],
     )
-    assert mapper._get_org_telecom(org) == []
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+
+    assert "Invalid telecom type value: pager" in str(exc_info.value)
 
 
 def test_get_org_telecom_with_invalid_phone() -> None:

@@ -32,6 +32,7 @@ def assert_operation_outcome(
                 "resourceType": "Organization",
                 "active": True,
                 "name": "Test Organization",
+                "telecom": [{"system": "phone", "value": "123456"}],
             },
             Organization,
             lambda result: (
@@ -145,6 +146,13 @@ def test_validate_wrong_resource_type(
             },
             DummyModel,
         ),
+        (
+            {
+                "resourceType": "Organization",
+                "telecom": [{"value": "123456"}],
+            },
+            Organization,
+        ),
     ],
 )
 def test_validate_fhir_validation_error(
@@ -251,9 +259,9 @@ def test_check_telecom_phone_special_characters_invalid(
         }
     ],
 )
-def test_check_telecom_types_are_valid(resource: dict) -> None:
+def test_check_telecom_systems_are_valid(resource: dict) -> None:
     model = DummyModel
-    assert FhirValidator._check_telecom_types_are_valid(resource, model) == resource
+    assert FhirValidator._check_telecom_systems_are_valid(resource, model) == resource
 
 
 @pytest.mark.parametrize(
@@ -277,7 +285,7 @@ def test_check_telecom_types_are_valid(resource: dict) -> None:
         ),
     ],
 )
-def test_check_telecom_types_are_invalid(
+def test_check_telecom_systems_are_invalid(
     resource: dict, expected_type_error: str
 ) -> None:
     """
@@ -286,8 +294,26 @@ def test_check_telecom_types_are_invalid(
     """
     model = DummyModel
     with pytest.raises(OperationOutcomeException) as exc_info:
-        FhirValidator._check_telecom_types_are_valid(resource, model)
+        FhirValidator._check_telecom_systems_are_valid(resource, model)
     assert (
-        f"Field 'telecom[0].system' contains invalid telecom type: {expected_type_error}"
+        f"Field 'telecom[0].system' contains invalid telecom system: {expected_type_error}"
+        in str(exc_info.value)
+    )
+
+
+def test_check_telecom_systems_no_type() -> None:
+    """
+    Test that a web telecom type or invalid_type raise an OperationOutcomeException.
+    Web is not a valid FHIR ContactPoint.system value, should be url at this stage.
+    """
+    resource = {
+        "resourceType": "DummyResource",
+        "telecom": [{"value": "123456"}],
+    }
+    model = DummyModel
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        FhirValidator._check_telecom_systems_are_valid(resource, model)
+    assert (
+        "Field 'telecom[0].system' requires a system, a system is required for a telecom"
         in str(exc_info.value)
     )
