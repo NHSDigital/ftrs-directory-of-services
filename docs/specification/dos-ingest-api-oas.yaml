@@ -136,7 +136,7 @@ paths:
         Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
 
         ## Request requirements
-        - if the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 5, maximum 12 alphanumeric characters).
+        - if the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
         - if the `identifier` parameter is omitted, all organizations will be returned.
 
         The search is performed using the FHIR-compliant identifier parameter:
@@ -184,7 +184,7 @@ paths:
           required: false
         schema:
             type: string
-            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{5,12}$'
+            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{1,12}$'
             example: "odsOrganizationCode|ABC123"
       - $ref: '#/components/parameters/AcceptFHIR'
       responses:
@@ -387,7 +387,7 @@ paths:
                     issue:
                       - severity: "error"
                         code: "invalid"
-                        diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
+                        diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{1,12}$"
                 invalid-identifier-system:
                   summary: Invalid identifier system
                   value:
