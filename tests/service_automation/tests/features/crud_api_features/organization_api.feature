@@ -127,7 +127,7 @@ Feature: Organization API Endpoint
 
     Examples:
       | primary_role_code  | non_primary_role_codes| expected_error_message                          |
-      | RO177              | [RO80, RO80]          | Duplicate non-primary roles are not allowed.    |
+      | RO177              | [RO80, RO80]          | Duplicate non-primary roles are not allowed     |
       | RO177              | []                    | must have at least one non-primary role         |
       | RO177              | [RO268]               | Invalid role code: 'RO268'. Incorrect enum value|
       | RO177              | [RO76, RO268]         | Invalid role code: 'RO268'. Incorrect enum value|
