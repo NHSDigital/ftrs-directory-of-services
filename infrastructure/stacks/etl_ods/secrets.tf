@@ -3,7 +3,7 @@ resource "aws_secretsmanager_secret" "dos_ingest_jwt_credentials" {
   count       = local.is_primary_environment ? 1 : 0
   name        = "/${var.project}/${var.environment}/dos-ingest-jwt-credentials"
   description = "JWT token generation credentials"
-  kms_key_id  = data.secrets_manager_kms_key.key_id
+  kms_key_id  = data.aws_kms_key.secrets_manager_kms_key.arn
 }
 
 
@@ -12,5 +12,5 @@ resource "aws_secretsmanager_secret" "ods-terminology-api-key" {
   count       = local.is_primary_environment ? 1 : 0
   name        = "/${var.project}/${var.environment}/ods-terminology-api-key"
   description = "API Key for ODS Terminology API"
-  kms_key_id  = data.secrets_manager_kms_key.key_id
+  kms_key_id  = data.aws_kms_key.secrets_manager_kms_key.arn
 }
