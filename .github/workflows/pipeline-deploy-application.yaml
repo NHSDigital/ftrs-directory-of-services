@@ -193,8 +193,8 @@ jobs:
             return 1
           }
 
-          sandbox_environment=""
-          service=""
+          sandbox_environment="sandbox"
+          service="dos-search"
           version=""
           should_deploy="false"
 
@@ -222,7 +222,7 @@ jobs:
           echo "should_deploy=$should_deploy" >> "$GITHUB_OUTPUT"
 
   deploy-proxy-into-apim-sandbox:
-    name: "Authenticate and Deploy ${{ needs.derive-apim-sandbox-tag.outputs.service || 'dos-search' }} API to Proxygen in ${{ needs.derive-apim-sandbox-tag.outputs.sandbox_environment || 'sandbox' }} environment"
+    name: "Authenticate and Deploy ${{ needs.derive-apim-sandbox-tag.outputs.service }} API to Proxygen in ${{ needs.derive-apim-sandbox-tag.outputs.sandbox_environment }}"
     needs:
       - metadata
       - deploy-application-infrastructure

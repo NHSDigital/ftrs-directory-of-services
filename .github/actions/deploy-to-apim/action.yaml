@@ -70,7 +70,7 @@ runs:
 
     - name: Modify Sandbox OAS Specification
       if: ${{ contains(inputs.apim_env, 'sandbox') }}
-      id: modify-spec
+      id: modify-sandbox-spec
       shell: bash
       run: |
         export API_NAME="${{ inputs.api_name }}"
@@ -97,10 +97,16 @@ runs:
         export WORKSPACE="${{ inputs.workspace }}"
         export PROXY_ENV="${{ inputs.apim_env }}"
         export ACCESS_TOKEN="${{ inputs.access_token }}"
-        export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
-        export TARGET_SPEC_FILE="${{ steps.modify-spec.outputs.target_spec_file_abs }}"
         export PROXYGEN_URL="${{ inputs.proxygen_url }}"
         export VERSION_TAG="${{ inputs.version_tag }}"
+        export IS_SANDBOX="${{ contains(inputs.apim_env, 'sandbox') }}"
+
+        if [[ "$IS_SANDBOX" == 'true' ]]; then
+          export MODIFIED_SPEC_PATH="${{ steps.modify-sandbox-spec.outputs.modified_spec_path }}"
+          export TARGET_SPEC_FILE="${{ steps.modify-sandbox-spec.outputs.target_spec_file_abs }}"
+        else
+          export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
+        fi
 
         chmod +x ./scripts/workflow/deploy-to-apim.sh
         ./scripts/workflow/deploy-to-apim.sh
