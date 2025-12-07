@@ -156,94 +156,19 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
       PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
-  derive-apim-sandbox-tag:
-    name: "Parse sandbox proxy tag"
-    needs:
-      - metadata
-    if: >
-      github.ref_type == 'tag' &&
-      startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    outputs:
-      sandbox_environment: ${{ steps.parse.outputs.sandbox_environment }}
-      service: ${{ steps.parse.outputs.service }}
-      version: ${{ steps.parse.outputs.version }}
-      should_deploy: ${{ steps.parse.outputs.should_deploy }}
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: "Parse tag components"
-        id: parse
-        shell: bash
-        run: |
-          tag="${GITHUB_REF_NAME}"
-          readonly ALLOWED_ENVS=(sandbox internal-sandbox)
-          readonly ALLOWED_SERVICES=(dos-search)
-
-          sandbox_environment="sandbox"
-          service="dos-search"
-          version=""
-          should_deploy="false"
-
-          git fetch origin main --depth=1
-          if ! git merge-base --is-ancestor origin/main "$GITHUB_SHA"; then
-            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
-            echo "Tag commit is not present on main; skipping sandbox deploy"
-            exit 0
-          fi
-
-          is_allowed() {
-            local needle="$1"; shift
-            for candidate in "$@"; do
-              [[ "$needle" == "$candidate" ]] && return 0
-            done
-            return 1
-          }
-
-          if [[ "$tag" =~ ^([a-z0-9-]+)-([a-z0-9-]+)-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-            env_prefix="${BASH_REMATCH[1]}"
-            service="${BASH_REMATCH[2]}"
-            version="${BASH_REMATCH[3]}"
-
-            if ! is_allowed "$env_prefix" "${ALLOWED_ENVS[@]}"; then
-              echo "Tag '$tag' has invalid environment prefix '$env_prefix'; expected one of: ${ALLOWED_ENVS[*]}"
-            elif ! is_allowed "$service" "${ALLOWED_SERVICES[@]}"; then
-              echo "Tag '$tag' has invalid service '$service'; expected one of: ${ALLOWED_SERVICES[*]}"
-            else
-              sandbox_environment="$env_prefix"
-              should_deploy="true"
-              echo "Parsed tag '$tag' as env=$sandbox_environment, service=$service, version=$version"
-            fi
-          else
-            echo "Tag '$tag' does not match <environment>-<service>-<version>"
-          fi
-
-          echo "sandbox_environment=$sandbox_environment" >> "$GITHUB_OUTPUT"
-          echo "service=$service" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "should_deploy=$should_deploy" >> "$GITHUB_OUTPUT"
-
   deploy-proxy-into-apim-sandbox:
-    name: "Authenticate and Deploy ${{ needs.derive-apim-sandbox-tag.outputs.service }} API to Proxygen in ${{ needs.derive-apim-sandbox-tag.outputs.sandbox_environment }}"
+    name: "Authenticate and Deploy API to Proxygen in sandbox"
     needs:
       - metadata
       - deploy-application-infrastructure
-      - derive-apim-sandbox-tag
-    if: |
-      github.ref_type == 'tag' &&
-      startsWith(github.ref, 'refs/tags/') &&
-      needs.derive-apim-sandbox-tag.result == 'success' &&
-      needs.derive-apim-sandbox-tag.outputs.should_deploy == 'true'
+    if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/')
     uses: ./.github/workflows/deploy-into-apim-sandbox.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      api_name: ${{ needs.derive-apim-sandbox-tag.outputs.service }}
-      apim_env: ${{ needs.derive-apim-sandbox-tag.outputs.sandbox_environment }}
+      ref_name: ${{ github.ref_name }}
+      ref_type: ${{ github.ref_type }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      version_tag: ${{ needs.derive-apim-sandbox-tag.outputs.version }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -392,7 +317,6 @@ jobs:
       - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
-      - derive-apim-sandbox-tag
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
@@ -403,6 +327,7 @@ jobs:
       - quality-checks
       - build-services
       - deploy-application-infrastructure
+      - deploy-proxy-into-apim-sandbox
       - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
