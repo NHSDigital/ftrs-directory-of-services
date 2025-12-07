@@ -158,7 +158,6 @@ jobs:
 
   derive-apim-sandbox-tag:
     name: "Parse sandbox proxy tag"
-    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     outputs:
       sandbox_environment: ${{ steps.parse.outputs.sandbox_environment }}
@@ -174,16 +173,31 @@ jobs:
         id: parse
         shell: bash
         run: |
+          tag="${GITHUB_REF_NAME}"
+          readonly ALLOWED_ENVS=(sandbox internal-sandbox)
+          readonly ALLOWED_SERVICES=(dos-search)
+
+          sandbox_environment="sandbox"
+          service="dos-search"
+          version=""
+          should_deploy="false"
+
+          if [[ "${GITHUB_REF_TYPE}" != "tag" ]]; then
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Tag '${tag}' is not a tag; skipping sandbox deploy"
+            echo "sandbox_environment=$sandbox_environment" >> "$GITHUB_OUTPUT"
+            echo "service=$service" >> "$GITHUB_OUTPUT"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "should_deploy=$should_deploy" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           git fetch origin main --depth=1
           if ! git merge-base --is-ancestor origin/main "$GITHUB_SHA"; then
             echo "should_deploy=false" >> "$GITHUB_OUTPUT"
             echo "Tag commit is not present on main; skipping sandbox deploy"
             exit 0
           fi
-
-          tag="${GITHUB_REF_NAME}"
-          readonly ALLOWED_ENVS=(sandbox internal-sandbox)
-          readonly ALLOWED_SERVICES=(dos-search)
 
           is_allowed() {
             local needle="$1"; shift
@@ -192,11 +206,6 @@ jobs:
             done
             return 1
           }
-
-          sandbox_environment=""
-          service=""
-          version=""
-          should_deploy="false"
 
           if [[ "$tag" =~ ^([a-z0-9-]+)-([a-z0-9-]+)-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
             env_prefix="${BASH_REMATCH[1]}"
@@ -222,7 +231,7 @@ jobs:
           echo "should_deploy=$should_deploy" >> "$GITHUB_OUTPUT"
 
   deploy-proxy-into-apim-sandbox:
-    name: "Authenticate and Deploy ${{ needs.derive-apim-sandbox-tag.outputs.service || 'dos-search' }} API to Proxygen in ${{ needs.derive-apim-sandbox-tag.outputs.sandbox_environment || 'sandbox' }}"
+    name: "Authenticate and Deploy ${{ needs.derive-apim-sandbox-tag.outputs.service }} API to Proxygen in ${{ needs.derive-apim-sandbox-tag.outputs.sandbox_environment }}"
     needs:
       - metadata
       - deploy-application-infrastructure
