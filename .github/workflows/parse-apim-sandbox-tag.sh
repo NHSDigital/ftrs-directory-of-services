@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-TAG="${GITHUB_REF_NAME:-}"  # e.g. sandbox-dos-search-1.2.3
+TAG="${GITHUB_REF_NAME:-}"
 WORKSPACE_ROOT="${GITHUB_WORKSPACE:-}" || true
 
 ALLOWED_ENVS=(sandbox internal-sandbox)
@@ -36,7 +36,6 @@ if [[ "${GITHUB_REF_TYPE:-}" != "tag" ]]; then
   fail_and_exit "Ref type '${GITHUB_REF_TYPE:-}' is not tag; skipping"
 fi
 
-# Ensure we have main fetched for ancestor checks
 git fetch origin main --depth=1 >/dev/null 2>&1 || true
 if ! git merge-base --is-ancestor origin/main "${GITHUB_SHA}"; then
   fail_and_exit "Tag commit not on main; skipping"

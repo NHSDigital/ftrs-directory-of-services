@@ -157,16 +157,29 @@ jobs:
       PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   deploy-proxy-into-apim-sandbox:
-    name: >-
-      ${{ format(
-        'Authenticate and Deploy {0} to Proxygen in {1}',
-        contains(github.ref_name, 'dos-search') && 'dos-search' || 'dos-search',
-        contains(github.ref_name, 'internal-sandbox') && 'internal-sandbox' || (contains(github.ref_name, 'sandbox') && 'sandbox' || 'sandbox')
-      ) }}
+    name: "Authenticate and Deploy ${{ env.SANDBOX_SERVICE_LABEL }} to Proxygen in ${{ env.SANDBOX_ENV_LABEL }}"
     needs:
       - metadata
       - deploy-application-infrastructure
     if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/')
+    env:
+      SANDBOX_SERVICE_NAME: dos-search
+      DEFAULT_SERVICE_LABEL: API
+      INTERNAL_SANDBOX_LABEL: internal-sandbox
+      SANDBOX_LABEL: sandbox
+      DEFAULT_SANDBOX_ENV: sandbox environment
+      SANDBOX_SERVICE_LABEL: >-
+        ${{ contains(github.ref_name, env.SANDBOX_SERVICE_NAME)
+            && env.SANDBOX_SERVICE_NAME
+            || env.DEFAULT_SERVICE_LABEL }}
+      SANDBOX_ENV_LABEL: >-
+        ${{ contains(github.ref_name, env.INTERNAL_SANDBOX_LABEL)
+            && env.INTERNAL_SANDBOX_LABEL
+            || (
+              contains(github.ref_name, env.SANDBOX_LABEL)
+                && env.SANDBOX_LABEL
+                || env.DEFAULT_SANDBOX_ENV
+            ) }}
     uses: ./.github/workflows/deploy-into-apim-sandbox.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
