@@ -157,7 +157,12 @@ jobs:
       PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   deploy-proxy-into-apim-sandbox:
-    name: "Authenticate and Deploy API to Proxygen in sandbox"
+    name: >-
+      ${{ format(
+        'Authenticate and Deploy {0} to Proxygen in {1}',
+        contains(github.ref_name, 'dos-search') && 'dos-search' || 'dos-search',
+        contains(github.ref_name, 'internal-sandbox') && 'internal-sandbox' || (contains(github.ref_name, 'sandbox') && 'sandbox' || 'sandbox')
+      ) }}
     needs:
       - metadata
       - deploy-application-infrastructure
