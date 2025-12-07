@@ -20,6 +20,10 @@ inputs:
   proxygen_url:
     description: 'Proxygen API URL'
     required: true
+  version_tag:
+    description: 'Version applied to the deployed proxy'
+    required: false
+    default: ''
 
 outputs:
   deployment_status:
@@ -45,6 +49,7 @@ runs:
         echo "Workspace format validated: ${{ inputs.workspace }}"
 
     - name: Modify OAS Specification
+      if: ${{ !contains(inputs.apim_env, 'sandbox') }}
       id: modify-spec
       shell: bash
       run: |
@@ -63,6 +68,27 @@ runs:
           exit 1
         fi
 
+    - name: Modify Sandbox OAS Specification
+      if: ${{ contains(inputs.apim_env, 'sandbox') }}
+      id: modify-sandbox-spec
+      shell: bash
+      run: |
+        export API_NAME="${{ inputs.api_name }}"
+        export PROXY_ENV="${{ inputs.apim_env }}"
+        export VERSION_TAG="${{ inputs.version_tag }}"
+
+        chmod +x ./scripts/workflow/modify-oas-sandbox-spec.sh
+        read -r MODIFIED_SPEC_PATH TARGET_SPEC_FILE < <(./scripts/workflow/modify-oas-sandbox-spec.sh)
+
+        if [ $? -eq 0 ]; then
+          echo "modified_spec_path=$MODIFIED_SPEC_PATH" >> $GITHUB_OUTPUT
+          echo "target_spec_file_abs=$TARGET_SPEC_FILE" >> $GITHUB_OUTPUT
+          echo "OAS spec modified successfully"
+        else
+          echo "Failed to modify OAS spec"
+          exit 1
+        fi
+
     - name: Deploy API Proxy to APIM environment
       id: deploy
       shell: bash
@@ -71,8 +97,16 @@ runs:
         export WORKSPACE="${{ inputs.workspace }}"
         export PROXY_ENV="${{ inputs.apim_env }}"
         export ACCESS_TOKEN="${{ inputs.access_token }}"
-        export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
         export PROXYGEN_URL="${{ inputs.proxygen_url }}"
+        export VERSION_TAG="${{ inputs.version_tag }}"
+        export IS_SANDBOX="${{ contains(inputs.apim_env, 'sandbox') }}"
+
+        if [[ "$IS_SANDBOX" == 'true' ]]; then
+          export MODIFIED_SPEC_PATH="${{ steps.modify-sandbox-spec.outputs.modified_spec_path }}"
+          export TARGET_SPEC_FILE="${{ steps.modify-sandbox-spec.outputs.target_spec_file_abs }}"
+        else
+          export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
+        fi
 
         chmod +x ./scripts/workflow/deploy-to-apim.sh
         ./scripts/workflow/deploy-to-apim.sh
@@ -89,9 +123,13 @@ runs:
     - name: Output deployment details
       shell: bash
       run: |
+        VERSION_TAG="${{ inputs.version_tag }}"
         echo "Deployment Summary:"
         echo "- API Name: ${{ inputs.api_name }}"
         echo "- Workspace: ${{ inputs.workspace }}"
         echo "- Environment: ${{ inputs.environment }}"
         echo "- APIM Environment: ${{inputs.apim_env }}"
+        if [ -n "$VERSION_TAG" ]; then
+          echo "- Version Tag: $VERSION_TAG"
+        fi
         echo "- Status: ${{ steps.deploy.outputs.status }}"
