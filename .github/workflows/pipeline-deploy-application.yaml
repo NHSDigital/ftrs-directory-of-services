@@ -160,17 +160,21 @@ jobs:
     name: >-
       ${{ format(
         'Authenticate and Deploy {0} to Proxygen in {1}',
-        startsWith(github.ref_name, 'internal-sandbox-dos-search-') || startsWith(github.ref_name, 'sandbox-dos-search-')
-          ? 'dos-search'
-          : 'API',
-        startsWith(github.ref_name, 'internal-sandbox-dos-search-')
-          ? 'internal-sandbox'
-          : (
-            startsWith(github.ref_name, 'sandbox-dos-search-')
-              ? 'sandbox'
-              : 'sandbox environment'
+        if(
+          startsWith(github.ref_name, 'internal-sandbox-dos-search-') || startsWith(github.ref_name, 'sandbox-dos-search-'),
+          'dos-search',
+          'API'
+        ),
+        if(
+          startsWith(github.ref_name, 'internal-sandbox-dos-search-'),
+          'internal-sandbox',
+          if(
+            startsWith(github.ref_name, 'sandbox-dos-search-'),
+            'sandbox',
+            'sandbox environment'
           )
-        ) }}
+        )
+      ) }}
     needs:
       - metadata
       - deploy-application-infrastructure
