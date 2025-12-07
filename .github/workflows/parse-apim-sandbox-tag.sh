@@ -14,6 +14,11 @@ version=""
 should_deploy="false"
 branch_glob="${SANDBOX_BRANCH_GLOB:-task/*}"
 
+join_with_pipe() {
+  local IFS='|'
+  printf '%s' "$*"
+}
+
 info() {
   printf '[parse-apim-sandbox-tag] %s\n' "$*"
 }
@@ -31,7 +36,11 @@ ensure_commit_on_branch() {
   local glob="$1"
   git fetch origin --depth=1 --quiet || true
 
-  mapfile -t candidates < <(git for-each-ref --format='%(refname:short)' "refs/remotes/origin/${glob}")
+  local candidates=()
+  while IFS= read -r ref_name; do
+    candidates+=("$ref_name")
+  done < <(git for-each-ref --format='%(refname:short)' "refs/remotes/origin/${glob}")
+
   if (( ${#candidates[@]} == 0 )); then
     fail_and_exit "No origin branches match '${glob}'; skipping"
   fi
@@ -66,7 +75,10 @@ is_allowed() {
   return 1
 }
 
-if [[ "${TAG}" =~ ^([a-z0-9-]+)-([a-z0-9-]+)-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+env_regex="$(join_with_pipe "${ALLOWED_ENVS[@]}")"
+service_regex="$(join_with_pipe "${ALLOWED_SERVICES[@]}")"
+
+if [[ "${TAG}" =~ ^(${env_regex})-(${service_regex})-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
   env_prefix="${BASH_REMATCH[1]}"
   service="${BASH_REMATCH[2]}"
   version="${BASH_REMATCH[3]}"
