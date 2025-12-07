@@ -12,6 +12,7 @@ sandbox_environment="sandbox"
 service="dos-search"
 version=""
 should_deploy="false"
+branch_glob="${SANDBOX_BRANCH_GLOB:-task/*}"
 
 info() {
   printf '[parse-apim-sandbox-tag] %s\n' "$*"
@@ -26,6 +27,25 @@ fail_and_exit() {
   exit 0
 }
 
+ensure_commit_on_branch() {
+  local glob="$1"
+  git fetch origin --depth=1 --quiet || true
+
+  mapfile -t candidates < <(git for-each-ref --format='%(refname:short)' "refs/remotes/origin/${glob}")
+  if (( ${#candidates[@]} == 0 )); then
+    fail_and_exit "No origin branches match '${glob}'; skipping"
+  fi
+
+  for remote_ref in "${candidates[@]}"; do
+    if git merge-base --is-ancestor "${remote_ref}" "${GITHUB_SHA}" >/dev/null 2>&1; then
+      info "Tag commit verified on branch '${remote_ref}'"
+      return 0
+    fi
+  done
+
+  fail_and_exit "Tag commit not on any branch matching '${glob}'; skipping"
+}
+
 info "Evaluating tag '${TAG}'"
 
 if [[ -z "${TAG}" ]]; then
@@ -36,10 +56,7 @@ if [[ "${GITHUB_REF_TYPE:-}" != "tag" ]]; then
   fail_and_exit "Ref type '${GITHUB_REF_TYPE:-}' is not tag; skipping"
 fi
 
-git fetch origin main --depth=1 >/dev/null 2>&1 || true
-if ! git merge-base --is-ancestor origin/main "${GITHUB_SHA}"; then
-  fail_and_exit "Tag commit not on main; skipping"
-fi
+ensure_commit_on_branch "${branch_glob}"
 
 is_allowed() {
   local needle="$1"; shift
@@ -72,4 +89,3 @@ echo "sandbox_environment=${sandbox_environment}" >> "$GITHUB_OUTPUT"
 echo "service=${service}" >> "$GITHUB_OUTPUT"
 echo "version=${version}" >> "$GITHUB_OUTPUT"
 echo "should_deploy=${should_deploy}" >> "$GITHUB_OUTPUT"
-
