@@ -392,6 +392,7 @@ jobs:
       - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
+      - derive-apim-sandbox-tag
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
