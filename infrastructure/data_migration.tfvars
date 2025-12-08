@@ -66,5 +66,3 @@ dms_engine                     = "aurora-postgresql"
 dms_allocated_storage          = 100
 full_migration_type            = "full-load"
 cdc_migration_type             = "cdc"
-
-sqs_managed_sse_enabled = false

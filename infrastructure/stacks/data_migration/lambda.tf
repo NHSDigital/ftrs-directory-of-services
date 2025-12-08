@@ -182,12 +182,11 @@ module "dms_db_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
 
-  number_of_policy_jsons = "4"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy_for_dms[0].json,
     data.aws_iam_policy_document.lambda_rds_policy[0].json,
     data.aws_iam_policy_document.rds_connect_policy[0].json,
-    data.aws_iam_policy_document.lambda_kms_access.json
   ]
 
   environment_variables = {
