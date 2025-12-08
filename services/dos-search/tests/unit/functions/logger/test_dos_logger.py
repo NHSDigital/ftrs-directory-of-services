@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from copy import deepcopy
 from dataclasses import dataclass
 from unittest.mock import call, patch
@@ -375,3 +376,47 @@ class TestDosLogger:
 
         # Assert
         mock_base_powertools_logger.clear_state.assert_called_once()
+
+    def test_get_response_size_and_duration(
+        self,
+        dos_logger,
+        bundle,
+    ):
+        # Arrange
+        start_time = time.time()
+
+        # Act
+        response_size, duration_ms = dos_logger.get_response_size_and_duration(
+            bundle, start_time
+        )
+
+        # Assert
+        expected_size = len(bundle.model_dump_json().encode("utf-8"))
+        assert response_size == expected_size
+        assert duration_ms >= 0  # Duration should be non-negative
+
+    def test_get_response_size_and_duration_with_exception(
+        self, dos_logger, mock_base_powertools_logger
+    ):
+        # Arrange
+        start_time = time.time()
+
+        # Act
+        response_size, duration_ms = dos_logger.get_response_size_and_duration(
+            None, start_time
+        )
+
+        # Assert
+        # Function still returns
+        assert response_size == 0
+        assert duration_ms >= 0
+        # Error logged out to mark failure
+        mock_base_powertools_logger.exception.assert_called_with(
+            "Failed to calculate response size",
+            extra={
+                "detail": {
+                    "opt_ftrs_response_time": f"{duration_ms}ms",
+                    "opt_ftrs_response_size": 0,
+                }
+            },
+        )

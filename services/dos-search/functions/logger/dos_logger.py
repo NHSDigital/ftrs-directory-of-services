@@ -1,8 +1,10 @@
 import os
+import time
 from functools import cache
 from typing import Any, Dict, Literal, Optional
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
+from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 
 
 class DosLogger:
@@ -51,6 +53,24 @@ class DosLogger:
             if val not in (None, ""):
                 return val
         return None
+
+    def get_response_size_and_duration(
+        self, fhir_resource: FHIRResourceModel, start_time: float
+    ) -> int:
+        """Utility to calculate response size in bytes from FHIR resource."""
+        duration_ms = int((time.time() - start_time) * 1000)
+        print("test search", duration_ms)
+        try:
+            body = fhir_resource.model_dump_json()
+            response_size = len(body.encode("utf-8"))
+        except Exception:
+            response_size = 0
+            self.exception(
+                "Failed to calculate response size",
+                opt_ftrs_response_time=f"{duration_ms}ms",
+                opt_ftrs_response_size=response_size,
+            )
+        return response_size, duration_ms
 
     # --- extract methods -------------------------------------------------
     def extract(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
