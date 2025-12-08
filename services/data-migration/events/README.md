@@ -11,6 +11,7 @@ This directory contains example event payloads for testing Lambda functions loca
 **Purpose**: Triggers the loading of triage codes into the reference data tables.
 
 **Event Structure**:
+
 ```json
 {
   "type": "triagecode"
@@ -18,6 +19,7 @@ This directory contains example event payloads for testing Lambda functions loca
 ```
 
 **Fields**:
+
 - `type`: The type of reference data to load. Currently supports:
   - `"triagecode"`: Loads triage code reference data
 
