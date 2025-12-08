@@ -4,7 +4,7 @@ resource "aws_kms_key" "encryption_key" {
   rotation_period_in_days = var.kms_rotation_period_in_days
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         "Sid" : "SetAccountRootPermissions",
         "Effect" : "Allow",
@@ -36,7 +36,7 @@ resource "aws_kms_key" "encryption_key" {
           }
         }
       }
-    ]
+    ], var.additional_policy_statements)
   })
 }
 
