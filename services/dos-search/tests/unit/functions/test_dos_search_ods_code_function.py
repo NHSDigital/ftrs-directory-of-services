@@ -1,7 +1,6 @@
 from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
-from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
@@ -32,11 +31,6 @@ def mock_ftrs_service():
 @pytest.fixture
 def lambda_context():
     return MagicMock()
-
-
-@pytest.fixture
-def bundle():
-    return Bundle.model_construct(id="bundle-id")
 
 
 def assert_response(
@@ -94,10 +88,13 @@ class TestLambdaHandler:
                     ods_code=ods_code,
                     dos_message_category="REQUEST",
                 ),
+                call.get_response_size_and_duration(bundle, ANY),
                 call.info(
                     "Successfully processed: Logging response time & size",
                     opt_ftrs_response_time=ANY,
-                    opt_ftrs_response_size=ANY,
+                    opt_ftrs_response_size=len(
+                        bundle.model_dump_json().encode("utf-8")
+                    ),
                     dos_message_category="METRICS",
                 ),
                 call.info(
@@ -118,6 +115,12 @@ class TestLambdaHandler:
     ):
         # Arrange
         validation_error = ValidationError.from_exception_data("ValidationError", [])
+        response_size = len(  # Override mocked response size to use this case's error model
+            mock_error_util.create_validation_error_operation_outcome.return_value.model_dump_json().encode(
+                "utf-8"
+            )
+        )
+        mock_logger.get_response_size_and_duration.return_value = (response_size, 1)
 
         # Act
         with patch(
@@ -134,9 +137,15 @@ class TestLambdaHandler:
         mock_logger.assert_has_calls(
             [
                 call.init(ANY),
+                call.get_response_size_and_duration(
+                    mock_error_util.create_validation_error_operation_outcome.return_value,
+                    ANY,
+                ),
                 call.warning(
                     "Validation error occurred",
                     validation_errors=validation_error.errors(),
+                    opt_ftrs_response_time="1ms",
+                    opt_ftrs_response_size=response_size,
                 ),
                 call.info(
                     "Creating response",
@@ -161,8 +170,7 @@ class TestLambdaHandler:
         ods_code,
         mock_error_util,
         mock_logger,
-        log_data,
-        details,
+        bundle,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
@@ -181,7 +189,17 @@ class TestLambdaHandler:
                     ods_code=ods_code,
                     dos_message_category="REQUEST",
                 ),
-                call.exception("Internal server error occurred"),
+                call.get_response_size_and_duration(
+                    mock_error_util.create_resource_internal_server_error.return_value,
+                    ANY,
+                ),
+                call.exception(
+                    "Internal server error occurred",
+                    opt_ftrs_response_time="1ms",
+                    opt_ftrs_response_size=len(
+                        bundle.model_dump_json().encode("utf-8")
+                    ),
+                ),
                 call.info(
                     "Creating response",
                     status_code=500,
