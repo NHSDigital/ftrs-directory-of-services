@@ -12,15 +12,15 @@ on:
         required: true
         type: string
       workspace:
-        description: 'Workspace identifier (e.g., FTRS-000)'
-        required: true
+        description: 'Workspace identifier (e.g., FTRS-000). Optional for environments without workspaces (e.g., int)'
+        required: false
         type: string
       api_name:
         description: 'API name to deploy'
         required: true
         type: string
       apim_env:
-        description: 'APIM environment to deploy to (e.g., internal-dev)'
+        description: 'APIM environment to deploy to (e.g., internal-dev, int, prod)'
         required: true
         type: string
     secrets:
