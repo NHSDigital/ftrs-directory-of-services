@@ -14,7 +14,7 @@ class ReferenceDataLoadApplication:
 
     def handle(self, event: ReferenceDataLoadEvent) -> None:
         match event.type:
-            case "triage-code":
+            case "triagecode":
                 return self._load_triage_codes()
 
         raise ValueError(f"Unknown event type: {event.type}")
