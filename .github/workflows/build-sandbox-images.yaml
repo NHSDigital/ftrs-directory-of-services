@@ -1,0 +1,130 @@
+name: Build sandbox images workflow
+run-name: Build ${{ inputs.name }}
+
+permissions:
+  id-token: write
+  contents: read
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: "The name of the package to build"
+        required: true
+        type: string
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+      environment:
+        description: "The deployment environment"
+        required: true
+        type: string
+      application_tag:
+        description: "Optional application tag to check out (leave empty for default/latest)"
+        required: false
+        type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS Account ID"
+        required: true
+      PROXYGEN_URL:
+        description: "Proxygen API base URL"
+        required: false
+
+jobs:
+  build-sandbox-images:
+    name: "${{ inputs.name }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      ENVIRONMENT: ${{ inputs.environment }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
+      APPLICATION_TAG: ${{ inputs.application_tag || '' }}
+
+    steps:
+      - name: "Normalize API name"
+        run: |
+          CLEAN_NAME="${{ inputs.name }}"
+          CLEAN_NAME="${CLEAN_NAME#sandbox-}"
+          echo "API_NAME=$CLEAN_NAME" >> "$GITHUB_ENV"
+
+      - name: "Checkout code"
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.application_tag && inputs.application_tag != 'latest' && inputs.application_tag || '' }}
+
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v4.0.0
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v4.0.0
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: ${{ inputs.environment }}
+
+      - name: "Get directories"
+        id: get-directories
+        run: |
+          echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+
+      - name: "Install docker"
+        run: make install
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+
+      - name: "Build image"
+        run: make build
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+
+      - name: "Run unit tests"
+        run: make unit-test
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+
+      - name: "Publish artefacts to GitHub"
+        uses: actions/upload-artifact@v5
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        with:
+          name: ${{ inputs.name }}-artefacts
+          path: ${{ steps.get-directories.outputs.build_directory }}
+          if-no-files-found: error
+
+      - name: Get APIM Access Token
+        id: get-token
+        uses: ./.github/actions/authenticate-apim
+        with:
+          api_name: ${{ env.API_NAME }}
+          environment: ${{ inputs.environment }}
+          aws_region: ${{ vars.AWS_REGION }}
+
+      - name: Get APIM Docker Token
+        id: get-docker-token
+        uses: ./.github/actions/authenticate-apim-docker
+        env:
+          PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
+        with:
+          access_token: ${{ steps.get-token.outputs.access_token }}
+          api_name: ${{ env.API_NAME }}
+
+      - name: "Push image to ECR"
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: make publish
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}
