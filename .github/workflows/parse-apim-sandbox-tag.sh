@@ -5,7 +5,7 @@ set -euo pipefail
 TAG="${GITHUB_REF_NAME:-}"
 WORKSPACE_ROOT="${GITHUB_WORKSPACE:-}" || true
 
-ALLOWED_ENVS=(sandbox internal-sandbox)
+ALLOWED_ENVS=(sandbox internal-dev-sandbox)
 ALLOWED_SERVICES=(dos-search)
 
 sandbox_environment="sandbox"
