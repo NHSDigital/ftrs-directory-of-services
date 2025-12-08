@@ -136,16 +136,23 @@ fetch_manifest_header(){
 
 print_manifest_metadata(){
   log "Accessing repository via Docker Registry HTTP API: ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}"
-  DIGEST=$(fetch_manifest_header || true)
+  local manifest_tag
+  if [ -n "${VERSION_TAG:-}" ]; then
+    manifest_tag="${VERSION_TAG}"
+  else
+    manifest_tag="${REMOTE_IMAGE_TAG}"
+  fi
+
+  DIGEST=$(REMOTE_IMAGE_TAG="$manifest_tag" fetch_manifest_header || true)
   if [ -z "${DIGEST:-}" ]; then
-    die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via manifest header"
+    die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${manifest_tag} via manifest header"
   fi
   DIGEST="${DIGEST#sha256:}"
   DIGEST="sha256:${DIGEST}"
   log "Verified that pushed image exists in repository"
   printf '\n%-40s %s\n' "IMAGE" "DIGEST"
   printf '%-40s %s\n' "----------------------------------------" "----------------------------------------------------------------"
-  printf '%-40s %s\n' "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${DIGEST}"
+  printf '%-40s %s\n' "${REMOTE_IMAGE_NAME}:${manifest_tag}" "${DIGEST}"
 }
 
 main(){

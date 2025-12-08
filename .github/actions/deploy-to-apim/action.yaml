@@ -40,6 +40,7 @@ runs:
         pip install pyyaml
 
     - name: Validate workspace format
+      if: ${{ !contains(inputs.apim_env, 'sandbox') }}
       shell: bash
       run: |
         if [[ ! "${{ inputs.workspace }}" =~ ^ftrs-[0-9]+$ ]]; then
