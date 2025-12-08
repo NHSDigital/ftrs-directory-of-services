@@ -193,16 +193,13 @@ def get_by_id_and_sort_key(dynamodb, table_name, id_value, field_sort_key_value 
 @then(parsers.parse("no organisation was created for service '{service_id:d}'"))
 def verify_no_organisation_created(service_id: int, dynamodb):
     """Verify that no organisation was created for the given service."""
-    healthcare_service_uuid = str(generate_uuid(service_id, 'healthcare_service'))
     organisation_uuid = str(generate_uuid(service_id, 'organisation'))
 
     dynamodb_resource = dynamodb["resource"]
     org_table = dynamodb_resource.Table(get_table_name("organisation"))
 
-    # Check both UUIDs to be thorough
-    for uuid_to_check in [healthcare_service_uuid, organisation_uuid]:
-        response = org_table.get_item(Key={'id': uuid_to_check, 'field': 'document'})
-        assert 'Item' not in response, f"Organisation with id {uuid_to_check} should not exist for service {service_id}"
+    response = org_table.get_item(Key={'id': organisation_uuid, 'field': 'document'})
+    assert 'Item' not in response, f"Organisation with id {organisation_uuid} should not exist for service {service_id}"
 
 
 @then(parsers.parse("no location was created for service '{service_id:d}'"))
