@@ -34,5 +34,10 @@ locals {
     for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
   ]
 
-  sqs_kms_key_alias = "alias/${var.project}-${var.environment}-sqs-kms"
+  kms_alias_prefix = "alias/${var.project}-${var.environment}"
+
+  kms_aliases = {
+    sqs             = "${local.kms_alias_prefix}-sqs-kms"
+    secrets_manager = "${local.kms_alias_prefix}-secrets-manager-kms"
+  }
 }
