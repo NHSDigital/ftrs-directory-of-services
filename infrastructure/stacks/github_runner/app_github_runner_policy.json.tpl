@@ -149,6 +149,23 @@
             "Resource": "*"
         },
         {
+            "Sid": "KMSSecretsManagerLimitedAccess",
+            "Effect": "Allow",
+            "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:GenerateDataKey*"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "ForAnyValue:StringLike": {
+                    "kms:ResourceAliases": [
+                        "alias/ftrs-dos-*-secrets-manager-kms"
+                    ]
+                }
+            }
+        },
+        {
             "Sid": "IAMPassRoleLimited",
             "Effect": "Allow",
             "Action": "iam:PassRole",

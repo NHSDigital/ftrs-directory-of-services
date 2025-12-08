@@ -43,21 +43,6 @@ module "secrets_manager_encryption_key" {
         "kms:DescribeKey"
       ]
       Resource = "*"
-    },
-    {
-      Sid    = "AllowLambdasSecretsAccess"
-      Effect = "Allow"
-      Principal = {
-        AWS = [
-          "lambda.amazonaws.com"
-        ]
-      }
-      Action = [
-        "kms:Decrypt",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey"
-      ]
-      Resource = "*"
     }
   ]
 }
