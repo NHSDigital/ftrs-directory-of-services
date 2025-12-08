@@ -44,10 +44,8 @@ fi
 MODIFIED_SPEC_PATH="${MODIFIED_SPEC_PATH_TMP}.json"
 mv "$MODIFIED_SPEC_PATH_TMP" "$MODIFIED_SPEC_PATH"
 
-TARGET_SPEC_REL_PATH="x-nhsd-apim/$(basename "$TARGET_SPEC_FILE")"
-
-env TARGET_SPEC_REL_PATH="$TARGET_SPEC_REL_PATH" \
-    yq eval -o=json ' ."x-nhsd-apim".target = {"$ref": strenv(TARGET_SPEC_REL_PATH)} ' \
+env TARGET_SPEC_FILE_PATH="$TARGET_SPEC_FILE" \
+    yq eval -o=json '."x-nhsd-apim".target = load(strenv(TARGET_SPEC_FILE_PATH))' \
     "$SPEC_FILE" > "$MODIFIED_SPEC_PATH"
 
 printf '%s\n%s\n' "$MODIFIED_SPEC_PATH" "$TARGET_SPEC_FILE"
