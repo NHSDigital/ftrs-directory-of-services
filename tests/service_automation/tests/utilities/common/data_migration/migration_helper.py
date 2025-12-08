@@ -11,7 +11,9 @@ from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 
+from reference_data_load.application import ReferenceDataLoadApplication, ReferenceDataLoadConfig, ReferenceDataLoadEvent
 from service_migration.application import DataMigrationApplication, DMSEvent
+
 from service_migration.config import DataMigrationConfig
 from service_migration.processor import DataMigrationMetrics
 from common.config import DatabaseConfig
@@ -31,7 +33,7 @@ class MigrationRunResult:
 
     success: bool
     error: Optional[str] = None
-    application: Optional[DataMigrationApplication] = None
+    application: Optional[DataMigrationApplication | ReferenceDataLoadApplication] = None
     metrics: Optional[DataMigrationMetrics] = None
     mock_logger: Optional[MockLogger] = None
 
@@ -333,11 +335,55 @@ class MigrationHelper:
         Returns:
             MigrationRunResult with success status, error, and metrics
         """
-        def execute(app: DataMigrationApplication) -> None:
-            logger.info("Running triage code migration")
-            app.triage_code_processor.sync_all_triage_codes()
 
-        return self._execute_migration(execute, "triage-code only")
+        mock_logger = MockLogger(service="data-migration")
+        app = None
+
+        try:
+            with self._localstack_credentials():
+                db_params = self._parse_db_uri()
+                db_config = DatabaseConfig(
+                    host=db_params["host"],
+                    port=db_params["port"],
+                    dbname=db_params["dbname"],
+                    username=db_params["username"],
+                    password=db_params["password"],
+                )
+
+                config = ReferenceDataLoadConfig.model_construct(
+                    db_config=db_config,
+                    env=self.environment,
+                    workspace=self.workspace,
+                    dynamodb_endpoint=self.dynamodb_endpoint,
+                )
+
+                with patch("ftrs_common.logger.Logger.get", return_value=mock_logger):
+                    app = ReferenceDataLoadApplication(config)
+                    app.handle(ReferenceDataLoadEvent(type = "triagecode"))
+
+            metrics = self._get_metrics_from_app(app)
+            self._log_mock_logger_stats(mock_logger)
+
+            return MigrationRunResult(
+                success=True,
+                application=app,
+                metrics=metrics,
+                mock_logger=mock_logger,
+            )
+
+        except Exception as e:
+            logger.error("Triage code migration failed")
+
+            metrics = self._get_metrics_from_app(app)
+            if metrics:
+                logger.info(f"Retrieved metrics despite error: {metrics}")
+
+            return MigrationRunResult(
+                success=False,
+                error=str(e),
+                metrics=metrics,
+                mock_logger=mock_logger,
+            )
 
 
     def run_sqs_event_migration(self, sqs_event: Dict[str, Any]) -> MigrationRunResult:
