@@ -34,7 +34,7 @@ TARGET_SPEC_FILE="${TARGET_SPEC_TMP}.yaml"
 mv "$TARGET_SPEC_TMP" "$TARGET_SPEC_FILE"
 cp "$ORIGINAL_TARGET_SPEC" "$TARGET_SPEC_FILE"
 
-yq eval -i 'del(."x-nhsd-apim") | .containers[0].image.tag = env(VERSION_TAG)' \
+yq eval -i '.containers[0].image.tag = env(VERSION_TAG)' \
     "$TARGET_SPEC_FILE"
 
 if ! MODIFIED_SPEC_PATH_TMP=$(mktemp "$(dirname "$SPEC_FILE")/${API_NAME}-sandbox.XXXXXX"); then
