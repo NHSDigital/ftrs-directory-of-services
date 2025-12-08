@@ -13,6 +13,11 @@ service="dos-search"
 version=""
 should_deploy="false"
 
+join_with_pipe() {
+  local IFS='|'
+  printf '%s' "$*"
+}
+
 info() {
   printf '[parse-apim-sandbox-tag] %s\n' "$*"
 }
@@ -32,12 +37,13 @@ if [[ -z "${TAG}" ]]; then
   fail_and_exit "No tag ref detected; skipping sandbox deploy"
 fi
 
-if [[ "${GITHUB_REF_TYPE:-}" != "tag" ]]; then
-  fail_and_exit "Ref type '${GITHUB_REF_TYPE:-}' is not tag; skipping"
+if ! git fetch --prune --no-tags origin main >/dev/null 2>&1; then
+  fail_and_exit "Unable to fetch origin/main; skipping"
 fi
 
-git fetch origin main --depth=1 >/dev/null 2>&1 || true
-if ! git merge-base --is-ancestor origin/main "${GITHUB_SHA}"; then
+main_ref=$(git rev-parse --verify origin/main 2>/dev/null) || fail_and_exit "origin/main not found after fetch; skipping"
+
+if ! git merge-base --is-ancestor "$main_ref" "${GITHUB_SHA}"; then
   fail_and_exit "Tag commit not on main; skipping"
 fi
 
@@ -49,7 +55,10 @@ is_allowed() {
   return 1
 }
 
-if [[ "${TAG}" =~ ^([a-z0-9-]+)-([a-z0-9-]+)-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+env_regex="$(join_with_pipe "${ALLOWED_ENVS[@]}")"
+service_regex="$(join_with_pipe "${ALLOWED_SERVICES[@]}")"
+
+if [[ "${TAG}" =~ ^(${env_regex})-(${service_regex})-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
   env_prefix="${BASH_REMATCH[1]}"
   service="${BASH_REMATCH[2]}"
   version="${BASH_REMATCH[3]}"
@@ -72,4 +81,3 @@ echo "sandbox_environment=${sandbox_environment}" >> "$GITHUB_OUTPUT"
 echo "service=${service}" >> "$GITHUB_OUTPUT"
 echo "version=${version}" >> "$GITHUB_OUTPUT"
 echo "should_deploy=${should_deploy}" >> "$GITHUB_OUTPUT"
-
