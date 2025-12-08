@@ -7,7 +7,7 @@ def test_organisation() -> None:
     org = Organisation(
         id=uuid4(),
         identifier_ODS_ODSCode="123456",
-        identifier_oldDoS_uid= "test_UUID",
+        identifier_oldDoS_uid="test_UUID",
         active=True,
         name="Test Organisation",
         telecom="123456789",
