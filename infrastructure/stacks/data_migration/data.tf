@@ -190,7 +190,7 @@ data "aws_security_group" "dms_replication_security_group" {
 }
 
 data "aws_kms_key" "sqs_kms_alias" {
-  key_id = local.sqs_kms_key_alias
+  key_id = local.kms_aliases.sqs
 }
 
 data "aws_iam_policy_document" "lambda_kms_access" {
