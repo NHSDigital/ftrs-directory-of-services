@@ -135,21 +135,6 @@ Feature: Organization API Endpoint
       | None               | [RO76, RO80, RO87]    | Primary role code must be provided              |
 
 
-  Scenario Outline: Reject Organisation with invalid non-primary role extension structure
-    Given that the stack is "organisation"
-    And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
-    When I set the role extensions with invalid non-primary role parameter "<invalid_scenario>"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-    And the diagnostics message indicates the "<expected_error_message>"
-
-    Examples:
-      | invalid_scenario                      | expected_error_message                                  |
-      | non-primary missing roleCode          | OrganisationRole extension must contain at least one roleCode extension |
-
   Scenario Outline: Reject Organization update with invalid roleCode extension structure
       Given that the stack is "organisation"
       When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
@@ -288,9 +273,9 @@ Feature: Organization API Endpoint
 
       Examples:
         | invalid_scenario           | expected_error                                                                                      |
-        | invalid role extension url | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
-        | missing role extension url | Extension URL must be present and cannot be empty or None                                           |
-        | empty role extension url   | Extension URL must be present and cannot be empty or None                                           |
+        | invalid organisation role extension url | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
+        | missing role organisation url | Extension URL must be present and cannot be empty or None                                           |
+        | empty organisation role extension url   | Extension URL must be present and cannot be empty or None                                           |
 
   Scenario Outline: Reject Organization update with invalid TypedPeriod extension URL
       Given that the stack is "organisation"

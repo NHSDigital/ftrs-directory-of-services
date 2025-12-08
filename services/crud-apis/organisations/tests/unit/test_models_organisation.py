@@ -144,7 +144,6 @@ def _build_organisation_role_extension(
         role_code: Role code value, defaults to RO182
         typed_periods: List of TypedPeriod extension dicts (None for default)
         url: URL for OrganisationRole extension (None to omit, "" for empty string)
-        primary_role: Boolean value for primaryRole (None to omit)
     """
     extension = {}
 
@@ -163,12 +162,6 @@ def _build_organisation_role_extension(
     # Add role code
     role_code_ext = _build_role_code_extension(role_code=role_code)
     extension["extension"].append(role_code_ext)
-
-    # Add primaryRole if provided
-    if primary_role is not None:
-        extension["extension"].append(
-            {"url": "primaryRole", "valueBoolean": primary_role}
-        )
 
     # Add typed periods
     if typed_periods is None:
@@ -840,7 +833,6 @@ def test_role_code_missing_value_codeable_concept() -> None:
                 "url": "roleCode",
                 # No valueCodeableConcept
             },
-            {"url": "primaryRole", "valueBoolean": True},
             typed_period,
         ],
     }
