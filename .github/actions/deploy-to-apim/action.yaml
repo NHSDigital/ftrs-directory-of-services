@@ -6,13 +6,13 @@ inputs:
     description: 'Name of the API to deploy'
     required: true
   workspace:
-    description: 'Workspace identifier (e.g., FTRS-000)'
-    required: true
+    description: 'Workspace identifier (e.g., FTRS-000). Optional for environments without workspaces (e.g., int)'
+    required: false
   environment:
     description: 'FTRS environment to deploy to (e.g., dev, test, prod)'
     required: true
   apim_env:
-    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev)'
+    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev, int, prod)'
     required: true
   access_token:
     description: 'Access Token for the Proxygen API'
@@ -42,11 +42,15 @@ runs:
       if: ${{ !contains(inputs.apim_env, 'sandbox') }}
       shell: bash
       run: |
-        if [[ ! "${{ inputs.workspace }}" =~ ^ftrs-[0-9]+$ ]]; then
+        # Skip validation if workspace is not provided (e.g., for int environment)
+        if [ -z "${{ inputs.workspace }}" ]; then
+          echo "No workspace provided - skipping validation (environment: ${{ inputs.environment }})"
+        elif [[ ! "${{ inputs.workspace }}" =~ ^ftrs-[0-9]+$ ]]; then
           echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)"
           exit 1
+        else
+          echo "Workspace format validated: ${{ inputs.workspace }}"
         fi
-        echo "Workspace format validated: ${{ inputs.workspace }}"
 
     - name: Modify OAS Specification
       if: ${{ !contains(inputs.apim_env, 'sandbox') }}
