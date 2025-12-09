@@ -7,7 +7,7 @@ from reference_data_load.handlers.triage_code_handler import TriageCodeHandler
 
 
 class ReferenceDataLoadApplication:
-    def __init__(self, config: ReferenceDataLoadConfig | None) -> None:
+    def __init__(self, config: ReferenceDataLoadConfig | None = None) -> None:
         self.logger = Logger.get(service="reference-data-load")
         self.config = config or ReferenceDataLoadConfig()
         self.engine = create_engine(self.config.db_config.connection_string, echo=False)
