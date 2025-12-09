@@ -23,6 +23,7 @@ def get_organisation() -> dict:
     return {
         "id": str(test_org_id),
         "identifier_ODS_ODSCode": "ODS12345",
+        "identifier_oldDoS_uid": "test_UUID",
         "active": True,
         "name": "Test Organisation",
         "telecom": "123456789",
