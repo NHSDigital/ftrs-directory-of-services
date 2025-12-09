@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "ssm:GetParametersByPath"
     ]
     resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint"
+      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${local.project_prefix}-crud-apis${local.workspace_suffix}/endpoint"
     ]
   }
 }
@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "execute_api_policy" {
 }
 
 data "aws_wafv2_web_acl" "waf_web_acl" {
-  name     = "${var.project}-${var.environment}-account-wide-${var.waf_name}"
+  name     = "${local.project_prefix}-account-wide-${var.waf_name}"
   scope    = var.waf_scope
   provider = aws.us-east-1
 }

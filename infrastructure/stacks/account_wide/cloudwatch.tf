@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "osis_apigw_log_group_policy_document" {
 }
 
 resource "aws_cloudwatch_log_group" "waf_log_group" {
-  # checkov:skip=CKV_AWS_158: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-404
+  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
   name              = "${var.waf_log_group_name_prefix}${local.resource_prefix}-${var.waf_log_group}"
   retention_in_days = var.waf_log_group_retention_days
   log_group_class   = var.waf_log_group_class

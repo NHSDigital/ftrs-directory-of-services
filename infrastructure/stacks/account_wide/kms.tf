@@ -12,4 +12,37 @@ module "secrets_manager_encryption_key" {
   account_id       = data.aws_caller_identity.current.account_id
   aws_service_name = "secretsmanager.amazonaws.com"
   description      = "Encryption key for Secrets Manager in ${var.environment} environment"
+
+  additional_policy_statements = [
+    {
+      Sid    = "AllowEC2SecretsAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [
+          aws_iam_role.ec2_performance_role.arn
+        ]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource = "*"
+    },
+    {
+      Sid    = "AllowDMSSecretsAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-dms-secrets-access"
+        ]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource = "*"
+    }
+  ]
 }

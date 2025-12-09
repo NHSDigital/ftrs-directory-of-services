@@ -22,6 +22,10 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
+data "aws_kms_key" "secrets_manager_kms_key" {
+  key_id = local.kms_aliases.secrets_manager
+}
+
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"
@@ -59,7 +63,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "ssm:GetParametersByPath"
     ]
     resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}-${var.environment}-crud-apis${local.workspace_suffix}/endpoint"
+      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${local.project_prefix}-crud-apis${local.workspace_suffix}/endpoint"
     ]
   }
 }
@@ -89,6 +93,18 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/ods-terminology-api-key*"
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      data.aws_kms_key.secrets_manager_kms_key.arn
+    ]
+  }
 }
 
 
@@ -103,5 +119,20 @@ data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
     resources = [
       module.processor_lambda.lambda_function_arn
     ]
+  }
+}
+
+data "aws_kms_key" "sqs_kms_alias" {
+  key_id = local.kms_aliases.sqs
+}
+
+data "aws_iam_policy_document" "lambda_kms_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*"
+    ]
+    resources = [data.aws_kms_key.sqs_kms_alias.arn]
   }
 }
