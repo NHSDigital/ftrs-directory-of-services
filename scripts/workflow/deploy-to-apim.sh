@@ -90,6 +90,10 @@ done
 # Clean up temporary spec file
 rm -f "$MODIFIED_SPEC_PATH"
 
+if [ -n "${TARGET_SPEC_FILE:-}" ] && [ -f "$TARGET_SPEC_FILE" ]; then
+    rm -f "$TARGET_SPEC_FILE"
+fi
+
 # Check response
 if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
     echo "✓ Successfully deployed API spec to Proxygen" >&2

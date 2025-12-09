@@ -123,7 +123,7 @@ jobs:
           api_name: ${{ env.API_NAME }}
 
       - name: "Push image to ECR"
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref_type == 'tag' }}
         run: make publish
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
