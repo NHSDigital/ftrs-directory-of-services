@@ -267,13 +267,16 @@ def _validate_organisation_extension(ext: Extension) -> list[OrganisationTypeCod
             "OrganisationRole extension must contain at least one TypedPeriod extension containing legal dates"
         )
 
-    for typed_ext in typed_period_extensions:
-        if _validate_typed_period_extension(typed_ext):
-            break
-        else:
-            _raise_validation_error(
-                "At least one Typed Period extension should have dateType as Legal"
-            )
+    has_legal = False
+    for typed_period_ext in typed_period_extensions:
+        is_legal = _validate_typed_period_extension(typed_period_ext)
+        if is_legal:
+            has_legal = True
+
+    if not has_legal:
+        _raise_validation_error(
+            "At least one Typed Period extension should have dateType as Legal"
+        )
 
     return role_codes
 
