@@ -6,13 +6,13 @@ inputs:
     description: 'Name of the API to deploy'
     required: true
   workspace:
-    description: 'Workspace identifier (e.g., FTRS-000). Optional for environments without workspaces (e.g., int)'
+    description: 'Workspace identifier (e.g., FTRS-000). If specified, a workspaced proxy will be deployed into the APIM environment'
     required: false
   environment:
-    description: 'FTRS environment to deploy to (e.g., dev, test, prod)'
+    description: ' The environment our target backend is deployed to. (e.g., dev, test, prod)'
     required: true
   apim_env:
-    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev, int, prod)'
+    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev, internal-qa, int, ref, prod)'
     required: true
   access_token:
     description: 'Access Token for the Proxygen API'

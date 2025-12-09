@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+import yaml
+import json
+import sys
+import os
+
+
+def modify_spec(spec_file, workspace, api_name, environment):
+    """Modify the OAS spec with workspace information and convert to JSON"""
+    try:
+        with open(spec_file, 'r') as f:
+            spec = yaml.safe_load(f)
+
+        # Update title to include workspace (only if workspace is provided)
+        if workspace:
+            original_title = spec['info']['title']
+            spec['info']['title'] = f"{workspace} {original_title}"
+
+        # Update x-nhsd-apim target URL to include workspace (only if workspace is provided)
+        if workspace and 'x-nhsd-apim' in spec and 'target' in spec['x-nhsd-apim']:
+            original_url = spec['x-nhsd-apim']['target']['url']
+            # Insert workspace after the api name
+            # e.g., https://dos-search.dev.ftrs.cloud.nhs.uk becomes
+            # https://dos-search-ftrs-000.dev.ftrs.cloud.nhs.uk
+            parts = original_url.replace('https://', '').split('.', 1)
+            if len(parts) == 2:
+                spec['x-nhsd-apim']['target']['url'] = f"https://{parts[0]}-{workspace}.{parts[1]}"
+
+        # Update servers to match Proxygen format requirements
+        # Update server URLs for all APIM environments
+        if 'servers' in spec:
+            # Map environment to domain
+            env_domain_map = {
+                'internal-dev': 'internal-dev.api.service.nhs.uk',
+                'int': 'int.api.service.nhs.uk',
+                'prod': 'api.service.nhs.uk'
+            }
+
+            if environment in env_domain_map:
+                target_domain = env_domain_map[environment]
+
+                for server in spec['servers']:
+                    if 'url' in server and target_domain in server['url']:
+                        # Extract existing path after the API name
+                        # e.g., https://internal-dev.api.service.nhs.uk/dos-search/FHIR/R4
+                        url_parts = server['url'].split('/')
+                        if len(url_parts) >= 4:
+                            # Get path segments after the API name (e.g., /FHIR/R4)
+                            path_segments = '/'.join(url_parts[4:]) if len(url_parts) > 4 else ''
+
+                            # Build new URL with or without workspace
+                            # Only internal-dev supports workspace-specific instances
+                            if workspace and environment == 'internal-dev':
+                                instance_name = f"{api_name}-{workspace}"
+                            else:
+                                instance_name = api_name
+
+                            if path_segments:
+                                server['url'] = f"https://{target_domain}/{instance_name}/{path_segments}"
+                            else:
+                                server['url'] = f"https://{target_domain}/{instance_name}"
+
+                            print(f"Updated {environment} server URL to: {server['url']}", file=sys.stderr)
+
+        # Write modified spec to temporary file as JSON
+        output_file = '/tmp/modified_spec.json'
+        with open(output_file, 'w') as f:
+            json.dump(spec, f, indent=2)
+
+        print(f"Modified spec written to {output_file}", file=sys.stderr)
+        return output_file
+
+    except Exception as e:
+        print(f"Error modifying spec: {str(e)}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    workspace = os.environ.get('WORKSPACE')
+    api_name = os.environ.get('API_NAME')
+    spec_file = os.environ.get('SPEC_FILE')
+    environment = os.environ.get('PROXY_ENV')
+
+    modified_file = modify_spec(spec_file, workspace, api_name, environment)
+    print(modified_file)
