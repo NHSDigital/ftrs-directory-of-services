@@ -49,8 +49,8 @@ module "secrets_manager_encryption_key" {
       Effect = "Allow"
       Principal = {
         AWS = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.account_prefix}-${var.app_github_runner_role_name}",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.account_prefix}-${var.account_github_runner_role_name}"
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.app_github_runner_role_name}",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.account_github_runner_role_name}"
         ]
       }
       Action = [
