@@ -17,8 +17,8 @@ from pydantic import BaseModel, Field, computed_field, field_validator, model_va
 # Constants
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
 IDENTIFIER_SEPARATOR = "|"
-ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
 ODS_SYSTEM_URL = "https://fhir.nhs.uk/Id/ods-organization-code"
+ODS_REGEX = r"^[A-Za-z0-9]{1,12}$"
 
 # FHIR Extension URLs
 TYPED_PERIOD_URL = (
