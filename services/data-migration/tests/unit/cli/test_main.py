@@ -206,6 +206,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     assert org_content == {
         "id": str(mock_output.organisation[0].id),
         "identifier_ODS_ODSCode": "TEST123",
+        "identifier_oldDoS_uid": None,
         "createdBy": "SYSTEM",
         "createdDateTime": "2025-07-15T12:00:00Z",
         "modifiedBy": "SYSTEM",
@@ -216,6 +217,7 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
     }
     assert loc_content == {
         "id": str(mock_output.location[0].id),
+        "identifier_oldDoS_uid": None,
         "name": None,
         "partOf": None,
         "positionGCS": None,

@@ -23,7 +23,7 @@ install: config
 
 config:
 	make _install-dependencies
-	poetry install --no-root --no-interaction
+	poetry install --no-root --no-interaction --with shared
 	poetry run playwright install chromium
 
 test:

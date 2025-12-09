@@ -53,6 +53,7 @@ Feature: Data Migration
       """
       {
         "id": "92c51dc4-9b80-54c1-bfcf-62826d6823f0",
+        "identifier_oldDoS_uid": "138179",
         "field": "document",
         "active": true,
         "createdBy": "DATA_MIGRATION",
@@ -63,7 +64,8 @@ Feature: Data Migration
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
         "name": "Abbey Medical Practice",
         "telecom": null,
-        "type": "GP Practice"
+        "type": "GP Practice",
+        "legalDates": null
       }
       """
     Then the 'healthcare-service' for service ID '10005752' has content:
@@ -102,6 +104,7 @@ Feature: Data Migration
       """
       {
         "id": "fbb2340b-53e0-56f9-ada3-ef5728ca8f98",
+        "identifier_oldDoS_uid": "138179",
         "field": "document",
         "active": true,
         "address": {
