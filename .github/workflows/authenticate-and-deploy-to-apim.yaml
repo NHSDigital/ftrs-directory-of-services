@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       workspace:
-        description: 'Workspace identifier (e.g., FTRS-000). Optional for environments without workspaces (e.g., int)'
+        description: 'Workspace identifier (e.g., FTRS-000). Deploys a workspaced proxy into the APIM environment if specified.'
         required: false
         type: string
       api_name:
@@ -20,7 +20,7 @@ on:
         required: true
         type: string
       apim_env:
-        description: 'APIM environment to deploy to (e.g., internal-dev, int, prod)'
+        description: 'APIM environment to deploy to (e.g., internal-dev, internal-qa, int, ref, prod)'
         required: true
         type: string
     secrets:
