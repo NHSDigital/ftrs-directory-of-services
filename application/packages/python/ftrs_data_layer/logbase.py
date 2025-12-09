@@ -169,12 +169,13 @@ class DataMigrationLogBase(LogBase):
     )
 
     DM_QP_000 = LogReference(
-        level=INFO, message="Starting Data Migration Queue Populator"
+        level=INFO, message="Starting Data Migration Queue Populator for type_ids={type_ids} and status_ids={status_ids}"
     )
     DM_QP_001 = LogReference(
         level=INFO,
-        message="Populating SQS queue with {count} total messages",
+        message="Populating SQS queue with {count} total messages in full sync",
     )
+
     DM_QP_002 = LogReference(
         level=DEBUG, message="Sending {count} messages to SQS queue"
     )
@@ -183,6 +184,10 @@ class DataMigrationLogBase(LogBase):
     )
     DM_QP_004 = LogReference(
         level=DEBUG, message="Successfully sent {count} messages to SQS queue"
+    )
+    DM_QP_005 = LogReference(
+        level=INFO,
+        message="Populating SQS queue with 1 message in single service sync for service_id={service_id} and record_id={record_id}",
     )
     DM_QP_999 = LogReference(
         level=INFO, message="Data Migration Queue Populator completed"
