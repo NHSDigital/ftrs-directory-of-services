@@ -43,6 +43,23 @@ module "secrets_manager_encryption_key" {
         "kms:DescribeKey"
       ]
       Resource = "*"
+    },
+    {
+      Sid    = "AllowgGitHubRunnerAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.repo_name}-${var.app_github_runner_role_name}",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.repo_name}-${var.account_github_runner_role_name}"
+        ]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource = "*"
     }
   ]
 }
