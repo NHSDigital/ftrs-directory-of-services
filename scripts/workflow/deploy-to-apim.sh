@@ -2,7 +2,7 @@
 
 # Script to deploy API spec to Proxygen APIM
 # Required environment variables: API_NAME, PROXY_ENV, ACCESS_TOKEN, MODIFIED_SPEC_PATH, PROXYGEN_URL
-# Optional environment variables: WORKSPACE (not needed for int environment)
+# Optional environment variables: WORKSPACE (when specified deploy a workspaced proxy)
 
 set -e
 
