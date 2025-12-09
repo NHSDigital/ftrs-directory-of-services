@@ -111,6 +111,7 @@ This method runs the Lambda handler function directly in Python without AWS tool
 #### Prerequisites
 
 1. Ensure a local Postgres database is running with DoS data:
+
    ```bash
    cd services/data-migration
    mkdir -p ./.tmp/pg_data
@@ -118,6 +119,7 @@ This method runs the Lambda handler function directly in Python without AWS tool
    ```
 
 2. Ensure local SQS queue is available (using LocalStack or AWS):
+
    ```bash
    # For LocalStack
    docker run -d -p 4566:4566 localstack/localstack
@@ -127,6 +129,7 @@ This method runs the Lambda handler function directly in Python without AWS tool
    ```
 
 3. Set up environment variables:
+
    ```bash
    # Required: SQS Queue URL
    export SQS_QUEUE_URL=http://localhost:4566/data-migration-queue
@@ -138,7 +141,6 @@ This method runs the Lambda handler function directly in Python without AWS tool
    export DB_PASSWORD=postgres
    export DB_NAME=postgres
    ```
-
 
 #### Run with Python Directly (Manual)
 
@@ -178,7 +180,6 @@ If you prefer to run the Lambda handler directly without the script:
    lambda_handler(event, LambdaContext())
    "
 ```
-
 
 ## Running Lambda Functions Locally (reference_data_load.lambda_handler)
 
