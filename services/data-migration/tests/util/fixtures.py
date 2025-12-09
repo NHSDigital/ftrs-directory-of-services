@@ -26,12 +26,25 @@ from ftrs_data_layer.domain.legacy import (
 
 from common.cache import DoSMetadataCache
 from common.config import DatabaseConfig
+from reference_data_load.config import ReferenceDataLoadConfig
 from service_migration.config import DataMigrationConfig
 
 
 @pytest.fixture
 def mock_config() -> DataMigrationConfig:
     return DataMigrationConfig(
+        db_config=DatabaseConfig.from_uri(
+            "postgresql://user:password@localhost:5432/testdb"
+        ),
+        ENVIRONMENT="test",
+        WORKSPACE="test_workspace",
+        ENDPOINT_URL="http://localhost:8000",
+    )
+
+
+@pytest.fixture
+def mock_reference_data_config() -> ReferenceDataLoadConfig:
+    return ReferenceDataLoadConfig(
         db_config=DatabaseConfig.from_uri(
             "postgresql://user:password@localhost:5432/testdb"
         ),
