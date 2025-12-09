@@ -39,6 +39,10 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
+data "aws_kms_key" "secrets_manager_kms_key" {
+  key_id = local.kms_aliases.secrets_manager
+}
+
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 }
@@ -53,6 +57,18 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.replica_rds_credentials}-*"
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      data.aws_kms_key.secrets_manager_kms_key.arn
+    ]
+  }
 }
 
 data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
@@ -65,6 +81,18 @@ data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.target_rds_credentials}-*",
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.dms_user_password}-*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      data.aws_kms_key.secrets_manager_kms_key.arn
     ]
   }
 }
@@ -187,4 +215,19 @@ data "aws_prefix_list" "dynamodb" {
 
 data "aws_security_group" "dms_replication_security_group" {
   name = "${var.project}-${var.environment}-account-wide-etl-replication-sg"
+}
+
+data "aws_kms_key" "sqs_kms_alias" {
+  key_id = local.kms_aliases.sqs
+}
+
+data "aws_iam_policy_document" "lambda_kms_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*"
+    ]
+    resources = [data.aws_kms_key.sqs_kms_alias.arn]
+  }
 }

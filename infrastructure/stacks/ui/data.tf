@@ -22,6 +22,10 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
+data "aws_kms_key" "secrets_manager_kms_key" {
+  key_id = local.kms_aliases.secrets_manager
+}
+
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 }
@@ -40,6 +44,18 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-private-key*",
       "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*",
       aws_secretsmanager_secret.session_secret.arn,
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      data.aws_kms_key.secrets_manager_kms_key.arn
     ]
   }
 }
