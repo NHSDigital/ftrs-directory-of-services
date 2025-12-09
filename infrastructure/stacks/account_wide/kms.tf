@@ -45,7 +45,7 @@ module "secrets_manager_encryption_key" {
       Resource = "*"
     },
     {
-      Sid    = "AllowgGitHubRunnerAccess"
+      Sid    = "AllowGitHubRunnerAccess"
       Effect = "Allow"
       Principal = {
         AWS = [
