@@ -47,7 +47,7 @@ def get_organization() -> Response:
             fhir_resource, start
         )
         dos_logger.warning(
-            "Validation error occurred",
+            "Validation error occurred: Logging response time & size",
             validation_errors=exception.errors(),
             opt_ftrs_response_time=f"{duration_ms}ms",
             opt_ftrs_response_size=response_size,
@@ -62,7 +62,7 @@ def get_organization() -> Response:
             fhir_resource, start
         )
         dos_logger.exception(
-            "Internal server error occurred",
+            "Internal server error occurred: Logging response time & size",
             opt_ftrs_response_time=f"{duration_ms}ms",
             opt_ftrs_response_size=response_size,
         )
