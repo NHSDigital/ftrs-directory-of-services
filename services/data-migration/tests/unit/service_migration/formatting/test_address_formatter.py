@@ -6,8 +6,6 @@ from service_migration.formatting.address_formatter import (
     format_address,
 )
 
-#  TODO: FTRS-1623: ! review tests added
-
 
 class TestAddressFormatter(unittest.TestCase):
     def test_verify_address_formatting_with_multiple_segments(self) -> None:
@@ -120,13 +118,136 @@ class TestAddressFormatter(unittest.TestCase):
         self.assertEqual(_norm("  Test  String  "), "test string")
         self.assertEqual(_norm("TEST"), "test")
 
-    def test_verify_address_formatting_with_five_segments(self) -> None:
-        """
-        Test address with 5 segments - county should be last validated segment.
+    def test_verify_address_formatting_with_county_at_end(self) -> None:
+        """Test county detection when in last segment."""
+        result = format_address(
+            "123 Main St$Building A$Hampshire", "Springfield", "SP1 2AB"
+        )
 
-        Bug: Previously picked third segment as county incorrectly.
-        Example: "Zain Medical Centre$Edgware Community Hospital$Outpatient D$Burnt Oak Broadway$Edgware"
-        """
+        self.assertEqual(result.line1, "123 Main St")
+        self.assertEqual(result.line2, "Building A")
+        self.assertEqual(result.county, "Hampshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_county_at_start(self) -> None:
+        """Test county detection when in first segment."""
+        result = format_address(
+            "Hampshire$123 Main St$Building A", "Springfield", "SP1 2AB"
+        )
+
+        self.assertEqual(result.line1, "123 Main St")
+        self.assertEqual(result.line2, "Building A")
+        self.assertEqual(result.county, "Hampshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_county_in_middle(self) -> None:
+        """Test county detection when in middle segment."""
+        result = format_address(
+            "123 Main St$Hampshire$Building A", "Springfield", "SP1 2AB"
+        )
+
+        self.assertEqual(result.line1, "123 Main St")
+        self.assertEqual(result.line2, "Building A")
+        self.assertEqual(result.county, "Hampshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_no_county_found(self) -> None:
+        """Test when no county is present in any segment."""
+        result = format_address(
+            "123 Main St$Building A$Floor 2", "Springfield", "SP1 2AB"
+        )
+
+        self.assertEqual(result.line1, "123 Main St")
+        self.assertEqual(result.line2, "Building A")
+        self.assertIsNone(result.county)
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_single_segment_county(self) -> None:
+        """Test single segment containing recognized county."""
+        result = format_address("Hampshire", "Springfield", "SP1 2AB")
+
+        self.assertIsNone(result.line1)
+        self.assertIsNone(result.line2)
+        self.assertEqual(result.county, "Hampshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_single_segment_no_county(self) -> None:
+        """Test single segment not containing recognized county."""
+        result = format_address("123 Main St", "Springfield", "SP1 2AB")
+
+        self.assertEqual(result.line1, "123 Main St")
+        self.assertIsNone(result.line2)
+        self.assertIsNone(result.county)
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_multiple_counties_takes_last_found(
+        self,
+    ) -> None:
+        """Test when multiple counties present, takes last found (from last to first check)."""
+        result = format_address(
+            "Hampshire$123 Main St$Greater London", "Springfield", "SP1 2AB"
+        )
+
+        # Should find Greater London first (checking from last to first)
+        self.assertEqual(result.line1, "Hampshire")
+        self.assertEqual(result.line2, "123 Main St")
+        self.assertEqual(result.county, "Greater London")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_county_with_whitespace(self) -> None:
+        """Test county detection with extra whitespace."""
+        result = format_address("123 Main St$  Hampshire  ", "Springfield", "SP1 2AB")
+
+        self.assertEqual(result.line1, "123 Main St")
+        self.assertIsNone(result.line2)
+        self.assertEqual(result.county, "Hampshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_county_case_insensitive(self) -> None:
+        """Test county detection is case insensitive."""
+        result = format_address("123 Main St$hampshire", "Springfield", "SP1 2AB")
+
+        self.assertEqual(result.line1, "123 Main St")
+        self.assertIsNone(result.line2)
+        self.assertEqual(result.county, "Hampshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_preserves_segment_order(self) -> None:
+        """Test that segment order is preserved after county removal."""
+        result = format_address(
+            "First$Second$Hampshire$Third$Fourth", "Springfield", "SP1 2AB"
+        )
+
+        self.assertEqual(result.line1, "First")
+        self.assertEqual(result.line2, "Second")
+        self.assertEqual(result.county, "Hampshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_all_segments_are_counties(self) -> None:
+        """Test when all segments are recognized counties."""
+        result = format_address(
+            "Hampshire$Greater London$West Yorkshire", "Springfield", "SP1 2AB"
+        )
+
+        # Should find West Yorkshire (last segment checked first)
+        self.assertEqual(result.line1, "Hampshire")
+        self.assertEqual(result.line2, "Greater London")
+        self.assertEqual(result.county, "West Yorkshire")
+        self.assertEqual(result.town, "Springfield")
+        self.assertEqual(result.postcode, "SP1 2AB")
+
+    def test_verify_address_formatting_with_five_segments(self) -> None:
+        """Test address with 5 segments - county should be detected if present."""
         result = format_address(
             "Zain Medical Centre$Edgware Community Hospital$Outpatient D$Burnt Oak Broadway$Edgware",
             "Edgware",
@@ -138,18 +259,7 @@ class TestAddressFormatter(unittest.TestCase):
         self.assertEqual(result.line2, "Edgware Community Hospital")
         self.assertEqual(result.postcode, "HA8 0AD")
 
-        # Critical: County should NOT be third segment
-        self.assertNotEqual(
-            result.county,
-            "Outpatient D",
-            "County incorrectly assigned to third segment",
-        )
-
-        # County should be validated or None
-        # (depends on whether "Edgware" is recognized as county,
-        # which isn't, as Greater London would be valid)
-        # NOTE: should loop through the last segment to check (currently just checking Outpatient D)
-        #  TODO: FTRS-1623: ! fix the county detection logic here, to check all parts of the last segment of address for county
+        # County should be None as no segment is recognized as county
         self.assertIsNone(result.county)
 
     def test_verify_address_formatting_with_many_segments_no_county(self) -> None:

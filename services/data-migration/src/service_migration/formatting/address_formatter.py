@@ -85,6 +85,24 @@ def _pycountry_county_name_gb(segment: str) -> str | None:
     return None
 
 
+def _extract_county_from_segments(segments: list[str]) -> tuple[str | None, list[str]]:
+    """
+    Extract county from any segment in the list.
+    Checks all segments from last to first.
+    Returns tuple (county_name, remaining_segments_without_county)
+    """
+    # Check all segments from last to first
+    for i in range(len(segments) - 1, -1, -1):
+        county_name = _pycountry_county_name_gb(segments[i])
+        if county_name:
+            # Remove this segment from the list
+            remaining = segments[:i] + segments[i + 1 :]
+            return (county_name, remaining)
+
+    # No county found
+    return (None, segments)
+
+
 def format_address(address: str, town: str, postcode: str) -> Address | None:
     address_formatter_logger.log(
         UtilsLogBase.UTILS_ADDRESS_FORMATTER_000,
@@ -97,12 +115,6 @@ def format_address(address: str, town: str, postcode: str) -> Address | None:
 
     if address_is_invalid:
         return None
-        # given captured address issues here, do we need to move DM_ETL_016 log here?
-
-        # don't want to store empty addresses like below!
-        # return Address(
-        #     line1=None, line2=None, county=None, town=None, postcode=None
-        # )
 
     # Split address into segments by '$', trim whitespace, drop empties
     segments = [part.strip() for part in (address or "").split("$")]
@@ -118,15 +130,9 @@ def format_address(address: str, town: str, postcode: str) -> Address | None:
             continue
         filtered.append(seg)
 
-    # TODO: FTRS-1623: ! fix the county detection logic here, to check all parts of the last segment of address for county
-    # Detect county using pycountry (preferred)
-    county: str | None = None
-    if filtered:
-        candidate = filtered[-1]
-        county_name = _pycountry_county_name_gb(candidate)
-        if county_name:  # Only set county if pycountry recognizes it
-            county = county_name.title()
-            filtered = filtered[:-1]
+    # Extract county from any segment (checks all segments and parts)
+    county_name, filtered = _extract_county_from_segments(filtered)
+    county = county_name.title() if county_name else None
 
     line1 = filtered[0] if filtered else None
     line2 = filtered[1] if len(filtered) > 1 else None

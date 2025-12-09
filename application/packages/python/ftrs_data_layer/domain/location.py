@@ -21,7 +21,7 @@ class PositionGCS(BaseModel):
 class Location(DBModel):
     identifier_oldDoS_uid: str | None = None
     active: bool
-    address: Address # NOTE: FTRS-1623 - cannot set to none as has cardinality of 1, is needed to create location
+    address: Address
     managingOrganisation: UUID
     name: str | None = None
     positionGCS: PositionGCS | None = None
