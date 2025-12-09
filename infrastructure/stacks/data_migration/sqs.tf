@@ -1,16 +1,15 @@
 resource "aws_sqs_queue" "dms_event_queue" {
-  # checkov:skip=CKV_AWS_27: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-545
-  name                    = "${local.resource_prefix}-${var.dms_event_queue_name}${local.workspace_suffix}"
-  sqs_managed_sse_enabled = true
+  name = "${local.resource_prefix}-${var.dms_event_queue_name}${local.workspace_suffix}"
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.dms_event_queue_dlq.arn
     maxReceiveCount     = 5
   })
+  kms_master_key_id = data.aws_kms_key.sqs_kms_alias.arn
 }
 
 resource "aws_sqs_queue" "dms_event_queue_dlq" {
-  name                    = "${local.resource_prefix}-${var.dms_event_queue_name}-dlq${local.workspace_suffix}"
-  sqs_managed_sse_enabled = true
+  name              = "${local.resource_prefix}-${var.dms_event_queue_name}-dlq${local.workspace_suffix}"
+  kms_master_key_id = data.aws_kms_key.sqs_kms_alias.arn
 }
 
 resource "aws_sqs_queue_policy" "dms_event_queue_policy" {
@@ -34,8 +33,8 @@ resource "aws_sqs_queue_policy" "dms_event_queue_policy" {
 resource "aws_sqs_queue" "eventbridge_event_full_migration_completion_dlq" {
   count = local.is_primary_environment ? 1 : 0
 
-  name                    = "${local.resource_prefix}-${var.full_migration_completion_event_queue_name}-dlq"
-  sqs_managed_sse_enabled = true
+  name              = "${local.resource_prefix}-${var.full_migration_completion_event_queue_name}-dlq"
+  kms_master_key_id = data.aws_kms_key.sqs_kms_alias.arn
 }
 
 resource "aws_sqs_queue_policy" "eventbridge_event_full_migration_completion_dlq_policy" {
