@@ -9,6 +9,10 @@ from service_migration.constants import UK_COUNTIES
 
 address_formatter_logger = Logger.get(service="address_formatter")
 
+INVALID_ADDRESS_INDICATORS = {
+    "not available",
+}
+
 
 def _norm(text: Optional[str]) -> str:
     """
@@ -21,6 +25,18 @@ def _norm(text: Optional[str]) -> str:
     if not text:
         return ""
     return " ".join(text.strip().lower().split())
+
+
+def _is_invalid_address(address: str) -> bool:
+    if not address:
+        return True
+
+    normalized = _norm(address)
+
+    if normalized in INVALID_ADDRESS_INDICATORS:
+        return True
+
+    return False
 
 
 def _pycountry_county_name_gb(segment: str) -> str | None:
@@ -69,13 +85,25 @@ def _pycountry_county_name_gb(segment: str) -> str | None:
     return None
 
 
-def format_address(address: str, town: str, postcode: str) -> Address:
+def format_address(address: str, town: str, postcode: str) -> Address | None:
     address_formatter_logger.log(
         UtilsLogBase.UTILS_ADDRESS_FORMATTER_000,
         address=address,
         town=town,
         postcode=postcode,
     )
+
+    address_is_invalid = _is_invalid_address(address)
+
+    if address_is_invalid:
+        return None
+        # given captured address issues here, do we need to move DM_ETL_016 log here?
+
+        # don't want to store empty addresses like below!
+        # return Address(
+        #     line1=None, line2=None, county=None, town=None, postcode=None
+        # )
+
     # Split address into segments by '$', trim whitespace, drop empties
     segments = [part.strip() for part in (address or "").split("$")]
     segments = [s for s in segments if s]  # drop empty after trimming
@@ -90,6 +118,7 @@ def format_address(address: str, town: str, postcode: str) -> Address:
             continue
         filtered.append(seg)
 
+    # TODO: FTRS-1623: ! fix the county detection logic here, to check all parts of the last segment of address for county
     # Detect county using pycountry (preferred)
     county: str | None = None
     if filtered:

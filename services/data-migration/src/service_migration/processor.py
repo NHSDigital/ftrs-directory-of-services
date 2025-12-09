@@ -130,6 +130,7 @@ class DataMigrationProcessor:
                     issues=issues,
                 )
 
+            # NOTE: FTRS-1623: capture the invalid address here and not transform it (else location creation issues in transform step)
             if not validation_result.should_continue:
                 self.metrics.invalid_records += 1
                 self.logger.log(
@@ -138,6 +139,7 @@ class DataMigrationProcessor:
                 )
                 return
 
+            # NOTE: FTRS-1623: below validation issues captured as list of strings (is this sufficicent instead of DM_ETL_016 log?)
             issues = self._convert_validation_issues(validation_result.issues)
             result = transformer.transform(validation_result.sanitised, issues)
             self.metrics.transformed_records += 1

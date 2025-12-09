@@ -155,6 +155,9 @@ class DataMigrationLogBase(LogBase):
         level=INFO,
         message="Address for Organisation ID {organisation} is {address}",
     )
+    # TODO: FTRS-1623: where to use this log, or is this captured as validation issue?
+    # action - remove
+    # follow up if DM_ETL_015 needed?
     DM_ETL_016 = LogReference(
         level=WARNING,
         message="No address found for Organisation ID {organisation}, setting address to None",
