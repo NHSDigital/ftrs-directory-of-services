@@ -142,7 +142,7 @@ class TestLambdaHandler:
                     ANY,
                 ),
                 call.warning(
-                    "Validation error occurred",
+                    "Validation error occurred: Logging response time & size",
                     validation_errors=validation_error.errors(),
                     opt_ftrs_response_time="1ms",
                     opt_ftrs_response_size=response_size,
@@ -194,7 +194,7 @@ class TestLambdaHandler:
                     ANY,
                 ),
                 call.exception(
-                    "Internal server error occurred",
+                    "Internal server error occurred: Logging response time & size",
                     opt_ftrs_response_time="1ms",
                     opt_ftrs_response_size=len(
                         bundle.model_dump_json().encode("utf-8")
