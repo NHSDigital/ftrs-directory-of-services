@@ -93,6 +93,7 @@ def test_service_transformer_build_organisation(
     assert isinstance(result, Organisation)
     assert result == Organisation(
         id="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        identifier_oldDoS_uid="test-uid",
         name="Test Service",
         type="GP Practice",
         active=True,
@@ -261,6 +262,7 @@ def test_build_location(
     assert isinstance(result, Location)
     assert result == Location(
         id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        identifier_oldDoS_uid="test-uid",
         active=True,
         managingOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         address=Address(
@@ -308,6 +310,7 @@ def test_build_location_no_position(
     assert result == Location(
         id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         active=True,
+        identifier_oldDoS_uid="test-uid",
         managingOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         address=Address(
             line1="123 Main St",
