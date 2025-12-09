@@ -121,3 +121,18 @@ data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
     ]
   }
 }
+
+data "aws_kms_key" "sqs_kms_alias" {
+  key_id = local.kms_aliases.sqs
+}
+
+data "aws_iam_policy_document" "lambda_kms_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey*"
+    ]
+    resources = [data.aws_kms_key.sqs_kms_alias.arn]
+  }
+}
