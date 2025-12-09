@@ -87,12 +87,14 @@ resource "aws_cloudwatch_log_stream" "vpn_log_stream" {
 
 resource "aws_secretsmanager_secret" "vpn_ca_cert_secret" {
   # checkov:skip=CKV2_AWS_57: Justification: This is generated manually for dev environment only.
-  count = var.environment == "dev" ? 1 : 0
-  name  = "/${var.repo_name}/${var.environment}/vpn-ca-cert"
+  count      = var.environment == "dev" ? 1 : 0
+  name       = "/${var.repo_name}/${var.environment}/vpn-ca-cert"
+  kms_key_id = module.secrets_manager_encryption_key.key_id
 }
 
 resource "aws_secretsmanager_secret" "vpn_ca_pk_secret" {
   # checkov:skip=CKV2_AWS_57: Justification: This is generated manually for dev environment only.
-  count = var.environment == "dev" ? 1 : 0
-  name  = "/${var.repo_name}/${var.environment}/vpn-ca-pk"
+  count      = var.environment == "dev" ? 1 : 0
+  name       = "/${var.repo_name}/${var.environment}/vpn-ca-pk"
+  kms_key_id = module.secrets_manager_encryption_key.key_id
 }
