@@ -45,6 +45,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: saf-assessment-approved
+    measure: Solution Architecture Framework assessment approved
+    threshold: Approved assessment stored with evidence link; exceptions recorded
+    tooling: Governance tracker + document repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures architectural governance sign-off
 - code: GOV-004
   requirement: Engineering Red-lines compliance checklist signed
   explanation: Engineering red-lines compliance checklist is signed.
@@ -98,6 +111,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: medical-device-out-of-scope
+    measure: Medical Device out-of-scope statement recorded
+    threshold: Statement recorded and reviewed annually
+    tooling: Evidence repository
+    cadence: Annual review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms regulatory position
 - code: GOV-007
   requirement: FtRS Architects review & approval logged
   explanation: Architecture review and approval logged by FtRS architects.
@@ -105,6 +131,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: ftrs-architects-approval
+    measure: FtRS Architects review & approval logged
+    threshold: Review minutes and approval recorded; actions tracked
+    tooling: Review tracker + minutes repo
+    cadence: Pre-live + on major change
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Provides architectural oversight evidence
 - code: GOV-008
   requirement: Cloud Expert deployment approval documented
   explanation: Cloud expert deployment approval documented (infrastructure readiness).
@@ -112,6 +151,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: cloud-expert-approval
+    measure: Cloud Expert deployment approval documented
+    threshold: Approval recorded; infra readiness checklist passed
+    tooling: Infra checklist + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms infrastructure deployment readiness
 - code: GOV-009
   requirement: Solution Assurance approval ticket closed
   explanation: Solution Assurance approval ticket is closed.
@@ -153,6 +205,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: ig-approval-recorded
+    measure: Information Governance approval recorded
+    threshold: Approval recorded; actions tracked
+    tooling: IG workflow + evidence repository
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Meets IG governance
 - code: GOV-012
   requirement: TRG approval session outcome logged
   explanation: Technical Review Group (TRG) approval outcome documented.
@@ -160,6 +225,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: trg-approval-outcome
+    measure: TRG approval session outcome logged
+    threshold: Outcome recorded; decisions minuted; actions tracked
+    tooling: TRG minutes + tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Documents technical governance approval
 - code: GOV-013
   requirement: SIRO sign-off obtained
   explanation: Senior Information Risk Owner (SIRO) sign-off obtained.
@@ -167,6 +245,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: siro-signoff
+    measure: SIRO sign-off obtained
+    threshold: Sign-off recorded; evidence stored
+    tooling: Governance tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms senior risk acceptance
 - code: GOV-014
   requirement: Caldicott Principles Guardian approval recorded
   explanation: Caldicott Guardian approval recorded for data handling.
@@ -174,6 +265,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: caldicott-guardian-approval
+    measure: Caldicott Principles Guardian approval recorded
+    threshold: Approval recorded with data handling summary
+    tooling: Governance tracker + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures data handling governance
 - code: GOV-015
   requirement: DUEC Assurance Board acceptance logged
   explanation: DUEC Assurance Board acceptance logged.
@@ -181,6 +285,19 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: duec-acceptance
+    measure: DUEC Assurance Board acceptance logged
+    threshold: Acceptance recorded; actions tracked
+    tooling: Board minutes + tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Documents assurance acceptance
 - code: GOV-016
   requirement: Live Services Board go-live approval recorded
   explanation: Live Services Board go-live approval recorded.
@@ -188,3 +305,16 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: live-services-go-live
+    measure: Live Services Board go-live approval recorded
+    threshold: Go-live approval recorded; evidence stored
+    tooling: Governance tracker + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Final governance approval before production

@@ -310,6 +310,14 @@ Well-Architected review completed & actions closed
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | well-architected-review | Well-Architected review completed & actions closed | Review complete; actions closed or exceptioned | WAR tool + issue tracker | Pre-live + annual | prod | crud-apis | draft | Maintains architectural quality |
 
+### GOV-003
+
+Solution Architecture Framework assessment approved
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| saf-assessment-approved | Solution Architecture Framework assessment approved | Approved assessment stored with evidence link; exceptions recorded | Governance tracker + document repository | Pre-live | prod | crud-apis | draft | Ensures architectural governance sign-off |
+
 ### GOV-004
 
 Engineering Red-lines compliance checklist signed
@@ -326,6 +334,30 @@ GDPR compliance assessment signed by IG
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | gdpr-assessment-signed | GDPR compliance assessment signed by IG | Assessment signed; actions tracked | IG workflow + evidence repository | Pre-live + annual | prod | crud-apis | draft | Ensures data protection compliance |
 
+### GOV-006
+
+Medical Device out-of-scope statement recorded
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| medical-device-out-of-scope | Medical Device out-of-scope statement recorded | Statement recorded and reviewed annually | Evidence repository | Annual review | prod | crud-apis | draft | Confirms regulatory position |
+
+### GOV-007
+
+FtRS Architects review & approval logged
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| ftrs-architects-approval | FtRS Architects review & approval logged | Review minutes and approval recorded; actions tracked | Review tracker + minutes repo | Pre-live + on major change | prod | crud-apis | draft | Provides architectural oversight evidence |
+
+### GOV-008
+
+Cloud Expert deployment approval documented
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| cloud-expert-approval | Cloud Expert deployment approval documented | Approval recorded; infra readiness checklist passed | Infra checklist + evidence repo | Pre-live | prod | crud-apis | draft | Confirms infrastructure deployment readiness |
+
 ### GOV-009
 
 Solution Assurance approval ticket closed
@@ -341,6 +373,54 @@ Clinical Safety assurance approval recorded
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | clinical-safety-approval | Clinical Safety assurance approval recorded | Approval recorded; evidence available | Clinical safety workflow + repository | Pre-live | prod | crud-apis | draft | Complies with clinical safety governance |
+
+### GOV-011
+
+Information Governance approval recorded
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| ig-approval-recorded | Information Governance approval recorded | Approval recorded; actions tracked | IG workflow + evidence repository | Pre-live | prod | crud-apis | draft | Meets IG governance |
+
+### GOV-012
+
+TRG approval session outcome logged
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| trg-approval-outcome | TRG approval session outcome logged | Outcome recorded; decisions minuted; actions tracked | TRG minutes + tracker | Pre-live | prod | crud-apis | draft | Documents technical governance approval |
+
+### GOV-013
+
+SIRO sign-off obtained
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| siro-signoff | SIRO sign-off obtained | Sign-off recorded; evidence stored | Governance tracker | Pre-live | prod | crud-apis | draft | Confirms senior risk acceptance |
+
+### GOV-014
+
+Caldicott Principles Guardian approval recorded
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| caldicott-guardian-approval | Caldicott Principles Guardian approval recorded | Approval recorded with data handling summary | Governance tracker + evidence repo | Pre-live | prod | crud-apis | draft | Ensures data handling governance |
+
+### GOV-015
+
+DUEC Assurance Board acceptance logged
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| duec-acceptance | DUEC Assurance Board acceptance logged | Acceptance recorded; actions tracked | Board minutes + tracker | Pre-live | prod | crud-apis | draft | Documents assurance acceptance |
+
+### GOV-016
+
+Live Services Board go-live approval recorded
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| live-services-go-live | Live Services Board go-live approval recorded | Go-live approval recorded; evidence stored | Governance tracker + evidence repo | Pre-live | prod | crud-apis | draft | Final governance approval before production |
 
 ### INT-001
 
@@ -577,6 +657,14 @@ Each operation meets registry-defined percentile targets (p50/p95) logged & asse
 | perf-nearby-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (dos-search endpoints) | synthetic probes + real-user monitoring | continuous | prod | crud-apis | draft | Aligns with defined operation targets |
 | perf-org-get-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | synthetic probes + real-user monitoring | continuous | prod | crud-apis | draft | Aligns with defined operation targets |
 | perf-org-update-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | synthetic probes + real-user monitoring | continuous | prod | crud-apis | draft | Aligns with defined operation targets |
+
+### PERF-013
+
+Request payload size per endpoint ≤1MB (max_request_payload_bytes)
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| perf-request-payload-limits | Request payload size per endpoint \u22641MB | Max_request_payload_bytes enforced per endpoint per operations registry | Gateway payload limit + contract tests | CI per build + monthly audit | int,ref,prod | crud-apis | draft | Prevents oversized payload degradation |
 
 ### REL-002
 

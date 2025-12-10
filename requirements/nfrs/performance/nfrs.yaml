@@ -264,6 +264,20 @@ nfrs:
   - (placeholder)
   services:
   - dos-search
+  controls:
+  - control_id: perf-dos-search-burst-tps
+    measure: dos-search endpoints sustain burst \u2265150 TPS
+    threshold: Burst_tps_target met across key endpoints as per operations registry
+    tooling: Performance harness + synthetic load + RUM
+    cadence: Quarterly + CI smoke on change
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Verifies burst throughput capacity
 - code: PERF-012
   requirement: "dos-search endpoints sustain steady \u2265150 TPS (registry sustained_tps_target)"
   explanation: GP search endpoints sustain steady-state throughput at or above the
@@ -272,6 +286,20 @@ nfrs:
   - (placeholder)
   services:
   - dos-search
+  controls:
+  - control_id: perf-dos-search-steady-tps
+    measure: dos-search endpoints sustain steady \u2265150 TPS
+    threshold: Sustained_tps_target met across key endpoints as per operations registry
+    tooling: Performance harness + soak tests + RUM
+    cadence: Quarterly + CI smoke on change
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Verifies steady-state throughput capacity
 - code: PERF-013
   requirement: "Request payload size per endpoint \u22641MB (max_request_payload_bytes)"
   explanation: Endpoint request payloads remain under the maximum defined size to
@@ -281,3 +309,18 @@ nfrs:
   services:
   - crud-apis
   - dos-search
+  controls:
+  - control_id: perf-request-payload-limits
+    measure: Request payload size per endpoint \u22641MB
+    threshold: Max_request_payload_bytes enforced per endpoint per operations registry
+    tooling: Gateway payload limit + contract tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents oversized payload degradation
