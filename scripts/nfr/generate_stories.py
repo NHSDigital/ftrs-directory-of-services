@@ -16,6 +16,8 @@ nfr_refs: [{nfr_code}]
 status: draft
 ---
 
+# {title}
+
 ## Description
 {description}
 
