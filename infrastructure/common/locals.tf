@@ -38,5 +38,11 @@ locals {
   kms_aliases = {
     sqs             = "alias/${local.project_prefix}-sqs-kms"
     secrets_manager = "alias/${local.project_prefix}-secrets-manager-kms"
+    ssm             = "alias/${local.project_prefix}-ssm-kms"
+    dms             = "alias/${local.project_prefix}-dms-kms"
+    dynamodb        = "alias/${local.project_prefix}-dynamodb-kms"
+    s3              = "alias/${local.project_prefix}-s3-kms"
+    rds             = "alias/${local.project_prefix}-rds-kms"
+    opensearch      = "alias/${local.project_prefix}-opensearch-kms"
   }
 }
