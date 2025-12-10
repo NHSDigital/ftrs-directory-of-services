@@ -505,6 +505,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Organisation with ODS code {ods_code} already exists.",
     )
+    ORGANISATION_TEMP = LogReference(
+        level=ERROR,
+        message="-------Organisation with product id {product_id}.-------",
+    )
     ORGANISATION_014 = LogReference(
         level=INFO,
         message="Organisation ID {organisation_id} provided for new organisations,Will be ignored.Creating a new organisation with a new ID.",
