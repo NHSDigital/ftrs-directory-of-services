@@ -30,21 +30,6 @@ module "secrets_manager_encryption_key" {
       Resource = "*"
     },
     {
-      Sid    = "AllowDMSSecretsAccess"
-      Effect = "Allow"
-      Principal = {
-        AWS = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.project_prefix}-data-migration-dms-secrets-access"
-        ]
-      }
-      Action = [
-        "kms:Decrypt",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey"
-      ]
-      Resource = "*"
-    },
-    {
       Sid    = "AllowGitHubRunnerAccess"
       Effect = "Allow"
       Principal = {
