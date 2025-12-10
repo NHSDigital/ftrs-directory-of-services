@@ -23,7 +23,6 @@ inputs:
   version_tag:
     description: 'Version applied to the deployed proxy'
     required: false
-    default: ''
 
 outputs:
   deployment_status:
@@ -79,11 +78,10 @@ runs:
         export VERSION_TAG="${{ inputs.version_tag }}"
 
         chmod +x ./scripts/workflow/modify-oas-sandbox-spec.sh
-        read -r MODIFIED_SPEC_PATH TARGET_SPEC_FILE < <(./scripts/workflow/modify-oas-sandbox-spec.sh)
+        MODIFIED_SPEC_PATH=$(./scripts/workflow/modify-oas-sandbox-spec.sh)
 
         if [ $? -eq 0 ]; then
           echo "modified_spec_path=$MODIFIED_SPEC_PATH" >> $GITHUB_OUTPUT
-          echo "target_spec_file_abs=$TARGET_SPEC_FILE" >> $GITHUB_OUTPUT
           echo "OAS spec modified successfully"
         else
           echo "Failed to modify OAS spec"
@@ -104,7 +102,6 @@ runs:
 
         if [[ "$IS_SANDBOX" == 'true' ]]; then
           export MODIFIED_SPEC_PATH="${{ steps.modify-sandbox-spec.outputs.modified_spec_path }}"
-          export TARGET_SPEC_FILE="${{ steps.modify-sandbox-spec.outputs.target_spec_file_abs }}"
         else
           export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
         fi
