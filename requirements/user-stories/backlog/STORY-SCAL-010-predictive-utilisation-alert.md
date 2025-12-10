@@ -29,7 +29,6 @@ Implement and validate NFR `SCAL-010` for domain `scalability`.
 - Cadence: Continuous + monthly tuning
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/scalability/nfrs.yaml

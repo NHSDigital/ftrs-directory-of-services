@@ -29,7 +29,6 @@ Implement and validate NFR `SCAL-008` for domain `scalability`.
 - Cadence: Monthly review
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/scalability/nfrs.yaml

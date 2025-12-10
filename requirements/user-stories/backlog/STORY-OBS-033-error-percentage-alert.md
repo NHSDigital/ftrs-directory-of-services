@@ -29,7 +29,6 @@ Implement and validate NFR `OBS-012` for domain `observability`.
 - Cadence: Continuous + monthly tuning
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/observability/nfrs.yaml

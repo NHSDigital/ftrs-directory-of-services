@@ -29,7 +29,6 @@ Implement and validate NFR `REL-015` for domain `reliability`.
 - Cadence: Semi-annual drill
 - Environments: int, ref
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/reliability/nfrs.yaml

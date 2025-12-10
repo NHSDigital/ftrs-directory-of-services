@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-004` for domain `security`.
 - Cadence: Continuous + CI enforcement
 - Environments: dev, int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

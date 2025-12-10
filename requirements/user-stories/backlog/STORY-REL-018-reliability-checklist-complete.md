@@ -29,7 +29,6 @@ Implement and validate NFR `REL-003` for domain `reliability`.
 - Cadence: Pre-live + quarterly review
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/reliability/nfrs.yaml

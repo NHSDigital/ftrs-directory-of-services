@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-018` for domain `security`.
 - Cadence: Annual + on contract change
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-002` for domain `security`.
 - Cadence: Quarterly + on change
 - Environments: dev, int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

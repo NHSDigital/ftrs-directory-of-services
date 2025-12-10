@@ -29,7 +29,6 @@ Implement and validate NFR `AVAIL-010` for domain `availability`.
 - Cadence: Per deployment
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/availability/nfrs.yaml

@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-021` for domain `security`.
 - Cadence: Monthly + CI smoke on infra changes
 - Environments: dev, int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

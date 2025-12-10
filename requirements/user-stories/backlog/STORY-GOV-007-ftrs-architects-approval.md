@@ -29,7 +29,6 @@ Implement and validate NFR `GOV-007` for domain `governance`.
 - Cadence: Pre-live + on major change
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/governance/nfrs.yaml

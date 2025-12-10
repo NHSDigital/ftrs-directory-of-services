@@ -29,7 +29,6 @@ Implement and validate NFR `INT-003` for domain `interoperability`.
 - Cadence: CI per build + release review
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/interoperability/nfrs.yaml

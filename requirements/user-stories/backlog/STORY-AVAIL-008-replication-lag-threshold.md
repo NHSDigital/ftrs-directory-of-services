@@ -29,7 +29,6 @@ Implement and validate NFR `AVAIL-007` for domain `availability`.
 - Cadence: Continuous + monthly report
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/availability/nfrs.yaml

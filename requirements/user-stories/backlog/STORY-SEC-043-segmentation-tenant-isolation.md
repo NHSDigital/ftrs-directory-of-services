@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-019` for domain `security`.
 - Cadence: Quarterly
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

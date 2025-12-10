@@ -23,7 +23,6 @@ Implement and validate NFR `COST-006` for domain `cost`.
 - NFR Code: `COST-006`
 - Domain: cost
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/cost/nfrs.yaml

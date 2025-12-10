@@ -30,4 +30,3 @@ This page is auto-generated; do not hand-edit.
 | ACC-020 | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | STORY-ACC-020 |
 | ACC-021 | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | STORY-ACC-021 |
 | ACC-022 | False positive ratio report shows improvement | False positive ratio is measured and trending toward improvement. | STORY-ACC-022 |
-

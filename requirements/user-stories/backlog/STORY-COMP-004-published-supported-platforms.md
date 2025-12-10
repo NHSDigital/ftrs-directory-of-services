@@ -29,7 +29,6 @@ Implement and validate NFR `COMP-001` for domain `compatibility`.
 - Cadence: Quarterly
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/compatibility/nfrs.yaml

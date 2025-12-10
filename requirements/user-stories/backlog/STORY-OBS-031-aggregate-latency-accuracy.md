@@ -29,7 +29,6 @@ Implement and validate NFR `OBS-010` for domain `observability`.
 - Cadence: Monthly calibration
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/observability/nfrs.yaml

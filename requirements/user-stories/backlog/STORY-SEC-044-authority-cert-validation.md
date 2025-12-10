@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-020` for domain `security`.
 - Cadence: CI policy validation + runtime checks
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

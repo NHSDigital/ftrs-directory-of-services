@@ -29,7 +29,6 @@ Implement and validate NFR `ACC-007` for domain `accessibility`.
 - Cadence: Annual
 - Environments: int
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/accessibility/nfrs.yaml

@@ -29,7 +29,6 @@ Implement and validate NFR `ACC-006` for domain `accessibility`.
 - Cadence: Pre-release
 - Environments: ref
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/accessibility/nfrs.yaml

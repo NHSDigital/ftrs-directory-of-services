@@ -29,7 +29,6 @@ Implement and validate NFR `OBS-011` for domain `observability`.
 - Cadence: Continuous + monthly accuracy audit
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/observability/nfrs.yaml

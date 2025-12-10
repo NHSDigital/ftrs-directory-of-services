@@ -24,4 +24,3 @@ This page is auto-generated; do not hand-edit.
 | GOV-014 | Caldicott Principles Guardian approval recorded | Caldicott Guardian approval recorded for data handling. | STORY-GOV-014 |
 | GOV-015 | DUEC Assurance Board acceptance logged | DUEC Assurance Board acceptance logged. | STORY-GOV-015 |
 | GOV-016 | Live Services Board go-live approval recorded | Live Services Board go-live approval recorded. | STORY-GOV-016 |
-

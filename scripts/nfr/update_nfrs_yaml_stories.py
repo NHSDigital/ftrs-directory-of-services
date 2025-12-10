@@ -2,8 +2,8 @@
 """Update requirements/nfrs/*/nfrs.yaml stories from user story backlog.
 
 - Scans requirements/user-stories/backlog/*.md for front matter:
-  - story_id
-  - nfr_refs: [CODE,...]
+    - story_id
+    - nfr_refs: [CODE,...]
 - Builds code -> [story_ids]
 - For each domain nfrs.yaml, set nfrs[i].stories to sorted unique story_ids for that code.
 """

@@ -29,7 +29,6 @@ Implement and validate NFR `ACC-013` for domain `accessibility`.
 - Cadence: Monthly
 - Environments: int
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/accessibility/nfrs.yaml

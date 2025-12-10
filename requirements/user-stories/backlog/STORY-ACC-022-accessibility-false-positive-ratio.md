@@ -29,7 +29,6 @@ Implement and validate NFR `ACC-022` for domain `accessibility`.
 - Cadence: Quarterly
 - Environments: int
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/accessibility/nfrs.yaml

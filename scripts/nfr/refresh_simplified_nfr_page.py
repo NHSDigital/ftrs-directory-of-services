@@ -58,6 +58,25 @@ def _append_blank_line(lines: list[str]) -> None:
     if not lines or lines[-1] != "":
         lines.append("")
 
+def _collapse_blank_lines(lines: list[str]) -> list[str]:
+    """Return a new list with multiple consecutive blank lines collapsed to one.
+
+    A line is considered blank if its stripped content is empty. Preserves
+    single blank separators and final single trailing newline when joined.
+    """
+    collapsed: list[str] = []
+    last_blank = False
+    for ln in lines:
+        is_blank = (ln.strip() == "")
+        if is_blank:
+            if not last_blank:
+                collapsed.append("")
+            last_blank = True
+        else:
+            collapsed.append(ln)
+            last_blank = False
+    return collapsed
+
 def parse_rows(text: str):
     rows = []
     for line in text.splitlines():
@@ -247,7 +266,9 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 status = op.get('status')
                 rationale = str(op.get('rationale','')).replace('\n',' ').replace('|','/')
                 lines.append(f"| {svc} | {op_id} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {rationale} |")
-            _append_blank_line(lines)
+            # Single blank line after operations table
+            if lines and lines[-1] != "":
+                lines.append("")
         else:
             # control-centric domain
             reg_key = domain.lower()
@@ -264,7 +285,9 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                     lines.append(f"### {code}")
                     if code in explanations:
                         lines.append(explanations[code])
-                    _append_blank_line(lines)
+                    # Ensure exactly one blank before table
+                    if lines and lines[-1] != "":
+                        lines.append("")
                     lines.append("| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
                     lines.append("|------------|---------|-----------|---------|---------|------|----------|--------|-----------|")
                     for c in grouped[code]:
@@ -278,7 +301,9 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                         status = c.get('status','')
                         rationale = c.get('rationale','').replace('\n',' ').replace('|','/')
                         lines.append(f"| {ctrl} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |")
-                    _append_blank_line(lines)
+                    # Single blank between groups
+                    if lines and lines[-1] != "":
+                        lines.append("")
                 # If no controls exist for this NFR code in registry, surface NFR-level service scope when present
                 domain_yaml_path = DOMAIN_NFRS_DIR / reg_key / "nfrs.yaml"
                 if domain_yaml_path.exists():
@@ -301,8 +326,13 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
         # Sanitize trailing artifacts: remove stray code fences and collapse trailing blanks
         while lines and (lines[-1].strip() == "" or lines[-1].strip() == "```"):
             lines.pop()
+        # Collapse any accidental multiple blanks before writing
+        lines = _collapse_blank_lines(lines)
         lines.append("")
-        fname.write_text("\n".join(lines)+"\n", encoding="utf-8")
+        content = "\n".join(lines) + "\n"
+        # Final safeguard: collapse any 3+ consecutive newlines to 2 (single blank line)
+        content = re.sub(r"\n{3,}", "\n\n", content)
+        fname.write_text(content, encoding="utf-8")
         print(f"Wrote domain page: {fname}")
         # Debug: print last 3 lines written for lint diagnostics
         tail = Path(fname).read_text(encoding="utf-8").splitlines()
@@ -436,8 +466,10 @@ def build_output():
             break
     lines.append("---")
     lines.append("")
+    # Ensure one blank before heading
+    if lines and lines[-1] != "":
+        lines.append("")
     lines.append("## How to Read a Performance Operation Row (Plain English)")
-    _append_blank_line(lines)
     if example_op:
         svc, op = example_op
         op_row = "| {svc} | {op_id} | {cls} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {rationale} |".format(
@@ -454,11 +486,13 @@ def build_output():
             rationale=op.get('rationale','').replace('\n',' ').replace('|','/')
         )
         lines.append("Example row:")
-        _append_blank_line(lines)
         lines.append("| Service | Operation ID | Class | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
         lines.append("|---------|--------------|-------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|")
         lines.append(op_row)
         _append_blank_line(lines)
+    # Ensure one blank before list intro
+    if lines and lines[-1] != "":
+        lines.append("")
     lines.append("Meaning of columns:")
     _append_blank_line(lines)
     lines.append("- Service: Subsystem owning the endpoint or job")
@@ -472,13 +506,17 @@ def build_output():
     lines.append("- Max Payload (bytes): Largest allowed request size (blank = not constrained yet)")
     lines.append("- Status: draft (proposed), accepted (agreed/enforced), exception (temporarily unmet)")
     lines.append("- Rationale: Reasoning / assumptions behind targets")
-    _append_blank_line(lines)
+    # Ensure one blank after the list block
+    if lines and lines[-1] != "":
+        lines.append("")
     lines.append("Multiple tests per operation typically: latency monitor (p50/p95), max latency alert, throughput tests (burst & sustained), payload boundary test.")
     lines.append("")
     lines.append("---")
     lines.append("")
+    # Ensure one blank before heading
+    if lines and lines[-1] != "":
+        lines.append("")
     lines.append("## How to Read a Control Row (Plain English)")
-    _append_blank_line(lines)
     if example_control:
         ctrl_row = "| {cid} | {nfr} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |".format(
             cid=example_control.get('control_id',''),
@@ -493,11 +531,13 @@ def build_output():
             rationale=example_control.get('rationale','').replace('\n',' ').replace('|','/')
         )
         lines.append("Example control row:")
-        _append_blank_line(lines)
         lines.append("| Control ID | NFR Code | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
         lines.append("|------------|----------|---------|-----------|---------|---------|------|----------|--------|-----------|")
         lines.append(ctrl_row)
         _append_blank_line(lines)
+    # Ensure one blank before list intro
+    if lines and lines[-1] != "":
+        lines.append("")
     lines.append("Meaning of columns:")
     _append_blank_line(lines)
     lines.append("- Control ID: Stable name of the automated check")
@@ -510,10 +550,21 @@ def build_output():
     lines.append("- Services: Scope (blank means all)")
     lines.append("- Status: draft / accepted / exception governance state")
     lines.append("- Rationale: Why the threshold/tool was chosen")
-    _append_blank_line(lines)
+    # Ensure one blank after the list block
+    if lines and lines[-1] != "":
+        lines.append("")
     lines.append("Typical validation: tool execution success, threshold met, alert on failure, exception tracked with mitigation & review date.")
     lines.append("")
-    return "\n".join(lines) + "\n"
+    # Sanitize trailing artifacts: remove stray code fences and trailing blanks
+    while lines and (lines[-1].strip() == "" or lines[-1].strip() == "```"):
+        lines.pop()
+    # Collapse any accidental multiple blanks in the index content
+    lines = _collapse_blank_lines(lines)
+    lines.append("")
+    content = "\n".join(lines) + "\n"
+    # Final safeguard: collapse any 3+ consecutive newlines to 2 (single blank line)
+    content = re.sub(r"\n{3,}", "\n\n", content)
+    return content
 
 def main():
     content = build_output()

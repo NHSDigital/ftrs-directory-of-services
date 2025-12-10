@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-023` for domain `security`.
 - Cadence: Continuous
 - Environments: dev, int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

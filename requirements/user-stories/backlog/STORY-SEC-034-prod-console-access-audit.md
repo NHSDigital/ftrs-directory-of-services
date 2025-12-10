@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-006` for domain `security`.
 - Cadence: Weekly audit + alerting
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

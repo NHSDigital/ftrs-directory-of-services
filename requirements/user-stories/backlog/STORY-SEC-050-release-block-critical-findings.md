@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-028` for domain `security`.
 - Cadence: Per release
 - Environments: dev, int, ref
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

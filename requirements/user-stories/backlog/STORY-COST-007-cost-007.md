@@ -23,7 +23,6 @@ Implement and validate NFR `COST-007` for domain `cost`.
 - NFR Code: `COST-007`
 - Domain: cost
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/cost/nfrs.yaml

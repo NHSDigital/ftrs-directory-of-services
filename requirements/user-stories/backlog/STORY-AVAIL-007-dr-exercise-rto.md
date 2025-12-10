@@ -29,7 +29,6 @@ Implement and validate NFR `AVAIL-006` for domain `availability`.
 - Cadence: Semi-annual exercise
 - Environments: int, ref
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/availability/nfrs.yaml

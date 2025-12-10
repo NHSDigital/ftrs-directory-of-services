@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-022` for domain `security`.
 - Cadence: CI policy checks + monthly audit
 - Environments: dev, int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

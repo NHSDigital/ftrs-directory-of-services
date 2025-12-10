@@ -29,7 +29,6 @@ Implement and validate NFR `ACC-015` for domain `accessibility`.
 - Cadence: Monthly
 - Environments: int, ref
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/accessibility/nfrs.yaml

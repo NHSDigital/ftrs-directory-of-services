@@ -23,7 +23,6 @@ Implement and validate NFR `REL-006` for domain `reliability`.
 - NFR Code: `REL-006`
 - Domain: reliability
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/reliability/nfrs.yaml

@@ -23,7 +23,6 @@ Implement and validate NFR `REL-017` for domain `reliability`.
 - NFR Code: `REL-017`
 - Domain: reliability
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/reliability/nfrs.yaml

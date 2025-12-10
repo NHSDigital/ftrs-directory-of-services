@@ -29,7 +29,6 @@ Implement and validate NFR `COMP-002` for domain `compatibility`.
 - Cadence: Release cycle
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/compatibility/nfrs.yaml

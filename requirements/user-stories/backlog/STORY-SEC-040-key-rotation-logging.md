@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-013` for domain `security`.
 - Cadence: Quarterly audit + CI checks on policy
 - Environments: dev, int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

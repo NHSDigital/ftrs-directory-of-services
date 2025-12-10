@@ -29,7 +29,6 @@ Implement and validate NFR `ACC-008` for domain `accessibility`.
 - Cadence: CI per build
 - Environments: int
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/accessibility/nfrs.yaml

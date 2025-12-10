@@ -29,7 +29,6 @@ Implement and validate NFR `GOV-006` for domain `governance`.
 - Cadence: Annual review
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/governance/nfrs.yaml

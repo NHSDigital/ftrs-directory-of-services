@@ -18,4 +18,3 @@ This page is auto-generated; do not hand-edit.
 | AVAIL-008 | API uptime aligns with core service | API uptime aligns with overall service availability target. | STORY-AVAIL-009 |
 | AVAIL-009 | Non-UK access attempts blocked & logged | Access from non-approved geographic regions is blocked and logged. | STORY-AVAIL-010 |
 | AVAIL-010 | Blue/green deployment produces 0 failed requests | Blue/green deployments complete with zero failed user requests. | STORY-AVAIL-005, STORY-AVAIL-011 |
-

@@ -29,7 +29,6 @@ Implement and validate NFR `INT-006` for domain `interoperability`.
 - Cadence: CI per build + monthly audit
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/interoperability/nfrs.yaml

@@ -29,7 +29,6 @@ Implement and validate NFR `SCAL-003` for domain `scalability`.
 - Cadence: Quarterly
 - Environments: int, ref
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/scalability/nfrs.yaml

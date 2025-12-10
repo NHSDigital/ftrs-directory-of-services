@@ -29,7 +29,6 @@ Implement and validate NFR `AVAIL-005` for domain `availability`.
 - Cadence: Weekly maintenance window
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/availability/nfrs.yaml

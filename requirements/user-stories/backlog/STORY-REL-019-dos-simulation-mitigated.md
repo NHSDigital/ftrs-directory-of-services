@@ -29,7 +29,6 @@ Implement and validate NFR `REL-004` for domain `reliability`.
 - Cadence: Quarterly exercise
 - Environments: int, ref
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/reliability/nfrs.yaml

@@ -29,7 +29,6 @@ Implement and validate NFR `ACC-020` for domain `accessibility`.
 - Cadence: Nightly
 - Environments: int
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/accessibility/nfrs.yaml

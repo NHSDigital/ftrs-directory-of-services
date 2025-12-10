@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 
 TARGET_DIR = Path("docs/nfrs/nfr-by-domain")
+INDEX_FILE = Path("docs/nfrs/nfr-by-domain.md")
 
 MD_TABLE_OR_HEADING = re.compile(r"^(#|##|###|\|).*")
 
@@ -49,6 +50,14 @@ def main() -> None:
         return
     for md in sorted(TARGET_DIR.glob("*.md")):
         process_file(md)
+    # Also clean the index file if present
+    if INDEX_FILE.exists():
+        idx_text = INDEX_FILE.read_text(encoding="utf-8")
+        cleaned = strip_trailing_code_fence(idx_text)
+        cleaned = collapse_multiple_blank_lines(cleaned)
+        if cleaned != idx_text:
+            INDEX_FILE.write_text(cleaned, encoding="utf-8")
+            print(f"Cleaned: {INDEX_FILE}")
 
 if __name__ == "__main__":
     main()

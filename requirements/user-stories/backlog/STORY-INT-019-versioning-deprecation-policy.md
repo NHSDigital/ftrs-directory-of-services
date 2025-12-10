@@ -29,7 +29,6 @@ Implement and validate NFR `INT-002` for domain `interoperability`.
 - Cadence: Review quarterly; update on change
 - Environments: prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/interoperability/nfrs.yaml

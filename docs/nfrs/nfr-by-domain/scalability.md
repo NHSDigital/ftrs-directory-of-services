@@ -18,4 +18,3 @@ This page is auto-generated; do not hand-edit.
 | SCAL-008 | No manual scaling tickets for variance period | During the variance period no manual scaling tickets are needed. | STORY-SCAL-008 |
 | SCAL-009 | Audit logs capture actor/reason for scaling | Audit logs record who initiated scaling and why. | STORY-SCAL-009 |
 | SCAL-010 | Predictive alert fires at utilisation forecast threshold | Predictive alerts fire before utilisation reaches critical thresholds. | STORY-SCAL-010 |
-

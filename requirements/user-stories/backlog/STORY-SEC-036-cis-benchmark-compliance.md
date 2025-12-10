@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-009` for domain `security`.
 - Cadence: CI per change + monthly full audit
 - Environments: dev, int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml

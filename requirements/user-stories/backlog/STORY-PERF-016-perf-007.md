@@ -23,7 +23,6 @@ Implement and validate NFR `PERF-007` for domain `performance`.
 - NFR Code: `PERF-007`
 - Domain: performance
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/performance/nfrs.yaml

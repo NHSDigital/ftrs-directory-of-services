@@ -23,7 +23,6 @@ Implement and validate NFR `REL-009` for domain `reliability`.
 - NFR Code: `REL-009`
 - Domain: reliability
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/reliability/nfrs.yaml

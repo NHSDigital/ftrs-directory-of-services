@@ -23,7 +23,6 @@ Implement and validate NFR `OBS-005` for domain `observability`.
 - NFR Code: `OBS-005`
 - Domain: observability
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/observability/nfrs.yaml

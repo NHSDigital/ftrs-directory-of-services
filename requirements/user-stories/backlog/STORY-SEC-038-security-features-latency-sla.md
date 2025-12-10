@@ -29,7 +29,6 @@ Implement and validate NFR `SEC-011` for domain `security`.
 - Cadence: CI perf checks + monthly regression review
 - Environments: int, ref, prod
 
-
 ## Traceability
 
 - Domain registry: requirements/nfrs/security/nfrs.yaml
