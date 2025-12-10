@@ -46,3 +46,11 @@ resource "aws_secretsmanager_secret" "dos_search_proxygen_jwt_credentials" {
   description = "JWT credentials for DOS Search Proxygen in ${var.environment} environment"
   kms_key_id  = module.secrets_manager_encryption_key.key_id
 }
+
+resource "aws_secretsmanager_secret" "dos_search_jwt_credentials" {
+  # checkov:skip=CKV2_AWS_57:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  # checkov:skip=CKV_AWS_149:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
+  count       = local.is_primary_environment ? 1 : 0
+  name        = "/${var.project}/${var.environment}/dos-search/jwt-credentials"
+  description = "JWT credentials for NHS Digital Onboarding test application in ${var.environment} environment"
+}
