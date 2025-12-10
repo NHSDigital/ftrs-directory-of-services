@@ -24,10 +24,7 @@ from ftrs_data_layer.domain import (
 )
 from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.domain.clinical_code import (
-    ClinicalCodeSource,
     Disposition,
-    SymptomDiscriminator,
-    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.domain.enums import TimeUnit
@@ -342,29 +339,9 @@ class ServiceTransformer(ABC):
         """
         Build a single SymptomGroupSymptomDiscriminatorPair from a ServiceSGSD code.
         """
-        sg = self.metadata.symptom_groups.get(code.sgid)
-        sd = self.metadata.symptom_discriminators.get(code.sdid)
-
-        source = (
-            ClinicalCodeSource.SERVICE_FINDER
-            if sg.zcodeexists is True
-            else ClinicalCodeSource.PATHWAYS
-        )
-
         return SymptomGroupSymptomDiscriminatorPair(
-            sg=SymptomGroup(
-                id=generate_uuid(sg.id, "symptomgroup"),
-                codeID=code.sgid,
-                codeValue=sg.name,
-                source=source,
-            ),
-            sd=SymptomDiscriminator(
-                id=generate_uuid(sd.id, "symptomdiscriminator"),
-                codeID=code.sdid,
-                codeValue=sd.description,
-                source=source,
-                synonyms=[syn.name for syn in sd.synonyms],
-            ),
+            sg=code.sgid,
+            sd=code.sdid,
         )
 
     def build_dispositions(self, service: legacy_model.Service) -> list[Disposition]:
@@ -378,13 +355,7 @@ class ServiceTransformer(ABC):
         Build a single Disposition from a ServiceDisposition code.
         """
         disposition = self.metadata.dispositions.get(code.dispositionid)
-        return Disposition(
-            id=generate_uuid(code.id, "pathways:disposition"),
-            codeID=code.dispositionid,
-            codeValue=disposition.name,
-            source=ClinicalCodeSource.PATHWAYS,
-            time=disposition.dispositiontime,
-        )
+        return disposition.dxcode
 
     def build_age_eligibility_criteria(
         self, service: legacy_model.Service

@@ -39,6 +39,6 @@ class HealthcareService(DBModel):
     telecom: Telecom | None
     openingTime: list[OpeningTime] | None
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
-    dispositions: list[Disposition]
+    dispositions: list[str]
     migrationNotes: list[str] | None = None
     ageEligibilityCriteria: list[AgeRangeType] | None = None
