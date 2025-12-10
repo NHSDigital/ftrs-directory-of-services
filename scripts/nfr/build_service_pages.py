@@ -140,7 +140,6 @@ def collect_services_from_yaml() -> Dict[str, dict]:
                         services.setdefault('__universal__', {'performance_ops': [], 'controls': {}, 'nfr_meta': {}})
                         uni = services['__universal__']
                         uni['controls'].setdefault(domain.capitalize(), {}).setdefault(code, []).extend(ctrl_list)
-            
 
     # Apply universal controls to all services discovered so far
     universal = services.pop('__universal__', None)

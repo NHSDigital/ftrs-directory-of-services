@@ -68,7 +68,6 @@ nfrs:
     max_request_payload_bytes: ''
     status: draft
     rationale: Validation + persistence + OperationOutcome classification
-  
   - service: crud-apis
     operation_id: healthcare-service-get
     p50_target_ms: 50

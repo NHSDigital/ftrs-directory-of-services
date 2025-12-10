@@ -187,7 +187,7 @@ nfrs:
   controls:
   - control_id: predictive-utilisation-alert
     measure: Predictive alert fires at utilisation forecast threshold
-    threshold: Forecasted utilisation > 80% in 15m triggers alert; MTTAlert < 2m
+    threshold: Forecasted utilisation > 80% in 15m triggers alert; MTT Alert < 2m
     tooling: Forecasting job + alerting rules
     cadence: Continuous + monthly tuning
     environments:

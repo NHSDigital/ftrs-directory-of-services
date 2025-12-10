@@ -815,7 +815,7 @@ Predictive alert fires at utilisation forecast threshold
 
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| predictive-utilisation-alert | Predictive alert fires at utilisation forecast threshold | Forecasted utilisation > 80% in 15m triggers alert; MTTAlert < 2m | Forecasting job + alerting rules | Continuous + monthly tuning | prod | dos-search | draft | Prevents SLA breach via early action |
+| predictive-utilisation-alert | Predictive alert fires at utilisation forecast threshold | Forecasted utilisation > 80% in 15m triggers alert; MTT Alert < 2m | Forecasting job + alerting rules | Continuous + monthly tuning | prod | dos-search | draft | Prevents SLA breach via early action |
 
 ### SEC-001
 
