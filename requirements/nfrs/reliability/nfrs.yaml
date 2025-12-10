@@ -212,6 +212,20 @@ nfrs:
   requirement: External outage shows fallback & user messaging
   explanation: External dependency outage invokes fallback and clear user messaging.
   stories: []
+  controls:
+  - control_id: external-outage-fallback
+    measure: External outage shows fallback & user messaging
+    threshold: Documented fallback engaged; user messaging displayed; error rate \u2264 2%; recovery within SLA
+    tooling: Chaos experiments on external deps + observability evidence
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Demonstrates graceful handling of external dependency outages
   services:
   - crud-apis
   - dos-search
@@ -219,6 +233,20 @@ nfrs:
   requirement: LB failure retains sessions & continues routing
   explanation: Load balancer failure preserves sessions and maintains routing continuity.
   stories: []
+  controls:
+  - control_id: lb-failure-session-retention
+    measure: LB failure retains sessions & continues routing
+    threshold: Zero session loss; traffic re-routed within 30s; p95 latency delta \u2264 10%
+    tooling: LB failover drill + session continuity tests + metrics
+    cadence: Semi-annual drill
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures resilience of routing tier
   services:
   - crud-apis
   - dos-search
@@ -227,6 +255,20 @@ nfrs:
   explanation: Server error paths show expected logout or user messaging per specification.
   stories:
   - STORY-REL-016
+  controls:
+  - control_id: server-error-user-messaging
+    measure: Server error shows logout/message per spec
+    threshold: Error paths conform to spec; correct logout/message; audit evidence across endpoints
+    tooling: Contract tests + UI behaviour checks + logs
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Protects user experience during server errors
   services:
   - read-only-viewer
 - code: REL-017

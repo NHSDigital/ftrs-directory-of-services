@@ -510,6 +510,46 @@ Endpoint latency histograms with p50/p95/p99
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | latency-histograms | Endpoint latency histograms with p50/p95/p99 | Histograms available per endpoint with p50/p95/p99 series | Metrics backend + dashboard | Continuous | int,ref,prod | crud-apis | draft | Percentile visibility supports performance governance |
 
+### OBS-010
+
+Aggregate latency panel accurate within 2% roll-up
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| aggregate-latency-accuracy | Aggregate latency panel accurate within 2% roll-up | Roll-up accuracy within \u22642% vs raw series | Dashboard query tests + calibration script | Monthly calibration | prod | crud-apis | draft | Ensures trustworthy aggregate metrics |
+
+### OBS-011
+
+Failure types logged & classified in dashboard
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| failure-type-classification | Failure types logged & classified in dashboard | 100% failures carry type; classification accuracy \u2265 95% | Structured logging + classifier + dashboard | Continuous + monthly accuracy audit | int,ref,prod | crud-apis | draft | Improves incident triage |
+
+### OBS-012
+
+Error percentage metric & alert configured
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| error-percentage-alert | Error percentage metric & alert configured | Alert triggers when error% > 1% over 5m; playbook linked | Metrics backend + alerting rules | Continuous + monthly tuning | prod | crud-apis | draft | Early detection of reliability regressions |
+
+### OBS-013
+
+Infra log query returns expected fields
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| infra-log-query-fields | Infra log query returns expected fields | Queries return required fields (timestamp, severity, host, correlation_id) | Log query tests + schema | CI per build + weekly audit | int,ref,prod | crud-apis | draft | Ensures log usability for ops |
+
+### OBS-014
+
+Infra log entries include required fields
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| infra-log-required-fields | Infra log entries include required fields | 100% entries include required fields; schema lint passes | Log schema validators + CI checks | CI per build + monthly audit | int,ref,prod | crud-apis | draft | Guarantees structured logging quality |
+
 ### OBS-030
 
 Distributed trace spans cover end-to-end request
@@ -593,6 +633,22 @@ Tier failure graceful degradation & recovery evidenced
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | tier-failure-graceful-degrade | Tier failure graceful degradation & recovery evidenced | Documented fallback; recovery time within SLA | Chaos experiments + observability evidence | Quarterly | int,ref | crud-apis | draft | Demonstrates graceful degradation patterns |
+
+### REL-014
+
+External outage shows fallback & user messaging
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| external-outage-fallback | External outage shows fallback & user messaging | Documented fallback engaged; user messaging displayed; error rate \u2264 2%; recovery within SLA | Chaos experiments on external deps + observability evidence | Quarterly | int,ref | crud-apis | draft | Demonstrates graceful handling of external dependency outages |
+
+### REL-015
+
+LB failure retains sessions & continues routing
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| lb-failure-session-retention | LB failure retains sessions & continues routing | Zero session loss; traffic re-routed within 30s; p95 latency delta \u2264 10% | LB failover drill + session continuity tests + metrics | Semi-annual drill | int,ref | crud-apis | draft | Ensures resilience of routing tier |
 
 ### SCAL-001
 

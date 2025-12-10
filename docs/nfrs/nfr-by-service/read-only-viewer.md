@@ -222,6 +222,14 @@ Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; 
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | auth-brute-force-protection | Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate burst supported) | Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s; ≤1% false positives | Auth gateway rate limiter + anomaly aggregator + performance harness + alerting | Continuous runtime enforcement + daily compliance script | dev,int,ref,prod | read-only-viewer | draft | Protects availability & integrity under authentication attack patterns |
 
+### REL-016
+
+Server error shows logout/message per spec
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| server-error-user-messaging | Server error shows logout/message per spec | Error paths conform to spec; correct logout/message; audit evidence across endpoints | Contract tests + UI behaviour checks + logs | CI per build + monthly audit | int,ref,prod | read-only-viewer | draft | Protects user experience during server errors |
+
 ### SEC-001
 
 Crypto algorithms conform; weak ciphers rejected

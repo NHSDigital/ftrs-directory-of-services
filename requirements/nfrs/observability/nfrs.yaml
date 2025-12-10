@@ -132,6 +132,19 @@ nfrs:
   explanation: "Aggregate latency panel roll-ups remain within acceptable accuracy\
     \ margin (e.g., \u22642%)."
   stories: []
+  controls:
+  - control_id: aggregate-latency-accuracy
+    measure: Aggregate latency panel accurate within 2% roll-up
+    threshold: Roll-up accuracy within \u22642% vs raw series
+    tooling: Dashboard query tests + calibration script
+    cadence: Monthly calibration
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures trustworthy aggregate metrics
   services:
   - crud-apis
   - dos-search
@@ -139,6 +152,21 @@ nfrs:
   requirement: Failure types logged & classified in dashboard
   explanation: Failure types are logged and classified for reporting.
   stories: []
+  controls:
+  - control_id: failure-type-classification
+    measure: Failure types logged & classified in dashboard
+    threshold: 100% failures carry type; classification accuracy \u2265 95%
+    tooling: Structured logging + classifier + dashboard
+    cadence: Continuous + monthly accuracy audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Improves incident triage
   services:
   - crud-apis
   - dos-search
@@ -146,6 +174,19 @@ nfrs:
   requirement: Error percentage metric & alert configured
   explanation: Error rate metric and alert exist to highlight reliability issues.
   stories: []
+  controls:
+  - control_id: error-percentage-alert
+    measure: Error percentage metric & alert configured
+    threshold: Alert triggers when error% > 1% over 5m; playbook linked
+    tooling: Metrics backend + alerting rules
+    cadence: Continuous + monthly tuning
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Early detection of reliability regressions
   services:
   - crud-apis
   - dos-search
@@ -153,6 +194,21 @@ nfrs:
   requirement: Infra log query returns expected fields
   explanation: Infrastructure logs return expected structured fields for queries.
   stories: []
+  controls:
+  - control_id: infra-log-query-fields
+    measure: Infra log query returns expected fields
+    threshold: Queries return required fields (timestamp, severity, host, correlation_id)
+    tooling: Log query tests + schema
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures log usability for ops
   services:
   - crud-apis
   - dos-search
@@ -162,6 +218,21 @@ nfrs:
     IDs, timestamps).
   stories:
   - STORY-OBS-014
+  controls:
+  - control_id: infra-log-required-fields
+    measure: Infra log entries include required fields
+    threshold: 100% entries include required fields; schema lint passes
+    tooling: Log schema validators + CI checks
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Guarantees structured logging quality
   services:
   - crud-apis
   - dos-search
