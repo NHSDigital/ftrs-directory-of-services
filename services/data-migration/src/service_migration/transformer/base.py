@@ -190,13 +190,6 @@ class ServiceTransformer(ABC):
             if service.latitude and service.longitude
             else None
         )
-        # NOTE: FTRS-1623: format_address handles all validation and returns None if invalid
-        # in processor, in step about transformer.validator.validate,
-        # that validation issue should be captured and not proceed to transform if fatal,
-        # so here just call format_address without further validation
-
-        # TODO: FTRS-1623: tidy up redundant if else checks
-        # action - remove them
 
         formatted_address = format_address(
             service.address,

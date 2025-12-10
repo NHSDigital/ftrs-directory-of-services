@@ -37,9 +37,6 @@ class GPPracticeTransformer(ServiceTransformer):
         """
         organisation = self.build_organisation(service)
         organisation.name = self.clean_name(service.publicname)
-        # NOTE: FTRS-1623: where location (address) is invalid, the validation step should have captured that,
-        # and not proceed to transform step, as GP Practice must have a Location to be created
-        # so build location no longer returns None if address unavailable as handled in validation
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,

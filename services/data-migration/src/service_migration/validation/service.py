@@ -58,12 +58,6 @@ class GPPracticeValidator(ServiceValidator):
         if location_result := self.validate_location(
             data.address, data.town, data.postcode
         ):
-            # don't mutate just validate
-            # data.address = location_result.sanitised
-            # option: store validated Address in metadata, not in data.address
-            # result.metadata = {
-            #     "validated_address": location_result.sanitised
-            # }
             result.issues.extend(location_result.issues)
 
         return result
@@ -90,11 +84,6 @@ class GPPracticeValidator(ServiceValidator):
         result.sanitised = cleaned_name
         return result
 
-    # NOTE: FTRS-1623: validate location here instead of service transformer
-    # if format_address returns None, then then address is invalid
-    # add fatal validation issue for that,
-    # as must not create Location if address is invalid
-    # and GP Practice must have a Location to be created (given ERD diagrams)
     def validate_location(
         self, address: str, town: str, postcode: str
     ) -> FieldValidationResult[str]:
@@ -136,9 +125,6 @@ class GPPracticeValidator(ServiceValidator):
                 )
             )
             return result
-
-        # NOTE: FTRS-1623: validation issues captured here - is this sufficicent instead of DM_ETL_016 log?
-        # or need both? so where to log it - like in the format_address function?
 
         result.sanitised = formatted_address
         return result
