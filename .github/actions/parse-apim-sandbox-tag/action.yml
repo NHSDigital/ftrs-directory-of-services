@@ -20,7 +20,7 @@ runs:
         GITHUB_REF_NAME: ${{ inputs.ref_name }}
         GITHUB_REF_TYPE: ${{ inputs.ref_type }}
         GITHUB_SHA: ${{ inputs.commit_sha }}
-      run: .github/workflows/parse-apim-sandbox-tag.sh
+      run: ./scripts/workflow/parse-apim-sandbox-tag.sh
 
 outputs:
   sandbox_environment:
