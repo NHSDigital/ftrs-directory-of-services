@@ -30,7 +30,9 @@ nfrs:
   requirement: WAF security pillar checklist completed & gaps tracked
   explanation: Complete the AWS/WAF security pillar checklist and track remediation
     actions for any gaps.
-  stories: []
+  stories:
+  - STORY-SEC-014
+  - STORY-SEC-031
   controls:
   - control_id: waf-pillar-checklist
     measure: WAF security pillar checklist completed & gaps tracked
@@ -81,7 +83,10 @@ nfrs:
   requirement: Storage services show encryption enabled
   explanation: Every storage service (S3, RDS, etc.) shows encryption enabled with
     managed or customer keys.
-  stories: []
+  stories:
+  - STORY-SEC-004
+  - STORY-SEC-015
+  - STORY-SEC-032
   controls:
   - control_id: storage-encryption-enabled
     measure: Storage services show encryption enabled
@@ -105,7 +110,9 @@ nfrs:
   requirement: Cross-environment data access attempts denied
   explanation: 'Strict environment isolation: data access from one environment to
     another is prevented.'
-  stories: []
+  stories:
+  - STORY-SEC-011
+  - STORY-SEC-033
   controls:
   - control_id: cross-env-access-denied
     measure: Cross-env data access attempts denied and logged
@@ -129,7 +136,9 @@ nfrs:
   requirement: No direct prod console queries detected in audit period
   explanation: No direct production console queries by engineers outside approved,
     audited break-glass processes.
-  stories: []
+  stories:
+  - STORY-SEC-016
+  - STORY-SEC-034
   controls:
   - control_id: prod-console-access-audit
     measure: No direct prod console queries detected in audit period
@@ -175,7 +184,9 @@ nfrs:
   requirement: Perimeter scan shows no broad whitelist & secure channels
   explanation: Perimeter scans show secure transport, no open broad whitelists, and
     hardened edge configuration.
-  stories: []
+  stories:
+  - STORY-SEC-018
+  - STORY-SEC-035
   controls:
   - control_id: perimeter-scan
     measure: Perimeter scan shows no broad whitelist & secure channels
@@ -198,7 +209,9 @@ nfrs:
   requirement: ASVS & CIS benchmark automation reports pass thresholds
   explanation: Automated ASVS and CIS benchmark scans meet pass thresholds; failures
     trigger remediation.
-  stories: []
+  stories:
+  - STORY-SEC-004
+  - STORY-SEC-036
   controls:
   - control_id: cis-benchmark-compliance
     measure: CIS benchmark automation reports meet pass thresholds for targeted services
@@ -223,7 +236,9 @@ nfrs:
 - code: SEC-010
   requirement: Annual pen test executed; remediation tickets raised & closed
   explanation: Annual penetration test completed; identified issues tracked and closed.
-  stories: []
+  stories:
+  - STORY-SEC-019
+  - STORY-SEC-037
   controls:
   - control_id: annual-pentest
     measure: Annual pen test executed; remediation tickets raised & closed
@@ -243,7 +258,9 @@ nfrs:
 - code: SEC-011
   requirement: Security features enabled latency within SLA
   explanation: Enabling security controls does not push latency beyond defined SLAs.
-  stories: []
+  stories:
+  - STORY-SEC-020
+  - STORY-SEC-038
   controls:
   - control_id: security-features-latency-sla
     measure: Security features enabled latency within SLA
@@ -263,7 +280,10 @@ nfrs:
   requirement: IAM policy review confirms least privilege for system roles
   explanation: IAM roles and policies grant least privilege; periodic reviews confirm
     minimal access.
-  stories: []
+  stories:
+  - STORY-SEC-005
+  - STORY-SEC-030
+  - STORY-SEC-039
   controls:
   - control_id: iam-least-privilege
     measure: IAM policy review confirms least privilege for system roles
@@ -289,7 +309,9 @@ nfrs:
   requirement: Key rotation events logged; unauthorized access denied
   explanation: Cryptographic keys rotate on schedule and unauthorized access attempts
     are rejected and logged.
-  stories: []
+  stories:
+  - STORY-SEC-021
+  - STORY-SEC-040
   controls:
   - control_id: key-rotation-logging
     measure: Key rotation events logged; unauthorized access denied
@@ -315,7 +337,7 @@ nfrs:
   explanation: Mutual TLS (mTLS) succeeds between designated internal services to
     protect sensitive flows.
   stories:
-  - FTRS-1600
+  - STORY-SEC-006
   controls:
   - control_id: mtls-service-handshake
     measure: mTLS handshake succeeds between designated services using ITOC-approved
@@ -341,7 +363,7 @@ nfrs:
   requirement: Expiry alert fired in advance; renewal executed seamlessly
   explanation: Certificate expiry is detected in advance; renewal occurs without downtime.
   stories:
-  - FTRS-1604
+  - STORY-SEC-022
   controls:
   - control_id: cert-expiry-alert-renewal
     measure: Expiry alert fired in advance; renewal executed seamlessly
@@ -386,7 +408,9 @@ nfrs:
   requirement: Scan reports zero unmanaged long-lived credentials
   explanation: No long-lived unmanaged credentials; periodic scans confirm only managed
     secrets exist.
-  stories: []
+  stories:
+  - STORY-SEC-010
+  - STORY-SEC-041
   controls:
   - control_id: zero-long-lived-credentials
     measure: Scan reports zero unmanaged long-lived credentials
@@ -411,7 +435,9 @@ nfrs:
   requirement: Supplier audit attestation stored & verified
   explanation: Third-party supplier security attestation is collected and stored for
     audit.
-  stories: []
+  stories:
+  - STORY-SEC-024
+  - STORY-SEC-042
   controls:
   - control_id: supplier-audit-attestation
     measure: Supplier audit attestation stored & verified
@@ -431,7 +457,9 @@ nfrs:
 - code: SEC-019
   requirement: Segmentation test confirms tenant isolation
   explanation: Tenant or data segmentation tests confirm isolation boundaries hold.
-  stories: []
+  stories:
+  - STORY-SEC-012
+  - STORY-SEC-043
   controls:
   - control_id: segmentation-tenant-isolation
     measure: Segmentation test confirms tenant isolation
@@ -453,7 +481,9 @@ nfrs:
 - code: SEC-020
   requirement: Remote connections present valid Authority certs
   explanation: Remote connections present valid certificates from trusted authorities.
-  stories: []
+  stories:
+  - STORY-SEC-007
+  - STORY-SEC-044
   controls:
   - control_id: authority-cert-validation
     measure: Remote connections present valid Authority certs; invalid certs rejected
@@ -473,7 +503,9 @@ nfrs:
   requirement: Port scan matches approved diagnostic list only
   explanation: "Port scans reveal only approved diagnostic and service ports\u2014\
     no unexpected exposures."
-  stories: []
+  stories:
+  - STORY-SEC-008
+  - STORY-SEC-045
   controls:
   - control_id: port-scan-diagnostic-only
     measure: Port scan matches approved diagnostic list only
@@ -496,7 +528,9 @@ nfrs:
 - code: SEC-022
   requirement: Utility program access restricted to approved roles
   explanation: Access to powerful utility programs is restricted to approved roles.
-  stories: []
+  stories:
+  - STORY-SEC-025
+  - STORY-SEC-046
   controls:
   - control_id: utility-access-restricted
     measure: Utility program access restricted to approved roles
@@ -520,7 +554,9 @@ nfrs:
   requirement: Deployment provenance shows unique traceable accounts
   explanation: Deployment provenance shows traceable unique accounts per automated
     pipeline stage.
-  stories: []
+  stories:
+  - STORY-SEC-026
+  - STORY-SEC-047
   controls:
   - control_id: deployment-provenance-traceable
     measure: Deployment provenance shows unique traceable accounts
@@ -544,7 +580,9 @@ nfrs:
   requirement: Code/data transfer logs show integrity & secure channels
   explanation: Transfer of code or data maintains integrity and uses secure channels;
     events are logged.
-  stories: []
+  stories:
+  - STORY-SEC-027
+  - STORY-SEC-048
   controls:
   - control_id: transfer-integrity-secure
     measure: Code/data transfer logs show integrity & secure channels
@@ -590,7 +628,9 @@ nfrs:
   requirement: API responses contain no unencrypted PID fields
   explanation: API responses never include unencrypted patient identifiable data (PID)
     fields.
-  stories: []
+  stories:
+  - STORY-SEC-028
+  - STORY-SEC-049
   controls:
   - control_id: pid-no-plaintext-response
     measure: API responses contain no unencrypted PID fields
@@ -636,7 +676,9 @@ nfrs:
 - code: SEC-028
   requirement: Release pipeline blocks on critical unresolved findings
   explanation: Releases are halted if critical unresolved security findings remain.
-  stories: []
+  stories:
+  - STORY-SEC-009
+  - STORY-SEC-050
   controls:
   - control_id: release-block-critical-findings
     measure: Release pipeline blocks on critical unresolved findings
@@ -692,7 +734,7 @@ nfrs:
     secret stores (e.g., Secrets Manager/KMS) with zero plaintext exposure across
     repositories, images, logs, or build artifacts; continuous scanning enforces compliance.
   stories:
-  - FTRS-1602
+  - STORY-SEC-030
   controls:
   - control_id: cert-secure-storage
     measure: Certificate and private key material stored only in approved encrypted

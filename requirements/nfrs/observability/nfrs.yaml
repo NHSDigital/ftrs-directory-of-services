@@ -28,7 +28,8 @@ nfrs:
 - code: OBS-002
   requirement: Authenticated remote health dashboard accessible
   explanation: Authenticated remote health dashboard is accessible to support teams.
-  stories: []
+  stories:
+  - STORY-OBS-026
   services:
   - crud-apis
   - dos-search
@@ -36,7 +37,8 @@ nfrs:
   requirement: "Health event visible \u226460s after failure"
   explanation: Health events appear on dashboards shortly after failures (within target
     freshness).
-  stories: []
+  stories:
+  - STORY-OBS-027
   services:
   - crud-apis
   - dos-search
@@ -44,21 +46,24 @@ nfrs:
   requirement: Automated maintenance tasks executed; zero manual interventions
   explanation: Automated maintenance tasks run successfully with no manual intervention
     required.
-  stories: []
+  stories:
+  - STORY-OBS-028
   services:
   - crud-apis
   - dos-search
 - code: OBS-005
   requirement: Performance metrics per layer present
   explanation: Layered performance metrics (app, DB, cache) are visible.
-  stories: []
+  stories:
+  - STORY-OBS-029
   services:
   - crud-apis
   - dos-search
 - code: OBS-006
   requirement: Remote performance dashboard matches local view
   explanation: Remote performance dashboard mirrors local environment metrics accurately.
-  stories: []
+  stories:
+  - STORY-OBS-030
   services:
   - crud-apis
   - dos-search
@@ -131,7 +136,8 @@ nfrs:
   requirement: Aggregate latency panel accurate within 2% roll-up
   explanation: "Aggregate latency panel roll-ups remain within acceptable accuracy\
     \ margin (e.g., \u22642%)."
-  stories: []
+  stories:
+  - STORY-OBS-031
   controls:
   - control_id: aggregate-latency-accuracy
     measure: Aggregate latency panel accurate within 2% roll-up
@@ -151,7 +157,8 @@ nfrs:
 - code: OBS-011
   requirement: Failure types logged & classified in dashboard
   explanation: Failure types are logged and classified for reporting.
-  stories: []
+  stories:
+  - STORY-OBS-032
   controls:
   - control_id: failure-type-classification
     measure: Failure types logged & classified in dashboard
@@ -173,7 +180,8 @@ nfrs:
 - code: OBS-012
   requirement: Error percentage metric & alert configured
   explanation: Error rate metric and alert exist to highlight reliability issues.
-  stories: []
+  stories:
+  - STORY-OBS-033
   controls:
   - control_id: error-percentage-alert
     measure: Error percentage metric & alert configured
@@ -193,7 +201,8 @@ nfrs:
 - code: OBS-013
   requirement: Infra log query returns expected fields
   explanation: Infrastructure logs return expected structured fields for queries.
-  stories: []
+  stories:
+  - STORY-OBS-034
   controls:
   - control_id: infra-log-query-fields
     measure: Infra log query returns expected fields
@@ -239,7 +248,8 @@ nfrs:
 - code: OBS-015
   requirement: Retention policy enforced & reported
   explanation: Log retention policy is enforced and reported.
-  stories: []
+  stories:
+  - STORY-OBS-035
   services:
   - crud-apis
   - dos-search
@@ -247,14 +257,16 @@ nfrs:
   requirement: SIEM forwarding delivers test event <60s
   explanation: Security/event forwarding to SIEM delivers test events within freshness
     target.
-  stories: []
+  stories:
+  - STORY-OBS-036
   services:
   - crud-apis
   - dos-search
 - code: OBS-017
   requirement: All log levels supported; dynamic change works
   explanation: All log levels are supported and can be changed dynamically.
-  stories: []
+  stories:
+  - STORY-OBS-037
   services:
   - crud-apis
   - dos-search
@@ -262,7 +274,8 @@ nfrs:
   requirement: Log level propagation <2min with alert on breach
   explanation: Log level changes propagate quickly (under defined minutes) with alert
     if breach.
-  stories: []
+  stories:
+  - STORY-OBS-038
   services:
   - crud-apis
   - dos-search
@@ -270,6 +283,7 @@ nfrs:
   requirement: Operational log shows full transaction chain
   explanation: Operational logs allow full transaction chain reconstruction.
   stories:
+  - STORY-OBS-014
   - STORY-OBS-019
   services:
   - crud-apis
@@ -277,35 +291,40 @@ nfrs:
 - code: OBS-020
   requirement: Operations logs reconstruct workflow
   explanation: Operations logs reconstruct workflow sequences accurately.
-  stories: []
+  stories:
+  - STORY-OBS-039
   services:
   - crud-apis
   - dos-search
 - code: OBS-021
   requirement: Operational events include transaction_id
   explanation: Operational events include a transaction identifier for correlation.
-  stories: []
+  stories:
+  - STORY-OBS-040
   services:
   - crud-apis
   - dos-search
 - code: OBS-022
   requirement: Audit trail reconstructs user action
   explanation: Audit trail can reconstruct a specific user action sequence.
-  stories: []
+  stories:
+  - STORY-OBS-041
   services:
   - crud-apis
   - dos-search
 - code: OBS-023
   requirement: Audit events share transaction_id & ordered timestamps
   explanation: Audit events share transaction IDs and ordered timestamps for traceability.
-  stories: []
+  stories:
+  - STORY-OBS-042
   services:
   - crud-apis
   - dos-search
 - code: OBS-024
   requirement: Alert rule triggers multi-channel notification
   explanation: Alert rules trigger multi-channel notifications (e.g., chat + email).
-  stories: []
+  stories:
+  - STORY-OBS-043
   services:
   - crud-apis
   - dos-search
@@ -333,28 +352,32 @@ nfrs:
 - code: OBS-026
   requirement: Analytics query identifies usage pattern
   explanation: Analytics queries identify usage patterns from captured metrics.
-  stories: []
+  stories:
+  - STORY-OBS-044
   services:
   - crud-apis
   - dos-search
 - code: OBS-027
   requirement: Analytics outage non-impacting to transactions
   explanation: Analytics outages do not impact core transaction processing.
-  stories: []
+  stories:
+  - STORY-OBS-045
   services:
   - crud-apis
   - dos-search
 - code: OBS-028
   requirement: RBAC restricts dashboard sections
   explanation: Role-based access control (RBAC) restricts dashboard sections appropriately.
-  stories: []
+  stories:
+  - STORY-OBS-046
   services:
   - crud-apis
   - dos-search
 - code: OBS-029
   requirement: "Dashboard freshness age \u226460s"
   explanation: "Dashboard freshness age remains under target (e.g., \u226460s)."
-  stories: []
+  stories:
+  - STORY-OBS-047
   services:
   - crud-apis
   - dos-search
@@ -382,7 +405,8 @@ nfrs:
   requirement: Anonymised behaviour metrics collected without identifiers
   explanation: Anonymised behavioural metrics are collected without exposing personal
     identifiers.
-  stories: []
+  stories:
+  - STORY-OBS-048
   services:
   - crud-apis
   - dos-search

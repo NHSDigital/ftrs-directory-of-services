@@ -78,11 +78,13 @@ nfrs:
   requirement: Tuesday window executed; smoke tests pass
   explanation: Scheduled maintenance executes successfully with passing smoke tests
     afterward.
-  stories: []
+  stories:
+  - STORY-AVAIL-006
   controls:
   - control_id: scheduled-maintenance-smoke-tests
     measure: Tuesday window executed; smoke tests pass
-    threshold: Maintenance completes; post-window smoke tests 100% pass; no Sev-1/2 incidents
+    threshold: Maintenance completes; post-window smoke tests 100% pass; no Sev-1/2
+      incidents
     tooling: Deployment controller + smoke test suite + incident log
     cadence: Weekly maintenance window
     environments:
@@ -99,7 +101,8 @@ nfrs:
   requirement: DR exercise restores service <2h
   explanation: DR exercise restores service within target recovery time (< defined
     hours).
-  stories: []
+  stories:
+  - STORY-AVAIL-007
   controls:
   - control_id: dr-exercise-rto
     measure: DR exercise restores service <2h
@@ -121,11 +124,13 @@ nfrs:
   requirement: "Replication lag \u226460s; fail-over data delta minimal"
   explanation: Data replication lag remains under target ensuring minimal failover
     delta.
-  stories: []
+  stories:
+  - STORY-AVAIL-008
   controls:
   - control_id: replication-lag-threshold
     measure: Replication lag \u226460s; fail-over data delta minimal
-    threshold: Replication lag \u2264 60s for primary datasets; failover delta \u2264 1% records
+    threshold: Replication lag \u2264 60s for primary datasets; failover delta \u2264
+      1% records
     tooling: Replication metrics + failover audit
     cadence: Continuous + monthly report
     environments:
@@ -141,7 +146,8 @@ nfrs:
 - code: AVAIL-008
   requirement: API uptime aligns with core service
   explanation: API uptime aligns with overall service availability target.
-  stories: []
+  stories:
+  - STORY-AVAIL-009
   controls:
   - control_id: api-uptime-sla
     measure: API uptime aligns with core service
@@ -161,11 +167,13 @@ nfrs:
 - code: AVAIL-009
   requirement: Non-UK access attempts blocked & logged
   explanation: Access from non-approved geographic regions is blocked and logged.
-  stories: []
+  stories:
+  - STORY-AVAIL-010
   controls:
   - control_id: geo-blocking-enforced
     measure: Non-UK access attempts blocked & logged
-    threshold: 100% non-UK requests blocked at edge; structured log with country + ip
+    threshold: 100% non-UK requests blocked at edge; structured log with country +
+      ip
     tooling: WAF geo rules + edge logs
     cadence: Continuous + weekly audit
     environments:
@@ -181,7 +189,9 @@ nfrs:
 - code: AVAIL-010
   requirement: Blue/green deployment produces 0 failed requests
   explanation: Blue/green deployments complete with zero failed user requests.
-  stories: []
+  stories:
+  - STORY-AVAIL-005
+  - STORY-AVAIL-011
   controls:
   - control_id: blue-green-zero-failures
     measure: Blue/green deployment produces 0 failed requests

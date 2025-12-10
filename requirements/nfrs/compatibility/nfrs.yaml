@@ -4,7 +4,9 @@ nfrs:
 - code: COMP-001
   requirement: Published OS/browser list matches warranted spec
   explanation: Supported OS/browser list matches published specification.
-  stories: []
+  stories:
+  - STORY-COMP-001
+  - STORY-COMP-004
   controls:
   - control_id: published-supported-platforms
     measure: Published OS/browser list matches warranted spec
@@ -20,7 +22,9 @@ nfrs:
 - code: COMP-002
   requirement: MFA (CIS2) succeeds across supported platforms
   explanation: Multi-factor authentication (CIS2) works across supported platforms.
-  stories: []
+  stories:
+  - STORY-COMP-002
+  - STORY-COMP-005
   controls:
   - control_id: mfa-platforms
     measure: MFA (CIS2) succeeds across supported platforms
@@ -40,7 +44,9 @@ nfrs:
   requirement: "\u226590% critical journeys test pass per platform"
   explanation: Critical user journeys pass across all supported platforms at target
     success rate.
-  stories: []
+  stories:
+  - STORY-COMP-003
+  - STORY-COMP-006
   controls:
   - control_id: journeys-pass-rate
     measure: "\u226590% critical journeys test pass per platform"

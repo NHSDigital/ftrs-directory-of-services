@@ -5,7 +5,8 @@ nfrs:
   requirement: Health checks, multi-AZ deployment documented
   explanation: Service remains healthy across multiple availability zones with verified
     health checks.
-  stories: []
+  stories:
+  - STORY-REL-017
   services:
   - crud-apis
   - dos-search
@@ -31,7 +32,8 @@ nfrs:
 - code: REL-003
   requirement: Lifecycle reliability checklist completed
   explanation: Lifecycle reliability checklist is completed for the service components.
-  stories: []
+  stories:
+  - STORY-REL-018
   controls:
   - control_id: reliability-checklist-complete
     measure: Lifecycle reliability checklist completed
@@ -54,11 +56,13 @@ nfrs:
   requirement: DoS simulation mitigated; service responsive
   explanation: Denial-of-service (DoS) simulation shows successful mitigation and
     continued responsiveness.
-  stories: []
+  stories:
+  - STORY-REL-019
   controls:
   - control_id: dos-simulation-mitigated
     measure: DoS simulation mitigated; service responsive
-    threshold: Sustained responsiveness; error rate \u2264 1%; p95 latency within SLA during attack
+    threshold: Sustained responsiveness; error rate \u2264 1%; p95 latency within
+      SLA during attack
     tooling: Attack simulator + WAF/rate-limiter + metrics
     cadence: Quarterly exercise
     environments:
@@ -76,7 +80,8 @@ nfrs:
   requirement: Injection attempt blocked; no code execution
   explanation: Injection attacks are blocked, preventing arbitrary code execution
     attempts.
-  stories: []
+  stories:
+  - STORY-REL-020
   services:
   - crud-apis
   - dos-search
@@ -84,7 +89,8 @@ nfrs:
   requirement: Placement scan shows no forbidden co-residency
   explanation: Resource placement scan shows no forbidden co-residency (e.g., sensitive
     + public workloads).
-  stories: []
+  stories:
+  - STORY-REL-021
   services:
   - crud-apis
   - dos-search
@@ -93,7 +99,7 @@ nfrs:
     capacity; rate limits + alerts)
   explanation: Brute force or auth anomaly attempts are rate limited and create alerts.
   stories:
-  - FTRS-1598
+  - STORY-REL-005
   controls:
   - control_id: auth-brute-force-protection
     measure: Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate
@@ -119,14 +125,16 @@ nfrs:
 - code: REL-008
   requirement: MITM attempt fails; pinned cert validation passes
   explanation: Man-in-the-middle (MITM) attempts fail due to secure certificate pinning.
-  stories: []
+  stories:
+  - STORY-REL-022
   services:
   - crud-apis
   - dos-search
 - code: REL-009
   requirement: Iframe embed blocked; headers verified
   explanation: UI prevents iframe embedding (clickjacking) via secure headers.
-  stories: []
+  stories:
+  - STORY-REL-023
   services:
   - read-only-viewer
 - code: REL-010
@@ -171,7 +179,8 @@ nfrs:
   requirement: Single node removal shows stable performance & zero data loss
   explanation: Removing a single node yields no data loss and minimal performance
     impact.
-  stories: []
+  stories:
+  - STORY-REL-024
   controls:
   - control_id: single-node-removal-safety
     measure: Single node removal shows stable performance & zero data loss
@@ -211,11 +220,13 @@ nfrs:
 - code: REL-014
   requirement: External outage shows fallback & user messaging
   explanation: External dependency outage invokes fallback and clear user messaging.
-  stories: []
+  stories:
+  - STORY-REL-025
   controls:
   - control_id: external-outage-fallback
     measure: External outage shows fallback & user messaging
-    threshold: Documented fallback engaged; user messaging displayed; error rate \u2264 2%; recovery within SLA
+    threshold: Documented fallback engaged; user messaging displayed; error rate \u2264
+      2%; recovery within SLA
     tooling: Chaos experiments on external deps + observability evidence
     cadence: Quarterly
     environments:
@@ -232,11 +243,13 @@ nfrs:
 - code: REL-015
   requirement: LB failure retains sessions & continues routing
   explanation: Load balancer failure preserves sessions and maintains routing continuity.
-  stories: []
+  stories:
+  - STORY-REL-026
   controls:
   - control_id: lb-failure-session-retention
     measure: LB failure retains sessions & continues routing
-    threshold: Zero session loss; traffic re-routed within 30s; p95 latency delta \u2264 10%
+    threshold: Zero session loss; traffic re-routed within 30s; p95 latency delta
+      \u2264 10%
     tooling: LB failover drill + session continuity tests + metrics
     cadence: Semi-annual drill
     environments:
@@ -258,7 +271,8 @@ nfrs:
   controls:
   - control_id: server-error-user-messaging
     measure: Server error shows logout/message per spec
-    threshold: Error paths conform to spec; correct logout/message; audit evidence across endpoints
+    threshold: Error paths conform to spec; correct logout/message; audit evidence
+      across endpoints
     tooling: Contract tests + UI behaviour checks + logs
     cadence: CI per build + monthly audit
     environments:
@@ -274,7 +288,8 @@ nfrs:
 - code: REL-017
   requirement: Restore drill meets RPO/RTO & ransomware defenses
   explanation: Restore drills meet RPO/RTO targets and confirm ransomware defenses.
-  stories: []
+  stories:
+  - STORY-REL-027
   services:
   - crud-apis
   - dos-search

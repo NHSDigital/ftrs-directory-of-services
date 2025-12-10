@@ -4,7 +4,8 @@ nfrs:
 - code: INT-001
   requirement: Resources validated against UK Core profiles
   explanation: Resources conform to UK Core profiles ensuring national standard alignment.
-  stories: []
+  stories:
+  - STORY-INT-018
   controls:
   - control_id: uk-core-profile-validation
     measure: Resources validated against UK Core profiles
@@ -26,11 +27,13 @@ nfrs:
 - code: INT-002
   requirement: Versioning & deprecation policy published
   explanation: Versioning and deprecation policy is published for integrators.
-  stories: []
+  stories:
+  - STORY-INT-019
   controls:
   - control_id: versioning-deprecation-policy
     measure: Versioning & deprecation policy published
-    threshold: Policy published; changes communicated; minimum 6 months deprecation window
+    threshold: Policy published; changes communicated; minimum 6 months deprecation
+      window
     tooling: Documentation repo + change comms channel
     cadence: Review quarterly; update on change
     environments:
@@ -46,11 +49,13 @@ nfrs:
 - code: INT-003
   requirement: Minor releases backward compatible for 12 months
   explanation: Minor releases remain backward compatible for the defined support window.
-  stories: []
+  stories:
+  - STORY-INT-020
   controls:
   - control_id: backward-compatibility-window
     measure: Minor releases backward compatible for 12 months
-    threshold: No breaking changes; deprecation window \u226512 months; exceptions recorded
+    threshold: No breaking changes; deprecation window \u226512 months; exceptions
+      recorded
     tooling: Contract tests + release notes
     cadence: CI per build + release review
     environments:
@@ -108,7 +113,8 @@ nfrs:
 - code: INT-006
   requirement: Identifier normalization applied (uppercase, trimmed)
   explanation: Identifiers are normalised (case, trimming) for consistent matching.
-  stories: []
+  stories:
+  - STORY-INT-021
   controls:
   - control_id: identifier-normalization-enforced
     measure: Identifier normalization applied (uppercase, trimmed)
@@ -167,7 +173,8 @@ nfrs:
 - code: INT-009
   requirement: Only documented FHIR search params accepted
   explanation: Only documented FHIR search parameters are accepted; unknown ones rejected.
-  stories: []
+  stories:
+  - STORY-INT-022
   controls:
   - control_id: documented-search-params-only
     measure: Only documented FHIR search params accepted
@@ -189,11 +196,13 @@ nfrs:
 - code: INT-010
   requirement: Version-controlled integration contract published
   explanation: Integration contract is version-controlled and published.
-  stories: []
+  stories:
+  - STORY-INT-023
   controls:
   - control_id: version-controlled-contract
     measure: Version-controlled integration contract published
-    threshold: Contract published under version control; lint passes; updated \u22645 business days after change
+    threshold: Contract published under version control; lint passes; updated \u22645
+      business days after change
     tooling: Spec repo + Spectral lint + diff job
     cadence: CI per build + weekly audit
     environments:
@@ -211,7 +220,8 @@ nfrs:
 - code: INT-011
   requirement: Machine-readable changelog generated
   explanation: Machine-readable changelog is generated for each release.
-  stories: []
+  stories:
+  - STORY-INT-024
   controls:
   - control_id: machine-readable-changelog
     measure: Machine-readable changelog generated
@@ -231,7 +241,9 @@ nfrs:
 - code: INT-012
   requirement: Terminology bindings validated
   explanation: Terminology bindings are validated to ensure correct coding.
-  stories: []
+  stories:
+  - STORY-INT-005
+  - STORY-INT-025
   controls:
   - control_id: terminology-binding-validation
     measure: Terminology bindings validated
@@ -255,6 +267,7 @@ nfrs:
   explanation: Correlation IDs persist across internal and external calls for tracing.
   stories:
   - STORY-INT-004
+  - STORY-OBS-019
   controls:
   - control_id: correlation-id-preserved
     measure: Correlation IDs preserved across calls
@@ -273,7 +286,8 @@ nfrs:
 - code: INT-014
   requirement: Null vs absent data handled per FHIR
   explanation: Null vs absent data semantics follow FHIR specification rules.
-  stories: []
+  stories:
+  - STORY-INT-026
   controls:
   - control_id: null-vs-absent-semantics
     measure: Null vs absent data handled per FHIR
@@ -295,7 +309,8 @@ nfrs:
 - code: INT-015
   requirement: "\u226590% interoperability scenario coverage"
   explanation: "Test coverage spans \u226590% of defined interoperability scenarios."
-  stories: []
+  stories:
+  - STORY-INT-027
   controls:
   - control_id: interoperability-scenario-coverage
     measure: \u226590% interoperability scenario coverage
@@ -317,7 +332,8 @@ nfrs:
 - code: INT-016
   requirement: Stateless sequence-independent operations
   explanation: Operations are stateless and do not rely on sequence order.
-  stories: []
+  stories:
+  - STORY-INT-028
   controls:
   - control_id: stateless-sequence-independence
     measure: Stateless sequence-independent operations
@@ -339,7 +355,6 @@ nfrs:
   explanation: Input validation covers every field on every request to prevent malformed
     data.
   stories:
-  - STORY-INT-005
   - STORY-INT-017
   controls:
   - control_id: field-validation-complete
@@ -362,7 +377,9 @@ nfrs:
   explanation: Comprehensive OpenAPI documentation is published (overview, audience,
     related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding,
     endpoints with examples) to support integrator adoption.
-  stories: []
+  stories:
+  - STORY-INT-006
+  - STORY-INT-029
   controls:
   - control_id: api-documentation-completeness
     measure: Comprehensive published OpenAPI documentation

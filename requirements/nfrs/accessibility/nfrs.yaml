@@ -47,7 +47,8 @@ nfrs:
   controls:
   - control_id: manual-accessibility-test
     measure: Manual accessibility test executed per release
-    threshold: Release includes manual accessibility audit; issues triaged within 5 business days
+    threshold: Release includes manual accessibility audit; issues triaged within
+      5 business days
     tooling: Manual checklist + report
     cadence: Per release
     environments:
@@ -66,7 +67,8 @@ nfrs:
   controls:
   - control_id: accessibility-defect-sla
     measure: Defects tracked with parity priority & SLA
-    threshold: Accessibility defects use same priority/SLA scheme; monthly compliance report
+    threshold: Accessibility defects use same priority/SLA scheme; monthly compliance
+      report
     tooling: Issue tracker + SLA report
     cadence: Monthly
     environments:
@@ -102,7 +104,8 @@ nfrs:
   requirement: Assistive tech not blocked by headers/CSP
   explanation: Assistive technologies are not blocked by headers or Content Security
     Policy (CSP).
-  stories: []
+  stories:
+  - STORY-ACC-006
   services:
   - read-only-viewer
   controls:
@@ -120,7 +123,8 @@ nfrs:
 - code: ACC-007
   requirement: Test dataset covers tables/forms/status messages
   explanation: 'Test dataset covers common components: tables, forms, status messages.'
-  stories: []
+  stories:
+  - STORY-ACC-007
   services:
   - read-only-viewer
   controls:
@@ -138,7 +142,8 @@ nfrs:
 - code: ACC-008
   requirement: CI accessibility stage completes <5min
   explanation: CI accessibility scan stage completes quickly (under target time).
-  stories: []
+  stories:
+  - STORY-ACC-008
   services:
   - read-only-viewer
   controls:
@@ -156,7 +161,9 @@ nfrs:
 - code: ACC-009
   requirement: Keyboard tab order regression test passes
   explanation: Keyboard-only navigation preserves logical tab order without traps.
-  stories: []
+  stories:
+  - STORY-ACC-003
+  - STORY-ACC-009
   controls:
   - control_id: keyboard-tab-order
     measure: Keyboard tab order regression test passes
@@ -173,7 +180,9 @@ nfrs:
 - code: ACC-010
   requirement: Focus trap tests pass for modals/overlays
   explanation: Focus handling works for modals and overlays without trapping user.
-  stories: []
+  stories:
+  - STORY-ACC-004
+  - STORY-ACC-010
   controls:
   - control_id: focus-trap-tests
     measure: Focus trap tests pass for modals/overlays
@@ -190,7 +199,8 @@ nfrs:
 - code: ACC-011
   requirement: Screen reader ARIA role announcements verified
   explanation: Screen reader announces ARIA roles and states correctly.
-  stories: []
+  stories:
+  - STORY-ACC-011
   services:
   - read-only-viewer
   controls:
@@ -208,7 +218,8 @@ nfrs:
 - code: ACC-012
   requirement: Accessibility results documented with feature tests
   explanation: Accessibility results are documented alongside feature tests.
-  stories: []
+  stories:
+  - STORY-ACC-012
   services:
   - read-only-viewer
   controls:
@@ -226,7 +237,8 @@ nfrs:
 - code: ACC-013
   requirement: Central issue log maintained & current
   explanation: Centralised accessibility issue log is maintained and current.
-  stories: []
+  stories:
+  - STORY-ACC-013
   services:
   - read-only-viewer
   controls:
@@ -244,7 +256,8 @@ nfrs:
 - code: ACC-014
   requirement: Accessibility champion/workgroup active
   explanation: Active champion or workgroup drives accessibility practice.
-  stories: []
+  stories:
+  - STORY-ACC-014
   services:
   - read-only-viewer
   controls:
@@ -262,7 +275,9 @@ nfrs:
 - code: ACC-015
   requirement: Monthly accessibility report published
   explanation: Monthly accessibility report is published for stakeholders.
-  stories: []
+  stories:
+  - STORY-ACC-005
+  - STORY-ACC-015
   controls:
   - control_id: monthly-accessibility-report
     measure: Monthly accessibility report published
@@ -279,7 +294,8 @@ nfrs:
 - code: ACC-016
   requirement: Exception process documented & used
   explanation: Exception process for accessibility deviations is documented.
-  stories: []
+  stories:
+  - STORY-ACC-016
   services:
   - read-only-viewer
   controls:
@@ -297,7 +313,8 @@ nfrs:
 - code: ACC-017
   requirement: Exception record contains required fields
   explanation: Exception records include required fields (impact, mitigation, expiry).
-  stories: []
+  stories:
+  - STORY-ACC-017
   services:
   - read-only-viewer
   controls:
@@ -315,7 +332,8 @@ nfrs:
 - code: ACC-018
   requirement: Pre-commit checks complete <30s
   explanation: Pre-commit accessibility checks finish within target duration.
-  stories: []
+  stories:
+  - STORY-ACC-018
   services:
   - read-only-viewer
   controls:
@@ -333,7 +351,8 @@ nfrs:
 - code: ACC-019
   requirement: CI accessibility stage completes <5min
   explanation: CI accessibility stage completes within target time window.
-  stories: []
+  stories:
+  - STORY-ACC-019
   services:
   - read-only-viewer
   controls:
@@ -351,7 +370,8 @@ nfrs:
 - code: ACC-020
   requirement: Overnight full scan duration <2h
   explanation: Overnight full scan finishes under defined maximum duration.
-  stories: []
+  stories:
+  - STORY-ACC-020
   services:
   - read-only-viewer
   controls:
@@ -369,7 +389,8 @@ nfrs:
 - code: ACC-021
   requirement: Accessibility regression triggers alert
   explanation: Regression in accessibility triggers automated alert.
-  stories: []
+  stories:
+  - STORY-ACC-021
   services:
   - read-only-viewer
   controls:
@@ -387,7 +408,8 @@ nfrs:
 - code: ACC-022
   requirement: False positive ratio report shows improvement
   explanation: False positive ratio is measured and trending toward improvement.
-  stories: []
+  stories:
+  - STORY-ACC-022
   services:
   - read-only-viewer
   controls:

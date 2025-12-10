@@ -107,7 +107,8 @@ nfrs:
 - code: GOV-006
   requirement: Medical Device out-of-scope statement recorded
   explanation: Statement confirming service is out of scope for Medical Device regulation.
-  stories: []
+  stories:
+  - STORY-GOV-006
   services:
   - crud-apis
   - dos-search
@@ -127,7 +128,8 @@ nfrs:
 - code: GOV-007
   requirement: FtRS Architects review & approval logged
   explanation: Architecture review and approval logged by FtRS architects.
-  stories: []
+  stories:
+  - STORY-GOV-007
   services:
   - crud-apis
   - dos-search
@@ -147,7 +149,8 @@ nfrs:
 - code: GOV-008
   requirement: Cloud Expert deployment approval documented
   explanation: Cloud expert deployment approval documented (infrastructure readiness).
-  stories: []
+  stories:
+  - STORY-GOV-008
   services:
   - crud-apis
   - dos-search
@@ -167,7 +170,9 @@ nfrs:
 - code: GOV-009
   requirement: Solution Assurance approval ticket closed
   explanation: Solution Assurance approval ticket is closed.
-  stories: []
+  stories:
+  - STORY-GOV-003
+  - STORY-GOV-009
   controls:
   - control_id: solution-assurance-approval
     measure: Solution Assurance approval ticket closed
@@ -184,7 +189,9 @@ nfrs:
 - code: GOV-010
   requirement: Clinical Safety assurance approval recorded
   explanation: Clinical Safety assurance approval recorded.
-  stories: []
+  stories:
+  - STORY-GOV-004
+  - STORY-GOV-010
   controls:
   - control_id: clinical-safety-approval
     measure: Clinical Safety assurance approval recorded
@@ -201,7 +208,8 @@ nfrs:
 - code: GOV-011
   requirement: Information Governance approval recorded
   explanation: Information Governance approval recorded.
-  stories: []
+  stories:
+  - STORY-GOV-011
   services:
   - crud-apis
   - dos-search
@@ -221,7 +229,8 @@ nfrs:
 - code: GOV-012
   requirement: TRG approval session outcome logged
   explanation: Technical Review Group (TRG) approval outcome documented.
-  stories: []
+  stories:
+  - STORY-GOV-012
   services:
   - crud-apis
   - dos-search
@@ -241,7 +250,8 @@ nfrs:
 - code: GOV-013
   requirement: SIRO sign-off obtained
   explanation: Senior Information Risk Owner (SIRO) sign-off obtained.
-  stories: []
+  stories:
+  - STORY-GOV-013
   services:
   - crud-apis
   - dos-search
@@ -261,7 +271,8 @@ nfrs:
 - code: GOV-014
   requirement: Caldicott Principles Guardian approval recorded
   explanation: Caldicott Guardian approval recorded for data handling.
-  stories: []
+  stories:
+  - STORY-GOV-014
   services:
   - crud-apis
   - dos-search
@@ -281,7 +292,8 @@ nfrs:
 - code: GOV-015
   requirement: DUEC Assurance Board acceptance logged
   explanation: DUEC Assurance Board acceptance logged.
-  stories: []
+  stories:
+  - STORY-GOV-015
   services:
   - crud-apis
   - dos-search
@@ -301,7 +313,8 @@ nfrs:
 - code: GOV-016
   requirement: Live Services Board go-live approval recorded
   explanation: Live Services Board go-live approval recorded.
-  stories: []
+  stories:
+  - STORY-GOV-016
   services:
   - crud-apis
   - dos-search
