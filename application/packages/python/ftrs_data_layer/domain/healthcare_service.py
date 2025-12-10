@@ -4,7 +4,6 @@ from uuid import UUID
 from ftrs_data_layer.domain.availability import OpeningTime
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.clinical_code import (
-    Disposition,
     SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.domain.enums import (
