@@ -7,11 +7,8 @@ from ftrs_data_layer.domain import (
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
     DayOfWeek,
-    Disposition,
     HealthcareService,
     NotAvailable,
-    SymptomDiscriminator,
-    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
     Telecom,
 )
@@ -46,9 +43,7 @@ def test_healthcare_service_round_trip_and_types() -> None:
                 sd=4003,
             )
         ],
-        dispositions=[
-            "DX1","DX114"
-        ],
+        dispositions=["DX1", "DX114"],
         openingTime=[
             AvailableTime(
                 dayOfWeek=DayOfWeek.MONDAY,
