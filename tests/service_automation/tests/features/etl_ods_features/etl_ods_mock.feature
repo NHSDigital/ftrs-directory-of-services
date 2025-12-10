@@ -1,4 +1,4 @@
-@etl-ods-mock @ftrs-pipeline
+@etl-ods-mock
 Feature: ETL ODS Mock - Upstream API Error Handling
 
   Background:

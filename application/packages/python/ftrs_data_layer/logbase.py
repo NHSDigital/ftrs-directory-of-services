@@ -466,11 +466,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_UTILS_008 = LogReference(
         level=INFO,
-        message="Running in against automated tests, using MOCK api key from secret manager.",
-    )
-    ETL_UTILS_009 = LogReference(
-        level=INFO,
-        message="Running in against automated tests, sending request to mock API Gateway with x-api-key header",
+        message="Running in against automated tests, not using api key.",
     )
     ETL_UTILS_010 = LogReference(
         level=INFO,
