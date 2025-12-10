@@ -45,6 +45,20 @@ nfrs:
   requirement: All layers pass scalability checklist
   explanation: All layers (app, DB, cache) meet defined scalability checklist items.
   stories: []
+  controls:
+  - control_id: scalability-checklist-complete
+    measure: All layers pass scalability checklist
+    threshold: 100% checklist items complete; exceptions recorded with expiry
+    tooling: Checklist tracker + evidence links
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures scale readiness across tiers
   services:
   - crud-apis
   - dos-search
@@ -53,6 +67,19 @@ nfrs:
   explanation: Scale-down only occurs after sustained low utilisation (not transient
     dips).
   stories: []
+  controls:
+  - control_id: scale-down-sustained-low-util
+    measure: Scale-down events occur after sustained low utilisation
+    threshold: No scale-down unless utilisation < 40% sustained for 30m; no flapping
+    tooling: Autoscaling metrics + policy
+    cadence: Continuous + monthly policy audit
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents scale instability
   services:
   - crud-apis
   - dos-search
@@ -117,6 +144,19 @@ nfrs:
   requirement: No manual scaling tickets for variance period
   explanation: During the variance period no manual scaling tickets are needed.
   stories: []
+  controls:
+  - control_id: manual-scaling-eliminated
+    measure: No manual scaling tickets for variance period
+    threshold: 0 manual scaling tickets in rolling 90 days
+    tooling: Ticketing system + scaling audit
+    cadence: Monthly review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms autoscaling effectiveness
   services:
   - crud-apis
   - dos-search
@@ -124,6 +164,19 @@ nfrs:
   requirement: Audit logs capture actor/reason for scaling
   explanation: Audit logs record who initiated scaling and why.
   stories: []
+  controls:
+  - control_id: scaling-audit-context
+    measure: Audit logs capture actor/reason for scaling
+    threshold: 100% scale events have actor, reason, correlation_id
+    tooling: Audit log pipeline + policy
+    cadence: Continuous + quarterly audit
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Provides traceability of scaling decisions
   services:
   - crud-apis
   - dos-search
@@ -131,6 +184,19 @@ nfrs:
   requirement: Predictive alert fires at utilisation forecast threshold
   explanation: Predictive alerts fire before utilisation reaches critical thresholds.
   stories: []
+  controls:
+  - control_id: predictive-utilisation-alert
+    measure: Predictive alert fires at utilisation forecast threshold
+    threshold: Forecasted utilisation > 80% in 15m triggers alert; MTTAlert < 2m
+    tooling: Forecasting job + alerting rules
+    cadence: Continuous + monthly tuning
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents SLA breach via early action
   services:
   - crud-apis
   - dos-search

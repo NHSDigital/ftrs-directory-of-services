@@ -5,6 +5,21 @@ nfrs:
   requirement: Resources validated against UK Core profiles
   explanation: Resources conform to UK Core profiles ensuring national standard alignment.
   stories: []
+  controls:
+  - control_id: uk-core-profile-validation
+    measure: Resources validated against UK Core profiles
+    threshold: 100% resources pass UK Core validation in CI and pre-release audit
+    tooling: FHIR validators + contract test suite
+    cadence: CI per build + quarterly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures national standard alignment
   services:
   - crud-apis
   - dos-search
@@ -12,6 +27,19 @@ nfrs:
   requirement: Versioning & deprecation policy published
   explanation: Versioning and deprecation policy is published for integrators.
   stories: []
+  controls:
+  - control_id: versioning-deprecation-policy
+    measure: Versioning & deprecation policy published
+    threshold: Policy published; changes communicated; minimum 6 months deprecation window
+    tooling: Documentation repo + change comms channel
+    cadence: Review quarterly; update on change
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Reduces integration friction
   services:
   - crud-apis
   - dos-search
@@ -19,6 +47,19 @@ nfrs:
   requirement: Minor releases backward compatible for 12 months
   explanation: Minor releases remain backward compatible for the defined support window.
   stories: []
+  controls:
+  - control_id: backward-compatibility-window
+    measure: Minor releases backward compatible for 12 months
+    threshold: No breaking changes; deprecation window \u226512 months; exceptions recorded
+    tooling: Contract tests + release notes
+    cadence: CI per build + release review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Protects consumer integrations
   services:
   - crud-apis
   - dos-search
@@ -27,6 +68,20 @@ nfrs:
   explanation: Semantic mappings preserve meaning when round-tripped between formats.
   stories:
   - STORY-INT-004
+  controls:
+  - control_id: semantic-roundtrip-fidelity
+    measure: Semantic mapping round-trip fidelity preserved
+    threshold: Round-trip preserves fields and codes; divergence \u2264 1%
+    tooling: Mapping tests + diff reports
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Maintains semantic integrity
   services:
   - crud-apis
   - dos-search
@@ -54,6 +109,21 @@ nfrs:
   requirement: Identifier normalization applied (uppercase, trimmed)
   explanation: Identifiers are normalised (case, trimming) for consistent matching.
   stories: []
+  controls:
+  - control_id: identifier-normalization-enforced
+    measure: Identifier normalization applied (uppercase, trimmed)
+    threshold: 100% identifiers normalised; mismatches \u2264 0.1%
+    tooling: Normalization middleware + validation tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent identifier handling
   services:
   - crud-apis
   - dos-search
@@ -98,6 +168,21 @@ nfrs:
   requirement: Only documented FHIR search params accepted
   explanation: Only documented FHIR search parameters are accepted; unknown ones rejected.
   stories: []
+  controls:
+  - control_id: documented-search-params-only
+    measure: Only documented FHIR search params accepted
+    threshold: Unknown search params rejected with OperationOutcome
+    tooling: API gateway policy + contract tests
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents ambiguity in search semantics
   services:
   - crud-apis
   - dos-search
@@ -105,6 +190,21 @@ nfrs:
   requirement: Version-controlled integration contract published
   explanation: Integration contract is version-controlled and published.
   stories: []
+  controls:
+  - control_id: version-controlled-contract
+    measure: Version-controlled integration contract published
+    threshold: Contract published under version control; lint passes; updated \u22645 business days after change
+    tooling: Spec repo + Spectral lint + diff job
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent and timely documentation
   services:
   - crud-apis
   - dos-search
@@ -112,6 +212,19 @@ nfrs:
   requirement: Machine-readable changelog generated
   explanation: Machine-readable changelog is generated for each release.
   stories: []
+  controls:
+  - control_id: machine-readable-changelog
+    measure: Machine-readable changelog generated
+    threshold: Changelog generated per release with breaking changes highlighted
+    tooling: Release pipeline + changelog generator
+    cadence: Per release
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Supports integrators with clear changes
   services:
   - crud-apis
   - dos-search
@@ -119,6 +232,21 @@ nfrs:
   requirement: Terminology bindings validated
   explanation: Terminology bindings are validated to ensure correct coding.
   stories: []
+  controls:
+  - control_id: terminology-binding-validation
+    measure: Terminology bindings validated
+    threshold: 100% required bindings validated against value sets
+    tooling: Terminology server + validators
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures correct coding practices
   services:
   - crud-apis
   - dos-search
@@ -146,6 +274,21 @@ nfrs:
   requirement: Null vs absent data handled per FHIR
   explanation: Null vs absent data semantics follow FHIR specification rules.
   stories: []
+  controls:
+  - control_id: null-vs-absent-semantics
+    measure: Null vs absent data handled per FHIR
+    threshold: Responses follow FHIR rules; conformance tests pass
+    tooling: Contract tests + response validators
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Clarifies response semantics for consumers
   services:
   - crud-apis
   - dos-search
@@ -153,6 +296,21 @@ nfrs:
   requirement: "\u226590% interoperability scenario coverage"
   explanation: "Test coverage spans \u226590% of defined interoperability scenarios."
   stories: []
+  controls:
+  - control_id: interoperability-scenario-coverage
+    measure: \u226590% interoperability scenario coverage
+    threshold: \u226590% coverage across documented scenarios; exceptions recorded
+    tooling: Scenario test suite + coverage reports
+    cadence: CI per build + quarterly review
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures comprehensive interoperability validation
   services:
   - crud-apis
   - dos-search

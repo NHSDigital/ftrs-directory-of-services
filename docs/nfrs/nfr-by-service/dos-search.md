@@ -333,6 +333,38 @@ Clinical Safety assurance approval recorded
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | clinical-safety-approval | Clinical Safety assurance approval recorded | Approval recorded; evidence available | Clinical safety workflow + repository | Pre-live | prod | dos-search | draft | Complies with clinical safety governance |
 
+### INT-001
+
+Resources validated against UK Core profiles
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | FHIR validators + contract test suite | CI per build + quarterly audit | int,ref,prod | dos-search | draft | Ensures national standard alignment |
+
+### INT-002
+
+Versioning & deprecation policy published
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| versioning-deprecation-policy | Versioning & deprecation policy published | Policy published; changes communicated; minimum 6 months deprecation window | Documentation repo + change comms channel | Review quarterly; update on change | prod | dos-search | draft | Reduces integration friction |
+
+### INT-003
+
+Minor releases backward compatible for 12 months
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| backward-compatibility-window | Minor releases backward compatible for 12 months | No breaking changes; deprecation window \u226512 months; exceptions recorded | Contract tests + release notes | CI per build + release review | prod | dos-search | draft | Protects consumer integrations |
+
+### INT-004
+
+Semantic mapping round-trip fidelity preserved
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| semantic-roundtrip-fidelity | Semantic mapping round-trip fidelity preserved | Round-trip preserves fields and codes; divergence \u2264 1% | Mapping tests + diff reports | CI per build + monthly audit | int,ref | dos-search | draft | Maintains semantic integrity |
+
 ### INT-005
 
 Standard OperationOutcome error structure enforced
@@ -340,6 +372,14 @@ Standard OperationOutcome error structure enforced
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | operationoutcome-structure | Standard OperationOutcome error structure enforced | 100% error responses conform to OperationOutcome spec | Contract tests + schema validators | CI per build + weekly contract audit | int,ref,prod | dos-search | draft | Ensures consistent error semantics across integrations |
+
+### INT-006
+
+Identifier normalization applied (uppercase, trimmed)
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| identifier-normalization-enforced | Identifier normalization applied (uppercase, trimmed) | 100% identifiers normalised; mismatches \u2264 0.1% | Normalization middleware + validation tests | CI per build + monthly audit | int,ref,prod | dos-search | draft | Ensures consistent identifier handling |
 
 ### INT-007
 
@@ -349,6 +389,38 @@ Strict content negotiation implemented
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | strict-content-negotiation | Strict content negotiation implemented | Only documented media types accepted; correct response Content-Type | API contract tests + gateway policies | CI per build | int,ref,prod | dos-search | draft | Prevents ambiguity in accepted formats |
 
+### INT-009
+
+Only documented FHIR search params accepted
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| documented-search-params-only | Only documented FHIR search params accepted | Unknown search params rejected with OperationOutcome | API gateway policy + contract tests | CI per build | int,ref,prod | dos-search | draft | Prevents ambiguity in search semantics |
+
+### INT-010
+
+Version-controlled integration contract published
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| version-controlled-contract | Version-controlled integration contract published | Contract published under version control; lint passes; updated \u22645 business days after change | Spec repo + Spectral lint + diff job | CI per build + weekly audit | int,ref,prod | dos-search | draft | Ensures consistent and timely documentation |
+
+### INT-011
+
+Machine-readable changelog generated
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| machine-readable-changelog | Machine-readable changelog generated | Changelog generated per release with breaking changes highlighted | Release pipeline + changelog generator | Per release | prod | dos-search | draft | Supports integrators with clear changes |
+
+### INT-012
+
+Terminology bindings validated
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| terminology-binding-validation | Terminology bindings validated | 100% required bindings validated against value sets | Terminology server + validators | CI per build + monthly audit | int,ref,prod | dos-search | draft | Ensures correct coding practices |
+
 ### INT-013
 
 Correlation IDs preserved across calls
@@ -356,6 +428,22 @@ Correlation IDs preserved across calls
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation_id in logs and headers | Middleware + log correlation tests | CI per build + monthly audit | int,ref,prod | dos-search | draft | Enables end-to-end tracing and diagnostics |
+
+### INT-014
+
+Null vs absent data handled per FHIR
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| null-vs-absent-semantics | Null vs absent data handled per FHIR | Responses follow FHIR rules; conformance tests pass | Contract tests + response validators | CI per build | int,ref,prod | dos-search | draft | Clarifies response semantics for consumers |
+
+### INT-015
+
+≥90% interoperability scenario coverage
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| interoperability-scenario-coverage | \u226590% interoperability scenario coverage | \u226590% coverage across documented scenarios; exceptions recorded | Scenario test suite + coverage reports | CI per build + quarterly review | int,ref,prod | dos-search | draft | Ensures comprehensive interoperability validation |
 
 ### INT-016
 
@@ -505,6 +593,22 @@ Vertical resize retains data & function without downtime
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | vertical-resize-no-downtime | Vertical resize retains data & function without downtime | Resize completes with zero downtime and no data loss | Resize runbook + health checks | Semi-annual exercise | int,ref | dos-search | draft | Ensures safe vertical scaling |
 
+### SCAL-003
+
+All layers pass scalability checklist
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| scalability-checklist-complete | All layers pass scalability checklist | 100% checklist items complete; exceptions recorded with expiry | Checklist tracker + evidence links | Quarterly | int,ref | dos-search | draft | Ensures scale readiness across tiers |
+
+### SCAL-004
+
+Scale-down events occur after sustained low utilisation
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| scale-down-sustained-low-util | Scale-down events occur after sustained low utilisation | No scale-down unless utilisation < 40% sustained for 30m; no flapping | Autoscaling metrics + policy | Continuous + monthly policy audit | prod | dos-search | draft | Prevents scale instability |
+
 ### SCAL-005
 
 Autoscaling policy simulation triggers controlled scale
@@ -528,6 +632,30 @@ Capacity report shows ≥30% headroom
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | capacity-headroom | Capacity report shows ≥30% headroom | >= 30% capacity headroom maintained | Capacity planning reports | Monthly | prod | dos-search | draft | Ensures buffer for demand spikes |
+
+### SCAL-008
+
+No manual scaling tickets for variance period
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| manual-scaling-eliminated | No manual scaling tickets for variance period | 0 manual scaling tickets in rolling 90 days | Ticketing system + scaling audit | Monthly review | prod | dos-search | draft | Confirms autoscaling effectiveness |
+
+### SCAL-009
+
+Audit logs capture actor/reason for scaling
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| scaling-audit-context | Audit logs capture actor/reason for scaling | 100% scale events have actor, reason, correlation_id | Audit log pipeline + policy | Continuous + quarterly audit | prod | dos-search | draft | Provides traceability of scaling decisions |
+
+### SCAL-010
+
+Predictive alert fires at utilisation forecast threshold
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| predictive-utilisation-alert | Predictive alert fires at utilisation forecast threshold | Forecasted utilisation > 80% in 15m triggers alert; MTTAlert < 2m | Forecasting job + alerting rules | Continuous + monthly tuning | prod | dos-search | draft | Prevents SLA breach via early action |
 
 ### SEC-001
 
