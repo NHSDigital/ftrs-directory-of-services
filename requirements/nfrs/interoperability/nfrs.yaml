@@ -5,19 +5,31 @@ nfrs:
   requirement: Resources validated against UK Core profiles
   explanation: Resources conform to UK Core profiles ensuring national standard alignment.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-002
   requirement: Versioning & deprecation policy published
   explanation: Versioning and deprecation policy is published for integrators.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-003
   requirement: Minor releases backward compatible for 12 months
   explanation: Minor releases remain backward compatible for the defined support window.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-004
   requirement: Semantic mapping round-trip fidelity preserved
   explanation: Semantic mappings preserve meaning when round-tripped between formats.
   stories:
   - STORY-INT-004
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-005
   requirement: Standard OperationOutcome error structure enforced
   explanation: Error responses follow standard OperationOutcome structure.
@@ -42,6 +54,9 @@ nfrs:
   requirement: Identifier normalization applied (uppercase, trimmed)
   explanation: Identifiers are normalised (case, trimming) for consistent matching.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-007
   requirement: Strict content negotiation implemented
   explanation: Strict content negotiation enforces supported media types only.
@@ -83,18 +98,30 @@ nfrs:
   requirement: Only documented FHIR search params accepted
   explanation: Only documented FHIR search parameters are accepted; unknown ones rejected.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-010
   requirement: Version-controlled integration contract published
   explanation: Integration contract is version-controlled and published.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-011
   requirement: Machine-readable changelog generated
   explanation: Machine-readable changelog is generated for each release.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-012
   requirement: Terminology bindings validated
   explanation: Terminology bindings are validated to ensure correct coding.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-013
   requirement: Correlation IDs preserved across calls
   explanation: Correlation IDs persist across internal and external calls for tracing.
@@ -119,10 +146,16 @@ nfrs:
   requirement: Null vs absent data handled per FHIR
   explanation: Null vs absent data semantics follow FHIR specification rules.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-015
   requirement: "\u226590% interoperability scenario coverage"
   explanation: "Test coverage spans \u226590% of defined interoperability scenarios."
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: INT-016
   requirement: Stateless sequence-independent operations
   explanation: Operations are stateless and do not rely on sequence order.

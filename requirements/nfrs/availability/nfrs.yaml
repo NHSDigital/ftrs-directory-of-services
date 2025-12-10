@@ -79,24 +79,39 @@ nfrs:
   explanation: Scheduled maintenance executes successfully with passing smoke tests
     afterward.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: AVAIL-006
   requirement: DR exercise restores service <2h
   explanation: DR exercise restores service within target recovery time (< defined
     hours).
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: AVAIL-007
   requirement: "Replication lag \u226460s; fail-over data delta minimal"
   explanation: Data replication lag remains under target ensuring minimal failover
     delta.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: AVAIL-008
   requirement: API uptime aligns with core service
   explanation: API uptime aligns with overall service availability target.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: AVAIL-009
   requirement: Non-UK access attempts blocked & logged
   explanation: Access from non-approved geographic regions is blocked and logged.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: AVAIL-010
   requirement: Blue/green deployment produces 0 failed requests
   explanation: Blue/green deployments complete with zero failed user requests.

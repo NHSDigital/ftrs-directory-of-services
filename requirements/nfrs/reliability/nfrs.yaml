@@ -6,6 +6,9 @@ nfrs:
   explanation: Service remains healthy across multiple availability zones with verified
     health checks.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-002
   requirement: AZ failure simulation maintains service
   explanation: Simulated AZ failure does not interrupt service delivery.
@@ -29,21 +32,33 @@ nfrs:
   requirement: Lifecycle reliability checklist completed
   explanation: Lifecycle reliability checklist is completed for the service components.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-004
   requirement: DoS simulation mitigated; service responsive
   explanation: Denial-of-service (DoS) simulation shows successful mitigation and
     continued responsiveness.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-005
   requirement: Injection attempt blocked; no code execution
   explanation: Injection attacks are blocked, preventing arbitrary code execution
     attempts.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-006
   requirement: Placement scan shows no forbidden co-residency
   explanation: Resource placement scan shows no forbidden co-residency (e.g., sensitive
     + public workloads).
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-007
   requirement: Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst
     capacity; rate limits + alerts)
@@ -76,10 +91,15 @@ nfrs:
   requirement: MITM attempt fails; pinned cert validation passes
   explanation: Man-in-the-middle (MITM) attempts fail due to secure certificate pinning.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-009
   requirement: Iframe embed blocked; headers verified
   explanation: UI prevents iframe embedding (clickjacking) via secure headers.
   stories: []
+  services:
+  - read-only-viewer
 - code: REL-010
   requirement: Batch suspend/resume preserves data integrity
   explanation: Pausing and resuming batch jobs does not corrupt or lose data.
@@ -123,6 +143,9 @@ nfrs:
   explanation: Removing a single node yields no data loss and minimal performance
     impact.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-013
   requirement: Tier failure graceful degradation & recovery evidenced
   explanation: Tier failure triggers graceful degradation and later clean recovery.
@@ -146,16 +169,27 @@ nfrs:
   requirement: External outage shows fallback & user messaging
   explanation: External dependency outage invokes fallback and clear user messaging.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-015
   requirement: LB failure retains sessions & continues routing
   explanation: Load balancer failure preserves sessions and maintains routing continuity.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: REL-016
   requirement: Server error shows logout/message per spec
   explanation: Server error paths show expected logout or user messaging per specification.
   stories:
   - STORY-REL-016
+  services:
+  - read-only-viewer
 - code: REL-017
   requirement: Restore drill meets RPO/RTO & ransomware defenses
   explanation: Restore drills meet RPO/RTO targets and confirm ransomware defenses.
   stories: []
+  services:
+  - crud-apis
+  - dos-search

@@ -279,6 +279,25 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                         rationale = c.get('rationale','').replace('\n',' ').replace('|','/')
                         lines.append(f"| {ctrl} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |")
                     _append_blank_line(lines)
+                # If no controls exist for this NFR code in registry, surface NFR-level service scope when present
+                domain_yaml_path = DOMAIN_NFRS_DIR / reg_key / "nfrs.yaml"
+                if domain_yaml_path.exists():
+                    try:
+                        import yaml
+                        dom_data = yaml.safe_load(domain_yaml_path.read_text(encoding="utf-8")) or {}
+                        # find matching NFR entry
+                        match = next((n for n in dom_data.get("nfrs", []) or [] if n.get("code") == code), None)
+                        if match and (not grouped.get(code)):
+                            nfr_services = match.get("services") or []
+                            if isinstance(nfr_services, list) and nfr_services:
+                                lines.append(
+                                    "> No controls defined; NFR-level services: {}".format(
+                                        ", ".join(sorted(nfr_services))
+                                    )
+                                )
+                                _append_blank_line(lines)
+                    except Exception:
+                        pass
         # Sanitize trailing artifacts: remove stray code fences and collapse trailing blanks
         while lines and (lines[-1].strip() == "" or lines[-1].strip() == "```"):
             lines.pop()

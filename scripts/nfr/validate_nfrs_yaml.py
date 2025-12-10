@@ -63,6 +63,14 @@ def main() -> int:
         if duplicates:
             errors.append(f"{yml}: duplicate NFR codes found: {', '.join(duplicates)}")
 
+        # Business rule: If an NFR has no controls, it must declare NFR-level services
+        for nfr in (data.get("nfrs") or []):
+            controls = nfr.get("controls") or []
+            if not controls:
+                nfr_services = nfr.get("services") or []
+                if not (isinstance(nfr_services, list) and len(nfr_services) > 0):
+                    errors.append(f"{yml}: NFR {nfr.get('code')} has neither controls nor NFR-level services defined")
+
     if errors:
         sys.stderr.write("Schema validation failed:\n")
         for e in errors:

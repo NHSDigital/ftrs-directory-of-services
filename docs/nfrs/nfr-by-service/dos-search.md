@@ -8,23 +8,6 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Accessibility | ACC-003 | Manual accessibility test executed per release | Manual accessibility tests are executed for each release cycle. | STORY-ACC-003 |
-| Accessibility | ACC-004 | Defects tracked with parity priority & SLA | Accessibility defects tracked with equal priority and defined SLAs. | STORY-ACC-004 |
-| Accessibility | ACC-005 | Tooling operational in dev/int/reference envs | Accessibility tooling operates correctly in dev, int, and reference environments. | STORY-ACC-005 |
-| Accessibility | ACC-006 | Assistive tech not blocked by headers/CSP | Assistive technologies are not blocked by headers or Content Security Policy (CSP). | (none) |
-| Accessibility | ACC-007 | Test dataset covers tables/forms/status messages | Test dataset covers common components: tables, forms, status messages. | (none) |
-| Accessibility | ACC-008 | CI accessibility stage completes <5min | CI accessibility scan stage completes quickly (under target time). | (none) |
-| Accessibility | ACC-011 | Screen reader ARIA role announcements verified | Screen reader announces ARIA roles and states correctly. | (none) |
-| Accessibility | ACC-012 | Accessibility results documented with feature tests | Accessibility results are documented alongside feature tests. | (none) |
-| Accessibility | ACC-013 | Central issue log maintained & current | Centralised accessibility issue log is maintained and current. | (none) |
-| Accessibility | ACC-014 | Accessibility champion/workgroup active | Active champion or workgroup drives accessibility practice. | (none) |
-| Accessibility | ACC-016 | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
-| Accessibility | ACC-017 | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
-| Accessibility | ACC-018 | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | (none) |
-| Accessibility | ACC-019 | CI accessibility stage completes <5min | CI accessibility stage completes within target time window. | (none) |
-| Accessibility | ACC-020 | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | (none) |
-| Accessibility | ACC-021 | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | (none) |
-| Accessibility | ACC-022 | False positive ratio report shows improvement | False positive ratio is measured and trending toward improvement. | (none) |
 | Availability | AVAIL-001 | Availability report shows ≥99.90% multi-AZ uptime | Multi-AZ deployment achieves target uptime (e.g., ≥99.90%). | STORY-AVAIL-001 |
 | Availability | AVAIL-002 | Region DR simulation meets plan objectives | Disaster recovery (DR) simulation meets documented objectives. | STORY-AVAIL-002 |
 | Availability | AVAIL-003 | Uptime monitoring confirms 24x7 coverage | Continuous uptime monitoring covers 24x7 operations. | STORY-AVAIL-003 |
@@ -111,7 +94,6 @@ This page is auto-generated; do not hand-edit.
 | Performance | PERF-003 | Performance expectations table versioned & referenced | The versioned performance expectations table is maintained and referenced by tests. | (none) |
 | Performance | PERF-004 | Anonymised live-like dataset present & audited | A representative, anonymised dataset exists for realistic performance validation. | (none) |
 | Performance | PERF-005 | Automated test suite matches defined actions & exclusions | Automated performance tests implement all defined actions and listed exclusions. | (none) |
-| Performance | PERF-006 | Batch window p95 latency delta ≤5% | Batch window latency stays within a small variance (e.g., p95 delta ≤ defined %). | (none) |
 | Performance | PERF-007 | Telemetry overhead within CPU & latency thresholds | Telemetry overhead (CPU, latency) remains within acceptable limits while capturing required data. | (none) |
 | Performance | PERF-008 | 8h rolling window p95 variance ≤10% | Rolling window performance variance remains stable within target percentage bounds. | (none) |
 | Performance | PERF-009 | Regression alert triggers on >10% p95 increase | Alerting triggers when p95 latency regresses beyond the defined threshold (e.g., >10%). | (none) |
@@ -127,13 +109,11 @@ This page is auto-generated; do not hand-edit.
 | Reliability | REL-006 | Placement scan shows no forbidden co-residency | Resource placement scan shows no forbidden co-residency (e.g., sensitive + public workloads). | (none) |
 | Reliability | REL-007 | Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; rate limits + alerts) | Brute force or auth anomaly attempts are rate limited and create alerts. | FTRS-1598 |
 | Reliability | REL-008 | MITM attempt fails; pinned cert validation passes | Man-in-the-middle (MITM) attempts fail due to secure certificate pinning. | (none) |
-| Reliability | REL-009 | Iframe embed blocked; headers verified | UI prevents iframe embedding (clickjacking) via secure headers. | (none) |
 | Reliability | REL-011 | Unhealthy node auto-replaced; workload continues | Unhealthy nodes are automatically replaced with workload continuity. | STORY-REL-003 |
 | Reliability | REL-012 | Single node removal shows stable performance & zero data loss | Removing a single node yields no data loss and minimal performance impact. | (none) |
 | Reliability | REL-013 | Tier failure graceful degradation & recovery evidenced | Tier failure triggers graceful degradation and later clean recovery. | STORY-REL-004 |
 | Reliability | REL-014 | External outage shows fallback & user messaging | External dependency outage invokes fallback and clear user messaging. | (none) |
 | Reliability | REL-015 | LB failure retains sessions & continues routing | Load balancer failure preserves sessions and maintains routing continuity. | (none) |
-| Reliability | REL-016 | Server error shows logout/message per spec | Server error paths show expected logout or user messaging per specification. | STORY-REL-016 |
 | Reliability | REL-017 | Restore drill meets RPO/RTO & ransomware defenses | Restore drills meet RPO/RTO targets and confirm ransomware defenses. | (none) |
 | Scalability | SCAL-001 | Horizontal scale-out increases TPS linearly within tolerance | Horizontal scaling increases throughput nearly linearly without quality loss. | STORY-SCAL-001 |
 | Scalability | SCAL-002 | Vertical resize retains data & function without downtime | Vertical resizing (bigger instance) retains data and operation with no downtime. | STORY-SCAL-002 |
@@ -400,6 +380,18 @@ Unauthorized API access attempts logged, classified, alerted
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | dos-search | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |
+
+### PERF-001
+
+Each operation meets registry-defined percentile targets (p50/p95) logged & asserted (see performance/expectations.yaml)
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| perf-dos-search-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (dos-search endpoints) | synthetic probes + real-user monitoring | continuous | prod | dos-search | draft | Aligns with defined operation targets |
+| perf-lookup-ods-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (dos-search endpoints) | synthetic probes + real-user monitoring | continuous | prod | dos-search | draft | Aligns with defined operation targets |
+| perf-nearby-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (dos-search endpoints) | synthetic probes + real-user monitoring | continuous | prod | dos-search | draft | Aligns with defined operation targets |
+| perf-org-get-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | synthetic probes + real-user monitoring | continuous | prod | dos-search | draft | Aligns with defined operation targets |
+| perf-org-update-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | synthetic probes + real-user monitoring | continuous | prod | dos-search | draft | Aligns with defined operation targets |
 
 ### REL-002
 

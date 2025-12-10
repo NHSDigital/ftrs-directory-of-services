@@ -114,7 +114,19 @@ nfrs:
   requirement: '#ftrs-cost-alerts channel created & receiving test alerts'
   explanation: Dedicated cost alerts channel receives test and live notifications.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
+  - dos-ingestion-api
+  - etl-ods
+  - read-only-viewer
 - code: COST-007
   requirement: Quarterly cost review minutes & tracked actions
   explanation: Quarterly cost reviews record minutes and follow-up actions.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
+  - dos-ingestion-api
+  - etl-ods
+  - read-only-viewer

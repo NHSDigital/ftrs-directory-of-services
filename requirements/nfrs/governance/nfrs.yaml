@@ -42,6 +42,9 @@ nfrs:
   explanation: Solution Architecture Framework assessment is approved.
   stories:
   - STORY-GOV-003
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-004
   requirement: Engineering Red-lines compliance checklist signed
   explanation: Engineering red-lines compliance checklist is signed.
@@ -92,14 +95,23 @@ nfrs:
   requirement: Medical Device out-of-scope statement recorded
   explanation: Statement confirming service is out of scope for Medical Device regulation.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-007
   requirement: FtRS Architects review & approval logged
   explanation: Architecture review and approval logged by FtRS architects.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-008
   requirement: Cloud Expert deployment approval documented
   explanation: Cloud expert deployment approval documented (infrastructure readiness).
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-009
   requirement: Solution Assurance approval ticket closed
   explanation: Solution Assurance approval ticket is closed.
@@ -138,23 +150,41 @@ nfrs:
   requirement: Information Governance approval recorded
   explanation: Information Governance approval recorded.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-012
   requirement: TRG approval session outcome logged
   explanation: Technical Review Group (TRG) approval outcome documented.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-013
   requirement: SIRO sign-off obtained
   explanation: Senior Information Risk Owner (SIRO) sign-off obtained.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-014
   requirement: Caldicott Principles Guardian approval recorded
   explanation: Caldicott Guardian approval recorded for data handling.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-015
   requirement: DUEC Assurance Board acceptance logged
   explanation: DUEC Assurance Board acceptance logged.
   stories: []
+  services:
+  - crud-apis
+  - dos-search
 - code: GOV-016
   requirement: Live Services Board go-live approval recorded
   explanation: Live Services Board go-live approval recorded.
   stories: []
+  services:
+  - crud-apis
+  - dos-search

@@ -42,30 +42,42 @@ nfrs:
   explanation: Manual accessibility tests are executed for each release cycle.
   stories:
   - STORY-ACC-003
+  services:
+  - read-only-viewer
 - code: ACC-004
   requirement: Defects tracked with parity priority & SLA
   explanation: Accessibility defects tracked with equal priority and defined SLAs.
   stories:
   - STORY-ACC-004
+  services:
+  - read-only-viewer
 - code: ACC-005
   requirement: Tooling operational in dev/int/reference envs
   explanation: Accessibility tooling operates correctly in dev, int, and reference
     environments.
   stories:
   - STORY-ACC-005
+  services:
+  - read-only-viewer
 - code: ACC-006
   requirement: Assistive tech not blocked by headers/CSP
   explanation: Assistive technologies are not blocked by headers or Content Security
     Policy (CSP).
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-007
   requirement: Test dataset covers tables/forms/status messages
   explanation: 'Test dataset covers common components: tables, forms, status messages.'
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-008
   requirement: CI accessibility stage completes <5min
   explanation: CI accessibility scan stage completes quickly (under target time).
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-009
   requirement: Keyboard tab order regression test passes
   explanation: Keyboard-only navigation preserves logical tab order without traps.
@@ -104,18 +116,26 @@ nfrs:
   requirement: Screen reader ARIA role announcements verified
   explanation: Screen reader announces ARIA roles and states correctly.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-012
   requirement: Accessibility results documented with feature tests
   explanation: Accessibility results are documented alongside feature tests.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-013
   requirement: Central issue log maintained & current
   explanation: Centralised accessibility issue log is maintained and current.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-014
   requirement: Accessibility champion/workgroup active
   explanation: Active champion or workgroup drives accessibility practice.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-015
   requirement: Monthly accessibility report published
   explanation: Monthly accessibility report is published for stakeholders.
@@ -137,27 +157,41 @@ nfrs:
   requirement: Exception process documented & used
   explanation: Exception process for accessibility deviations is documented.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-017
   requirement: Exception record contains required fields
   explanation: Exception records include required fields (impact, mitigation, expiry).
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-018
   requirement: Pre-commit checks complete <30s
   explanation: Pre-commit accessibility checks finish within target duration.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-019
   requirement: CI accessibility stage completes <5min
   explanation: CI accessibility stage completes within target time window.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-020
   requirement: Overnight full scan duration <2h
   explanation: Overnight full scan finishes under defined maximum duration.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-021
   requirement: Accessibility regression triggers alert
   explanation: Regression in accessibility triggers automated alert.
   stories: []
+  services:
+  - read-only-viewer
 - code: ACC-022
   requirement: False positive ratio report shows improvement
   explanation: False positive ratio is measured and trending toward improvement.
   stories: []
+  services:
+  - read-only-viewer

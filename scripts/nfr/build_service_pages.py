@@ -42,6 +42,9 @@ def load_matrix() -> Dict[str, Dict[str, str]]:
     return {}
 
 def load_domain_yaml(domain: str) -> dict:
+    # If YAML library isn't available, skip loading.
+    if not YAML_AVAILABLE:
+        return {}
     path = DOMAIN_NFRS_DIR / domain / "nfrs.yaml"
     if not path.exists():
         return {}
@@ -121,12 +124,23 @@ def collect_services_from_yaml() -> Dict[str, dict]:
                     bucket['controls'].setdefault(domain.capitalize(), {}).setdefault(code, []).extend(ctrl_list)
                     bucket['nfr_meta'][code] = meta
             else:
-                # universal controls apply to all discovered services; we'll add later after discovery
-                # store under a special key
-                services.setdefault('__universal__', {'performance_ops': [], 'controls': {}, 'nfr_meta': {}})
-                uni = services['__universal__']
-                uni['controls'].setdefault(domain.capitalize(), {}).setdefault(code, []).extend(ctrl_list)
-                uni['nfr_meta'][code] = meta
+                # No control-level services declared in controls.
+                # If NFR declares services, attach meta to those services (summary only).
+                nfr_services = n.get('services') or []
+                if isinstance(nfr_services, list) and nfr_services:
+                    for svc in nfr_services:
+                        all_services_set.add(svc)
+                        bucket = services.setdefault(svc, {'performance_ops': [], 'controls': {}, 'nfr_meta': {}})
+                        bucket['nfr_meta'][code] = meta
+                else:
+                    # If there are actual controls but they are universal (no services), store them
+                    # to be applied to all discovered services later. Do NOT add meta yet to avoid
+                    # summary rows appearing without any controls or NFR-level services.
+                    if ctrl_list:
+                        services.setdefault('__universal__', {'performance_ops': [], 'controls': {}, 'nfr_meta': {}})
+                        uni = services['__universal__']
+                        uni['controls'].setdefault(domain.capitalize(), {}).setdefault(code, []).extend(ctrl_list)
+            
 
     # Apply universal controls to all services discovered so far
     universal = services.pop('__universal__', None)
