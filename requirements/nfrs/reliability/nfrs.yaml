@@ -32,6 +32,21 @@ nfrs:
   requirement: Lifecycle reliability checklist completed
   explanation: Lifecycle reliability checklist is completed for the service components.
   stories: []
+  controls:
+  - control_id: reliability-checklist-complete
+    measure: Lifecycle reliability checklist completed
+    threshold: 100% checklist items complete; exceptions recorded with expiry
+    tooling: Checklist tracker + evidence links
+    cadence: Pre-live + quarterly review
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures reliability practices across lifecycle
   services:
   - crud-apis
   - dos-search
@@ -40,6 +55,20 @@ nfrs:
   explanation: Denial-of-service (DoS) simulation shows successful mitigation and
     continued responsiveness.
   stories: []
+  controls:
+  - control_id: dos-simulation-mitigated
+    measure: DoS simulation mitigated; service responsive
+    threshold: Sustained responsiveness; error rate \u2264 1%; p95 latency within SLA during attack
+    tooling: Attack simulator + WAF/rate-limiter + metrics
+    cadence: Quarterly exercise
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Validates resilience under volumetric attacks
   services:
   - crud-apis
   - dos-search
@@ -143,6 +172,20 @@ nfrs:
   explanation: Removing a single node yields no data loss and minimal performance
     impact.
   stories: []
+  controls:
+  - control_id: single-node-removal-safety
+    measure: Single node removal shows stable performance & zero data loss
+    threshold: 0 data loss; p95 latency delta \u2264 10% during removal
+    tooling: Autoscaling events + workload health + integrity checks
+    cadence: Quarterly drill
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures resilience to node loss without user impact
   services:
   - crud-apis
   - dos-search

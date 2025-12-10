@@ -197,6 +197,46 @@ Monthly maintenance minutes ≤150; single ≤60
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | maintenance-window-minutes | Monthly maintenance minutes ≤150; single ≤60 | Monthly total ≤150 minutes; single window ≤60 minutes | Maintenance logs + reporting | Monthly | prod | dos-search | draft | Controls maintenance impact to meet availability objectives |
 
+### AVAIL-005
+
+Tuesday window executed; smoke tests pass
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| scheduled-maintenance-smoke-tests | Tuesday window executed; smoke tests pass | Maintenance completes; post-window smoke tests 100% pass; no Sev-1/2 incidents | Deployment controller + smoke test suite + incident log | Weekly maintenance window | prod | dos-search | draft | Ensures safe scheduled maintenance without user impact |
+
+### AVAIL-006
+
+DR exercise restores service <2h
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| dr-exercise-rto | DR exercise restores service <2h | End-to-end restore < 120 minutes; data loss = 0 per RPO | DR runbook + timer + integrity checks | Semi-annual exercise | int,ref | dos-search | draft | Validates recovery objectives and data integrity |
+
+### AVAIL-007
+
+Replication lag ≤60s; fail-over data delta minimal
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| replication-lag-threshold | Replication lag \u226460s; fail-over data delta minimal | Replication lag \u2264 60s for primary datasets; failover delta \u2264 1% records | Replication metrics + failover audit | Continuous + monthly report | prod | dos-search | draft | Ensures rapid failover with minimal inconsistency |
+
+### AVAIL-008
+
+API uptime aligns with core service
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| api-uptime-sla | API uptime aligns with core service | API uptime \u2265 99.90% monthly; maintenance excluded per policy | Uptime monitors + SLA calculator | Monthly | prod | dos-search | draft | Aligns API availability to overall SLA |
+
+### AVAIL-009
+
+Non-UK access attempts blocked & logged
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| geo-blocking-enforced | Non-UK access attempts blocked & logged | 100% non-UK requests blocked at edge; structured log with country + ip | WAF geo rules + edge logs | Continuous + weekly audit | prod | dos-search | draft | Reduces risk from out-of-region access |
+
 ### AVAIL-010
 
 Blue/green deployment produces 0 failed requests
@@ -401,6 +441,22 @@ AZ failure simulation maintains service
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | az-failure-simulation | AZ failure simulation maintains service | Successful failover with sustained service availability; no data loss | Chaos simulation + health checks | Quarterly exercise | int,ref | dos-search | draft | Validates resilience to Availability Zone failures |
 
+### REL-003
+
+Lifecycle reliability checklist completed
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| reliability-checklist-complete | Lifecycle reliability checklist completed | 100% checklist items complete; exceptions recorded with expiry | Checklist tracker + evidence links | Pre-live + quarterly review | int,ref,prod | dos-search | draft | Ensures reliability practices across lifecycle |
+
+### REL-004
+
+DoS simulation mitigated; service responsive
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| dos-simulation-mitigated | DoS simulation mitigated; service responsive | Sustained responsiveness; error rate \u2264 1%; p95 latency within SLA during attack | Attack simulator + WAF/rate-limiter + metrics | Quarterly exercise | int,ref | dos-search | draft | Validates resilience under volumetric attacks |
+
 ### REL-007
 
 Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; rate limits + alerts)
@@ -416,6 +472,14 @@ Unhealthy node auto-replaced; workload continues
 | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
 |------------|---------|-----------|---------|---------|------|----------|--------|-----------|
 | unhealthy-node-auto-replace | Unhealthy node auto-replaced; workload continues | Auto-replacement within policy; no user-visible downtime | Autoscaling group events + workload health | Continuous monitoring + quarterly drill | int,ref,prod | dos-search | draft | Maintains reliability during node failures |
+
+### REL-012
+
+Single node removal shows stable performance & zero data loss
+
+| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| single-node-removal-safety | Single node removal shows stable performance & zero data loss | 0 data loss; p95 latency delta \u2264 10% during removal | Autoscaling events + workload health + integrity checks | Quarterly drill | int,ref | dos-search | draft | Ensures resilience to node loss without user impact |
 
 ### REL-013
 
