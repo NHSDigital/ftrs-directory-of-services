@@ -22,12 +22,6 @@ runs:
         GITHUB_SHA: ${{ inputs.commit_sha }}
       run: .github/workflows/parse-apim-sandbox-tag.sh
 
-    - name: Ensure tag indicates deployment
-      if: steps.parse.outputs.should_deploy != 'true'
-      shell: bash
-      run: |
-        echo "Skipping APIM sandbox deployment; should_deploy=false" >> "$GITHUB_STEP_SUMMARY"
-
 outputs:
   sandbox_environment:
     value: ${{ steps.parse.outputs.sandbox_environment }}
@@ -37,4 +31,3 @@ outputs:
     value: ${{ steps.parse.outputs.version }}
   should_deploy:
     value: ${{ steps.parse.outputs.should_deploy }}
-

@@ -6,11 +6,6 @@ set -euo pipefail
 : "${PROXY_ENV:?PROXY_ENV environment variable is required}"
 : "${VERSION_TAG:?VERSION_TAG environment variable is required}"
 
-if ! command -v yq >/dev/null 2>&1; then
-    sudo apt-get update >/dev/null
-    sudo apt-get install -y yq >/dev/null
-fi
-
 ORIGINAL_TARGET_SPEC="docs/specification/x-nhsd-apim/target-sandbox-${API_NAME}.yaml"
 SPEC_FILE="docs/specification/${API_NAME}-sandbox.yaml"
 
@@ -48,4 +43,6 @@ env TARGET_SPEC_FILE_PATH="$TARGET_SPEC_FILE" \
     yq eval -o=json '."x-nhsd-apim".target = load(strenv(TARGET_SPEC_FILE_PATH))' \
     "$SPEC_FILE" > "$MODIFIED_SPEC_PATH"
 
-printf '%s\n%s\n' "$MODIFIED_SPEC_PATH" "$TARGET_SPEC_FILE"
+rm -f "$TARGET_SPEC_FILE"
+
+printf '%s\n' "$MODIFIED_SPEC_PATH"
