@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from collections import defaultdict
+import re
 from typing import Dict, List, Tuple
 try:
     import yaml  # type: ignore
@@ -254,6 +255,15 @@ class DomainPage:
 
 
 def collect_service_map() -> Dict[str, List[Dict[str, str]]]:
+    RE_JIRA = re.compile(r"\bFTRS-\d+\b")
+
+    def linkify_story_ids(text: str) -> str:
+        if not isinstance(text, str) or not text:
+            return text
+        def _repl(m: re.Match) -> str:
+            key = m.group(0)
+            return f"[{key}](https://nhsd-jira.digital.nhs.uk/browse/{key})"
+        return RE_JIRA.sub(_repl, text)
     service_map: Dict[str, List[Dict[str, str]]] = defaultdict(list)
     # Prefer YAML registries for source-of-truth controls if available
     if YAML_AVAILABLE:
@@ -268,7 +278,7 @@ def collect_service_map() -> Dict[str, List[Dict[str, str]]]:
                         'code': code,
                         'requirement': meta.get('requirement',''),
                         'explanation': meta.get('explanation',''),
-                        'stories': meta.get('stories',''),
+                        'stories': linkify_story_ids(meta.get('stories','')),
                         'service': svc,
                     })
                 # Controls rows
@@ -282,7 +292,7 @@ def collect_service_map() -> Dict[str, List[Dict[str, str]]]:
                                 'code': code,
                                 'requirement': payload.get('nfr_meta', {}).get(code, {}).get('requirement',''),
                                 'explanation': payload.get('nfr_meta', {}).get(code, {}).get('explanation',''),
-                                'stories': payload.get('nfr_meta', {}).get(code, {}).get('stories',''),
+                                'stories': linkify_story_ids(payload.get('nfr_meta', {}).get(code, {}).get('stories','')),
                                 'control_id': c.get('control_id',''),
                                 'measure': c.get('measure',''),
                                 'threshold': c.get('threshold',''),
@@ -328,7 +338,7 @@ def collect_service_map() -> Dict[str, List[Dict[str, str]]]:
                 rationale = str(c.get("rationale", "")).replace("\n"," ")
                 # Requirement text for the summary: use matrix anchor; Explanation from explanations.yaml
                 req_text = matrix_entry.get("requirement", "")
-                stories_text = matrix_entry.get("stories", "")
+                stories_text = linkify_story_ids(matrix_entry.get("stories", ""))
                 for s in services_list:
                     service_map[s].append({
                         'domain': domain_name,
@@ -364,7 +374,7 @@ def collect_service_map() -> Dict[str, List[Dict[str, str]]]:
                 req_text = nfr.get("requirement", "")
                 expl_text = nfr.get("explanation", "")
                 stories_list = nfr.get("stories", [])
-                stories_text = ", ".join(stories_list) if stories_list else "(none)"
+                stories_text = linkify_story_ids(", ".join(stories_list) if stories_list else "(none)")
                 for ctrl in nfr.get("controls", []):
                     services_list = ctrl.get("services", [])
                     envs_list = ctrl.get("environments", [])
