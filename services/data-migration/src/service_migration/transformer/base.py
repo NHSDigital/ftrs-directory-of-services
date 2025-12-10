@@ -348,13 +348,28 @@ class ServiceTransformer(ABC):
         """
         Build dispositions from the service's dispositions.
         """
-        return [self.build_disposition(code) for code in service.dispositions]
+        dispositions = []
+        for code in service.dispositions:
+            disposition = self.build_disposition(code, service.id)
+            if disposition is not None:
+                dispositions.append(disposition)
+        return dispositions
 
-    def build_disposition(self, code: legacy_model.ServiceDisposition) -> Disposition:
+    def build_disposition(
+        self, code: legacy_model.ServiceDisposition, service_id: int
+    ) -> str | None:
         """
         Build a single Disposition from a ServiceDisposition code.
+        Returns None if the disposition is not found in metadata.
         """
         disposition = self.metadata.dispositions.get(code.dispositionid)
+        if disposition is None:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_018,
+                service_id=service_id,
+                disposition_id=code.dispositionid,
+            )
+            return None
         return disposition.dxcode
 
     def build_age_eligibility_criteria(
