@@ -10,6 +10,8 @@ on:
       - main
       - "task/**"
       - "dependabot/**"
+    tags:
+      - "*-*-*"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
@@ -149,6 +151,44 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       api_name: ${{ matrix.api_name }}
       apim_env: "internal-dev"
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
+
+  deploy-proxy-into-apim-sandbox:
+    name: >-
+      ${{ format(
+        'Authenticate and Deploy {0} to Proxygen in {1}',
+        (
+          (
+            startsWith(github.ref_name, 'internal-dev-sandbox-dos-search-') ||
+            startsWith(github.ref_name, 'sandbox-dos-search-')
+          )
+          && 'dos-search'
+          || 'API'
+        ),
+        (
+          startsWith(github.ref_name, 'internal-dev-sandbox-dos-search-')
+          && 'internal-dev-sandbox'
+          || (
+            startsWith(github.ref_name, 'sandbox-dos-search-')
+            && 'sandbox'
+            || 'sandbox environment'
+          )
+        )
+      ) }}
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/')
+    uses: ./.github/workflows/deploy-into-apim-sandbox.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref_name: ${{ github.ref_name }}
+      ref_type: ${{ github.ref_type }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -310,6 +350,7 @@ jobs:
       - quality-checks
       - build-services
       - deploy-application-infrastructure
+      - deploy-proxy-into-apim-sandbox
       # - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
