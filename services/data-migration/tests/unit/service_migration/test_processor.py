@@ -195,6 +195,7 @@ def test_process_service(
         modifiedBy="DATA_MIGRATION",
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         identifier_ODS_ODSCode="A12345",
+        identifier_oldDoS_uid="test-uid",
         active=True,
         name="Public Test Service",
         telecom=None,
@@ -377,6 +378,7 @@ def test_process_service(
     assert len(output.location) == 1
     assert output.location[0] == Location(
         id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        identifier_oldDoS_uid="test-uid",
         createdBy="DATA_MIGRATION",
         createdDateTime="2025-07-25T12:00:00+00:00",
         modifiedBy="DATA_MIGRATION",
