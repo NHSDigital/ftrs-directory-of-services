@@ -3,15 +3,18 @@ on: [push]
 jobs:
   publish-nfrs-to-confluence:
     runs-on: ubuntu-latest
+    name: Sync Docs as Code - Confluence
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: axro-gmbh/markdown-to-confluence-sync@1.4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          input_directory: docs/nfrs
-          # exclude_files: this.md,that.md
-          cloud: nhsd-confluence.digital.nhs.uk
-          space_key: FRS
-          parent_page_id: 1222133740
-          user: ${{ secrets.ATLASSIAN_USERNAME }}
-          token: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          sparse-checkout: docs
+      - name: Sync Docs as Code - Confluence
+        uses: Bhacaz/docs-as-code-confluence@udpate_node
+        with:
+          folder: docs/nfrs
+          username: ${{ secrets.ATLASSIAN_USERNAME }}
+          password: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          confluence-base-url: ${{ secrets.CONFLUENCE_BASE_URL }}
+          space-key: FRS
+          parent-page-id: 1222133740
