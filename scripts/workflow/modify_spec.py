@@ -59,12 +59,12 @@ def build_server_url(target_domain, api_name, workspace, environment, path_segme
 def update_server_urls(spec, api_name, workspace, environment):
     """Update server URLs to match Proxygen format requirements"""
     if 'servers' not in spec:
-        return
+        raise ValueError("Spec does not contain 'servers' section")
 
     env_domain_map = get_environment_domain_map()
 
     if environment not in env_domain_map:
-        return
+        raise ValueError(f"Unknown environment: {environment}. Valid environments: {', '.join(env_domain_map.keys())}")
 
     target_domain = env_domain_map[environment]
 
