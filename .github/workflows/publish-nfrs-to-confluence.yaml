@@ -1,0 +1,20 @@
+name: Publish to Confluence
+on: push
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Publish NFR Markdown to Confluence
+        uses: markdown-confluence/publish@v1
+        with:
+          confluenceBaseUrl: https://your-confluence-instance-url
+          confluenceParentId: 1222133740
+          atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
+          atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          folderToPublish: docs/nfrs
+          # contentRoot: /docs
+          # configFile: .markdown-confluence.json
