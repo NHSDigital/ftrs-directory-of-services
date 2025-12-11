@@ -1,20 +1,15 @@
-name: Publish to Confluence
-on: push
+on: [push]
 
 jobs:
-  publish:
+  dev:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Publish NFR Markdown to Confluence
-        uses: markdown-confluence/publish@v1
+      - uses: cupcakearmy/confluence-markdown-sync@v1
         with:
-          confluenceBaseUrl: https://your-confluence-instance-url
-          confluenceParentId: 1222133740
-          atlassianUserName: ${{ secrets.ATLASSIAN_USERNAME }}
-          atlassianApiToken: ${{ secrets.ATLASSIAN_API_TOKEN }}
-          folderToPublish: docs/nfrs
-          # contentRoot: /docs
-          # configFile: .markdown-confluence.json
+          from: 'docs/nfrs/nfr-by-domain.md' # The markdown file to publish
+          to: '1247790797' # The confluence page id where to write the output
+          cloud: https://nhsd-confluence.digital.nhs.uk/
+          user: ${{ secrets.ATLASSIAN_USERNAME }}
+          token: ${{ secrets.ATLASSIAN_API_TOKEN }}
