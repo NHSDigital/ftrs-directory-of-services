@@ -1,15 +1,17 @@
 on: [push]
 
 jobs:
-  dev:
+  publish-nfrs-to-confluence:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: cupcakearmy/confluence-markdown-sync@v1
+      - uses: axro-gmbh/markdown-to-confluence-sync@1.4
         with:
-          from: 'docs/nfrs/nfr-by-domain.md' # The markdown file to publish
-          to: '1247790797' # The confluence page id where to write the output
-          cloud: https://nhsd-confluence.digital.nhs.uk/
+          input_directory: docs/nfrs
+          # exclude_files: this.md,that.md
+          cloud: company
+          space_key: https://nhsd-confluence.digital.nhs.uk/
+          parent_page_id: 1222133740
           user: ${{ secrets.ATLASSIAN_USERNAME }}
           token: ${{ secrets.ATLASSIAN_API_TOKEN }}
