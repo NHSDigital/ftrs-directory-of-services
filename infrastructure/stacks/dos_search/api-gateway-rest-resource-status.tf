@@ -51,7 +51,7 @@ resource "aws_api_gateway_integration_response" "status" {
   response_parameters = {
     "method.response.header.Content-Type"                 = "'application/json'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET'"
-    "method.response.header.Access-Control-Allow-Headers" = "'Authorization, Content-Type, X-NHSD-REQUEST-ID, X-NHSD-CORRELATION-ID'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Authorization, Content-Type, X-NHSD-REQUEST-ID, X-NHSD-CORRELATION-ID, NHSD-Message-Id, NHSD-Api-Version, NHSD-End-User-Role, NHSD-Client-Id, NHSD-Connecting-Party-App-Name'"
   }
 
   depends_on = [
