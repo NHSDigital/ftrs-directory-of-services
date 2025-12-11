@@ -14,10 +14,12 @@ This page is auto-generated; do not hand-edit.
 
 ## Operations
 
-| Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
-|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
-| dm-full-sync | 1200000 | 1800000 | 2700000 |  |  |  | draft | End-to-end duration baseline including transform and upserts |
-| dm-record-transform | 120 | 250 | 800 |  |  |  | draft | Single legacy record validation + transform + upsert |
+### PERF-001
+
+| Requirement | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
+|-------------|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
+| [PERF-001](#perf-001) | dm-full-sync | 1200000 | 1800000 | 2700000 |  |  |  | draft | End-to-end duration baseline including transform and upserts |
+| [PERF-001](#perf-001) | dm-record-transform | 120 | 250 | 800 |  |  |  | draft | Single legacy record validation + transform + upsert |
 
 ## Controls
 

@@ -22,17 +22,19 @@ This page is auto-generated; do not hand-edit.
 
 ## Operations
 
-| Service | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
-|---------|--------------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|
-| dos-search | dos-search | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Primary user-facing query; critical perceived responsiveness |
-| dos-search | dos-lookup-ods | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Direct ODS code lookup; largely cacheable |
-| dos-search | dos-nearby | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Geo filtering + limited enrichment |
-| crud-apis | org-get | 40 | 100 | 300 |  |  |  | draft | Simple primary key lookup; cached storage path |
-| crud-apis | org-update | 70 | 150 | 400 |  |  |  | draft | Validation + persistence + OperationOutcome classification |
-| crud-apis | healthcare-service-get | 50 | 120 | 350 |  |  |  | draft | Direct read + lightweight mapping |
-| crud-apis | org-search-ods | 60 | 140 | 400 |  |  |  | draft | ODS code normalization + single index scan |
-| etl-ods | ods-daily-sync | 500 | 1500 | 3000 |  |  |  | exception | External ORD call + list parsing; acceptable longer latency |
-| etl-ods | ods-batch-transform | 200 | 600 | 1200 |  |  |  | draft | Mapping + normalization + extension filtering |
-| etl-ods | ods-sqs-batch-send | 30 | 80 | 200 |  |  |  | draft | Single AWS API batch request with lightweight payload |
-| data-migration | dm-record-transform | 120 | 250 | 800 |  |  |  | draft | Single legacy record validation + transform + upsert |
-| data-migration | dm-full-sync | 1200000 | 1800000 | 2700000 |  |  |  | draft | End-to-end duration baseline including transform and upserts |
+### PERF-001
+
+| Requirement | Service | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
+|-------------|---------|--------------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|
+| [PERF-001](#perf-001) | dos-search | dos-search | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Primary user-facing query; critical perceived responsiveness |
+| [PERF-001](#perf-001) | dos-search | dos-lookup-ods | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Direct ODS code lookup; largely cacheable |
+| [PERF-001](#perf-001) | dos-search | dos-nearby | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Geo filtering + limited enrichment |
+| [PERF-001](#perf-001) | crud-apis | org-get | 40 | 100 | 300 |  |  |  | draft | Simple primary key lookup; cached storage path |
+| [PERF-001](#perf-001) | crud-apis | org-update | 70 | 150 | 400 |  |  |  | draft | Validation + persistence + OperationOutcome classification |
+| [PERF-001](#perf-001) | crud-apis | healthcare-service-get | 50 | 120 | 350 |  |  |  | draft | Direct read + lightweight mapping |
+| [PERF-001](#perf-001) | crud-apis | org-search-ods | 60 | 140 | 400 |  |  |  | draft | ODS code normalization + single index scan |
+| [PERF-001](#perf-001) | etl-ods | ods-daily-sync | 500 | 1500 | 3000 |  |  |  | exception | External ORD call + list parsing; acceptable longer latency |
+| [PERF-001](#perf-001) | etl-ods | ods-batch-transform | 200 | 600 | 1200 |  |  |  | draft | Mapping + normalization + extension filtering |
+| [PERF-001](#perf-001) | etl-ods | ods-sqs-batch-send | 30 | 80 | 200 |  |  |  | draft | Single AWS API batch request with lightweight payload |
+| [PERF-001](#perf-001) | data-migration | dm-record-transform | 120 | 250 | 800 |  |  |  | draft | Single legacy record validation + transform + upsert |
+| [PERF-001](#perf-001) | data-migration | dm-full-sync | 1200000 | 1800000 | 2700000 |  |  |  | draft | End-to-end duration baseline including transform and upserts |

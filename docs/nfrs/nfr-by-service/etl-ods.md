@@ -52,11 +52,13 @@ This page is auto-generated; do not hand-edit.
 
 ## Operations
 
-| Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
-|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
-| ods-batch-transform | 200 | 600 | 1200 |  |  |  | draft | Mapping + normalization + extension filtering |
-| ods-daily-sync | 500 | 1500 | 3000 |  |  |  | exception | External ORD call + list parsing; acceptable longer latency |
-| ods-sqs-batch-send | 30 | 80 | 200 |  |  |  | draft | Single AWS API batch request with lightweight payload |
+### PERF-001
+
+| Requirement | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
+|-------------|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
+| [PERF-001](#perf-001) | ods-batch-transform | 200 | 600 | 1200 |  |  |  | draft | Mapping + normalization + extension filtering |
+| [PERF-001](#perf-001) | ods-daily-sync | 500 | 1500 | 3000 |  |  |  | exception | External ORD call + list parsing; acceptable longer latency |
+| [PERF-001](#perf-001) | ods-sqs-batch-send | 30 | 80 | 200 |  |  |  | draft | Single AWS API batch request with lightweight payload |
 
 ## Controls
 

@@ -452,7 +452,9 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
                     for op in n.get("operations", []) or []:
                         svc_val = str(op.get("service",""))
                         if svc_val.strip().lower() == service.strip().lower():
-                            perf_ops.append(op)
+                            enriched = dict(op)
+                            enriched['nfr_code'] = n.get('code','')
+                            perf_ops.append(enriched)
             except Exception:
                 perf_ops = []
         # Fallback: parse performance domain page Operations table (deprecated)
@@ -517,11 +519,21 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
         # Always render an Operations section; show a hint if none found
         md.append("## Operations")
         _append_blank_line(md)
+        # Insert per-code headings to provide anchors for links
+        codes_with_ops = []
+        for op in perf_ops:
+            code = op.get('nfr_code','')
+            if code and code not in codes_with_ops:
+                codes_with_ops.append(code)
+        for code in codes_with_ops:
+            md.append(f"### {code}")
+            _append_blank_line(md)
         if perf_ops:
-            md.append("| Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
-            md.append("|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|")
+            md.append("| Requirement | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
+            md.append("|-------------|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|")
             for op in sorted(perf_ops, key=lambda o: o.get("operation_id","")):
                 row = [
+                    (f"[{op.get('nfr_code','')}](#{str(op.get('nfr_code','')).lower()})" if op.get('nfr_code') else ""),
                     str(op.get("operation_id","")),
                     str(op.get("p50_target_ms","")),
                     str(op.get("p95_target_ms","")),

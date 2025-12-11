@@ -157,11 +157,13 @@ This page is auto-generated; do not hand-edit.
 
 ## Operations
 
-| Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
-|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
-| dos-lookup-ods | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Direct ODS code lookup; largely cacheable |
-| dos-nearby | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Geo filtering + limited enrichment |
-| dos-search | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Primary user-facing query; critical perceived responsiveness |
+### PERF-001
+
+| Requirement | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
+|-------------|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
+| [PERF-001](#perf-001) | dos-lookup-ods | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Direct ODS code lookup; largely cacheable |
+| [PERF-001](#perf-001) | dos-nearby | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Geo filtering + limited enrichment |
+| [PERF-001](#perf-001) | dos-search | 150 | 300 | 500 | 150 | 150 | 1048576 | draft | Primary user-facing query; critical perceived responsiveness |
 
 ## Controls
 

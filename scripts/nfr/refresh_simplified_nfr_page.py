@@ -261,15 +261,26 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 data = yaml.safe_load(domain_yaml.read_text(encoding="utf-8")) or {}
                 for n in data.get("nfrs", []):
                     for op in n.get("operations", []) or []:
-                        ops_rows.append(op)
+                        enriched = dict(op)
+                        enriched['nfr_code'] = n.get('code','')
+                        ops_rows.append(enriched)
             # Fallback to expectations registry
             if not ops_rows:
                 perf = registries.get("performance")
                 if perf:
                     for svc in sorted(perf['by_service'].keys()):
                         ops_rows.extend(perf['by_service'][svc])
-            lines.append("| Service | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
-            lines.append("|---------|--------------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|")
+            # Add per-code headings only for codes that have operations, to avoid empty sections
+            codes_with_ops = []
+            for op in ops_rows:
+                code = op.get('nfr_code')
+                if code and code not in codes_with_ops:
+                    codes_with_ops.append(code)
+            for code in codes_with_ops:
+                lines.append(f"### {code}")
+                _append_blank_line(lines)
+            lines.append("| Requirement | Service | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |")
+            lines.append("|-------------|---------|--------------|--------|--------|--------|----------|--------------|---------------------|--------|-----------|")
             for op in ops_rows:
                 svc = op.get('service') or op.get('service', '')
                 op_id = op.get('operation_id')
@@ -281,7 +292,9 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 payload = op.get('max_request_payload_bytes', '')
                 status = op.get('status')
                 rationale = str(op.get('rationale','')).replace('\n',' ').replace('|','/')
-                lines.append(f"| {svc} | {op_id} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {rationale} |")
+                code = op.get('nfr_code','')
+                req_cell = f"[{code}](#{code.lower()})" if code else ""
+                lines.append(f"| {req_cell} | {svc} | {op_id} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {rationale} |")
             # Single blank line after operations table
             if lines and lines[-1] != "":
                 lines.append("")
@@ -289,16 +302,44 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
             # control-centric domain
             reg_key = domain.lower()
             registry = registries.get(reg_key)
+            # Fallback to domain nfrs.yaml controls if registry missing
+            domain_yaml_path = DOMAIN_NFRS_DIR / reg_key / "nfrs.yaml"
+            domain_yaml_data = None
+            if domain_yaml_path.exists():
+                try:
+                    import yaml
+                    domain_yaml_data = yaml.safe_load(domain_yaml_path.read_text(encoding="utf-8")) or {}
+                except Exception:
+                    domain_yaml_data = None
+            grouped: dict[str, list[dict]] = {}
             if registry:
-                # group controls by nfr_code for contextual display
-                grouped: dict[str, list[dict]] = {}
                 for item in registry['items']:
                     code = item.get('nfr_code', 'UNKNOWN')
                     grouped.setdefault(code, []).append(item)
+            elif domain_yaml_data:
+                for n in domain_yaml_data.get('nfrs', []) or []:
+                    code = n.get('code', 'UNKNOWN')
+                    for c in n.get('controls', []) or []:
+                        # Normalize shape to match registry items
+                        item = {
+                            'nfr_code': code,
+                            'control_id': c.get('control_id',''),
+                            'measure': c.get('measure',''),
+                            'threshold': c.get('threshold',''),
+                            'tooling': c.get('tooling',''),
+                            'cadence': c.get('cadence',''),
+                            'environments': c.get('environments', []),
+                            'services': c.get('services', []),
+                            'status': c.get('status',''),
+                            'rationale': c.get('rationale',''),
+                        }
+                        grouped.setdefault(code, []).append(item)
+            if grouped:
                 lines.append("## Controls")
                 _append_blank_line(lines)
                 for code in sorted(grouped.keys()):
                     lines.append(f"### {code}")
+                    _append_blank_line(lines)
                     if code in explanations:
                         lines.append(explanations[code])
                     # Ensure exactly one blank before table
@@ -308,37 +349,20 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                     lines.append("|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|")
                     for c in grouped[code]:
                         ctrl = c.get('control_id','')
-                        measure = c.get('measure','').replace('|','/').replace('\n',' ')
-                        threshold = c.get('threshold','').replace('|','/')
+                        measure = str(c.get('measure','')).replace('|','/').replace('\n',' ')
+                        threshold = str(c.get('threshold','')).replace('|','/')
                         tooling = c.get('tooling','')
                         cadence = c.get('cadence','')
-                        envs = ",".join(c.get('environments', [])) if isinstance(c.get('environments'), list) else c.get('environments','')
-                        services = ",".join(c.get('services', [])) if isinstance(c.get('services'), list) else c.get('services','')
+                        envs_val = c.get('environments', [])
+                        envs = ",".join(envs_val) if isinstance(envs_val, list) else envs_val
+                        services_val = c.get('services', [])
+                        services = ",".join(services_val) if isinstance(services_val, list) else services_val
                         status = c.get('status','')
-                        rationale = c.get('rationale','').replace('\n',' ').replace('|','/')
+                        rationale = str(c.get('rationale','')).replace('\n',' ').replace('|','/')
                         lines.append(f"| [{code}](#{code.lower()}) | {ctrl} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |")
                     # Single blank between groups
                     if lines and lines[-1] != "":
                         lines.append("")
-                # If no controls exist for this NFR code in registry, surface NFR-level service scope when present
-                domain_yaml_path = DOMAIN_NFRS_DIR / reg_key / "nfrs.yaml"
-                if domain_yaml_path.exists():
-                    try:
-                        import yaml
-                        dom_data = yaml.safe_load(domain_yaml_path.read_text(encoding="utf-8")) or {}
-                        # find matching NFR entry
-                        match = next((n for n in dom_data.get("nfrs", []) or [] if n.get("code") == code), None)
-                        if match and (not grouped.get(code)):
-                            nfr_services = match.get("services") or []
-                            if isinstance(nfr_services, list) and nfr_services:
-                                lines.append(
-                                    "> No controls defined; NFR-level services: {}".format(
-                                        ", ".join(sorted(nfr_services))
-                                    )
-                                )
-                                _append_blank_line(lines)
-                    except Exception:
-                        pass
         # Sanitize trailing artifacts: remove stray code fences and collapse trailing blanks
         while lines and (lines[-1].strip() == "" or lines[-1].strip() == "```"):
             lines.pop()

@@ -157,12 +157,14 @@ This page is auto-generated; do not hand-edit.
 
 ## Operations
 
-| Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
-|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
-| healthcare-service-get | 50 | 120 | 350 |  |  |  | draft | Direct read + lightweight mapping |
-| org-get | 40 | 100 | 300 |  |  |  | draft | Simple primary key lookup; cached storage path |
-| org-search-ods | 60 | 140 | 400 |  |  |  | draft | ODS code normalization + single index scan |
-| org-update | 70 | 150 | 400 |  |  |  | draft | Validation + persistence + OperationOutcome classification |
+### PERF-001
+
+| Requirement | Operation ID | p50 ms | p95 ms | Max ms | Burst TPS | Sustained TPS | Max Payload (bytes) | Status | Rationale |
+|-------------|--------------|--------|--------|--------|-----------|---------------|---------------------|--------|-----------|
+| [PERF-001](#perf-001) | healthcare-service-get | 50 | 120 | 350 |  |  |  | draft | Direct read + lightweight mapping |
+| [PERF-001](#perf-001) | org-get | 40 | 100 | 300 |  |  |  | draft | Simple primary key lookup; cached storage path |
+| [PERF-001](#perf-001) | org-search-ods | 60 | 140 | 400 |  |  |  | draft | ODS code normalization + single index scan |
+| [PERF-001](#perf-001) | org-update | 70 | 150 | 400 |  |  |  | draft | Validation + persistence + OperationOutcome classification |
 
 ## Controls
 
