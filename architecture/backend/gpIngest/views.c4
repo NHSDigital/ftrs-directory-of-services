@@ -8,22 +8,30 @@ views {
     '
     include *
     include ftrs.sourcingEtlQueue
+    include ftrs.openSearch
 
     include ftrs
-    include apim.dosWriteProxy
-    include apim.dosReadProxy
+    include ftrs.db
+    include apim.dosIngressProxy
+    include apim.dosSearchProxy
     include ftrs.apiGateway
-    include ftrs.orgController
-    include ftrs.orgController.orgByOdsCode
-    include ftrs.updateOrgController
-    include ftrs.updateOrgController.addOrg
-    include ftrs.updateOrgController.updateOrg
-    include ftrs.updateOrgController.deleteOrg
-    include ftrs.externalAPIs
-    include ftrs.db.orgTable
     include ftrs.assuranceQueue
     include ftrs.assurance.assuranceEngine
 
-    autoLayout LeftRight 70 77
+    include ftrs.healthcareServiceAPI
+    include ftrs.db.healthCareServiceTable
+
+    include ftrs.locationAPI
+    include ftrs.db.locationTable
+
+    include ftrs.organizationAPI
+    include ftrs.db.orgTable
+
+    include ftrs.gpSearchApi
+
+    exclude ftrs.assurance.assuranceQueue
+    exclude ftrs.assurance.assuranceEngine
+
+    autoLayout TopBottom 70 77
   }
 }

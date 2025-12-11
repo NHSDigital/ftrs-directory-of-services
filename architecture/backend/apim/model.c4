@@ -7,11 +7,11 @@ model {
       color muted
     }
 
-    apigeeproxy dosReadProxy "DoS Read Proxy" {
+    apigeeproxy dosSearchProxy "Directory of Services - Search API" {
       description 'Proxy to read data from DoS'
     }
 
-    apigeeproxy dosWriteProxy "DoS Write Proxy" {
+    apigeeproxy dosIngressProxy "Directory of Services - Ingress API" {
       description 'Proxy to write data to DoS'
     }
   }

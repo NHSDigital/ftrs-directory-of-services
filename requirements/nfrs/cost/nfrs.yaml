@@ -1,0 +1,134 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: COST-001
+  requirement: Mandatory tagging set present on 100% resources
+  explanation: All resources have mandatory cost tags for allocation and reporting.
+  stories:
+  - STORY-COST-001
+  controls:
+  - control_id: mandatory-tagging
+    measure: Mandatory tagging set present on 100% resources
+    threshold: 100% resources carry mandatory tags
+    tooling: AWS Config rules + tag audit automation
+    cadence: Continuous + monthly report
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Enables cost visibility and accountability
+- code: COST-002
+  requirement: Monthly Cost Explorer review & anomaly log
+  explanation: Monthly cost review identifies anomalies and tracks actions.
+  stories:
+  - STORY-COST-002
+  controls:
+  - control_id: monthly-cost-review
+    measure: Monthly Cost Explorer review & anomaly log
+    threshold: Review completed; anomalies logged with actions
+    tooling: Cost Explorer + anomaly detection
+    cadence: Monthly
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Ensures proactive cost management
+- code: COST-003
+  requirement: CloudHealth access for each team infra engineer
+  explanation: Each team infra engineer has access to cost analysis tooling (e.g.,
+    CloudHealth).
+  stories:
+  - STORY-COST-003
+  controls:
+  - control_id: cloudhealth-access
+    measure: CloudHealth access for each team infra engineer
+    threshold: Access provisioned; onboarding verified
+    tooling: CloudHealth admin + access logs
+    cadence: Quarterly verification
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Ensures teams can act on cost insights
+- code: COST-004
+  requirement: CloudHealth optimisation & tag compliance reports
+  explanation: Optimisation and tag compliance reports are produced and reviewed.
+  stories:
+  - STORY-COST-004
+  controls:
+  - control_id: optimisation-reports
+    measure: CloudHealth optimisation & tag compliance reports
+    threshold: Reports generated; tracked actions created
+    tooling: CloudHealth reporting + tracker
+    cadence: Monthly
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Drives optimisation and tag hygiene
+- code: COST-005
+  requirement: Budgets & alert notifications configured & tested
+  explanation: Budgets and cost alert notifications are configured and tested.
+  stories:
+  - STORY-COST-005
+  controls:
+  - control_id: budgets-and-alerts
+    measure: Budgets & alert notifications configured & tested
+    threshold: Budgets configured; alerts tested successfully
+    tooling: AWS Budgets + notifications
+    cadence: Quarterly + pre-fiscal review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-ingestion-api
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Prevents cost overruns via alerting
+- code: COST-006
+  requirement: '#ftrs-cost-alerts channel created & receiving test alerts'
+  explanation: Dedicated cost alerts channel receives test and live notifications.
+  stories:
+  - STORY-COST-006
+  services:
+  - crud-apis
+  - dos-search
+  - dos-ingestion-api
+  - etl-ods
+  - read-only-viewer
+- code: COST-007
+  requirement: Quarterly cost review minutes & tracked actions
+  explanation: Quarterly cost reviews record minutes and follow-up actions.
+  stories:
+  - STORY-COST-007
+  services:
+  - crud-apis
+  - dos-search
+  - dos-ingestion-api
+  - etl-ods
+  - read-only-viewer

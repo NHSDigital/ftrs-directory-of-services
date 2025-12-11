@@ -1,0 +1,398 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: INT-001
+  requirement: Resources validated against UK Core profiles
+  explanation: Resources conform to UK Core profiles ensuring national standard alignment.
+  stories:
+  - STORY-INT-018
+  controls:
+  - control_id: uk-core-profile-validation
+    measure: Resources validated against UK Core profiles
+    threshold: 100% resources pass UK Core validation in CI and pre-release audit
+    tooling: FHIR validators + contract test suite
+    cadence: CI per build + quarterly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures national standard alignment
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-002
+  requirement: Versioning & deprecation policy published
+  explanation: Versioning and deprecation policy is published for integrators.
+  stories:
+  - STORY-INT-019
+  controls:
+  - control_id: versioning-deprecation-policy
+    measure: Versioning & deprecation policy published
+    threshold: Policy published; changes communicated; minimum 6 months deprecation
+      window
+    tooling: Documentation repo + change comms channel
+    cadence: Review quarterly; update on change
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Reduces integration friction
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-003
+  requirement: Minor releases backward compatible for 12 months
+  explanation: Minor releases remain backward compatible for the defined support window.
+  stories:
+  - STORY-INT-020
+  controls:
+  - control_id: backward-compatibility-window
+    measure: Minor releases backward compatible for 12 months
+    threshold: No breaking changes; deprecation window \u226512 months; exceptions
+      recorded
+    tooling: Contract tests + release notes
+    cadence: CI per build + release review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Protects consumer integrations
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-004
+  requirement: Semantic mapping round-trip fidelity preserved
+  explanation: Semantic mappings preserve meaning when round-tripped between formats.
+  stories:
+  - STORY-INT-004
+  controls:
+  - control_id: semantic-roundtrip-fidelity
+    measure: Semantic mapping round-trip fidelity preserved
+    threshold: Round-trip preserves fields and codes; divergence \u2264 1%
+    tooling: Mapping tests + diff reports
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Maintains semantic integrity
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-005
+  requirement: Standard OperationOutcome error structure enforced
+  explanation: Error responses follow standard OperationOutcome structure.
+  stories:
+  - STORY-INT-001
+  controls:
+  - control_id: operationoutcome-structure
+    measure: Standard OperationOutcome error structure enforced
+    threshold: 100% error responses conform to OperationOutcome spec
+    tooling: Contract tests + schema validators
+    cadence: CI per build + weekly contract audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent error semantics across integrations
+- code: INT-006
+  requirement: Identifier normalization applied (uppercase, trimmed)
+  explanation: Identifiers are normalised (case, trimming) for consistent matching.
+  stories:
+  - STORY-INT-021
+  controls:
+  - control_id: identifier-normalization-enforced
+    measure: Identifier normalization applied (uppercase, trimmed)
+    threshold: 100% identifiers normalised; mismatches \u2264 0.1%
+    tooling: Normalization middleware + validation tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent identifier handling
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-007
+  requirement: Strict content negotiation implemented
+  explanation: Strict content negotiation enforces supported media types only.
+  stories:
+  - STORY-INT-002
+  controls:
+  - control_id: strict-content-negotiation
+    measure: Strict content negotiation implemented
+    threshold: Only documented media types accepted; correct response Content-Type
+    tooling: API contract tests + gateway policies
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents ambiguity in accepted formats
+- code: INT-008
+  requirement: "Reference data sync latency \u226424h"
+  explanation: "Reference data synchronises within defined latency (e.g., \u226424h)."
+  stories:
+  - STORY-INT-003
+  controls:
+  - control_id: reference-data-sync-latency
+    measure: "Reference data sync latency \u226424h"
+    threshold: Sync completes within 24 hours
+    tooling: ETL scheduler + latency report
+    cadence: Daily
+    environments:
+    - prod
+    services:
+    - etl-ods
+    status: draft
+    rationale: Timely reference data ensures correct behaviour
+- code: INT-009
+  requirement: Only documented FHIR search params accepted
+  explanation: Only documented FHIR search parameters are accepted; unknown ones rejected.
+  stories:
+  - STORY-INT-022
+  controls:
+  - control_id: documented-search-params-only
+    measure: Only documented FHIR search params accepted
+    threshold: Unknown search params rejected with OperationOutcome
+    tooling: API gateway policy + contract tests
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents ambiguity in search semantics
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-010
+  requirement: Version-controlled integration contract published
+  explanation: Integration contract is version-controlled and published.
+  stories:
+  - STORY-INT-023
+  controls:
+  - control_id: version-controlled-contract
+    measure: Version-controlled integration contract published
+    threshold: Contract published under version control; lint passes; updated \u22645
+      business days after change
+    tooling: Spec repo + Spectral lint + diff job
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent and timely documentation
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-011
+  requirement: Machine-readable changelog generated
+  explanation: Machine-readable changelog is generated for each release.
+  stories:
+  - STORY-INT-024
+  controls:
+  - control_id: machine-readable-changelog
+    measure: Machine-readable changelog generated
+    threshold: Changelog generated per release with breaking changes highlighted
+    tooling: Release pipeline + changelog generator
+    cadence: Per release
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Supports integrators with clear changes
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-012
+  requirement: Terminology bindings validated
+  explanation: Terminology bindings are validated to ensure correct coding.
+  stories:
+  - STORY-INT-005
+  - STORY-INT-025
+  controls:
+  - control_id: terminology-binding-validation
+    measure: Terminology bindings validated
+    threshold: 100% required bindings validated against value sets
+    tooling: Terminology server + validators
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures correct coding practices
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-013
+  requirement: Correlation IDs preserved across calls
+  explanation: Correlation IDs persist across internal and external calls for tracing.
+  stories:
+  - STORY-INT-004
+  - STORY-OBS-019
+  controls:
+  - control_id: correlation-id-preserved
+    measure: Correlation IDs preserved across calls
+    threshold: 100% requests preserve transaction_id/correlation_id in logs and headers
+    tooling: Middleware + log correlation tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Enables end-to-end tracing and diagnostics
+- code: INT-014
+  requirement: Null vs absent data handled per FHIR
+  explanation: Null vs absent data semantics follow FHIR specification rules.
+  stories:
+  - STORY-INT-026
+  controls:
+  - control_id: null-vs-absent-semantics
+    measure: Null vs absent data handled per FHIR
+    threshold: Responses follow FHIR rules; conformance tests pass
+    tooling: Contract tests + response validators
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Clarifies response semantics for consumers
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-015
+  requirement: "\u226590% interoperability scenario coverage"
+  explanation: "Test coverage spans \u226590% of defined interoperability scenarios."
+  stories:
+  - STORY-INT-027
+  controls:
+  - control_id: interoperability-scenario-coverage
+    measure: \u226590% interoperability scenario coverage
+    threshold: \u226590% coverage across documented scenarios; exceptions recorded
+    tooling: Scenario test suite + coverage reports
+    cadence: CI per build + quarterly review
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures comprehensive interoperability validation
+  services:
+  - crud-apis
+  - dos-search
+- code: INT-016
+  requirement: Stateless sequence-independent operations
+  explanation: Operations are stateless and do not rely on sequence order.
+  stories:
+  - STORY-INT-028
+  controls:
+  - control_id: stateless-sequence-independence
+    measure: Stateless sequence-independent operations
+    threshold: 100% documented operations produce correct outcome independent of prior
+      invocation order
+    tooling: Idempotence + shuffled sequence integration tests
+    cadence: CI per build + quarterly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Enables horizontal scaling and predictable consumer integration
+- code: INT-017
+  requirement: Complete field-level input validation every request
+  explanation: Input validation covers every field on every request to prevent malformed
+    data.
+  stories:
+  - STORY-INT-017
+  controls:
+  - control_id: field-validation-complete
+    measure: Complete field-level input validation every request
+    threshold: 100% of inputs validated; rich error responses on failure
+    tooling: Validation layer + contract tests
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    status: draft
+    rationale: Protects system integrity via strict input validation
+- code: INT-018
+  requirement: Comprehensive published OpenAPI documentation (overview, audience,
+    related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment,
+    onboarding, endpoints with examples)
+  explanation: Comprehensive OpenAPI documentation is published (overview, audience,
+    related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding,
+    endpoints with examples) to support integrator adoption.
+  stories:
+  - STORY-INT-006
+  - STORY-INT-029
+  controls:
+  - control_id: api-documentation-completeness
+    measure: Comprehensive published OpenAPI documentation
+    threshold: "All required catalogue sections present; spec passes lint; updated\
+      \ \u22645 business days after prod change"
+    tooling: Spectral lint + spec diff + manual checklist
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Reduces integration friction; ensures transparency for consumers

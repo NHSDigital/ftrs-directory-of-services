@@ -1,0 +1,207 @@
+version: 1.0
+generated: auto-migrated
+nfrs:
+- code: SCAL-001
+  requirement: Horizontal scale-out increases TPS linearly within tolerance
+  explanation: Horizontal scaling increases throughput nearly linearly without quality
+    loss.
+  stories:
+  - STORY-SCAL-001
+  controls:
+  - control_id: horizontal-scale-linear
+    measure: Horizontal scale-out increases TPS linearly within tolerance
+    threshold: TPS increases ~linearly per replica within agreed tolerance
+    tooling: Load tests + autoscaling reports
+    cadence: Quarterly simulation
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Validates scale-out effectiveness
+- code: SCAL-002
+  requirement: Vertical resize retains data & function without downtime
+  explanation: Vertical resizing (bigger instance) retains data and operation with
+    no downtime.
+  stories:
+  - STORY-SCAL-002
+  controls:
+  - control_id: vertical-resize-no-downtime
+    measure: Vertical resize retains data & function without downtime
+    threshold: Resize completes with zero downtime and no data loss
+    tooling: Resize runbook + health checks
+    cadence: Semi-annual exercise
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures safe vertical scaling
+- code: SCAL-003
+  requirement: All layers pass scalability checklist
+  explanation: All layers (app, DB, cache) meet defined scalability checklist items.
+  stories:
+  - STORY-SCAL-006
+  controls:
+  - control_id: scalability-checklist-complete
+    measure: All layers pass scalability checklist
+    threshold: 100% checklist items complete; exceptions recorded with expiry
+    tooling: Checklist tracker + evidence links
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures scale readiness across tiers
+  services:
+  - crud-apis
+  - dos-search
+- code: SCAL-004
+  requirement: Scale-down events occur after sustained low utilisation
+  explanation: Scale-down only occurs after sustained low utilisation (not transient
+    dips).
+  stories:
+  - STORY-SCAL-007
+  controls:
+  - control_id: scale-down-sustained-low-util
+    measure: Scale-down events occur after sustained low utilisation
+    threshold: No scale-down unless utilisation < 40% sustained for 30m; no flapping
+    tooling: Autoscaling metrics + policy
+    cadence: Continuous + monthly policy audit
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents scale instability
+  services:
+  - crud-apis
+  - dos-search
+- code: SCAL-005
+  requirement: Autoscaling policy simulation triggers controlled scale
+  explanation: Autoscaling policy simulations trigger controlled scaling actions.
+  stories:
+  - STORY-SCAL-003
+  controls:
+  - control_id: autoscaling-policy-simulation
+    measure: Autoscaling policy simulation triggers controlled scale
+    threshold: Policy simulates expected scale events; no flapping
+    tooling: Policy simulator + metrics
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms autoscaling tuning
+- code: SCAL-006
+  requirement: Scale event shows no SLA breach in latency/error
+  explanation: Scaling events do not cause SLA breaches in latency or error rate.
+  stories:
+  - STORY-SCAL-004
+  controls:
+  - control_id: scale-event-sla
+    measure: Scale event shows no SLA breach in latency/error
+    threshold: No breach in latency/error SLAs during scale
+    tooling: Metrics/alerts during scale events
+    cadence: Continuous monitoring + quarterly drill
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Protects user experience during scaling
+- code: SCAL-007
+  requirement: "Capacity report shows \u226530% headroom"
+  explanation: "Capacity planning shows adequate headroom (e.g., \u226530%)."
+  stories:
+  - STORY-SCAL-005
+  controls:
+  - control_id: capacity-headroom
+    measure: "Capacity report shows \u226530% headroom"
+    threshold: '>= 30% capacity headroom maintained'
+    tooling: Capacity planning reports
+    cadence: Monthly
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures buffer for demand spikes
+- code: SCAL-008
+  requirement: No manual scaling tickets for variance period
+  explanation: During the variance period no manual scaling tickets are needed.
+  stories:
+  - STORY-SCAL-008
+  controls:
+  - control_id: manual-scaling-eliminated
+    measure: No manual scaling tickets for variance period
+    threshold: 0 manual scaling tickets in rolling 90 days
+    tooling: Ticketing system + scaling audit
+    cadence: Monthly review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms autoscaling effectiveness
+  services:
+  - crud-apis
+  - dos-search
+- code: SCAL-009
+  requirement: Audit logs capture actor/reason for scaling
+  explanation: Audit logs record who initiated scaling and why.
+  stories:
+  - STORY-SCAL-009
+  controls:
+  - control_id: scaling-audit-context
+    measure: Audit logs capture actor/reason for scaling
+    threshold: 100% scale events have actor, reason, correlation_id
+    tooling: Audit log pipeline + policy
+    cadence: Continuous + quarterly audit
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Provides traceability of scaling decisions
+  services:
+  - crud-apis
+  - dos-search
+- code: SCAL-010
+  requirement: Predictive alert fires at utilisation forecast threshold
+  explanation: Predictive alerts fire before utilisation reaches critical thresholds.
+  stories:
+  - STORY-SCAL-010
+  controls:
+  - control_id: predictive-utilisation-alert
+    measure: Predictive alert fires at utilisation forecast threshold
+    threshold: Forecasted utilisation > 80% in 15m triggers alert; MTT Alert < 2m
+    tooling: Forecasting job + alerting rules
+    cadence: Continuous + monthly tuning
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents SLA breach via early action
+  services:
+  - crud-apis
+  - dos-search
