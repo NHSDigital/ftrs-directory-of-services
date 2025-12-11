@@ -13,7 +13,7 @@ resource "aws_vpc_security_group_ingress_rule" "vpce_allow_all_ingress" {
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "vpce_allow_all_egress" {
   description       = "Allow all outbound traffic to RDS"
   security_group_id = aws_security_group.vpce_rds_security_group.id
