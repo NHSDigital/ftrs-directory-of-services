@@ -13,27 +13,16 @@ from utilities.infra.sqs_util import get_queue_url, get_approximate_message_coun
 import boto3
 from loguru import logger
 
-# Import common steps (this will register them)
-from step_definitions.common_steps import data_migration_steps  # noqa: F401
+# Import all common steps to register them (this includes "the test environment is configured")
+from step_definitions.common_steps.data_migration_steps import *  # noqa: F403, F401
 
 # Load feature file - use absolute path from this file's location
 FEATURE_FILE = str(Path(__file__).parent.parent.parent / "features" / "data_migration_features" / "queue_populator_lambda.feature")
 scenarios(FEATURE_FILE)
 
 
-@given("the test environment is configured")
-def environment_configured(migration_helper, dynamodb):
-    """Verify test environment is properly configured."""
-    from tests.service_automation.tests.step_definitions.common_steps.data_migration_steps import DYNAMODB_CLIENT
-
-    try:
-        response = dynamodb[DYNAMODB_CLIENT].list_tables()
-        table_names = response.get("TableNames", [])
-        logger.info(f"DynamoDB tables available: {table_names}")
-        assert len(table_names) > 0, "No DynamoDB tables found in test environment"
-    except Exception as e:
-        logger.error(f"Failed to verify test environment: {str(e)}")
-        raise
+# Note: "the test environment is configured" step is provided by common_steps.data_migration_steps
+# which is imported above, so no need to redefine it here
 
 
 @pytest.fixture(scope="module")
@@ -56,9 +45,14 @@ def context():
     return Context()
 
 
-@when(parsers.parse("the queue populator Lambda is invoked with event:\n{event_table}"))
+@when("the queue populator Lambda is invoked with event:")
 def invoke_queue_populator_lambda(
-    context: Context, aws_lambda_client: LambdaWrapper, event_table: str
+    context: Context,
+    aws_lambda_client: LambdaWrapper,
+    datatable: list[list[str]],
+    project: str,
+    workspace: str,
+    env: str,
 ):
     """
     Invoke the queue populator Lambda with specified event parameters.
@@ -66,36 +60,47 @@ def invoke_queue_populator_lambda(
     Args:
         context: Test context to store Lambda response and timing
         aws_lambda_client: Lambda client wrapper
-        event_table: Table of key-value pairs for the event payload
+        datatable: Table of key-value pairs for the event payload from the feature file
+        project: Project name from fixtures (e.g., 'ftrs-dos')
+        workspace: Workspace suffix from fixtures
+        env: Environment name from fixtures (e.g., 'dev', 'test')
     """
-    # Parse the event table into a dictionary
+    # Parse the datatable into a dictionary
+    # First row is the header, subsequent rows are data
     event_payload = {}
-    for line in event_table.strip().split("\n"):
-        if "|" not in line:
-            continue
-        parts = [p.strip() for p in line.split("|") if p.strip()]
-        if len(parts) == 2 and parts[0].lower() not in ["key", "----"]:
-            key = parts[0]
-            value = parts[1]
 
-            # Handle special values
-            if value.lower() == "null":
-                event_payload[key] = None
-            elif value.startswith("[") and value.endswith("]"):
-                # Parse array values like [100] or [1]
-                event_payload[key] = json.loads(value)
-            elif value.isdigit():
-                event_payload[key] = int(value)
-            else:
-                event_payload[key] = value
+    if not datatable or len(datatable) < 2:
+        raise ValueError("Event datatable must have at least a header row and one data row")
+
+    # Skip header row (index 0), process data rows
+    for row in datatable[1:]:
+        if len(row) != 2:
+            raise ValueError(f"Each row must have exactly 2 columns (key, value), got: {row}")
+
+        key = row[0]
+        value = row[1]
+
+        # Handle special values
+        if value.lower() == "null":
+            event_payload[key] = None
+        elif value.startswith("[") and value.endswith("]"):
+            # Parse array values like [100] or [1]
+            event_payload[key] = json.loads(value)
+        elif value.isdigit():
+            event_payload[key] = int(value)
+        else:
+            event_payload[key] = value
 
     logger.info(f"Invoking queue populator Lambda with payload: {json.dumps(event_payload, indent=2)}")
 
     # Get Lambda name from resource naming convention
-    # Based on manual tests: ftrs-dos-dev-data-migration-queue-populator-lambda-ftrs-1898
+    # Lambda naming: {project}-{env}-{stack}-{resource}-{workspace}
     context.lambda_name = get_resource_name(
-        "data-migration-queue-populator-lambda",
-        workspace="ftrs-1898"
+        project=project,
+        workspace=workspace,
+        env=env,
+        stack="data-migration",
+        resource="queue-populator-lambda"
     )
 
     # Record start time for duration measurement
@@ -201,19 +206,26 @@ def verify_lambda_duration(context: Context, max_duration: int):
 
 
 @then(parsers.parse("the migration queue should contain at least {min_messages:d} message"))
-def verify_sqs_message_count(context: Context, min_messages: int):
+def verify_sqs_message_count(
+    context: Context, min_messages: int, project: str, workspace: str, env: str
+):
     """
     Verify that the migration SQS queue contains at least the expected number of messages.
 
     Args:
         context: Test context
         min_messages: Minimum expected number of messages in the queue
+        project: Project name from fixtures
+        workspace: Workspace suffix from fixtures
+        env: Environment name from fixtures
     """
-    # Get the migration queue URL
-    # Based on resource naming convention for data-migration-queue
+    # Get the migration queue URL based on resource naming convention
     queue_name = get_resource_name(
-        "data-migration-queue",
-        workspace="ftrs-1898"
+        project=project,
+        workspace=workspace,
+        env=env,
+        stack="data-migration",
+        resource="queue"
     )
 
     logger.info(f"Verifying SQS queue '{queue_name}' contains at least {min_messages} message(s)")
