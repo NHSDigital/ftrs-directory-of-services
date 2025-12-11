@@ -82,478 +82,478 @@ No performance operations defined for this service.
 
 WCAG 2.2 AA scan & manual audit pass
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| wcag-aa-pass | WCAG 2.2 AA scan & manual audit pass | Automated AA scan passes; manual audit issues triaged and resolved | Accessibility scanner + manual audit checklist | Quarterly + pre-release | int,ref | read-only-viewer | draft | Ensures accessibility conformance for UI surfaces |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-001](#acc-001) | wcag-aa-pass | WCAG 2.2 AA scan & manual audit pass | Automated AA scan passes; manual audit issues triaged and resolved | Accessibility scanner + manual audit checklist | Quarterly + pre-release | int,ref | read-only-viewer | draft | Ensures accessibility conformance for UI surfaces |
 
 ### ACC-002
 
 Automated scans run across critical pages & browsers
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| automated-scans-coverage | Automated scans run across critical pages & browsers | Critical pages covered across supported browsers | CI accessibility suite + cross-browser runners | CI per build | int,ref | read-only-viewer | draft | Automated checks catch regressions early |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-002](#acc-002) | automated-scans-coverage | Automated scans run across critical pages & browsers | Critical pages covered across supported browsers | CI accessibility suite + cross-browser runners | CI per build | int,ref | read-only-viewer | draft | Automated checks catch regressions early |
 
 ### ACC-003
 
 Manual accessibility test executed per release
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| manual-accessibility-test | Manual accessibility test executed per release | Release includes manual accessibility audit; issues triaged within 5 business days | Manual checklist + report | Per release | ref | read-only-viewer | draft | Ensures human validation beyond automation |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-003](#acc-003) | manual-accessibility-test | Manual accessibility test executed per release | Release includes manual accessibility audit; issues triaged within 5 business days | Manual checklist + report | Per release | ref | read-only-viewer | draft | Ensures human validation beyond automation |
 
 ### ACC-004
 
 Defects tracked with parity priority & SLA
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-defect-sla | Defects tracked with parity priority & SLA | Accessibility defects use same priority/SLA scheme; monthly compliance report | Issue tracker + SLA report | Monthly | int,ref | read-only-viewer | draft | Enforces parity with functional defects |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-004](#acc-004) | accessibility-defect-sla | Defects tracked with parity priority & SLA | Accessibility defects use same priority/SLA scheme; monthly compliance report | Issue tracker + SLA report | Monthly | int,ref | read-only-viewer | draft | Enforces parity with functional defects |
 
 ### ACC-005
 
 Tooling operational in dev/int/reference envs
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-tooling-operational | Tooling operational in dev/int/reference envs | CI scanners and browser runners functional in dev/int/ref | CI accessibility suite | CI per build | dev,int,ref | read-only-viewer | draft | Guarantees tooling readiness across envs |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-005](#acc-005) | accessibility-tooling-operational | Tooling operational in dev/int/reference envs | CI scanners and browser runners functional in dev/int/ref | CI accessibility suite | CI per build | dev,int,ref | read-only-viewer | draft | Guarantees tooling readiness across envs |
 
 ### ACC-006
 
 Assistive tech not blocked by headers/CSP
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| assistive-tech-headers-csp | Assistive tech not blocked by headers/CSP | Headers/CSP allow screen readers; tests pass for supported AT | AT test harness + response header checks | Pre-release | ref | read-only-viewer | draft | Prevents accidental blocking via security headers |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-006](#acc-006) | assistive-tech-headers-csp | Assistive tech not blocked by headers/CSP | Headers/CSP allow screen readers; tests pass for supported AT | AT test harness + response header checks | Pre-release | ref | read-only-viewer | draft | Prevents accidental blocking via security headers |
 
 ### ACC-007
 
 Test dataset covers tables/forms/status messages
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-test-dataset-coverage | Test dataset covers tables/forms/status messages | Dataset includes representative components; annual review | Dataset repo + checklist | Annual | int | read-only-viewer | draft | Ensures coverage of common interactive components |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-007](#acc-007) | accessibility-test-dataset-coverage | Test dataset covers tables/forms/status messages | Dataset includes representative components; annual review | Dataset repo + checklist | Annual | int | read-only-viewer | draft | Ensures coverage of common interactive components |
 
 ### ACC-008
 
 CI accessibility stage completes <5min
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| ci-accessibility-duration | CI accessibility stage completes <5min | CI accessibility job completes < 5 minutes | CI job timer | CI per build | int | read-only-viewer | draft | Keeps pipeline fast while ensuring checks |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-008](#acc-008) | ci-accessibility-duration | CI accessibility stage completes <5min | CI accessibility job completes < 5 minutes | CI job timer | CI per build | int | read-only-viewer | draft | Keeps pipeline fast while ensuring checks |
 
 ### ACC-009
 
 Keyboard tab order regression test passes
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| keyboard-tab-order | Keyboard tab order regression test passes | Tab order matches expected flow; no focus loss | Automated tab order tests + manual verification | CI per build + pre-release | int,ref | read-only-viewer | draft | Supports keyboard-only navigation |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-009](#acc-009) | keyboard-tab-order | Keyboard tab order regression test passes | Tab order matches expected flow; no focus loss | Automated tab order tests + manual verification | CI per build + pre-release | int,ref | read-only-viewer | draft | Supports keyboard-only navigation |
 
 ### ACC-010
 
 Focus trap tests pass for modals/overlays
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| focus-trap-tests | Focus trap tests pass for modals/overlays | No escape from focus trap; correct focus restoration | Automated focus tests + manual checks | CI per build + pre-release | int,ref | read-only-viewer | draft | Ensures accessible modal behaviour |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-010](#acc-010) | focus-trap-tests | Focus trap tests pass for modals/overlays | No escape from focus trap; correct focus restoration | Automated focus tests + manual checks | CI per build + pre-release | int,ref | read-only-viewer | draft | Ensures accessible modal behaviour |
 
 ### ACC-011
 
 Screen reader ARIA role announcements verified
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| aria-role-announcements | Screen reader ARIA role announcements verified | ARIA roles/states announced correctly across key flows | Screen reader scripts + audit | Quarterly | ref | read-only-viewer | draft | Validates semantic accessibility |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-011](#acc-011) | aria-role-announcements | Screen reader ARIA role announcements verified | ARIA roles/states announced correctly across key flows | Screen reader scripts + audit | Quarterly | ref | read-only-viewer | draft | Validates semantic accessibility |
 
 ### ACC-012
 
 Accessibility results documented with feature tests
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-results-documented | Accessibility results documented with feature tests | Docs stored with tests; updated on change | Test reports + docs repo | CI per build | int | read-only-viewer | draft | Maintains traceable evidence |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-012](#acc-012) | accessibility-results-documented | Accessibility results documented with feature tests | Docs stored with tests; updated on change | Test reports + docs repo | CI per build | int | read-only-viewer | draft | Maintains traceable evidence |
 
 ### ACC-013
 
 Central issue log maintained & current
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-issue-log-current | Central issue log maintained & current | Log updated within 5 business days of finding; monthly review | Issue tracker + report | Monthly | int | read-only-viewer | draft | Ensures visibility of accessibility work |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-013](#acc-013) | accessibility-issue-log-current | Central issue log maintained & current | Log updated within 5 business days of finding; monthly review | Issue tracker + report | Monthly | int | read-only-viewer | draft | Ensures visibility of accessibility work |
 
 ### ACC-014
 
 Accessibility champion/workgroup active
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-champion-active | Accessibility champion/workgroup active | Named champion/workgroup; quarterly minutes published | Meeting notes + tracker | Quarterly | int | read-only-viewer | draft | Sustains practice through leadership |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-014](#acc-014) | accessibility-champion-active | Accessibility champion/workgroup active | Named champion/workgroup; quarterly minutes published | Meeting notes + tracker | Quarterly | int | read-only-viewer | draft | Sustains practice through leadership |
 
 ### ACC-015
 
 Monthly accessibility report published
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| monthly-accessibility-report | Monthly accessibility report published | Report produced and published monthly with tracked actions | Reporting automation + issue tracker | Monthly | int,ref | read-only-viewer | draft | Maintains visibility and accountability |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-015](#acc-015) | monthly-accessibility-report | Monthly accessibility report published | Report produced and published monthly with tracked actions | Reporting automation + issue tracker | Monthly | int,ref | read-only-viewer | draft | Maintains visibility and accountability |
 
 ### ACC-016
 
 Exception process documented & used
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-exception-process | Exception process documented & used | Exceptions recorded with impact, mitigation, expiry; reviewed monthly | Exception log | Monthly | int | read-only-viewer | draft | Manages deviations responsibly |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-016](#acc-016) | accessibility-exception-process | Exception process documented & used | Exceptions recorded with impact, mitigation, expiry; reviewed monthly | Exception log | Monthly | int | read-only-viewer | draft | Manages deviations responsibly |
 
 ### ACC-017
 
 Exception record contains required fields
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-exception-record-fields | Exception record contains required fields | 100% exceptions include fields; expiry monitored | Exception log + report | Monthly | int | read-only-viewer | draft | Ensures actionable exception management |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-017](#acc-017) | accessibility-exception-record-fields | Exception record contains required fields | 100% exceptions include fields; expiry monitored | Exception log + report | Monthly | int | read-only-viewer | draft | Ensures actionable exception management |
 
 ### ACC-018
 
 Pre-commit checks complete <30s
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| precommit-accessibility-duration | Pre-commit checks complete <30s | Pre-commit accessibility checks complete < 30s | Pre-commit runner | On commit | dev | read-only-viewer | draft | Keeps local workflow efficient |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-018](#acc-018) | precommit-accessibility-duration | Pre-commit checks complete <30s | Pre-commit accessibility checks complete < 30s | Pre-commit runner | On commit | dev | read-only-viewer | draft | Keeps local workflow efficient |
 
 ### ACC-019
 
 CI accessibility stage completes <5min
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| ci-accessibility-duration-policy | CI accessibility stage completes <5min | CI job < 5 minutes; breaches trigger optimisation ticket | CI timer + policy | CI per build | int | read-only-viewer | draft | Enforces pipeline performance policy |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-019](#acc-019) | ci-accessibility-duration-policy | CI accessibility stage completes <5min | CI job < 5 minutes; breaches trigger optimisation ticket | CI timer + policy | CI per build | int | read-only-viewer | draft | Enforces pipeline performance policy |
 
 ### ACC-020
 
 Overnight full scan duration <2h
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| overnight-scan-duration | Overnight full scan duration <2h | Full scan completes < 2 hours | Scan scheduler + timer | Nightly | int | read-only-viewer | draft | Keeps nightly checks practical |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-020](#acc-020) | overnight-scan-duration | Overnight full scan duration <2h | Full scan completes < 2 hours | Scan scheduler + timer | Nightly | int | read-only-viewer | draft | Keeps nightly checks practical |
 
 ### ACC-021
 
 Accessibility regression triggers alert
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-regression-alert | Accessibility regression triggers alert | Alert fires on score drop or new critical issue | Accessibility scanner + alerting | CI per build | int | read-only-viewer | draft | Fast feedback on regressions |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-021](#acc-021) | accessibility-regression-alert | Accessibility regression triggers alert | Alert fires on score drop or new critical issue | Accessibility scanner + alerting | CI per build | int | read-only-viewer | draft | Fast feedback on regressions |
 
 ### ACC-022
 
 False positive ratio report shows improvement
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| accessibility-false-positive-ratio | False positive ratio report shows improvement | False positive ratio decreasing quarter over quarter | Scanner report + trend analysis | Quarterly | int | read-only-viewer | draft | Improves signal quality of automated scans |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [ACC-022](#acc-022) | accessibility-false-positive-ratio | False positive ratio report shows improvement | False positive ratio decreasing quarter over quarter | Scanner report + trend analysis | Quarterly | int | read-only-viewer | draft | Improves signal quality of automated scans |
 
 ### COMP-001
 
 Published OS/browser list matches warranted spec
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| published-supported-platforms | Published OS/browser list matches warranted spec | Supported platform list published and current | Documentation repo + review checklist | Quarterly | prod | read-only-viewer | draft | Sets clear compatibility expectations for users |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COMP-001](#comp-001) | published-supported-platforms | Published OS/browser list matches warranted spec | Supported platform list published and current | Documentation repo + review checklist | Quarterly | prod | read-only-viewer | draft | Sets clear compatibility expectations for users |
 
 ### COMP-002
 
 MFA (CIS2) succeeds across supported platforms
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| mfa-platforms | MFA (CIS2) succeeds across supported platforms | MFA journeys pass across supported platforms | Cross-platform test suite + identity provider logs | Release cycle | int,ref,prod | read-only-viewer | draft | Ensures authentication compatibility |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COMP-002](#comp-002) | mfa-platforms | MFA (CIS2) succeeds across supported platforms | MFA journeys pass across supported platforms | Cross-platform test suite + identity provider logs | Release cycle | int,ref,prod | read-only-viewer | draft | Ensures authentication compatibility |
 
 ### COMP-003
 
 ≥90% critical journeys test pass per platform
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| journeys-pass-rate | ≥90% critical journeys test pass per platform | >= 90% pass rate for critical journeys on each supported platform | Cross-platform automated E2E tests | CI per build + release candidate validation | int,ref | read-only-viewer | draft | Protects user experience across platforms |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COMP-003](#comp-003) | journeys-pass-rate | ≥90% critical journeys test pass per platform | >= 90% pass rate for critical journeys on each supported platform | Cross-platform automated E2E tests | CI per build + release candidate validation | int,ref | read-only-viewer | draft | Protects user experience across platforms |
 
 ### COST-001
 
 Mandatory tagging set present on 100% resources
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | AWS Config rules + tag audit automation | Continuous + monthly report | dev,int,ref,prod | read-only-viewer | draft | Enables cost visibility and accountability |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-001](#cost-001) | mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | AWS Config rules + tag audit automation | Continuous + monthly report | dev,int,ref,prod | read-only-viewer | draft | Enables cost visibility and accountability |
 
 ### COST-002
 
 Monthly Cost Explorer review & anomaly log
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| monthly-cost-review | Monthly Cost Explorer review & anomaly log | Review completed; anomalies logged with actions | Cost Explorer + anomaly detection | Monthly | prod | read-only-viewer | draft | Ensures proactive cost management |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-002](#cost-002) | monthly-cost-review | Monthly Cost Explorer review & anomaly log | Review completed; anomalies logged with actions | Cost Explorer + anomaly detection | Monthly | prod | read-only-viewer | draft | Ensures proactive cost management |
 
 ### COST-003
 
 CloudHealth access for each team infra engineer
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cloudhealth-access | CloudHealth access for each team infra engineer | Access provisioned; onboarding verified | CloudHealth admin + access logs | Quarterly verification | prod | read-only-viewer | draft | Ensures teams can act on cost insights |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-003](#cost-003) | cloudhealth-access | CloudHealth access for each team infra engineer | Access provisioned; onboarding verified | CloudHealth admin + access logs | Quarterly verification | prod | read-only-viewer | draft | Ensures teams can act on cost insights |
 
 ### COST-004
 
 CloudHealth optimisation & tag compliance reports
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| optimisation-reports | CloudHealth optimisation & tag compliance reports | Reports generated; tracked actions created | CloudHealth reporting + tracker | Monthly | prod | read-only-viewer | draft | Drives optimisation and tag hygiene |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-004](#cost-004) | optimisation-reports | CloudHealth optimisation & tag compliance reports | Reports generated; tracked actions created | CloudHealth reporting + tracker | Monthly | prod | read-only-viewer | draft | Drives optimisation and tag hygiene |
 
 ### COST-005
 
 Budgets & alert notifications configured & tested
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| budgets-and-alerts | Budgets & alert notifications configured & tested | Budgets configured; alerts tested successfully | AWS Budgets + notifications | Quarterly + pre-fiscal review | prod | read-only-viewer | draft | Prevents cost overruns via alerting |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-005](#cost-005) | budgets-and-alerts | Budgets & alert notifications configured & tested | Budgets configured; alerts tested successfully | AWS Budgets + notifications | Quarterly + pre-fiscal review | prod | read-only-viewer | draft | Prevents cost overruns via alerting |
 
 ### GOV-004
 
 Engineering Red-lines compliance checklist signed
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| nhs-github-enterprise-repos | All FtRS code repositories are hosted in NHS GitHub Enterprise and comply with securing-repositories policy; engineering dashboards show compliance | 100% repositories on NHS GitHub Enterprise; 100% securing-repositories checks passing; exceptions recorded with owner and review date | Enterprise repository policy audit + engineering compliance dashboards + CI checks | Continuous (CI on change) + quarterly governance review | dev,int,ref,prod | read-only-viewer | draft | Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise and securing repositories; provides traceable evidence and automated verification |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [GOV-004](#gov-004) | nhs-github-enterprise-repos | All FtRS code repositories are hosted in NHS GitHub Enterprise and comply with securing-repositories policy; engineering dashboards show compliance | 100% repositories on NHS GitHub Enterprise; 100% securing-repositories checks passing; exceptions recorded with owner and review date | Enterprise repository policy audit + engineering compliance dashboards + CI checks | Continuous (CI on change) + quarterly governance review | dev,int,ref,prod | read-only-viewer | draft | Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise and securing repositories; provides traceable evidence and automated verification |
 
 ### OBS-001
 
 App & infra health panels show green
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| health-panels-green | App & infra health panels show green | All critical panels green; no stale data | Health checks + dashboard status API | Continuous + CI verification on change | int,ref,prod | read-only-viewer | draft | Ensures at-a-glance service health visibility |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [OBS-001](#obs-001) | health-panels-green | App & infra health panels show green | All critical panels green; no stale data | Health checks + dashboard status API | Continuous + CI verification on change | int,ref,prod | read-only-viewer | draft | Ensures at-a-glance service health visibility |
 
 ### OBS-007
 
 Performance metrics latency ≤60s
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| perf-metrics-latency | Performance metrics latency ≤60s | Metrics pipeline delivers data within 60s latency | Metrics agent + ingestion SLA alerting | Continuous monitoring | int,ref,prod | read-only-viewer | draft | Fresh metrics are required for accurate operational decisions |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [OBS-007](#obs-007) | perf-metrics-latency | Performance metrics latency ≤60s | Metrics pipeline delivers data within 60s latency | Metrics agent + ingestion SLA alerting | Continuous monitoring | int,ref,prod | read-only-viewer | draft | Fresh metrics are required for accurate operational decisions |
 
 ### OBS-033
 
 Unauthorized API access attempts logged, classified, alerted
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | read-only-viewer | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [OBS-033](#obs-033) | unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | read-only-viewer | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |
 
 ### REL-007
 
 Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; rate limits + alerts)
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| auth-brute-force-protection | Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate burst supported) | Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s; ≤1% false positives | Auth gateway rate limiter + anomaly aggregator + performance harness + alerting | Continuous runtime enforcement + daily compliance script | dev,int,ref,prod | read-only-viewer | draft | Protects availability & integrity under authentication attack patterns |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [REL-007](#rel-007) | auth-brute-force-protection | Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate burst supported) | Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s; ≤1% false positives | Auth gateway rate limiter + anomaly aggregator + performance harness + alerting | Continuous runtime enforcement + daily compliance script | dev,int,ref,prod | read-only-viewer | draft | Protects availability & integrity under authentication attack patterns |
 
 ### REL-016
 
 Server error shows logout/message per spec
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| server-error-user-messaging | Server error shows logout/message per spec | Error paths conform to spec; correct logout/message; audit evidence across endpoints | Contract tests + UI behaviour checks + logs | CI per build + monthly audit | int,ref,prod | read-only-viewer | draft | Protects user experience during server errors |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [REL-016](#rel-016) | server-error-user-messaging | Server error shows logout/message per spec | Error paths conform to spec; correct logout/message; audit evidence across endpoints | Contract tests + UI behaviour checks + logs | CI per build + monthly audit | int,ref,prod | read-only-viewer | draft | Protects user experience during server errors |
 
 ### SEC-001
 
 Crypto algorithms conform; weak ciphers rejected
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| crypto-cipher-policy | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | TLS scanner + configuration policy checks | CI per change + monthly scan | dev,int,ref,prod | read-only-viewer | draft | Enforces modern TLS standards; automated scans detect drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-001](#sec-001) | crypto-cipher-policy | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | TLS scanner + configuration policy checks | CI per change + monthly scan | dev,int,ref,prod | read-only-viewer | draft | Enforces modern TLS standards; automated scans detect drift |
 
 ### SEC-002
 
 WAF security pillar checklist completed & gaps tracked
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| waf-pillar-checklist | WAF security pillar checklist completed & gaps tracked | Checklist complete; 100% actions tracked; 0 open critical gaps | WAF checklist repository + issue tracker gate | Quarterly + on change | dev,int,ref,prod | read-only-viewer | draft | Formalizes WAF security governance; gaps tracked to closure |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-002](#sec-002) | waf-pillar-checklist | WAF security pillar checklist completed & gaps tracked | Checklist complete; 100% actions tracked; 0 open critical gaps | WAF checklist repository + issue tracker gate | Quarterly + on change | dev,int,ref,prod | read-only-viewer | draft | Formalizes WAF security governance; gaps tracked to closure |
 
 ### SEC-003
 
 All endpoints TLS only; storage encryption enabled
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| tls-encryption-endpoints | All public/private API endpoints enforce TLS; storage services enable encryption at rest | 100% compliant across resources | AWS Config rules + Terraform policy checks | Continuous (real-time) with CI enforcement on change | dev,int,ref,prod | read-only-viewer | draft | Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-003](#sec-003) | tls-encryption-endpoints | All public/private API endpoints enforce TLS; storage services enable encryption at rest | 100% compliant across resources | AWS Config rules + Terraform policy checks | Continuous (real-time) with CI enforcement on change | dev,int,ref,prod | read-only-viewer | draft | Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift |
 
 ### SEC-004
 
 Storage services show encryption enabled
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | AWS Config rules + Terraform policy checks | Continuous + CI enforcement | dev,int,ref,prod | read-only-viewer | draft | Guardrails ensure encryption at rest across services |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-004](#sec-004) | storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | AWS Config rules + Terraform policy checks | Continuous + CI enforcement | dev,int,ref,prod | read-only-viewer | draft | Guardrails ensure encryption at rest across services |
 
 ### SEC-005
 
 Cross-environment data access attempts denied
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cross-env-access-denied | Cross-env data access attempts denied and logged | 100% denial; audit logs prove enforcement | IAM policies + SCP guardrails + audit log queries | CI policy checks + monthly audit review | dev,int,ref,prod | read-only-viewer | draft | Prevents accidental or malicious cross-environment data access |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-005](#sec-005) | cross-env-access-denied | Cross-env data access attempts denied and logged | 100% denial; audit logs prove enforcement | IAM policies + SCP guardrails + audit log queries | CI policy checks + monthly audit review | dev,int,ref,prod | read-only-viewer | draft | Prevents accidental or malicious cross-environment data access |
 
 ### SEC-006
 
 No direct prod console queries detected in audit period
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| prod-console-access-audit | No direct prod console queries detected in audit period | 0 non-approved console queries in audit period | CloudTrail + SIEM audit queries | Weekly audit + alerting | prod | read-only-viewer | draft | Detects improper direct access to production consoles |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-006](#sec-006) | prod-console-access-audit | No direct prod console queries detected in audit period | 0 non-approved console queries in audit period | CloudTrail + SIEM audit queries | Weekly audit + alerting | prod | read-only-viewer | draft | Detects improper direct access to production consoles |
 
 ### SEC-007
 
 SG rules audited; attempt broad ingress denied
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| sg-broad-ingress-denied | SG rules audited; attempt broad ingress denied | 0 broad (0.0.0.0/0) ingress on restricted ports | AWS Config + IaC linter | CI per change + monthly audit | dev,int,ref,prod | read-only-viewer | draft | Prevents risky network exposure via security groups |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-007](#sec-007) | sg-broad-ingress-denied | SG rules audited; attempt broad ingress denied | 0 broad (0.0.0.0/0) ingress on restricted ports | AWS Config + IaC linter | CI per change + monthly audit | dev,int,ref,prod | read-only-viewer | draft | Prevents risky network exposure via security groups |
 
 ### SEC-008
 
 Perimeter scan shows no broad whitelist & secure channels
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| perimeter-scan | Perimeter scan shows no broad whitelist & secure channels | No broad whitelists; only secure channels reported | External perimeter scanner + config validation | Monthly + on change | int,ref,prod | read-only-viewer | draft | Confirms perimeter hygiene and secure external exposure |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-008](#sec-008) | perimeter-scan | Perimeter scan shows no broad whitelist & secure channels | No broad whitelists; only secure channels reported | External perimeter scanner + config validation | Monthly + on change | int,ref,prod | read-only-viewer | draft | Confirms perimeter hygiene and secure external exposure |
 
 ### SEC-009
 
 ASVS & CIS benchmark automation reports pass thresholds
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cis-benchmark-compliance | CIS benchmark automation reports meet pass thresholds for targeted services | >= 95% controls passing; all high-severity findings remediated or exceptioned | CIS benchmark tooling integrated in CI and periodic audits | CI per change + monthly full audit | dev,int,ref,prod | read-only-viewer | draft | Baseline hardening validated continuously; monthly cadence catches drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-009](#sec-009) | cis-benchmark-compliance | CIS benchmark automation reports meet pass thresholds for targeted services | >= 95% controls passing; all high-severity findings remediated or exceptioned | CIS benchmark tooling integrated in CI and periodic audits | CI per change + monthly full audit | dev,int,ref,prod | read-only-viewer | draft | Baseline hardening validated continuously; monthly cadence catches drift |
 
 ### SEC-010
 
 Annual pen test executed; remediation tickets raised & closed
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| annual-pentest | Annual pen test executed; remediation tickets raised & closed | Pen test executed; all critical findings remediated or exceptioned | Pen test reports + remediation tracking | Annual | prod | read-only-viewer | draft | Validates security posture with external testing and tracked remediation |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-010](#sec-010) | annual-pentest | Annual pen test executed; remediation tickets raised & closed | Pen test executed; all critical findings remediated or exceptioned | Pen test reports + remediation tracking | Annual | prod | read-only-viewer | draft | Validates security posture with external testing and tracked remediation |
 
 ### SEC-012
 
 IAM policy review confirms least privilege for system roles
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| iam-least-privilege | IAM policy review confirms least privilege for system roles | >= 95% policies compliant; no wildcard resource; explicit actions only | IAM Access Analyzer + policy linters | CI per change + quarterly audit | dev,int,ref,prod | read-only-viewer | draft | Continuous analysis prevents privilege creep; periodic review catches drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-012](#sec-012) | iam-least-privilege | IAM policy review confirms least privilege for system roles | >= 95% policies compliant; no wildcard resource; explicit actions only | IAM Access Analyzer + policy linters | CI per change + quarterly audit | dev,int,ref,prod | read-only-viewer | draft | Continuous analysis prevents privilege creep; periodic review catches drift |
 
 ### SEC-013
 
 Key rotation events logged; unauthorized access denied
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| key-rotation-logging | Key rotation events logged; unauthorized access denied | 100% rotation events logged; 0 unauthorized key access | KMS/AWS logs + SIEM correlation | Quarterly audit + CI checks on policy | dev,int,ref,prod | read-only-viewer | draft | Audit trail confirms rotation compliance and denial of unauthorized access |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-013](#sec-013) | key-rotation-logging | Key rotation events logged; unauthorized access denied | 100% rotation events logged; 0 unauthorized key access | KMS/AWS logs + SIEM correlation | Quarterly audit + CI checks on policy | dev,int,ref,prod | read-only-viewer | draft | Audit trail confirms rotation compliance and denial of unauthorized access |
 
 ### SEC-016
 
 MFA enforced for all privileged infra roles
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| privileged-mfa-enforced | MFA enforced for all privileged infra roles | 100% privileged roles require MFA | IAM policy checks + directory audit | CI policy checks + quarterly audit | dev,int,ref,prod | read-only-viewer | draft | Strong authentication for privileged accounts reduces risk |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-016](#sec-016) | privileged-mfa-enforced | MFA enforced for all privileged infra roles | 100% privileged roles require MFA | IAM policy checks + directory audit | CI policy checks + quarterly audit | dev,int,ref,prod | read-only-viewer | draft | Strong authentication for privileged accounts reduces risk |
 
 ### SEC-017
 
 Scan reports zero unmanaged long-lived credentials
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| zero-long-lived-credentials | Scan reports zero unmanaged long-lived credentials | 0 unmanaged long-lived credentials | Secret scanners + IAM credential report audit | CI per build + weekly audit | dev,int,ref,prod | read-only-viewer | draft | Reduces risk from forgotten credentials; continuous scanning plus scheduled audits |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-017](#sec-017) | zero-long-lived-credentials | Scan reports zero unmanaged long-lived credentials | 0 unmanaged long-lived credentials | Secret scanners + IAM credential report audit | CI per build + weekly audit | dev,int,ref,prod | read-only-viewer | draft | Reduces risk from forgotten credentials; continuous scanning plus scheduled audits |
 
 ### SEC-018
 
 Supplier audit attestation stored & verified
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| supplier-audit-attestation | Supplier audit attestation stored & verified | Attestations current; verification completed | Supplier management system + evidence repository | Annual + on contract change | prod | read-only-viewer | draft | Ensures supplier compliance and auditable records |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-018](#sec-018) | supplier-audit-attestation | Supplier audit attestation stored & verified | Attestations current; verification completed | Supplier management system + evidence repository | Annual + on contract change | prod | read-only-viewer | draft | Ensures supplier compliance and auditable records |
 
 ### SEC-019
 
 Segmentation test confirms tenant isolation
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| segmentation-tenant-isolation | Segmentation test confirms tenant isolation | 100% isolation; no cross-tenant data access observed | Segmentation test suite + log verification | Quarterly | int,ref,prod | read-only-viewer | draft | Ensures strict isolation between tenants per policy |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-019](#sec-019) | segmentation-tenant-isolation | Segmentation test confirms tenant isolation | 100% isolation; no cross-tenant data access observed | Segmentation test suite + log verification | Quarterly | int,ref,prod | read-only-viewer | draft | Ensures strict isolation between tenants per policy |
 
 ### SEC-021
 
 Port scan matches approved diagnostic list only
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| port-scan-diagnostic-only | Port scan matches approved diagnostic list only | No unexpected open ports detected outside approved list | Automated port scan + baseline comparison | Monthly + CI smoke on infra changes | dev,int,ref,prod | read-only-viewer | draft | Detects misconfigurations; verifies adherence to diagnostic port policy |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-021](#sec-021) | port-scan-diagnostic-only | Port scan matches approved diagnostic list only | No unexpected open ports detected outside approved list | Automated port scan + baseline comparison | Monthly + CI smoke on infra changes | dev,int,ref,prod | read-only-viewer | draft | Detects misconfigurations; verifies adherence to diagnostic port policy |
 
 ### SEC-022
 
 Utility program access restricted to approved roles
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| utility-access-restricted | Utility program access restricted to approved roles | Only approved roles can access utility programs | RBAC policy checks + audit logs | CI policy checks + monthly audit | dev,int,ref,prod | read-only-viewer | draft | Prevents misuse of diagnostic utilities |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-022](#sec-022) | utility-access-restricted | Utility program access restricted to approved roles | Only approved roles can access utility programs | RBAC policy checks + audit logs | CI policy checks + monthly audit | dev,int,ref,prod | read-only-viewer | draft | Prevents misuse of diagnostic utilities |
 
 ### SEC-023
 
 Deployment provenance shows unique traceable accounts
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| deployment-provenance-traceable | Deployment provenance shows unique traceable accounts | All deployments traceable to unique accounts | CI/CD audit trails + commit signing | Continuous | dev,int,ref,prod | read-only-viewer | draft | Ensures accountability and traceability for all deployments |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-023](#sec-023) | deployment-provenance-traceable | Deployment provenance shows unique traceable accounts | All deployments traceable to unique accounts | CI/CD audit trails + commit signing | Continuous | dev,int,ref,prod | read-only-viewer | draft | Ensures accountability and traceability for all deployments |
 
 ### SEC-024
 
 Code/data transfer logs show integrity & secure channels
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| transfer-integrity-secure | Code/data transfer logs show integrity & secure channels | 100% transfers logged; integrity and secure channel verified | Checksums/signatures + TLS enforcement + audit logs | CI per change + weekly reviews | dev,int,ref,prod | read-only-viewer | draft | Validates integrity and secure transport for all transfers |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-024](#sec-024) | transfer-integrity-secure | Code/data transfer logs show integrity & secure channels | 100% transfers logged; integrity and secure channel verified | Checksums/signatures + TLS enforcement + audit logs | CI per change + weekly reviews | dev,int,ref,prod | read-only-viewer | draft | Validates integrity and secure transport for all transfers |
 
 ### SEC-027
 
 Build fails on high CVE; report archived
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| high-cve-block | Build fails when high/critical CVEs detected in application or container dependencies | 0 unresolved High/Critical CVEs at release time | SCA scanner (e.g., OWASP Dependency-Check), container scanner, pipeline gate | CI per build + scheduled weekly scans | dev,int,ref | read-only-viewer | draft | Prevents introduction of known vulnerabilities; gate aligned to release quality |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-027](#sec-027) | high-cve-block | Build fails when high/critical CVEs detected in application or container dependencies | 0 unresolved High/Critical CVEs at release time | SCA scanner (e.g., OWASP Dependency-Check), container scanner, pipeline gate | CI per build + scheduled weekly scans | dev,int,ref | read-only-viewer | draft | Prevents introduction of known vulnerabilities; gate aligned to release quality |
 
 ### SEC-028
 
 Release pipeline blocks on critical unresolved findings
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| release-block-critical-findings | Release pipeline blocks on critical unresolved findings | 0 critical unresolved findings prior to release | Pipeline gate integrated with SCA, container, IaC scanners | Per release | dev,int,ref | read-only-viewer | draft | Enforces remediation before release; gate consolidates multiple scanner outputs |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-028](#sec-028) | release-block-critical-findings | Release pipeline blocks on critical unresolved findings | 0 critical unresolved findings prior to release | Pipeline gate integrated with SCA, container, IaC scanners | Per release | dev,int,ref | read-only-viewer | draft | Enforces remediation before release; gate consolidates multiple scanner outputs |
 
 ### SEC-029
 
 All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims)
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cis2-jwt-auth-enforced | All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims) | 100% endpoints require valid CIS2 JWT; invalid/missing tokens rejected with structured 401 | OIDC integration tests + JWT validator + JWKS cache monitor | CI per build + continuous runtime enforcement | dev,int,ref,prod | read-only-viewer | draft | Ensures uniform strong authentication; claim + signature validation prevents unauthorized access |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-029](#sec-029) | cis2-jwt-auth-enforced | All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims) | 100% endpoints require valid CIS2 JWT; invalid/missing tokens rejected with structured 401 | OIDC integration tests + JWT validator + JWKS cache monitor | CI per build + continuous runtime enforcement | dev,int,ref,prod | read-only-viewer | draft | Ensures uniform strong authentication; claim + signature validation prevents unauthorized access |
 
 ### SEC-030
 
 Certificates and private keys stored only in approved encrypted secret stores; zero plain text exposure
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts | 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repo pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | read-only-viewer | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-030](#sec-030) | cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts | 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repo pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | read-only-viewer | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |

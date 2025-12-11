@@ -25,6 +25,6 @@ This page is auto-generated; do not hand-edit.
 
 Alerts delivered to multi-channel with context
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| migration-variance-alerts | Actionable alerts on data-migration error rate and duration variance | Alert when error_rate >1% over 5m window OR full-sync duration > baseline +20%; include playbook link, correlation_id, impacted counts | Metrics backend, alerting engine, synthetic event injector, dashboard | Continuous evaluation; monthly threshold tuning; weekly report | int,ref,prod | data-migration | draft | Early detection of pipeline health issues to reduce MTTR and prevent silent degradation |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [OBS-025](#obs-025) | migration-variance-alerts | Actionable alerts on data-migration error rate and duration variance | Alert when error_rate >1% over 5m window OR full-sync duration > baseline +20%; include playbook link, correlation_id, impacted counts | Metrics backend, alerting engine, synthetic event injector, dashboard | Continuous evaluation; monthly threshold tuning; weekly report | int,ref,prod | data-migration | draft | Early detection of pipeline health issues to reduce MTTR and prevent silent degradation |

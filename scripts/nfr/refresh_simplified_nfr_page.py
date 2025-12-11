@@ -304,8 +304,8 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                     # Ensure exactly one blank before table
                     if lines and lines[-1] != "":
                         lines.append("")
-                    lines.append("| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
-                    lines.append("|------------|---------|-----------|---------|---------|------|----------|--------|-----------|")
+                    lines.append("| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
+                    lines.append("|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|")
                     for c in grouped[code]:
                         ctrl = c.get('control_id','')
                         measure = c.get('measure','').replace('|','/').replace('\n',' ')
@@ -316,7 +316,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                         services = ",".join(c.get('services', [])) if isinstance(c.get('services'), list) else c.get('services','')
                         status = c.get('status','')
                         rationale = c.get('rationale','').replace('\n',' ').replace('|','/')
-                        lines.append(f"| {ctrl} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |")
+                        lines.append(f"| [{code}](#{code.lower()}) | {ctrl} | {measure} | {threshold} | {tooling} | {cadence} | {envs} | {services} | {status} | {rationale} |")
                     # Single blank between groups
                     if lines and lines[-1] != "":
                         lines.append("")

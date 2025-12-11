@@ -64,294 +64,294 @@ This page is auto-generated; do not hand-edit.
 
 Mandatory tagging set present on 100% resources
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | AWS Config rules + tag audit automation | Continuous + monthly report | dev,int,ref,prod | etl-ods | draft | Enables cost visibility and accountability |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-001](#cost-001) | mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | AWS Config rules + tag audit automation | Continuous + monthly report | dev,int,ref,prod | etl-ods | draft | Enables cost visibility and accountability |
 
 ### COST-002
 
 Monthly Cost Explorer review & anomaly log
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| monthly-cost-review | Monthly Cost Explorer review & anomaly log | Review completed; anomalies logged with actions | Cost Explorer + anomaly detection | Monthly | prod | etl-ods | draft | Ensures proactive cost management |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-002](#cost-002) | monthly-cost-review | Monthly Cost Explorer review & anomaly log | Review completed; anomalies logged with actions | Cost Explorer + anomaly detection | Monthly | prod | etl-ods | draft | Ensures proactive cost management |
 
 ### COST-003
 
 CloudHealth access for each team infra engineer
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cloudhealth-access | CloudHealth access for each team infra engineer | Access provisioned; onboarding verified | CloudHealth admin + access logs | Quarterly verification | prod | etl-ods | draft | Ensures teams can act on cost insights |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-003](#cost-003) | cloudhealth-access | CloudHealth access for each team infra engineer | Access provisioned; onboarding verified | CloudHealth admin + access logs | Quarterly verification | prod | etl-ods | draft | Ensures teams can act on cost insights |
 
 ### COST-004
 
 CloudHealth optimisation & tag compliance reports
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| optimisation-reports | CloudHealth optimisation & tag compliance reports | Reports generated; tracked actions created | CloudHealth reporting + tracker | Monthly | prod | etl-ods | draft | Drives optimisation and tag hygiene |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-004](#cost-004) | optimisation-reports | CloudHealth optimisation & tag compliance reports | Reports generated; tracked actions created | CloudHealth reporting + tracker | Monthly | prod | etl-ods | draft | Drives optimisation and tag hygiene |
 
 ### COST-005
 
 Budgets & alert notifications configured & tested
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| budgets-and-alerts | Budgets & alert notifications configured & tested | Budgets configured; alerts tested successfully | AWS Budgets + notifications | Quarterly + pre-fiscal review | prod | etl-ods | draft | Prevents cost overruns via alerting |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [COST-005](#cost-005) | budgets-and-alerts | Budgets & alert notifications configured & tested | Budgets configured; alerts tested successfully | AWS Budgets + notifications | Quarterly + pre-fiscal review | prod | etl-ods | draft | Prevents cost overruns via alerting |
 
 ### GOV-004
 
 Engineering Red-lines compliance checklist signed
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| nhs-github-enterprise-repos | All FtRS code repositories are hosted in NHS GitHub Enterprise and comply with securing-repositories policy; engineering dashboards show compliance | 100% repositories on NHS GitHub Enterprise; 100% securing-repositories checks passing; exceptions recorded with owner and review date | Enterprise repository policy audit + engineering compliance dashboards + CI checks | Continuous (CI on change) + quarterly governance review | dev,int,ref,prod | etl-ods | draft | Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise and securing repositories; provides traceable evidence and automated verification |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [GOV-004](#gov-004) | nhs-github-enterprise-repos | All FtRS code repositories are hosted in NHS GitHub Enterprise and comply with securing-repositories policy; engineering dashboards show compliance | 100% repositories on NHS GitHub Enterprise; 100% securing-repositories checks passing; exceptions recorded with owner and review date | Enterprise repository policy audit + engineering compliance dashboards + CI checks | Continuous (CI on change) + quarterly governance review | dev,int,ref,prod | etl-ods | draft | Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise and securing repositories; provides traceable evidence and automated verification |
 
 ### INT-008
 
 Reference data sync latency ≤24h
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| reference-data-sync-latency | Reference data sync latency ≤24h | Sync completes within 24 hours | ETL scheduler + latency report | Daily | prod | etl-ods | draft | Timely reference data ensures correct behaviour |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [INT-008](#int-008) | reference-data-sync-latency | Reference data sync latency ≤24h | Sync completes within 24 hours | ETL scheduler + latency report | Daily | prod | etl-ods | draft | Timely reference data ensures correct behaviour |
 
 ### OBS-001
 
 App & infra health panels show green
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| health-panels-green | App & infra health panels show green | All critical panels green; no stale data | Health checks + dashboard status API | Continuous + CI verification on change | int,ref,prod | etl-ods | draft | Ensures at-a-glance service health visibility |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [OBS-001](#obs-001) | health-panels-green | App & infra health panels show green | All critical panels green; no stale data | Health checks + dashboard status API | Continuous + CI verification on change | int,ref,prod | etl-ods | draft | Ensures at-a-glance service health visibility |
 
 ### OBS-007
 
 Performance metrics latency ≤60s
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| perf-metrics-latency | Performance metrics latency ≤60s | Metrics pipeline delivers data within 60s latency | Metrics agent + ingestion SLA alerting | Continuous monitoring | int,ref,prod | etl-ods | draft | Fresh metrics are required for accurate operational decisions |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [OBS-007](#obs-007) | perf-metrics-latency | Performance metrics latency ≤60s | Metrics pipeline delivers data within 60s latency | Metrics agent + ingestion SLA alerting | Continuous monitoring | int,ref,prod | etl-ods | draft | Fresh metrics are required for accurate operational decisions |
 
 ### OBS-033
 
 Unauthorized API access attempts logged, classified, alerted
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | etl-ods | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [OBS-033](#obs-033) | unauth-access-monitoring | Unauthorized API access attempts logged & alerted with context | 100% auth failures & forbidden requests produce structured log entry with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed auth attempts per principal per 1m or anomaly spike (>3x baseline) | API gateway logs, auth middleware, metrics backend, alerting rules, anomaly detection job | Continuous collection + weekly anomaly review + monthly rule tuning | int,ref,prod | etl-ods | draft | Early detection of credential stuffing, token misuse, and privilege escalation attempts |
 
 ### REL-007
 
 Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; rate limits + alerts)
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| auth-brute-force-protection | Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate burst supported) | Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s; ≤1% false positives | Auth gateway rate limiter + anomaly aggregator + performance harness + alerting | Continuous runtime enforcement + daily compliance script | dev,int,ref,prod | etl-ods | draft | Protects availability & integrity under authentication attack patterns |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [REL-007](#rel-007) | auth-brute-force-protection | Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate burst supported) | Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s; ≤1% false positives | Auth gateway rate limiter + anomaly aggregator + performance harness + alerting | Continuous runtime enforcement + daily compliance script | dev,int,ref,prod | etl-ods | draft | Protects availability & integrity under authentication attack patterns |
 
 ### REL-010
 
 Batch suspend/resume preserves data integrity
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| batch-suspend-resume-integrity | Batch suspend/resume preserves data integrity | 0 data loss; consistent resume and reconciliation | Batch controller + integrity checks | Release cycle validation | int,ref | etl-ods | draft | Ensures reliable batch operations |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [REL-010](#rel-010) | batch-suspend-resume-integrity | Batch suspend/resume preserves data integrity | 0 data loss; consistent resume and reconciliation | Batch controller + integrity checks | Release cycle validation | int,ref | etl-ods | draft | Ensures reliable batch operations |
 
 ### SEC-001
 
 Crypto algorithms conform; weak ciphers rejected
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| crypto-cipher-policy | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | TLS scanner + configuration policy checks | CI per change + monthly scan | dev,int,ref,prod | etl-ods | draft | Enforces modern TLS standards; automated scans detect drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-001](#sec-001) | crypto-cipher-policy | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | TLS scanner + configuration policy checks | CI per change + monthly scan | dev,int,ref,prod | etl-ods | draft | Enforces modern TLS standards; automated scans detect drift |
 
 ### SEC-002
 
 WAF security pillar checklist completed & gaps tracked
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| waf-pillar-checklist | WAF security pillar checklist completed & gaps tracked | Checklist complete; 100% actions tracked; 0 open critical gaps | WAF checklist repository + issue tracker gate | Quarterly + on change | dev,int,ref,prod | etl-ods | draft | Formalizes WAF security governance; gaps tracked to closure |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-002](#sec-002) | waf-pillar-checklist | WAF security pillar checklist completed & gaps tracked | Checklist complete; 100% actions tracked; 0 open critical gaps | WAF checklist repository + issue tracker gate | Quarterly + on change | dev,int,ref,prod | etl-ods | draft | Formalizes WAF security governance; gaps tracked to closure |
 
 ### SEC-003
 
 All endpoints TLS only; storage encryption enabled
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| tls-encryption-endpoints | All public/private API endpoints enforce TLS; storage services enable encryption at rest | 100% compliant across resources | AWS Config rules + Terraform policy checks | Continuous (real-time) with CI enforcement on change | dev,int,ref,prod | etl-ods | draft | Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-003](#sec-003) | tls-encryption-endpoints | All public/private API endpoints enforce TLS; storage services enable encryption at rest | 100% compliant across resources | AWS Config rules + Terraform policy checks | Continuous (real-time) with CI enforcement on change | dev,int,ref,prod | etl-ods | draft | Aligns with NHS policy; Config provides continuous guardrails; CI blocks drift |
 
 ### SEC-004
 
 Storage services show encryption enabled
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | AWS Config rules + Terraform policy checks | Continuous + CI enforcement | dev,int,ref,prod | etl-ods | draft | Guardrails ensure encryption at rest across services |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-004](#sec-004) | storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | AWS Config rules + Terraform policy checks | Continuous + CI enforcement | dev,int,ref,prod | etl-ods | draft | Guardrails ensure encryption at rest across services |
 
 ### SEC-005
 
 Cross-environment data access attempts denied
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cross-env-access-denied | Cross-env data access attempts denied and logged | 100% denial; audit logs prove enforcement | IAM policies + SCP guardrails + audit log queries | CI policy checks + monthly audit review | dev,int,ref,prod | etl-ods | draft | Prevents accidental or malicious cross-environment data access |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-005](#sec-005) | cross-env-access-denied | Cross-env data access attempts denied and logged | 100% denial; audit logs prove enforcement | IAM policies + SCP guardrails + audit log queries | CI policy checks + monthly audit review | dev,int,ref,prod | etl-ods | draft | Prevents accidental or malicious cross-environment data access |
 
 ### SEC-006
 
 No direct prod console queries detected in audit period
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| prod-console-access-audit | No direct prod console queries detected in audit period | 0 non-approved console queries in audit period | CloudTrail + SIEM audit queries | Weekly audit + alerting | prod | etl-ods | draft | Detects improper direct access to production consoles |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-006](#sec-006) | prod-console-access-audit | No direct prod console queries detected in audit period | 0 non-approved console queries in audit period | CloudTrail + SIEM audit queries | Weekly audit + alerting | prod | etl-ods | draft | Detects improper direct access to production consoles |
 
 ### SEC-007
 
 SG rules audited; attempt broad ingress denied
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| sg-broad-ingress-denied | SG rules audited; attempt broad ingress denied | 0 broad (0.0.0.0/0) ingress on restricted ports | AWS Config + IaC linter | CI per change + monthly audit | dev,int,ref,prod | etl-ods | draft | Prevents risky network exposure via security groups |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-007](#sec-007) | sg-broad-ingress-denied | SG rules audited; attempt broad ingress denied | 0 broad (0.0.0.0/0) ingress on restricted ports | AWS Config + IaC linter | CI per change + monthly audit | dev,int,ref,prod | etl-ods | draft | Prevents risky network exposure via security groups |
 
 ### SEC-008
 
 Perimeter scan shows no broad whitelist & secure channels
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| perimeter-scan | Perimeter scan shows no broad whitelist & secure channels | No broad whitelists; only secure channels reported | External perimeter scanner + config validation | Monthly + on change | int,ref,prod | etl-ods | draft | Confirms perimeter hygiene and secure external exposure |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-008](#sec-008) | perimeter-scan | Perimeter scan shows no broad whitelist & secure channels | No broad whitelists; only secure channels reported | External perimeter scanner + config validation | Monthly + on change | int,ref,prod | etl-ods | draft | Confirms perimeter hygiene and secure external exposure |
 
 ### SEC-009
 
 ASVS & CIS benchmark automation reports pass thresholds
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cis-benchmark-compliance | CIS benchmark automation reports meet pass thresholds for targeted services | >= 95% controls passing; all high-severity findings remediated or exceptioned | CIS benchmark tooling integrated in CI and periodic audits | CI per change + monthly full audit | dev,int,ref,prod | etl-ods | draft | Baseline hardening validated continuously; monthly cadence catches drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-009](#sec-009) | cis-benchmark-compliance | CIS benchmark automation reports meet pass thresholds for targeted services | >= 95% controls passing; all high-severity findings remediated or exceptioned | CIS benchmark tooling integrated in CI and periodic audits | CI per change + monthly full audit | dev,int,ref,prod | etl-ods | draft | Baseline hardening validated continuously; monthly cadence catches drift |
 
 ### SEC-010
 
 Annual pen test executed; remediation tickets raised & closed
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| annual-pentest | Annual pen test executed; remediation tickets raised & closed | Pen test executed; all critical findings remediated or exceptioned | Pen test reports + remediation tracking | Annual | prod | etl-ods | draft | Validates security posture with external testing and tracked remediation |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-010](#sec-010) | annual-pentest | Annual pen test executed; remediation tickets raised & closed | Pen test executed; all critical findings remediated or exceptioned | Pen test reports + remediation tracking | Annual | prod | etl-ods | draft | Validates security posture with external testing and tracked remediation |
 
 ### SEC-012
 
 IAM policy review confirms least privilege for system roles
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| iam-least-privilege | IAM policy review confirms least privilege for system roles | >= 95% policies compliant; no wildcard resource; explicit actions only | IAM Access Analyzer + policy linters | CI per change + quarterly audit | dev,int,ref,prod | etl-ods | draft | Continuous analysis prevents privilege creep; periodic review catches drift |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-012](#sec-012) | iam-least-privilege | IAM policy review confirms least privilege for system roles | >= 95% policies compliant; no wildcard resource; explicit actions only | IAM Access Analyzer + policy linters | CI per change + quarterly audit | dev,int,ref,prod | etl-ods | draft | Continuous analysis prevents privilege creep; periodic review catches drift |
 
 ### SEC-013
 
 Key rotation events logged; unauthorized access denied
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| key-rotation-logging | Key rotation events logged; unauthorized access denied | 100% rotation events logged; 0 unauthorized key access | KMS/AWS logs + SIEM correlation | Quarterly audit + CI checks on policy | dev,int,ref,prod | etl-ods | draft | Audit trail confirms rotation compliance and denial of unauthorized access |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-013](#sec-013) | key-rotation-logging | Key rotation events logged; unauthorized access denied | 100% rotation events logged; 0 unauthorized key access | KMS/AWS logs + SIEM correlation | Quarterly audit + CI checks on policy | dev,int,ref,prod | etl-ods | draft | Audit trail confirms rotation compliance and denial of unauthorized access |
 
 ### SEC-016
 
 MFA enforced for all privileged infra roles
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| privileged-mfa-enforced | MFA enforced for all privileged infra roles | 100% privileged roles require MFA | IAM policy checks + directory audit | CI policy checks + quarterly audit | dev,int,ref,prod | etl-ods | draft | Strong authentication for privileged accounts reduces risk |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-016](#sec-016) | privileged-mfa-enforced | MFA enforced for all privileged infra roles | 100% privileged roles require MFA | IAM policy checks + directory audit | CI policy checks + quarterly audit | dev,int,ref,prod | etl-ods | draft | Strong authentication for privileged accounts reduces risk |
 
 ### SEC-017
 
 Scan reports zero unmanaged long-lived credentials
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| zero-long-lived-credentials | Scan reports zero unmanaged long-lived credentials | 0 unmanaged long-lived credentials | Secret scanners + IAM credential report audit | CI per build + weekly audit | dev,int,ref,prod | etl-ods | draft | Reduces risk from forgotten credentials; continuous scanning plus scheduled audits |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-017](#sec-017) | zero-long-lived-credentials | Scan reports zero unmanaged long-lived credentials | 0 unmanaged long-lived credentials | Secret scanners + IAM credential report audit | CI per build + weekly audit | dev,int,ref,prod | etl-ods | draft | Reduces risk from forgotten credentials; continuous scanning plus scheduled audits |
 
 ### SEC-018
 
 Supplier audit attestation stored & verified
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| supplier-audit-attestation | Supplier audit attestation stored & verified | Attestations current; verification completed | Supplier management system + evidence repository | Annual + on contract change | prod | etl-ods | draft | Ensures supplier compliance and auditable records |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-018](#sec-018) | supplier-audit-attestation | Supplier audit attestation stored & verified | Attestations current; verification completed | Supplier management system + evidence repository | Annual + on contract change | prod | etl-ods | draft | Ensures supplier compliance and auditable records |
 
 ### SEC-019
 
 Segmentation test confirms tenant isolation
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| segmentation-tenant-isolation | Segmentation test confirms tenant isolation | 100% isolation; no cross-tenant data access observed | Segmentation test suite + log verification | Quarterly | int,ref,prod | etl-ods | draft | Ensures strict isolation between tenants per policy |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-019](#sec-019) | segmentation-tenant-isolation | Segmentation test confirms tenant isolation | 100% isolation; no cross-tenant data access observed | Segmentation test suite + log verification | Quarterly | int,ref,prod | etl-ods | draft | Ensures strict isolation between tenants per policy |
 
 ### SEC-020
 
 Remote connections present valid Authority certs
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| authority-cert-validation | Remote connections present valid Authority certs; invalid certs rejected | 100% validation events pass; 0 successful connections with invalid certs | TLS config tests + runtime observation in logs | CI policy validation + runtime checks | int,ref,prod | etl-ods | draft | External data source interactions require strict certificate validation |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-020](#sec-020) | authority-cert-validation | Remote connections present valid Authority certs; invalid certs rejected | 100% validation events pass; 0 successful connections with invalid certs | TLS config tests + runtime observation in logs | CI policy validation + runtime checks | int,ref,prod | etl-ods | draft | External data source interactions require strict certificate validation |
 
 ### SEC-021
 
 Port scan matches approved diagnostic list only
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| port-scan-diagnostic-only | Port scan matches approved diagnostic list only | No unexpected open ports detected outside approved list | Automated port scan + baseline comparison | Monthly + CI smoke on infra changes | dev,int,ref,prod | etl-ods | draft | Detects misconfigurations; verifies adherence to diagnostic port policy |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-021](#sec-021) | port-scan-diagnostic-only | Port scan matches approved diagnostic list only | No unexpected open ports detected outside approved list | Automated port scan + baseline comparison | Monthly + CI smoke on infra changes | dev,int,ref,prod | etl-ods | draft | Detects misconfigurations; verifies adherence to diagnostic port policy |
 
 ### SEC-022
 
 Utility program access restricted to approved roles
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| utility-access-restricted | Utility program access restricted to approved roles | Only approved roles can access utility programs | RBAC policy checks + audit logs | CI policy checks + monthly audit | dev,int,ref,prod | etl-ods | draft | Prevents misuse of diagnostic utilities |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-022](#sec-022) | utility-access-restricted | Utility program access restricted to approved roles | Only approved roles can access utility programs | RBAC policy checks + audit logs | CI policy checks + monthly audit | dev,int,ref,prod | etl-ods | draft | Prevents misuse of diagnostic utilities |
 
 ### SEC-023
 
 Deployment provenance shows unique traceable accounts
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| deployment-provenance-traceable | Deployment provenance shows unique traceable accounts | All deployments traceable to unique accounts | CI/CD audit trails + commit signing | Continuous | dev,int,ref,prod | etl-ods | draft | Ensures accountability and traceability for all deployments |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-023](#sec-023) | deployment-provenance-traceable | Deployment provenance shows unique traceable accounts | All deployments traceable to unique accounts | CI/CD audit trails + commit signing | Continuous | dev,int,ref,prod | etl-ods | draft | Ensures accountability and traceability for all deployments |
 
 ### SEC-024
 
 Code/data transfer logs show integrity & secure channels
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| transfer-integrity-secure | Code/data transfer logs show integrity & secure channels | 100% transfers logged; integrity and secure channel verified | Checksums/signatures + TLS enforcement + audit logs | CI per change + weekly reviews | dev,int,ref,prod | etl-ods | draft | Validates integrity and secure transport for all transfers |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-024](#sec-024) | transfer-integrity-secure | Code/data transfer logs show integrity & secure channels | 100% transfers logged; integrity and secure channel verified | Checksums/signatures + TLS enforcement + audit logs | CI per change + weekly reviews | dev,int,ref,prod | etl-ods | draft | Validates integrity and secure transport for all transfers |
 
 ### SEC-027
 
 Build fails on high CVE; report archived
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| high-cve-block | Build fails when high/critical CVEs detected in application or container dependencies | 0 unresolved High/Critical CVEs at release time | SCA scanner (e.g., OWASP Dependency-Check), container scanner, pipeline gate | CI per build + scheduled weekly scans | dev,int,ref | etl-ods | draft | Prevents introduction of known vulnerabilities; gate aligned to release quality |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-027](#sec-027) | high-cve-block | Build fails when high/critical CVEs detected in application or container dependencies | 0 unresolved High/Critical CVEs at release time | SCA scanner (e.g., OWASP Dependency-Check), container scanner, pipeline gate | CI per build + scheduled weekly scans | dev,int,ref | etl-ods | draft | Prevents introduction of known vulnerabilities; gate aligned to release quality |
 
 ### SEC-028
 
 Release pipeline blocks on critical unresolved findings
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| release-block-critical-findings | Release pipeline blocks on critical unresolved findings | 0 critical unresolved findings prior to release | Pipeline gate integrated with SCA, container, IaC scanners | Per release | dev,int,ref | etl-ods | draft | Enforces remediation before release; gate consolidates multiple scanner outputs |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-028](#sec-028) | release-block-critical-findings | Release pipeline blocks on critical unresolved findings | 0 critical unresolved findings prior to release | Pipeline gate integrated with SCA, container, IaC scanners | Per release | dev,int,ref | etl-ods | draft | Enforces remediation before release; gate consolidates multiple scanner outputs |
 
 ### SEC-029
 
 All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims)
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cis2-jwt-auth-enforced | All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims) | 100% endpoints require valid CIS2 JWT; invalid/missing tokens rejected with structured 401 | OIDC integration tests + JWT validator + JWKS cache monitor | CI per build + continuous runtime enforcement | dev,int,ref,prod | etl-ods | draft | Ensures uniform strong authentication; claim + signature validation prevents unauthorized access |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-029](#sec-029) | cis2-jwt-auth-enforced | All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims) | 100% endpoints require valid CIS2 JWT; invalid/missing tokens rejected with structured 401 | OIDC integration tests + JWT validator + JWKS cache monitor | CI per build + continuous runtime enforcement | dev,int,ref,prod | etl-ods | draft | Ensures uniform strong authentication; claim + signature validation prevents unauthorized access |
 
 ### SEC-030
 
 Certificates and private keys stored only in approved encrypted secret stores; zero plain text exposure
 
-| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
-|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
-| cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts | 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repo pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | etl-ods | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |
+| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |
+|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|
+| [SEC-030](#sec-030) | cert-secure-storage | Certificate and private key material stored only in approved encrypted secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build logs, or artifacts | 0 plaintext occurrences; 100% issuance & rotation actions use managed secrets; 100% scan coverage of git history and container layers | Secret scanning (git history + container layers), CI policy checks, artifact scanner, repo pre-commit hooks | CI per build + weekly full history & image layer scan | dev,int,ref,prod | etl-ods | draft | Prevents certificate/private key exposure by enforcing exclusive use of encrypted secret storage and continuous scanning |

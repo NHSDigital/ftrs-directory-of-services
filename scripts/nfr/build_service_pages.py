@@ -547,11 +547,12 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
             _append_blank_line(md)
             md.append(req)
             _append_blank_line(md)
-            md.append("| Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
-            md.append("|------------|---------|-----------|---------|---------|------|----------|--------|-----------|")
+            md.append("| Requirement | Control ID | Measure | Threshold | Tooling | Cadence | Envs | Services | Status | Rationale |")
+            md.append("|-------------|------------|---------|-----------|---------|---------|------|----------|--------|-----------|")
             for it in by_code[code]:
                 # For clarity, set Services column to this service only
                 row = [
+                    f"[{code}](#{code.lower()})",
                     it.get('control_id',''), it.get('measure',''), it.get('threshold',''), it.get('tooling',''), it.get('cadence',''),
                     it.get('envs',''), service, it.get('status',''), it.get('rationale','')
                 ]
