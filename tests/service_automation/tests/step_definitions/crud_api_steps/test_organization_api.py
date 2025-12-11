@@ -350,17 +350,6 @@ def step_given_valid_payload_with_identifier(identifier_data):
     logger.info(f"Prepared payload with identifier: {json.dumps(payload, indent=2)}")
     return payload
 
-
-def upper_case_acronyms(name: str):
-    """Convert known acronyms in the name to uppercase."""
-    acronyms = ["NHS", "GP", "ICB", "PCN"]
-    words = name.split()
-    updated_words = [
-        word.upper() if word.upper() in acronyms else word for word in words
-    ]
-    return " ".join(updated_words)
-
-
 def build_typed_period_extension(
     start_date: str = None, end_date: str = None, date_type_code: str = "Legal"
 ) -> dict:
@@ -428,8 +417,8 @@ def validate_db_entry_against_payload(item, payload):
 
     expected_fields = [
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
-        ("name", upper_case_acronyms(payload["name"].title())),
-        ("type", upper_case_acronyms(payload["type"][0]["text"].title())),
+        ("name", payload["name"].title()),
+        ("type", payload["type"][0]["text"].title()),
         ("active", payload["active"]),
         ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
