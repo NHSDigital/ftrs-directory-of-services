@@ -19,7 +19,7 @@ resource "aws_vpc_security_group_ingress_rule" "ui_lambda_allow_cloudfront" {
   cidr_ipv4         = "0.0.0.0/0"
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "ui_lambda_allow_egress_to_internet" {
   description       = "Allow egress to internet"
   security_group_id = aws_security_group.ui_lambda_security_group.id
