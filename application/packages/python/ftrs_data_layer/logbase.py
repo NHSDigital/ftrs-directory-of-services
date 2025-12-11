@@ -164,6 +164,16 @@ class DataMigrationLogBase(LogBase):
         message="No ageEligibilityCriteria created for Service ID {service_id} as no age range found",
     )
 
+    DM_ETL_018 = LogReference(
+        level=WARNING,
+        message="Disposition ID {disposition_id} not found in metadata for Service ID {service_id}, skipping disposition",
+    )
+
+    DM_ETL_019 = LogReference(
+        level=INFO,
+        message="State record not found for Service ID {record_id}, creating new one",
+    )
+
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )
