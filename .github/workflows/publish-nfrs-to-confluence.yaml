@@ -10,8 +10,8 @@ jobs:
         with:
           input_directory: docs/nfrs
           # exclude_files: this.md,that.md
-          cloud: company
-          space_key: https://nhsd-confluence.digital.nhs.uk/
+          cloud: nhsd-confluence.digital.nhs.uk
+          space_key: FRS
           parent_page_id: 1222133740
           user: ${{ secrets.ATLASSIAN_USERNAME }}
           token: ${{ secrets.ATLASSIAN_API_TOKEN }}
