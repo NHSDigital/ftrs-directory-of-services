@@ -1,9 +1,11 @@
 from time import perf_counter
 from typing import Iterable
+from uuid import uuid4
 
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
+from ftrs_data_layer.domain.data_migration_state import DataMigrationState
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 from sqlalchemy import Engine
@@ -153,7 +155,7 @@ class DataMigrationProcessor:
                 ),
             )
 
-            self._save(result)
+            self._save(result, service.id)
             self.metrics.migrated_records += 1
 
             elapsed_time = perf_counter() - start_time
@@ -210,10 +212,11 @@ class DataMigrationProcessor:
         with Session(self.engine) as session:
             yield from session.scalars(stmt)
 
-    def _save(self, result: ServiceTransformOutput) -> None:
+    def _save(self, result: ServiceTransformOutput, service_id: int) -> None:
         """
         Save the transformed result to DynamoDB.
         """
+
         org_repo = get_service_repository(
             model_cls=Organisation,
             logger=self.logger,
@@ -233,6 +236,7 @@ class DataMigrationProcessor:
             endpoint_url=self.config.dynamodb_endpoint,
         )
 
+        # Save the transformed records
         for org in result.organisation:
             org_repo.upsert(org)
 
@@ -241,6 +245,39 @@ class DataMigrationProcessor:
 
         for hc in result.healthcare_service:
             service_repo.upsert(hc)
+
+        # Create/update the data migration state record
+        state_exists = self.verify_state_record_exist(service_id)
+
+        if state_exists:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_019,
+                record_id=service_id,
+            )
+
+        # Generate consistent ID for state record
+        source_record_id = "services#" + str(service_id)
+        state_id = uuid4()  # Generate a new UUID for the state record
+
+        # Always upsert the state record (create if doesn't exist, update if exists)
+        data_migration_state = DataMigrationState(
+            id=state_id,
+            source_record_id=source_record_id,
+            version=1,
+            organisation_id=result.organisation[0].id,
+            organisation=result.organisation[0],
+            location_id=result.location[0].id,
+            location=result.location[0],
+            healthcare_service_id=result.healthcare_service[0].id,
+            healthcare_service=result.healthcare_service[0],
+        )
+        data_migration_state_repo = get_service_repository(
+            model_cls=DataMigrationState,
+            logger=self.logger,
+            entity_name="data-migration-state",
+            endpoint_url=self.config.dynamodb_endpoint,
+        )
+        data_migration_state_repo.upsert(data_migration_state)
 
     def _convert_validation_issues(self, issues: list[ValidationIssue]) -> list[str]:
         """
@@ -264,3 +301,22 @@ class DataMigrationProcessor:
         return create_engine(connection_string, echo=False).execution_options(
             postgresql_readonly=True
         )
+
+    def verify_state_record_exist(self, record_id: int) -> bool:
+        """
+        Check if a data migration state record exists for the given service ID.
+        Returns True if the state record exists.
+        """
+        data_migration_state_repo = get_service_repository(
+            model_cls=DataMigrationState,
+            logger=self.logger,
+            entity_name="data-migration-state",
+            endpoint_url=self.config.dynamodb_endpoint,
+        )
+        source_record_id = "services#" + str(record_id)
+        try:
+            existing_state = data_migration_state_repo.get(source_record_id)
+            return existing_state is not None
+        except Exception as e:
+            self.logger.debug(f"State record not found for {source_record_id}: {e}")
+            return False
