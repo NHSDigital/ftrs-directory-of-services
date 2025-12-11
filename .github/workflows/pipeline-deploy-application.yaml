@@ -12,6 +12,7 @@ on:
       - "dependabot/**"
     tags:
       - "*-*-*"
+      - "*-*-*-*-*-*"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
