@@ -21,7 +21,9 @@ class OrganizationMapper(FhirMapper):
     # --- FHIR Builders ---
     def _build_meta_profile(self) -> dict:
         return {
-            "profile": ["https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         }
 
     def _build_identifier(self, ods_code: str) -> list[Identifier]:
