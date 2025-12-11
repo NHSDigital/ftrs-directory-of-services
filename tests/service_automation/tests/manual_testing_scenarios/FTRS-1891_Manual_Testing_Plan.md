@@ -1,11 +1,13 @@
 # FTRS-1891: Manual Testing Plan - Single Service Queue Populator
 
 ## Test Overview
+
 **Feature**: Enable Single-Service Testing for Queue Populator Lambda
 **Lambda Name**: `ftrs-dos-dev-data-migration-queue-populator-lambda-ftrs-1898`
 **Workspace**: `ftrs-1898`
 **Environment**: `dev`
 **AWS Region**: `eu-west-2`
+**Status**: ✅ IMPLEMENTED - READY FOR TESTING
 
 ## Background
 The queue populator Lambda previously only supported full sync operations, which required processing all services matching specific type_ids and status_ids. This made it difficult to test individual services without running a full migration. FTRS-1891 adds the capability to trigger the queue populator for a single service.
@@ -72,7 +74,7 @@ The queue populator Lambda previously only supported full sync operations, which
    - `method`: "insert"
 4. CloudWatch Logs show:
    - Log entry DM_QP_000: "Starting Data Migration Queue Populator"
-   - Log entry DM_QP_001: "count": 1 (single service)
+   - Log entry DM_QP_005: "Populating SQS queue with 1 message in single service sync" with service_id and record_id
    - Log entry DM_QP_999: "Data Migration Queue Populator completed"
 5. No errors in CloudWatch Logs
 

@@ -24,6 +24,9 @@ from utilities.common.context import Context
 
 pytest_plugins = ["data_migration_fixtures"]
 
+# Import all step definitions to register them with pytest-bdd
+from step_definitions.common_steps import data_migration_steps  # noqa: F401
+
 # Configure Loguru to log into a file and console
 logger.add(
     "test_logs.log",

@@ -5,6 +5,7 @@
 **Lambda**: `ftrs-dos-dev-data-migration-queue-populator-lambda-ftrs-1898`
 **Region**: eu-west-2
 **Duration**: ~15 minutes
+**Status**: ✅ READY FOR TESTING
 
 ---
 
@@ -49,7 +50,7 @@ SELECT id FROM pathwaysdos.services WHERE statusid = 1 LIMIT 1;
 ### Verification
 
 - [ ] Status: **succeeded** (green)
-- [ ] CloudWatch Logs: search for `"count": 1`
+- [ ] CloudWatch Logs: search for `"count": 1` OR `DM_QP_005` with `"service_id": 12345`
 - [ ] SQS Queue: **+1 message**
 - [ ] Poll messages → verify body contains `"service_id": 12345`
 
