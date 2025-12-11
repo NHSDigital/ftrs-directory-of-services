@@ -18,6 +18,7 @@ from pathlib import Path
 import re
 from datetime import datetime, timezone
 import json
+from typing import Match
 try:
     import yaml
 except ModuleNotFoundError as e:
@@ -51,6 +52,19 @@ COMP_EXPECTATIONS = Path("requirements/nfrs/compatibility/expectations.yaml")
 
 ROW_PATTERN = re.compile(r"^\|\s*([A-Z]+-[0-9]+)\s*\|\s*([A-Za-z]+)\s*\|\s*([^|]*)\|\s*([^|]*)\|")
 EXPLANATIONS_FILE = Path("requirements/nfrs/cross-references/nfr-explanations.yaml")
+RE_JIRA = re.compile(r"\bFTRS-\d+\b")
+
+def linkify_story_ids(text: str) -> str:
+    """Convert any FTRS-#### occurrences to Jira hyperlinks.
+
+    Example: FTRS-1234 -> [FTRS-1234](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1234)
+    """
+    if not isinstance(text, str) or not text:
+        return text
+    def _repl(m: Match[str]) -> str:
+        key = m.group(0)
+        return f"[{key}](https://nhsd-jira.digital.nhs.uk/browse/{key})"
+    return RE_JIRA.sub(_repl, text)
 
 
 def _append_blank_line(lines: list[str]) -> None:
@@ -176,7 +190,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
     story_jira_map = load_story_jira_map()
     for domain, rows in by_domain.items():
         fname = DOMAIN_OUT_DIR / f"{domain.lower()}.md"
-        lines: list[str] = [f"# FtRS NFR – {domain}", "", "Source: requirements/nfrs/cross-references/nfr-matrix.md", "", "This page is auto-generated; do not hand-edit.", ""]
+        lines: list[str] = [f"# FtRS NFR – {domain}", "", "This page is auto-generated; do not hand-edit.", ""]
         # NFR codes table (prefer domain nfrs.yaml if present)
         lines.append("## NFR Codes")
         lines.append("")
@@ -211,7 +225,8 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 expl = str(n.get("explanation","")) or explanations.get(n.get("code",""), "")
                 expl = expl.replace('|','/').replace('\n',' ')
                 stories_list = n.get("stories", [])
-                stories_display = ', '.join(stories_list) if stories_list else '(none)'
+                stories_display_raw = ', '.join(stories_list) if stories_list else '(none)'
+                stories_display = linkify_story_ids(stories_display_raw)
                 lines.append(f"| {n.get('code','')} | {req} | {expl} | {stories_display} |")
         else:
             for r in rows:
@@ -229,6 +244,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                     else:
                         enriched.append(base)
                 stories_display = ', '.join(enriched) if enriched else '(none)'
+                stories_display = linkify_story_ids(stories_display)
                 lines.append(f"| {r['code']} | {req} | {expl} | {stories_display} |")
         lines.append("")
         # Collect gaps for a checklist section
@@ -363,7 +379,7 @@ def build_output():
         rows.sort(key=sort_key)
         by_domain[domain] = rows
     # Omit volatile timestamp to keep commits clean
-    lines = ["# FtRS NFR – By Domain", "", "Source: requirements/nfrs/cross-references/nfr-matrix.md", "", "This page is auto-generated; do not hand-edit.", ""]
+    lines = ["# FtRS NFR – By Domain", "", "This page is auto-generated; do not hand-edit.", ""]
 
     explanations = {}
     if EXPLANATIONS_FILE.exists():

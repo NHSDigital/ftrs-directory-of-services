@@ -1,7 +1,5 @@
 # FtRS NFR – Availability
 
-Source: requirements/nfrs/cross-references/nfr-matrix.md
-
 This page is auto-generated; do not hand-edit.
 
 ## NFR Codes

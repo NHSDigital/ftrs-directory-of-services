@@ -1,7 +1,5 @@
 # FtRS NFR – Compatibility
 
-Source: requirements/nfrs/cross-references/nfr-matrix.md
-
 This page is auto-generated; do not hand-edit.
 
 ## NFR Codes
