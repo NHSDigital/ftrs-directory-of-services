@@ -59,7 +59,6 @@ class DosLogger:
     ) -> int:
         """Utility to calculate response size in bytes from FHIR resource."""
         duration_ms = int((time.time() - start_time) * 1000)
-        print("test search", duration_ms)
         try:
             body = fhir_resource.model_dump_json()
             response_size = len(body.encode("utf-8"))

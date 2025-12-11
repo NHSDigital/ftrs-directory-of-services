@@ -56,7 +56,6 @@ def get_organization() -> Response:
     except Exception:
         # Log exception with structured fields
         fhir_resource = error_util.create_resource_internal_server_error()
-        print("easy search", fhir_resource)
 
         response_size, duration_ms = dos_logger.get_response_size_and_duration(
             fhir_resource, start
