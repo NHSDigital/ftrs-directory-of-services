@@ -10,7 +10,7 @@ jobs:
         with:
           sparse-checkout: docs
       - name: Sync Docs as Code - Confluence
-        uses: Bhacaz/docs-as-code-confluence@udpate_node
+        uses: Bhacaz/docs-as-code-confluence@v3
         with:
           folder: docs/nfrs
           username: ${{ secrets.ATLASSIAN_USERNAME }}
