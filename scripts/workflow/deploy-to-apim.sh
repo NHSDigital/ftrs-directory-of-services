@@ -37,15 +37,13 @@ if [ ! -f "$MODIFIED_SPEC_PATH" ]; then
     exit 1
 fi
 
-# Set instance name based on environment and workspace
-# Only internal-dev supports workspace-specific instances
-if [ "$PROXY_ENV" = "internal-dev" ] && [ -n "$WORKSPACE" ]; then
-    # For internal-dev with workspace, include workspace in instance name
+# Set instance name based on workspace
+if [ -n "$WORKSPACE" ]; then
+    # If workspace is set, deploy a workspaced proxy
     # e.g., dos-search-ftrs-000_FHIR_R4
     INSTANCE_NAME="${API_NAME}-${WORKSPACE}_FHIR_R4"
 else
-    # For all other cases (int, sandbox, prod, or internal-dev without workspace)
-    # use just the API_NAME
+    # Otherwise use just the API_NAME
     # e.g., dos-search_FHIR_R4
     INSTANCE_NAME="${API_NAME}_FHIR_R4"
 fi
