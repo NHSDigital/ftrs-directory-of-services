@@ -5,7 +5,10 @@ from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
-from functions.dos_search_ods_code_function import lambda_handler
+from functions.dos_search_ods_code_function import (
+    DEFAULT_RESPONSE_HEADERS,
+    lambda_handler,
+)
 
 
 @pytest.fixture
@@ -66,13 +69,18 @@ def bundle():
     return Bundle.model_construct(id="bundle-id")
 
 
+EXPECTED_MULTI_VALUE_HEADERS = {
+    header: [value] for header, value in DEFAULT_RESPONSE_HEADERS.items()
+}
+
+
 def assert_response(
     response,
     expected_status_code,
     expected_body,
 ):
     assert response["statusCode"] == expected_status_code
-    assert response["multiValueHeaders"] == {"Content-Type": ["application/fhir+json"]}
+    assert response["multiValueHeaders"] == EXPECTED_MULTI_VALUE_HEADERS
     assert response["body"] == expected_body
 
 
@@ -197,3 +205,9 @@ class TestLambdaHandler:
         # Act & Assert
         with pytest.raises(KeyError, match="httpMethod"):
             lambda_handler(empty_event, lambda_context)
+
+
+def test_default_response_headers_contains_expected_values() -> None:
+    assert DEFAULT_RESPONSE_HEADERS["Content-Type"] == "application/fhir+json"
+    assert DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Methods"] == "GET"
+    assert "Authorization" in DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Headers"]

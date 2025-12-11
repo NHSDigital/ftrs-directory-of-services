@@ -1,3 +1,5 @@
+from typing import Dict
+
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.logging import correlation_paths
@@ -12,6 +14,16 @@ from functions.organization_query_params import OrganizationQueryParams
 logger = Logger()
 tracer = Tracer()
 app = APIGatewayRestResolver()
+
+DEFAULT_RESPONSE_HEADERS: Dict[str, str] = {
+    "Content-Type": "application/fhir+json",
+    "Access-Control-Allow-Methods": "GET",
+    "Access-Control-Allow-Headers": (
+        "Authorization, Content-Type, X-NHSD-REQUEST-ID, X-NHSD-CORRELATION-ID, "
+        "NHSD-Message-Id, NHSD-Api-Version, NHSD-End-User-Role, NHSD-Client-Id, "
+        "NHSD-Connecting-Party-App-Name"
+    ),
+}
 
 
 @app.get("/Organization")
@@ -46,7 +58,7 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     logger.info("Creating response", extra={"status_code": status_code})
     return Response(
         status_code=status_code,
-        content_type="application/fhir+json",
+        headers=DEFAULT_RESPONSE_HEADERS,
         body=fhir_resource.model_dump_json(),
     )
 

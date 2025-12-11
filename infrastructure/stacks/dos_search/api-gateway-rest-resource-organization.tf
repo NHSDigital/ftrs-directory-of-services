@@ -24,38 +24,3 @@ resource "aws_api_gateway_integration" "organization" {
   type                    = "AWS_PROXY"
   uri                     = module.lambda.lambda_function_invoke_arn
 }
-
-resource "aws_api_gateway_method_response" "organization" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  resource_id = aws_api_gateway_resource.organization.id
-  http_method = aws_api_gateway_method.organization.http_method
-  status_code = "200"
-
-  response_models = {
-    "application/json" = "Empty"
-  }
-
-  response_parameters = {
-    "method.response.header.Content-Type"                 = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-}
-
-resource "aws_api_gateway_integration_response" "organization" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  resource_id = aws_api_gateway_resource.organization.id
-  http_method = aws_api_gateway_method.organization.http_method
-  status_code = aws_api_gateway_method_response.organization.status_code
-
-  response_parameters = {
-    "method.response.header.Content-Type"                 = "'application/json'"
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'"
-    "method.response.header.Access-Control-Allow-Headers" = "'Authorization, Content-Type, X-NHSD-REQUEST-ID, X-NHSD-CORRELATION-ID, NHSD-Message-Id, NHSD-Api-Version, NHSD-End-User-Role, NHSD-Client-Id, NHSD-Connecting-Party-App-Name'"
-  }
-
-  depends_on = [
-    aws_api_gateway_method.organization,
-    aws_api_gateway_integration.organization
-  ]
-}
