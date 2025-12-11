@@ -243,7 +243,9 @@ def test_update_organisation_success() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
@@ -271,7 +273,9 @@ def test_update_organisation_no_updates(
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
@@ -312,7 +316,9 @@ def test_update_organisation_operation_outcome(
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
@@ -334,7 +340,9 @@ def test_update_organisation_missing_required_field() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
@@ -358,7 +366,7 @@ def test_update_organisation_missing_required_field() -> None:
                     "id": str(test_org_id),
                     "meta": {
                         "profile": [
-                            "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                            "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                         ]
                     },
                     "identifier": [
@@ -386,7 +394,9 @@ def test_update_organisation_unexpected_exception(
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
@@ -465,7 +475,9 @@ def test_type_validator_invalid_coding_and_text_missing() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
@@ -490,7 +502,7 @@ def test_type_validator_invalid_coding_and_text_missing() -> None:
                     "id": str(test_org_id),
                     "meta": {
                         "profile": [
-                            "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                            "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                         ]
                     },
                     "identifier": [
@@ -557,7 +569,9 @@ def test_update_organisation_empty_identifier_object() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [{}],
         "name": "Test Organization",
@@ -589,7 +603,9 @@ def test_update_organisation_identifier_missing_value() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {
@@ -625,7 +641,9 @@ def test_update_organisation_identifier_empty_value() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {
@@ -661,7 +679,9 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {
@@ -697,7 +717,9 @@ def test_update_organisation_identifier_empty_list() -> None:
         "resourceType": "Organization",
         "id": str(test_org_id),
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [],  # Empty identifier list
         "name": "Test Organization",

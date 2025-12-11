@@ -1,7 +1,7 @@
 {
     "resourceType": "Organization",
     "id": "36fce427-0f31-4a4e-903f-74dcf9e63cfd",
-    "meta": {"profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]},
+    "meta": {"profile": ["https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"]},
     "extension": [
         {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
