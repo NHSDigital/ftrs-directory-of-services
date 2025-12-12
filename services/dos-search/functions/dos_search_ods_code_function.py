@@ -1,5 +1,3 @@
-from typing import Dict
-
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.logging import correlation_paths
@@ -15,7 +13,7 @@ logger = Logger()
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
-DEFAULT_RESPONSE_HEADERS: Dict[str, str] = {
+DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Content-Type": "application/fhir+json",
     "Access-Control-Allow-Methods": "GET",
     "Access-Control-Allow-Headers": (

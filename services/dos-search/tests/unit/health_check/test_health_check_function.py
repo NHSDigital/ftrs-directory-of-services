@@ -1,10 +1,9 @@
-from typing import Any, Dict
 from unittest.mock import Mock, patch
 
 import pytest
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from health_check.health_check_function import DEFAULT_RESPONSE_HEADERS, lambda_handler
+from health_check.health_check_function import lambda_handler
 
 
 @pytest.fixture
@@ -18,11 +17,6 @@ def lambda_event():
 @pytest.fixture
 def lambda_context():
     return Mock(spec=LambdaContext)
-
-
-EXPECTED_MULTI_VALUE_HEADERS = {
-    header: [value] for header, value in DEFAULT_RESPONSE_HEADERS.items()
-}
 
 
 class TestHealthCheckFunction:
@@ -39,7 +33,6 @@ class TestHealthCheckFunction:
         result = lambda_handler(lambda_event, lambda_context)
 
         assert result["statusCode"] == 200
-        assert result["multiValueHeaders"] == EXPECTED_MULTI_VALUE_HEADERS
 
     @patch("health_check.health_check_function.get_service_repository")
     def test_lambda_handler_when_get_repository_fails(
@@ -50,7 +43,6 @@ class TestHealthCheckFunction:
         result = lambda_handler(lambda_event, lambda_context)
 
         assert result["statusCode"] == 500
-        assert result["multiValueHeaders"] == EXPECTED_MULTI_VALUE_HEADERS
 
     @patch("health_check.health_check_function.get_service_repository")
     def test_lambda_handler_when_table_inactive(
@@ -65,25 +57,3 @@ class TestHealthCheckFunction:
         result = lambda_handler(lambda_event, lambda_context)
 
         assert result["statusCode"] == 500
-        assert result["multiValueHeaders"] == EXPECTED_MULTI_VALUE_HEADERS
-
-    @patch("health_check.health_check_function.get_service_repository")
-    def test_lambda_handler_sets_expected_headers(
-        self: "TestHealthCheckFunction",
-        mock_get_repository: Mock,
-        lambda_event: Dict[str, Any],
-        lambda_context: LambdaContext,
-    ) -> None:
-        mock_table = Mock()
-        mock_table.table_status = "ACTIVE"
-        mock_repository = Mock()
-        mock_repository.table = mock_table
-        mock_get_repository.return_value = mock_repository
-
-        result = lambda_handler(lambda_event, lambda_context)
-
-        headers = {
-            key: values[0] for key, values in result["multiValueHeaders"].items()
-        }
-        assert headers == DEFAULT_RESPONSE_HEADERS
-        assert result["multiValueHeaders"] == EXPECTED_MULTI_VALUE_HEADERS

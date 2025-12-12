@@ -1,5 +1,3 @@
-from typing import Dict
-
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -9,16 +7,12 @@ from ftrs_data_layer.domain import Organisation
 app = APIGatewayRestResolver()
 logger = Logger(service="dos-search-health")
 
-DEFAULT_RESPONSE_HEADERS: Dict[str, str] = {
-    "Content-Type": "application/json",
-}
-
 
 @app.get("/_status")
 def get_status() -> Response:
     table_active = _is_table_active()
     status_code = 200 if table_active else 500
-    return Response(status_code=status_code, headers=DEFAULT_RESPONSE_HEADERS)
+    return Response(status_code=status_code)
 
 
 def _is_table_active() -> bool:
