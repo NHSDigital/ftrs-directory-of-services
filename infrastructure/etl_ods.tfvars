@@ -16,7 +16,7 @@ aws_lambda_layers = [
 
 delay_seconds              = 10
 visibility_timeout_seconds = 30
-max_message_size           = 8000
+max_message_size           = 10240
 message_retention_seconds  = 86400
 receive_wait_time_seconds  = 2
 
