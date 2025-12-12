@@ -3,3 +3,7 @@ data "aws_ssm_parameter" "account_id" {
 
   name = "/${var.project}/${each.key}/aws_account_id"
 }
+
+data "aws_kms_key" "ssm_kms_key" {
+  key_id = local.kms_aliases.ssm
+}
