@@ -1292,6 +1292,7 @@ def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates
 ):
     """Test from_ods_fhir_to_fhir extracts first OrganisationRole with nested Legal TypedPeriod."""
     mapper = OrganizationMapper()
+    EXPECTED_EXTENSION_COUNT = 2
     ods_org = {
         "resourceType": "Organization",
         "id": "K84605",
@@ -1396,7 +1397,7 @@ def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates
 
     assert result is not None
     assert result.extension is not None
-    assert len(result.extension) == 2
+    assert len(result.extension) == EXPECTED_EXTENSION_COUNT
 
     # Should extract the FIRST OrganisationRole
     ext_dict = result.extension[0].dict()
@@ -1577,6 +1578,7 @@ def test_from_ods_fhir_to_fhir_extracts_nested_legal_dates_from_role() -> None:
 def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
     """Test from_ods_fhir_to_fhir extracts first OrganisationRole when multiple roles exist."""
     mapper = OrganizationMapper()
+    EXPECTED_EXTENSION_COUNT = 2
     ods_org = {
         "resourceType": "Organization",
         "id": "B98765",
@@ -1670,7 +1672,7 @@ def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
 
     assert result is not None
     assert result.extension is not None
-    assert len(result.extension) == 2
+    assert len(result.extension) == EXPECTED_EXTENSION_COUNT
 
     # Should extract the FIRST OrganisationRole (RO177)
     ext_dict = result.extension[0].dict()
