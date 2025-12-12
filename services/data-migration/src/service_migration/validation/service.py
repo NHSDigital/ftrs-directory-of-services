@@ -1,5 +1,6 @@
 from ftrs_data_layer.domain.legacy import Service
 
+from service_migration.formatting.address_formatter import format_address
 from service_migration.validation.base import (
     FieldValidationResult,
     ValidationResult,
@@ -54,6 +55,11 @@ class GPPracticeValidator(ServiceValidator):
             data.publicname = name_result.sanitised
             result.issues.extend(name_result.issues)
 
+        if location_result := self.validate_location(
+            data.address, data.town, data.postcode
+        ):
+            result.issues.extend(location_result.issues)
+
         return result
 
     def validate_name(self, name: str) -> FieldValidationResult[str]:
@@ -63,7 +69,7 @@ class GPPracticeValidator(ServiceValidator):
             issues=[],
         )
 
-        if not name:
+        if not name or not name.strip():
             result.issues.append(
                 ValidationIssue(
                     severity="error",
@@ -76,4 +82,49 @@ class GPPracticeValidator(ServiceValidator):
 
         cleaned_name = name.split("-", maxsplit=1)[0].rstrip()
         result.sanitised = cleaned_name
+        return result
+
+    def validate_location(
+        self, address: str, town: str, postcode: str
+    ) -> FieldValidationResult[str]:
+        """
+        Validate location using address, town, and postcode.
+
+        Returns formatted address if at least town or postcode is available,
+        even if address field is missing or invalid.
+        """
+        result = FieldValidationResult(
+            original=address,
+            sanitised=None,
+            issues=[],
+        )
+
+        # Check 1: Early validation - all fields empty
+        if not address and not town and not postcode:
+            result.issues.append(
+                ValidationIssue(
+                    severity="fatal",
+                    code="address_required",
+                    diagnostics="Address is required for GP practices to create a location",
+                    expression=["address"],
+                )
+            )
+            return result
+
+        # Check 2: Attempt to format address
+        formatted_address = format_address(address, town, postcode)
+
+        # Check 3: Format result validation Address invalid or incomplete
+        if not formatted_address:
+            result.issues.append(
+                ValidationIssue(
+                    severity="fatal",
+                    code="invalid_address",
+                    diagnostics="Address was invalid or incomplete, could not be formatted for GP practices to create a location",
+                    expression=["address"],
+                )
+            )
+            return result
+
+        result.sanitised = formatted_address
         return result
