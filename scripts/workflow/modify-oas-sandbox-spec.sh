@@ -26,6 +26,16 @@ if [[ ! -f "$SPEC_FILE" ]]; then
     exit 1
 fi
 
+if [[ "$PROXY_ENV" == "sandbox" ]]; then
+    SPEC_FILE_TMP=$(mktemp "$(dirname "$SPEC_FILE")/${API_NAME}-servers-trimmed.XXXXXX.yaml") || {
+        echo "Error: Unable to create temporary sandbox spec file" >&2
+        exit 1
+    }
+    cp "$SPEC_FILE" "$SPEC_FILE_TMP"
+    yq eval -i 'del(.servers[0])' "$SPEC_FILE_TMP"
+    SPEC_FILE="$SPEC_FILE_TMP"
+fi
+
 TARGET_SPEC_TMP=$(mktemp "$(dirname "$ORIGINAL_TARGET_SPEC")/target-sandbox.${API_NAME}.XXXXXX") || {
     echo "Error: Unable to create temporary target spec file" >&2
     exit 1
