@@ -104,6 +104,11 @@ class TestLambdaHandler:
             "X-NHSD-REQUEST-ID",
             "x-nhsd-request-id",
             "NHSD-Api-Version",
+            "Accept",
+            "X-Forwarded-For",
+            "Forwarded",
+            "Ocp-Apim-Trace",
+            "X-Correlation-ID",
         ],
     )
     def test_lambda_handler_allows_valid_custom_headers(
