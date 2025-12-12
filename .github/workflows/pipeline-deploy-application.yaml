@@ -159,26 +159,7 @@ jobs:
 
   deploy-proxy-into-apim-sandbox:
     name: >-
-      ${{ format(
-        'Authenticate and Deploy {0} to Proxygen in {1}',
-        (
-          (
-            startsWith(github.ref_name, 'internal-dev-sandbox-dos-search-') ||
-            startsWith(github.ref_name, 'sandbox-dos-search-')
-          )
-          && 'dos-search'
-          || 'API'
-        ),
-        (
-          startsWith(github.ref_name, 'internal-dev-sandbox-dos-search-')
-          && 'internal-dev-sandbox'
-          || (
-            startsWith(github.ref_name, 'sandbox-dos-search-')
-            && 'sandbox'
-            || 'sandbox environment'
-          )
-        )
-      ) }}
+      ${{ format('Deploy into {0}', replace(github.ref_name, '-', ' ')) }}
     needs:
       - metadata
       - deploy-application-infrastructure
