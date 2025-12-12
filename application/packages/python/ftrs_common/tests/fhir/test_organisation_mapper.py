@@ -205,12 +205,22 @@ def test__extract_ods_code_from_identifiers_non_dict_in_list() -> None:
 def test__build_telecom() -> None:
     mapper = OrganizationMapper()
     telecom = mapper._build_telecom(
-        [Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)]
+        [
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
+            Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
+            Telecom(type=TelecomType.WEB, value="http://example.com", isPublic=True),
+        ]
     )
     assert isinstance(telecom, list)
     assert telecom[0].system == "phone"
     assert telecom[0].value == "0300 311 22 33"
     assert telecom[0].use is None
+    assert telecom[1].system == "email"
+    assert telecom[1].value == "test@nhs.net"
+    assert telecom[1].use is None
+    assert telecom[2].system == "url"
+    assert telecom[2].value == "http://example.com"
+    assert telecom[2].use is None
 
 
 def test__build_telecom_empty_list() -> None:
@@ -218,6 +228,19 @@ def test__build_telecom_empty_list() -> None:
     telecom_empty_list = mapper._build_telecom([])
     assert telecom_empty_list == []
 
+
+def test__build_telecom_none() -> None:
+    mapper = OrganizationMapper()
+    telecom_empty_list = mapper._build_telecom(None)
+    assert telecom_empty_list == []
+
+
+def test__build_telecom_str_phone() -> None:
+    mapper = OrganizationMapper()
+    telecom = mapper._build_telecom("0300 311 22 33")
+    assert telecom[0].system == "phone"
+    assert telecom[0].value == "0300 311 22 33"
+    assert telecom[0].use is None
 
 def test_from_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()

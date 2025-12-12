@@ -48,13 +48,22 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
-    def _build_telecom(self, telecom: list[Telecom]) -> list[dict]:
+    def _build_telecom(self, telecom: list[Telecom] | str | None) -> list[dict]:
         """Build FHIR telecom list from phone, email and web."""
+        # Temporary handling for string and None telecom (old data format)
+        if not telecom:
+            return []
+        if isinstance(telecom, str):
+            return [
+                ContactPoint.model_validate(
+                    {"system": TelecomType.PHONE.to_fhir_value(), "value": telecom}
+                )
+            ]
         fhir_telecom = []
         for tel in telecom:
             fhir_telecom.append(
                 ContactPoint.model_validate(
-                    {"system": tel.type.value, "value": tel.value}
+                    {"system": tel.type.to_fhir_value(), "value": tel.value}
                 )
             )
         return fhir_telecom
