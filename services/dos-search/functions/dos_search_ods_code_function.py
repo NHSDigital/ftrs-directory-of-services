@@ -23,11 +23,39 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     ),
 }
 
+ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
+    header.strip().lower()
+    for header in DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Headers"].split(",")
+    if header.strip()
+)
+
+
+def _validate_headers(headers: dict[str, str] | None) -> list[str]:
+    if not headers:
+        return []
+
+    return [
+        header_name
+        for header_name in headers
+        if header_name and header_name.lower() not in ALLOWED_REQUEST_HEADERS
+    ]
+
 
 @app.get("/Organization")
 @tracer.capture_method
 def get_organization() -> Response:
     try:
+        invalid_headers = _validate_headers(app.current_event.headers)
+        if invalid_headers:
+            logger.warning(
+                "Invalid request headers supplied",
+                extra={"invalid_headers": invalid_headers},
+            )
+            fhir_resource = error_util.create_invalid_header_operation_outcome(
+                invalid_headers
+            )
+            return create_response(400, fhir_resource)
+
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
 

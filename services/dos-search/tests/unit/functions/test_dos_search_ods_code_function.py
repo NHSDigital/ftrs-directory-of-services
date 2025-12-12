@@ -74,6 +74,19 @@ EXPECTED_MULTI_VALUE_HEADERS = {
 }
 
 
+def _build_event_with_headers(headers: dict[str, str]):
+    return {
+        "path": "/Organization",
+        "httpMethod": "GET",
+        "queryStringParameters": {
+            "identifier": "odsOrganisationCode|ABC123",
+            "_revinclude": "Endpoint:organization",
+        },
+        "requestContext": {"requestId": "req-id"},
+        "headers": headers,
+    }
+
+
 def assert_response(
     response,
     expected_status_code,
@@ -85,6 +98,55 @@ def assert_response(
 
 
 class TestLambdaHandler:
+    @pytest.mark.parametrize(
+        "header_name",
+        [
+            "X-NHSD-REQUEST-ID",
+            "x-nhsd-request-id",
+            "NHSD-Api-Version",
+        ],
+    )
+    def test_lambda_handler_allows_valid_custom_headers(
+        self,
+        header_name,
+        lambda_context,
+        mock_ftrs_service,
+        mock_logger,
+        bundle,
+    ):
+        mock_ftrs_service.endpoints_by_ods.return_value = bundle
+
+        event_with_headers = _build_event_with_headers({header_name: "value"})
+
+        response = lambda_handler(event_with_headers, lambda_context)
+
+        assert_response(
+            response, expected_status_code=200, expected_body=bundle.model_dump_json()
+        )
+
+    def test_lambda_handler_rejects_invalid_custom_headers(
+        self,
+        lambda_context,
+        mock_logger,
+        mock_error_util,
+    ):
+        event_with_headers = _build_event_with_headers(
+            {"X-NHSD-UNKNOWN": "abc", "Authorization": "token"}
+        )
+
+        response = lambda_handler(event_with_headers, lambda_context)
+
+        mock_error_util.create_invalid_header_operation_outcome.assert_called_once()
+        mock_logger.warning.assert_called_with(
+            "Invalid request headers supplied",
+            extra={"invalid_headers": ["x-nhsd-unknown"]},
+        )
+        assert_response(
+            response,
+            expected_status_code=400,
+            expected_body=mock_error_util.create_invalid_header_operation_outcome.return_value.model_dump_json(),
+        )
+
     @pytest.mark.parametrize(
         "ods_code",
         [
