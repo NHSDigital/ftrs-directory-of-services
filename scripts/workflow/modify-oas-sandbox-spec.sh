@@ -6,6 +6,11 @@ set -euo pipefail
 : "${PROXY_ENV:?PROXY_ENV environment variable is required}"
 : "${VERSION_TAG:?VERSION_TAG environment variable is required}"
 
+if ! command -v yq >/dev/null 2>&1; then
+    sudo apt-get update >/dev/null
+    sudo apt-get install -y yq >/dev/null
+fi
+
 ORIGINAL_TARGET_SPEC="docs/specification/x-nhsd-apim/target-sandbox-${API_NAME}.yaml"
 SPEC_FILE="docs/specification/${API_NAME}-sandbox.yaml"
 
@@ -19,6 +24,16 @@ if [[ ! -f "$SPEC_FILE" ]]; then
     echo "Error: Spec file not found at $SPEC_FILE" >&2
     echo "Current directory: $(pwd)" >&2
     exit 1
+fi
+
+if [[ "$PROXY_ENV" == "sandbox" ]]; then
+    SPEC_FILE_TMP=$(mktemp "$(dirname "$SPEC_FILE")/${API_NAME}-servers-trimmed.XXXXXX.yaml") || {
+        echo "Error: Unable to create temporary sandbox spec file" >&2
+        exit 1
+    }
+    cp "$SPEC_FILE" "$SPEC_FILE_TMP"
+    yq eval -i 'del(.servers[0])' "$SPEC_FILE_TMP"
+    SPEC_FILE="$SPEC_FILE_TMP"
 fi
 
 TARGET_SPEC_TMP=$(mktemp "$(dirname "$ORIGINAL_TARGET_SPEC")/target-sandbox.${API_NAME}.XXXXXX") || {
@@ -43,6 +58,4 @@ env TARGET_SPEC_FILE_PATH="$TARGET_SPEC_FILE" \
     yq eval -o=json '."x-nhsd-apim".target = load(strenv(TARGET_SPEC_FILE_PATH))' \
     "$SPEC_FILE" > "$MODIFIED_SPEC_PATH"
 
-rm -f "$TARGET_SPEC_FILE"
-
-printf '%s\n' "$MODIFIED_SPEC_PATH"
+printf '%s\n%s\n' "$MODIFIED_SPEC_PATH" "$TARGET_SPEC_FILE"
