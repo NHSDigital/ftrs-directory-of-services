@@ -17,7 +17,7 @@ class Organisation(DBModel):
     identifier_ODS_ODSCode: str
     active: bool
     name: str
-    telecom: list[Telecom]
+    telecom: list[Telecom] | str | None
     type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
     legalDates: LegalDates | None = None
