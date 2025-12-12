@@ -180,6 +180,7 @@ jobs:
       cancel-in-progress: false
     needs:
       - metadata
+      - deploy-application-infrastructure
       # - migrate-data
     uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
@@ -230,6 +231,7 @@ jobs:
 
   deploy-data-migration-service:
     name: "Deploy data migration service to ${{ needs.metadata.outputs.environment }}"
+    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
     concurrency:
       group: "${{ needs.metadata.outputs.environment }}-data-migration-${{ needs.metadata.outputs.workspace }}"
       cancel-in-progress: false
