@@ -15,7 +15,8 @@ resource "aws_api_gateway_method" "organization" {
 
   request_validator_id = aws_api_gateway_request_validator.validator.id
   request_parameters = {
-    "method.request.header.X-Header" = true
+    "method.request.header.X-CORRELATION-ID" = false
+    "method.request.header.X-REQUEST-ID"     = true
   }
 }
 
@@ -28,7 +29,8 @@ resource "aws_api_gateway_integration" "organization" {
   uri                     = module.lambda.lambda_function_invoke_arn
 
   request_parameters = {
-    "integration.request.header.X-Test-Header" = "method.request.header.X-Header"
+    "integration.request.header.NHSD-Correlation-ID" = "method.request.header.X-CORRELATION-ID",
+    "integration.request.header.NHSD-Request-ID"     = "method.request.header.X-REQUEST-ID"
   }
 }
 
