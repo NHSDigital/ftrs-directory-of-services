@@ -13,11 +13,72 @@ logger = Logger()
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
+DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
+    "Content-Type": "application/fhir+json",
+    "Access-Control-Allow-Methods": "GET",
+    "Access-Control-Allow-Headers": (
+        "Authorization, Content-Type, X-NHSD-REQUEST-ID, X-NHSD-CORRELATION-ID, "
+        "NHSD-Message-Id, NHSD-Api-Version, NHSD-End-User-Role, NHSD-Client-Id, "
+        "NHSD-Connecting-Party-App-Name"
+    ),
+}
+
+ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
+    header.strip().lower()
+    for header in DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Headers"].split(",")
+    if header.strip()
+)
+
+ALWAYS_ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
+    {
+        "accept",
+        "accept-encoding",
+        "content-length",
+        "content-type",
+        "host",
+        "user-agent",
+        "via",
+        "connection",
+        "forwarded",
+        "x-forwarded-for",
+        "x-forwarded-host",
+        "x-forwarded-port",
+        "x-forwarded-proto",
+        "ocp-apim-trace",
+        "ocp-apim-subscription-key",
+        "x-correlation-id",
+    }
+)
+
+
+def _validate_headers(headers: dict[str, str] | None) -> list[str]:
+    if not headers:
+        return []
+
+    allowed_headers = ALLOWED_REQUEST_HEADERS | ALWAYS_ALLOWED_REQUEST_HEADERS
+
+    return [
+        header_name
+        for header_name in headers
+        if header_name and header_name.lower() not in allowed_headers
+    ]
+
 
 @app.get("/Organization")
 @tracer.capture_method
 def get_organization() -> Response:
     try:
+        invalid_headers = _validate_headers(app.current_event.headers)
+        if invalid_headers:
+            logger.warning(
+                "Invalid request headers supplied",
+                extra={"invalid_headers": invalid_headers},
+            )
+            fhir_resource = error_util.create_invalid_header_operation_outcome(
+                invalid_headers
+            )
+            return create_response(400, fhir_resource)
+
         query_params = app.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
@@ -46,7 +107,7 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     logger.info("Creating response", extra={"status_code": status_code})
     return Response(
         status_code=status_code,
-        content_type="application/fhir+json",
+        headers=DEFAULT_RESPONSE_HEADERS,
         body=fhir_resource.model_dump_json(),
     )
 
