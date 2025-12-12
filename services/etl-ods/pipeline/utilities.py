@@ -55,49 +55,79 @@ def get_base_ods_terminology_api_url() -> str:
     ods_url = os.environ.get("ODS_URL")
     if ods_url is None:
         err_msg = "ODS_URL environment variable is not set"
-        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_006, error_message=err_msg)
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_007, error_message=err_msg)
         raise KeyError(err_msg)
     return ods_url
 
 
-def _get_api_key_for_url(url: str) -> str:
-    is_ods_terminology_request = "organisation-data-terminology-api" in url
+def _is_ods_terminology_request(url: str) -> bool:
+    return "organisation-data-terminology-api" in url
 
-    if not is_ods_terminology_request:
+
+def _is_mock_testing_mode() -> bool:
+    """
+    Check if we're currently in mock testing mode.
+    Mock testing scenarios can only be enabled in dev and test environments
+    for security reasons to prevent accidental use in production.
+    """
+    mock_testing_enabled = (
+        os.environ.get("MOCK_TESTING_SCENARIOS", "").lower() == "true"
+    )
+
+    if not mock_testing_enabled:
+        return False
+
+    # Validate that mock testing is only enabled in authorized environments
+    current_env = os.environ.get("ENVIRONMENT", "").lower()
+    allowed_environments = ["dev", "test"]
+
+    if current_env not in allowed_environments:
+        error_msg = f"Mock testing scenarios cannot be enabled in environment '{current_env}'. Only allowed in: {', '.join(allowed_environments)}"
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_011, env=current_env)
+        raise ValueError(error_msg)
+
+    return True
+
+
+def _get_local_api_key() -> str:
+    ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
+    return os.environ.get(
+        "LOCAL_ODS_TERMINOLOGY_API_KEY", os.environ.get("LOCAL_API_KEY", "")
+    )
+
+
+def _get_production_api_key() -> str:
+    """Get API key for production environment from Secrets Manager."""
+    try:
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_010)
+        resource_prefix = get_resource_prefix()
+        secret_name = f"/{resource_prefix}/ods-terminology-api-key"
+        return _get_secret_from_aws(secret_name)
+
+    except KeyError:
+        # Re-raise as original exception type expected by callers
+        raise
+    except Exception as e:
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_007, error_message=str(e))
+        raise
+
+
+def _get_api_key_for_url(url: str) -> str:
+    """
+    Get API key for ODS Terminology API requests.
+
+    """
+    if not _is_ods_terminology_request(url):
+        return ""
+
+    if _is_mock_testing_mode():
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_008)
         return ""
 
     env = os.environ.get("ENVIRONMENT")
-
     if env == "local":
-        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
-        return os.environ.get(
-            "LOCAL_ODS_TERMINOLOGY_API_KEY", os.environ.get("LOCAL_API_KEY", "")
-        )
-
-    try:
-        resource_prefix = get_resource_prefix()
-        secret_name = f"/{resource_prefix}/ods-terminology-api-key"
-
-        client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
-        response = client.get_secret_value(SecretId=secret_name)
-        secret = response["SecretString"]
-
-        secret_dict = json.loads(secret)
-        return secret_dict.get("api_key", secret)
-
-    except json.JSONDecodeError as json_err:
-        ods_utils_logger.log(
-            OdsETLPipelineLogBase.ETL_UTILS_007, error_message=str(json_err)
-        )
-        raise
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "ResourceNotFoundException":
-            ods_utils_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_006,
-                secret_name=secret_name,
-                error_message=str(e),
-            )
-        raise
+        return _get_local_api_key()
+    return _get_production_api_key()
 
 
 def get_resource_prefix() -> str:
@@ -106,12 +136,49 @@ def get_resource_prefix() -> str:
     return f"{project}/{environment}"
 
 
+def _get_secret_from_aws(secret_name: str) -> str:
+    """
+    Retrieve a secret from AWS Secrets Manager.
+    """
+    try:
+        client = boto3.client("secretsmanager", region_name=os.environ["AWS_REGION"])
+        response = client.get_secret_value(SecretId=secret_name)
+        secret = response["SecretString"]
+
+        try:
+            secret_dict = json.loads(secret)
+            return secret_dict.get("api_key", secret)
+        except json.JSONDecodeError:
+            # If not JSON, treat as plain string
+            return secret
+
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+            ods_utils_logger.log(
+                OdsETLPipelineLogBase.ETL_UTILS_006,
+                secret_name=secret_name,
+                error_message=str(e),
+            )
+            err_msg = f"Secret not found: {secret_name}"
+            raise KeyError(err_msg)
+        raise
+    except json.JSONDecodeError as json_err:
+        ods_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_UTILS_007, error_message=str(json_err)
+        )
+        raise
+
+
+def _add_api_key_to_headers(headers: dict, api_key: str) -> None:
+    if not api_key:
+        return
+
+    headers["apikey"] = api_key
+
+
 def build_headers(options: dict) -> dict:
     """
     Builds headers for the outgoing HTTP request.
-    All requests in ODS ETL use FHIR format by default and require API keys.
-    The appropriate API key is automatically selected based on the URL.
-    Expects options dict with keys: json_data, json_string, url, method
     """
     headers = {}
     json_data = options.get("json_data")
@@ -126,8 +193,7 @@ def build_headers(options: dict) -> dict:
     }
 
     api_key = _get_api_key_for_url(url)
-    if api_key:
-        headers["apikey"] = api_key
+    _add_api_key_to_headers(headers, api_key)
 
     if jwt_required:
         jwt_auth = get_jwt_authenticator()
@@ -154,6 +220,17 @@ def handle_operation_outcomes(data: dict, method: str | None = None) -> dict:
         return data
 
     raise OperationOutcomeException(data)
+
+
+def _update_logger_with_response_headers(response: requests.Response) -> None:
+    """Helper function to update logger with response headers."""
+    response_correlation_id = response.headers.get(CORRELATION_ID_HEADER)
+    response_request_id = response.headers.get(REQUEST_ID_HEADER)
+
+    if response_correlation_id:
+        ods_utils_logger.append_keys(response_correlation_id=response_correlation_id)
+    if response_request_id:
+        ods_utils_logger.append_keys(response_request_id=response_request_id)
 
 
 def make_request(
@@ -190,15 +267,7 @@ def make_request(
             **kwargs,
         )
         response.raise_for_status()
-
-        response_correlation_id = response.headers.get(CORRELATION_ID_HEADER)
-        response_request_id = response.headers.get(REQUEST_ID_HEADER)
-        if response_correlation_id:
-            ods_utils_logger.append_keys(
-                response_correlation_id=response_correlation_id
-            )
-        if response_request_id:
-            ods_utils_logger.append_keys(response_request_id=response_request_id)
+        _update_logger_with_response_headers(response)
 
     except requests.exceptions.HTTPError as http_err:
         ods_utils_logger.log(
@@ -216,11 +285,7 @@ def make_request(
         )
         raise
     else:
-        response_correlation_id = response.headers.get("X-Correlation-ID")
-        if response_correlation_id:
-            ods_utils_logger.append_keys(
-                response_correlation_id=response_correlation_id
-            )
+        _update_logger_with_response_headers(response)
 
         try:
             response_data = response.json()
