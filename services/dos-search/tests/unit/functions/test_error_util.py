@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from functions.error_util import (
     INVALID_SEARCH_DATA_CODING,
+    create_invalid_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
 )
@@ -197,3 +198,19 @@ class TestErrorUtil:
         assert result.issue[0].severity == "error"
         assert result.issue[0].code == "invalid"
         assert result.issue[0].diagnostics == "boom"
+
+    def test_create_invalid_header_operation_outcome(self):
+        headers = ["X-NHSD-Z", "Authorization"]
+
+        result = create_invalid_header_operation_outcome(headers)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        issue = result.issue[0]
+        assert issue.severity == "error"
+        assert issue.code == "value"
+        assert issue.details.model_dump() == INVALID_SEARCH_DATA_CODING
+        assert (
+            issue.diagnostics
+            == "Invalid request headers supplied: Authorization, X-NHSD-Z"
+        )
