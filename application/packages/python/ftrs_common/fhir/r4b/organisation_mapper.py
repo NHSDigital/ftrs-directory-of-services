@@ -225,10 +225,7 @@ class OrganizationMapper(FhirMapper):
             Extension.model_validate(ext_dict) for ext_dict in extensions_dict
         ]
 
-        role_extensions = [
-            e for e in extensions
-            if e.url == ORGANISATION_ROLE_URL
-        ]
+        role_extensions = [e for e in extensions if e.url == ORGANISATION_ROLE_URL]
 
         if role_extensions:
             required_fields["extension"] = role_extensions
