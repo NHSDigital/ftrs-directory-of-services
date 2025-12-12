@@ -10,7 +10,9 @@ def _build_base_payload() -> dict:
         "id": "123",
         "resourceType": "Organization",
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {
