@@ -7,7 +7,7 @@
   "identifier_ODS_ODSCode": "H82028",
   "active": true,
   "name": "Test Organisation",
-  "telecom": null,
+  "telecom": [],
   "type": "GP Practice",
   "endpoints": [
     {

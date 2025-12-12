@@ -53,5 +53,5 @@
     "active": true,
     "type": [{"coding": [{"system": "TO-DO", "code": "BRANCH SURGERY", "display": "BRANCH SURGERY"}], "text": "BRANCH SURGERY"}],
     "name": "BRIGSTOCK MEDICAL PRACTICE - !COVID LOCAL VACCINATION SERVICE)",
-    "telecom": [{"system": "phone", "value": "0123456789"}]
+    "telecom": [{"system": "phone", "value": "0300 311 22 34" , "use": "work"},{"system": "url", "value": "https://example123.com" , "use": "work"},{"system": "email", "value": "test678@nhs.net" , "use": "work"}]
 }

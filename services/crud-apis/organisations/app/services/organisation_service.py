@@ -1,3 +1,4 @@
+from builtins import ValueError, dict, isinstance
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -14,6 +15,7 @@ from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from pydantic import ValidationError
 
 from organisations.app.models.organisation import LegalDateField
 
@@ -37,33 +39,90 @@ class OrganisationService:
         """
         Update an organisation from a FHIR Organisation resource.
         """
-        fhir_organisation = FhirValidator.validate(fhir_org, FhirOrganisation)
-        ods_code = None
+        try:
+            fhir_organisation = FhirValidator.validate(fhir_org, FhirOrganisation)
+            ods_code = None
 
-        if (
-            hasattr(fhir_org, "identifier")
-            and fhir_org.identifier
-            and hasattr(fhir_org.identifier[0], "value")
-        ):
-            ods_code = fhir_org.identifier[0].value
-        stored_organisation = self._get_stored_organisation(organisation_id, ods_code)
-        organisation = self.organisation_mapper.from_fhir(fhir_organisation)
-        outdated_fields = self._get_outdated_fields(stored_organisation, organisation)
+            if (
+                hasattr(fhir_org, "identifier")
+                and fhir_org.identifier
+                and hasattr(fhir_org.identifier[0], "value")
+            ):
+                ods_code = fhir_org.identifier[0].value
+            stored_organisation = self._get_stored_organisation(
+                organisation_id, ods_code
+            )
+            organisation = self.organisation_mapper.from_fhir(fhir_organisation)
+            outdated_fields = self._get_outdated_fields(
+                stored_organisation, organisation
+            )
 
-        if not outdated_fields:
+            if not outdated_fields:
+                self.logger.log(
+                    CrudApisLogBase.ORGANISATION_007,
+                    organisation_id=organisation_id,
+                )
+                return False
+            self._apply_updates(stored_organisation, outdated_fields)
+            self.org_repository.update(organisation_id, stored_organisation)
             self.logger.log(
-                CrudApisLogBase.ORGANISATION_007,
+                CrudApisLogBase.ORGANISATION_008,
                 organisation_id=organisation_id,
             )
-            return False
-
-        self._apply_updates(stored_organisation, outdated_fields)
-        self.org_repository.update(organisation_id, stored_organisation)
-        self.logger.log(
-            CrudApisLogBase.ORGANISATION_008,
-            organisation_id=organisation_id,
-        )
+        except (ValidationError, ValueError) as e:
+            self._handle_validation_errors(organisation_id, e)
+            raise
         return True
+
+    def _handle_validation_errors(self, organisation_id: str, e: Exception) -> None:
+        """
+        Handle validation errors by raising an OperationOutcomeException.
+        """
+        if isinstance(e, ValidationError):
+            self.logger.log(
+                CrudApisLogBase.ORGANISATION_019,
+                organisation_id=organisation_id,
+                status_code=422,
+                error_message=str(e),
+            )
+            diagnostics = []
+            for error in e.errors():
+                print("-----error-----")
+                print("error:", error)
+                if isinstance(error["input"], dict) and "type" in error["input"].keys():
+                    if "phone" in error["input"]["type"]:
+                        diagnostics.append(
+                            f"Telecom value field contains an invalid phone number: {error['input']['value']}"
+                        )
+                    elif "email" in error["input"]["type"]:
+                        diagnostics.append(
+                            f"Telecom value field contains an invalid email address: {error['input']['value']}"
+                        )
+                elif "url" in error["type"]:
+                    print("-----url error-----")
+                    diagnostics.append(
+                        f"Telecom value field contains an invalid url: {error['input']}"
+                    )
+                else:
+                    diagnostics.append(f"Unexpected validation error: {error['msg']}")
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Validation failed for the following resources: {'; '.join(diagnostics)}",
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome) from e
+        elif isinstance(e, ValueError):
+            self.logger.log(
+                CrudApisLogBase.ORGANISATION_019,
+                organisation_id=organisation_id,
+                error_message=str(e),
+            )
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=f"Validation failed for the following resource: {str(e)}",
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome) from e
 
     def create_organisation(self, organisation: Organisation) -> Organisation:
         # if the organisation already exists, we log it and raise an error
@@ -175,6 +234,7 @@ class OrganisationService:
         Compare two Organisation objects and return a dict of fields that are outdated.
         Containing which fields can be updated for now will dedpend on business validation definitions.
         """
+        serialized_organisation = organisation.model_dump()
         allowed_fields = {
             "name",
             "type",
@@ -189,7 +249,7 @@ class OrganisationService:
             if field not in allowed_fields:
                 continue
 
-            existing_value = getattr(organisation, field, None)
+            existing_value = serialized_organisation[field]
 
             # Special handling for legalDates to compare start and end values
             if field == "legalDates":
