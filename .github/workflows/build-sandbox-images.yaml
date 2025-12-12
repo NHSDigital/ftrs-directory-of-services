@@ -97,7 +97,7 @@ jobs:
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Publish artefacts to GitHub"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         env:
           ENVIRONMENT: ${{ inputs.environment }}
         with:
