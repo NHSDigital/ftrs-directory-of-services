@@ -41,27 +41,37 @@ def get_organization() -> Response:
 
     except ValidationError as exception:
         # Log warning with structured fields
-        dos_logger.warning(
-            "Validation error occurred",
-            validation_errors=exception.errors(),
-        )
         fhir_resource = error_util.create_validation_error_operation_outcome(exception)
+
+        response_size, duration_ms = dos_logger.get_response_size_and_duration(
+            fhir_resource, start
+        )
+        dos_logger.warning(
+            "Validation error occurred: Logging response time & size",
+            validation_errors=exception.errors(),
+            opt_ftrs_response_time=f"{duration_ms}ms",
+            opt_ftrs_response_size=response_size,
+        )
         return create_response(400, fhir_resource)
     except Exception:
         # Log exception with structured fields
-        dos_logger.exception("Internal server error occurred")
         fhir_resource = error_util.create_resource_internal_server_error()
+
+        response_size, duration_ms = dos_logger.get_response_size_and_duration(
+            fhir_resource, start
+        )
+        dos_logger.exception(
+            "Internal server error occurred: Logging response time & size",
+            opt_ftrs_response_time=f"{duration_ms}ms",
+            opt_ftrs_response_size=response_size,
+        )
+
         return create_response(500, fhir_resource)
     else:
         # success path: measure and log response metrics
-        duration_ms = int((time.time() - start) * 1000)
-        try:
-            # attempt to approximate response size (bytes)
-            body = fhir_resource.model_dump_json()
-            response_size = len(body.encode("utf-8"))
-        except Exception:
-            response_size = None
-            dos_logger.exception("Failed to calculate response size")
+        response_size, duration_ms = dos_logger.get_response_size_and_duration(
+            fhir_resource, start
+        )
 
         dos_logger.info(
             "Successfully processed: Logging response time & size",
