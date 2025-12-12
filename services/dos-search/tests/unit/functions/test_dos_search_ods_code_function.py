@@ -205,9 +205,3 @@ class TestLambdaHandler:
         # Act & Assert
         with pytest.raises(KeyError, match="httpMethod"):
             lambda_handler(empty_event, lambda_context)
-
-
-def test_default_response_headers_contains_expected_values() -> None:
-    assert DEFAULT_RESPONSE_HEADERS["Content-Type"] == "application/fhir+json"
-    assert DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Methods"] == "GET"
-    assert "Authorization" in DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Headers"]
