@@ -1396,7 +1396,7 @@ def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates
 
     assert result is not None
     assert result.extension is not None
-    assert len(result.extension) == 1
+    assert len(result.extension) == 2
 
     # Should extract the FIRST OrganisationRole
     ext_dict = result.extension[0].dict()
@@ -1670,7 +1670,7 @@ def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
 
     assert result is not None
     assert result.extension is not None
-    assert len(result.extension) == 1
+    assert len(result.extension) == 2
 
     # Should extract the FIRST OrganisationRole (RO177)
     ext_dict = result.extension[0].dict()
