@@ -63,6 +63,8 @@ info:
     You must get your software onboarded before it can go live. For more details, contact us at TBC.
   version: 1.0.0
 servers:
+  - url: 'https://internal-dev-sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Internal Dev Sandbox
   - url: 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
     description: Sandbox
   - url: 'https://int.api.service.nhs.uk/dos-search/FHIR/R4'

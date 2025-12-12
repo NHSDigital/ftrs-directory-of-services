@@ -1,0 +1,33 @@
+name: "Parse APIM sandbox tag"
+description: "Run the sandbox tag parsing script and emit deployment metadata"
+inputs:
+  ref_name:
+    description: "Git ref name (tag)"
+    required: true
+  ref_type:
+    description: "Git ref type (e.g. tag)"
+    required: true
+  commit_sha:
+    description: "Commit SHA associated with the ref"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: parse
+      name: Run parser
+      shell: bash
+      env:
+        GITHUB_REF_NAME: ${{ inputs.ref_name }}
+        GITHUB_REF_TYPE: ${{ inputs.ref_type }}
+        GITHUB_SHA: ${{ inputs.commit_sha }}
+      run: ./scripts/workflow/parse-apim-sandbox-tag.sh
+
+outputs:
+  sandbox_environment:
+    value: ${{ steps.parse.outputs.sandbox_environment }}
+  service:
+    value: ${{ steps.parse.outputs.service }}
+  version:
+    value: ${{ steps.parse.outputs.version }}
+  should_deploy:
+    value: ${{ steps.parse.outputs.should_deploy }}
