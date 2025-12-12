@@ -6,7 +6,7 @@ resource "aws_security_group" "dos_search_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
   security_group_id = aws_security_group.dos_search_lambda_security_group.id
   from_port         = "443"
