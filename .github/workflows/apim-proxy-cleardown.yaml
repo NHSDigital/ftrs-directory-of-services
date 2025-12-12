@@ -1,0 +1,53 @@
+name: Cleardown APIM Proxy
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Defines the Github environment in which to pull environment variables from"
+        required: true
+        type: string
+      workspace:
+        description: "Name of the workspace"
+        required: true
+        type: string
+      api_name:
+        description: "Name of the API to cleardown"
+        required: true
+        type: string
+      apim_env:
+        description: "APIM environment to cleardown from"
+        required: true
+        type: string
+
+jobs:
+  cleardown-apim-proxy:
+    name: "Cleardown APIM Proxy"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: ${{ inputs.environment }}
+
+      - name: "Cleardown proxy"
+        uses: ./.github/actions/cleardown-apim-proxy
+        with:
+          api_name: ${{ inputs.api_name }}
+          workspace: ${{ inputs.workspace }}
+          environment: ${{ inputs.environment }}
+          apim_env: ${{ inputs.apim_env }}
+          aws_region: ${{ vars.AWS_REGION }}
+          proxygen_url: ${{ secrets.PROXYGEN_URL }}

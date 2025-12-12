@@ -54,6 +54,25 @@ jobs:
       type: app
     secrets: inherit
 
+  cleardown-apim-proxy:
+    name: "Cleardown ${{ matrix.api_name }} APIM Proxy"
+    needs:
+      - metadata
+    if: needs.metadata.outputs.environment == 'dev' && needs.metadata.outputs.workspace != 'default'
+    strategy:
+      fail-fast: false
+      matrix:
+        api_name:
+          - dos-search
+          # Add more API names here as needed (must match deploy list)
+    uses: ./.github/workflows/apim-proxy-cleardown.yaml
+    with:
+      environment: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
+      workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
+      api_name: ${{ matrix.api_name }}
+      apim_env: internal-dev
+    secrets: inherit
+
   cleardown-artefacts:
     if: github.actor != 'github-actions[bot]'
     name: "Cleardown Artefacts"
