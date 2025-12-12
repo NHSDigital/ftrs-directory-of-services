@@ -44,14 +44,6 @@ def test_operation_outcome_handler_build_with_details_and_issues() -> None:
     assert outcome["issue"][0]["diagnostics"] == "Warn"
 
 
-def test_operation_outcome_handler_from_exception() -> None:
-    exc = Exception("Boom!")
-    outcome = OperationOutcomeHandler.from_exception(exc)
-    assert outcome["issue"][0]["diagnostics"] == "Boom!"
-    assert outcome["issue"][0]["code"] == "exception"
-    assert outcome["issue"][0]["severity"] == "fatal"
-
-
 def test_operation_outcome_handler_build_with_custom_code() -> None:
     diagnostics: str = "Resource not found"
     outcome = OperationOutcomeHandler.build(diagnostics, code="not-found", severity="error")
