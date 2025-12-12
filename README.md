@@ -9,7 +9,7 @@ The system is commissioned, developed and hosted by NHS England
 
 The service consists of a number of key components
 
-- a directory of services (DOS)
+- a directory of services (DOS) w
 - search APIs
 - data sourcing
 
