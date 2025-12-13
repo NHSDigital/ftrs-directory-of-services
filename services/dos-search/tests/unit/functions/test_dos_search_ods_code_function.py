@@ -112,6 +112,15 @@ class TestLambdaHandler:
             "NHSD-End-User-Role",
             "NHSD-Client-Id",
             "NHSD-Connecting-Party-App-Name",
+            "Accept",
+            "Accept-Encoding",
+            "Accept-Language",
+            "User-Agent",
+            "Host",
+            "X-Amzn-Trace-Id",
+            "X-Forwarded-For",
+            "X-Forwarded-Port",
+            "X-Forwarded-Proto",
         ],
     )
     def test_lambda_handler_allows_valid_custom_headers(
