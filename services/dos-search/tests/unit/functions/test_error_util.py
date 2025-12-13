@@ -212,5 +212,5 @@ class TestErrorUtil:
         assert issue.details.model_dump() == INVALID_SEARCH_DATA_CODING
         assert (
             issue.diagnostics
-            == "Invalid request headers supplied: Authorization, X-NHSD-Z"
+            == "Invalid request headers supplied: authorization, x-nhsd-z"
         )

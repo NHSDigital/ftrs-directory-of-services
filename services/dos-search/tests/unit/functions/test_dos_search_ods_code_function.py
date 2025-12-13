@@ -101,14 +101,17 @@ class TestLambdaHandler:
     @pytest.mark.parametrize(
         "header_name",
         [
-            "X-NHSD-REQUEST-ID",
-            "x-nhsd-request-id",
+            "Authorization",
+            "Content-Type",
+            "NHSD-Correlation-ID",
+            "nhsd-correlation-id",
+            "NHSD-Request-ID",
+            "nhsd-request-id",
+            "NHSD-Message-Id",
             "NHSD-Api-Version",
-            "Accept",
-            "X-Forwarded-For",
-            "Forwarded",
-            "Ocp-Apim-Trace",
-            "X-Correlation-ID",
+            "NHSD-End-User-Role",
+            "NHSD-Client-Id",
+            "NHSD-Connecting-Party-App-Name",
         ],
     )
     def test_lambda_handler_allows_valid_custom_headers(

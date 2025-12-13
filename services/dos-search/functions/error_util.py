@@ -30,7 +30,8 @@ VALUE_ERROR_MAPPINGS: dict[type[ValueError], dict[str, str]] = {
 
 def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutcome:
     diagnostics = (
-        "Invalid request headers supplied: " + ", ".join(sorted(headers))
+        "Invalid request headers supplied: "
+        + ", ".join(sorted(header.lower() for header in headers))
         if headers
         else "Invalid request headers supplied"
     )
