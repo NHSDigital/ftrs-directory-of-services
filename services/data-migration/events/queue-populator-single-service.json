@@ -1,0 +1,9 @@
+{
+  "table_name": "services",
+  "service_id": 12345,
+  "record_id": 12345,
+  "full_sync": false,
+  "type_ids": null,
+  "status_ids": null
+}
+

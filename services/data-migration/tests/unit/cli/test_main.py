@@ -286,6 +286,10 @@ def test_populate_queue_handler(
             SQS_QUEUE_URL="https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
             type_ids=[1, 2],
             status_ids=[3, 4],
+            service_id=None,
+            record_id=None,
+            full_sync=True,
+            table_name="services",
         )
     )
 
@@ -323,6 +327,10 @@ def test_populate_queue_handler_no_ids(
             SQS_QUEUE_URL="https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
             type_ids=None,
             status_ids=None,
+            service_id=None,
+            record_id=None,
+            full_sync=True,
+            table_name="services",
         )
     )
 

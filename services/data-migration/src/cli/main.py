@@ -111,6 +111,10 @@ def populate_queue_handler(
         SQS_QUEUE_URL=sqs_queue_url,
         type_ids=type_id,
         status_ids=status_id,
+        service_id=None,
+        record_id=None,
+        full_sync=True,
+        table_name="services",
     )
     populate_sqs_queue(config)
 

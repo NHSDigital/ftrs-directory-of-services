@@ -1,0 +1,13 @@
+{
+  "status_ids": [
+    1
+  ],
+  "type_ids": [
+    100
+  ],
+  "full_sync": true,
+  "record_id": null,
+  "service_id": null,
+  "table_name": "services"
+}
+
