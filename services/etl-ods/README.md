@@ -27,8 +27,8 @@ To automatically format Python code and fix some linting issues, you can use:
 ```bash
 eval $(poetry env activate)
 
-poetry run ruff check --fix
-poetry run ruff format
+ruff check --fix
+ruff format
 ```
 
 ### Building the Lambda Package and Dependency Layers
