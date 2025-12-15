@@ -336,7 +336,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_021 = LogReference(
         level=WARNING,
-        message="Organisation link is missing in the response.",
+        message="Invalid environment variable value '{invalid_value}' provided, using default value.",
     )
     ETL_PROCESSOR_022 = LogReference(
         level=WARNING,
@@ -386,7 +386,8 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO, message="Processing page {page_num} for date {date}."
     )
     ETL_PROCESSOR_035 = LogReference(
-        level=INFO, message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}."
+        level=INFO,
+        message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,

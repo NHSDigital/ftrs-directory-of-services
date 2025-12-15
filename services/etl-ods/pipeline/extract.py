@@ -1,3 +1,4 @@
+import os
 import re
 from http import HTTPStatus
 
@@ -11,6 +12,8 @@ from pipeline.utilities import (
     make_request,
 )
 
+DEFAULT_ODS_API_PAGE_LIMIT = 1000
+
 ods_processor_logger = Logger.get(service="ods_processor")
 
 
@@ -20,7 +23,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
     Uses the ODS Terminology API FHIR endpoint with pagination support.
     """
     all_organisations = []
-    params = {"_lastUpdated": f"{date}", "_count": 1000}
+    params = {"_lastUpdated": f"{date}", "_count": _get_page_limit()}
     ods_url = get_base_ods_terminology_api_url()
     page_count = 0
     max_pages = 100  # Safety limit to prevent infinite loops
@@ -66,6 +69,24 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
         total_pages=page_count,
     )
     return all_organisations
+
+
+def _get_page_limit() -> int:
+    raw_value = os.environ.get("ODS_API_PAGE_LIMIT")
+    try:
+        page_limit = int(raw_value)
+        if page_limit > 0:
+            return page_limit
+    except (ValueError, TypeError):
+        pass
+
+    ods_processor_logger.log(
+        OdsETLPipelineLogBase.ETL_PROCESSOR_021,
+        invalid_value=raw_value,
+        env_var="ODS_API_PAGE_LIMIT",
+        default_value=DEFAULT_ODS_API_PAGE_LIMIT,
+    )
+    return DEFAULT_ODS_API_PAGE_LIMIT
 
 
 def _extract_next_page_url(bundle: dict) -> str | None:
