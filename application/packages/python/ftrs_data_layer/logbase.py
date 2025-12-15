@@ -287,7 +287,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_002 = LogReference(
         level=INFO,
-        message="Fetching ODS Data returned {bundle_total} outdated organisations.",
+        message="Fetching ODS Data returned {bundle_total} outdated organisations across {total_pages} pages.",
     )
     ETL_PROCESSOR_003 = LogReference(
         level=INFO, message="Fetching organisation data for code: {ods_code}."
@@ -381,6 +381,12 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_PROCESSOR_033 = LogReference(
         level=INFO,
         message="Checking if organisation is permitted type",
+    )
+    ETL_PROCESSOR_034 = LogReference(
+        level=INFO, message="Processing page {page_num} for date {date}."
+    )
+    ETL_PROCESSOR_035 = LogReference(
+        level=INFO, message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}."
     )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
