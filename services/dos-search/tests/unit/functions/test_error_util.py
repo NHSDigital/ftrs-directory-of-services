@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from functions.error_util import (
     INVALID_SEARCH_DATA_CODING,
+    REC_BAD_REQUEST_CODING,
     create_invalid_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
@@ -209,7 +210,7 @@ class TestErrorUtil:
         issue = result.issue[0]
         assert issue.severity == "error"
         assert issue.code == "value"
-        assert issue.details.model_dump() == INVALID_SEARCH_DATA_CODING
+        assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
         assert (
             issue.diagnostics
             == "Invalid request headers supplied: authorization, x-nhsd-z"

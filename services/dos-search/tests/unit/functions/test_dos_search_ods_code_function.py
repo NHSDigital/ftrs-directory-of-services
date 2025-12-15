@@ -16,11 +16,13 @@ def mock_error_util():
     with patch("functions.dos_search_ods_code_function.error_util") as mock:
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
+        mock_invalid_header = OperationOutcome.model_construct(id="invalid-header")
 
         mock.create_validation_error_operation_outcome.return_value = (
             mock_validation_error
         )
         mock.create_resource_internal_server_error.return_value = mock_internal_error
+        mock.create_invalid_header_operation_outcome.return_value = mock_invalid_header
 
         yield mock
 
@@ -153,7 +155,9 @@ class TestLambdaHandler:
 
         response = lambda_handler(event_with_headers, lambda_context)
 
-        mock_error_util.create_invalid_header_operation_outcome.assert_called_once()
+        mock_error_util.create_invalid_header_operation_outcome.assert_called_once_with(
+            ["x-nhsd-unknown"]
+        )
         mock_logger.warning.assert_called_with(
             "Invalid request headers supplied",
             extra={"invalid_headers": ["x-nhsd-unknown"]},

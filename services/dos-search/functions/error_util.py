@@ -21,6 +21,17 @@ INVALID_SEARCH_DATA_CODING: dict[str, list] = {
     ]
 }
 
+REC_BAD_REQUEST_CODING: dict[str, list] = {
+    "coding": [
+        {
+            "system": "https://fhir.nhs.uk/CodeSystem/England-HTTPErrorCode",
+            "version": "1",
+            "code": "REC_BAD_REQUEST",
+            "display": "Bad Request",
+        }
+    ]
+}
+
 VALUE_ERROR_MAPPINGS: dict[type[ValueError], dict[str, str]] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
@@ -41,7 +52,7 @@ def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutc
                 _create_issue(
                     "value",
                     "error",
-                    details=INVALID_SEARCH_DATA_CODING,
+                    details=REC_BAD_REQUEST_CODING,
                     diagnostics=diagnostics,
                 )
             ]
