@@ -17,6 +17,7 @@ poetry install
 Python code is linted and formatted using Ruff. The rules and arguments enabled can be found in the `pyproject.toml` file.
 
 Runs ruff check and ruff format
+
 ```bash
 make lint
 ```
