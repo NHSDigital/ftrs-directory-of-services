@@ -78,5 +78,3 @@ def get_table_arn(table_name: str) -> str:
     client = get_dynamodb_client()
     response = client.describe_table(TableName=table_name)
     return response["Table"]["TableArn"]
-
-
