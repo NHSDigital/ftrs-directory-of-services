@@ -2,9 +2,11 @@ from time import perf_counter
 from typing import Iterable
 from uuid import uuid4
 
+from boto3.dynamodb.types import TypeSerializer
 from ftrs_common.logger import Logger
-from ftrs_common.utils.db_service import get_service_repository
-from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
+from ftrs_common.utils.db_service import format_table_name
+from ftrs_data_layer.client import get_dynamodb_client
+from ftrs_data_layer.domain import legacy
 from ftrs_data_layer.domain.data_migration_state import DataMigrationState
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
@@ -155,6 +157,14 @@ class DataMigrationProcessor:
                 ),
             )
 
+            state_exists = self.verify_state_record_exist(service.id)
+
+            if state_exists:
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_019,
+                    record_id=service.id,
+                )
+                return
             self._save(result, service.id)
             self.metrics.migrated_records += 1
 
@@ -212,57 +222,77 @@ class DataMigrationProcessor:
         with Session(self.engine) as session:
             yield from session.scalars(stmt)
 
+    def _create_put_item(
+        self,
+        model: BaseModel,
+        table_name: str,
+        serializer: TypeSerializer,
+        with_condition: bool = True,
+    ) -> dict:
+        """Helper method to create DynamoDB Put item with proper serialization."""
+        data = model.model_dump(mode="json")
+        data["id"] = str(model.id)
+        data["field"] = "document"
+
+        put_item = {
+            "Put": {
+                "TableName": table_name,
+                "Item": {k: serializer.serialize(v) for k, v in data.items()},
+            }
+        }
+
+        if with_condition:
+            put_item["Put"]["ConditionExpression"] = (
+                "attribute_not_exists(id) AND attribute_not_exists(#field)"
+            )
+            put_item["Put"]["ExpressionAttributeNames"] = {"#field": "field"}
+
+        return put_item
+
     def _save(self, result: ServiceTransformOutput, service_id: int) -> None:
         """
-        Save the transformed result to DynamoDB.
+        Save the transformed result to DynamoDB using transact_write_items for atomic writes.
         """
+        dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
+        serializer = TypeSerializer()
 
-        org_repo = get_service_repository(
-            model_cls=Organisation,
-            logger=self.logger,
-            entity_name="organisation",
-            endpoint_url=self.config.dynamodb_endpoint,
+        # Cache table names
+        env = self.config.env
+        workspace = self.config.workspace
+        tables = {
+            "organisation": format_table_name("organisation", env, workspace),
+            "location": format_table_name("location", env, workspace),
+            "healthcare_service": format_table_name(
+                "healthcare-service", env, workspace
+            ),
+            "state": format_table_name("data-migration-state", env, workspace),
+        }
+
+        # Build transaction items
+        transact_items = []
+
+        # Add all organisations
+        transact_items.extend(
+            self._create_put_item(org, tables["organisation"], serializer)
+            for org in result.organisation
         )
-        location_repo = get_service_repository(
-            model_cls=Location,
-            logger=self.logger,
-            entity_name="location",
-            endpoint_url=self.config.dynamodb_endpoint,
-        )
-        service_repo = get_service_repository(
-            model_cls=HealthcareService,
-            logger=self.logger,
-            entity_name="healthcare-service",
-            endpoint_url=self.config.dynamodb_endpoint,
+
+        # Add all locations
+        transact_items.extend(
+            self._create_put_item(loc, tables["location"], serializer)
+            for loc in result.location
         )
 
-        # Save the transformed records
-        for org in result.organisation:
-            org_repo.upsert(org)
+        # Add all healthcare services
+        transact_items.extend(
+            self._create_put_item(hc, tables["healthcare_service"], serializer)
+            for hc in result.healthcare_service
+        )
 
-        for loc in result.location:
-            location_repo.upsert(loc)
-
-        for hc in result.healthcare_service:
-            service_repo.upsert(hc)
-
-        # Create/update the data migration state record
-        state_exists = self.verify_state_record_exist(service_id)
-
-        if state_exists:
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_019,
-                record_id=service_id,
-            )
-
-        # Generate consistent ID for state record
-        source_record_id = "services#" + str(service_id)
-        state_id = uuid4()  # Generate a new UUID for the state record
-
-        # Always upsert the state record (create if doesn't exist, update if exists)
-        data_migration_state = DataMigrationState(
-            id=state_id,
-            source_record_id=source_record_id,
+        # Add DataMigrationState record
+        state_data = DataMigrationState(
+            id=uuid4(),
+            source_record_id=f"services#{service_id}",
             version=1,
             organisation_id=result.organisation[0].id,
             organisation=result.organisation[0],
@@ -271,13 +301,23 @@ class DataMigrationProcessor:
             healthcare_service_id=result.healthcare_service[0].id,
             healthcare_service=result.healthcare_service[0],
         )
-        data_migration_state_repo = get_service_repository(
-            model_cls=DataMigrationState,
-            logger=self.logger,
-            entity_name="data-migration-state",
-            endpoint_url=self.config.dynamodb_endpoint,
+        transact_items.append(
+            self._create_put_item(state_data, tables["state"], serializer)
         )
-        data_migration_state_repo.upsert(data_migration_state)
+
+        # Execute atomic transaction
+        try:
+            dynamodb_client.transact_write_items(TransactItems=transact_items)
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_021,
+                record_id=service_id,
+                item_count=len(transact_items),
+            )
+        except Exception:
+            self.logger.exception(
+                f"Failed to write items transactionally for service {service_id}"
+            )
+            raise
 
     def _convert_validation_issues(self, issues: list[ValidationIssue]) -> list[str]:
         """
@@ -306,17 +346,28 @@ class DataMigrationProcessor:
         """
         Check if a data migration state record exists for the given service ID.
         Returns True if the state record exists.
+        Uses get_item with the source_record_id and version as composite key.
         """
-        data_migration_state_repo = get_service_repository(
-            model_cls=DataMigrationState,
-            logger=self.logger,
-            entity_name="data-migration-state",
-            endpoint_url=self.config.dynamodb_endpoint,
+        dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
+
+        state_table = format_table_name(
+            "data-migration-state", self.config.env, self.config.workspace
         )
+
         source_record_id = "services#" + str(record_id)
-        try:
-            existing_state = data_migration_state_repo.get(source_record_id)
-            return existing_state is not None
-        except Exception as e:
-            self.logger.debug(f"State record not found for {source_record_id}: {e}")
-            return False
+
+        response = dynamodb_client.get_item(
+            TableName=state_table,
+            Key={
+                "source_record_id": {"S": source_record_id},
+            },
+        )
+
+        exists = "Item" in response
+
+        if exists:
+            self.logger.debug(f"State record found for service ID: {record_id}")
+        else:
+            self.logger.debug(f"No state record found for service ID: {record_id}")
+
+        return exists

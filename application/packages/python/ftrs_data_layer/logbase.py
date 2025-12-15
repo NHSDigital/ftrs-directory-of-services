@@ -171,7 +171,16 @@ class DataMigrationLogBase(LogBase):
 
     DM_ETL_019 = LogReference(
         level=INFO,
-        message="State record not found for Service ID {record_id}, creating new one",
+        message="State record found for Service ID {record_id}, Skipping now...",
+    )
+    DM_ETL_020 = LogReference(
+        level=INFO,
+        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
+    )
+
+    DM_ETL_021 = LogReference(
+        level=INFO,
+        message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
     )
 
     DM_ETL_999 = LogReference(
