@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutcomeIssue
 from pydantic import ValidationError
 
@@ -17,17 +15,6 @@ FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str]] = {
     "informational": ("MSG_UPDATED", "Existing resource updated"),
     "success": ("MSG_UPDATED", "Existing resource updated"),
 }
-
-
-@dataclass
-class OperationOutcomeParams:
-    diagnostics: str
-    code: str = "invalid"
-    severity: str = "error"
-    details_text: str | None = None
-    details: dict | None = None
-    expression: list[str] | None = None
-    issues: list | None = None
 
 
 class OperationOutcomeException(Exception):
@@ -62,27 +49,32 @@ class OperationOutcomeHandler:
         }
 
     @staticmethod
-    def build(params: OperationOutcomeParams) -> dict:
-        if params.issues is None:
-            details = params.details
+    def build(  # noqa: PLR0913
+        diagnostics: str,
+        code: str = "invalid",
+        severity: str = "error",
+        details_text: str | None = None,
+        details: dict | None = None,
+        expression: list[str] | None = None,
+        issues: list | None = None,
+    ) -> dict:
+        if issues is None:
             if details is None:
                 details = OperationOutcomeHandler._build_details(
-                    params.code, params.details_text or params.diagnostics
+                    code, details_text or diagnostics
                 )
 
-            issue_dict = {
-                "severity": params.severity,
-                "code": params.code,
+            issue_dict: dict = {
+                "severity": severity,
+                "code": code,
                 "details": details,
-                "diagnostics": params.diagnostics,
+                "diagnostics": diagnostics,
             }
 
-            if params.expression:
-                issue_dict["expression"] = params.expression
+            if expression:
+                issue_dict["expression"] = expression
 
             issues = [issue_dict]
-        else:
-            issues = params.issues
 
         fhir_issues = [OperationOutcomeIssue(**issue) for issue in issues]
         outcome = OperationOutcome(issue=fhir_issues)
