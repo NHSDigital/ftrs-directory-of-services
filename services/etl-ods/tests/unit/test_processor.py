@@ -1,10 +1,8 @@
 import json
-from datetime import datetime, timedelta
-from http import HTTPStatus
+from datetime import datetime
 from typing import Generator, NamedTuple
 
 import pytest
-import requests
 from ftrs_common.utils.correlation_id import set_correlation_id
 from ftrs_common.utils.request_id import set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
@@ -12,10 +10,8 @@ from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 from requests_mock.adapter import _Matcher as Matcher
 
-from pipeline.processor import (
-    MAX_DAYS_PAST,
+from pipeline.producer.processor import (
     processor,
-    processor_lambda_handler,
 )
 
 TEST_CORRELATION_ID = "test-correlation"
@@ -239,7 +235,7 @@ def test_processor_processing_organisations_successful(
 ) -> None:
     expected_call_count = 2  # ODS Terminology API + APIM UUID lookup
     date = datetime.now().strftime("%Y-%m-%d")
-    load_data_mock = mocker.patch("pipeline.processor.load_data")
+    load_data_mock = mocker.patch("pipeline.producer.processor.load_data")
     assert processor(date) is None
     assert requests_mock.call_count == expected_call_count
 
@@ -400,7 +396,7 @@ def test_processor_continue_on_validation_failure(
 
     date = datetime.now().strftime("%Y-%m-%d")
 
-    load_data_mock = mocker.patch("pipeline.processor.load_data")
+    load_data_mock = mocker.patch("pipeline.producer.processor.load_data")
     assert processor(date) is None
 
     assert requests_mock.call_count == expected_call_count
@@ -465,7 +461,9 @@ def test_processor_no_outdated_organisations(
 def test_processor_no_organisations_logs_and_returns(
     mocker: MockerFixture,
 ) -> None:
-    mocker.patch("pipeline.processor.fetch_outdated_organisations", return_value=[])
+    mocker.patch(
+        "pipeline.producer.processor.fetch_outdated_organisations", return_value=[]
+    )
     date = datetime.now().strftime("%Y-%m-%d")
     assert processor(date) is None
 
@@ -507,11 +505,12 @@ def test_process_organisation_exception_logs_and_returns_none(
     }
 
     mocker.patch(
-        "pipeline.processor.fetch_organisation_uuid", return_value="test-uuid-123"
+        "pipeline.producer.processor.fetch_organisation_uuid",
+        return_value="test-uuid-123",
     )
 
     mocker.patch(
-        "pipeline.processor.transform_to_payload",
+        "pipeline.producer.processor.transform_to_payload",
         side_effect=Exception("transform failed"),
     )
 
@@ -521,120 +520,6 @@ def test_process_organisation_exception_logs_and_returns_none(
         "Error processing organisation with ods_code unknown: transform failed"
         in caplog.text
     )
-
-
-def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    date = datetime.now().strftime("%Y-%m-%d")
-    event = {"date": date}
-
-    response = processor_lambda_handler(event, {})
-
-    mock_processor.assert_called_once_with(date=date)
-    assert response == {"statusCode": 200, "body": "Processing complete"}
-
-
-def test_processor_lambda_handler_success_is_scheduled(
-    mocker: MockerFixture,
-) -> None:
-    mock_processor = mocker.patch("pipeline.processor.processor")
-
-    event = {"is_scheduled": True}
-
-    response = processor_lambda_handler(event, {})
-
-    previous_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    mock_processor.assert_called_once_with(date=previous_date)
-    assert response == {"statusCode": 200, "body": "Processing complete"}
-
-
-def test_processor_lambda_handler_missing_date() -> None:
-    response = processor_lambda_handler({}, {})
-    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert json.loads(response["body"]) == {"error": "Date parameter is required"}
-
-
-def test_processor_lambda_handler_invalid_date_format() -> None:
-    invalid_event = {"date": "14-05-2025"}
-    response = processor_lambda_handler(invalid_event, {})
-    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert json.loads(response["body"]) == {
-        "error": "Date must be in YYYY-MM-DD format"
-    }
-
-
-def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
-    # Date more than 185 days in the past from 2025-08-14
-    old_date = "2023-01-01"
-    event = {"date": old_date}
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    response = processor_lambda_handler(event, {})
-
-    mock_processor.assert_not_called()
-    assert response["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert json.loads(response["body"]) == {
-        "error": f"Date must not be more than {MAX_DAYS_PAST} days in the past"
-    }
-
-
-def test_processor_lambda_handler_date_exactly_185_days(mocker: MockerFixture) -> None:
-    # Calculate a date exactly 185 days ago from today
-    date_185_days_ago = (datetime.now().date() - timedelta(days=185)).strftime(
-        "%Y-%m-%d"
-    )
-    event = {"date": date_185_days_ago}
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    response = processor_lambda_handler(event, {})
-    mock_processor.assert_called_once_with(date=date_185_days_ago)
-    assert response == {"statusCode": 200, "body": "Processing complete"}
-
-
-def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
-    mock_processor = mocker.patch("pipeline.processor.processor")
-    mock_processor.side_effect = Exception("Test error")
-    date = datetime.now().strftime("%Y-%m-%d")
-    event = {"date": date}
-
-    result = processor_lambda_handler(event, {})
-
-    mock_processor.assert_called_once_with(date=date)
-    assert str(result["statusCode"]) == "500"
-    error_body = json.loads(result["body"])
-    assert "Unexpected error: Test error" in error_body["error"]
-
-
-def test_processor_logs_and_raises_request_exception(
-    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
-) -> None:
-    mocker.patch(
-        "pipeline.processor.fetch_outdated_organisations",
-        side_effect=requests.exceptions.RequestException("network fail"),
-    )
-    date = datetime.now().strftime("%Y-%m-%d")
-    with caplog.at_level("INFO"):
-        with pytest.raises(requests.exceptions.RequestException, match="network fail"):
-            processor(date)
-        expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_022.value.message.format(
-            error_message="network fail"
-        )
-        assert expected_log in caplog.text
-
-
-def test_processor_logs_and_raises_generic_exception(
-    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
-) -> None:
-    mocker.patch(
-        "pipeline.processor.fetch_outdated_organisations",
-        side_effect=Exception("unexpected error"),
-    )
-    date = datetime.now().strftime("%Y-%m-%d")
-    with caplog.at_level("INFO"):
-        with pytest.raises(Exception, match="unexpected error"):
-            processor(date)
-        expected_log = OdsETLPipelineLogBase.ETL_PROCESSOR_023.value.message.format(
-            error_message="unexpected error"
-        )
-        assert expected_log in caplog.text
 
 
 def test_process_organisation_uuid_not_found(
@@ -676,7 +561,9 @@ def test_process_organisation_uuid_not_found(
     }
 
     # Mock fetch_organisation_uuid to return None (empty Bundle case)
-    mocker.patch("pipeline.processor.fetch_organisation_uuid", return_value=None)
+    mocker.patch(
+        "pipeline.producer.processor.fetch_organisation_uuid", return_value=None
+    )
 
     result = processor.__globals__["_process_organisation"](org_abc123)
 
@@ -720,7 +607,9 @@ def test_process_organisation_not_permitted_skips_transformation(
         ],
     }
 
-    mock_fetch_uuid = mocker.patch("pipeline.processor.fetch_organisation_uuid")
+    mock_fetch_uuid = mocker.patch(
+        "pipeline.producer.processor.fetch_organisation_uuid"
+    )
 
     result = processor.__globals__["_process_organisation"](org_not_permitted)
 
