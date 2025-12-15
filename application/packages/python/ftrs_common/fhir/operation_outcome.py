@@ -18,6 +18,7 @@ FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str]] = {
     "success": ("MSG_UPDATED", "Existing resource updated"),
 }
 
+
 @dataclass
 class OperationOutcomeParams:
     diagnostics: str
@@ -27,6 +28,7 @@ class OperationOutcomeParams:
     details: dict | None = None
     expression: list[str] | None = None
     issues: list | None = None
+
 
 class OperationOutcomeException(Exception):
     def __init__(self, outcome: dict) -> None:
