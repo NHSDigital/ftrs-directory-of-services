@@ -231,3 +231,7 @@ data "aws_iam_policy_document" "lambda_kms_access" {
     resources = [data.aws_kms_key.sqs_kms_alias.arn]
   }
 }
+
+data "aws_kms_key" "dms_kms_alias" {
+  key_id = local.kms_aliases.dms
+}
