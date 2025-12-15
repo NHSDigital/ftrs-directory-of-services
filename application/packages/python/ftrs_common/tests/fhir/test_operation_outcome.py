@@ -29,9 +29,15 @@ def test_operation_outcome_handler_build_basic() -> None:
     assert outcome["issue"][0]["severity"] == "error"
     assert "details" in outcome["issue"][0]
     assert "coding" in outcome["issue"][0]["details"]
-    assert outcome["issue"][0]["details"]["coding"][0]["system"] == OPERATION_OUTCOME_SYSTEM
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["system"]
+        == OPERATION_OUTCOME_SYSTEM
+    )
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "MSG_PARAM_INVALID"
-    assert outcome["issue"][0]["details"]["coding"][0]["display"] == "Parameter content is invalid"
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["display"]
+        == "Parameter content is invalid"
+    )
     assert outcome["issue"][0]["details"]["text"] == diagnostics
 
 
@@ -46,17 +52,25 @@ def test_operation_outcome_handler_build_with_details_and_issues() -> None:
 
 def test_operation_outcome_handler_build_with_custom_code() -> None:
     diagnostics: str = "Resource not found"
-    outcome = OperationOutcomeHandler.build(diagnostics, code="not-found", severity="error")
+    outcome = OperationOutcomeHandler.build(
+        diagnostics, code="not-found", severity="error"
+    )
     assert outcome["issue"][0]["code"] == "not-found"
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "MSG_NO_EXIST"
-    assert outcome["issue"][0]["details"]["coding"][0]["display"] == "Resource does not exist"
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["display"]
+        == "Resource does not exist"
+    )
 
 
 def test_operation_outcome_handler_build_with_unknown_code() -> None:
     diagnostics: str = "Unknown error"
     outcome = OperationOutcomeHandler.build(diagnostics, code="unknown-code")
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "MSG_ERROR_PARSING"
-    assert outcome["issue"][0]["details"]["coding"][0]["display"] == "Error processing request"
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["display"]
+        == "Error processing request"
+    )
 
 
 def test_operation_outcome_handler_build_with_details_text() -> None:
@@ -112,9 +126,15 @@ def test_operation_outcome_handler_from_exception() -> None:
     assert outcome["issue"][0]["diagnostics"] == "Boom!"
     assert outcome["issue"][0]["code"] == "exception"
     assert outcome["issue"][0]["severity"] == "fatal"
-    assert outcome["issue"][0]["details"]["coding"][0]["system"] == OPERATION_OUTCOME_SYSTEM
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["system"]
+        == OPERATION_OUTCOME_SYSTEM
+    )
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "MSG_ERROR_PARSING"
-    assert outcome["issue"][0]["details"]["coding"][0]["display"] == "Error processing request"
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["display"]
+        == "Error processing request"
+    )
     assert "An unexpected error occurred" in outcome["issue"][0]["details"]["text"]
 
 
@@ -137,9 +157,15 @@ def test_operation_outcome_handler_from_validation_error() -> None:
     assert outcome["issue"][0]["diagnostics"] == "Validation failed for resource."
     assert outcome["issue"][0]["code"] == "invalid"
     assert outcome["issue"][0]["severity"] == "error"
-    assert outcome["issue"][0]["details"]["coding"][0]["system"] == OPERATION_OUTCOME_SYSTEM
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["system"]
+        == OPERATION_OUTCOME_SYSTEM
+    )
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "MSG_PARAM_INVALID"
-    assert outcome["issue"][0]["details"]["coding"][0]["display"] == "Parameter content is invalid"
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["display"]
+        == "Parameter content is invalid"
+    )
 
 
 def test_fhir_operation_outcome_codes_mapping() -> None:
