@@ -1,4 +1,4 @@
-from uuid import uuid4, UUID
+from uuid import UUID
 
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.domain.base import DBModel
