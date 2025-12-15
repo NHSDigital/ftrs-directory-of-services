@@ -9,6 +9,11 @@ from functions import error_util
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.organization_query_params import OrganizationQueryParams
 
+
+class InvalidRequestHeadersError(ValueError):
+    """Raised when disallowed HTTP headers are supplied in the request."""
+
+
 logger = Logger()
 tracer = Tracer()
 app = APIGatewayRestResolver()
@@ -42,7 +47,7 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
         if header_name and header_name.lower() not in ALLOWED_REQUEST_HEADERS
     ]
     if invalid_headers:
-        raise ValueError(invalid_headers)
+        raise InvalidRequestHeadersError(invalid_headers)
 
 
 @app.get("/Organization")
@@ -66,7 +71,7 @@ def get_organization() -> Response:
         )
         fhir_resource = error_util.create_validation_error_operation_outcome(exception)
         return create_response(400, fhir_resource)
-    except ValueError as exception:
+    except InvalidRequestHeadersError as exception:
         invalid_headers: list[str] = exception.args[0] if exception.args else []
         logger.warning(
             "Invalid request headers supplied",

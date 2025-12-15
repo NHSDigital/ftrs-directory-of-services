@@ -24,10 +24,10 @@ INVALID_SEARCH_DATA_CODING: dict[str, list] = {
 REC_BAD_REQUEST_CODING: dict[str, list] = {
     "coding": [
         {
-            "system": "https://fhir.nhs.uk/CodeSystem/England-HTTPErrorCode",
+            "system": "https://fhir.nhs.uk/CodeSystem/http-error-codes",
             "version": "1",
             "code": "REC_BAD_REQUEST",
-            "display": "Bad Request",
+            "display": "The Receiver was unable to process the request",
         }
     ]
 }
