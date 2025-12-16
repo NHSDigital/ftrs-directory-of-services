@@ -39,6 +39,8 @@ SMOKE_SCRIPT := ./scripts/smoke.sh
 LOCAL_IMAGE ?= ${FULL_IMAGE}
 REMOTE_NAME ?= ${API_NAME}
 REMOTE_TAG ?= ${IMAGE_TAG}
+
+REMOTE_TAG := $(shell printf '%.7s' "$(REMOTE_TAG)")
 VERSION_TAG ?=
 
 install:
