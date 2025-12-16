@@ -47,9 +47,8 @@ runs:
         export ACCESS_TOKEN="${{ steps.get-token.outputs.access_token }}"
         export PROXYGEN_URL="${{ inputs.proxygen_url }}"
 
-        ./scripts/workflow/cleardown-apim-proxy.sh
-
-        echo "${{ inputs.api_name }} cleared successfully from APIM ${{ inputs.apim_env }} environment"
+        STATUS=$(./scripts/workflow/cleardown-apim-proxy.sh | tail -n1)
+        echo "status=$STATUS" >> $GITHUB_OUTPUT
 
     - name: Output cleardown details
       shell: bash
@@ -59,3 +58,4 @@ runs:
         echo "- Workspace: ${{ inputs.workspace }}"
         echo "- Environment: ${{ inputs.environment }}"
         echo "- APIM Environment: ${{ inputs.apim_env }}"
+        echo "- Status: ${{ steps.cleardown.outputs.status }}"

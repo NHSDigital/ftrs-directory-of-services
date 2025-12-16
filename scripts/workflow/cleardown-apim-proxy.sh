@@ -50,14 +50,13 @@ HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | head -n-1)
 
 if [ "$HTTP_CODE" -eq 200 ]; then
-    echo "✓ Proxy instance deleted" >&2
+    echo "✓ Proxy instance deleted"
     exit 0
 elif [ "$HTTP_CODE" -eq 404 ]; then
-    echo "✓ Proxy instance not found" >&2
-    echo "Response: $BODY" >&2
+    echo "ℹ No proxy instance found to delete"
     exit 0
 else
-    echo "Error: Failed to cleardown proxy instance (HTTP $HTTP_CODE)" >&2
+    echo "✗ Error clearing down proxy instance (HTTP $HTTP_CODE)"
     echo "Response: $BODY" >&2
     exit 1
 fi
