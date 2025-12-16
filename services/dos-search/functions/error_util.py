@@ -27,7 +27,7 @@ REC_BAD_REQUEST_CODING: dict[str, list] = {
             "system": "https://fhir.nhs.uk/CodeSystem/http-error-codes",
             "version": "1",
             "code": "REC_BAD_REQUEST",
-            "display": "The Receiver was unable to process the request",
+            "display": "400: The Receiver was unable to process the request.",
         }
     ]
 }
