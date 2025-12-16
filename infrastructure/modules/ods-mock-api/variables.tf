@@ -8,6 +8,11 @@ variable "api_gateway_description" {
   type        = string
 }
 
+variable "environment" {
+  description = "The environment name (e.g., dev, test, prod)"
+  type        = string
+}
+
 # API Gateway rate limiting settings
 
 variable "throttle_burst_limit" {
