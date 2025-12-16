@@ -157,7 +157,6 @@ resource "aws_api_gateway_integration_response" "organization_get_500" {
 
 resource "aws_api_gateway_deployment" "ods_mock" {
   rest_api_id = aws_api_gateway_rest_api.ods_mock.id
-  stage_name  = local.stage_name
 
   depends_on = [
     aws_api_gateway_integration_response.organization_get_200,
@@ -172,6 +171,17 @@ resource "aws_api_gateway_deployment" "ods_mock" {
 
   lifecycle {
     create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "ods_mock" {
+  deployment_id = aws_api_gateway_deployment.ods_mock.id
+  rest_api_id   = aws_api_gateway_rest_api.ods_mock.id
+  stage_name    = "dev"
+
+  tags = {
+    Name        = "${var.api_gateway_name}-${aws_api_gateway_stage.ods_mock.stage_name}"
+    Environment = var.environment
   }
 }
 
@@ -192,7 +202,7 @@ resource "aws_api_gateway_usage_plan" "ods_mock" {
 
   api_stages {
     api_id = aws_api_gateway_rest_api.ods_mock.id
-    stage  = aws_api_gateway_deployment.ods_mock.stage_name
+    stage  = aws_api_gateway_stage.ods_mock.stage_name
   }
 
   throttle_settings {
