@@ -20,4 +20,5 @@ max_message_size           = 10240
 message_retention_seconds  = 86400
 receive_wait_time_seconds  = 2
 
-max_receive_count = 5
+max_receive_count  = 5
+ods_api_page_limit = 1000
