@@ -116,18 +116,53 @@ def _get_api_key_for_url(url: str) -> str:
     """
     Get API key for ODS Terminology API requests.
 
+    In mock testing mode (when MOCK_TESTING_SCENARIOS env var is set to 'true'),
+    retrieves API key for mock API Gateway from Secrets Manager.
+    Otherwise, fetches production API key from Secrets Manager or local environment.
     """
     if not _is_ods_terminology_request(url):
         return ""
 
     if _is_mock_testing_mode():
         ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_008)
-        return ""
+        return _get_mock_api_key_from_secrets()
 
     env = os.environ.get("ENVIRONMENT")
     if env == "local":
         return _get_local_api_key()
     return _get_production_api_key()
+
+
+def _get_mock_api_key_from_secrets() -> str:
+    """
+    Retrieve mock API key from AWS Secrets Manager for testing scenarios.
+    """
+    try:
+        project = os.environ.get("PROJECT_NAME")
+        environment = os.environ.get("ENVIRONMENT")
+        workspace = os.environ.get("WORKSPACE", "")
+
+        # Follow the same pattern as Terraform locals: project-environment
+        project_prefix = f"{project}-{environment}"
+        workspace_suffix = f"-{workspace}" if workspace else ""
+        secret_name = f"/{project_prefix}/mock-api/api-key{workspace_suffix}"
+
+        return _get_secret_from_aws(secret_name)
+
+    except KeyError as e:
+        ods_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_UTILS_006,
+            secret_name=secret_name,
+            error_message=f"Mock API key secret not found: {e}",
+        )
+        err_msg = f"Mock API key secret not found: {e}"
+        raise KeyError(err_msg)
+    except Exception as e:
+        ods_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_UTILS_007,
+            error_message=f"Failed to retrieve mock API key: {e}",
+        )
+        raise
 
 
 def get_resource_prefix() -> str:
@@ -170,15 +205,23 @@ def _get_secret_from_aws(secret_name: str) -> str:
 
 
 def _add_api_key_to_headers(headers: dict, api_key: str) -> None:
+    """Add API key to headers using the appropriate header name for the current mode."""
     if not api_key:
         return
 
-    headers["apikey"] = api_key
+    # Mock API Gateways use AWS standard x-api-key header instead of custom apikey
+    if _is_mock_testing_mode():
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_009)
+        headers["x-api-key"] = api_key
+    else:
+        headers["apikey"] = api_key
 
 
 def build_headers(options: dict) -> dict:
     """
     Builds headers for the outgoing HTTP request.
+    All requests in ODS ETL use FHIR format by default and require API keys.
+    The appropriate API key is automatically selected based on the URL.
     """
     headers = {}
     json_data = options.get("json_data")
