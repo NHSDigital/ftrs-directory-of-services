@@ -47,11 +47,12 @@ module "processor_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
-    "APIM_URL"     = var.apim_url
-    "ODS_URL"      = var.ods_url
+    "ENVIRONMENT"        = var.environment
+    "WORKSPACE"          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"       = var.project
+    "APIM_URL"           = var.apim_url
+    "ODS_URL"            = var.ods_url
+    "ODS_API_PAGE_LIMIT" = tostring(var.ods_api_page_limit)
   }
 
   account_id     = data.aws_caller_identity.current.account_id
