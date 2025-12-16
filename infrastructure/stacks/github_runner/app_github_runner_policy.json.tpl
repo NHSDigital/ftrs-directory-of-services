@@ -149,19 +149,23 @@
             "Resource": "*"
         },
         {
-            "Sid": "KMSSecretsManagerSSMLimitedAccess",
+            "Sid": "KMSServicesLimitedAccess
             "Effect": "Allow",
             "Action": [
                 "kms:Encrypt",
                 "kms:Decrypt",
-                "kms:GenerateDataKey*"
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey",
+                "kms:CreateGrant"
             ],
             "Resource": "*",
             "Condition": {
                 "ForAnyValue:StringLike": {
                     "kms:ResourceAliases": [
                         "alias/${project}-*-secrets-manager-kms",
-                        "alias/${project}-*-ssm-kms"
+                        "alias/${project}-*-ssm-kms",
+                        "alias/${project}-*-dms-kms"
                     ]
                 }
             }

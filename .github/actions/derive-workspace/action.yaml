@@ -21,4 +21,4 @@ runs:
         export COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)
         . scripts/workflow/derive-workspace.sh
         echo "Workspace Name: ${WORKSPACE}"
-        echo "workspace=default" >> $GITHUB_OUTPUT
+        echo "workspace=${WORKSPACE}" >> $GITHUB_OUTPUT
