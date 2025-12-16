@@ -55,7 +55,7 @@ def get_base_ods_terminology_api_url() -> str:
     ods_url = os.environ.get("ODS_URL")
     if ods_url is None:
         err_msg = "ODS_URL environment variable is not set"
-        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_007, error_message=err_msg)
+        ods_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_012, error_message=err_msg)
         raise KeyError(err_msg)
     return ods_url
 

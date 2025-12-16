@@ -480,6 +480,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Attempting to use mock ODS api in unauthorized environment: {env}. Mock can only be used in dev and test",
     )
+    ETL_UTILS_012 = LogReference(
+        level=ERROR,
+        message="Unable to get ODS path with message: {error_message}.",
+    )
 
 
 class CrudApisLogBase(LogBase):
