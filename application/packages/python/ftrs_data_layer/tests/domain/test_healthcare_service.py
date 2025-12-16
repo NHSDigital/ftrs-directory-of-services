@@ -7,11 +7,8 @@ from ftrs_data_layer.domain import (
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
     DayOfWeek,
-    Disposition,
     HealthcareService,
     NotAvailable,
-    SymptomDiscriminator,
-    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
     Telecom,
 )
@@ -42,33 +39,11 @@ def test_healthcare_service_round_trip_and_types() -> None:
         ),
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
-                sg=SymptomGroup(
-                    codeID=1000,
-                    codeType="Symptom Group (SG)",
-                    codeValue="Abdominal or Flank Injury, Blunt",
-                    id="b4d7ceba-77b8-4966-803a-d8291bd7e804",
-                    source="pathways",
-                ),
-                sd=SymptomDiscriminator(
-                    codeID=4003,
-                    codeType="Symptom Discriminator (SD)",
-                    codeValue="PC full Primary Care assessment and prescribing capability",
-                    id="df046f42-42bc-46ca-a6f0-db496e9a1292",
-                    source="pathways",
-                    synonyms=[],
-                ),
+                sg=1000,
+                sd=4003,
             )
         ],
-        dispositions=[
-            Disposition(
-                id="39b75651-e40e-4214-b308-8a58cf8046ce",
-                source="pathways",
-                codeType="Disposition (Dx)",
-                codeID=301,
-                codeValue="Dx1",
-                time=10,
-            )
-        ],
+        dispositions=["DX1", "DX114"],
         openingTime=[
             AvailableTime(
                 dayOfWeek=DayOfWeek.MONDAY,
