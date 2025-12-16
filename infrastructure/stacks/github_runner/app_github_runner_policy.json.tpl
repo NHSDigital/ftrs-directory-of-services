@@ -149,7 +149,7 @@
             "Resource": "*"
         },
         {
-            "Sid": "KMSSecretsManagerLimitedAccess",
+            "Sid": "KMSSecretsManagerSSMLimitedAccess",
             "Effect": "Allow",
             "Action": [
                 "kms:Encrypt",
@@ -160,7 +160,8 @@
             "Condition": {
                 "ForAnyValue:StringLike": {
                     "kms:ResourceAliases": [
-                        "alias/ftrs-dos-*-secrets-manager-kms"
+                        "alias/${project}-*-secrets-manager-kms",
+                        "alias/${project}-*-ssm-kms"
                     ]
                 }
             }

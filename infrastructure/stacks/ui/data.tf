@@ -73,6 +73,18 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.project}/${var.environment}/cis2-client-config"
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:GenerateDataKey"
+    ]
+    resources = [
+      data.aws_kms_key.secrets_manager_kms_key.arn
+    ]
+  }
 }
 
 # TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
