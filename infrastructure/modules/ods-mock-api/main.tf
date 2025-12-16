@@ -15,6 +15,13 @@ resource "aws_api_gateway_rest_api" "ods_mock" {
   }
 }
 
+resource "aws_api_gateway_request_validator" "validator" {
+  rest_api_id                 = aws_api_gateway_rest_api.ods_mock.id
+  name                        = "${var.api_gateway_name}-validator"
+  validate_request_body       = true
+  validate_request_parameters = true
+}
+
 resource "aws_api_gateway_resource" "organisation_data_terminology_api" {
   rest_api_id = aws_api_gateway_rest_api.ods_mock.id
   parent_id   = aws_api_gateway_rest_api.ods_mock.root_resource_id
@@ -34,11 +41,12 @@ resource "aws_api_gateway_resource" "organization" {
 }
 
 resource "aws_api_gateway_method" "organization_get" {
-  rest_api_id      = aws_api_gateway_rest_api.ods_mock.id
-  resource_id      = aws_api_gateway_resource.organization.id
-  http_method      = "GET"
-  authorization    = "NONE"
-  api_key_required = true
+  rest_api_id          = aws_api_gateway_rest_api.ods_mock.id
+  resource_id          = aws_api_gateway_resource.organization.id
+  http_method          = "GET"
+  authorization        = "NONE"
+  api_key_required     = true
+  request_validator_id = aws_api_gateway_request_validator.validator.id
 
   request_parameters = {
     "method.request.querystring._lastUpdated" = false
@@ -175,14 +183,66 @@ resource "aws_api_gateway_deployment" "ods_mock" {
 }
 
 resource "aws_api_gateway_stage" "ods_mock" {
+  # checkov:skip=CKV2_AWS_29: Mock API for dev testing, WAF protection not required
+  # checkov:skip=CKV2_AWS_51: Mock API for dev testing, client certificate authentication not required
   deployment_id = aws_api_gateway_deployment.ods_mock.id
   rest_api_id   = aws_api_gateway_rest_api.ods_mock.id
   stage_name    = "dev"
 
+  xray_tracing_enabled = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway_log_group.arn
+    format = jsonencode({
+      context = {
+        domainName              = "$context.domainName"
+        integrationErrorMessage = "$context.integrationErrorMessage"
+        protocol                = "$context.protocol"
+        requestId               = "$context.requestId"
+        requestTime             = "$context.requestTime"
+        responseLength          = "$context.responseLength"
+        routeKey                = "$context.routeKey"
+        stage                   = "$context.stage"
+        status                  = "$context.status"
+        error = {
+          message      = "$context.error.message"
+          responseType = "$context.error.responseType"
+        }
+        identity = {
+          sourceIP = "$context.identity.sourceIp"
+        }
+        integration = {
+          error             = "$context.integration.error"
+          integrationStatus = "$context.integration.integrationStatus"
+        }
+      }
+    })
+  }
+
+  cache_cluster_enabled = true
+  cache_cluster_size    = "0.5"
+
   tags = {
-    Name        = "${var.api_gateway_name}-${aws_api_gateway_stage.ods_mock.stage_name}"
+    Name        = "${var.api_gateway_name}-dev"
     Environment = var.environment
   }
+}
+
+resource "aws_api_gateway_method_settings" "ods_mock" {
+  rest_api_id = aws_api_gateway_rest_api.ods_mock.id
+  stage_name  = aws_api_gateway_stage.ods_mock.stage_name
+  method_path = "*/*"
+
+  settings {
+    logging_level = "INFO"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
+  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  name              = "/aws/api-gateway/${var.api_gateway_name}"
+  retention_in_days = var.api_gateway_log_group_retention_days
+  log_group_class   = var.api_gateway_log_group_class
 }
 
 resource "aws_api_gateway_api_key" "ods_mock" {

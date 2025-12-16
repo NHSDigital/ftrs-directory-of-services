@@ -17,7 +17,7 @@ resource "aws_ssm_parameter" "ods_mock_api_url" {
 
   name        = "/${local.project_prefix}/mock-api/endpoint-url${local.workspace_suffix}"
   description = "ODS Mock API endpoint URL for ETL testing"
-  type        = "String"
+  type        = "SecureString"
   value       = module.ods_mock_api[0].ods_endpoint_url
 }
 

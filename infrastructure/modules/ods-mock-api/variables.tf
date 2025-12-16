@@ -32,3 +32,17 @@ variable "quota_limit" {
   type        = number
   default     = 1000
 }
+
+# CloudWatch logging settings
+
+variable "api_gateway_log_group_retention_days" {
+  description = "API Gateway CloudWatch log group retention in days"
+  type        = number
+  default     = 7
+}
+
+variable "api_gateway_log_group_class" {
+  description = "API Gateway CloudWatch log group class"
+  type        = string
+  default     = "STANDARD"
+}
