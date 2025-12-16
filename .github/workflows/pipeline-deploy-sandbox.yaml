@@ -35,7 +35,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Post-checkout debug
         shell: bash
@@ -84,7 +84,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace || 'default' }}
       ref_name: ${{ github.ref_name }}
       ref_type: ${{ github.ref_type }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      commit_hash: ${{ github.sha }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}

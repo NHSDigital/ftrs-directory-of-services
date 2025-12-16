@@ -68,6 +68,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Parse sandbox tag
+        id: parse
+        shell: bash
+        env:
+          GITHUB_REF_NAME: ${{ inputs.ref_name }}
+          GITHUB_REF_TYPE: ${{ inputs.ref_type }}
+          GITHUB_SHA: ${{ inputs.commit_hash }}
+        run: |
+          echo "Running local parse script"
+          echo "inputs.ref_name=${{ inputs.ref_name }}"
+          echo "inputs.ref_type=${{ inputs.ref_type }}"
+          echo "inputs.commit_hash=${{ inputs.commit_hash }}"
+          bash .github/workflows/parse-apim-sandbox-tag.sh
+
       - name: Configure AWS Credentials
         if: steps.parse.outputs.should_deploy == 'true'
         uses: ./.github/actions/configure-credentials
