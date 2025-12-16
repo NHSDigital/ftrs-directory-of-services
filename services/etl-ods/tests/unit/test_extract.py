@@ -125,7 +125,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     EXPECTED_CALL_COUNT = 2
 
     make_request_mock = mocker.patch(
-        "pipeline.extract.make_request", side_effect=[first_page, second_page]
+        "pipeline.producer.extract.make_request", side_effect=[first_page, second_page]
     )
 
     date = "2025-10-15"
