@@ -68,20 +68,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Parse sandbox tag
-        id: parse
-        uses: ./.github/actions/parse-apim-sandbox-tag
-        with:
-          ref_name: ${{ inputs.ref_name }}
-          ref_type: ${{ inputs.ref_type }}
-          commit_sha: ${{ inputs.commit_hash }}
-
-      - name: Ensure tag indicates deployment
-        if: steps.parse.outputs.should_deploy != 'true'
-        run: |
-          echo "Skipping APIM sandbox deployment; should_deploy=false" >> "$GITHUB_STEP_SUMMARY"
-          exit 0
-
       - name: Configure AWS Credentials
         if: steps.parse.outputs.should_deploy == 'true'
         uses: ./.github/actions/configure-credentials
