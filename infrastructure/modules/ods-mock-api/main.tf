@@ -184,7 +184,8 @@ resource "aws_api_gateway_deployment" "ods_mock" {
 
 resource "aws_api_gateway_stage" "ods_mock" {
   # checkov:skip=CKV2_AWS_29: Mock API for dev testing, WAF protection not required
-  # checkov:skip=CKV2_AWS_51: Mock API for dev testing, client certificate authentication not required
+  # checkov:skip=CKV2_AWS_51: Using API key authentication instead of client certificates for mock API simplicity
+  # checkov:skip=CKV2_AWS_4: False positive, we are configuring custom logging
   deployment_id = aws_api_gateway_deployment.ods_mock.id
   rest_api_id   = aws_api_gateway_rest_api.ods_mock.id
   stage_name    = "dev"
@@ -234,12 +235,15 @@ resource "aws_api_gateway_method_settings" "ods_mock" {
   method_path = "*/*"
 
   settings {
-    logging_level = "INFO"
+    logging_level        = "INFO"
+    caching_enabled      = true
+    cache_ttl_in_seconds = 300
   }
 }
 
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
   # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  # checkov:skip=CKV_AWS_338: Justification: Non-production do not require long term log retention.
   name              = "/aws/api-gateway/${var.api_gateway_name}"
   retention_in_days = var.api_gateway_log_group_retention_days
   log_group_class   = var.api_gateway_log_group_class

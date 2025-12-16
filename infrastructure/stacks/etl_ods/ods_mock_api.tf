@@ -22,6 +22,7 @@ resource "aws_ssm_parameter" "ods_mock_api_url" {
 }
 
 resource "aws_secretsmanager_secret" "ods_mock_api_key" {
+  # checkov:skip=CKV2_AWS_57: Mock API key doesn't require automatic rotation, manual rotation is sufficient for development testing
   count = var.environment == "dev" ? 1 : 0
 
   name        = "/${local.project_prefix}/mock-api/api-key${local.workspace_suffix}"
