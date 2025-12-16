@@ -42,9 +42,11 @@ fi
 
 echo "Clearing down proxy instance $INSTANCE_NAME from environment $PROXY_ENV for API $API_NAME" >&2
 
-RESPONSE=$(curl -s -w "\n%{http_code}" --connect-timeout 10 --max-time 30 -X DELETE \
-    "${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
-    -H "Authorization: Bearer $ACCESS_TOKEN")
+RESPONSE=$(
+  curl -s -w "\n%{http_code}" --connect-timeout 10 --max-time 30 --retry 5 --retry-all-errors --retry-max-time 120 \
+    -X DELETE "${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
+    -H "Authorization: Bearer $ACCESS_TOKEN"
+)
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | head -n-1)
