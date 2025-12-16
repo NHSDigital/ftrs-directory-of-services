@@ -27,6 +27,11 @@ jobs:
       sandbox_version: ${{ steps.parse.outputs.version }}
       sandbox_should_deploy: ${{ steps.parse.outputs.should_deploy }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Parse tag
         id: parse
         uses: ./.github/actions/parse-apim-sandbox-tag
