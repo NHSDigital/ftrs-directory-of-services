@@ -26,6 +26,10 @@ data "aws_kms_key" "secrets_manager_kms_key" {
   key_id = local.kms_aliases.secrets_manager
 }
 
+data "aws_kms_key" "ssm_kms_key" {
+  key_id = local.kms_aliases.ssm
+}
+
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 }
