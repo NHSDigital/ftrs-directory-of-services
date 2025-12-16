@@ -82,7 +82,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "kms:GenerateDataKey"
     ]
     resources = [
-      data.aws_kms_key.secrets_manager_kms_key.arn
+      data.aws_kms_key.ssm_kms_key.arn
     ]
   }
 }
