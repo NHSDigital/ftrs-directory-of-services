@@ -10,9 +10,6 @@ on:
       - main
       - "task/**"
       - "dependabot/**"
-    tags:
-      - "*-*-*"
-      - "*-*-*-*-*-*"
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
@@ -152,24 +149,6 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace || 'default' }}
       api_name: ${{ matrix.api_name }}
       apim_env: "internal-dev"
-    secrets:
-      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
-
-  deploy-proxy-into-apim-sandbox:
-    name: ${{ format('Authenticate and Deploy API to Proxygen in sandbox [{0}]', github.ref_name) }}
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    if: github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/')
-    uses: ./.github/workflows/deploy-into-apim-sandbox.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace || 'default' }}
-      ref_name: ${{ github.ref_name }}
-      ref_type: ${{ github.ref_type }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -328,7 +307,6 @@ jobs:
       - quality-checks
       - build-services
       - deploy-application-infrastructure
-      - deploy-proxy-into-apim-sandbox
       - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
