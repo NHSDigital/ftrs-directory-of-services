@@ -25,13 +25,10 @@ info() {
 
 fail_and_exit() {
   info "$1"
-  {
-    echo "sandbox_environment="
-    echo "service="
-    echo "version="
-    echo "should_deploy=false"
-  } >> "$GITHUB_OUTPUT"
-
+  echo "sandbox_environment=${sandbox_environment}" >> "$GITHUB_OUTPUT"
+  echo "service=${service}" >> "$GITHUB_OUTPUT"
+  echo "version=${version}" >> "$GITHUB_OUTPUT"
+  echo "should_deploy=false" >> "$GITHUB_OUTPUT"
   exit 0
 }
 
