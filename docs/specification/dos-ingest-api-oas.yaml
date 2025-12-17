@@ -1343,3 +1343,6 @@ x-nhsd-apim:
     proxy:
       timeunit: "minute"
       limit: 300
+    app_default:
+      timeunit: "minute"
+      limit: 300
