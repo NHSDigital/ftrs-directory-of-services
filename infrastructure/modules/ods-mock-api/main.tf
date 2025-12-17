@@ -121,7 +121,7 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   }
 
   response_templates = {
-    "application/json" = "$input.path('$.body')"
+    "application/json" = "$input.json('$.body')"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
