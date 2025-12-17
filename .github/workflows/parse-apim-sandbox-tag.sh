@@ -25,6 +25,18 @@ info() {
 
 fail_and_exit() {
   info "$1"
+  echo "Parse result: sandbox_environment= service= version= should_deploy=false"
+
+  if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+    {
+      echo "## Parse result"
+      echo ""
+      echo "- Reason: $1"
+      echo "- Deployment: Skipped"
+      echo ""
+    } >> "$GITHUB_STEP_SUMMARY"
+  fi
+
   {
     echo "sandbox_environment="
     echo "service="
@@ -101,7 +113,26 @@ else
   fail_and_exit "Tag '${TAG}' does not match <environment>-<service>-<version>"
 fi
 
-# write outputs
+echo "Parse result: sandbox_environment=${sandbox_environment} service=${service} version=${version} should_deploy=${should_deploy}"
+
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  {
+    echo "## Parse result"
+    echo ""
+    echo "- sandbox_environment: ${sandbox_environment}"
+    echo "- service: ${service}"
+    echo "- version: ${version}"
+    echo "- should_deploy: ${should_deploy}"
+    if [[ "${should_deploy}" == "true" ]]; then
+      echo ""
+      echo "### Deployment decision: Proceeding with deploy"
+    else
+      echo ""
+      echo "### Deployment decision: Skipping deploy"
+    fi
+  } >> "$GITHUB_STEP_SUMMARY"
+fi
+
 echo "sandbox_environment=${sandbox_environment}" >> "$GITHUB_OUTPUT"
 echo "service=${service}" >> "$GITHUB_OUTPUT"
 echo "version=${version}" >> "$GITHUB_OUTPUT"

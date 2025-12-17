@@ -60,6 +60,10 @@ jobs:
       ref_name: ${{ github.ref_name }}
       ref_type: ${{ github.ref_type }}
       commit_hash: ${{ github.sha }}
+      parsed_sandbox_environment: ${{ needs.validate-sandbox-tag.outputs.sandbox_environment }}
+      parsed_service: ${{ needs.validate-sandbox-tag.outputs.sandbox_service }}
+      parsed_version: ${{ needs.validate-sandbox-tag.outputs.sandbox_version }}
+      parsed_should_deploy: ${{ needs.validate-sandbox-tag.outputs.sandbox_should_deploy }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}

@@ -27,6 +27,22 @@ on:
         description: 'Git commit hash associated with this deployment'
         required: false
         type: string
+      parsed_sandbox_environment:
+        description: 'Pre-parsed sandbox_environment'
+        required: true
+        type: string
+      parsed_service:
+        description: 'Pre-parsed service'
+        required: true
+        type: string
+      parsed_version:
+        description: 'Pre-parsed version'
+        required: true
+        type: string
+      parsed_should_deploy:
+        description: 'Pre-parsed should_deploy (true/false)'
+        required: true
+        type: string
     secrets:
       ACCOUNT_ID:
         description: 'AWS Account ID'
@@ -57,10 +73,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:
-      sandbox_environment: ${{ steps.parse.outputs.sandbox_environment }}
-      service: ${{ steps.parse.outputs.service }}
-      version: ${{ steps.parse.outputs.version }}
-      should_deploy: ${{ steps.parse.outputs.should_deploy }}
+      sandbox_environment: ${{ inputs.parsed_sandbox_environment }}
+      service: ${{ inputs.parsed_service }}
+      version: ${{ inputs.parsed_version }}
+      should_deploy: ${{ inputs.parsed_should_deploy }}
 
     steps:
       - name: Checkout repository
@@ -68,22 +84,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Parse sandbox tag
-        id: parse
-        shell: bash
-        env:
-          GITHUB_REF_NAME: ${{ inputs.ref_name }}
-          GITHUB_REF_TYPE: ${{ inputs.ref_type }}
-          GITHUB_SHA: ${{ inputs.commit_hash }}
-        run: |
-          echo "Running local parse script"
-          echo "inputs.ref_name=${{ inputs.ref_name }}"
-          echo "inputs.ref_type=${{ inputs.ref_type }}"
-          echo "inputs.commit_hash=${{ inputs.commit_hash }}"
-          bash .github/workflows/parse-apim-sandbox-tag.sh
-
       - name: Configure AWS Credentials
-        if: steps.parse.outputs.should_deploy == 'true'
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
         uses: ./.github/actions/configure-credentials
         with:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
@@ -92,64 +94,64 @@ jobs:
           type: app
 
       - name: "Get directories"
-        if: steps.parse.outputs.should_deploy == 'true'
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
         id: get-directories
         run: |
-          echo "working_directory=services/sandbox-${{ steps.parse.outputs.service }}" >> $GITHUB_OUTPUT
-          echo "build_directory=build/services/sandbox-${{ steps.parse.outputs.service }}" >> $GITHUB_OUTPUT
+          echo "working_directory=services/sandbox-${{ inputs.parsed_service }}" >> $GITHUB_OUTPUT
+          echo "build_directory=build/services/sandbox-${{ inputs.parsed_service }}" >> $GITHUB_OUTPUT
 
       - name: Get Proxygen Access Token
-        if: steps.parse.outputs.should_deploy == 'true'
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
         id: get-token
         uses: ./.github/actions/authenticate-apim
         with:
-          api_name: ${{ steps.parse.outputs.service }}
+          api_name: ${{ inputs.parsed_service }}
           environment: ${{ inputs.environment }}
           aws_region: ${{ secrets.AWS_REGION }}
 
       - name: Get APIM Docker Token
-        if: steps.parse.outputs.should_deploy == 'true'
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
         id: get-docker-token
         uses: ./.github/actions/authenticate-apim-docker
         env:
           PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
         with:
           access_token: ${{ steps.get-token.outputs.access_token }}
-          api_name: ${{ steps.parse.outputs.service }}
+          api_name: ${{ inputs.parsed_service }}
 
       - name: Re-tag sandbox image
-        if: steps.parse.outputs.should_deploy == 'true'
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}
-          API_NAME: ${{ steps.parse.outputs.service }}
-          REMOTE_NAME: ${{ steps.parse.outputs.service }}
+          API_NAME: ${{ inputs.parsed_service }}
+          REMOTE_NAME: ${{ inputs.parsed_service }}
           REMOTE_TAG: ${{ inputs.commit_hash }}
-          VERSION_TAG: ${{ steps.parse.outputs.version }}
+          VERSION_TAG: ${{ inputs.parsed_version }}
         run: make re-tag
 
       - name: Deploy API Specification
-        if: steps.parse.outputs.should_deploy == 'true'
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
         uses: ./.github/actions/deploy-to-apim
         with:
-          api_name: ${{ steps.parse.outputs.service }}
+          api_name: ${{ inputs.parsed_service }}
           workspace: ${{ inputs.workspace }}
           environment: ${{ inputs.environment }}
-          apim_env: ${{ steps.parse.outputs.sandbox_environment }}
+          apim_env: ${{ inputs.parsed_sandbox_environment }}
           access_token: ${{ steps.get-token.outputs.access_token }}
           proxygen_url: ${{ secrets.PROXYGEN_URL }}
-          version_tag: ${{ steps.parse.outputs.version }}
+          version_tag: ${{ inputs.parsed_version }}
 
       - name: Deployment Summary
-        if: steps.parse.outputs.should_deploy == 'true'
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
         run: |
           echo "### Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API Name | \`${{ steps.parse.outputs.service }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | \`${{ inputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | \`${{ steps.parse.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Name | \`${{ inputs.parsed_service }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ inputs.parsed_sandbox_environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ inputs.parsed_version }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | Success |" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify on failure
