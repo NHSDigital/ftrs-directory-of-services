@@ -20,7 +20,7 @@ runs:
         GITHUB_REF_NAME: ${{ inputs.ref_name }}
         GITHUB_REF_TYPE: ${{ inputs.ref_type }}
         GITHUB_SHA: ${{ inputs.commit_sha }}
-      run: bash .github/workflows/parse-apim-sandbox-tag.sh
+      run: .github/workflows/parse-apim-sandbox-tag.sh
 
     - name: Ensure tag indicates deployment
       if: steps.parse.outputs.should_deploy != 'true'
