@@ -49,7 +49,8 @@ ensure_commit_on_branch() {
   fi
 
   for remote_ref in "${candidates[@]}"; do
-    if git merge-base --is-ancestor "${remote_ref}" "${GITHUB_SHA}" >/dev/null 2>&1; then
+    # Correct check: is the tag commit an ancestor of the remote branch tip?
+    if git merge-base --is-ancestor "${GITHUB_SHA}" "${remote_ref}" >/dev/null 2>&1; then
       info "Tag commit verified on branch '${remote_ref}'"
       return 0
     fi
@@ -100,6 +101,7 @@ else
   fail_and_exit "Tag '${TAG}' does not match <environment>-<service>-<version>"
 fi
 
+# write outputs
 echo "sandbox_environment=${sandbox_environment}" >> "$GITHUB_OUTPUT"
 echo "service=${service}" >> "$GITHUB_OUTPUT"
 echo "version=${version}" >> "$GITHUB_OUTPUT"

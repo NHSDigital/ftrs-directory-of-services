@@ -27,35 +27,10 @@ jobs:
       sandbox_version: ${{ steps.parse.outputs.version }}
       sandbox_should_deploy: ${{ steps.parse.outputs.should_deploy }}
     steps:
-      - name: Pre-checkout debug
-        shell: bash
-        run: |
-          echo "Starting checkout step"
-
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Post-checkout debug
-        shell: bash
-        run: |
-          echo "Checkout complete. Current commit:"
-          git --no-pager log -1 --pretty=oneline || true
-          echo "Listing top-level:"; ls -la || true
-
-      - name: Debug parse action files
-        shell: bash
-        run: |
-          echo "PWD: $(pwd)"
-          echo "Listing action directory:"
-          ls -la .github/actions/parse-apim-sandbox-tag || true
-          echo "Contents of action.yml:"
-          sed -n '1,200p' .github/actions/parse-apim-sandbox-tag/action.yml || true
-          echo "Listing parse script:"
-          ls -la .github/workflows/parse-apim-sandbox-tag.sh || true
-          echo "First lines of parse script:"
-          sed -n '1,200p' .github/workflows/parse-apim-sandbox-tag.sh || true
 
       - name: Parse tag
         id: parse
