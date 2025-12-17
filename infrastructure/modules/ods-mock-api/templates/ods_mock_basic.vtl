@@ -1,62 +1,66 @@
-## VTL Template for ODS API Mock - Returns status code for routing and response data
+## VTL Template for ODS API Mock - Returns FHIR responses directly
 #set($lastUpdated = $input.params('_lastUpdated'))
+#if(!$lastUpdated)
+    #set($lastUpdated = "")
+#end
+## Sanitize input - only allow alphanumeric, hyphens, and underscores
+#if($lastUpdated.matches("[a-zA-Z0-9_-]+"))
+    #set($safeLastUpdated = $lastUpdated)
+#else
+    #set($safeLastUpdated = "invalid")
+#end
 
-#if($lastUpdated == "2024-05-12")
+#if($safeLastUpdated == "2024-05-12")
 {
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "id": "1e47263e-db8c-4f25-8e31-3bf408bfde64",
-        "meta": {
-            "lastUpdated": "2025-11-17T18:28:19.885+00:00"
-        },
-        "type": "searchset",
-        "total": 0,
-        "link": [{
-            "relation": "self",
-            "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2024-05-12"
-        }]
-    }
+    "resourceType": "Bundle",
+    "id": "1e47263e-db8c-4f25-8e31-3bf408bfde64",
+    "meta": {
+        "lastUpdated": "2025-11-17T18:28:19.885+00:00"
+    },
+    "type": "searchset",
+    "total": 0,
+    "link": [{
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2024-05-12"
+    }]
 }
-#elseif($lastUpdated == "2025-10-01")
+#elseif($safeLastUpdated == "2025-10-01")
 {
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "id": "befa3684-518d-4e67-a83e-978db11a539f",
-        "meta": {
-            "lastUpdated": "2025-11-17T18:32:16.814+00:00"
-        },
-        "type": "searchset",
-        "link": [{
-            "relation": "self",
-            "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
-        }],
-        "entry": [{
-            "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
-            "resource": {
-                "resourceType": "Organization",
-                "id": "Y02578",
-                "meta": {
-                    "versionId": "5",
-                    "lastUpdated": "2025-10-01T01:07:17.412+00:00",
-                    "source": "#d1490690d38fb53b",
-                    "profile": [
-                        "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
-                        "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
-                    ],
-                    "legacySystemId": "DUMMY123"
-                },
-                "identifier": [{
-                    "use": "official",
-                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                    "value": "TEST123",
-                    "assigner": {
-                        "display": "NHS BUSINESS SERVICES AUTHORITY"
-                    }
-                }],
-                "unexpected": "value",
-                "active": true,
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+        "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [{
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+    }],
+    "entry": [{
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "resource": {
+            "resourceType": "Organization",
+            "id": "Y02578",
+            "meta": {
+                "versionId": "5",
+                "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+                "source": "#d1490690d38fb53b",
+                "profile": [
+                    "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
+                    "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
+                ],
+                "legacySystemId": "DUMMY123"
+            },
+            "identifier": [{
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "TEST123",
+                "assigner": {
+                    "display": "NHS BUSINESS SERVICES AUTHORITY"
+                }
+            }],
+            "unexpected": "value",
+            "active": true,
                 "type": [{
                     "coding": [{
                         "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSRecordUseType",
@@ -70,7 +74,7 @@
                         "display": "HSCOrg"
                     }]
                 }],
-                "name": "DUMMY TEST MEDICAL CENTRE",
+            "name": "DUMMY TEST MEDICAL CENTRE",
                 "customField": "unexpected_data",
                 "internalNotes": "This should not be here",
                 "invalidExtension": {
@@ -108,137 +112,122 @@
         }]
     }
 }
-#elseif($lastUpdated == "empty_payload_test")
+#elseif($safeLastUpdated == "empty_payload_test")
 {
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "id": "3fda5a9c-2d49-48ee-be14-86f22c89c43d",
-        "meta": {
-            "lastUpdated": "2025-11-17T18:11:54.850+00:00"
-        },
-        "type": "searchset",
-        "total": 0,
-        "link": [{
-            "relation": "self",
-            "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
-        }]
-    }
+    "resourceType": "Bundle",
+    "id": "3fda5a9c-2d49-48ee-be14-86f22c89c43d",
+    "meta": {
+        "lastUpdated": "2025-11-17T18:11:54.850+00:00"
+    },
+    "type": "searchset",
+    "total": 0,
+    "link": [{
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
+    }]
 }
-#elseif($lastUpdated == "missing_fields_test")
+#elseif($safeLastUpdated == "missing_fields_test")
 {
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "id": "befa3684-518d-4e67-a83e-978db11a539f",
-        "meta": {
-            "lastUpdated": "2025-11-17T18:32:16.814+00:00"
-        },
-        "type": "searchset",
-        "link": [{
-            "relation": "self",
-            "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
-        }],
-        "entry": [{
-            "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/TEST456",
-            "resource": {
-                "meta": {
-                    "versionId": "1",
-                    "lastUpdated": "2025-01-01T01:00:00.000+00:00",
-                    "source": "#dummy123456",
-                    "profile": [
-                        "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
-                        "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
-                    ]
-                },
-                "identifier": [{
-                    "use": "official",
-                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                    "value": "TEST456"
-                }],
-                "active": true,
-                "name": "DUMMY TEST ORGANIZATION"
-            }
-        }]
-    }
-}
-#elseif($lastUpdated == "invalid_types_test")
-{
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "id": "befa3684-518d-4e67-a83e-978db11a539f",
-        "meta": {
-            "lastUpdated": "2025-11-17T18:32:16.814+00:00"
-        },
-        "type": "searchset",
-        "link": [{
-            "relation": "self",
-            "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
-        }],
-        "entry": [{
-            "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/TEST789",
-            "resource": {
-                "resourceType": "Organization",
-                "id": "TEST789",
-                "meta": {
-                    "versionId": "1",
-                    "lastUpdated": "2025-01-01T01:00:00.000+00:00"
-                },
-                "identifier": [{
-                    "use": "official",
-                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                    "value": "TEST789"
-                }],
-                "active": "true",
-                "name": "DUMMY INVALID TYPES ORG",
-                "telecom": [{
-                    "system": "phone",
-                    "value": "0000 999999",
-                    "period": {
-                        "start": 1609459200
-                    }
-                }]
-            }
-        }]
-    }
-}
-#elseif($lastUpdated == "unauthorized")
-{
-    "statusCode": 401,
-    "body": {
-        "resourceType": "OperationOutcome",
-        "meta": {
-            "lastUpdated": "2025-11-17T18:16:18.465+00:00"
-        },
-        "issue": [{
-            "severity": "error",
-            "code": "security",
-            "details": {
-                "coding": [{
-                    "system": "https://fhir.nhs.uk/CodeSystem/http-error-codes",
-                    "code": "ACCESS_DENIED",
-                    "display": "Access has been denied to process this request"
-                }],
-                "text": "Access Denied"
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+        "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [{
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+    }],
+    "entry": [{
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/TEST456",
+        "resource": {
+            "meta": {
+                "versionId": "1",
+                "lastUpdated": "2025-01-01T01:00:00.000+00:00",
+                "source": "#dummy123456",
+                "profile": [
+                    "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
+                    "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
+                ]
             },
-            "diagnostics": "NHSD-APIGW-FAULT: 9001: Request validation failed",
-            "expression": ["Organization"]
-        }]
-    }
+            "identifier": [{
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "TEST456"
+            }],
+            "active": true,
+            "name": "DUMMY TEST ORGANIZATION"
+        }
+    }]
+}
+#elseif($safeLastUpdated == "invalid_types_test")
+{
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+        "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [{
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+    }],
+    "entry": [{
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/TEST789",
+        "resource": {
+            "resourceType": "Organization",
+            "id": "TEST789",
+            "meta": {
+                "versionId": "1",
+                "lastUpdated": "2025-01-01T01:00:00.000+00:00"
+            },
+            "identifier": [{
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "TEST789"
+            }],
+            "active": "true",
+            "name": "DUMMY INVALID TYPES ORG",
+            "telecom": [{
+                "system": "phone",
+                "value": "0000 999999",
+                "period": {
+                    "start": 1609459200
+                }
+            }]
+        }
+    }]
+}
+#elseif($safeLastUpdated == "unauthorized")
+{
+    "resourceType": "OperationOutcome",
+    "meta": {
+        "lastUpdated": "2025-11-17T18:16:18.465+00:00"
+    },
+    "issue": [{
+        "severity": "error",
+        "code": "security",
+        "details": {
+            "coding": [{
+                "system": "https://fhir.nhs.uk/CodeSystem/http-error-codes",
+                "code": "ACCESS_DENIED",
+                "display": "Access has been denied to process this request"
+            }],
+            "text": "Access Denied"
+        },
+        "diagnostics": "NHSD-APIGW-FAULT: 9001: Request validation failed",
+        "expression": ["Organization"]
+    }]
 }
 #else
 {
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "total": 0,
-        "link": [{
-            "relation": "self",
-            "url": "https://upstream.api/organization?_lastUpdated=$lastUpdated"
-        }],
-        "entry": []
-    }
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 0,
+    "link": [{
+        "relation": "self",
+        "url": "https://upstream.api/organization?_lastUpdated=$safeLastUpdated"
+    }],
+    "entry": []
 }
 #end

@@ -15,6 +15,10 @@ resource "aws_api_gateway_rest_api" "ods_mock" {
   }
 }
 
+locals {
+  vtl_template = file("${path.module}/templates/ods_mock_basic.vtl")
+}
+
 resource "aws_api_gateway_request_validator" "validator" {
   rest_api_id                 = aws_api_gateway_rest_api.ods_mock.id
   name                        = "${var.api_gateway_name}-validator"
@@ -121,7 +125,7 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   }
 
   response_templates = {
-    "application/json" = "$input.json('$.body')"
+    "application/json" = "$input.json('$')"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
