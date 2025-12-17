@@ -61,7 +61,7 @@ resource "aws_api_gateway_integration" "organization_get_mock" {
   type = "MOCK"
 
   request_templates = {
-    "application/json" = local.vtl_template
+    "application/fhir+json" = file(local.vtl_template_path)
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_api_gateway_method_response" "organization_get_200" {
   }
 
   response_models = {
-    "application/json" = "Empty"
+    "application/fhir+json" = "Empty"
   }
 }
 
@@ -91,7 +91,7 @@ resource "aws_api_gateway_method_response" "organization_get_401" {
   }
 
   response_models = {
-    "application/json" = "Empty"
+    "application/fhir+json" = "Empty"
   }
 }
 
@@ -106,7 +106,7 @@ resource "aws_api_gateway_method_response" "organization_get_500" {
   }
 
   response_models = {
-    "application/json" = "Empty"
+    "application/fhir+json" = "Empty"
   }
 }
 
@@ -121,7 +121,7 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   }
 
   response_templates = {
-    "application/json" = "$input.json('$.body')"
+    "application/fhir+json" = "$input.json('$.body')"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
@@ -139,7 +139,7 @@ resource "aws_api_gateway_integration_response" "organization_get_401" {
   }
 
   response_templates = {
-    "application/json" = "$input.json('$.body')"
+    "application/fhir+json" = "$input.json('$.body')"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
@@ -157,7 +157,7 @@ resource "aws_api_gateway_integration_response" "organization_get_500" {
   }
 
   response_templates = {
-    "application/json" = "$input.json('$.body')"
+    "application/fhir+json" = "$input.json('$.body')"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
@@ -173,7 +173,7 @@ resource "aws_api_gateway_deployment" "ods_mock" {
   ]
 
   triggers = {
-    redeployment = sha256(local.vtl_template)
+    redeployment = sha256(file(local.vtl_template_path))
     timestamp    = timestamp()
   }
 
