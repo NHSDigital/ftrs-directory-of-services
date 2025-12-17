@@ -23,7 +23,7 @@ def lambda_handler(event: dict, context: dict) -> None:
     # Use the optimized DatabaseConfig object
     dms_config = DmsDatabaseConfig()
     target_db_config = dms_config.get_target_rds_config()
-    source_db_config = dms_config.get_source_db_config()
+    source_db_config = dms_config.get_source_rds_config()
     rds_username, rds_password = dms_config.get_dms_user_details()
 
     # Connect to the RDS instance using the optimized engine creation
