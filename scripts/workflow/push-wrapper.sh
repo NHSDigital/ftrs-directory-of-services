@@ -7,7 +7,7 @@ err() { printf '[push-wrapper] ERROR: %s\n' "$1" >&2; }
 
 usage() {
   cat <<'EOF' >&2
-Usage: push-wrapper.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
+Usage: push-wrapper.sh <api-name> <local-image> <remote-image-name> <remote-image-tag> [version-tag]
 
 Reads DOCKER_TOKEN from the environment and invokes push-to-ecr.sh with the
 provided metadata.
@@ -17,8 +17,7 @@ Environment (optional):
   LOCAL_IMAGE    (used if the second positional argument is omitted)
   REMOTE_NAME    (used if the third positional argument is omitted)
   REMOTE_TAG     (used if the fourth positional argument is omitted)
-  ENVIRONMENT    (must be set)
-  AWS_REGION     (must be set)
+  VERSION_TAG    (used if the fifth positional argument is omitted)
   DOCKER_TOKEN   (must be set)
 
 EOF
@@ -29,8 +28,7 @@ API_NAME="${1:-${API_NAME:-}}"
 LOCAL_IMAGE="${2:-${LOCAL_IMAGE:-}}"
 REMOTE_NAME="${3:-${REMOTE_NAME:-}}"
 REMOTE_TAG="${4:-${REMOTE_TAG:-}}"
-ENVIRONMENT="${ENVIRONMENT:-}"
-AWS_REGION="${AWS_REGION:-}"
+VERSION_TAG="${5:-${VERSION_TAG:-}}"
 DOCKER_TOKEN="${DOCKER_TOKEN:-}"
 
 if [ -z "$API_NAME" ] || [ -z "$LOCAL_IMAGE" ] || [ -z "$REMOTE_NAME" ] || [ -z "$REMOTE_TAG" ]; then
@@ -49,8 +47,6 @@ if [ ! -x "$PUSH_SCRIPT" ]; then
 fi
 
 export DOCKER_TOKEN
-export ENVIRONMENT
-export AWS_REGION
 
 log "Invoking push script"
-exec "$PUSH_SCRIPT" "$API_NAME" "$LOCAL_IMAGE" "$REMOTE_NAME" "$REMOTE_TAG"
+exec "$PUSH_SCRIPT" "$API_NAME" "$LOCAL_IMAGE" "$REMOTE_NAME" "$REMOTE_TAG" "$VERSION_TAG"

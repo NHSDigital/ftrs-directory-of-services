@@ -6,7 +6,7 @@ log(){ printf '[push-to-ecr] %s\n' "$1"; }
 die(){ printf '[push-to-ecr] ERROR: %s\n' "$1" >&2; exit 1; }
 
 usage(){ cat >&2 <<'EOF'
-Usage: push-to-ecr.sh <api-name> <local-image> <remote-image-name> <remote-image-tag>
+Usage: push-to-ecr.sh <api-name> <local-image> <remote-image-name> <remote-image-tag> [version-tag]
 
 Examples:
   DOCKER_TOKEN=$(printf '%s' '{"user":"example","password":"secret","registry":"https://1234567890.dkr.ecr.eu-west-2.amazonaws.com"}' | base64) \
@@ -49,11 +49,22 @@ retry_push(){
   done
 }
 
+retry_pull(){
+  local image="$1" attempt=1 retries=$(( ${PULL_RETRIES:-3} ))
+  until docker pull "$image"; do
+    if (( attempt >= retries )); then die "docker pull $image failed after $retries attempts"; fi
+    log "pull $image failed (attempt $attempt), retrying..."
+    sleep $(( attempt * 2 ))
+    attempt=$(( attempt + 1 ))
+  done
+}
+
 init(){
   API_NAME="${1:-}"
   LOCAL_IMAGE="${2:-}"
   REMOTE_IMAGE_NAME="${3:-}"
   REMOTE_IMAGE_TAG="${4:-}"
+  VERSION_TAG="${5:-}"
   PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
   [ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
 }
@@ -93,12 +104,29 @@ docker_login(){
   printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
 }
 
+remote_image_ref(){
+  local tag="$1"
+  printf '%s/%s:%s' "$REGISTRY_HOST" "$REMOTE_IMAGE_NAME" "$tag"
+}
+
 push_image(){
-  REMOTE_COMMIT_TAG="${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}"
+  REMOTE_COMMIT_TAG="$(remote_image_ref "$REMOTE_IMAGE_TAG")"
   log "Tagging $LOCAL_IMAGE as $REMOTE_COMMIT_TAG"
   docker tag "$LOCAL_IMAGE" "$REMOTE_COMMIT_TAG"
   retry_push "$REMOTE_COMMIT_TAG"
   log "Image pushed successfully to ${REMOTE_COMMIT_TAG}"
+}
+
+re_tag_image(){
+  [ -n "${VERSION_TAG:-}" ] || return 0
+  local source_ref="$(remote_image_ref "$REMOTE_IMAGE_TAG")"
+  local version_ref="$(remote_image_ref "$VERSION_TAG")"
+  log "Re-tagging ${source_ref} as ${version_ref}"
+  log "Pulling ${source_ref} from remote registry"
+  retry_pull "$source_ref"
+  docker tag "$source_ref" "$version_ref"
+  retry_push "$version_ref"
+  log "Version tag pushed successfully to ${version_ref}"
 }
 
 fetch_manifest_header(){
@@ -108,23 +136,36 @@ fetch_manifest_header(){
 
 print_manifest_metadata(){
   log "Accessing repository via Docker Registry HTTP API: ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}"
-  DIGEST=$(fetch_manifest_header || true)
+  local manifest_tag
+  if [ -n "${VERSION_TAG:-}" ]; then
+    manifest_tag="${VERSION_TAG}"
+  else
+    manifest_tag="${REMOTE_IMAGE_TAG}"
+  fi
+
+  DIGEST=$(REMOTE_IMAGE_TAG="$manifest_tag" fetch_manifest_header || true)
   if [ -z "${DIGEST:-}" ]; then
-    die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG} via manifest header"
+    die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${manifest_tag} via manifest header"
   fi
   DIGEST="${DIGEST#sha256:}"
   DIGEST="sha256:${DIGEST}"
   log "Verified that pushed image exists in repository"
   printf '\n%-40s %s\n' "IMAGE" "DIGEST"
   printf '%-40s %s\n' "----------------------------------------" "----------------------------------------------------------------"
-  printf '%-40s %s\n' "${REMOTE_IMAGE_NAME}:${REMOTE_IMAGE_TAG}" "${DIGEST}"
+  printf '%-40s %s\n' "${REMOTE_IMAGE_NAME}:${manifest_tag}" "${DIGEST}"
 }
 
 main(){
   init "$@"
   fetch_proxygen_registry_credentials
   docker_login
-  push_image
+  if [ -z "${VERSION_TAG:-}" ]; then
+    push_image
+    log "No version tag supplied; skipping re-tag"
+  else
+    log "Version tag supplied; skipping commit-tag push and re-tagging existing image"
+    re_tag_image
+  fi
   print_manifest_metadata
 }
 
