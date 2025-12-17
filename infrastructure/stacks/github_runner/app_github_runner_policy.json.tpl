@@ -149,7 +149,7 @@
             "Resource": "*"
         },
         {
-            "Sid": "KMSServicesLimitedAccess"
+            "Sid": "KMSServicesLimitedAccess",
             "Effect": "Allow",
             "Action": [
                 "kms:Encrypt",
