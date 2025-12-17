@@ -56,5 +56,3 @@ requirements/user-stories/backlog/jira/
 # Local secrets (do not commit)
 scripts/nfr/confluence_secrets.sh
 scripts/nfr/confluence_env.sh
-
-requirements/user-stories/backlog/jira/

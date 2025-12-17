@@ -2,17 +2,17 @@
 """Attach story IDs to controls and operations in domain nfrs.yaml files.
 
 - Scans requirements/user-stories/backlog/*.md for front matter:
-  - story_id: STORY-XXX-###
-  - nfr_refs: [CODE,...]
+    - story_id: STORY-XXX-###
+    - nfr_refs: [CODE,...]
 - Derives a slug from filename after the story id, e.g.:
-  STORY-SEC-008-port-scan-diagnostic-only.md -> control_id 'port-scan-diagnostic-only'
-  FTRS-887-dos-search.md -> operation_id 'dos-search'
+    STORY-SEC-008-port-scan-diagnostic-only.md -> control_id 'port-scan-diagnostic-only'
+    FTRS-887-dos-search.md -> operation_id 'dos-search'
 
 For each domain nfrs.yaml:
 - If NFR code is in a story's nfr_refs, and a control_id matches the slug,
-  append the story_id to that control's stories list (deduped).
+    append the story_id to that control's stories list (deduped).
 - For performance domain, if any operation_id matches the slug, append story_id
-  to that operation's stories list (deduped).
+    to that operation's stories list (deduped).
 
 Idempotent and safe: preserves existing entries, only adds missing story_ids.
 """
