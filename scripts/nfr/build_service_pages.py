@@ -104,7 +104,8 @@ def load_jira_titles() -> Dict[str, str]:
         return titles
     for path in cache_dir.glob("FTRS-*.md"):
         try:
-            first = path.read_text(encoding="utf-8").splitlines()[0].strip()
+            with path.open("r", encoding="utf-8", errors="ignore") as f:
+                first = f.readline(4096).strip()
         except Exception:
             continue
         m = re.match(r"^#\s*(FTRS-\d+)\s+[\u2013\-]\s+(.*)$", first)
@@ -126,12 +127,25 @@ def format_story_list(keys: List[str], titles: Dict[str, str]) -> str:
     return ", ".join(items)
 
 def get_jira_titles(keys: List[str]) -> Dict[str, str]:
+    """Return titles for keys using local cache; optionally fetch a limited number via Jira.
+
+    Network fetch is disabled by default to keep generators fast and deterministic.
+    Enable with env JIRA_FETCH_TITLES=true and optionally cap with JIRA_FETCH_LIMIT (int).
+    """
     titles = load_jira_titles()
-    need = [k for k in keys if k not in titles]
-    if not need:
+    need_all = [k for k in keys if k not in titles]
+    # Fast path: no missing or fetching disabled
+    import os
+    fetch_enabled = str(os.getenv("JIRA_FETCH_TITLES", "false")).lower() in ("1","true","yes","on")
+    if not need_all or not fetch_enabled:
         return titles
+    # Respect cap
     try:
-        import os
+        cap = int(os.getenv("JIRA_FETCH_LIMIT", "25"))
+    except Exception:
+        cap = 25
+    need = need_all[: max(0, cap)]
+    try:
         try:
             import requests  # type: ignore
         except Exception:
@@ -150,7 +164,12 @@ def get_jira_titles(keys: List[str]) -> Dict[str, str]:
             headers["Authorization"] = "Basic " + base64.b64encode(f"{user}:{token}".encode("utf-8")).decode("ascii")
         for k in need:
             try:
-                resp = requests.get(f"{base}/rest/api/2/issue/{k}", headers=headers, params={"fields": "summary"}, timeout=20)
+                resp = requests.get(
+                    f"{base}/rest/api/2/issue/{k}",
+                    headers=headers,
+                    params={"fields": "summary"},
+                    timeout=8,
+                )
                 if resp.status_code == 200:
                     data = resp.json() or {}
                     summary = ((data.get("fields") or {}).get("summary") or "").strip()
@@ -758,7 +777,7 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
             # Optional domain-level sources (e.g., original Confluence pages)
             dom_sources = domain_sources.get(dom, [])
             if dom_sources:
-                dmd.append("### Domain Sources")
+                dmd.append("## Domain Sources")
                 _append_blank_line(dmd)
                 for s in dom_sources:
                     dmd.append(f"- [{s['title']}]({s['url']})")

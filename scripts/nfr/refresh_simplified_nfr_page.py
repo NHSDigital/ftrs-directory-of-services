@@ -78,7 +78,8 @@ def load_jira_titles() -> dict[str, str]:
         return titles
     for path in cache_dir.glob("FTRS-*.md"):
         try:
-            first = path.read_text(encoding="utf-8").splitlines()[0].strip()
+            with path.open("r", encoding="utf-8", errors="ignore") as f:
+                first = f.readline(4096).strip()
         except Exception:
             continue
         m = re.match(r"^#\s*(FTRS-\d+)\s+[\u2013\-]\s+(.*)$", first)
@@ -105,17 +106,23 @@ def format_story_list(keys: list[str], titles: dict[str, str]) -> str:
     return ", ".join(items)
 
 def get_jira_titles(keys: list[str]) -> dict[str, str]:
-    """Return titles for keys, preferring local cache; fetch missing from Jira.
+    """Return titles using local cache; optionally fetch a limited number via Jira.
 
-    Uses env vars: JIRA_BASE_URL, JIRA_AUTH (basic|bearer), JIRA_USER, JIRA_TOKEN.
-    Network fetch is best-effort and silently ignored if unavailable.
+    Disabled by default for speed. Enable with JIRA_FETCH_TITLES=true and
+    optionally cap with JIRA_FETCH_LIMIT (default 25). Short timeouts used.
     """
     titles = load_jira_titles()
-    need = [k for k in keys if k not in titles]
-    if not need:
+    import os
+    missing_all = [k for k in keys if k not in titles]
+    fetch_enabled = str(os.getenv("JIRA_FETCH_TITLES", "false")).lower() in ("1","true","yes","on")
+    if not missing_all or not fetch_enabled:
         return titles
     try:
-        import os
+        cap = int(os.getenv("JIRA_FETCH_LIMIT", "25"))
+    except Exception:
+        cap = 25
+    missing = missing_all[: max(0, cap)]
+    try:
         try:
             import requests  # type: ignore
         except Exception:
@@ -132,9 +139,14 @@ def get_jira_titles(keys: list[str]) -> dict[str, str]:
         else:
             import base64
             headers["Authorization"] = "Basic " + base64.b64encode(f"{user}:{token}".encode("utf-8")).decode("ascii")
-        for k in need:
+        for k in missing:
             try:
-                resp = requests.get(f"{base}/rest/api/2/issue/{k}", headers=headers, params={"fields": "summary"}, timeout=20)
+                resp = requests.get(
+                    f"{base}/rest/api/2/issue/{k}",
+                    headers=headers,
+                    params={"fields": "summary"},
+                    timeout=8,
+                )
                 if resp.status_code == 200:
                     data = resp.json() or {}
                     summary = ((data.get("fields") or {}).get("summary") or "").strip()

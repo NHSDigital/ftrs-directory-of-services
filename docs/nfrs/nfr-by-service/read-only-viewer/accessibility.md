@@ -4,7 +4,7 @@ Source: docs/nfrs/nfr-by-domain/* (derived)
 
 This page is auto-generated; do not hand-edit.
 
-### Domain Sources
+## Domain Sources
 
 - [Accessibility NFRs – Original Confluence Page](https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471135/Accessibility)
 

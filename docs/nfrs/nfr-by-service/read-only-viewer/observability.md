@@ -4,7 +4,7 @@ Source: docs/nfrs/nfr-by-domain/* (derived)
 
 This page is auto-generated; do not hand-edit.
 
-### Domain Sources
+## Domain Sources
 
 - [Observability NFRs – Original Confluence Page](https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066470827/Observability+Monitoring+Metrics+Dashboards+and+Alerting)
 
