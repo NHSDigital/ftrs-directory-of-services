@@ -1,10 +1,10 @@
-## VTL Template for ODS API Mock - Returns Actual Upstream API Response Formats
-## Simulates real upstream API responses that lambda will process and convert to 422 errors
+## VTL Template for ODS API Mock - Returns status code for routing and response data
 #set($lastUpdated = $input.params('_lastUpdated'))
 
 #if($lastUpdated == "2024-05-12")
-    ## Matches error_request_too_old_payload.json - Empty Bundle for old requests
-    {
+{
+    "statusCode": 200,
+    "body": {
         "resourceType": "Bundle",
         "id": "1e47263e-db8c-4f25-8e31-3bf408bfde64",
         "meta": {
@@ -17,9 +17,11 @@
             "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2024-05-12"
         }]
     }
+}
 #elseif($lastUpdated == "2025-10-01")
-    ## Matches error_extra_unexpected_field.json - Bundle with Organization containing unexpected fields
-    {
+{
+    "statusCode": 200,
+    "body": {
         "resourceType": "Bundle",
         "id": "befa3684-518d-4e67-a83e-978db11a539f",
         "meta": {
@@ -105,9 +107,11 @@
             }
         }]
     }
+}
 #elseif($lastUpdated == "empty_payload_test")
-    ## Matches error_empty_payload.json - Empty Bundle
-    {
+{
+    "statusCode": 200,
+    "body": {
         "resourceType": "Bundle",
         "id": "3fda5a9c-2d49-48ee-be14-86f22c89c43d",
         "meta": {
@@ -120,9 +124,11 @@
             "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
         }]
     }
+}
 #elseif($lastUpdated == "missing_fields_test")
-    ## Matches error_missing_required_fields.json - Bundle with Organization missing resourceType and id
-    {
+{
+    "statusCode": 200,
+    "body": {
         "resourceType": "Bundle",
         "id": "befa3684-518d-4e67-a83e-978db11a539f",
         "meta": {
@@ -155,9 +161,11 @@
             }
         }]
     }
+}
 #elseif($lastUpdated == "invalid_types_test")
-    ## Matches error_invalid_data_types.json - Bundle with Organization with invalid data types
-    {
+{
+    "statusCode": 200,
+    "body": {
         "resourceType": "Bundle",
         "id": "befa3684-518d-4e67-a83e-978db11a539f",
         "meta": {
@@ -194,10 +202,11 @@
             }
         }]
     }
+}
 #elseif($lastUpdated == "unauthorized")
-    #set($context.responseOverride.status = 401)
-    ## Matches error_unauthorized.json - OperationOutcome for unauthorized access
-    {
+{
+    "statusCode": 401,
+    "body": {
         "resourceType": "OperationOutcome",
         "meta": {
             "lastUpdated": "2025-11-17T18:16:18.465+00:00"
@@ -217,9 +226,11 @@
             "expression": ["Organization"]
         }]
     }
+}
 #else
-    ## Default successful response from upstream API
-    {
+{
+    "statusCode": 200,
+    "body": {
         "resourceType": "Bundle",
         "type": "searchset",
         "total": 0,
@@ -229,4 +240,5 @@
         }],
         "entry": []
     }
+}
 #end
