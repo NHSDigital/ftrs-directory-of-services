@@ -49,7 +49,22 @@ fail_and_exit() {
 
 ensure_commit_on_branch() {
   local glob="$1"
-  git fetch origin --depth=1 --quiet || true
+  # fetch remote heads so we can compare ancestry reliably
+  git fetch --no-tags origin "+refs/heads/*:refs/remotes/origin/*" --quiet || true
+
+  # resolve tag commit (handles annotated tags); fallback to GITHUB_SHA if not available
+  TAG_COMMIT=""
+  if git rev-parse --verify "refs/tags/${TAG}^{commit}" >/dev/null 2>&1; then
+    TAG_COMMIT=$(git rev-parse --verify "refs/tags/${TAG}^{commit}")
+  elif [[ -n "${GITHUB_SHA:-}" ]]; then
+    TAG_COMMIT="${GITHUB_SHA}"
+  fi
+
+  if [[ -z "${TAG_COMMIT}" ]]; then
+    fail_and_exit "Could not resolve tag commit for '${TAG}'"
+  fi
+
+  info "Checking ancestry for tag commit ${TAG_COMMIT} against remote branches matching '${glob}'"
 
   local candidates=()
   while IFS= read -r ref_name; do
@@ -61,9 +76,10 @@ ensure_commit_on_branch() {
   fi
 
   for remote_ref in "${candidates[@]}"; do
-    # Correct check: is the tag commit an ancestor of the remote branch tip?
-    if git merge-base --is-ancestor "${GITHUB_SHA}" "${remote_ref}" >/dev/null 2>&1; then
-      info "Tag commit verified on branch '${remote_ref}'"
+    if git merge-base --is-ancestor "${TAG_COMMIT}" "${remote_ref}" >/dev/null 2>&1; then
+      info "Tag commit ${TAG_COMMIT} is ancestor of branch '${remote_ref}'"
+      # expose which remote_ref matched for debugging
+      echo "matched_remote_ref=${remote_ref}" >> "$GITHUB_OUTPUT"
       return 0
     fi
   done
@@ -131,6 +147,13 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
       echo "### Deployment decision: Skipping deploy"
     fi
   } >> "$GITHUB_STEP_SUMMARY"
+fi
+
+# Also echo the deployment decision to stdout for immediate step logs
+if [[ "${should_deploy}" == "true" ]]; then
+  echo "### Deployment decision: Proceeding with deploy"
+else
+  echo "### Deployment decision: Skipping deploy"
 fi
 
 echo "sandbox_environment=${sandbox_environment}" >> "$GITHUB_OUTPUT"
