@@ -34,13 +34,11 @@ jobs:
 
       - name: Parse tag
         id: parse
-        shell: bash
-        env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_REF_TYPE: ${{ github.ref_type }}
-          GITHUB_SHA: ${{ needs.metadata.outputs.commit_hash }}
-        run: |
-          bash .github/workflows/parse-apim-sandbox-tag.sh
+        uses: ./.github/actions/parse-apim-sandbox-tag
+        with:
+          ref_name: ${{ github.ref_name }}
+          ref_type: ${{ github.ref_type }}
+          commit_sha: ${{ github.sha }}
 
   deploy-proxy-into-apim-sandbox:
     name: >-
