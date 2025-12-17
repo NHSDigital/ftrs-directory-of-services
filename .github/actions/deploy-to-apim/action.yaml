@@ -23,7 +23,6 @@ inputs:
   version_tag:
     description: 'Version applied to the deployed proxy'
     required: false
-    default: ''
 
 outputs:
   deployment_status:
