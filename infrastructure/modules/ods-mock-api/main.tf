@@ -15,10 +15,6 @@ resource "aws_api_gateway_rest_api" "ods_mock" {
   }
 }
 
-locals {
-  vtl_template = file("${path.module}/templates/ods_mock_basic.vtl")
-}
-
 resource "aws_api_gateway_request_validator" "validator" {
   rest_api_id                 = aws_api_gateway_rest_api.ods_mock.id
   name                        = "${var.api_gateway_name}-validator"
