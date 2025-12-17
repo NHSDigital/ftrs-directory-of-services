@@ -65,4 +65,3 @@ Meaning of columns:
 - Rationale: Why the threshold/tool was chosen
 
 Typical validation: tool execution success, threshold met, alert on failure, exception tracked with mitigation & review date.
-

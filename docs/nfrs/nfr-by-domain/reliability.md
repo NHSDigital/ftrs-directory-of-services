@@ -27,4 +27,3 @@ This page is auto-generated; do not hand-edit.
 | REL-015 | LB failure retains sessions & continues routing | Load balancer failure preserves sessions and maintains routing continuity. | (none) |
 | REL-016 | Server error shows logout/message per spec | Server error paths show expected logout or user messaging per specification. | [FTRS-973 500 error responses are not standardized and lack a structured JSON format, impacting clarity and consistency](https://nhsd-jira.digital.nhs.uk/browse/FTRS-973) |
 | REL-017 | Restore drill meets RPO/RTO & ransomware defenses | Restore drills meet RPO/RTO targets and confirm ransomware defenses. | [FTRS-11 Create and Test Disaster Recovery processes to ensure we are able to recover within a time and scope that is acceptable to the business](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-344 Create AWS Backup Plans for FtRS Platform](https://nhsd-jira.digital.nhs.uk/browse/FTRS-344) |
-

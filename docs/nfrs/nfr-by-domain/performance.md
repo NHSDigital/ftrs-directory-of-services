@@ -40,4 +40,3 @@ This page is auto-generated; do not hand-edit.
 | ODS ETL | ODS SQS Batch Send (ods-sqs-batch-send) | 30 | 80 | 200 |  |  |  | draft | (none) | Single AWS API batch request with lightweight payload |
 | Data Migration | Record Transform (dm-record-transform) | 120 | 250 | 800 |  |  |  | draft | (none) | Single legacy record validation + transform + upsert |
 | Data Migration | Full Sync (dm-full-sync) | 1200000 | 1800000 | 2700000 |  |  |  | draft | (none) | End-to-end duration baseline including transform and upserts |
-

@@ -28,4 +28,3 @@ This page is auto-generated; do not hand-edit.
 | INT-016 | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
 | INT-017 | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | [FTRS-1488 Mitigate Input Validation Vulnerabilities for REST & SOAP APIs](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) |
 | INT-018 | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
-

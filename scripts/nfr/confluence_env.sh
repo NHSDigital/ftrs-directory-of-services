@@ -13,10 +13,10 @@
 
 # Localize shell options so sourcing doesn't affect your interactive shell
 confluence_env__apply() {
-	  emulate -L zsh
-	  set -e
-	  set -u
-	  set -o pipefail
+    emulate -L zsh
+    set -e
+    set -u
+    set -o pipefail
 
 # --- Core Confluence config ---
 # Confluence base URL, e.g. https://your-domain.atlassian.net/wiki

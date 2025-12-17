@@ -540,11 +540,10 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
         # Sanitize trailing artifacts: remove stray code fences and collapse trailing blanks
         while lines and (lines[-1].strip() == "" or lines[-1].strip() == "```"):
             lines.pop()
-        # Collapse any accidental multiple blanks before writing
+        # Collapse any accidental multiple blanks before writing and ensure single trailing newline
         lines = _collapse_blank_lines(lines)
-        lines.append("")
-        content = "\n".join(lines) + "\n"
-        # Final safeguard: collapse any 3+ consecutive newlines to 2 (single blank line)
+        content = "\n".join(lines).rstrip() + "\n"
+        # Final safeguard: collapse any 3+ consecutive newlines to a single blank line
         content = re.sub(r"\n{3,}", "\n\n", content)
         fname.write_text(content, encoding="utf-8")
         print(f"Wrote domain page: {fname}")
@@ -778,11 +777,10 @@ def build_output():
     # Sanitize trailing artifacts: remove stray code fences and trailing blanks
     while lines and (lines[-1].strip() == "" or lines[-1].strip() == "```"):
         lines.pop()
-    # Collapse any accidental multiple blanks in the index content
+    # Collapse any accidental multiple blanks in the index content and ensure single trailing newline
     lines = _collapse_blank_lines(lines)
-    lines.append("")
-    content = "\n".join(lines) + "\n"
-    # Final safeguard: collapse any 3+ consecutive newlines to 2 (single blank line)
+    content = "\n".join(lines).rstrip() + "\n"
+    # Final safeguard: collapse any 3+ consecutive newlines to a single blank line
     content = re.sub(r"\n{3,}", "\n\n", content)
     return content
 
