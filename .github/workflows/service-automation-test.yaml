@@ -67,7 +67,7 @@ jobs:
 
       - name: "Cache asdf tools"
         id: asdf-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.asdf
           key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
@@ -77,13 +77,13 @@ jobs:
         uses: asdf-vm/actions/install@v4.0.1
 
       - name: "Cache Poetry dependencies"
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('tests/service_automation/poetry.lock') }}
 
       - name: "Cache Playwright browsers"
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('tests/service_automation/poetry.lock') }}
@@ -115,7 +115,7 @@ jobs:
       - name: Upload allure report
         if: always()
         id: upload_allure_report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: allure-report
           path: tests/service_automation/allure-reports/index.html
