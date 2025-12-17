@@ -74,10 +74,6 @@ resource "aws_api_gateway_method_response" "organization_get_200" {
   response_parameters = {
     "method.response.header.Content-Type" = true
   }
-
-  response_models = {
-    "application/fhir+json" = "Empty"
-  }
 }
 
 resource "aws_api_gateway_method_response" "organization_get_401" {
@@ -89,10 +85,6 @@ resource "aws_api_gateway_method_response" "organization_get_401" {
   response_parameters = {
     "method.response.header.Content-Type" = true
   }
-
-  response_models = {
-    "application/fhir+json" = "Empty"
-  }
 }
 
 resource "aws_api_gateway_method_response" "organization_get_500" {
@@ -103,10 +95,6 @@ resource "aws_api_gateway_method_response" "organization_get_500" {
 
   response_parameters = {
     "method.response.header.Content-Type" = true
-  }
-
-  response_models = {
-    "application/fhir+json" = "Empty"
   }
 }
 
